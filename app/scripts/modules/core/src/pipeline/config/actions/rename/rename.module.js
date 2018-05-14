@@ -4,18 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.actions.rename', [PIPELINE_CONFIG_SERVICE])
-  .controller('RenamePipelineModalCtrl', function(
-    $scope,
-    application,
-    pipeline,
-    $uibModalInstance,
-    $log,
-    pipelineConfigService,
-  ) {
+  .module('spinnaker.core.pipeline.config.actions.rename', [])
+  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, $uibModalInstance, $log) {
     this.cancel = $uibModalInstance.dismiss;
 
     var currentName = pipeline.name;
@@ -31,7 +24,7 @@ module.exports = angular
     this.renamePipeline = function() {
       pipeline.name = $scope.newName;
       $scope.viewState.saving = true;
-      return pipelineConfigService.renamePipeline(application.name, pipeline, currentName, $scope.command.newName).then(
+      return PipelineConfigService.renamePipeline(application.name, pipeline, currentName, $scope.command.newName).then(
         function() {
           $scope.pipeline.name = $scope.command.newName;
           application.pipelineConfigs.refresh();

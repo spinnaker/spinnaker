@@ -1,12 +1,12 @@
 import { mock } from 'angular';
 
 import { API } from 'core/api/ApiService';
-import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
-describe('pipelineConfigService', () => {
-  let service: PipelineConfigService, $http: ng.IHttpBackendService, $scope: ng.IScope;
+describe('PipelineConfigService', () => {
+  let $http: ng.IHttpBackendService, $scope: ng.IScope;
 
   const buildStage = (base: any): IStage => {
     const stageDefaults: IStage = {
@@ -45,20 +45,11 @@ describe('pipelineConfigService', () => {
     return defaults;
   };
 
-  beforeEach(mock.module(PIPELINE_CONFIG_SERVICE));
-
   beforeEach(
-    mock.inject(
-      (
-        pipelineConfigService: PipelineConfigService,
-        $httpBackend: ng.IHttpBackendService,
-        $rootScope: ng.IRootScopeService,
-      ) => {
-        service = pipelineConfigService;
-        $http = $httpBackend;
-        $scope = $rootScope.$new();
-      },
-    ),
+    mock.inject(($httpBackend: ng.IHttpBackendService, $rootScope: ng.IRootScopeService) => {
+      $http = $httpBackend;
+      $scope = $rootScope.$new();
+    }),
   );
 
   describe('savePipeline', () => {
@@ -73,7 +64,7 @@ describe('pipelineConfigService', () => {
 
       $http.expectPOST(API.baseUrl + '/pipelines').respond(200, '');
 
-      service.savePipeline(pipeline);
+      PipelineConfigService.savePipeline(pipeline);
       $scope.$digest();
 
       expect(pipeline.stages[0].name).toBe('explicit name');
@@ -97,7 +88,7 @@ describe('pipelineConfigService', () => {
       ];
       $http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
 
-      service.getPipelinesForApplication('app').then((pipelines: IPipeline[]) => {
+      PipelineConfigService.getPipelinesForApplication('app').then((pipelines: IPipeline[]) => {
         result = pipelines;
       });
       $scope.$digest();
@@ -124,7 +115,7 @@ describe('pipelineConfigService', () => {
         })
         .respond(200, {});
 
-      service.getPipelinesForApplication('app');
+      PipelineConfigService.getPipelinesForApplication('app');
       $scope.$digest();
       $http.flush();
 
@@ -145,11 +136,11 @@ describe('pipelineConfigService', () => {
     };
 
     const expectCandidates = (test: IStage, expected: IStage[]) => {
-      expect(service.getDependencyCandidateStages(pipeline, test)).toEqual(expected);
+      expect(PipelineConfigService.getDependencyCandidateStages(pipeline, test)).toEqual(expected);
     };
 
     const expectDependencies = (test: IStage, expected: IStage[]) => {
-      expect(service.getAllUpstreamDependencies(pipeline, test)).toEqual(expected);
+      expect(PipelineConfigService.getAllUpstreamDependencies(pipeline, test)).toEqual(expected);
     };
 
     beforeEach(() => {

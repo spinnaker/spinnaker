@@ -13,6 +13,7 @@ import { ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config/settings';
 import { IPipelineTemplateConfig, IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
 import { Spinner } from 'core/widgets/spinners/Spinner';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 import { TemplateDescription } from './TemplateDescription';
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
@@ -131,9 +132,10 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     }
 
     this.setState({ submitting: true });
-    ReactInjector.pipelineConfigService
-      .savePipeline(pipelineConfig as IPipeline)
-      .then(() => this.onSaveSuccess(pipelineConfig), this.onSaveFailure);
+    PipelineConfigService.savePipeline(pipelineConfig as IPipeline).then(
+      () => this.onSaveSuccess(pipelineConfig),
+      this.onSaveFailure,
+    );
   };
 
   private submitPipelineTemplateConfig = (): void => {
@@ -154,9 +156,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       },
     };
     this.setState({ submitting: true });
-    ReactInjector.pipelineConfigService
-      .savePipeline(config as IPipeline)
-      .then(() => this.onSaveSuccess(config), this.onSaveFailure);
+    PipelineConfigService.savePipeline(config as IPipeline).then(() => this.onSaveSuccess(config), this.onSaveFailure);
   };
 
   private onSaveSuccess(config: Partial<IPipeline>): void {

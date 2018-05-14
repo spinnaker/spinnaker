@@ -4,7 +4,8 @@ import { SETTINGS } from 'core/config/settings';
 
 import { IPipeline, IStage, IStageTypeConfig } from 'core/domain';
 import { ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
-import { PipelineConfigService } from '../services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+
 import {
   ICustomValidator,
   IPipelineValidationResults,
@@ -27,7 +28,6 @@ describe('pipelineConfigValidator', () => {
     validationResults: IPipelineValidationResults,
     pipelineConfigValidator: PipelineConfigValidator,
     pipelineConfig: any,
-    pipelineConfigService: PipelineConfigService,
     serviceAccountService: ServiceAccountService,
     stageOrTriggerBeforeTypeValidator: StageOrTriggerBeforeTypeValidator,
     $q: ng.IQService;
@@ -82,7 +82,6 @@ describe('pipelineConfigValidator', () => {
       (
         _pipelineConfigValidator_: PipelineConfigValidator,
         _pipelineConfig_: any,
-        _pipelineConfigService_: PipelineConfigService,
         _serviceAccountService_: ServiceAccountService,
         _stageOrTriggerBeforeTypeValidator_: StageOrTriggerBeforeTypeValidator,
         _$q_: ng.IQService,
@@ -90,7 +89,6 @@ describe('pipelineConfigValidator', () => {
       ) => {
         pipelineConfigValidator = _pipelineConfigValidator_;
         pipelineConfig = _pipelineConfig_;
-        pipelineConfigService = _pipelineConfigService_;
         serviceAccountService = _serviceAccountService_;
         stageOrTriggerBeforeTypeValidator = _stageOrTriggerBeforeTypeValidator_;
         $q = _$q_;
@@ -269,7 +267,7 @@ describe('pipelineConfigValidator', () => {
       });
 
       it('checks parent pipeline triggers for match', () => {
-        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
           $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }]),
         );
 
@@ -278,12 +276,12 @@ describe('pipelineConfigValidator', () => {
           [{ type: 'pipeline', application: 'someApp', pipeline: 'abcd' }],
         );
         validate();
-        expect(pipelineConfigService.getPipelinesForApplication).toHaveBeenCalledWith('someApp');
+        expect(PipelineConfigService.getPipelinesForApplication).toHaveBeenCalledWith('someApp');
         expect(validationResults.hasWarnings).toBe(false);
       });
 
       it('caches pipeline configs', () => {
-        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
           $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }]),
         );
 
@@ -293,18 +291,18 @@ describe('pipelineConfigValidator', () => {
         );
 
         validate();
-        expect((pipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
+        expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
 
         validate();
-        expect((pipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
+        expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
 
         stageOrTriggerBeforeTypeValidator.clearCache();
         validate();
-        expect((pipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(2);
+        expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(2);
       });
 
       it('fails if own stages and parent pipeline triggers do not match', () => {
-        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
           $q.when([
             { id: 'abcd', triggers: [{ type: 'not-prereq' }] },
             { id: 'other', triggers: [{ type: 'prereq' }] },
@@ -316,12 +314,12 @@ describe('pipelineConfigValidator', () => {
           [{ type: 'pipeline', application: 'someApp', pipeline: 'abcd' }],
         );
         validate();
-        expect(pipelineConfigService.getPipelinesForApplication).toHaveBeenCalledWith('someApp');
+        expect(PipelineConfigService.getPipelinesForApplication).toHaveBeenCalledWith('someApp');
         expect(validationResults.stages.length).toBe(1);
       });
 
       it('does not check parent triggers unless specified in validator', () => {
-        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
           $q.when([{ id: 'abcd', triggers: [{ type: 'prereq' }] }]),
         );
 
@@ -330,7 +328,7 @@ describe('pipelineConfigValidator', () => {
           [{ type: 'pipeline', application: 'someApp', pipeline: 'abcd' }],
         );
         validate();
-        expect((pipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(0);
+        expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(0);
         expect(validationResults.stages.length).toBe(1);
       });
     });

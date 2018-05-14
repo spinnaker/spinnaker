@@ -8,15 +8,14 @@ import { BASE_EXECUTION_DETAILS_CTRL } from './core/baseExecutionDetails.control
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { EDIT_STAGE_JSON_CONTROLLER } from './core/editStageJson.controller';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
 import { PIPELINE_BAKE_STAGE_CHOOSE_OS } from 'core/pipeline/config/stages/bake/bakeStageChooseOs.component';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
     BASE_EXECUTION_DETAILS_CTRL,
     EDIT_STAGE_JSON_CONTROLLER,
     PIPELINE_CONFIG_PROVIDER,
-    PIPELINE_CONFIG_SERVICE,
     require('./overrideTimeout/overrideTimeout.directive.js').name,
     require('./overrideFailure/overrideFailure.component.js').name,
     require('./optionalStage/optionalStage.directive.js').name,
@@ -48,7 +47,6 @@ module.exports = angular
     $controller,
     $templateCache,
     $uibModal,
-    pipelineConfigService,
     pipelineConfig,
   ) {
     var lastStageScope;
@@ -97,7 +95,7 @@ module.exports = angular
     };
 
     $scope.updateAvailableDependencyStages = function() {
-      var availableDependencyStages = pipelineConfigService.getDependencyCandidateStages($scope.pipeline, $scope.stage);
+      var availableDependencyStages = PipelineConfigService.getDependencyCandidateStages($scope.pipeline, $scope.stage);
       $scope.options.dependencies = availableDependencyStages.map(function(stage) {
         return {
           name: stage.name,

@@ -3,7 +3,6 @@ import { module } from 'angular';
 import { SETTINGS } from 'core/config/settings';
 import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
 import { ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
-import { PIPELINE_CONFIG_SERVICE } from '../services/pipelineConfig.service';
 
 import {
   IStageOrTriggerValidator,
@@ -46,7 +45,7 @@ export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
 }
 
 export const SERVICE_ACCOUNT_ACCESS_VALIDATOR = 'spinnaker.core.pipeline.validation.config.serviceAccountAccess';
-module(SERVICE_ACCOUNT_ACCESS_VALIDATOR, [PIPELINE_CONFIG_SERVICE, PIPELINE_CONFIG_VALIDATOR])
+module(SERVICE_ACCOUNT_ACCESS_VALIDATOR, [PIPELINE_CONFIG_VALIDATOR])
   .service('serviceAccountAccessValidator', ServiceAccountAccessValidator)
   .run(
     (

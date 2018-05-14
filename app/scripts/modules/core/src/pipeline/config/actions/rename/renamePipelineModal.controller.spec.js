@@ -1,4 +1,5 @@
 import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 describe('Controller: renamePipelineModal', function() {
   const angular = require('angular');
@@ -6,7 +7,7 @@ describe('Controller: renamePipelineModal', function() {
   beforeEach(window.module(require('./rename.module.js').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService, applicationModelBuilder) {
+    window.inject(function($controller, $rootScope, $log, $q, applicationModelBuilder) {
       this.$q = $q;
       this.application = applicationModelBuilder.createApplication('app', {
         key: 'pipelineConfigs',
@@ -16,13 +17,11 @@ describe('Controller: renamePipelineModal', function() {
       });
       this.initializeController = function(pipeline) {
         this.$scope = $rootScope.$new();
-        this.pipelineConfigService = pipelineConfigService;
         this.$uibModalInstance = { close: angular.noop };
         this.controller = $controller('RenamePipelineModalCtrl', {
           $scope: this.$scope,
           application: this.application,
           pipeline: pipeline,
-          pipelineConfigService: this.pipelineConfigService,
           $uibModalInstance: this.$uibModalInstance,
           $log: $log,
         });
@@ -56,12 +55,7 @@ describe('Controller: renamePipelineModal', function() {
         newName: 'd',
       };
 
-      spyOn(this.pipelineConfigService, 'renamePipeline').and.callFake(function(
-        applicationName,
-        {},
-        currentName,
-        newName,
-      ) {
+      spyOn(PipelineConfigService, 'renamePipeline').and.callFake(function(applicationName, {}, currentName, newName) {
         submittedNewName = newName;
         submittedCurrentName = currentName;
         submittedApplication = applicationName;
@@ -80,7 +74,7 @@ describe('Controller: renamePipelineModal', function() {
 
     it('sets error flag, message when save is rejected', function() {
       var $q = this.$q;
-      spyOn(this.pipelineConfigService, 'renamePipeline').and.callFake(function() {
+      spyOn(PipelineConfigService, 'renamePipeline').and.callFake(function() {
         return $q.reject({ message: 'something went wrong' });
       });
 
@@ -93,7 +87,7 @@ describe('Controller: renamePipelineModal', function() {
 
     it('provides default error message when none provided on failed save', function() {
       var $q = this.$q;
-      spyOn(this.pipelineConfigService, 'renamePipeline').and.callFake(function() {
+      spyOn(PipelineConfigService, 'renamePipeline').and.callFake(function() {
         return $q.reject({});
       });
 

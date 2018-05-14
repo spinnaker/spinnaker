@@ -10,6 +10,7 @@ import { Application } from 'core/application';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { IFilterTag } from 'core/filterModel';
 import { IPipeline } from 'core/domain';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
 
@@ -140,7 +141,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   };
 
   private updatePipelines(pipelines: IPipeline[]): void {
-    $q.all(pipelines.map(pipeline => ReactInjector.pipelineConfigService.savePipeline(pipeline)));
+    $q.all(pipelines.map(pipeline => PipelineConfigService.savePipeline(pipeline)));
   }
 
   private handleSortEnd = (sortEnd: SortEnd): void => {

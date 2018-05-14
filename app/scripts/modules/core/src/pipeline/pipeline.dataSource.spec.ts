@@ -7,12 +7,11 @@ import {
   ApplicationDataSourceRegistry,
 } from '../application/service/applicationDataSource.registry';
 import { EXECUTION_SERVICE } from './service/execution.service';
-import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 describe('Pipeline Data Source', function() {
   let application: Application,
     executionService: any,
-    pipelineConfigService: PipelineConfigService,
     $scope: ng.IScope,
     applicationModelBuilder: ApplicationModelBuilder,
     applicationDataSourceRegistry: ApplicationDataSourceRegistry,
@@ -22,7 +21,6 @@ describe('Pipeline Data Source', function() {
     mock.module(
       require('./pipeline.dataSource').name,
       EXECUTION_SERVICE,
-      PIPELINE_CONFIG_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,
       APPLICATION_MODEL_BUILDER,
     ),
@@ -38,7 +36,6 @@ describe('Pipeline Data Source', function() {
   beforeEach(
     mock.inject(function(
       _executionService_: any,
-      _pipelineConfigService_: PipelineConfigService,
       _$q_: ng.IQService,
       $rootScope: ng.IRootScopeService,
       _applicationModelBuilder_: ApplicationModelBuilder,
@@ -47,7 +44,6 @@ describe('Pipeline Data Source', function() {
       $q = _$q_;
       $scope = $rootScope.$new();
       executionService = _executionService_;
-      pipelineConfigService = _pipelineConfigService_;
       applicationModelBuilder = _applicationModelBuilder_;
       applicationDataSourceRegistry = _applicationDataSourceRegistry_;
     }),
@@ -63,8 +59,8 @@ describe('Pipeline Data Source', function() {
   describe('loading executions', function() {
     beforeEach(function() {
       spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([]));
-      spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
-      spyOn(pipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
+      spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
+      spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
     });
 
     it('loads executions and sets appropriate flags', function() {
@@ -91,8 +87,8 @@ describe('Pipeline Data Source', function() {
   describe('reload executions', function() {
     beforeEach(function() {
       spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([]));
-      spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
-      spyOn(pipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
+      spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
+      spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
     });
 
     it('reloads executions and sets appropriate flags', function() {
@@ -143,8 +139,8 @@ describe('Pipeline Data Source', function() {
     });
 
     it('loads configs and sets appropriate flags', function() {
-      spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
-      spyOn(pipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
+      spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
+      spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
       configureApplication();
       application.getDataSource('pipelineConfigs').activate();
 
@@ -157,8 +153,8 @@ describe('Pipeline Data Source', function() {
     });
 
     it('sets appropriate flags when pipeline config reload fails; subscriber is responsible for error checking', function() {
-      spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
-      spyOn(pipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.reject([]));
+      spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
+      spyOn(PipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.reject([]));
       let errorsHandled = 0,
         successesHandled = 0;
       configureApplication();

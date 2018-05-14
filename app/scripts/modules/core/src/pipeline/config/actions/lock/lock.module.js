@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.actions.lock', [PIPELINE_CONFIG_SERVICE])
-  .controller('LockPipelineModalCtrl', function($uibModalInstance, pipelineConfigService, pipeline) {
+  .module('spinnaker.core.pipeline.config.actions.lock', [])
+  .controller('LockPipelineModalCtrl', function($uibModalInstance, pipeline) {
     this.viewState = {};
     this.pipelineName = pipeline.name;
     this.cancel = $uibModalInstance.dismiss;
@@ -21,7 +21,7 @@ module.exports = angular
         allowUnlockUi: this.command.allowUnlockUi,
         description: this.command.description,
       };
-      return pipelineConfigService.savePipeline(pipeline).then(
+      return PipelineConfigService.savePipeline(pipeline).then(
         () => $uibModalInstance.close(),
         response => {
           this.viewState.saveError = true;

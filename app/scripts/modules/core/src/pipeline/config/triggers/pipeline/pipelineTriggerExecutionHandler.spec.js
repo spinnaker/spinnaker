@@ -1,22 +1,23 @@
 'use strict';
 
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+
 describe('Pipeline Trigger: ExecutionHandler', function() {
-  var $scope, handler, pipelineConfigService, $q;
+  var $scope, handler, $q;
 
   beforeEach(window.module(require('./pipelineTrigger.module.js').name));
 
   beforeEach(
-    window.inject(function($rootScope, pipelineTriggerManualExecutionHandler, _pipelineConfigService_, _$q_) {
+    window.inject(function($rootScope, pipelineTriggerManualExecutionHandler, _$q_) {
       $scope = $rootScope.$new();
       handler = pipelineTriggerManualExecutionHandler;
-      pipelineConfigService = _pipelineConfigService_;
       $q = _$q_;
     }),
   );
 
   it('gets pipeline name from configs', function() {
     let label = null;
-    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+    spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
       $q.when([{ id: 'b', name: 'expected' }, { id: 'a', name: 'other' }]),
     );
 
@@ -27,7 +28,7 @@ describe('Pipeline Trigger: ExecutionHandler', function() {
 
   it('returns error message if pipeline config is not found', function() {
     let label = null;
-    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([{ id: 'a', name: 'other' }]));
+    spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([{ id: 'a', name: 'other' }]));
 
     handler.formatLabel({ application: 'a', pipeline: 'b' }).then(result => (label = result));
     $scope.$digest();
@@ -36,7 +37,7 @@ describe('Pipeline Trigger: ExecutionHandler', function() {
 
   it('returns error message if pipelines cannot be loaded', function() {
     let label = null;
-    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.reject(''));
+    spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.reject(''));
 
     handler.formatLabel({ application: 'a', pipeline: 'b' }).then(result => (label = result));
     $scope.$digest();

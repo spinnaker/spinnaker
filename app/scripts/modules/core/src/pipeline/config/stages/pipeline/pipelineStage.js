@@ -3,10 +3,10 @@
 const angular = require('angular');
 
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
-import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.pipelineStage', [PIPELINE_CONFIG_SERVICE, APPLICATION_READ_SERVICE])
+  .module('spinnaker.core.pipeline.stage.pipelineStage', [APPLICATION_READ_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Pipeline',
@@ -22,7 +22,7 @@ module.exports = angular
       validators: [{ type: 'requiredField', fieldName: 'pipeline' }],
     });
   })
-  .controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader) {
+  .controller('pipelineStageCtrl', function($scope, stage, applicationReader) {
     $scope.stage = stage;
     $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
     $scope.stage.waitForCompletion =
@@ -56,7 +56,7 @@ module.exports = angular
 
     function initializeMasters() {
       if ($scope.stage.application && !$scope.stage.application.includes('${')) {
-        pipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function(pipelines) {
+        PipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function(pipelines) {
           $scope.pipelines = _.filter(pipelines, function(pipeline) {
             return pipeline.id !== $scope.pipeline.id;
           });

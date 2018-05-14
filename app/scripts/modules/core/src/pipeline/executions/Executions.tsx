@@ -17,6 +17,7 @@ import { CreatePipeline } from 'core/pipeline/config/CreatePipeline';
 import { ExecutionFilters } from 'core/pipeline/filter/ExecutionFilters';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
 import { FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ExecutionState } from 'core/state';
 
@@ -137,18 +138,16 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   private startPipeline(command: IPipelineCommand): IPromise<void> {
     this.setState({ triggeringExecution: true });
-    return ReactInjector.pipelineConfigService
-      .triggerPipeline(this.props.app.name, command.pipelineName, command.trigger)
-      .then(
-        (newPipelineId: string) => {
-          const monitor = ReactInjector.executionService.waitUntilNewTriggeredPipelineAppears(
-            this.props.app,
-            newPipelineId,
-          );
-          monitor.then(() => this.setState({ triggeringExecution: false }));
-        },
-        () => this.setState({ triggeringExecution: false }),
-      );
+    return PipelineConfigService.triggerPipeline(this.props.app.name, command.pipelineName, command.trigger).then(
+      (newPipelineId: string) => {
+        const monitor = ReactInjector.executionService.waitUntilNewTriggeredPipelineAppears(
+          this.props.app,
+          newPipelineId,
+        );
+        monitor.then(() => this.setState({ triggeringExecution: false }));
+      },
+      () => this.setState({ triggeringExecution: false }),
+    );
   }
 
   private startManualExecutionClicked = (): void => {

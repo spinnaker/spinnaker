@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, PipelineConfigService } from '@spinnaker/core';
 
 import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from 'kubernetes/container/lifecycleHook.component';
 import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from 'kubernetes/container/environmentFrom.component';
@@ -23,7 +23,6 @@ module.exports = angular
     $scope,
     $uibModalInstance,
     kubernetesImageReader,
-    pipelineConfigService,
     $filter,
     stage,
     pipeline,
@@ -45,8 +44,7 @@ module.exports = angular
       this.stage.dnsPolicy = 'ClusterFirst';
     }
 
-    this.contextImages = pipelineConfigService
-      .getAllUpstreamDependencies(this.pipeline, this.stage)
+    this.contextImages = PipelineConfigService.getAllUpstreamDependencies(this.pipeline, this.stage)
       .map(stage => {
         if (stage.type !== 'findImage' && stage.type !== 'bake') {
           return;

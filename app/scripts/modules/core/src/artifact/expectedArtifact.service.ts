@@ -1,16 +1,12 @@
 import { copy, module } from 'angular';
 
 import { IArtifact, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
-import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 export class ExpectedArtifactService {
-  constructor(private pipelineConfigService: PipelineConfigService) {
-    'ngInject';
-  }
-
   public getExpectedArtifactsAvailableToStage(stage: IStage, pipeline: IPipeline): IExpectedArtifact[] {
     let result = pipeline.expectedArtifacts || [];
-    this.pipelineConfigService.getAllUpstreamDependencies(pipeline, stage).forEach(s => {
+    PipelineConfigService.getAllUpstreamDependencies(pipeline, stage).forEach(s => {
       const expectedArtifact = (s as any).expectedArtifact;
       if (expectedArtifact) {
         result = result.concat(expectedArtifact);
@@ -41,6 +37,6 @@ export function summarizeExpectedArtifact() {
 }
 
 export const EXPECTED_ARTIFACT_SERVICE = 'spinnaker.core.artifacts.expected.service';
-module(EXPECTED_ARTIFACT_SERVICE, [PIPELINE_CONFIG_SERVICE])
+module(EXPECTED_ARTIFACT_SERVICE, [])
   .filter('summarizeExpectedArtifact', summarizeExpectedArtifact)
   .service('expectedArtifactService', ExpectedArtifactService);

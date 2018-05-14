@@ -3,7 +3,6 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 
 import { CreatePipelineModal, ICreatePipelineModalProps } from './CreatePipelineModal';
-import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
 import {
   PIPELINE_TEMPLATE_SERVICE,
   PipelineTemplateService,
@@ -13,6 +12,7 @@ import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { IPipeline } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 describe('CreatePipelineModal', () => {
   let $q: IQService;
@@ -20,14 +20,12 @@ describe('CreatePipelineModal', () => {
   let application: Application;
   let initializeComponent: (configs?: Array<Partial<IPipeline>>) => void;
   let component: CreatePipelineModal;
-  let pipelineConfigService: PipelineConfigService;
   let pipelineTemplateService: PipelineTemplateService;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, PIPELINE_CONFIG_SERVICE, PIPELINE_TEMPLATE_SERVICE, REACT_MODULE));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, PIPELINE_TEMPLATE_SERVICE, REACT_MODULE));
 
   beforeEach(
     mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
-      pipelineConfigService = ReactInjector.pipelineConfigService;
       pipelineTemplateService = ReactInjector.pipelineTemplateService;
       $q = _$q_;
       $scope = $rootScope.$new();
@@ -173,7 +171,7 @@ describe('CreatePipelineModal', () => {
         application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
         return $q.when(null);
       });
-      spyOn(pipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
+      spyOn(PipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
         submitted = pipeline;
         return $q.when(null);
       });
@@ -202,7 +200,7 @@ describe('CreatePipelineModal', () => {
         application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
         return $q.when(null);
       });
-      spyOn(pipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
+      spyOn(PipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
         submitted = pipeline;
         return $q.when(null);
       });
@@ -226,7 +224,7 @@ describe('CreatePipelineModal', () => {
         application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
         return $q.when(null);
       });
-      spyOn(pipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
+      spyOn(PipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
         submitted = pipeline;
         return $q.when(null);
       });
@@ -241,7 +239,7 @@ describe('CreatePipelineModal', () => {
 
     it('sets error flag, message when save is rejected', () => {
       initializeComponent();
-      spyOn(pipelineConfigService, 'savePipeline').and.callFake(() => {
+      spyOn(PipelineConfigService, 'savePipeline').and.callFake(() => {
         return $q.reject({ data: { message: 'something went wrong' } });
       });
 
@@ -254,7 +252,7 @@ describe('CreatePipelineModal', () => {
 
     it('provides default error message when none provided on failed save', () => {
       initializeComponent();
-      spyOn(pipelineConfigService, 'savePipeline').and.callFake(() => {
+      spyOn(PipelineConfigService, 'savePipeline').and.callFake(() => {
         return $q.reject({});
       });
 

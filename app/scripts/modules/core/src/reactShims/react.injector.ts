@@ -26,7 +26,6 @@ import { PageTitleService } from 'core/pageTitle';
 import { PagerDutyReader } from '../pagerDuty/pagerDuty.read.service';
 import { PagerDutyWriter } from '../pagerDuty/pagerDuty.write.service';
 import { PipelineConfigProvider } from '../pipeline/config/pipelineConfigProvider';
-import { PipelineConfigService } from '../pipeline/config/services/pipelineConfig.service';
 import { PipelineConfigValidator } from '../pipeline/config/validation/pipelineConfig.validator';
 import { PipelineTemplateService } from '../pipeline/config/templates/pipelineTemplate.service';
 import { ProviderSelectionService } from '../cloudProvider/providerSelection/providerSelection.service';
@@ -97,7 +96,6 @@ export class CoreReactInject extends ReactInject {
   public get pagerDutyWriter() { return this.$injector.get('pagerDutyWriter') as PagerDutyWriter; }
   public get pageTitleService() { return this.$injector.get('pageTitleService') as PageTitleService; }
   public get pipelineConfig() { return this.$injector.get('pipelineConfig') as PipelineConfigProvider; }
-  public get pipelineConfigService() { return this.$injector.get('pipelineConfigService') as PipelineConfigService; }
   public get pipelineConfigValidator() { return this.$injector.get('pipelineConfigValidator') as PipelineConfigValidator; }
   public get pipelineTemplateService() { return this.$injector.get('pipelineTemplateService') as PipelineTemplateService; }
   public get providerSelectionService() { return this.$injector.get('providerSelectionService') as ProviderSelectionService; }

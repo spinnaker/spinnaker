@@ -12,6 +12,7 @@ import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCom
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
 import { ExecutionState } from 'core/state';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
@@ -107,22 +108,24 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   };
 
   private startPipeline(command: IPipelineCommand): IPromise<void> {
-    const { executionService, pipelineConfigService } = ReactInjector;
+    const { executionService } = ReactInjector;
     this.setState({ triggeringExecution: true });
-    return pipelineConfigService
-      .triggerPipeline(this.props.application.name, command.pipelineName, command.trigger)
-      .then(
-        newPipelineId => {
-          const monitor = executionService.waitUntilNewTriggeredPipelineAppears(this.props.application, newPipelineId);
-          monitor.then(() => this.setState({ triggeringExecution: false }));
-          this.setState({ poll: monitor });
-        },
-        () => {
-          const monitor = this.props.application.executions.refresh();
-          monitor.then(() => this.setState({ triggeringExecution: false }));
-          this.setState({ poll: monitor });
-        },
-      );
+    return PipelineConfigService.triggerPipeline(
+      this.props.application.name,
+      command.pipelineName,
+      command.trigger,
+    ).then(
+      newPipelineId => {
+        const monitor = executionService.waitUntilNewTriggeredPipelineAppears(this.props.application, newPipelineId);
+        monitor.then(() => this.setState({ triggeringExecution: false }));
+        this.setState({ poll: monitor });
+      },
+      () => {
+        const monitor = this.props.application.executions.refresh();
+        monitor.then(() => this.setState({ triggeringExecution: false }));
+        this.setState({ poll: monitor });
+      },
+    );
   }
 
   public triggerPipeline(trigger: IExecutionTrigger = null): void {

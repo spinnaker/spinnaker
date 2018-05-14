@@ -1,7 +1,7 @@
 import { IController, IScope } from 'angular';
 
 import { ApplicationReader } from 'core/application/service/application.read.service';
-import { PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
 
@@ -29,11 +29,7 @@ export class FindArtifactFromExecutionCtrl implements IController {
     },
   };
 
-  constructor(
-    private $scope: IScope,
-    private applicationReader: ApplicationReader,
-    private pipelineConfigService: PipelineConfigService,
-  ) {
+  constructor(private $scope: IScope, private applicationReader: ApplicationReader) {
     'ngInject';
     this.stage = this.$scope.stage as IFindArtifactFromExecutionStage;
     if (this.$scope.stage.isNew) {
@@ -63,7 +59,7 @@ export class FindArtifactFromExecutionCtrl implements IController {
   private loadPipelines() {
     this.state.pipelinesLoaded = false;
     if (this.stage.application) {
-      this.pipelineConfigService.getPipelinesForApplication(this.stage.application).then(ps => {
+      PipelineConfigService.getPipelinesForApplication(this.stage.application).then(ps => {
         this.state.pipelines = ps.filter(p => p.id !== this.$scope.pipeline.id);
         this.state.pipelinesLoaded = true;
       });

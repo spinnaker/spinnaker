@@ -2,22 +2,11 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.actions.delete', [
-    PIPELINE_CONFIG_SERVICE,
-    require('@uirouter/angularjs').default,
-  ])
-  .controller('DeletePipelineModalCtrl', function(
-    $scope,
-    $uibModalInstance,
-    $log,
-    pipelineConfigService,
-    application,
-    pipeline,
-    $state,
-  ) {
+  .module('spinnaker.core.pipeline.config.actions.delete', [require('@uirouter/angularjs').default])
+  .controller('DeletePipelineModalCtrl', function($scope, $uibModalInstance, $log, application, pipeline, $state) {
     this.cancel = $uibModalInstance.dismiss;
 
     $scope.viewState = {};
@@ -26,14 +15,14 @@ module.exports = angular
 
     this.deletePipeline = () => {
       $scope.viewState.deleting = true;
-      return pipelineConfigService.deletePipeline(application.name, pipeline, pipeline.name).then(
+      return PipelineConfigService.deletePipeline(application.name, pipeline, pipeline.name).then(
         () => {
           const data = pipeline.strategy ? application.strategyConfigs.data : application.pipelineConfigs.data;
           data.splice(data.findIndex(p => p.id === pipeline.id), 1);
           data.forEach(function(pipeline, index) {
             if (pipeline.index !== index) {
               pipeline.index = index;
-              pipelineConfigService.savePipeline(pipeline);
+              PipelineConfigService.savePipeline(pipeline);
             }
           });
           $state.go('^.executions', null, { location: 'replace' });

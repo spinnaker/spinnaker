@@ -7,30 +7,30 @@ import { MultiselectModel } from 'core/cluster/filter/MultiselectModel';
 import { SecurityGroupFilterModel } from 'core/securityGroup/filter/SecurityGroupFilterModel';
 import { SecurityGroupFilterService } from 'core/securityGroup/filter/SecurityGroupFilterService';
 
-export interface IClusterState {
+export interface IStateCluster {
   filterModel: ClusterFilterModel;
   filterService: ClusterFilterService;
   multiselectModel: MultiselectModel;
 }
 
-export interface IExecutionState {
+export interface IStateExecution {
   filterModel: ExecutionFilterModel;
 }
 
-export interface ILoadBalancersState {
+export interface IStateLoadBalancers {
   filterModel: LoadBalancerFilterModel;
   filterService: LoadBalancerFilterService;
 }
 
-export interface ISecurityGroupState {
+export interface IStateSecurityGroup {
   filterModel: SecurityGroupFilterModel;
   filterService: SecurityGroupFilterService;
 }
 
-export const ClusterState: IClusterState = {} as any;
-export const ExecutionState: IExecutionState = {} as any;
-export const LoadBalancerState: ILoadBalancersState = {} as any;
-export const SecurityGroupState: ISecurityGroupState = {} as any;
+export const ClusterState: IStateCluster = {} as any;
+export const ExecutionState: IStateExecution = {} as any;
+export const LoadBalancerState: IStateLoadBalancers = {} as any;
+export const SecurityGroupState: IStateSecurityGroup = {} as any;
 
 export function initialize(): void {
   ClusterState.filterModel = new ClusterFilterModel();

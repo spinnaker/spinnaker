@@ -5,11 +5,10 @@ const angular = require('angular');
 
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.trigger.pipeline', [
-    PIPELINE_CONFIG_SERVICE,
     PIPELINE_CONFIG_PROVIDER,
     APPLICATION_READ_SERVICE,
     require('../trigger.directive.js').name,
@@ -26,7 +25,7 @@ module.exports = angular
       manualExecutionHandler: 'pipelineTriggerManualExecutionHandler',
     });
   })
-  .factory('pipelineTriggerManualExecutionHandler', function(pipelineConfigService) {
+  .factory('pipelineTriggerManualExecutionHandler', function() {
     // must provide two fields:
     //   formatLabel (promise): used to supply the label for selecting a trigger when there are multiple triggers
     //   selectorTemplate: provides the HTML to show extra fields
@@ -46,12 +45,12 @@ module.exports = angular
           return `[could not load pipelines for '${application}']`;
         };
 
-        return pipelineConfigService.getPipelinesForApplication(application).then(loadSuccess, loadFailure);
+        return PipelineConfigService.getPipelinesForApplication(application).then(loadSuccess, loadFailure);
       },
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
-  .controller('pipelineTriggerCtrl', function($scope, trigger, pipelineConfigService, applicationReader) {
+  .controller('pipelineTriggerCtrl', function($scope, trigger, applicationReader) {
     $scope.trigger = trigger;
 
     if (!$scope.trigger.application) {
@@ -66,7 +65,7 @@ module.exports = angular
 
     function init() {
       if ($scope.trigger.application) {
-        pipelineConfigService.getPipelinesForApplication($scope.trigger.application).then(function(pipelines) {
+        PipelineConfigService.getPipelinesForApplication($scope.trigger.application).then(function(pipelines) {
           $scope.pipelines = _.filter(pipelines, function(pipeline) {
             return pipeline.id !== $scope.pipeline.id;
           });

@@ -1,9 +1,10 @@
-import { IPromise, IQService, module } from 'angular';
+import { IPromise } from 'angular';
 import { sortBy, uniq } from 'lodash';
+import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
 import { AuthenticationService } from 'core/authentication/AuthenticationService';
-import { ICache, ViewStateCache } from 'core/cache';
+import { ViewStateCache } from 'core/cache';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';
 
@@ -11,18 +12,13 @@ export interface ITriggerPipelineResponse {
   ref: string;
 }
 export class PipelineConfigService {
-  private configViewStateCache: ICache;
+  private static configViewStateCache = ViewStateCache.createCache('pipelineConfig', { version: 2 });
 
-  public constructor(private $q: IQService) {
-    'ngInject';
-    this.configViewStateCache = ViewStateCache.createCache('pipelineConfig', { version: 2 });
-  }
-
-  private buildViewStateCacheKey(applicationName: string, pipelineName: string): string {
+  private static buildViewStateCacheKey(applicationName: string, pipelineName: string): string {
     return `${applicationName}:${pipelineName}`;
   }
 
-  public getPipelinesForApplication(applicationName: string): IPromise<IPipeline[]> {
+  public static getPipelinesForApplication(applicationName: string): IPromise<IPipeline[]> {
     return API.one('applications')
       .one(applicationName)
       .all('pipelineConfigs')
@@ -33,7 +29,7 @@ export class PipelineConfigService {
       });
   }
 
-  public getStrategiesForApplication(applicationName: string): IPromise<IPipeline[]> {
+  public static getStrategiesForApplication(applicationName: string): IPromise<IPipeline[]> {
     return API.one('applications')
       .one(applicationName)
       .all('strategyConfigs')
@@ -44,7 +40,7 @@ export class PipelineConfigService {
       });
   }
 
-  public getHistory(id: string, isStrategy: boolean, count = 20): IPromise<IPipeline[]> {
+  public static getHistory(id: string, isStrategy: boolean, count = 20): IPromise<IPipeline[]> {
     const endpoint = isStrategy ? 'strategyConfigs' : 'pipelineConfigs';
     return API.one(endpoint, id)
       .all('history')
@@ -52,13 +48,13 @@ export class PipelineConfigService {
       .getList();
   }
 
-  public deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): IPromise<void> {
+  public static deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): IPromise<void> {
     return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
       .one(applicationName, pipelineName.trim())
       .remove();
   }
 
-  public savePipeline(pipeline: IPipeline): IPromise<void> {
+  public static savePipeline(pipeline: IPipeline): IPromise<void> {
     delete pipeline.isNew;
     if (Array.isArray(pipeline.stages)) {
       pipeline.stages.forEach(function(stage) {
@@ -73,7 +69,7 @@ export class PipelineConfigService {
       .post();
   }
 
-  public renamePipeline(
+  public static renamePipeline(
     applicationName: string,
     pipeline: IPipeline,
     currentName: string,
@@ -87,7 +83,7 @@ export class PipelineConfigService {
       .put();
   }
 
-  public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): IPromise<string> {
+  public static triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): IPromise<string> {
     body.user = AuthenticationService.getAuthenticatedUser().name;
     return API.one('pipelines')
       .one(applicationName)
@@ -99,7 +95,7 @@ export class PipelineConfigService {
       });
   }
 
-  public getDownstreamStageIds(pipeline: IPipeline, stage: IStage): Array<string | number> {
+  public static getDownstreamStageIds(pipeline: IPipeline, stage: IStage): Array<string | number> {
     let downstream: Array<string | number> = [];
     const children = pipeline.stages.filter((stageToTest: IStage) => {
       return stageToTest.requisiteStageRefIds && stageToTest.requisiteStageRefIds.includes(stage.refId);
@@ -113,7 +109,7 @@ export class PipelineConfigService {
     return uniq(downstream);
   }
 
-  public getDependencyCandidateStages(pipeline: IPipeline, stage: IStage): IStage[] {
+  public static getDependencyCandidateStages(pipeline: IPipeline, stage: IStage): IStage[] {
     const downstreamIds: Array<string | number> = this.getDownstreamStageIds(pipeline, stage);
     return pipeline.stages.filter((stageToTest: IStage) => {
       return (
@@ -125,7 +121,7 @@ export class PipelineConfigService {
     });
   }
 
-  public getAllUpstreamDependencies(pipeline: IPipeline, stage: IStage): IStage[] {
+  public static getAllUpstreamDependencies(pipeline: IPipeline, stage: IStage): IStage[] {
     let upstreamStages: IStage[] = [];
     if (stage.requisiteStageRefIds && stage.requisiteStageRefIds.length) {
       pipeline.stages.forEach((stageToTest: IStage) => {
@@ -138,7 +134,7 @@ export class PipelineConfigService {
     return uniq(upstreamStages);
   }
 
-  public startAdHocPipeline(body: any): IPromise<string> {
+  public static startAdHocPipeline(body: any): IPromise<string> {
     body.user = AuthenticationService.getAuthenticatedUser().name;
     return API.one('pipelines')
       .one('start')
@@ -149,7 +145,7 @@ export class PipelineConfigService {
       });
   }
 
-  private sortPipelines(pipelines: IPipeline[]): IPromise<IPipeline[]> {
+  private static sortPipelines(pipelines: IPipeline[]): IPromise<IPipeline[]> {
     const sorted = sortBy(pipelines, ['index', 'name']);
 
     // if there are pipelines with a bad index, fix that
@@ -162,12 +158,9 @@ export class PipelineConfigService {
         }
       });
       if (toReindex.length) {
-        return this.$q.all(toReindex).then(() => sorted);
+        return $q.all(toReindex).then(() => sorted);
       }
     }
-    return this.$q.resolve(sorted);
+    return $q.resolve(sorted);
   }
 }
-
-export const PIPELINE_CONFIG_SERVICE = 'spinnaker.core.pipeline.config.service';
-module(PIPELINE_CONFIG_SERVICE, []).service('pipelineConfigService', PipelineConfigService);

@@ -1,8 +1,8 @@
 import { IController, IComponentOptions, module } from 'angular';
 
 import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
-import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
 import { IParameter, IPipeline } from 'core/domain';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 interface ICustomStrategyState {
   pipelinesLoaded: boolean;
@@ -33,7 +33,7 @@ class CustomStrategySelectorController implements IController {
     currentApplicationCount: 20,
   };
 
-  constructor(private applicationReader: ApplicationReader, private pipelineConfigService: PipelineConfigService) {
+  constructor(private applicationReader: ApplicationReader) {
     'ngInject';
   }
 
@@ -53,7 +53,7 @@ class CustomStrategySelectorController implements IController {
 
   public initializeStrategies(): void {
     if (this.command.application) {
-      this.pipelineConfigService.getStrategiesForApplication(this.command.strategyApplication).then(pipelines => {
+      PipelineConfigService.getStrategiesForApplication(this.command.strategyApplication).then(pipelines => {
         this.state.pipelines = pipelines;
         if (pipelines.every(p => p.id !== this.command.strategyPipeline)) {
           this.command.strategyPipeline = null;
@@ -121,7 +121,7 @@ const customStrategyComponent: IComponentOptions = {
 };
 
 export const CUSTOM_STRATEGY_SELECTOR_COMPONENT = 'spinnaker.core.deploymentStrategy.custom.customStrategySelector';
-module(CUSTOM_STRATEGY_SELECTOR_COMPONENT, [APPLICATION_READ_SERVICE, PIPELINE_CONFIG_SERVICE]).component(
+module(CUSTOM_STRATEGY_SELECTOR_COMPONENT, [APPLICATION_READ_SERVICE]).component(
   'customStrategySelector',
   customStrategyComponent,
 );

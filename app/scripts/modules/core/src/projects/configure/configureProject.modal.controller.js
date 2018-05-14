@@ -3,13 +3,12 @@
 const angular = require('angular');
 
 import { AccountService } from 'core/account/AccountService';
-import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 module.exports = angular
   .module('spinnaker.core.projects.configure.modal.controller', [
     require('../service/project.write.service.js').name,
     require('../service/project.read.service.js').name,
-    PIPELINE_CONFIG_SERVICE,
     require('../../modal/wizard/wizardSubFormValidation.service.js').name,
   ])
   .controller('ConfigureProjectModalCtrl', function(
@@ -17,7 +16,6 @@ module.exports = angular
     projectConfig,
     $uibModalInstance,
     $q,
-    pipelineConfigService,
     applicationReader,
     projectWriter,
     projectReader,
@@ -51,7 +49,7 @@ module.exports = angular
 
     this.addApplication = application => {
       $scope.viewState.pipelinesLoaded = false;
-      let retriever = pipelineConfigService.getPipelinesForApplication(application);
+      let retriever = PipelineConfigService.getPipelinesForApplication(application);
       retriever.then(
         pipelines => {
           $scope.pipelineConfigOptions[application] = pipelines;
