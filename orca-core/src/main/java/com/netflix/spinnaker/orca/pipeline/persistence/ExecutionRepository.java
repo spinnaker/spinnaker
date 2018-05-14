@@ -106,19 +106,41 @@ public interface ExecutionRepository {
       return this;
     }
 
+    public int getPage() {
+      return page;
+    }
+
+    public ExecutionCriteria setPage(int page) {
+      this.page = page;
+      return this;
+    }
+
+    public int getPageSize() {
+      return pageSize;
+    }
+
+    public ExecutionCriteria setPageSize(int pageSize) {
+      this.pageSize = pageSize;
+      return this;
+    }
+
     private int limit;
     private Collection<ExecutionStatus> statuses = new ArrayList<>();
+    private int page;
+    private int pageSize = 20;
 
     @Override public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       ExecutionCriteria that = (ExecutionCriteria) o;
       return limit == that.limit &&
-        Objects.equals(statuses, that.statuses);
+        Objects.equals(statuses, that.statuses) &&
+        page == that.page &&
+        pageSize == that.pageSize;
     }
 
     @Override public int hashCode() {
-      return Objects.hash(limit, statuses);
+      return Objects.hash(limit, statuses, page, pageSize);
     }
   }
 }
