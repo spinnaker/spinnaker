@@ -61,6 +61,7 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
+    log.debug("Calling handle on data: {}, onDemandAgents: {}, type: {}", data, onDemandAgents, type)
     boolean hasOnDemandResults = false
     Map<String, List<String>> cachedIdentifiersByType = [:].withDefault { [] }
 
