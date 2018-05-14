@@ -17,12 +17,15 @@
 
 package com.netflix.spinnaker.orca.retrofit
 
+import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
-import com.squareup.okhttp.ConnectionPool
-import com.squareup.okhttp.Interceptor
-import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
+import okhttp3.ConnectionPool
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.Response
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -34,12 +37,13 @@ import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import retrofit.RestAdapter.LogLevel
-import retrofit.client.Client
 import retrofit.client.OkClient
+
+import java.util.concurrent.TimeUnit
 
 @Configuration
 @CompileStatic
-@Import(OkHttpClientConfiguration)
+@Import(OkHttp3ClientConfiguration)
 @EnableConfigurationProperties
 class RetrofitConfiguration {
 
@@ -52,22 +56,41 @@ class RetrofitConfiguration {
    @Value('${okHttpClient.retryOnConnectionFailure:true}')
    boolean retryOnConnectionFailure
 
-   @Bean(name = ["retrofitClient", "okClient"])
-   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-   OkClient retrofitClient(@Qualifier("okHttpClientConfiguration") OkHttpClientConfiguration okHttpClientConfig) {
+   @Bean(name = ["retrofitClient"])
+   @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+   Ok3Client ok3Client(OkHttp3ClientConfiguration okHttpClientConfig) {
      final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
-     def cfg = okHttpClientConfig.create()
-     cfg.networkInterceptors().add(new Interceptor() {
-       @Override
-       Response intercept(Interceptor.Chain chain) throws IOException {
-         def req = chain.request().newBuilder().header('User-Agent', userAgent).build()
-         chain.proceed(req)
-       }
-     })
-     cfg.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs))
-     cfg.retryOnConnectionFailure = retryOnConnectionFailure
+     OkHttpClient.Builder builder = okHttpClientConfig.create()
+     builder.addNetworkInterceptor(
+       new Interceptor() {
+         @Override
+         Response intercept(Interceptor.Chain chain) throws IOException {
+           def req = chain.request().newBuilder().header('User-Agent', userAgent).build()
+           chain.proceed(req)
+         }
+       })
+       .connectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs, TimeUnit.MILLISECONDS))
+       .retryOnConnectionFailure(retryOnConnectionFailure)
 
-     new OkClient(cfg)
+     new Ok3Client(builder.build())
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  OkClient okClient(@Qualifier("okHttpClientConfiguration") OkHttpClientConfiguration okHttpClientConfig) {
+    final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
+    def cfg = okHttpClientConfig.create()
+    cfg.networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+      @Override
+      com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+        def req = chain.request().newBuilder().header('User-Agent', userAgent).build()
+        chain.proceed(req)
+      }
+    })
+    cfg.setConnectionPool(new com.squareup.okhttp.ConnectionPool(maxIdleConnections, keepAliveDurationMs))
+    cfg.retryOnConnectionFailure = retryOnConnectionFailure
+
+    new OkClient(cfg)
   }
 
   @Bean LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
