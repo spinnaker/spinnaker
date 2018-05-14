@@ -1,10 +1,12 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .pipeline-config-graph {
   svg {
     g {
-      &.active, &.highlighted {
-        circle, rect {
+      &.active,
+      &.highlighted {
+        circle,
+        rect {
           fill: var(--color-success);
         }
       }
@@ -12,17 +14,19 @@
   }
 }
 
-pipeline-graph, .pipeline-graph {
+pipeline-graph,
+.pipeline-graph {
   display: block;
   overflow-x: auto;
   svg {
     path.link {
       fill: none;
-      transition: stroke .2s, stroke-width .2s;
+      transition: stroke 0.2s, stroke-width 0.2s;
       stroke: var(--color-alto);
       stroke-width: 1px;
       stroke-opacity: 0.3;
-      &.active, &.highlighted {
+      &.active,
+      &.highlighted {
         stroke-opacity: 1;
         &.has-status {
           stroke-width: 4px;
@@ -58,7 +62,10 @@ pipeline-graph, .pipeline-graph {
       &.completed {
         stroke: var(--color-success);
       }
-      &.not_started, &.suspended, &.canceled, &.unknown {
+      &.not_started,
+      &.suspended,
+      &.canceled,
+      &.unknown {
         stroke: var(--color-alto);
       }
     }
@@ -68,15 +75,19 @@ pipeline-graph, .pipeline-graph {
         fill: var(--color-alto);
       }
       .label-component {
-        transition: all 0.10s;
+        transition: all 0.1s;
         display: inline-block;
       }
-      &.active, &.highlighted {
-        circle, rect, path.graph-node {
-          transition: fill .2s;
+      &.active,
+      &.highlighted {
+        circle,
+        rect,
+        path.graph-node {
+          transition: fill 0.2s;
         }
         &.has-status {
-          circle.graph-node, path.graph-node {
+          circle.graph-node,
+          path.graph-node {
             fill-opacity: 1;
             stroke-width: 1px;
             stroke: var(--color-dovegray);
@@ -84,7 +95,8 @@ pipeline-graph, .pipeline-graph {
         }
       }
       &.warning {
-        circle, rect {
+        circle,
+        rect {
           fill: var(--color-danger);
         }
       }
@@ -103,13 +115,16 @@ pipeline-graph, .pipeline-graph {
         border: 2px solid transparent;
         min-height: 25px;
       }
-      div.label-body, div.execution-stage-label {
+      div.label-body,
+      div.execution-stage-label {
         line-height: 17px;
-        text-shadow: 0 1px 0 var(--color-white), 1px 0 0 var(--color-white), 0 -1px 0 var(--color-white), -1px 0 0 var(--color-white);
+        text-shadow: 0 1px 0 var(--color-white), 1px 0 0 var(--color-white), 0 -1px 0 var(--color-white),
+          -1px 0 0 var(--color-white);
         word-wrap: break-word;
-        transition: color .2s;
+        transition: color 0.2s;
       }
-      &.active, &.highlighted {
+      &.active,
+      &.highlighted {
         div.label-body {
           color: var(--color-mineshaft);
           font-weight: 600;
@@ -138,7 +153,9 @@ pipeline-graph, .pipeline-graph {
 }
 
 svg.pipeline-graph {
-  overflow: visible;
+  &:not(:root) {
+    overflow: visible;
+  }
 }
 
 .stage-group {
