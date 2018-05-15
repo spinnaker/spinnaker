@@ -1,19 +1,16 @@
-import { mock } from 'angular';
+import { IComponentControllerService, mock } from 'angular';
+import { $q } from 'ngimport';
 
 import { AccountService, IAccount } from '@spinnaker/core';
 
-import { DockerImageReaderService, IDockerImage } from './docker.image.reader.service';
+import { DockerImageReader, IDockerImage } from './DockerImageReader';
 import {
   DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
   DockerImageAndTagSelectorController,
 } from './dockerImageAndTagSelector.component';
 
 describe('dockerImageAndTagSelector controller', () => {
-  let $ctrl: DockerImageAndTagSelectorController,
-    dockerImageReader: DockerImageReaderService,
-    $componentController: ng.IComponentControllerService,
-    $q: ng.IQService,
-    $scope: ng.IScope;
+  let $ctrl: DockerImageAndTagSelectorController, $componentController: IComponentControllerService, $scope: ng.IScope;
 
   let organization: string, registry: string, repository: string, showRegistry: boolean;
 
@@ -23,27 +20,18 @@ describe('dockerImageAndTagSelector controller', () => {
   beforeEach(mock.module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT));
 
   beforeEach(
-    mock.inject(
-      (
-        _dockerImageReader_: DockerImageReaderService,
-        _$componentController_: ng.IComponentControllerService,
-        _$q_: ng.IQService,
-        $rootScope: ng.IRootScopeService,
-      ) => {
-        dockerImageReader = _dockerImageReader_;
-        $componentController = _$componentController_;
-        $q = _$q_;
-        $scope = $rootScope.$new();
-      },
-    ),
+    mock.inject((_$componentController_: IComponentControllerService, $rootScope: ng.IRootScopeService) => {
+      $componentController = _$componentController_;
+      $scope = $rootScope.$new();
+    }),
   );
 
   const initialize = (accounts: IAccount[], images: IDockerImage[]) => {
     spyOn(AccountService, 'listAccounts').and.returnValue($q.when(accounts));
-    spyOn(dockerImageReader, 'findImages').and.returnValue($q.when(images));
+    spyOn(DockerImageReader, 'findImages').and.returnValue($q.when(images));
     $ctrl = $componentController(
       'dockerImageAndTagSelector',
-      { dockerImageReader },
+      { DockerImageReader },
       { organization, registry, repository, tag, account, showRegistry },
     ) as DockerImageAndTagSelectorController;
     $ctrl.$onInit();

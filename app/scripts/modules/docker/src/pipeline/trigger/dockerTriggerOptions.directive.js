@@ -3,10 +3,10 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { DOCKER_IMAGE_READER } from '@spinnaker/docker';
+import { DockerImageReader } from 'docker/image/DockerImageReader';
 
 module.exports = angular
-  .module('spinnaker.docker.pipeline.config.triggers.options.directive', [DOCKER_IMAGE_READER])
+  .module('spinnaker.docker.pipeline.config.triggers.options.directive', [])
   .directive('dockerTriggerOptions', function() {
     return {
       restrict: 'E',
@@ -19,7 +19,7 @@ module.exports = angular
       scope: {},
     };
   })
-  .controller('dockerTriggerOptionsCtrl', function($scope, dockerImageReader) {
+  .controller('dockerTriggerOptionsCtrl', function($scope) {
     // These fields will be added to the trigger when the form is submitted
     this.command.extraFields = {};
 
@@ -56,7 +56,7 @@ module.exports = angular
 
     let handleQuery = () => {
       return Observable.fromPromise(
-        dockerImageReader.findTags({
+        DockerImageReader.findTags({
           provider: 'dockerRegistry',
           account: this.command.trigger.account,
           repository: this.command.trigger.repository,

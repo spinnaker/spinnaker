@@ -1,6 +1,6 @@
-import { module } from 'angular';
+import { IPromise } from 'angular';
 
-import { API, IFindImageParams, IFindTagsParams, IImage, IImageReader, RetryService } from '@spinnaker/core';
+import { API, IFindImageParams, IFindTagsParams, IImage, RetryService } from '@spinnaker/core';
 
 export interface IDockerImage extends IImage {
   account: string;
@@ -9,9 +9,8 @@ export interface IDockerImage extends IImage {
   tag: string;
 }
 
-export class DockerImageReaderService implements IImageReader {
-  // NB: not currently used or tested; only here to satisfy IImageReader interface
-  public getImage(imageName: string, region: string, credentials: string): ng.IPromise<IDockerImage> {
+export class DockerImageReader {
+  public static getImage(imageName: string, region: string, credentials: string): IPromise<IDockerImage> {
     return API.all('images')
       .one(credentials)
       .one(region)
@@ -22,7 +21,7 @@ export class DockerImageReaderService implements IImageReader {
       .catch((): IDockerImage => null);
   }
 
-  public findImages(params: IFindImageParams): ng.IPromise<IDockerImage[]> {
+  public static findImages(params: IFindImageParams): IPromise<IDockerImage[]> {
     return RetryService.buildRetrySequence<IDockerImage[]>(
       () => API.all('images/find').getList(params),
       (results: IDockerImage[]) => results.length > 0,
@@ -33,7 +32,7 @@ export class DockerImageReaderService implements IImageReader {
       .catch((): IDockerImage[] => []);
   }
 
-  public findTags(params: IFindTagsParams): ng.IPromise<string[]> {
+  public static findTags(params: IFindTagsParams): IPromise<string[]> {
     return RetryService.buildRetrySequence<String[]>(
       () => API.all('images/tags').getList(params),
       (results: string[]) => results.length > 0,
@@ -44,6 +43,3 @@ export class DockerImageReaderService implements IImageReader {
       .catch((): string[] => []);
   }
 }
-
-export const DOCKER_IMAGE_READER = 'spinnaker.docker.image.reader';
-module(DOCKER_IMAGE_READER, []).service('dockerImageReader', DockerImageReaderService);

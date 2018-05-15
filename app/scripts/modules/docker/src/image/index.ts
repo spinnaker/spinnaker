@@ -1,1 +1,1 @@
-export * from './docker.image.reader.service';
+export * from './DockerImageReader';

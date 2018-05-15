@@ -3,7 +3,7 @@ import { isString, trim, uniq } from 'lodash';
 
 import { AccountService, IAccount, IFindImageParams } from '@spinnaker/core';
 
-import { DOCKER_IMAGE_READER, DockerImageReaderService, IDockerImage } from './docker.image.reader.service';
+import { DockerImageReader, IDockerImage } from './DockerImageReader';
 
 interface IViewState {
   imagesLoading: boolean;
@@ -43,10 +43,6 @@ export class DockerImageAndTagSelectorController implements IController {
   public tag: string;
   public onChange: Function;
   public deferInitialization: boolean;
-
-  constructor(private dockerImageReader: DockerImageReaderService) {
-    'ngInject';
-  }
 
   private updateOrganizationsList(): void {
     if (this.accountMap) {
@@ -187,8 +183,7 @@ export class DockerImageAndTagSelectorController implements IController {
     };
 
     this.viewState.imagesLoading = true;
-    const imageLoader = this.dockerImageReader
-      .findImages(imageConfig)
+    const imageLoader = DockerImageReader.findImages(imageConfig)
       .then((images: IDockerImage[]) => {
         if (this.imageLoader !== imageLoader) {
           // something else is getting loaded
@@ -266,7 +261,7 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
 }
 
 export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.docker.imageAndTagSelector.component';
-module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [DOCKER_IMAGE_READER]).component(
+module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, []).component(
   'dockerImageAndTagSelector',
   new DockerImageAndTagSelectorComponent(),
 );
