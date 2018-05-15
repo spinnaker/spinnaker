@@ -1,11 +1,12 @@
-import { IController, IQService, IScope, module } from 'angular';
+import { IController, IScope, module } from 'angular';
 
 import { IGOR_SERVICE, IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { SERVICE_ACCOUNT_SERVICE, ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
 import { IBuildTrigger } from 'core/domain/ITrigger';
-import { TRAVIS_TRIGGER_OPTIONS_COMPONENT } from './travisTriggerOptions.component';
 import { SETTINGS } from 'core/config/settings';
+
+import { TravisTriggerTemplate } from './TravisTriggerTemplate';
 
 export interface ITravisTriggerViewState {
   mastersLoaded: boolean;
@@ -84,45 +85,31 @@ export class TravisTrigger implements IController {
 
 export const TRAVIS_TRIGGER = 'spinnaker.core.pipeline.config.trigger.travis';
 module(TRAVIS_TRIGGER, [
-  TRAVIS_TRIGGER_OPTIONS_COMPONENT,
   require('../trigger.directive.js').name,
   IGOR_SERVICE,
   SERVICE_ACCOUNT_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
-])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerTrigger({
-      label: 'Travis',
-      description: 'Listens to a Travis job',
-      key: 'travis',
-      controller: 'TravisTriggerCtrl',
-      controllerAs: '$ctrl',
-      templateUrl: require('./travisTrigger.html'),
-      manualExecutionHandler: 'travisTriggerExecutionHandler',
-      validators: [
-        {
-          type: 'requiredField',
-          fieldName: 'job',
-          message: '<strong>Job</strong> is a required field on Travis triggers.',
-        },
-        {
-          type: 'serviceAccountAccess',
-          message: `You do not have access to the service account configured in this pipeline's Travis trigger.
-                    You will not be able to save your edits to this pipeline.`,
-          preventSave: true,
-        },
-      ],
-    });
-  })
-  .factory('travisTriggerExecutionHandler', ($q: IQService) => {
-    // must provide two fields:
-    //   formatLabel (promise): used to supply the label for selecting a trigger when there are multiple triggers
-    //   selectorTemplate: provides the HTML to show extra fields
-    return {
-      formatLabel: (trigger: IBuildTrigger) => {
-        return $q.when(`(Travis) ${trigger.master}: ${trigger.job}`);
+]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+  pipelineConfigProvider.registerTrigger({
+    label: 'Travis',
+    description: 'Listens to a Travis job',
+    key: 'travis',
+    controller: 'TravisTriggerCtrl',
+    controllerAs: '$ctrl',
+    templateUrl: require('./travisTrigger.html'),
+    manualExecutionComponent: TravisTriggerTemplate,
+    validators: [
+      {
+        type: 'requiredField',
+        fieldName: 'job',
+        message: '<strong>Job</strong> is a required field on Travis triggers.',
       },
-      selectorTemplate: require('./selectorTemplate.html'),
-    };
-  })
-  .controller('TravisTriggerCtrl', TravisTrigger);
+      {
+        type: 'serviceAccountAccess',
+        message: `You do not have access to the service account configured in this pipeline's Travis trigger.
+                    You will not be able to save your edits to this pipeline.`,
+        preventSave: true,
+      },
+    ],
+  });
+});
