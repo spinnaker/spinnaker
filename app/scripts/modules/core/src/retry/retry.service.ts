@@ -1,19 +1,16 @@
-import { module } from 'angular';
+import { IPromise } from 'angular';
+import { $q, $timeout } from 'ngimport';
 
 export class RetryService {
-  constructor(private $timeout: ng.ITimeoutService, private $q: ng.IQService) {
-    'ngInject';
-  }
-
   // interval is in milliseconds
-  public buildRetrySequence<T>(
-    func: () => T | ng.IPromise<T>,
+  public static buildRetrySequence<T>(
+    func: () => T | IPromise<T>,
     stopCondition: (results: T) => boolean,
     limit: number,
     interval: number,
-  ): ng.IPromise<T> {
-    const call: T | ng.IPromise<T> = func();
-    const promise: ng.IPromise<T> = call.hasOwnProperty('then') ? (call as ng.IPromise<T>) : this.$q.resolve(call);
+  ): IPromise<T> {
+    const call: T | IPromise<T> = func();
+    const promise: IPromise<T> = call.hasOwnProperty('then') ? (call as IPromise<T>) : $q.resolve(call);
     if (limit === 0) {
       return promise;
     } else {
@@ -22,17 +19,10 @@ export class RetryService {
           if (stopCondition(result)) {
             return result;
           } else {
-            return this.$timeout(interval).then(() =>
-              this.buildRetrySequence(func, stopCondition, limit - 1, interval),
-            );
+            return $timeout(interval).then(() => this.buildRetrySequence(func, stopCondition, limit - 1, interval));
           }
         })
-        .catch(() =>
-          this.$timeout(interval).then(() => this.buildRetrySequence(func, stopCondition, limit - 1, interval)),
-        );
+        .catch(() => $timeout(interval).then(() => this.buildRetrySequence(func, stopCondition, limit - 1, interval)));
     }
   }
 }
-
-export const RETRY_SERVICE = 'spinnaker.deck.core.retry.service';
-module(RETRY_SERVICE, []).service('retryService', RetryService);
