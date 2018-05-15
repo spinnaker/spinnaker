@@ -6,9 +6,10 @@ import { IGOR_SERVICE, BuildServiceType } from 'core/ci/igor.service';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { SETTINGS } from 'core/config/settings';
 
+import { JenkinsTriggerTemplate } from './JenkinsTriggerTemplate';
+
 module.exports = angular
   .module('spinnaker.core.pipeline.config.trigger.jenkins', [
-    require('./jenkinsTriggerOptions.directive.js').name,
     require('../trigger.directive.js').name,
     IGOR_SERVICE,
     SERVICE_ACCOUNT_SERVICE,
@@ -22,7 +23,7 @@ module.exports = angular
       controller: 'JenkinsTriggerCtrl',
       controllerAs: 'jenkinsTriggerCtrl',
       templateUrl: require('./jenkinsTrigger.html'),
-      manualExecutionHandler: 'jenkinsTriggerExecutionHandler',
+      manualExecutionComponent: JenkinsTriggerTemplate,
       validators: [
         {
           type: 'requiredField',
@@ -37,17 +38,6 @@ module.exports = angular
         },
       ],
     });
-  })
-  .factory('jenkinsTriggerExecutionHandler', function($q) {
-    // must provide two fields:
-    //   formatLabel (promise): used to supply the label for selecting a trigger when there are multiple triggers
-    //   selectorTemplate: provides the HTML to show extra fields
-    return {
-      formatLabel: trigger => {
-        return $q.when(`(Jenkins) ${trigger.master}: ${trigger.job}`);
-      },
-      selectorTemplate: require('./selectorTemplate.html'),
-    };
   })
   .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, serviceAccountService) {
     $scope.trigger = trigger;

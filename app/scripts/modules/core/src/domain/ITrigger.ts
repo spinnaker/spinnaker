@@ -16,6 +16,8 @@ export interface IGitTrigger extends ITrigger {
 }
 
 export interface IBuildTrigger extends ITrigger {
+  buildInfo?: any;
+  buildNumber?: number;
   job: string;
   master: string;
   type: 'jenkins' | 'travis';

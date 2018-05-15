@@ -42,6 +42,7 @@ export interface IParameterOption {
 }
 
 export interface IPipelineCommand {
+  extraFields?: { [key: string]: any };
   pipeline: IPipeline;
   trigger: ITrigger;
   notificationEnabled: boolean;

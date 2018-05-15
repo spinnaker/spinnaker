@@ -15,6 +15,7 @@ import { ExecutionFilterService } from '../pipeline/filter/executionFilter.servi
 import { ExecutionService } from '../pipeline/service/execution.service';
 import { ExecutionsTransformerService } from '../pipeline/service/executions.transformer.service';
 import { HelpContentsRegistry, IHelpContents } from 'core/help';
+import { IgorService } from 'core/ci/igor.service';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
 import { InfrastructureSearchServiceV2 } from 'core/search/infrastructure/infrastructureSearchV2.service';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
@@ -85,6 +86,7 @@ export class CoreReactInject extends ReactInject {
   public get executionsTransformer() { return this.$injector.get('executionsTransformer') as ExecutionsTransformerService; }
   public get helpContents() { return this.$injector.get('helpContents') as IHelpContents }
   public get helpContentsRegistry() { return this.$injector.get('helpContentsRegistry') as HelpContentsRegistry; }
+  public get igorService() { return this.$injector.get('igorService') as IgorService; }
   public get infrastructureSearchService() { return this.$injector.get('infrastructureSearchService') as InfrastructureSearchService; }
   public get infrastructureSearchServiceV2() { return this.$injector.get('infrastructureSearchServiceV2') as InfrastructureSearchServiceV2; }
   public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
