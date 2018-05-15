@@ -2,15 +2,20 @@ package command
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
+	"os/user"
+	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/colorstring"
+	"github.com/spinnaker/spin/config"
 	gate "github.com/spinnaker/spin/gateapi"
+	"gopkg.in/yaml.v2"
 )
 
-// Meta is the state & utility shared by our command parser.
+// ApiMeta is the state & utility shared by our commands.
 type ApiMeta struct {
 	// The exported fields below should be set by anyone using a command
 	// with an ApiMeta field. These are expected to be set externally
@@ -19,14 +24,17 @@ type ApiMeta struct {
 	Color bool   // True if output should be colored
 	Ui    cli.Ui // Ui for output
 
+	// Gate Api client.
+	GateClient *gate.APIClient
+
+	// Spin CLI configuration.
+	Config config.Config
+
 	// Internal fields
 	color bool
 
 	// This is the set of flags global to the command parser.
 	gateEndpoint string
-
-	// Gate Api client.
-	GateClient *gate.APIClient
 }
 
 // GlobalFlagSet adds all global options to the flagset, and returns the flagset object
@@ -45,11 +53,31 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 // process with process the meta-parameters out of the arguments. This
 // potentially modifies the args in-place. It will return the resulting slice.
 func (m *ApiMeta) Process(args []string) ([]string, error) {
+	// CLI configuration.
+	// TODO(jacobkiefer): Refactor Ui/Colorization so we can warn users
+	// correctly when something fails on initialization.
+	usr, err := user.Current()
+	if err != nil {
+		return args, err
+	}
+
+	// TODO(jacobkiefer): Add flag for config location?
+	configLocation := filepath.Join(usr.HomeDir, ".spin", "config")
+	yamlFile, err := ioutil.ReadFile(configLocation)
+	if err != nil {
+		return args, err
+	}
+
+	err = yaml.Unmarshal(yamlFile, &m.Config)
+	if err != nil {
+		return args, err
+	}
+
 	// Api client initialization.
 	cfg := &gate.Configuration{
 		BasePath:      "http://localhost:8084",
 		DefaultHeader: make(map[string]string),
-		UserAgent:     "Spin CLI version",
+		UserAgent:     "Spin CLI version", // TODO(jacobkiefer): Add a reasonable UserAgent.
 	}
 	m.GateClient = gate.NewAPIClient(cfg)
 
@@ -65,7 +93,7 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 		}
 	}
 
-	// Set the Ui
+	// Set the Ui.
 	m.Ui = &ColorizeUi{
 		Colorize:   m.Colorize(),
 		ErrorColor: "[red]",

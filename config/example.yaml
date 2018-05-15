@@ -1,0 +1,7 @@
+# NOTE: Copy this file to ~/.spin/config
+
+auth:
+  enabled: true
+  x509:
+    certPath: "~/.spin/certpath"
+    keyPath: "~/.spin/keypath"
