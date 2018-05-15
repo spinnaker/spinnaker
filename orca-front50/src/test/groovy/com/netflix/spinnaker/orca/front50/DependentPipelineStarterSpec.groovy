@@ -370,4 +370,43 @@ class DependentPipelineStarterSpec extends Specification {
     result.trigger.resolvedExpectedArtifacts.size() == 1
     result.trigger.resolvedExpectedArtifacts*.boundArtifact.name == [testArtifact1.name]
   }
+
+  def "should resolve expressions in trigger"() {
+    given:
+    def triggeredPipelineConfig = [name: "triggered", id: "triggered", parameterConfig: [[name: 'a', default: '${2 == 2}']]]
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger = new DefaultTrigger("manual", null, "fzlem@netflix.com", [:], [], [], false, true)
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+      objectMapper: mapper,
+      applicationContext: applicationContext,
+      contextParameterProcessor: new ContextParameterProcessor(),
+      artifactResolver: artifactResolver
+    )
+
+    and:
+    executionLauncher.start(*_) >> {
+      def p = mapper.readValue(it[1], Map)
+      return pipeline {
+        trigger = mapper.convertValue(p.trigger, Trigger)
+      }
+    }
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+      triggeredPipelineConfig,
+      null /*user*/,
+      parentPipeline,
+      [:],
+      null
+    )
+
+    then:
+    result.trigger.parameters.a == true
+  }
 }

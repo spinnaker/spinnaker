@@ -103,7 +103,10 @@ class DependentPipelineStarter implements ApplicationContextAware {
       artifactError = e
     }
 
-    pipelineConfig.trigger = objectMapper.readValue(objectMapper.writeValueAsString(pipelineConfig.trigger), Trigger.class)
+    // Process the raw trigger to resolve any expressions before converting it to a Trigger object, which will not be
+    // processed by the contextParameterProcessor (it only handles Maps, Lists, and Strings)
+    Map processedTrigger = contextParameterProcessor.process([trigger: pipelineConfig.trigger], [:], false).trigger
+    pipelineConfig.trigger = objectMapper.readValue(objectMapper.writeValueAsString(processedTrigger), Trigger.class)
     if (parentPipeline.trigger.dryRun) {
       pipelineConfig.trigger.dryRun = true
     }
