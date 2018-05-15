@@ -270,7 +270,11 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
      .EXPECT(ov_factory.value_list_path_excludes(
          'name', jp.STR_SUBSTR(self.TEST_APP.upper()))))
     (f50_builder.new_clause_builder('Deletes Application')
-     .get_url_path(app_url_path, allow_http_error_status=404))
+     .get_url_path(app_url_path)
+     .EXPECT(ov_factory.error_list_contains(
+         st.HttpAgentErrorPredicate(st.HttpResponsePredicate(http_code=404)))))
+
+
     (f50_builder.new_clause_builder('History Retains Application',
                                     retryable_for_secs=5)
      .get_url_path('/v2/applications/{app}/history'
