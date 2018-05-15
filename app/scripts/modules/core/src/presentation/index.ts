@@ -4,6 +4,7 @@ export * from './LabelComponent';
 export * from './Markdown';
 export * from './ReactModal';
 export * from './Placement';
+export * from './TetheredSelect';
 export * from './Tooltip';
 export * from './collapsibleSection/CollapsibleSection';
 export * from './forms';

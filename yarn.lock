@@ -461,6 +461,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-tether@^0.5.3":
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/@types/react-tether/-/react-tether-0.5.3.tgz#48ba31358cc0cfadbd05864065ae1bd1b7174529"
+  dependencies:
+    "@types/react" "*"
+    "@types/tether" "*"
+
 "@types/react-virtualized-select@^3.0.3":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/react-virtualized-select/-/react-virtualized-select-3.0.3.tgz#6d067824e712a727323e1867ba8e8685c42b798b"
@@ -500,6 +507,10 @@
 "@types/tapable@*":
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/@types/tapable/-/tapable-0.2.3.tgz#0888b0f20cc7e58e1c22a1888b4e963eefaa810a"
+
+"@types/tether@*":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@types/tether/-/tether-1.4.3.tgz#bbcb46a35dfbeeaaf60d60afaba3d872b6e1ebf5"
 
 "@types/uglify-js@*":
   version "2.6.28"
@@ -10977,6 +10988,13 @@ react-test-renderer@^16.0.0-0:
     object-assign "^4.1.1"
     prop-types "^15.6.0"
 
+react-tether@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/react-tether/-/react-tether-0.6.1.tgz#de64dd81a5e40053a9f275c4fef0beb0877b3e4e"
+  dependencies:
+    prop-types "^15.5.8"
+    tether "^1.4.3"
+
 react-transition-group@^2.0.0, react-transition-group@^2.2.0:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/react-transition-group/-/react-transition-group-2.2.1.tgz#e9fb677b79e6455fd391b03823afe84849df4a10"
@@ -13027,6 +13045,10 @@ temp@^0.8.1:
   dependencies:
     os-tmpdir "^1.0.0"
     rimraf "~2.2.6"
+
+tether@^1.4.3:
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/tether/-/tether-1.4.4.tgz#9dc6eb2b3e601da2098fd264e7f7a8b264de1125"
 
 text-cache@^4.1.0:
   version "4.1.0"
