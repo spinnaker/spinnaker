@@ -50,7 +50,7 @@ public class ExecutionQueryController {
   ) {
     ExecutionCriteria criteria = new ExecutionCriteria()
       .setPage(page)
-      .setPageSize(pageSize)
+      .setLimit(pageSize)
       .setStatuses(statuses.stream().map(ExecutionStatus::name).collect(toSet()));
     return repository
       .retrieveOrchestrationsForApplication(application, criteria)

@@ -107,7 +107,7 @@ public interface ExecutionRepository {
     }
 
     public int getPage() {
-      return page;
+      return Math.max(page, 1);
     }
 
     public ExecutionCriteria setPage(int page) {
@@ -115,19 +115,9 @@ public interface ExecutionRepository {
       return this;
     }
 
-    public int getPageSize() {
-      return pageSize;
-    }
-
-    public ExecutionCriteria setPageSize(int pageSize) {
-      this.pageSize = pageSize;
-      return this;
-    }
-
     private int limit;
     private Collection<ExecutionStatus> statuses = new ArrayList<>();
     private int page;
-    private int pageSize = 20;
 
     @Override public boolean equals(Object o) {
       if (this == o) return true;
@@ -135,12 +125,11 @@ public interface ExecutionRepository {
       ExecutionCriteria that = (ExecutionCriteria) o;
       return limit == that.limit &&
         Objects.equals(statuses, that.statuses) &&
-        page == that.page &&
-        pageSize == that.pageSize;
+        page == that.page;
     }
 
     @Override public int hashCode() {
-      return Objects.hash(limit, statuses, page, pageSize);
+      return Objects.hash(limit, statuses, page);
     }
   }
 }
