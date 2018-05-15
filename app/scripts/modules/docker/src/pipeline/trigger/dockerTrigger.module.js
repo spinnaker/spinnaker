@@ -5,13 +5,10 @@ const angular = require('angular');
 import { SERVICE_ACCOUNT_SERVICE, SETTINGS } from '@spinnaker/core';
 
 import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from 'docker/image/dockerImageAndTagSelector.component';
+import { DockerTriggerTemplate } from './DockerTriggerTemplate';
 
 module.exports = angular
-  .module('spinnaker.docker.pipeline.trigger', [
-    SERVICE_ACCOUNT_SERVICE,
-    require('./dockerTriggerOptions.directive.js').name,
-    DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
-  ])
+  .module('spinnaker.docker.pipeline.trigger', [SERVICE_ACCOUNT_SERVICE, DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
       label: 'Docker Registry',
@@ -20,7 +17,7 @@ module.exports = angular
       controller: 'DockerTriggerCtrl as ctrl',
       controllerAs: 'vm',
       templateUrl: require('./dockerTrigger.html'),
-      manualExecutionHandler: 'dockerTriggerExecutionHandler',
+      manualExecutionComponent: DockerTriggerTemplate,
       validators: [
         {
           type: 'requiredField',
@@ -40,14 +37,6 @@ module.exports = angular
         },
       ],
     });
-  })
-  .factory('dockerTriggerExecutionHandler', function($q) {
-    return {
-      formatLabel: trigger => {
-        return $q.when(`(Docker Registry) ${trigger.account ? trigger.account + ':' : ''} ${trigger.repository || ''}`);
-      },
-      selectorTemplate: require('./selectorTemplate.html'),
-    };
   })
   .controller('DockerTriggerCtrl', function(trigger, serviceAccountService) {
     this.trigger = trigger;

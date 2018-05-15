@@ -24,7 +24,9 @@ export interface IBuildTrigger extends ITrigger {
 }
 
 export interface IDockerTrigger extends ITrigger {
+  account?: string;
   tag: string;
+  registry?: string;
   repository: string;
 }
 
