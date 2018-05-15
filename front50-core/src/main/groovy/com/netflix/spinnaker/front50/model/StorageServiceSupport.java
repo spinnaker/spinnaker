@@ -23,6 +23,8 @@ import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.support.ClosureHelper;
 import com.netflix.spinnaker.hystrix.SimpleHystrixCommand;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -209,14 +211,23 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   public void bulkImport(Collection<T> items) {
+    User authenticatedUser = new User();
+    authenticatedUser.setUsername(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+
     Observable
         .from(items)
         .buffer(10)
         .flatMap(itemSet -> Observable
             .from(itemSet)
             .flatMap(item -> {
-              update(item.getId(), item);
-              return Observable.just(item);
+              try {
+                return AuthenticatedRequest.propagate(() -> {
+                  update(item.getId(), item);
+                  return Observable.just(item);
+                }, true, authenticatedUser).call();
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
             })
             .subscribeOn(scheduler)
         ).subscribeOn(scheduler)
