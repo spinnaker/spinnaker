@@ -246,6 +246,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       if (compute == null) {
         compute = credentials.getCompute(applicationName)
       }
+      AccountForClient.addGoogleClient(compute, name)
 
       if (liveLookupsEnabled) {
         xpnHostProject = GoogleExecutor.timeExecute(

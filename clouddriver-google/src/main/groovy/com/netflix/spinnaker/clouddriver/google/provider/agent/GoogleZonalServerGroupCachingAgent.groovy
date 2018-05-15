@@ -167,10 +167,8 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     String nextPageToken = null
     List<InstanceTemplate> instanceTemplates = []
     while (!executedAtLeastOnce || nextPageToken) {
-      InstanceTemplateList instanceTemplateList = GoogleExecutor.timeExecute(
-          GoogleExecutor.getRegistry(),
+      InstanceTemplateList instanceTemplateList = timeExecute(
           compute.instanceTemplates().list(project).setPageToken(nextPageToken),
-          "google.api",
           "compute.instanceTemplates.list",
           GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
 

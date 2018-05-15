@@ -21,6 +21,7 @@ import com.google.api.client.http.HttpResponseException
 
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
 import java.util.concurrent.TimeUnit
 
 
@@ -44,10 +45,11 @@ public class GoogleApiTestUtils {
 
   static public Id makeOkId(Registry registry, String method, Map extra) {
     // See GoogleExecutorTraitsSpec as to why the statusCode is 0
-    return registry.createId("google.api", makeTraitsTagMap(method, 0, extra))
+    return makeId(registry, method, 0, extra)
   }
 
   static public Id makeId(Registry registry, String method, int statusCode, Map extra) {
+    extra = ["account":  AccountForClient.UNKNOWN_ACCOUNT] + extra
     return registry.createId("google.api", makeTraitsTagMap(method, statusCode, extra))
   }
 

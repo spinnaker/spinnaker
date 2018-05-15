@@ -19,6 +19,7 @@ import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.HttpResponseException
 import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
+import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
 
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Id
@@ -48,7 +49,8 @@ trait GoogleExecutorTraits {
   }
 
   public <T> T timeExecute(AbstractGoogleClientRequest<T> request, String api, String... tags) throws IOException {
-     return GoogleExecutor.timeExecute(getRegistry(), request, "google.api", api, tags)
+     String account = AccountForClient.getAccount(request.getAbstractGoogleClient())
+     return GoogleExecutor.timeExecute(getRegistry(), request, "google.api", api, "account", account, *tags)
   }
 }
 
