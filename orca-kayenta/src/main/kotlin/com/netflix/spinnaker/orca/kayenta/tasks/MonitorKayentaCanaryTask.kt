@@ -52,7 +52,8 @@ class MonitorKayentaCanaryTask(
       val canaryScore = canaryResults.result!!.judgeResult.score.score
 
       return if (canaryScore <= context.scoreThresholds.marginal) {
-        TaskResult(TERMINAL, mapOf(
+        val resultStatus = if (stage.context["continuePipeline"] == true) FAILED_CONTINUE else TERMINAL
+        TaskResult(resultStatus, mapOf(
           "canaryPipelineStatus" to SUCCEEDED,
           "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
           "lastUpdatedIso" to canaryResults.endTimeIso,

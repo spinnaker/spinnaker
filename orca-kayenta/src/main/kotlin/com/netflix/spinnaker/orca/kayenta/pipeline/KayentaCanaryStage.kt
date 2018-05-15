@@ -114,6 +114,7 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
         it.type = RunCanaryPipelineStage.STAGE_TYPE
         it.name = "Run Canary #$i"
         it.context.putAll(mapper.convertValue<Map<String, Any>>(runCanaryContext))
+        it.context["continuePipeline"] = parent.context["continuePipeline"]
       }
     }
   }
