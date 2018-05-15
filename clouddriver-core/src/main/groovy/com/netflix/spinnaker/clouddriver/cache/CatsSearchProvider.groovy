@@ -119,7 +119,7 @@ class CatsSearchProvider implements SearchProvider, Runnable {
       provider.supportsSearch('instances', Collections.emptyMap())
     }.collect { provider ->
       def cache = providerRegistry.getProviderCache(provider.getProviderName())
-      return cache.existingIdentifiers("instances", cache.getIdentifiers("instances")).findResults { key ->
+      return cache.getIdentifiers("instances").findResults { key ->
         def v = provider.parseKey(key)
         if (v) {
           v["_id"] = key
