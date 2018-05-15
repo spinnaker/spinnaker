@@ -12,12 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 @Component
@@ -35,8 +38,12 @@ public abstract class TemplateUtils {
   private RetrySupport retrySupport = new RetrySupport();
 
   private String nameFromReference(String reference) {
-    return reference.replace("/", "_")
-        .replace(":", "_");
+    try {
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      return DatatypeConverter.printHexBinary(md.digest(reference.getBytes()));
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException("Failed to save bake manifest: " + e.getMessage(), e);
+    }
   }
 
   protected Path downloadArtifactToTmpFile(BakeManifestEnvironment env, Artifact artifact) throws IOException {
