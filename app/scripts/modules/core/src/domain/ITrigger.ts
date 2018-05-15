@@ -1,5 +1,6 @@
 export interface ITrigger {
   enabled: boolean;
+  rebake?: boolean;
   user?: string;
   type: string;
   expectedArtifactIds?: string[]; // uuid references to ExpectedArtifacts defined in the Pipeline.

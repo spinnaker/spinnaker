@@ -8,4 +8,5 @@ export * from './config/services/PipelineConfigService';
 export * from './details';
 export * from './executions/execution/Execution';
 export * from './filter/ExecutionFilterModel';
+export * from './manualExecution/TriggerTemplate';
 export * from './service/execution.service';

@@ -7,12 +7,17 @@ import { AuthenticationService } from 'core/authentication';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { SETTINGS } from 'core/config/settings';
 
+import { STAGE_MANUAL_COMPONENTS } from './stageManualComponents.component';
+import { TRIGGER_TEMPLATE } from './triggerTemplate.component';
+
 import './manualPipelineExecution.less';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.manualPipelineExecution.controller', [
     require('angular-ui-bootstrap'),
     PIPELINE_CONFIG_PROVIDER,
+    TRIGGER_TEMPLATE,
+    STAGE_MANUAL_COMPONENTS,
     require('../../notification/notification.service').name,
   ])
   .controller('ManualPipelineExecutionCtrl', function(
@@ -78,12 +83,12 @@ module.exports = angular
       }
 
       this.triggers = pipeline.triggers
-        .filter(t => pipelineConfig.hasManualExecutionHandlerForTriggerType(t.type))
+        .filter(t => pipelineConfig.hasManualExecutionComponentForTriggerType(t.type))
         .map(t => {
           let copy = _.clone(t);
           copy.description = '...'; // placeholder
           pipelineConfig
-            .getManualExecutionHandlerForTriggerType(t.type)
+            .getManualExecutionComponentForTriggerType(t.type)
             .formatLabel(t)
             .then(label => (copy.description = label));
           return copy;
@@ -94,10 +99,10 @@ module.exports = angular
       }
 
       const suppliedTriggerCanBeInvoked =
-        trigger && pipelineConfig.hasManualExecutionHandlerForTriggerType(trigger.type);
+        trigger && pipelineConfig.hasManualExecutionComponentForTriggerType(trigger.type);
       if (suppliedTriggerCanBeInvoked) {
         pipelineConfig
-          .getManualExecutionHandlerForTriggerType(trigger.type)
+          .getManualExecutionComponentForTriggerType(trigger.type)
           .formatLabel(trigger)
           .then(label => (trigger.description = label));
       }
@@ -115,10 +120,8 @@ module.exports = angular
         command.trigger = trigger;
       }
 
-      if (command.trigger && pipelineConfig.hasManualExecutionHandlerForTriggerType(command.trigger.type)) {
-        this.triggerTemplate = pipelineConfig.getManualExecutionHandlerForTriggerType(
-          command.trigger.type,
-        ).selectorTemplate;
+      if (command.trigger && pipelineConfig.hasManualExecutionComponentForTriggerType(command.trigger.type)) {
+        this.triggerComponent = pipelineConfig.getManualExecutionComponentForTriggerType(command.trigger.type);
       }
     };
 
@@ -135,8 +138,10 @@ module.exports = angular
       addTriggers();
       this.triggerUpdated();
 
-      const additionalTemplates = pipeline.stages.map(stage => pipelineConfig.getManualExecutionHandlerForStage(stage));
-      this.stageTemplates = _.uniq(_.compact(additionalTemplates));
+      const additionalComponents = pipeline.stages.map(stage =>
+        pipelineConfig.getManualExecutionComponentForStage(stage),
+      );
+      this.stageComponents = _.uniq(_.compact(additionalComponents));
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         this.parameters = {};

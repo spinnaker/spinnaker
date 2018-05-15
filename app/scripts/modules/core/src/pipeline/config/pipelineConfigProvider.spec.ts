@@ -1,9 +1,11 @@
-import { auto, mock } from 'angular';
+import { mock } from 'angular';
 import { map } from 'lodash';
+import * as React from 'react';
 
 import { IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
 import { IRegion } from 'core/account/AccountService';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from './pipelineConfigProvider';
+import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
 
 const mockProviderAccount = {
   accountId: 'abc',
@@ -45,8 +47,8 @@ describe('pipelineConfigProvider: API', function() {
       configurer = pipelineConfigProvider;
     });
 
-    mock.inject(function($injector: auto.IInjectorService) {
-      service = configurer.$get($injector);
+    mock.inject(function() {
+      service = configurer.$get();
     });
   });
 
@@ -108,35 +110,36 @@ describe('pipelineConfigProvider: API', function() {
     );
 
     it(
-      'augments provider stages with parent keys, labels, manualExecutionHandlers, and descriptions',
+      'augments provider stages with parent keys, labels, manualExecutionComponents, and descriptions',
       mock.inject(function() {
+        const CompA = ({  }: ITriggerTemplateComponentProps) => React.createElement('a');
         const baseStage = {
             key: 'c',
             useBaseProvider: true,
             description: 'c description',
             label: 'the c',
-            manualExecutionHandler: 'a',
+            manualExecutionComponent: CompA,
           },
           augmentedA = {
             key: 'd',
             provides: 'c',
             description: 'c description',
             label: 'the c',
-            manualExecutionHandler: 'a',
+            manualExecutionComponent: CompA,
           } as any,
           augmentedB = {
             key: 'e',
             provides: 'c',
             description: 'c description',
             label: 'the c',
-            manualExecutionHandler: 'a',
+            manualExecutionComponent: CompA,
           },
           augmentedC = {
             key: 'c',
             provides: 'c',
             description: 'c description',
             label: 'the c',
-            manualExecutionHandler: 'a',
+            manualExecutionComponent: CompA,
           };
         configurer.registerStage(baseStage as IStageTypeConfig);
         configurer.registerStage({ key: 'd', provides: 'c' } as IStageTypeConfig);
@@ -149,27 +152,29 @@ describe('pipelineConfigProvider: API', function() {
     );
 
     it(
-      'allows provider stages to override of label, description, manualExecutionHandler',
+      'allows provider stages to override of label, description, manualExecutionComponent',
       mock.inject(function() {
+        const CompA = ({  }: ITriggerTemplateComponentProps) => React.createElement('a');
+        const CompB = ({  }: ITriggerTemplateComponentProps) => React.createElement('b');
         configurer.registerStage({
           key: 'a',
           useBaseProvider: true,
           description: 'a1',
           label: 'aa',
-          manualExecutionHandler: 'a',
+          manualExecutionComponent: CompA,
         } as IStageTypeConfig);
         configurer.registerStage({
           key: 'b',
           provides: 'a',
           description: 'b1',
           label: 'bb',
-          manualExecutionHandler: 'b',
+          manualExecutionComponent: CompB,
         } as IStageTypeConfig);
         configurer.registerStage({ key: 'c', provides: 'a' } as IStageTypeConfig);
         expect(service.getStageTypes() as any[]).toEqual([
-          { key: 'a', useBaseProvider: true, description: 'a1', label: 'aa', manualExecutionHandler: 'a' },
-          { key: 'b', provides: 'a', description: 'b1', label: 'bb', manualExecutionHandler: 'b' },
-          { key: 'c', provides: 'a', description: 'a1', label: 'aa', manualExecutionHandler: 'a' },
+          { key: 'a', useBaseProvider: true, description: 'a1', label: 'aa', manualExecutionComponent: CompA },
+          { key: 'b', provides: 'a', description: 'b1', label: 'bb', manualExecutionComponent: CompB },
+          { key: 'c', provides: 'a', description: 'a1', label: 'aa', manualExecutionComponent: CompA },
         ]);
       }),
     );
@@ -313,45 +318,29 @@ describe('pipelineConfigProvider: API', function() {
     });
   });
 
-  describe('manualExecutionHandlers', function() {
-    it('hasManualExecutionHandlerForTriggerType returns false if nothing configured', function() {
+  describe('manualExecutionComponents', function() {
+    it('hasManualExecutionComponentForTriggerType returns false if nothing configured', function() {
       configurer.registerTrigger({ key: 'a' } as ITriggerTypeConfig);
-      expect(service.hasManualExecutionHandlerForTriggerType('a')).toBe(false);
-      expect(service.hasManualExecutionHandlerForTriggerType('b')).toBe(false);
+      expect(service.hasManualExecutionComponentForTriggerType('a')).toBe(false);
+      expect(service.hasManualExecutionComponentForTriggerType('b')).toBe(false);
     });
 
-    it('hasManualExecutionHandlerForTriggerType returns false if declared but not configured', function() {
-      configurer.registerTrigger({
-        key: 'a',
-        manualExecutionHandler: 'someHandlerThatDoesNotExist',
-      } as ITriggerTypeConfig);
-      expect(service.hasManualExecutionHandlerForTriggerType('a')).toBe(false);
+    it('hasManualExecutionComponentForTriggerType returns true if declared and available', function() {
+      const CompA = ({  }: ITriggerTemplateComponentProps) => React.createElement('a');
+      configurer.registerTrigger({ key: 'cron', manualExecutionComponent: CompA } as ITriggerTypeConfig);
+      expect(service.hasManualExecutionComponentForTriggerType('cron')).toBe(true);
     });
 
-    it('hasManualExecutionHandlerForTriggerType returns true if declared and available', function() {
-      configurer.registerTrigger({ key: 'cron', manualExecutionHandler: 'pipelineConfig' } as ITriggerTypeConfig);
-      expect(service.hasManualExecutionHandlerForTriggerType('cron')).toBe(true);
-    });
-
-    it('getManualExecutionHandlerForTriggerType returns null if nothing configured', function() {
+    it('getManualExecutionComponentForTriggerType returns null if nothing configured', function() {
       configurer.registerTrigger({ key: 'a' } as ITriggerTypeConfig);
-      expect(service.getManualExecutionHandlerForTriggerType('a')).toBe(null);
-      expect(service.getManualExecutionHandlerForTriggerType('b')).toBe(null);
+      expect(service.getManualExecutionComponentForTriggerType('a')).toBe(null);
+      expect(service.getManualExecutionComponentForTriggerType('b')).toBe(null);
     });
 
-    it('getManualExecutionHandlerForTriggerType returns null if declared but not configured', function() {
-      configurer.registerTrigger({
-        key: 'a',
-        manualExecutionHandler: 'someHandlerThatDoesNotExist',
-      } as ITriggerTypeConfig);
-      expect(service.getManualExecutionHandlerForTriggerType('a')).toBe(null);
-      expect(service.getManualExecutionHandlerForTriggerType('b')).toBe(null);
-    });
-
-    it('hasManualExecutionHandlerForTriggerType returns handler if declared and available', function() {
-      configurer.registerTrigger({ key: 'cron', manualExecutionHandler: 'pipelineConfig' } as ITriggerTypeConfig);
-      expect(service.getManualExecutionHandlerForTriggerType('cron')).not.toBe(null);
-      expect(Object.keys(service.getManualExecutionHandlerForTriggerType('cron'))).toEqual(Object.keys(service));
+    it('hasManualExecutionComponentForTriggerType returns handler if declared and available', function() {
+      const CompA = ({  }: ITriggerTemplateComponentProps) => React.createElement('a');
+      configurer.registerTrigger({ key: 'cron', manualExecutionComponent: CompA } as ITriggerTypeConfig);
+      expect(service.getManualExecutionComponentForTriggerType('cron')).toEqual(CompA);
     });
   });
 });

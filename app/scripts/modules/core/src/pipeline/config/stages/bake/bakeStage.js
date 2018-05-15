@@ -1,5 +1,6 @@
 'use strict';
 
+import { ManualExecutionBake } from './ManualExecutionBake';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 
 const angular = require('angular');
@@ -16,7 +17,7 @@ module.exports = angular
       description: 'Bakes an image in the specified region',
       key: 'bake',
       restartable: true,
-      manualExecutionHandler: require('./bakeExecutionHandler.html'),
+      manualExecutionComponent: ManualExecutionBake,
     });
   })
   .run(function(pipelineConfig, bakeStageTransformer) {
