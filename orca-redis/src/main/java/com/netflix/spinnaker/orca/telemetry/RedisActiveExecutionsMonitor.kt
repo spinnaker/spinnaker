@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.q.redis
+package com.netflix.spinnaker.orca.telemetry
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
@@ -48,14 +49,15 @@ import java.util.concurrent.atomic.AtomicLong
  * TODO rz - Add cloudProviders, accounts as tags
  */
 @Component
+@ConditionalOnProperty("monitor.activeExecutions.redis", matchIfMissing = true)
 class RedisActiveExecutionsMonitor(
   private val executionRepository: ExecutionRepository,
   @Qualifier("redisClientDelegate") private val redisClientDelegate: RedisClientDelegate,
   private val objectMapper: ObjectMapper,
   private val registry: Registry,
-  @Value("\${queue.monitor.activeExecutions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long,
-  @Value("\${queue.monitor.activeExecutions.cleanup.frequency.ms:300000}") cleanupFrequencyMs: Long,
-  @Value("\${queue.monitor.activeExecutions.key:monitor.activeExecutions}") val redisKey: String
+  @Value("\${monitor.activeExecutions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long,
+  @Value("\${monitor.activeExecutions.cleanup.frequency.ms:300000}") cleanupFrequencyMs: Long,
+  @Value("\${monitor.activeExecutions.key:monitor.activeExecutions}") val redisKey: String
 ) : ApplicationListener<ExecutionEvent> {
 
   private val log = LoggerFactory.getLogger(javaClass)
