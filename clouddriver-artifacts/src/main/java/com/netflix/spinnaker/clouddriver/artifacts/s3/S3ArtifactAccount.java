@@ -27,4 +27,5 @@ public class S3ArtifactAccount extends ArtifactAccount
   private String name;
   private String apiEndpoint;
   private String apiRegion;
+  private String region;
 }

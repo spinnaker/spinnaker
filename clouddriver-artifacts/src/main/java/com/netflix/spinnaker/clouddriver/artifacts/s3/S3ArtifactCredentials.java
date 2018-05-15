@@ -35,11 +35,13 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String name;
   private final String apiEndpoint;
   private final String apiRegion;
+  private final String region;
 
   public S3ArtifactCredentials(S3ArtifactAccount account) throws IllegalArgumentException {
     name = account.getName();
     apiEndpoint = account.getApiEndpoint();
     apiRegion = account.getApiRegion();
+    region = account.getRegion();
   }
 
   protected AmazonS3 getS3Client() {
@@ -48,6 +50,9 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     if (!StringUtils.isEmpty(apiEndpoint)) {
       AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration(apiEndpoint, apiRegion);
       builder.setEndpointConfiguration(endpoint);
+      builder.setPathStyleAccessEnabled(true);
+    } else if (!StringUtils.isEmpty(region)) {
+      builder.setRegion(region);
     }
 
     return builder.build();
