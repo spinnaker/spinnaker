@@ -1,3 +1,5 @@
+import { IExecution } from 'core/domain';
+
 export interface ITrigger {
   enabled: boolean;
   rebake?: boolean;
@@ -32,6 +34,8 @@ export interface IDockerTrigger extends ITrigger {
 
 export interface IPipelineTrigger extends ITrigger {
   application: string;
+  parentExecution?: IExecution;
+  parentPipelineId?: string;
   pipeline: string;
 }
 

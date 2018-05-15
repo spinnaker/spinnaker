@@ -1,16 +1,16 @@
 'use strict';
 
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
 
 describe('Pipeline Trigger: ExecutionHandler', function() {
-  var $scope, handler, $q;
+  var $scope, $q;
 
   beforeEach(window.module(require('./pipelineTrigger.module.js').name));
 
   beforeEach(
-    window.inject(function($rootScope, pipelineTriggerManualExecutionHandler, _$q_) {
+    window.inject(function($rootScope, _$q_) {
       $scope = $rootScope.$new();
-      handler = pipelineTriggerManualExecutionHandler;
       $q = _$q_;
     }),
   );
@@ -21,7 +21,7 @@ describe('Pipeline Trigger: ExecutionHandler', function() {
       $q.when([{ id: 'b', name: 'expected' }, { id: 'a', name: 'other' }]),
     );
 
-    handler.formatLabel({ application: 'a', pipeline: 'b' }).then(result => (label = result));
+    PipelineTriggerTemplate.formatLabel({ application: 'a', pipeline: 'b' }).then(result => (label = result));
     $scope.$digest();
     expect(label).toBe('(Pipeline) a: expected');
   });
@@ -30,7 +30,7 @@ describe('Pipeline Trigger: ExecutionHandler', function() {
     let label = null;
     spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([{ id: 'a', name: 'other' }]));
 
-    handler.formatLabel({ application: 'a', pipeline: 'b' }).then(result => (label = result));
+    PipelineTriggerTemplate.formatLabel({ application: 'a', pipeline: 'b' }).then(result => (label = result));
     $scope.$digest();
     expect(label).toBe('[pipeline not found]');
   });
@@ -39,7 +39,7 @@ describe('Pipeline Trigger: ExecutionHandler', function() {
     let label = null;
     spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.reject(''));
 
-    handler.formatLabel({ application: 'a', pipeline: 'b' }).then(result => (label = result));
+    PipelineTriggerTemplate.formatLabel({ application: 'a', pipeline: 'b' }).then(result => (label = result));
     $scope.$digest();
     expect(label).toBe(`[could not load pipelines for 'a']`);
   });
