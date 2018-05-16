@@ -5,8 +5,8 @@ import autoBindMethods from 'class-autobind-decorator';
 import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
 import { GraphType, IMetricSetPairGraphProps } from '../metricSetPairGraph.service';
 
-const BASELINE_COLOR = '#0075dc';
-const CANARY_COLOR = '#993f00';
+const BASELINE_COLOR = '#993f00';
+const CANARY_COLOR = '#0075dc';
 
 function renderHistogram(container: HTMLElement, metricSetPair: IMetricSetPair) {
 
