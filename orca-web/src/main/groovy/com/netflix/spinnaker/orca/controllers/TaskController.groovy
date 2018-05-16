@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import groovy.util.logging.Slf4j
-
+import java.time.Clock
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -39,9 +39,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
-
-import java.time.Clock
-
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static java.time.ZoneOffset.UTC
@@ -74,16 +71,17 @@ class TaskController {
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
-  List<Execution> list(@PathVariable String application,
-                       @RequestParam(value = "limit", defaultValue = "3500")
-                         int limit,
-                       @RequestParam(value = "statuses", required = false)
-                         String statuses) {
+  List<OrchestrationViewModel> list(
+    @PathVariable String application,
+    @RequestParam(value = "page", defaultValue = "1") int page,
+    @RequestParam(value = "limit", defaultValue = "3500") int limit,
+    @RequestParam(value = "statuses", required = false) String statuses
+  ) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
-    def executionCriteria = new ExecutionRepository.ExecutionCriteria(
-      limit: limit,
-      statuses: (statuses.split(",") as Collection)
-    )
+    def executionCriteria = new ExecutionRepository.ExecutionCriteria()
+      .setPage(page)
+      .setLimit(limit)
+      .setStatuses(statuses.split(",") as Collection)
 
     def startTimeCutoff = clock
       .instant()
