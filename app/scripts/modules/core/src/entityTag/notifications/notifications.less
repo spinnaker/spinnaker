@@ -1,6 +1,8 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
-.notices-severity-0, .notices-severity-1, .notices-severity-2 {
+.notices-severity-0,
+.notices-severity-1,
+.notices-severity-2 {
   --color-notice: var(--color-accent);
   --color-notice-light: var(--color-accent-g2);
 }
@@ -20,7 +22,8 @@
   --color-notice-light: var(--color-danger-light);
 }
 
-.notification, .notifications-popover {
+.notification,
+.notifications-popover {
   &.fa {
     color: var(--color-notice);
   }
@@ -80,5 +83,17 @@
         font-size: 90%;
       }
     }
+  }
+}
+
+.ephemeral,
+.ephemeral-popover {
+  &.fa {
+    color: var(--color-mineshaft);
+  }
+
+  .popover-title {
+    background-color: var(--color-mineshaft);
+    color: var(--color-white);
   }
 }

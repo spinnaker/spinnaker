@@ -5,6 +5,7 @@ import { Placement } from 'core/presentation';
 import { Application } from 'core/application';
 import { noop } from 'core/utils';
 import { NotificationsPopover } from './NotificationsPopover';
+import { EphemeralPopover } from './EphemeralPopover';
 
 export interface IEntityNotificationsProps {
   entity: any;
@@ -89,6 +90,8 @@ export class EntityNotifications extends React.Component<IEntityNotificationsPro
           hOffsetPercent={hOffsetPercent}
           onUpdate={onUpdate}
         />
+
+        <EphemeralPopover entity={entity} />
       </div>
     );
   }
