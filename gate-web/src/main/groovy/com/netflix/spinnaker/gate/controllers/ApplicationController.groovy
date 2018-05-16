@@ -104,9 +104,10 @@ class ApplicationController {
   @ApiOperation(value = "Retrieve a list of an application's tasks", response = List.class)
   @RequestMapping(value = "/{application}/tasks", method = RequestMethod.GET)
   List getTasks(@PathVariable("application") String application,
+                @RequestParam(value = "page", required = false) Integer page,
                 @RequestParam(value = "limit", required = false) Integer limit,
                 @RequestParam(value = "statuses", required = false) String statuses) {
-    executionHistoryService.getTasks(application, limit, statuses)
+    executionHistoryService.getTasks(application, page, limit, statuses)
   }
 
   @ApiOperation(value = "Retrieve a list of an application's pipeline executions", response = List.class)

@@ -191,11 +191,11 @@ class FunctionalSpec extends Specification {
 
   void "should call ApplicationService for an application's tasks"() {
     when:
-      api.getTasks(name, null, "RUNNING,TERMINAL")
+      api.getTasks(name, null, null, "RUNNING,TERMINAL")
 
     then:
       1 * orcaServiceSelector.withContext(_) >> { orcaService }
-      1 * orcaService.getTasks(name, null, "RUNNING,TERMINAL") >> []
+      1 * orcaService.getTasks(name, null, null, "RUNNING,TERMINAL") >> []
 
     where:
       name = "foo"
@@ -215,19 +215,19 @@ class FunctionalSpec extends Specification {
 
   void "should throw ServerErrorException(500) on a random thrown exception"() {
     when:
-    def tasks = executionHistoryService.getTasks("app", 5, null)
+    def tasks = executionHistoryService.getTasks("app", null, 5, null)
 
     then:
     1 * orcaServiceSelector.withContext(_) >> { orcaService }
-    1 * orcaService.getTasks("app", 5, null) >> { return ["1"] }
+    1 * orcaService.getTasks("app", null, 5, null) >> { return ["1"] }
     tasks == ["1"]
 
     when:
-      executionHistoryService.getTasks("app", 10, "RUNNING")
+      executionHistoryService.getTasks("app", null, 10, "RUNNING")
 
     then:
     1 * orcaServiceSelector.withContext(_) >> { orcaService }
-    1 * orcaService.getTasks("app", 10, "RUNNING") >> { throw new IllegalStateException() }
+    1 * orcaService.getTasks("app", null, 10, "RUNNING") >> { throw new IllegalStateException() }
       thrown(ServerErrorException)
 
     when:

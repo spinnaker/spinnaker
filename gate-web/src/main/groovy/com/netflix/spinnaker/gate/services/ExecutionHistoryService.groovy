@@ -33,12 +33,12 @@ class ExecutionHistoryService {
   @Autowired
   OrcaServiceSelector orcaServiceSelector
 
-  List getTasks(String app, Integer limit, String statuses) {
+  List getTasks(String app, Integer page, Integer limit, String statuses) {
     Preconditions.checkNotNull(app)
 
     RequestContext requestContext = RequestContext.get()
     def command = HystrixFactory.newListCommand("taskExecutionHistory", "getTasksForApp") {
-      orcaServiceSelector.withContext(requestContext).getTasks(app, limit, statuses)
+      orcaServiceSelector.withContext(requestContext).getTasks(app, page, limit, statuses)
     }
     return command.execute()
   }
