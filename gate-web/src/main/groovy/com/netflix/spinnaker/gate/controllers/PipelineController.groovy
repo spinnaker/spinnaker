@@ -26,6 +26,7 @@ import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
@@ -69,6 +70,7 @@ class PipelineController {
     pipelineService.deleteForApplication(application, pipelineName)
   }
 
+  @CompileDynamic
   @ApiOperation(value = "Save a pipeline definition")
   @RequestMapping(value = '', method = RequestMethod.POST)
   void savePipeline(@RequestBody Map pipeline) {
@@ -84,9 +86,13 @@ class PipelineController {
       ]
     ]
     def result = taskService.createAndWaitForCompletion(operation)
+    String resultStatus = result.get("status")
 
-    if ("TERMINAL".equalsIgnoreCase((String) result.get("status"))) {
-      throw new PipelineException("Pipeline save operation failed with terminal status: ${result.get("id", "unknown task id")}")
+    if (!"SUCCEEDED".equalsIgnoreCase(resultStatus)) {
+      String exception = result.variables.find { it.key == "exception" }?.value?.details?.errors?.getAt(0)
+      throw new PipelineException(
+        exception ?: "Pipeline save operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})"
+      )
     }
   }
 
@@ -108,6 +114,7 @@ class PipelineController {
     }
   }
 
+  @CompileDynamic
   @ApiOperation(value = "Update a pipeline definition", response = HashMap.class)
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
   Map updatePipeline(@PathVariable("id") String id, @RequestBody Map pipeline) {
@@ -126,11 +133,11 @@ class PipelineController {
     def result = taskService.createAndWaitForCompletion(operation)
     String resultStatus = result.get("status")
 
-    if ("TERMINAL".equalsIgnoreCase(resultStatus)) {
-      throw new PipelineException("Pipeline save operation failed with terminal status: ${result.get("id", "unknown task id")}")
-    }
     if (!"SUCCEEDED".equalsIgnoreCase(resultStatus)) {
-      throw new PipelineException("Pipeline save operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})")
+      String exception = result.variables.find { it.key == "exception" }?.value?.details?.errors?.getAt(0)
+      throw new PipelineException(
+        exception ?: "Pipeline save operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})"
+      )
     }
 
     return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"), true)?.find { id == (String) it.get("id") }
