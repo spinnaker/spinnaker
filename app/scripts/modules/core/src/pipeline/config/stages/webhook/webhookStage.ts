@@ -149,6 +149,7 @@ module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE, PIPELINE_CONFIG_PROVIDER])
       controllerAs: '$ctrl',
       templateUrl: require('./webhookStage.html'),
       executionDetailsUrl: require('./webhookExecutionDetails.html'),
+      defaultTimeoutMs: 60 * 60 * 1000, // 1 hour
       validators: [{ type: 'requiredField', fieldName: 'url' }, { type: 'requiredField', fieldName: 'method' }],
     });
   })
