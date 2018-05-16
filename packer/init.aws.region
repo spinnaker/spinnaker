@@ -16,7 +16,7 @@ function get_aws_metadata_value() {
 
 
 function set_aws_defaults_from_environ() {
-  local zone=$(get_aws_metadata_value "/placement/availability-zone")
+  local zone=$(get_aws_metadata_value "/placement/availability-zone/")
   local region=${zone%?}
   local mac_addr=$(get_aws_metadata_value "/network/interfaces/macs/")
   local vpc_id=$(get_aws_metadata_value "/network/interfaces/macs/${mac_addr}vpc-id")
