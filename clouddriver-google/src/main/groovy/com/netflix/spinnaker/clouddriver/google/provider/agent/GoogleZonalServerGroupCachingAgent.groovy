@@ -42,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
 import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -167,10 +168,13 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     String nextPageToken = null
     List<InstanceTemplate> instanceTemplates = []
     while (!executedAtLeastOnce || nextPageToken) {
-      InstanceTemplateList instanceTemplateList = timeExecute(
+      InstanceTemplateList instanceTemplateList = GoogleExecutor.timeExecute(
+          GoogleExecutor.getRegistry(),
           compute.instanceTemplates().list(project).setPageToken(nextPageToken),
+          "google.api",
           "compute.instanceTemplates.list",
-          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL,
+          "account", AccountForClient.getAccount(compute))
 
       executedAtLeastOnce = true
       nextPageToken = instanceTemplateList.getNextPageToken()
