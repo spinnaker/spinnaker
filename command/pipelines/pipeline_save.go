@@ -82,16 +82,14 @@ func (c *PipelineSaveCommand) savePipeline(pipelineJson map[string]interface{}) 
 
 func (c *PipelineSaveCommand) Run(args []string) int {
 	var err error
-	args, err = c.ApiMeta.Process(args)
-
-	if err != nil {
+	f := c.flagSet()
+	if err = f.Parse(args); err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
-	f := c.flagSet()
-
-	if err = f.Parse(args); err != nil {
+	args, err = c.ApiMeta.Process(args)
+	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}

@@ -2,6 +2,7 @@ package command
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -50,37 +51,11 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 	return f
 }
 
-// process with process the meta-parameters out of the arguments. This
+// Process will process the meta-parameters out of the arguments. This
 // potentially modifies the args in-place. It will return the resulting slice.
+// NOTE: This expects the flag set to be parsed prior to invoking it.
 func (m *ApiMeta) Process(args []string) ([]string, error) {
-	// CLI configuration.
-	// TODO(jacobkiefer): Refactor Ui/Colorization so we can warn users
-	// correctly when something fails on initialization.
-	usr, err := user.Current()
-	if err != nil {
-		return args, err
-	}
-
-	// TODO(jacobkiefer): Add flag for config location?
-	configLocation := filepath.Join(usr.HomeDir, ".spin", "config")
-	yamlFile, err := ioutil.ReadFile(configLocation)
-	if err != nil {
-		return args, err
-	}
-
-	err = yaml.Unmarshal(yamlFile, &m.Config)
-	if err != nil {
-		return args, err
-	}
-
-	// Api client initialization.
-	cfg := &gate.Configuration{
-		BasePath:      "http://localhost:8084",
-		DefaultHeader: make(map[string]string),
-		UserAgent:     "Spin CLI version", // TODO(jacobkiefer): Add a reasonable UserAgent.
-	}
-	m.GateClient = gate.NewAPIClient(cfg)
-
+	// Do the Ui initialization so we can properly warn if Process() fails.
 	// Colorization.
 	m.Color = true
 	m.color = m.Color
@@ -101,6 +76,36 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 		InfoColor:  "[blue]",
 		Ui:         &cli.BasicUi{Writer: os.Stdout},
 	}
+
+	// CLI configuration.
+	usr, err := user.Current()
+	if err != nil {
+		m.Ui.Error(fmt.Sprintf("Could not read current user from environment, failing."))
+		return args, err
+	}
+
+	// TODO(jacobkiefer): Add flag for config location?
+	configLocation := filepath.Join(usr.HomeDir, ".spin", "config")
+	yamlFile, err := ioutil.ReadFile(configLocation)
+	if err != nil {
+		m.Ui.Error(fmt.Sprintf("Could not read configuration file from %d, failing.", configLocation))
+		return args, err
+	}
+
+	err = yaml.UnmarshalStrict(yamlFile, &m.Config)
+	if err != nil {
+		m.Ui.Error(fmt.Sprintf("Could not deserialize config file with contents: %d, failing.", yamlFile))
+		return args, err
+	}
+
+	// Api client initialization.
+	cfg := &gate.Configuration{
+		BasePath:      m.gateEndpoint,
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "Spin CLI version", // TODO(jacobkiefer): Add a reasonable UserAgent.
+	}
+	m.GateClient = gate.NewAPIClient(cfg)
+
 	return args, nil
 }
 
