@@ -65,7 +65,11 @@ describe('Service: applicationReader', function() {
       if (dataSources !== undefined) {
         response.attributes['dataSources'] = dataSources;
       }
-      spyOn(API, 'one').and.returnValue({ get: () => $q.when(response) });
+      spyOn(API, 'one').and.returnValue({
+        withParams: () => {
+          return { get: () => $q.when(response) };
+        },
+      });
       spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when([]));
       spyOn(clusterService, 'loadServerGroups').and.returnValue($q.when([]));

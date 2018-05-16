@@ -59,8 +59,9 @@ export class ApplicationReader {
       });
   }
 
-  public getApplication(name: string): IPromise<Application> {
+  public getApplication(name: string, expand = true): IPromise<Application> {
     return API.one('applications', name)
+      .withParams({ expand: expand })
       .get()
       .then((fromServer: Application) => {
         const application: Application = new Application(
