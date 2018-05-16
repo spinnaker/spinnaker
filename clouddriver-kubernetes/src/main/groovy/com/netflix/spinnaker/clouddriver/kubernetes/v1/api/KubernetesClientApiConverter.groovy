@@ -354,7 +354,11 @@ class KubernetesClientApiConverter {
     }
 
     def kubernetesTcpSocketAction = new KubernetesTcpSocketAction()
-    kubernetesTcpSocketAction.port = tcpSocket.port.toInteger() ?: 0
+    try {
+      kubernetesTcpSocketAction.port = tcpSocket.port.toInteger() ?: 0
+    } catch (NumberFormatException ex) {
+      log.warn "Port number is not Integer", ex
+    }
     return kubernetesTcpSocketAction
   }
 
