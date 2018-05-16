@@ -72,7 +72,13 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
     def response
     try {
       response = webhookService.getStatus(statusEndpoint, customHeaders)
-      log.debug("Recieved status code ${response.statusCode} from status endpoint ${statusEndpoint} in stage ${stage.id}")
+      log.debug(
+        "Received status code {} from status endpoint {} in execution {} in stage {}",
+        response.statusCode,
+        statusEndpoint,
+        stage.execution.id,
+        stage.id
+      )
     } catch (HttpStatusCodeException  e) {
       def statusCode = e.getStatusCode()
       if (statusCode.is5xxServerError() || statusCode.value() == 429) {
