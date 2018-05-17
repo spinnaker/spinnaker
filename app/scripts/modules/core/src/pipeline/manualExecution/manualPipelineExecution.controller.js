@@ -21,6 +21,7 @@ module.exports = angular
     require('../../notification/notification.service').name,
   ])
   .controller('ManualPipelineExecutionCtrl', function(
+    $scope,
     $uibModalInstance,
     pipeline,
     application,
@@ -75,6 +76,13 @@ module.exports = angular
 
     this.dryRunEnabled = SETTINGS.feature.dryRunEnabled;
 
+    // Poor react setState
+    const updateCommand = () => {
+      $scope.$applyAsync(() => {
+        this.command = _.cloneDeep(this.command);
+      });
+    };
+
     let addTriggers = () => {
       let pipeline = this.command.pipeline;
       if (!pipeline || !pipeline.triggers || !pipeline.triggers.length) {
@@ -123,6 +131,7 @@ module.exports = angular
       if (command.trigger && pipelineConfig.hasManualExecutionComponentForTriggerType(command.trigger.type)) {
         this.triggerComponent = pipelineConfig.getManualExecutionComponentForTriggerType(command.trigger.type);
       }
+      updateCommand();
     };
 
     this.pipelineSelected = () => {
