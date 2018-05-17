@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.discovery.converters.Auto;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -26,9 +25,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -38,9 +39,13 @@ public class MonitorFront50Task implements RetryableTask {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final Front50Service front50Service;
 
+  private final int successThreshold;
+
   @Autowired
-  public MonitorFront50Task(Optional<Front50Service> front50Service) {
+  public MonitorFront50Task(Optional<Front50Service> front50Service,
+                            @Value("${tasks.MonitorFront50Task.successThreshold:0}") int successThreshold) {
     this.front50Service = front50Service.orElse(null);
+    this.successThreshold = successThreshold;
   }
 
   @Override
@@ -60,21 +65,35 @@ public class MonitorFront50Task implements RetryableTask {
       throw new UnsupportedOperationException("Front50 was not enabled. Fix this by setting front50.enabled: true");
     }
 
+    if (successThreshold == 0) {
+      return TaskResult.SUCCEEDED;
+    }
+
     StageData stageData = stage.mapTo(StageData.class);
     if (stageData.pipelineId != null) {
       try {
-        Optional<Map<String, Object>> pipeline = front50Service
-          .getPipelines(stageData.application)
-          .stream()
-          .filter(p -> stageData.pipelineId.equals(p.get("id")))
-          .findFirst();
+        /*
+         * Some storage services (notably S3) are eventually consistent when versioning is enabled.
+         *
+         * This "dirty hack" attempts to ensure that each underlying instance of Front50 has cached an _updated copy_
+         * of the modified resource.
+         *
+         * It does so by making multiple requests (currently only applies to pipelines) with the expectation that they
+         * will round-robin across all instances of Front50.
+         */
+        for (int i = 0; i < successThreshold; i++) {
+          Optional<Map<String, Object>> pipeline = getPipeline(stageData.pipelineId);
+          if (!pipeline.isPresent()) {
+            return TaskResult.RUNNING;
+          }
 
-        if (!pipeline.isPresent()) {
-          return TaskResult.SUCCEEDED;
+          Long lastModifiedTime = Long.valueOf(pipeline.get().get("updateTs").toString());
+          if (lastModifiedTime < stage.getStartTime()) {
+            return TaskResult.RUNNING;
+          }
         }
 
-        Long lastModifiedTime = Long.valueOf(pipeline.get().get("updateTs").toString());
-        return (lastModifiedTime > stage.getStartTime()) ? TaskResult.SUCCEEDED : TaskResult.RUNNING;
+        return TaskResult.SUCCEEDED;
       } catch (Exception e) {
         log.error(
           "Unable to verify that pipeline has been updated (executionId: {}, pipeline: {})",
@@ -87,6 +106,11 @@ public class MonitorFront50Task implements RetryableTask {
     }
 
     return new TaskResult(ExecutionStatus.SUCCEEDED);
+  }
+
+  private Optional<Map<String, Object>> getPipeline(String id) {
+    List<Map<String, Object>> pipelines = front50Service.getPipelineHistory(id, 1);
+    return pipelines.isEmpty() ? Optional.empty() : Optional.of(pipelines.get(0));
   }
 
   private static class StageData {
