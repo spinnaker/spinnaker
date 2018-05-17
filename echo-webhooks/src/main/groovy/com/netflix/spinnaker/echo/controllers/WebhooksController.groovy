@@ -67,7 +67,7 @@ class WebhooksController {
       throw e
     }
     event.content = postedEvent
-    event.payload = postedEvent
+    event.payload = new HashMap(postedEvent)
 
     if (type == 'git') {
       if (source == 'stash') {
