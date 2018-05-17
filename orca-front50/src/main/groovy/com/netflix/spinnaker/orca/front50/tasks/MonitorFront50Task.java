@@ -43,7 +43,7 @@ public class MonitorFront50Task implements RetryableTask {
 
   @Autowired
   public MonitorFront50Task(Optional<Front50Service> front50Service,
-                            @Value("${tasks.MonitorFront50Task.successThreshold:0}") int successThreshold) {
+                            @Value("${tasks.monitorFront50Task.successThreshold:0}") int successThreshold) {
     this.front50Service = front50Service.orElse(null);
     this.successThreshold = successThreshold;
   }
