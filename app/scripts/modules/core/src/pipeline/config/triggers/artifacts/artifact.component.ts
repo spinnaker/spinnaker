@@ -9,7 +9,7 @@ import {
   module,
 } from 'angular';
 import { IArtifact, IArtifactKindConfig } from 'core/domain';
-import { PipelineConfigProvider } from 'core/pipeline';
+import { Registry } from 'core/registry';
 
 class ArtifactCtrl implements IController {
   public artifact: IArtifact;
@@ -19,7 +19,6 @@ class ArtifactCtrl implements IController {
   private isMatch: boolean;
 
   constructor(
-    private pipelineConfig: PipelineConfigProvider,
     private $attrs: IAttributes,
     private $controller: IControllerService,
     private $compile: ICompileService,
@@ -34,7 +33,7 @@ class ArtifactCtrl implements IController {
     if (this.$attrs.$attr.hasOwnProperty('isMatch')) {
       this.isMatch = true;
     }
-    this.options = this.pipelineConfig.getArtifactKinds();
+    this.options = Registry.pipeline.getArtifactKinds();
   }
 
   public $onInit(): void {

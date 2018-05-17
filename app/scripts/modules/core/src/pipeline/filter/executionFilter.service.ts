@@ -6,9 +6,9 @@ import * as moment from 'moment';
 
 import { Application } from 'core/application/application.model';
 import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
-import { FilterModelService, ISortFilter } from 'core/filterModel';
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { ExecutionState } from 'core/state';
+import { FilterModelService, ISortFilter } from 'core/filterModel';
+import { Registry } from 'core/registry';
 
 const boundaries = [
   { name: 'Today', after: () => moment().startOf('day') },
@@ -38,7 +38,7 @@ export class ExecutionFilterService {
   private lastApplication: Application = null;
   private isFilterable: (sortFilterModel: { [key: string]: boolean }) => boolean;
 
-  constructor(private $log: ILogService, private pipelineConfig: PipelineConfigProvider) {
+  constructor(private $log: ILogService) {
     'ngInject';
     this.isFilterable = FilterModelService.isFilterable;
   }
@@ -180,7 +180,7 @@ export class ExecutionFilterService {
     }
     const configAccounts: string[] = [];
     (config.stages || []).forEach(stage => {
-      const stageConfig = this.pipelineConfig.getStageConfig(stage);
+      const stageConfig = Registry.pipeline.getStageConfig(stage);
       if (stageConfig && stageConfig.configAccountExtractor) {
         configAccounts.push(...stageConfig.configAccountExtractor(stage));
       }
@@ -360,7 +360,7 @@ export class ExecutionFilterService {
 }
 
 export const EXECUTION_FILTER_SERVICE = 'spinnaker.core.pipeline.filter.executionFilter.service';
-module(EXECUTION_FILTER_SERVICE, [PIPELINE_CONFIG_PROVIDER]).factory(
+module(EXECUTION_FILTER_SERVICE, []).factory(
   'executionFilterService',
-  ($log: ILogService, pipelineConfig: any) => new ExecutionFilterService($log, pipelineConfig),
+  ($log: ILogService) => new ExecutionFilterService($log),
 );

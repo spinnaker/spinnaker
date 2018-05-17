@@ -2,7 +2,7 @@ import { IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
-import { CloudProviderRegistry, ILoadBalancer, PipelineConfigProvider } from '@spinnaker/core';
+import { CloudProviderRegistry, ILoadBalancer, Registry } from '@spinnaker/core';
 
 import { APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL } from './loadBalancerChoice.modal.controller';
 
@@ -55,8 +55,8 @@ class AppengineEditLoadBalancerStageCtrl implements IController {
 
 export const APPENGINE_EDIT_LOAD_BALANCER_STAGE = 'spinnaker.appengine.pipeline.stage.editLoadBalancerStage';
 module(APPENGINE_EDIT_LOAD_BALANCER_STAGE, [APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerStage({
+  .config(() => {
+    Registry.pipeline.registerStage({
       label: 'Edit Load Balancer',
       description: 'Edits a load balancer',
       key: 'upsertAppEngineLoadBalancers',

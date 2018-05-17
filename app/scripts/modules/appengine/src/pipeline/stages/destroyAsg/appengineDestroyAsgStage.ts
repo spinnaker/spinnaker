@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 import { IAppengineStageScope } from 'appengine/domain';
 import { AppengineStageCtrl } from '../appengineStage.controller';
@@ -22,9 +22,9 @@ class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_DESTROY_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.destroyAsgStage';
 
-module(APPENGINE_DESTROY_ASG_STAGE, [PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerStage({
+module(APPENGINE_DESTROY_ASG_STAGE, [])
+  .config(() => {
+    Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       key: 'destroyServerGroup',
       cloudProvider: 'appengine',

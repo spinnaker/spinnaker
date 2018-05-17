@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineStageScope } from 'appengine/domain';
@@ -31,9 +31,9 @@ class AppengineDisableAsgStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_DISABLE_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.disableAsgStage';
 
-module(APPENGINE_DISABLE_ASG_STAGE, [PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerStage({
+module(APPENGINE_DISABLE_ASG_STAGE, [])
+  .config(() => {
+    Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       key: 'disableServerGroup',
       cloudProvider: 'appengine',

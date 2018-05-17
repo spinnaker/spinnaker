@@ -3,14 +3,14 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, NameUtils, StageConstants } from '@spinnaker/core';
+import { AccountService, NameUtils, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.cloneServerGroupStage', [
     require('./cloneServerGroupExecutionDetails.controller.js').name,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'titus',
       templateUrl: require('./cloneServerGroupStage.html'),

@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, Registry } from '@spinnaker/core';
 
 import { DcosProviderSettings } from '../../../dcos.settings';
 
@@ -15,8 +15,8 @@ module.exports = angular
     //require('dcos/job/schedule.component.js').name,
     require('dcos/job/labels.component.js').name,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'runJob',
       cloudProvider: 'dcos',
       templateUrl: require('./runJobStage.html'),

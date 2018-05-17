@@ -1,15 +1,15 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider, SETTINGS } from '@spinnaker/core';
+import { Registry, SETTINGS } from '@spinnaker/core';
 import { KubernetesV2UndoRolloutManifestConfigCtrl } from './undoRolloutManifestConfig.controller';
 
 export const KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipeline.stage.undoRolloutManifestStage';
 
-module(KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE, [PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE, [])
+  .config(() => {
     // Todo: replace feature flag with proper versioned provider mechanism once available.
     if (SETTINGS.feature.versionedProviders) {
-      pipelineConfigProvider.registerStage({
+      Registry.pipeline.registerStage({
         label: 'Undo Rollout (Manifest)',
         description: 'Rollback a manifest a target number of revisions.',
         key: 'undoRolloutManifest',

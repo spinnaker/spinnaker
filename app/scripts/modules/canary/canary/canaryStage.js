@@ -9,7 +9,7 @@ import {
   CloudProviderRegistry,
   LIST_EXTRACTOR_SERVICE,
   NameUtils,
-  PIPELINE_CONFIG_PROVIDER,
+  Registry,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   SETTINGS,
 } from '@spinnaker/core';
@@ -22,9 +22,8 @@ module.exports = angular
     LIST_EXTRACTOR_SERVICE,
     SERVER_GROUP_COMMAND_BUILDER_SERVICE,
     CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT,
-    PIPELINE_CONFIG_PROVIDER,
   ])
-  .config(function(pipelineConfigProvider) {
+  .config(function() {
     function isExpression(value) {
       return isString(value) && value.includes('${');
     }
@@ -39,7 +38,7 @@ module.exports = angular
     }
 
     if (SETTINGS.feature.canary) {
-      pipelineConfigProvider.registerStage({
+      Registry.pipeline.registerStage({
         label: 'Canary',
         description: 'Canary tests new changes against a baseline version',
         extendedDescription: SETTINGS.canaryDocumentationUrl

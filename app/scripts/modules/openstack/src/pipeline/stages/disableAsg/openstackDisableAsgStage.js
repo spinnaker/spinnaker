@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, StageConstants } from '@spinnaker/core';
+import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.disableAsgStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       cloudProvider: 'openstack',
       templateUrl: require('./disableAsgStage.html'),

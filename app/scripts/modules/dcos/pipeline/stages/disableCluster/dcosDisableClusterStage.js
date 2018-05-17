@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.dcos.pipeline.stage.disableClusterStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'disableCluster',
       cloudProvider: 'dcos',
       templateUrl: require('./disableClusterStage.html'),

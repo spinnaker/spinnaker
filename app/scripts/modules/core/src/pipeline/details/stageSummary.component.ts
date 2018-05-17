@@ -4,7 +4,7 @@ import { HtmlRenderer, Parser } from 'commonmark';
 
 import { Application } from 'core/application';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStage } from 'core/domain';
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 
 export class StageSummaryController implements IController {
   public application: Application;
@@ -16,12 +16,7 @@ export class StageSummaryController implements IController {
   private parser: Parser = new Parser();
   private renderer: HtmlRenderer = new HtmlRenderer();
 
-  constructor(
-    private $scope: IScope,
-    private $stateParams: StateParams,
-    private $state: StateService,
-    private pipelineConfig: PipelineConfigProvider,
-  ) {
+  constructor(private $scope: IScope, private $stateParams: StateParams, private $state: StateService) {
     'ngInject';
   }
 
@@ -45,7 +40,7 @@ export class StageSummaryController implements IController {
   }
 
   public getStepLabel(stage: IStage): string {
-    const stageConfig = this.pipelineConfig.getStageConfig(stage);
+    const stageConfig = Registry.pipeline.getStageConfig(stage);
     if (stageConfig && stageConfig.executionStepLabelUrl) {
       return stageConfig.executionStepLabelUrl;
     } else {
@@ -68,7 +63,7 @@ export class StageSummaryController implements IController {
   }
 
   public isRestartable(stage?: IStage): boolean {
-    const stageConfig = this.pipelineConfig.getStageConfig(stage);
+    const stageConfig = Registry.pipeline.getStageConfig(stage);
     if (!stageConfig || stage.isRestarting === true) {
       return false;
     }
@@ -111,4 +106,4 @@ export class StageSummaryComponent implements IComponentOptions {
 }
 
 export const STAGE_SUMMARY_COMPONENT = 'spinnaker.core.pipeline.stageSummary.component';
-module(STAGE_SUMMARY_COMPONENT, [PIPELINE_CONFIG_PROVIDER]).component('stageSummary', new StageSummaryComponent());
+module(STAGE_SUMMARY_COMPONENT, []).component('stageSummary', new StageSummaryComponent());

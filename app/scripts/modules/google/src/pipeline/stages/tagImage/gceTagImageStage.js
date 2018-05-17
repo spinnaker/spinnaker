@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..tagImageStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.gce.pipeline.stage..tagImageStage', [])
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'upsertImageTags',
       cloudProvider: 'gce',
       templateUrl: require('./tagImageStage.html'),

@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.findAmiStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'findImage',
       cloudProvider: 'openstack',
       templateUrl: require('./findAmiStage.html'),

@@ -1,8 +1,8 @@
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import * as moment from 'moment';
 
+import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 import { IGOR_SERVICE, IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { IJobConfig, IParameterDefinitionList, IStage } from 'core/domain';
@@ -153,10 +153,10 @@ export class TravisStage implements IController {
 
 export const TRAVIS_STAGE = 'spinnaker.core.pipeline.stage.travisStage';
 
-module(TRAVIS_STAGE, [IGOR_SERVICE, PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(TRAVIS_STAGE, [IGOR_SERVICE])
+  .config(() => {
     if (SETTINGS.feature.travis) {
-      pipelineConfigProvider.registerStage({
+      Registry.pipeline.registerStage({
         label: 'Travis',
         description: 'Runs a Travis job',
         key: 'travis',

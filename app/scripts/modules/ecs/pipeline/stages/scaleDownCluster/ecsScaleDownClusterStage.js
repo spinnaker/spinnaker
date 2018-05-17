@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.ecs.pipeline.stage.scaleDownClusterStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'scaleDownCluster',
       cloudProvider: 'ecs',
       templateUrl: require('./scaleDownClusterStage.html'),

@@ -54,6 +54,7 @@ import { PIPELINE_MODULE } from './pipeline/pipeline.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
 import { REACT_MODULE } from './reactShims';
 import { REGION_MODULE } from './region/region.module';
+import { REGISTRY_MODULE } from './registry/registry.module';
 import { SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
 import { SERVER_GROUP_MANAGER_MODULE } from './serverGroupManager/serverGroupManager.module';
 import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
@@ -83,6 +84,8 @@ module(CORE_MODULE, [
   require('angular-ui-bootstrap'),
   require('ui-select'),
   require('angular-spinner').angularSpinner.name,
+
+  REGISTRY_MODULE,
 
   ANALYTICS_MODULE,
   APPLICATION_MODULE,

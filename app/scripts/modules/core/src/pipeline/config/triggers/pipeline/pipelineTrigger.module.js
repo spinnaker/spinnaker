@@ -4,18 +4,17 @@ import _ from 'lodash';
 const angular = require('angular');
 
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
+import { Registry } from 'core/registry';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.trigger.pipeline', [
-    PIPELINE_CONFIG_PROVIDER,
     APPLICATION_READ_SERVICE,
     require('../trigger.directive.js').name,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerTrigger({
+  .config(function() {
+    Registry.pipeline.registerTrigger({
       label: 'Pipeline',
       description: 'Listens to a pipeline execution',
       key: 'pipeline',

@@ -1,6 +1,5 @@
 import { IAttributes, IComponentController, IComponentOptions, module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { IExpectedArtifact } from 'core/domain';
 
 class ExpectedArtifactController implements IComponentController {
@@ -69,4 +68,4 @@ class ExpectedArtifactComponent implements IComponentOptions {
 }
 
 export const EXPECTED_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifacts.expected';
-module(EXPECTED_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).component('expectedArtifact', new ExpectedArtifactComponent());
+module(EXPECTED_ARTIFACT, []).component('expectedArtifact', new ExpectedArtifactComponent());

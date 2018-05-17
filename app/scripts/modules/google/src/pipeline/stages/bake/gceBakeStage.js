@@ -4,25 +4,25 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ArtifactReferenceServiceProvider,
+  ARTIFACT_REFERENCE_SERVICE_PROVIDER,
   AuthenticationService,
   BakeExecutionLabel,
   BAKERY_SERVICE,
   EXPECTED_ARTIFACT_SERVICE,
-  PIPELINE_CONFIG_PROVIDER,
   PipelineTemplates,
+  Registry,
   SETTINGS,
 } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.gce.pipeline.stage..bakeStage', [
-    PIPELINE_CONFIG_PROVIDER,
+    ARTIFACT_REFERENCE_SERVICE_PROVIDER,
     require('./bakeExecutionDetails.controller.js').name,
     BAKERY_SERVICE,
     EXPECTED_ARTIFACT_SERVICE,
   ])
-  .config(function(pipelineConfigProvider, artifactReferenceServiceProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function(artifactReferenceServiceProvider) {
+    Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'gce',
       label: 'Bake',

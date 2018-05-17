@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineStageScope } from 'appengine/domain/index';
@@ -31,9 +31,9 @@ class AppengineStopServerGroupStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_STOP_SERVER_GROUP_STAGE = 'spinnaker.appengine.pipeline.stage.stopServerGroupStage';
 
-module(APPENGINE_STOP_SERVER_GROUP_STAGE, [PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerStage({
+module(APPENGINE_STOP_SERVER_GROUP_STAGE, [])
+  .config(() => {
+    Registry.pipeline.registerStage({
       label: 'Stop Server Group',
       description: 'Stops a server group.',
       key: 'stopAppEngineServerGroup',

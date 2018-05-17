@@ -1,13 +1,12 @@
 import { module } from 'angular';
-
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { IArtifact } from 'core/domain/IArtifact';
-import { PipelineConfigProvider } from 'core/pipeline';
 import { isNil } from 'lodash';
 
+import { IArtifact } from 'core/domain/IArtifact';
+import { Registry } from 'core/registry';
+
 export const DEFAULT_S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultS3';
-module(DEFAULT_S3_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerArtifactKind({
+module(DEFAULT_S3_ARTIFACT, []).config(() => {
+  Registry.pipeline.registerArtifactKind({
     label: 'S3',
     description: 'A S3 object.',
     key: 'default.s3',

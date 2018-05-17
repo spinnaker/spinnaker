@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineStageScope } from 'appengine/domain';
@@ -31,9 +31,9 @@ class AppengineStartServerGroupStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_START_SERVER_GROUP_STAGE = 'spinnaker.appengine.pipeline.stage.startServerGroupStage';
 
-module(APPENGINE_START_SERVER_GROUP_STAGE, [PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerStage({
+module(APPENGINE_START_SERVER_GROUP_STAGE, [])
+  .config(() => {
+    Registry.pipeline.registerStage({
       label: 'Start Server Group',
       description: 'Starts a server group.',
       key: 'startAppEngineServerGroup',

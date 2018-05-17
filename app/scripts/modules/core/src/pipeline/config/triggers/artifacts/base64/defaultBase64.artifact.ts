@@ -2,9 +2,8 @@ import { module } from 'angular';
 
 import { has } from 'lodash';
 
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { IArtifact } from 'core/domain/IArtifact';
-import { PipelineConfigProvider } from 'core/pipeline';
+import { Registry } from 'core/registry';
 
 import './base64.artifact.less';
 
@@ -14,8 +13,8 @@ const DOMBase64Errors: { [key: string]: string } = {
   5: 'The string to encode contains characters outside the latin1 range.',
 };
 
-module(DEFAULT_BASE64_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerArtifactKind({
+module(DEFAULT_BASE64_ARTIFACT, []).config(() => {
+  Registry.pipeline.registerArtifactKind({
     label: 'Base64',
     description: 'An artifact that includes its referenced resource as part of its payload.',
     key: 'default.base64',

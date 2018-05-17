@@ -2,15 +2,12 @@
 
 const angular = require('angular');
 
-import { AuthenticationService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AuthenticationService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.titusBakeStage', [
-    require('./bakeExecutionDetails.controller.js').name,
-    PIPELINE_CONFIG_PROVIDER,
-  ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.titus.pipeline.stage.titusBakeStage', [require('./bakeExecutionDetails.controller.js').name])
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'bake',
       useBaseProvider: true,
       cloudProvider: 'titus',

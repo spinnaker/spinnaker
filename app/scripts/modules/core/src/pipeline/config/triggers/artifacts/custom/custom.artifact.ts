@@ -1,8 +1,7 @@
 import { IController, module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { IArtifact } from 'core/domain/IArtifact';
-import { PipelineConfigProvider } from 'core/pipeline';
+import { Registry } from 'core/registry';
 
 class CustomArtifactController implements IController {
   constructor(public artifact: IArtifact) {
@@ -11,9 +10,9 @@ class CustomArtifactController implements IController {
 }
 
 export const CUSTOM_ARTIFACT = 'spinnaker.core.pipeline.trigger.custom.artifact';
-module(CUSTOM_ARTIFACT, [PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerArtifactKind({
+module(CUSTOM_ARTIFACT, [])
+  .config(() => {
+    Registry.pipeline.registerArtifactKind({
       label: 'Custom',
       description: 'A custom-defined artifact.',
       key: 'custom',

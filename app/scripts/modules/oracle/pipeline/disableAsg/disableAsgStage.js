@@ -1,15 +1,15 @@
 'use strict';
 
 let angular = require('angular');
-import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
-import { AccountService } from 'core/account/AccountService';
+
+import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [
     require('core/application/modal/platformHealthOverride.directive.js').name,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       cloudProvider: 'oraclebmcs',
       templateUrl: require('./disableAsgStage.html'),

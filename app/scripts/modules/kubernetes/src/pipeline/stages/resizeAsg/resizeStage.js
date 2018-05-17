@@ -2,14 +2,14 @@
 
 const angular = require('angular');
 
-import { AccountService, StageConstants } from '@spinnaker/core';
+import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 import './resizeStage.less';
 
 module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.resizeStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',
       cloudProvider: 'kubernetes',
       templateUrl: require('./resizeStage.html'),

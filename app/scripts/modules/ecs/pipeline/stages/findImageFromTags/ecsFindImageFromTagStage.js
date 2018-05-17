@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.ecs.pipeline.stage.findImageFromTagsStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.ecs.pipeline.stage.findImageFromTagsStage', [])
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'findImageFromTags',
       cloudProvider: 'ecs',
       templateUrl: require('./findImageFromTagsStage.html'),

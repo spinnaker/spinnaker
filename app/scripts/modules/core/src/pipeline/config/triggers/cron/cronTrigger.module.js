@@ -3,8 +3,10 @@
 const angular = require('angular');
 
 import { UUIDGenerator } from 'core/utils/uuid.service';
+import { Registry } from 'core/registry';
 import { SERVICE_ACCOUNT_SERVICE } from 'core/serviceAccount/serviceAccount.service.ts';
 import { SETTINGS } from 'core/config/settings';
+
 import './cronTrigger.less';
 
 module.exports = angular
@@ -14,8 +16,8 @@ module.exports = angular
     SERVICE_ACCOUNT_SERVICE,
     require('./cron.validator.directive.js').name,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerTrigger({
+  .config(function() {
+    Registry.pipeline.registerTrigger({
       label: 'CRON',
       description: 'Executes the pipeline on a CRON schedule',
       key: 'cron',

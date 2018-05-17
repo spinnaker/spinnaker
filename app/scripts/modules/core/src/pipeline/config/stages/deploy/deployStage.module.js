@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { CLUSTER_NAME_FILTER } from './clusterName.filter';
+import { Registry } from 'core/registry';
 import { STAGE_CORE_MODULE } from '../core/stage.core.module';
 
 module.exports = angular
@@ -13,6 +14,6 @@ module.exports = angular
     CLUSTER_NAME_FILTER,
     STAGE_CORE_MODULE,
   ])
-  .run(function(pipelineConfig, deployStageTransformer) {
-    pipelineConfig.registerTransformer(deployStageTransformer);
+  .run(function(deployStageTransformer) {
+    Registry.pipeline.registerTransformer(deployStageTransformer);
   });

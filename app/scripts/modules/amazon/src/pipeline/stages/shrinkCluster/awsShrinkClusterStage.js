@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.aws.shrinkClusterStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.amazon.pipeline.stage.aws.shrinkClusterStage', [])
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'aws',
       templateUrl: require('./shrinkClusterStage.html'),

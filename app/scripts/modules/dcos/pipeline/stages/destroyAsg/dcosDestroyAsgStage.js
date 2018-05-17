@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants, Registry } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.dcos.pipeline.stage.destroyAsgStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       alias: 'destroyAsg',
       cloudProvider: 'dcos',

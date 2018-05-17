@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, PipelineTemplates, StageConstants } from '@spinnaker/core';
+import { AccountService, PipelineTemplates, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.ecs.pipeline.stage.disableAsgStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
       alias: 'disableAsg',
       cloudProvider: 'ecs',

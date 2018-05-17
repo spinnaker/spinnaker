@@ -7,22 +7,15 @@ import { AuthenticationService } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
-import {
-  PipelineTemplates,
-  BakeExecutionLabel,
-  BAKERY_SERVICE,
-  PIPELINE_CONFIG_PROVIDER,
-  SETTINGS,
-} from '@spinnaker/core';
+import { PipelineTemplates, BakeExecutionLabel, BAKERY_SERVICE, Registry, SETTINGS } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.pipeline.stage.bakeStage', [
-    PIPELINE_CONFIG_PROVIDER,
     require('./bakeExecutionDetails.controller.js').name,
     BAKERY_SERVICE,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'aws',
       label: 'Bake',

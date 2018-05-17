@@ -3,13 +3,13 @@
 const angular = require('angular');
 import { Subject } from 'rxjs';
 
-import { AccountService, ExecutionDetailsTasks, FirewallLabels } from '@spinnaker/core';
+import { AccountService, ExecutionDetailsTasks, FirewallLabels, Registry } from '@spinnaker/core';
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.runJobStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'runJob',
       useBaseProvider: true,
       restartable: true,

@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.findAmiStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.kubernetes.pipeline.stage.findAmiStage', [])
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'findImage',
       cloudProvider: 'kubernetes',
       templateUrl: require('./findAmiStage.html'),

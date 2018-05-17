@@ -1,7 +1,7 @@
 import { IController, IScope, module } from 'angular';
 
 import { IGOR_SERVICE, IgorService, BuildServiceType } from 'core/ci/igor.service';
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 import { SERVICE_ACCOUNT_SERVICE, ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
 import { IBuildTrigger } from 'core/domain/ITrigger';
 import { SETTINGS } from 'core/config/settings';
@@ -84,13 +84,8 @@ export class TravisTrigger implements IController {
 }
 
 export const TRAVIS_TRIGGER = 'spinnaker.core.pipeline.config.trigger.travis';
-module(TRAVIS_TRIGGER, [
-  require('../trigger.directive.js').name,
-  IGOR_SERVICE,
-  SERVICE_ACCOUNT_SERVICE,
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerTrigger({
+module(TRAVIS_TRIGGER, [require('../trigger.directive.js').name, IGOR_SERVICE, SERVICE_ACCOUNT_SERVICE]).config(() => {
+  Registry.pipeline.registerTrigger({
     label: 'Travis',
     description: 'Listens to a Travis job',
     key: 'travis',

@@ -2,13 +2,13 @@
 
 import { copy } from 'angular';
 
+import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.trigger.triggerDirective', [PIPELINE_CONFIG_PROVIDER])
+  .module('spinnaker.core.pipeline.config.trigger.triggerDirective', [])
   .directive('trigger', function() {
     return {
       restrict: 'E',
@@ -25,8 +25,8 @@ module.exports = angular
       },
     };
   })
-  .controller('TriggerCtrl', function($scope, $element, pipelineConfig, $compile, $controller, $templateCache) {
-    var triggerTypes = pipelineConfig.getTriggerTypes();
+  .controller('TriggerCtrl', function($scope, $element, $compile, $controller, $templateCache) {
+    var triggerTypes = Registry.pipeline.getTriggerTypes();
     $scope.options = triggerTypes;
 
     this.disableAutoTriggering = SETTINGS.disableAutoTriggering || [];

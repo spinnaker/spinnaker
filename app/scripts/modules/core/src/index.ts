@@ -63,6 +63,7 @@ export * from './pubsub';
 
 export * from './reactShims';
 export * from './region';
+export * from './registry';
 export * from './retry';
 
 export * from './scheduler';

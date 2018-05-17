@@ -2,14 +2,14 @@
 
 const angular = require('angular');
 
-import { AccountService, StageConstants } from '@spinnaker/core';
+import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgStage', [
     require('core/application/modal/platformHealthOverride.directive.js').name,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',
       cloudProvider: 'oraclebmcs',
       templateUrl: require('./resizeAsgStage.html'),

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 
 import { ExecutionDetailsTasks } from '../core';
 import { FindAmiExecutionDetails } from './FindAmiExecutionDetails';
@@ -13,8 +13,8 @@ export interface IFindAmiStageContext {
 
 export const FIND_AMI_STAGE = 'spinnaker.core.pipeline.stage.findAmiStage';
 
-module(FIND_AMI_STAGE, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerStage({
+module(FIND_AMI_STAGE, []).config(() => {
+  Registry.pipeline.registerStage({
     executionDetailsSections: [FindAmiExecutionDetails, ExecutionDetailsTasks],
     useBaseProvider: true,
     key: 'findImage',

@@ -2,15 +2,15 @@
 
 const angular = require('angular');
 
-import { SERVICE_ACCOUNT_SERVICE, SETTINGS } from '@spinnaker/core';
+import { Registry, SERVICE_ACCOUNT_SERVICE, SETTINGS } from '@spinnaker/core';
 
 import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from 'docker/image/dockerImageAndTagSelector.component';
 import { DockerTriggerTemplate } from './DockerTriggerTemplate';
 
 module.exports = angular
   .module('spinnaker.docker.pipeline.trigger', [SERVICE_ACCOUNT_SERVICE, DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerTrigger({
+  .config(function() {
+    Registry.pipeline.registerTrigger({
       label: 'Docker Registry',
       description: 'Executes the pipeline on an image update',
       key: 'docker',

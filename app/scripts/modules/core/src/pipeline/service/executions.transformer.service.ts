@@ -8,7 +8,7 @@ import { ExecutionBarLabel } from 'core/pipeline/config/stages/core/ExecutionBar
 import { ExecutionMarkerIcon } from 'core/pipeline/config/stages/core/ExecutionMarkerIcon';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem } from 'core/domain';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 
 export class ExecutionsTransformerService {
   private hiddenStageTypes = [
@@ -18,14 +18,10 @@ export class ExecutionsTransformerService {
     'determineTargetServerGroup',
   ];
 
-  constructor(private pipelineConfig: PipelineConfigProvider) {
-    'ngInject';
-  }
-
   private addDeploymentTargets(execution: IExecution): void {
     const targets: string[] = [];
     execution.stages.forEach(stage => {
-      const stageConfig = this.pipelineConfig.getStageConfig(stage);
+      const stageConfig = Registry.pipeline.getStageConfig(stage);
       if (stageConfig && stageConfig.accountExtractor) {
         targets.push(stageConfig.accountExtractor(stage));
       }
@@ -198,7 +194,7 @@ export class ExecutionsTransformerService {
 
   private styleStage(stage: IExecutionStageSummary, styleStage?: IExecutionStageSummary): void {
     styleStage = styleStage || stage;
-    const stageConfig = this.pipelineConfig.getStageConfig(styleStage);
+    const stageConfig = Registry.pipeline.getStageConfig(styleStage);
     if (stageConfig) {
       stage.labelComponent = stageConfig.executionLabelComponent || ExecutionBarLabel;
       stage.markerIcon = stageConfig.markerIcon || ExecutionMarkerIcon;
@@ -256,7 +252,7 @@ export class ExecutionsTransformerService {
   }
 
   private filterStages(summary: IExecutionStageSummary): void {
-    const stageConfig = this.pipelineConfig.getStageConfig(summary.masterStage);
+    const stageConfig = Registry.pipeline.getStageConfig(summary.masterStage);
     if (stageConfig && stageConfig.stageFilter) {
       summary.stages = summary.stages.filter(s => stageConfig.stageFilter(s));
     }
@@ -284,7 +280,7 @@ export class ExecutionsTransformerService {
       execution.isStrategy = execution.trigger.isPipeline === false && execution.trigger.type === 'pipeline';
     }
     this.applyPhasesAndLink(execution);
-    this.pipelineConfig.getExecutionTransformers().forEach(transformer => {
+    Registry.pipeline.getExecutionTransformers().forEach(transformer => {
       transformer.transform(application, execution);
     });
 
@@ -476,7 +472,4 @@ export class ExecutionsTransformerService {
 }
 
 export const EXECUTIONS_TRANSFORMER_SERVICE = 'spinnaker.core.pipeline.executionTransformer.service';
-module(EXECUTIONS_TRANSFORMER_SERVICE, [PIPELINE_CONFIG_PROVIDER]).service(
-  'executionsTransformer',
-  ExecutionsTransformerService,
-);
+module(EXECUTIONS_TRANSFORMER_SERVICE, []).service('executionsTransformer', ExecutionsTransformerService);

@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
+import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.enableAsgStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.kubernetes.pipeline.stage.enableAsgStage', [])
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'enableServerGroup',
       cloudProvider: 'kubernetes',
       templateUrl: require('./enableAsgStage.html'),

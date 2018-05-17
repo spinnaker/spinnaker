@@ -1,13 +1,12 @@
 import { module } from 'angular';
-
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { IArtifact } from 'core/domain/IArtifact';
-import { PipelineConfigProvider } from 'core/pipeline';
 import { isNil } from 'lodash';
 
+import { IArtifact } from 'core/domain/IArtifact';
+import { Registry } from 'core/registry';
+
 export const DEFAULT_GCS_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultGcs';
-module(DEFAULT_GCS_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerArtifactKind({
+module(DEFAULT_GCS_ARTIFACT, []).config(() => {
+  Registry.pipeline.registerArtifactKind({
     label: 'GCS',
     description: 'A GCS object.',
     key: 'default.gcs',

@@ -1,12 +1,11 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { IArtifact } from 'core/domain/IArtifact';
-import { PipelineConfigProvider } from 'core/pipeline';
+import { Registry } from 'core/registry';
 
 export const GCS_ARTIFACT = 'spinnaker.core.pipeline.trigger.gcs.artifact';
-module(GCS_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerArtifactKind({
+module(GCS_ARTIFACT, []).config(() => {
+  Registry.pipeline.registerArtifactKind({
     label: 'GCS',
     description: 'A GCS object.',
     key: 'gcs',

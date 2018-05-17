@@ -1,13 +1,12 @@
 import { module } from 'angular';
-
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { IArtifact } from 'core/domain/IArtifact';
-import { PipelineConfigProvider } from 'core/pipeline';
 import { isNil } from 'lodash';
 
+import { IArtifact } from 'core/domain/IArtifact';
+import { Registry } from 'core/registry';
+
 export const DEFAULT_DOCKER_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultDocker';
-module(DEFAULT_DOCKER_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerArtifactKind({
+module(DEFAULT_DOCKER_ARTIFACT, []).config(() => {
+  Registry.pipeline.registerArtifactKind({
     label: 'Docker',
     isDefault: true,
     isMatch: false,

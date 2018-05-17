@@ -1,15 +1,16 @@
 'use strict';
 
+import { Registry } from 'core/registry';
+
 import { IGOR_SERVICE, BuildServiceType } from 'core/ci/igor.service';
 import { JenkinsExecutionLabel } from './JenkinsExecutionLabel';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.jenkinsStage', [IGOR_SERVICE, PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.core.pipeline.stage.jenkinsStage', [IGOR_SERVICE])
+  .config(function() {
+    Registry.pipeline.registerStage({
       label: 'Jenkins',
       description: 'Runs a Jenkins job',
       key: 'jenkins',

@@ -7,19 +7,18 @@ import {
   AuthenticationService,
   BAKERY_SERVICE,
   BakeExecutionLabel,
-  PIPELINE_CONFIG_PROVIDER,
+  Registry,
   PipelineTemplates,
   SETTINGS,
 } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.bakeStage', [
-    PIPELINE_CONFIG_PROVIDER,
     require('./bakeExecutionDetails.controller.js').name,
     BAKERY_SERVICE,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'openstack',
       label: 'Bake',

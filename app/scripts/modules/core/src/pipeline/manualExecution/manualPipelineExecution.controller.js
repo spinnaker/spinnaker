@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { AuthenticationService } from 'core/authentication';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
 import { STAGE_MANUAL_COMPONENTS } from './stageManualComponents.component';
@@ -15,7 +15,6 @@ import './manualPipelineExecution.less';
 module.exports = angular
   .module('spinnaker.core.pipeline.manualPipelineExecution.controller', [
     require('angular-ui-bootstrap'),
-    PIPELINE_CONFIG_PROVIDER,
     TRIGGER_TEMPLATE,
     STAGE_MANUAL_COMPONENTS,
     require('../../notification/notification.service').name,
@@ -25,7 +24,6 @@ module.exports = angular
     $uibModalInstance,
     pipeline,
     application,
-    pipelineConfig,
     trigger,
     notificationService,
   ) {
@@ -92,11 +90,11 @@ module.exports = angular
       }
 
       this.triggers = pipeline.triggers
-        .filter(t => pipelineConfig.hasManualExecutionComponentForTriggerType(t.type))
+        .filter(t => Registry.pipeline.hasManualExecutionComponentForTriggerType(t.type))
         .map(t => {
           let copy = _.clone(t);
           copy.description = '...'; // placeholder
-          pipelineConfig
+          Registry.pipeline
             .getManualExecutionComponentForTriggerType(t.type)
             .formatLabel(t)
             .then(label => (copy.description = label));
@@ -108,9 +106,9 @@ module.exports = angular
       }
 
       const suppliedTriggerCanBeInvoked =
-        trigger && pipelineConfig.hasManualExecutionComponentForTriggerType(trigger.type);
+        trigger && Registry.pipeline.hasManualExecutionComponentForTriggerType(trigger.type);
       if (suppliedTriggerCanBeInvoked) {
-        pipelineConfig
+        Registry.pipeline
           .getManualExecutionComponentForTriggerType(trigger.type)
           .formatLabel(trigger)
           .then(label => (trigger.description = label));
@@ -129,8 +127,8 @@ module.exports = angular
         command.trigger = trigger;
       }
 
-      if (command.trigger && pipelineConfig.hasManualExecutionComponentForTriggerType(command.trigger.type)) {
-        this.triggerComponent = pipelineConfig.getManualExecutionComponentForTriggerType(command.trigger.type);
+      if (command.trigger && Registry.pipeline.hasManualExecutionComponentForTriggerType(command.trigger.type)) {
+        this.triggerComponent = Registry.pipeline.getManualExecutionComponentForTriggerType(command.trigger.type);
       } else {
         this.triggerComponent = null;
       }
@@ -151,7 +149,7 @@ module.exports = angular
       this.triggerUpdated();
 
       const additionalComponents = pipeline.stages.map(stage =>
-        pipelineConfig.getManualExecutionComponentForStage(stage),
+        Registry.pipeline.getManualExecutionComponentForStage(stage),
       );
       this.stageComponents = _.uniq(_.compact(additionalComponents));
 

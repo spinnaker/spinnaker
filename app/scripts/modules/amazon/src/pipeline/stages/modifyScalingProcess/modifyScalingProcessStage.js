@@ -1,12 +1,12 @@
 'use strict';
 
 const angular = require('angular');
-import { AccountService, StageConstants } from '@spinnaker/core';
+import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.pipeline.stage.modifyScalingProcessStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       label: 'Modify Scaling Process',
       description: 'Suspend/Resume Scaling Processes',
       key: 'modifyAwsScalingProcess',

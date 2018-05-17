@@ -5,6 +5,7 @@ import { SETTINGS } from 'core/config/settings';
 import { IPipeline, IStage, IStageTypeConfig } from 'core/domain';
 import { ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { Registry } from 'core/registry';
 
 import {
   ICustomValidator,
@@ -27,7 +28,6 @@ describe('pipelineConfigValidator', () => {
     validate: () => void,
     validationResults: IPipelineValidationResults,
     pipelineConfigValidator: PipelineConfigValidator,
-    pipelineConfig: any,
     serviceAccountService: ServiceAccountService,
     stageOrTriggerBeforeTypeValidator: StageOrTriggerBeforeTypeValidator,
     $q: ng.IQService;
@@ -71,24 +71,24 @@ describe('pipelineConfigValidator', () => {
     };
   }
 
+  beforeEach(() => Registry.initialize());
+
   beforeEach(mock.module(PIPELINE_CONFIG_VALIDATOR, require('../pipelineConfig.module.js').name));
 
   beforeEach(function() {
     SETTINGS.feature.fiatEnabled = true;
   });
 
-  beforeEach(
+  beforeEach(() => {
     mock.inject(
       (
         _pipelineConfigValidator_: PipelineConfigValidator,
-        _pipelineConfig_: any,
         _serviceAccountService_: ServiceAccountService,
         _stageOrTriggerBeforeTypeValidator_: StageOrTriggerBeforeTypeValidator,
         _$q_: ng.IQService,
         $rootScope: ng.IRootScopeService,
       ) => {
         pipelineConfigValidator = _pipelineConfigValidator_;
-        pipelineConfig = _pipelineConfig_;
         serviceAccountService = _serviceAccountService_;
         stageOrTriggerBeforeTypeValidator = _stageOrTriggerBeforeTypeValidator_;
         $q = _$q_;
@@ -98,14 +98,14 @@ describe('pipelineConfigValidator', () => {
           $rootScope.$new().$digest();
         };
       },
-    ),
-  );
+    );
+  });
 
   afterEach(SETTINGS.resetToOriginal);
 
   describe('validation', () => {
     it('performs validation against stages and triggers where declared, ignores others', () => {
-      spyOn(pipelineConfig, 'getTriggerConfig').and.callFake((type: string) => {
+      spyOn(Registry.pipeline, 'getTriggerConfig').and.callFake((type: string) => {
         if (type === 'withTriggerValidation') {
           return buildStageTypeConfig([
             {
@@ -117,7 +117,7 @@ describe('pipelineConfigValidator', () => {
         }
         return buildStageTypeConfig();
       });
-      spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+      spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
         if (stage.type === 'withValidation') {
           return buildStageTypeConfig([
             {
@@ -143,7 +143,7 @@ describe('pipelineConfigValidator', () => {
     });
 
     it('executes all validators', () => {
-      spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+      spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
         if (stage.type === 'withValidation') {
           return buildStageTypeConfig([
             {
@@ -179,7 +179,7 @@ describe('pipelineConfigValidator', () => {
   describe('validators', () => {
     describe('stageOrTriggerBeforeType', () => {
       beforeEach(() => {
-        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
           if (stage.type === 'withValidationIncludingParent') {
             return buildStageTypeConfig([
               {
@@ -335,7 +335,7 @@ describe('pipelineConfigValidator', () => {
 
     describe('stageBeforeType', () => {
       it('fails if no stage is first or not preceded by declared stage type', () => {
-        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
           if (stage.type === 'withValidation') {
             return buildStageTypeConfig([
               {
@@ -382,7 +382,7 @@ describe('pipelineConfigValidator', () => {
       });
 
       it('validates against multiple types if present', () => {
-        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
           if (stage.type === 'withValidation') {
             return buildStageTypeConfig([
               {
@@ -422,7 +422,7 @@ describe('pipelineConfigValidator', () => {
 
     describe('checkRequiredField', () => {
       beforeEach(() => {
-        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
           if (stage.type === 'simpleField') {
             return buildStageTypeConfig([
               {
@@ -513,7 +513,7 @@ describe('pipelineConfigValidator', () => {
 
     describe('targetImpedance', () => {
       beforeEach(() => {
-        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
           if (stage.type === 'targetCheck') {
             return buildStageTypeConfig([
               {
@@ -807,7 +807,7 @@ describe('pipelineConfigValidator', () => {
       let validationCalled = false;
       beforeEach(() => {
         validationCalled = false;
-        spyOn(pipelineConfig, 'getStageConfig').and.returnValue(
+        spyOn(Registry.pipeline, 'getStageConfig').and.returnValue(
           buildStageTypeConfig([
             {
               type: 'custom',
@@ -841,7 +841,7 @@ describe('pipelineConfigValidator', () => {
 
     describe('custom validator', () => {
       beforeEach(() => {
-        spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+        spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
           if (stage.type === 'targetCheck') {
             return buildStageTypeConfig([
               {
@@ -874,7 +874,7 @@ describe('pipelineConfigValidator', () => {
 
   describe('serviceAccountAccess', () => {
     beforeEach(() => {
-      spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+      spyOn(Registry.pipeline, 'getStageConfig').and.callFake((stage: IStage) => {
         if (stage.type === 'targetCheck') {
           return buildStageTypeConfig([
             {

@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, StageConstants } from '@spinnaker/core';
+import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.destroyAsgStage', [])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
       cloudProvider: 'openstack',
       templateUrl: require('./destroyAsgStage.html'),

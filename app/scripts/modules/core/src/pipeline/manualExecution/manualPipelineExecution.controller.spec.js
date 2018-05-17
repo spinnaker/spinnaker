@@ -9,12 +9,11 @@ describe('Controller: ManualPipelineExecution', function() {
       this.$q = $q;
       this.notificationService = _notificationService_;
 
-      this.initializeController = function(application, pipeline, modalInstance, pipelineConfig) {
+      this.initializeController = function(application, pipeline, modalInstance) {
         this.ctrl = $controller('ManualPipelineExecutionCtrl', {
           $scope: this.scope,
           application: application,
           pipeline: pipeline,
-          pipelineConfig: pipelineConfig,
           $uibModalInstance: modalInstance || {},
           trigger: null,
           notificationService: this.notificationService,

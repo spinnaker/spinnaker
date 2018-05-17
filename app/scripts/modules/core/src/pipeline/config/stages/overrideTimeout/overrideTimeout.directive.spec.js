@@ -1,36 +1,30 @@
 'use strict';
 
+import { Registry } from 'core/registry';
+
 require('./overrideTimeout.directive.html');
 
 describe('Directives: overrideTimeout', function() {
-  var stageConfig = {};
+  let stageConfig;
 
-  beforeEach(
-    window.module(require('./overrideTimeout.directive.js').name, function($provide) {
-      $provide.service('pipelineConfig', function() {
-        return {
-          getStageConfig: function() {
-            return stageConfig;
-          },
-        };
-      });
-    }),
-  );
+  beforeEach(window.module(require('./overrideTimeout.directive.js').name));
 
-  beforeEach(
-    window.inject(function($rootScope, $compile, $controller, pipelineConfig) {
+  beforeEach(function() {
+    window.inject(function($rootScope, $compile, $controller) {
       this.scope = $rootScope.$new();
       this.scope.stage = {};
       this.compile = $compile;
       this.$controller = $controller;
-      this.pipelineConfig = pipelineConfig;
+
       stageConfig = { defaultTimeoutMs: 90 * 60 * 1000 };
-    }),
-  );
+      Registry.initialize();
+    });
+  });
 
   describe('checkbox toggle control', function() {
     it('displays nothing when stage is not supported', function() {
       stageConfig = {};
+      spyOn(Registry.pipeline, 'getStageConfig').and.returnValue(stageConfig);
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
       this.scope.$digest();
 
@@ -38,6 +32,7 @@ describe('Directives: overrideTimeout', function() {
     });
 
     it('shows the default value when stage is supported', function() {
+      spyOn(Registry.pipeline, 'getStageConfig').and.returnValue(stageConfig);
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
       this.scope.$digest();
       expect(
@@ -55,6 +50,7 @@ describe('Directives: overrideTimeout', function() {
     });
 
     it('shows the contents when overrideTimeout is set', function() {
+      spyOn(Registry.pipeline, 'getStageConfig').and.returnValue(stageConfig);
       this.scope.stage.overrideTimeout = true;
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
       this.scope.$digest();
@@ -62,6 +58,7 @@ describe('Directives: overrideTimeout', function() {
     });
 
     it('unsets timeout, removes contents when overrideTimeout is set to false', function() {
+      spyOn(Registry.pipeline, 'getStageConfig').and.returnValue(stageConfig);
       this.scope.stage.stageTimeoutMs = 30000;
       this.scope.stage.overrideTimeout = true;
       var domNode = this.compile('<override-timeout stage="stage"></override-timeout>')(this.scope);
@@ -80,7 +77,6 @@ describe('Directives: overrideTimeout', function() {
       this.scope.stage.stageTimeoutMs = 30 * 60 * 1000 + 499;
       this.$controller('OverrideTimeoutCtrl', {
         $scope: this.scope,
-        pipelineConfig: this.pipelineConfig,
       });
       this.scope.$digest();
       expect(this.scope.vm.minutes).toBe(30);
@@ -91,7 +87,6 @@ describe('Directives: overrideTimeout', function() {
       this.scope.stage.stageTimeoutMs = 95 * 60 * 1000;
       var ctrl = this.$controller('OverrideTimeoutCtrl', {
         $scope: this.scope,
-        pipelineConfig: this.pipelineConfig,
       });
       this.scope.$digest();
       expect(this.scope.vm.minutes).toBe(35);

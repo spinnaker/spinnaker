@@ -1,13 +1,14 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
+
 import { ShrinkClusterExecutionDetails } from './ShrinkClusterExecutionDetails';
 import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
 
 export const SHRINK_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.shrinkClusterStage';
 
-module(SHRINK_CLUSTER_STAGE, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerStage({
+module(SHRINK_CLUSTER_STAGE, []).config(() => {
+  Registry.pipeline.registerStage({
     executionDetailsSections: [ShrinkClusterExecutionDetails, ExecutionDetailsTasks],
     useBaseProvider: true,
     key: 'shrinkCluster',

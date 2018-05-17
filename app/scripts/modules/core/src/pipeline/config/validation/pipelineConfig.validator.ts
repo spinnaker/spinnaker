@@ -9,7 +9,7 @@ import {
   ITrigger,
   ITriggerTypeConfig,
 } from 'core/domain';
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 
 export interface IStageValidationResults {
   stage: IStage;
@@ -54,7 +54,7 @@ export class PipelineConfigValidator implements IServiceProvider {
     this.validators.set(type, validator);
   }
 
-  constructor(private $log: ILogService, private $q: IQService, private pipelineConfig: PipelineConfigProvider) {
+  constructor(private $log: ILogService, private $q: IQService) {
     'ngInject';
   }
 
@@ -67,7 +67,7 @@ export class PipelineConfigValidator implements IServiceProvider {
     let preventSave = false;
 
     triggers.forEach((trigger, index) => {
-      const config: ITriggerTypeConfig = this.pipelineConfig.getTriggerConfig(trigger.type);
+      const config: ITriggerTypeConfig = Registry.pipeline.getTriggerConfig(trigger.type);
       if (config && config.validators) {
         config.validators.forEach(validator => {
           const typedValidator = this.getValidator(validator);
@@ -94,7 +94,7 @@ export class PipelineConfigValidator implements IServiceProvider {
       }
     });
     stages.forEach(stage => {
-      const config: IStageTypeConfig = this.pipelineConfig.getStageConfig(stage);
+      const config: IStageTypeConfig = Registry.pipeline.getStageConfig(stage);
       if (config && config.validators) {
         config.validators.forEach(validator => {
           if (validator.skipValidation && validator.skipValidation(pipeline, stage)) {
@@ -177,7 +177,7 @@ export class PipelineConfigValidator implements IServiceProvider {
 }
 
 export const PIPELINE_CONFIG_VALIDATOR = 'spinnaker.core.pipeline.config.validator';
-module(PIPELINE_CONFIG_VALIDATOR, [PIPELINE_CONFIG_PROVIDER])
+module(PIPELINE_CONFIG_VALIDATOR, [])
   .service('pipelineConfigValidator', PipelineConfigValidator)
   .run((pipelineConfigValidator: PipelineConfigValidator) => {
     // placeholder - custom validators must implement the ICustomValidator interface

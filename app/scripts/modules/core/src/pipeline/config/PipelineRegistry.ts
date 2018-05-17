@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { uniq, isNil, cloneDeep, intersection, memoize } from 'lodash';
 
 import { Application } from 'core/application/application.model';
@@ -12,15 +11,15 @@ import {
 } from 'core/domain';
 import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
-import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
-
 import { IAccountDetails } from 'core/account/AccountService';
+
+import { ITriggerTemplateComponentProps } from '../manualExecution/TriggerTemplate';
 
 export interface ITransformer {
   transform: (application: Application, execution: IExecution) => void;
 }
 
-export class PipelineConfigProvider {
+export class PipelineRegistry {
   private triggerTypes: ITriggerTypeConfig[] = [];
   private stageTypes: IStageTypeConfig[] = [];
   private transformers: ITransformer[] = [];
@@ -185,7 +184,6 @@ export class PipelineConfigProvider {
     triggerType: string,
     component: React.ComponentType<ITriggerTemplateComponentProps>,
   ): void {
-    // convert to use react component
     const triggerConfig = this.triggerTypes.find(t => t.key === triggerType);
     if (triggerConfig) {
       triggerConfig.manualExecutionComponent = component;
@@ -242,15 +240,8 @@ export class PipelineConfigProvider {
     return this.getManualExecutionComponent(this.getTriggerConfig(triggerType)) !== null;
   }
 
-  // TODO: How do i make sure this works?
   public getManualExecutionComponentForStage(stage: IStage): React.ComponentType<ITriggerTemplateComponentProps> {
-    // the handler approach for triggers is a bit overblown; for pipeline stages, just use a template
-    // should(?) be easier to convert to React later, as we'll just convert it to a React component class...
     return this.getStageConfig(stage).manualExecutionComponent;
-  }
-
-  public $get() {
-    return this;
   }
 }
 
@@ -260,6 +251,3 @@ function isExcludedStageType(type: IStageTypeConfig, provider: ICloudProviderCon
   }
   return provider.unsupportedStageTypes.indexOf(type.key) > -1;
 }
-
-export const PIPELINE_CONFIG_PROVIDER = 'spinnaker.core.pipeline.config.configProvider';
-module(PIPELINE_CONFIG_PROVIDER, []).provider('pipelineConfig', PipelineConfigProvider);

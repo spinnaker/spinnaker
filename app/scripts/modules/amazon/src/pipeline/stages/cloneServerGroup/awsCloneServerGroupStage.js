@@ -3,12 +3,12 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, LIST_EXTRACTOR_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
+import { AccountService, LIST_EXTRACTOR_SERVICE, NameUtils, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [LIST_EXTRACTOR_SERVICE])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'aws',
       templateUrl: require('./cloneServerGroupStage.html'),

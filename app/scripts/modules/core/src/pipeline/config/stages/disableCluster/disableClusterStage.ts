@@ -1,14 +1,13 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
+
 import { DisableClusterExecutionDetails } from './DisableClusterExecutionDetails';
 import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
 
 export const DISABLE_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.disableClusterStage';
-module(DISABLE_CLUSTER_STAGE, [PIPELINE_CONFIG_PROVIDER]).config(function(
-  pipelineConfigProvider: PipelineConfigProvider,
-) {
-  pipelineConfigProvider.registerStage({
+module(DISABLE_CLUSTER_STAGE, []).config(function() {
+  Registry.pipeline.registerStage({
     useBaseProvider: true,
     key: 'disableCluster',
     label: 'Disable Cluster',

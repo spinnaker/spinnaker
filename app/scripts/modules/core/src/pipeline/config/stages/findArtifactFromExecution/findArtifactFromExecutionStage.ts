@@ -1,18 +1,18 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
-
-import { ExecutionDetailsTasks } from 'core/pipeline/config/stages/core';
-import { FindArtifactFromExecutionCtrl } from 'core/pipeline/config/stages/findArtifactFromExecution/findArtifactFromExecution.controller';
+import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
-import { FindArtifactFromExecutionExecutionDetails } from 'core/pipeline/config/stages/findArtifactFromExecution/FindArtifactFromExecutionExecutionDetails';
+
+import { ExecutionDetailsTasks } from '../core';
+import { FindArtifactFromExecutionCtrl } from '../findArtifactFromExecution/findArtifactFromExecution.controller';
+import { FindArtifactFromExecutionExecutionDetails } from '../findArtifactFromExecution/FindArtifactFromExecutionExecutionDetails';
 
 export const FIND_ARTIFACT_FROM_EXECUTION_STAGE = 'spinnaker.core.pipeline.stage.findArtifactStage';
 
-module(FIND_ARTIFACT_FROM_EXECUTION_STAGE, [PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(FIND_ARTIFACT_FROM_EXECUTION_STAGE, [])
+  .config(() => {
     if (SETTINGS.feature.artifacts) {
-      pipelineConfigProvider.registerStage({
+      Registry.pipeline.registerStage({
         label: 'Find Artifact From Execution',
         description: 'Find and bind an artifact from another execution',
         key: 'findArtifactFromExecution',

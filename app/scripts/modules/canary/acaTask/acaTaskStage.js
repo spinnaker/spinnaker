@@ -2,15 +2,15 @@
 
 const angular = require('angular');
 
-import { AccountService, AuthenticationService, SETTINGS } from '@spinnaker/core';
+import { AccountService, AuthenticationService, Registry, SETTINGS } from '@spinnaker/core';
 
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
 module.exports = angular
   .module('spinnaker.canary.acaTaskStage', [require('../canary/canaryExecutionSummary.controller').name])
-  .config(function(pipelineConfigProvider) {
+  .config(function() {
     if (SETTINGS.feature.canary) {
-      pipelineConfigProvider.registerStage({
+      Registry.pipeline.registerStage({
         label: 'ACA Task',
         description: 'Runs a canary task against an existing cluster, asg, or query',
         key: 'acaTask',

@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { BAKERY_SERVICE, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.findImageFromTagsStage', [BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.amazon.pipeline.stage.findImageFromTagsStage', [BAKERY_SERVICE])
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'findImageFromTags',
       cloudProvider: 'aws',
       templateUrl: require('./findImageFromTagsStage.html'),

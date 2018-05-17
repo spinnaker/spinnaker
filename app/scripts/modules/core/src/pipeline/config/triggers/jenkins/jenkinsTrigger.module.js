@@ -3,7 +3,7 @@
 const angular = require('angular');
 import { SERVICE_ACCOUNT_SERVICE } from 'core/serviceAccount/serviceAccount.service.ts';
 import { IGOR_SERVICE, BuildServiceType } from 'core/ci/igor.service';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
 import { JenkinsTriggerTemplate } from './JenkinsTriggerTemplate';
@@ -13,10 +13,9 @@ module.exports = angular
     require('../trigger.directive.js').name,
     IGOR_SERVICE,
     SERVICE_ACCOUNT_SERVICE,
-    PIPELINE_CONFIG_PROVIDER,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerTrigger({
+  .config(function() {
+    Registry.pipeline.registerTrigger({
       label: 'Jenkins',
       description: 'Listens to a Jenkins job',
       key: 'jenkins',

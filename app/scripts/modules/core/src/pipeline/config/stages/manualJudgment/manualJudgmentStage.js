@@ -1,18 +1,19 @@
 'use strict';
 
+import { Registry } from 'core/registry';
+import { SETTINGS } from 'core/config/settings';
+
 import { ManualJudgmentExecutionDetails } from './ManualJudgmentExecutionDetails';
 import { ManualJudgmentExecutionLabel } from './ManualJudgmentExecutionLabel';
 import { ManualJudgmentMarkerIcon } from './ManualJudgmentMarkerIcon';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline';
-import { SETTINGS } from 'core/config/settings';
 import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.manualJudgmentStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.core.pipeline.stage.manualJudgmentStage', [])
+  .config(function() {
+    Registry.pipeline.registerStage({
       label: 'Manual Judgment',
       description: 'Waits for user approval before continuing',
       key: 'manualJudgment',

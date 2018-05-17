@@ -7,22 +7,21 @@ import _ from 'lodash';
 import {
   AccountService,
   AuthenticationService,
-  PIPELINE_CONFIG_PROVIDER,
   BAKERY_SERVICE,
   NETWORK_READ_SERVICE,
+  Registry,
   SUBNET_READ_SERVICE,
 } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.pipeline.stage.bakeStage', [
     require('./bakeExecutionDetails.controller.js').name,
-    PIPELINE_CONFIG_PROVIDER,
     BAKERY_SERVICE,
     NETWORK_READ_SERVICE,
     SUBNET_READ_SERVICE,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'oraclebmcs',
       label: 'Bake',

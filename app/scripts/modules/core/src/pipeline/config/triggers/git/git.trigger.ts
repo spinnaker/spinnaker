@@ -3,7 +3,7 @@ import { has, trim } from 'lodash';
 
 import { SETTINGS } from 'core/config/settings';
 import { IGitTrigger } from 'core/domain/ITrigger';
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 import { SERVICE_ACCOUNT_SERVICE, ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
 
 class GitTriggerController implements IController {
@@ -65,9 +65,9 @@ class GitTriggerController implements IController {
 }
 
 export const GIT_TRIGGER = 'spinnaker.core.pipeline.trigger.git';
-module(GIT_TRIGGER, [SERVICE_ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerTrigger({
+module(GIT_TRIGGER, [SERVICE_ACCOUNT_SERVICE])
+  .config(() => {
+    Registry.pipeline.registerTrigger({
       label: 'Git',
       description: 'Executes the pipeline on a git push',
       key: 'git',

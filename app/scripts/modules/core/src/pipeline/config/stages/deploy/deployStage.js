@@ -3,6 +3,7 @@
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { NameUtils } from 'core/naming';
+import { Registry } from 'core/registry';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
 
@@ -10,8 +11,8 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.deployStage', [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CLUSTER_SERVICE])
-  .config(function(pipelineConfigProvider, clusterServiceProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function(clusterServiceProvider) {
+    Registry.pipeline.registerStage({
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
       strategyDescription: 'Deploys the image specified',

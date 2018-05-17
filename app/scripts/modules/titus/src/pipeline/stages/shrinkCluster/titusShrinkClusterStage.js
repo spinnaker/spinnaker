@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.shrinkClusterStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .module('spinnaker.titus.pipeline.stage.shrinkClusterStage', [])
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'titus',
       templateUrl: require('./shrinkClusterStage.html'),

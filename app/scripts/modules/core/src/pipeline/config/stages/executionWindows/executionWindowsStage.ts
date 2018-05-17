@@ -1,14 +1,15 @@
 import { module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline';
+import { Registry } from 'core/registry';
+
 import { ExecutionWindowExecutionDetails } from './ExecutionWindowExecutionDetails';
 import { ExecutionDetailsTasks } from '../core';
 
 export const EXECUTION_WINDOWS_STAGE = 'spinnaker.core.pipeline.stage.executionWindowsStage';
 
-module(EXECUTION_WINDOWS_STAGE, [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider: PipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+module(EXECUTION_WINDOWS_STAGE, [])
+  .config(function() {
+    Registry.pipeline.registerStage({
       label: 'Restrict Execution During',
       synthetic: true,
       description: 'Restricts execution of stage during specified period of time',
@@ -16,6 +17,6 @@ module(EXECUTION_WINDOWS_STAGE, [PIPELINE_CONFIG_PROVIDER])
       executionDetailsSections: [ExecutionWindowExecutionDetails, ExecutionDetailsTasks],
     });
   })
-  .run((pipelineConfig: PipelineConfigProvider, executionWindowsTransformer: any) => {
-    pipelineConfig.registerTransformer(executionWindowsTransformer);
+  .run((executionWindowsTransformer: any) => {
+    Registry.pipeline.registerTransformer(executionWindowsTransformer);
   });

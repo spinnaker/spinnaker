@@ -1,8 +1,8 @@
 import { IController, module } from 'angular';
 
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
-import { SETTINGS } from 'core/config/settings';
 import { IWebhookTrigger } from 'core/domain';
+import { Registry } from 'core/registry';
+import { SETTINGS } from 'core/config/settings';
 
 class WebhookTriggerController implements IController {
   constructor(public trigger: IWebhookTrigger) {
@@ -15,9 +15,9 @@ class WebhookTriggerController implements IController {
 }
 
 export const WEBHOOK_TRIGGER = 'spinnaker.core.pipeline.trigger.webhook';
-module(WEBHOOK_TRIGGER, [PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerTrigger({
+module(WEBHOOK_TRIGGER, [])
+  .config(() => {
+    Registry.pipeline.registerTrigger({
       label: 'Webhook',
       description: 'Executes the pipeline when a webhook is received.',
       key: 'webhook',

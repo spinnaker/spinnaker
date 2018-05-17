@@ -2,16 +2,15 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { Registry } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.canary.summary.controller', [
     require('@uirouter/angularjs').default,
     require('./actions/generateScore.controller.js').name,
     require('./actions/endCanary.controller.js').name,
-    PIPELINE_CONFIG_PROVIDER,
   ])
-  .controller('CanaryExecutionSummaryCtrl', function($scope, $http, $uibModal, pipelineConfig) {
+  .controller('CanaryExecutionSummaryCtrl', function($scope, $http, $uibModal) {
     this.generateCanaryScore = function() {
       $uibModal.open({
         templateUrl: require('./actions/generateScore.modal.html'),
@@ -37,7 +36,7 @@ module.exports = angular
     };
 
     this.isRestartable = function(stage) {
-      var stageConfig = pipelineConfig.getStageConfig(stage);
+      var stageConfig = Registry.pipeline.getStageConfig(stage);
       if (!stageConfig || stage.isRestarting === true) {
         return false;
       }

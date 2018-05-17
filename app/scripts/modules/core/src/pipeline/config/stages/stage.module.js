@@ -7,22 +7,18 @@ import { API } from 'core/api';
 import { BASE_EXECUTION_DETAILS_CTRL } from './core/baseExecutionDetails.controller';
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { EDIT_STAGE_JSON_CONTROLLER } from './core/editStageJson.controller';
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { PIPELINE_BAKE_STAGE_CHOOSE_OS } from 'core/pipeline/config/stages/bake/bakeStageChooseOs.component';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { Registry } from 'core/registry';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
     BASE_EXECUTION_DETAILS_CTRL,
     EDIT_STAGE_JSON_CONTROLLER,
-    PIPELINE_CONFIG_PROVIDER,
     require('./overrideTimeout/overrideTimeout.directive.js').name,
     require('./overrideFailure/overrideFailure.component.js').name,
     require('./optionalStage/optionalStage.directive.js').name,
     CONFIRMATION_MODAL_SERVICE,
-    PIPELINE_BAKE_STAGE_CHOOSE_OS,
     require('./core/stageConfigField/stageConfigField.directive.js').name,
-    require('./bake/bakeStage.module').name,
   ])
   .directive('pipelineConfigStage', function() {
     return {
@@ -40,15 +36,7 @@ module.exports = angular
       },
     };
   })
-  .controller('StageConfigCtrl', function(
-    $scope,
-    $element,
-    $compile,
-    $controller,
-    $templateCache,
-    $uibModal,
-    pipelineConfig,
-  ) {
+  .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache, $uibModal) {
     var lastStageScope;
 
     $scope.options = {
@@ -57,7 +45,7 @@ module.exports = angular
     };
 
     AccountService.applicationAccounts($scope.application).then(accounts => {
-      $scope.options.stageTypes = pipelineConfig.getConfigurableStageTypes(accounts);
+      $scope.options.stageTypes = Registry.pipeline.getConfigurableStageTypes(accounts);
       $scope.showProviders = new Set(accounts.map(a => a.cloudProvider)).size > 1;
     });
 
@@ -68,7 +56,7 @@ module.exports = angular
     }
 
     function getConfig(stage) {
-      return pipelineConfig.getStageConfig(stage);
+      return Registry.pipeline.getStageConfig(stage);
     }
 
     $scope.groupDependencyOptions = function(stage) {
@@ -85,7 +73,7 @@ module.exports = angular
         return false;
       }
 
-      const stageConfig = pipelineConfig.getStageConfig($scope.stage);
+      const stageConfig = Registry.pipeline.getStageConfig($scope.stage);
 
       if (!stageConfig) {
         return false;

@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AuthenticationService, BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AuthenticationService, BakeExecutionLabel, BAKERY_SERVICE, Registry } from '@spinnaker/core';
 
 /*
   This stage is just here so that we can experiment with baking Docker containers within pipelines.
@@ -12,12 +12,11 @@ import { AuthenticationService, BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CON
  */
 module.exports = angular
   .module('spinnaker.docker.pipeline.stage.bakeStage', [
-    PIPELINE_CONFIG_PROVIDER,
     require('./bakeExecutionDetails.controller.js').name,
     BAKERY_SERVICE,
   ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'docker',
       label: 'Bake',

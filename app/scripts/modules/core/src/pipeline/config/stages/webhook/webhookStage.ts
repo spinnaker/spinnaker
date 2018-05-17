@@ -1,9 +1,9 @@
 import { IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import { API } from 'core/api/ApiService';
+import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
+import { Registry } from 'core/registry';
 
 export interface IWebhookStageViewState {
   waitForCompletion?: boolean;
@@ -47,12 +47,7 @@ export class WebhookStage implements IController {
   public noUserConfigurableFields: boolean;
   public parameters: IWebhookParameter[] = [];
 
-  constructor(
-    public stage: any,
-    private jsonUtilityService: JsonUtilityService,
-    private $uibModal: IModalService,
-    private pipelineConfig: PipelineConfigProvider,
-  ) {
+  constructor(public stage: any, private jsonUtilityService: JsonUtilityService, private $uibModal: IModalService) {
     'ngInject';
     this.methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
 
@@ -67,7 +62,7 @@ export class WebhookStage implements IController {
 
     this.stage.statusUrlResolution = this.viewState.statusUrlResolution;
 
-    const stageConfig = this.pipelineConfig.getStageConfig(this.stage);
+    const stageConfig = Registry.pipeline.getStageConfig(this.stage);
     if (stageConfig && stageConfig.configuration) {
       this.preconfiguredProperties = stageConfig.configuration.preconfiguredProperties || [];
       this.noUserConfigurableFields = stageConfig.configuration.noUserConfigurableFields;
@@ -137,9 +132,9 @@ export class WebhookStage implements IController {
 
 export const WEBHOOK_STAGE = 'spinnaker.core.pipeline.stage.webhookStage';
 
-module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE, PIPELINE_CONFIG_PROVIDER])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
-    pipelineConfigProvider.registerStage({
+module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE])
+  .config(() => {
+    Registry.pipeline.registerStage({
       label: 'Webhook',
       description: 'Runs a Webhook job',
       key: 'webhook',
@@ -153,13 +148,13 @@ module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE, PIPELINE_CONFIG_PROVIDER])
       validators: [{ type: 'requiredField', fieldName: 'url' }, { type: 'requiredField', fieldName: 'method' }],
     });
   })
-  .run((pipelineConfig: PipelineConfigProvider) => {
+  .run(() => {
     API.one('webhooks')
       .all('preconfigured')
       .getList()
       .then((preconfiguredWebhooks: IPreconfiguredWebhook[]) => {
         preconfiguredWebhooks.forEach((preconfiguredWebhook: IPreconfiguredWebhook) =>
-          pipelineConfig.registerStage({
+          Registry.pipeline.registerStage({
             label: preconfiguredWebhook.label,
             description: preconfiguredWebhook.description,
             key: preconfiguredWebhook.type,

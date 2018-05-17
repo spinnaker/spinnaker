@@ -2,14 +2,14 @@
 
 const angular = require('angular');
 
-import { AccountService, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
+import { AccountService, Registry, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
 
 import { CloudFoundryProviderSettings } from 'cloudfoundry/cf.settings';
 
 module.exports = angular
   .module('spinnaker.cf.pipeline.stage.findAmiStage', [LIST_EXTRACTOR_SERVICE])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
+  .config(function() {
+    Registry.pipeline.registerStage({
       provides: 'findImage',
       cloudProvider: 'cf',
       templateUrl: require('./findAmiStage.html'),

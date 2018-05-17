@@ -1,16 +1,14 @@
 'use strict';
 
-import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.runJobStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
-      useBaseProvider: true,
-      key: 'runJob',
-      label: 'Run Job',
-      description: 'Runs a container',
-    });
+module.exports = angular.module('spinnaker.core.pipeline.stage.runJobStage', []).config(function() {
+  Registry.pipeline.registerStage({
+    useBaseProvider: true,
+    key: 'runJob',
+    label: 'Run Job',
+    description: 'Runs a container',
   });
+});

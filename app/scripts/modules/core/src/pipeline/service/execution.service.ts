@@ -9,7 +9,7 @@ import {
   ExecutionsTransformerService,
 } from 'core/pipeline/service/executions.transformer.service';
 import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
-import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { Registry } from 'core/registry';
 import { JsonUtilityService, JSON_UTILITY_SERVICE } from 'core/utils/json/json.utility.service';
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
@@ -42,7 +42,6 @@ export class ExecutionService {
     private $state: StateService,
     private $timeout: ITimeoutService,
     private executionsTransformer: ExecutionsTransformerService,
-    private pipelineConfig: PipelineConfigProvider,
     private jsonUtilityService: JsonUtilityService,
   ) {
     'ngInject';
@@ -456,7 +455,7 @@ export class ExecutionService {
   private calculateGraphStatusHash(execution: IExecution): string {
     return (execution.stageSummaries || [])
       .map(stage => {
-        const stageConfig = this.pipelineConfig.getStageConfig(stage);
+        const stageConfig = Registry.pipeline.getStageConfig(stage);
         if (stageConfig && stageConfig.extraLabelLines) {
           return [stageConfig.extraLabelLines(stage), stage.status].join('-');
         }
@@ -575,7 +574,7 @@ export class ExecutionService {
 }
 
 export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
-module(EXECUTION_SERVICE, [EXECUTIONS_TRANSFORMER_SERVICE, PIPELINE_CONFIG_PROVIDER, JSON_UTILITY_SERVICE]).factory(
+module(EXECUTION_SERVICE, [EXECUTIONS_TRANSFORMER_SERVICE, JSON_UTILITY_SERVICE]).factory(
   'executionService',
   (
     $http: IHttpService,
@@ -583,9 +582,8 @@ module(EXECUTION_SERVICE, [EXECUTIONS_TRANSFORMER_SERVICE, PIPELINE_CONFIG_PROVI
     $state: StateService,
     $timeout: ITimeoutService,
     executionsTransformer: any,
-    pipelineConfig: any,
     jsonUtilityService: JsonUtilityService,
-  ) => new ExecutionService($http, $q, $state, $timeout, executionsTransformer, pipelineConfig, jsonUtilityService),
+  ) => new ExecutionService($http, $q, $state, $timeout, executionsTransformer, jsonUtilityService),
 );
 
 DebugWindow.addInjectable('executionService');

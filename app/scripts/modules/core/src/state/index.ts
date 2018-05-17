@@ -27,10 +27,10 @@ export interface IStateSecurityGroup {
   filterService: SecurityGroupFilterService;
 }
 
-export const ClusterState: IStateCluster = {} as any;
-export const ExecutionState: IStateExecution = {} as any;
-export const LoadBalancerState: IStateLoadBalancers = {} as any;
-export const SecurityGroupState: IStateSecurityGroup = {} as any;
+export const ClusterState = {} as IStateCluster;
+export const ExecutionState = {} as IStateExecution;
+export const LoadBalancerState = {} as IStateLoadBalancers;
+export const SecurityGroupState = {} as IStateSecurityGroup;
 
 export function initialize(): void {
   ClusterState.filterModel = new ClusterFilterModel();
