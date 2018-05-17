@@ -67,6 +67,7 @@ export class DockerTriggerTemplate extends React.Component<
         },
       ];
     }
+    this.setState({ selectedTag: tag });
   };
 
   private tagLoadSuccess = (tags: string[]) => {
