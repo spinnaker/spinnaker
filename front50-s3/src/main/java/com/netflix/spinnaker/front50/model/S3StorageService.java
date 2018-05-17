@@ -183,7 +183,9 @@ public class S3StorageService implements StorageService {
                                                                   String objectKey,
                                                                   int maxResults) throws NotFoundException {
     if (maxResults == 1) {
-      return loadObject(objectType, objectKey);
+      List<T> results = new ArrayList<>();
+      results.add(loadObject(objectType, objectKey));
+      return results;
     }
 
     try {
