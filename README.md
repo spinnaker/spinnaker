@@ -35,8 +35,10 @@ go get github.com/mitchellh/cli
 Build using
 
 ```bash
-go build .
+go build
 ```
+
+from the root `spin/` directory.
 
 Run using
 

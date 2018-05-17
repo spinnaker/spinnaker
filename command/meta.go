@@ -1,9 +1,14 @@
 package command
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -11,6 +16,7 @@ import (
 
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/colorstring"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spinnaker/spin/config"
 	gate "github.com/spinnaker/spin/gateapi"
 	"gopkg.in/yaml.v2"
@@ -99,10 +105,17 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 	}
 
 	// Api client initialization.
+	client, err := m.InitializeClient()
+	if err != nil {
+		m.Ui.Error(fmt.Sprintf("Could not initialize http client, failing."))
+		return args, err
+	}
+
 	cfg := &gate.Configuration{
 		BasePath:      m.gateEndpoint,
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Spin CLI version", // TODO(jacobkiefer): Add a reasonable UserAgent.
+		HTTPClient:    client,
 	}
 	m.GateClient = gate.NewAPIClient(cfg)
 
@@ -118,11 +131,62 @@ func (m *ApiMeta) Colorize() *colorstring.Colorize {
 	}
 }
 
+func (m *ApiMeta) InitializeClient() (*http.Client, error) {
+	auth := m.Config.Auth
+	cookieJar, _ := cookiejar.New(nil)
+	client := http.Client{
+		Jar: cookieJar,
+	}
+
+	if auth != nil && auth.Enabled && auth.X509 != nil {
+		X509 := auth.X509
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{},
+		}
+
+		if X509.CertPath != "" && X509.KeyPath != "" {
+			certPath, err := homedir.Expand(X509.CertPath)
+			if err != nil {
+				return nil, err
+			}
+			keyPath, err := homedir.Expand(X509.KeyPath)
+			if err != nil {
+				return nil, err
+			}
+
+			cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+			if err != nil {
+				return nil, err
+			}
+
+			clientCA, err := ioutil.ReadFile(certPath)
+			if err != nil {
+				return nil, err
+			}
+
+			clientCertPool := x509.NewCertPool()
+			clientCertPool.AppendCertsFromPEM(clientCA)
+
+			client.Transport.(*http.Transport).TLSClientConfig.MinVersion = tls.VersionTLS12
+			client.Transport.(*http.Transport).TLSClientConfig.PreferServerCipherSuites = true
+			client.Transport.(*http.Transport).TLSClientConfig.Certificates = []tls.Certificate{cert}
+			client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true // TODO(jacobkiefer): Add a flag this.
+			return &client, nil
+		} else {
+			// Misconfigured.
+			return nil, errors.New("Missing certificate path or key path in x509 auth configuration.")
+		}
+	} else {
+		return &client, nil
+	}
+}
+
 func (m *ApiMeta) Help() string {
 	help := `
 Global Options:
 
 	--gate-endpoint         Gate (API server) endpoint.
+        --no-color              Removes color from CLI output.
 	`
 
 	return strings.TrimSpace(help)
