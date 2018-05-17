@@ -30,6 +30,8 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.User;
 import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,11 +170,14 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
         Map<String, Object> cleanupOperation = buildCleanupOperation(pinnedServerGroupTag, serverGroup, jobs);
         log.info((String) cleanupOperation.get("name"));
 
-        // TODO-AJ Need to provide an authentication context such that resize operations in privileged accounts work!
-        executionLauncher.start(
+        User systemUser = new User();
+        systemUser.setUsername("spinnaker");
+        systemUser.setAllowedAccounts(Collections.singletonList(pinnedServerGroupTag.account));
+
+        AuthenticatedRequest.propagate(() -> executionLauncher.start(
           Execution.ExecutionType.ORCHESTRATION,
           objectMapper.writeValueAsString(cleanupOperation)
-        );
+        ), systemUser).call();
 
         triggeredCounter.increment();
       } catch (Exception e) {
