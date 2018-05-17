@@ -182,6 +182,10 @@ public class S3StorageService implements StorageService {
   public <T extends Timestamped> Collection<T> listObjectVersions(ObjectType objectType,
                                                                   String objectKey,
                                                                   int maxResults) throws NotFoundException {
+    if (maxResults == 1) {
+      return loadObject(objectType, objectKey);
+    }
+
     try {
       VersionListing versionListing = amazonS3.listVersions(
         new ListVersionsRequest(
