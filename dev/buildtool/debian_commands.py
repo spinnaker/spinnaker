@@ -57,10 +57,6 @@ class BuildDebianCommand(GradleCommandProcessor):
         or (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       args.append('-x test')
 
-    if not options.run_unit_tests and name == 'orca':
-      args.append('-x junitPlatformTest')
-      # This second one is only for 1.5.x
-      # args.append('-x generateHtmlTestReports')
     args.extend(self.gradle.get_debian_args('trusty,xenial'))
 
     with self.__semaphore:
