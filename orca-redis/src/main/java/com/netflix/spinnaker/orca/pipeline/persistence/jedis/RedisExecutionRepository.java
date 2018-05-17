@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Maps.filterValues;
+import static com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED;
 import static com.netflix.spinnaker.orca.config.RedisConfiguration.Clients.EXECUTION_REPOSITORY;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
@@ -200,6 +201,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         data.put("status", ExecutionStatus.CANCELED.name());
       }
       c.hmset(pair.getLeft(), data);
+      c.srem(allBufferedExecutionsKey(type), id);
     });
   }
 
@@ -230,6 +232,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
       }
       data.put("status", ExecutionStatus.PAUSED.toString());
       c.hmset(pair.getLeft(), data);
+      c.srem(allBufferedExecutionsKey(type), id);
     });
   }
 
@@ -262,6 +265,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         data.put("paused", mapper.writeValueAsString(pausedDetails));
         data.put("status", ExecutionStatus.RUNNING.toString());
         c.hmset(pair.getLeft(), data);
+        c.srem(allBufferedExecutionsKey(type), id);
       } catch (IOException e) {
         throw new ExecutionSerializationException("Failed converting pausedDetails to json", e);
       }
@@ -292,6 +296,11 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         data.put("startTime", String.valueOf(currentTimeMillis()));
       } else if (status.isComplete() && c.hget(key, "startTime") != null) {
         data.put("endTime", String.valueOf(currentTimeMillis()));
+      }
+      if (status == BUFFERED) {
+        c.sadd(allBufferedExecutionsKey(type), id);
+      } else {
+        c.srem(allBufferedExecutionsKey(type), id);
       }
       c.hmset(key, data);
     });
@@ -515,12 +524,16 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
 
   @Override
   public @Nonnull List<Execution> retrieveBufferedExecutions() {
-    // TODO rz - This is definitely not a healthy way to do this.
-    return Observable.concat(
-        retrieve(PIPELINE),
-        retrieve(ORCHESTRATION)
-      )
-      .filter(execution -> execution.getStatus() == ExecutionStatus.BUFFERED)
+    List<Observable<Execution>> observables = allRedisDelegates().stream()
+      .map(d -> Arrays.asList(
+        retrieveObservable(PIPELINE, allBufferedExecutionsKey(PIPELINE), queryAllScheduler, d),
+        retrieveObservable(ORCHESTRATION, allBufferedExecutionsKey(ORCHESTRATION), queryAllScheduler, d)
+      ))
+      .flatMap(List::stream)
+      .collect(Collectors.toList());
+
+    return Observable.merge(observables)
+      .filter(e -> e.getStatus() == BUFFERED)
       .toList()
       .toBlocking().single();
   }
@@ -792,6 +805,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         String application = c.hget(key, "application");
         String appKey = appKey(type, application);
         c.srem(appKey, id);
+        c.srem(allBufferedExecutionsKey(type), id);
 
         if (type == PIPELINE) {
           String pipelineConfigId = c.hget(key, "pipelineConfigId");
@@ -901,6 +915,10 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
     return format("pipeline:executions:%s", id);
   }
 
+  protected static String allBufferedExecutionsKey(ExecutionType type) {
+    return format("buffered:%s", type);
+  }
+  
   protected static String executionKeyPattern(@Nullable ExecutionType type) {
     final String all = "*:app:*";
     if (type == null) {
@@ -921,6 +939,12 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
     delegate.withCommandsClient(c -> {
       c.sadd(alljobsKey(execution.getType()), execution.getId());
       c.sadd(appKey(execution.getType(), execution.getApplication()), execution.getId());
+
+      if (execution.getStatus() == BUFFERED) {
+        c.sadd(allBufferedExecutionsKey(execution.getType()), execution.getId());
+      } else {
+        c.srem(allBufferedExecutionsKey(execution.getType()), execution.getId());
+      }
 
       delegate.withTransaction(tx -> {
         tx.hdel(key, "config");
