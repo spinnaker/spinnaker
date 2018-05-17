@@ -41,7 +41,7 @@ public class KubernetesHorizontalPodAutoscalerHandler extends KubernetesHandler 
 
   @Override
   public boolean versioned() {
-    return true;
+    return false;
   }
 
   @Override
