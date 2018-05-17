@@ -50,6 +50,14 @@ public class ManifestController {
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
+  @RequestMapping(value = "/{account:.+}/_/{name:.+}", method = RequestMethod.GET)
+  Manifest getForAccountAndName(@PathVariable String account,
+      @PathVariable String name) {
+    return getForAccountLocationAndName(account, "", name);
+  }
+
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
+  @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{account:.+}/{location:.+}/{name:.+}", method = RequestMethod.GET)
   Manifest getForAccountLocationAndName(@PathVariable String account,
       @PathVariable String location,
