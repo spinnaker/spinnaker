@@ -67,7 +67,7 @@ export class TravisTriggerTemplate extends React.Component<
     this.setState({ selectedBuild: item.number });
   };
 
-  public componentDidMount() {
+  private initialize = () => {
     const { command } = this.props;
     const trigger = command.trigger as IBuildTrigger;
 
@@ -91,6 +91,16 @@ export class TravisTriggerTemplate extends React.Component<
     ReactInjector.igorService
       .listBuildsForJob(trigger.master, trigger.job)
       .then(this.buildLoadSuccess, this.buildLoadFailure);
+  };
+
+  public componentWillReceiveProps(nextProps: ITriggerTemplateComponentProps) {
+    if (nextProps.command !== this.props.command) {
+      this.initialize();
+    }
+  }
+
+  public componentDidMount() {
+    this.initialize();
   }
 
   private handleBuildChanged = (option: Option): void => {

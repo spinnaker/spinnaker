@@ -51,7 +51,7 @@ export class PipelineTriggerTemplate extends React.Component<
     };
   }
 
-  public componentDidMount() {
+  private initialize = () => {
     const { command } = this.props;
     const trigger = command.trigger as IPipelineTrigger;
 
@@ -74,6 +74,16 @@ export class PipelineTriggerTemplate extends React.Component<
     ReactInjector.executionService
       .getExecutionsForConfigIds([trigger.pipeline], { limit: 20 })
       .then(this.executionLoadSuccess, this.executionLoadFailure);
+  };
+
+  public componentWillReceiveProps(nextProps: ITriggerTemplateComponentProps) {
+    if (nextProps.command !== this.props.command) {
+      this.initialize();
+    }
+  }
+
+  public componentDidMount() {
+    this.initialize();
   }
 
   private executionLoadSuccess = (executions: IExecution[]) => {

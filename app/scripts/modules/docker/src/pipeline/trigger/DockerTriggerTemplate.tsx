@@ -92,7 +92,7 @@ export class DockerTriggerTemplate extends React.Component<
     });
   };
 
-  public componentDidMount() {
+  private initialize = () => {
     const { command } = this.props;
 
     this.subscription = this.queryStream
@@ -110,6 +110,16 @@ export class DockerTriggerTemplate extends React.Component<
     }
 
     this.searchTags();
+  };
+
+  public componentWillReceiveProps(nextProps: ITriggerTemplateComponentProps) {
+    if (nextProps.command !== this.props.command) {
+      this.initialize();
+    }
+  }
+
+  public componentDidMount() {
+    this.initialize();
   }
 
   private searchTags = (query = '') => {
