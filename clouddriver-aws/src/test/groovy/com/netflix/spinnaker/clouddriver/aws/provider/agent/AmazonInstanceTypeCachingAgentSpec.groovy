@@ -1,117 +1,183 @@
-/*
- * Copyright 2015 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsRequest
-import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsResult
-import com.amazonaws.services.ec2.model.ReservedInstancesOffering
+import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.cache.Keys
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import org.apache.http.HttpHost
+import org.apache.http.ProtocolVersion
+import org.apache.http.client.HttpClient
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.methods.HttpHead
+import org.apache.http.entity.BasicHttpEntity
+import org.apache.http.message.BasicHttpResponse
 import spock.lang.Specification
-import spock.lang.Subject
 
 class AmazonInstanceTypeCachingAgentSpec extends Specification {
 
-  static final String account = 'test'
-  static final String region = 'us-east-1'
+  static final Set<String> TEST_DATA_SET_INSTANCE_TYPES =
+    ['d2.8xlarge', 'c5.xlarge', 'h1.2xlarge', 'c4.8xlarge', 'c3.large', 'i3.metal']
 
-  AmazonEC2 ec2 = Mock(AmazonEC2)
-  AmazonClientProvider provider = Stub(AmazonClientProvider) {
-    getAmazonEC2(_, _) >> ec2
+  static final US_WEST_2_ACCT = TestCredential.named("test",
+    [regions: [
+      [name: 'us-west-2',
+       availabilityZones: ['us-west-2a', 'us-west-2b', 'us-west-2c']
+      ]
+    ]])
+
+  AccountCredentialsRepository repo = Stub(AccountCredentialsRepository) {
+    getAll() >> [US_WEST_2_ACCT]
   }
 
-  NetflixAmazonCredentials creds = Stub(NetflixAmazonCredentials) {
-    getName() >> account
-  }
+  def httpClient = Mock(HttpClient)
+  def providerCache = Mock(ProviderCache)
 
-  EddaTimeoutConfig eddaTimeoutConfig = new EddaTimeoutConfig.Builder().build()
-
-  ProviderCache providerCache = Mock(ProviderCache)
-
-  @Subject
-  AmazonInstanceTypeCachingAgent agent = new AmazonInstanceTypeCachingAgent(provider, creds, region, eddaTimeoutConfig)
-
-  void "should add to cache"() {
+  def "can deserialize response payload"() {
     when:
-    def result = agent.loadData(providerCache)
-    def expected = Keys.getInstanceTypeKey('m1', region, account)
+    def instanceTypes = getTestSubject().fromStream(cannedDataSet())
 
     then:
-    1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
-      reservedInstancesOfferings: [
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '1', instanceType: 'm1')
-      ]
-    )
-    with (result.cacheResults.get(Keys.Namespace.INSTANCE_TYPES.ns)) { List<CacheData> cd ->
-      cd.size() == 1
-      cd.find { it.id == expected }
-    }
+    instanceTypes == TEST_DATA_SET_INSTANCE_TYPES
+  }
+
+  def "noop if no matching accounts"() {
+    given:
+    def agent = getTestSubject('us-east-1')
+
+    when:
+    def instanceTypes = agent.loadData(providerCache)
+
+    then:
+    instanceTypes.cacheResults.isEmpty()
+    instanceTypes.evictions.isEmpty()
     0 * _
   }
 
-  void "should dedupe instance types"() {
+  def "skip data load if etags match"() {
+    given:
+    def agent = getTestSubject()
+
     when:
-    def result = agent.loadData(providerCache)
-    def expected = Keys.getInstanceTypeKey('m1', region, account)
+    def instanceTypes = agent.loadData(providerCache)
 
     then:
-    1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
-      reservedInstancesOfferings: [
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '1', instanceType: 'm1'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '2', instanceType: 'm1'),
-      ]
-    )
-    with (result.cacheResults.get(Keys.Namespace.INSTANCE_TYPES.ns)) { List<CacheData> cd ->
-      cd.size() == 1
-      cd.find { it.id == expected }
-    }
+    1 * providerCache.get(agent.getAgentType(), 'metadata', _ as RelationshipCacheFilter) >>
+      metadata('bacon', expectedTypes)
+    1 * httpClient.execute(_ as HttpHost, _ as HttpHead) >> basicResponse('bacon')
+    instanceTypes.evictions.isEmpty()
+    metadataMatches(agent.agentType, instanceTypes, 'bacon', expectedTypes)
+    instanceTypesMatch(instanceTypes, expectedTypes)
+    0 * _
+
+    where:
+    expectedTypes = ['m1.megabig', 't2.arnold']
+  }
+
+  def "load data if no metadata"() {
+    given:
+    def agent = getTestSubject()
+
+    when:
+    def instanceTypes = agent.loadData(providerCache)
+
+    then:
+    1 * providerCache.get(agent.getAgentType(), 'metadata', _ as RelationshipCacheFilter) >> null
+    1 * httpClient.execute(_ as HttpHost, _ as HttpGet) >> getResponse('baloney')
+
+    instanceTypes.evictions.isEmpty()
+    metadataMatches(agent.agentType, instanceTypes, 'baloney', TEST_DATA_SET_INSTANCE_TYPES)
+    instanceTypesMatch(instanceTypes, TEST_DATA_SET_INSTANCE_TYPES)
     0 * _
   }
 
-  void "should add all from paged results"() {
+  def "load data if metadata mismatch"() {
+    given:
+    def agent = getTestSubject()
+
     when:
-    def result = agent.loadData(providerCache)
+    def instanceTypes = agent.loadData(providerCache)
 
     then:
-    1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
-      reservedInstancesOfferings: [
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '1', instanceType: 'm1'),
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '2', instanceType: 'm2')
-      ],
-      nextToken: 'moar'
-    )
-    1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest(nextToken: 'moar')) >> new DescribeReservedInstancesOfferingsResult(
-      reservedInstancesOfferings: [
-        new ReservedInstancesOffering(reservedInstancesOfferingId: '3', instanceType: 'm3')
-      ]
-    )
+    1 * providerCache.get(agent.getAgentType(), 'metadata', _ as RelationshipCacheFilter) >>
+      metadata('mustard', ['t7.shouldntmatter'])
+    1 * httpClient.execute(_ as HttpHost, _ as HttpHead) >> basicResponse('baloney')
+    1 * httpClient.execute(_ as HttpHost, _ as HttpGet) >> getResponse('baloney')
 
-    with (result.cacheResults.get(Keys.Namespace.INSTANCE_TYPES.ns)) { List<CacheData> cd ->
-      cd.size() == 3
-      cd.find { it.id == Keys.getInstanceTypeKey('m1', region, account) }
-      cd.find { it.id == Keys.getInstanceTypeKey('m2', region, account) }
-      cd.find { it.id == Keys.getInstanceTypeKey('m3', region, account) }
-    }
+    instanceTypes.evictions.isEmpty()
+    metadataMatches(agent.agentType, instanceTypes, 'baloney', TEST_DATA_SET_INSTANCE_TYPES)
+    instanceTypesMatch(instanceTypes, TEST_DATA_SET_INSTANCE_TYPES)
     0 * _
+  }
+
+  def "evict metadata if no etag"() {
+    given:
+    def agent = getTestSubject()
+
+    when:
+    def instanceTypes = agent.loadData(providerCache)
+
+    then:
+    1 * providerCache.get(agent.getAgentType(), 'metadata', _ as RelationshipCacheFilter) >> null
+    1 * httpClient.execute(_ as HttpHost, _ as HttpGet) >> getResponse(null)
+
+    instanceTypes.evictions.get(agent.agentType).head() == 'metadata'
+    !instanceTypes.cacheResults.get(agent.agentType)
+    instanceTypesMatch(instanceTypes, TEST_DATA_SET_INSTANCE_TYPES)
+    0 * _
+
+  }
+
+  CacheData metadata(String etag, Collection<String> instanceTypes) {
+    new DefaultCacheData('metadata', [etag: etag, cachedInstanceTypes: instanceTypes], [:])
+
+  }
+
+  boolean metadataMatches(String agentType,
+                          CacheResult result,
+                          String expectedEtag,
+                          Collection<String> expectedTypes) {
+    def meta = result?.cacheResults?.get(agentType)?.head()
+    if (!meta) {
+      return false
+    }
+    meta.id == 'metadata' &&
+    meta.attributes.etag == expectedEtag &&
+    meta.attributes.cachedInstanceTypes as Set == expectedTypes as Set
+  }
+
+  boolean instanceTypesMatch(CacheResult result, Collection<String> expectedTypes) {
+    result?.cacheResults?.instanceTypes?.collect { it.id } as Set ==
+      expectedTypes.collect { "aws:instanceTypes:$it:test:us-west-2".toString() } as Set
+  }
+
+  BasicHttpResponse basicResponse(String etag, int statusCode = 200) {
+    def r = new BasicHttpResponse(
+      new ProtocolVersion('HTTP', 1, 1),
+      statusCode,
+      'because reasons')
+    if (etag) {
+      r.setHeader("ETag", etag)
+    }
+    return r
+  }
+
+  BasicHttpResponse getResponse(String etag) {
+    def r = basicResponse(etag)
+    def e = new BasicHttpEntity()
+    e.setContent(cannedDataSet())
+    r.setEntity(e)
+    return r
+  }
+
+  InputStream cannedDataSet() {
+    getClass().getResourceAsStream("us-west-2.json")
+  }
+
+  AmazonInstanceTypeCachingAgent getTestSubject(String region = 'us-west-2') {
+    return new AmazonInstanceTypeCachingAgent(region, repo, httpClient)
   }
 
 }

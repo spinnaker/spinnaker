@@ -88,13 +88,17 @@ class AwsInfrastructureProviderConfig {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
+    Set<String> regions = new HashSet<>();
     allAccounts.each { NetflixAmazonCredentials credentials ->
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
         if (!scheduledAccounts.contains(credentials.name)) {
           def newlyAddedAgents = []
 
+          if (regions.add(region.name)) {
+            newlyAddedAgents << new AmazonInstanceTypeCachingAgent(region.name, accountCredentialsRepository)
+          }
+
           newlyAddedAgents << new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.name)
-          newlyAddedAgents << new AmazonInstanceTypeCachingAgent(amazonClientProvider, credentials, region.name, eddaTimeoutConfig)
           newlyAddedAgents << new AmazonKeyPairCachingAgent(amazonClientProvider, credentials, region.name)
           newlyAddedAgents << new AmazonSecurityGroupCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper, registry, eddaTimeoutConfig)
           newlyAddedAgents << new AmazonSubnetCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
