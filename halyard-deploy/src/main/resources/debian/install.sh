@@ -79,6 +79,15 @@ function add_java_apt_repository() {
 }
 
 function install_java() {
+  set +e
+  local java_version=$(java -version 2>&1 head -1)
+  set -e
+
+  if [[ "$java_version" == *1.8* ]]; then
+    echo "Java is already installed & at the right version"
+    return 0;
+  fi
+
   apt-get install -y --force-yes unzip
   apt-get install -y --force-yes openjdk-8-jdk
 
