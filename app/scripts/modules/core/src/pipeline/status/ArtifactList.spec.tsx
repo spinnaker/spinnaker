@@ -40,7 +40,7 @@ describe('<ArtifactList/>', () => {
     expect(component.find('ul.trigger-details.artifacts').length).toEqual(1);
   });
 
-  it("renders an artifact's type and name", function() {
+  it("renders an artifact's name", function() {
     const artifacts: IArtifact[] = [
       {
         id: 'abcd',
@@ -54,12 +54,9 @@ describe('<ArtifactList/>', () => {
     const dt = li.find('dt');
     const dd = li.find('dd');
     expect(li.length).toEqual(1);
-    expect(dt.length).toEqual(2);
-    expect(dd.length).toEqual(2);
-    expect(dt.at(0).text()).toEqual('Type');
-    expect(dd.at(0).text()).toEqual(ARTIFACT_TYPE);
-    expect(dt.at(1).text()).toEqual('Artifact');
-    expect(dd.at(1).text()).toEqual(ARTIFACT_NAME);
+    expect(dt.length).toEqual(1);
+    expect(dd.length).toEqual(1);
+    expect(dd.at(0).text()).toEqual(ARTIFACT_NAME);
   });
 
   it('does not render artifacts without a type and name', function() {
@@ -101,11 +98,11 @@ describe('<ArtifactList/>', () => {
     const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
     component = shallow(<ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />);
     const li = component.find('li');
-    expect(li.find('dd').length).toEqual(3);
+    expect(li.find('dd').length).toEqual(2);
     expect(
       li
         .find('dd')
-        .at(2)
+        .at(1)
         .text(),
     ).toEqual(version);
   });

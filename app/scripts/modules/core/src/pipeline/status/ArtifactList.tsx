@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { IArtifact, IExpectedArtifact } from 'core/domain';
+import { ArtifactIconService } from 'core';
 
 import './artifactList.less';
 
@@ -66,11 +67,9 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
             <li key={`${i}-${name}`} className="break-word" title={this.tooltip(artifact, isDefault)}>
               <dl>
                 <div>
-                  <dt>Type</dt>
-                  <dd>{type}</dd>
-                </div>
-                <div>
-                  <dt>Artifact{isDefault && '*'}</dt>
+                  <dt>
+                    <img className="artifact-icon" src={ArtifactIconService.getPath(type)} width="18" height="18" />
+                  </dt>
                   <dd>{name}</dd>
                 </div>
                 {version && (
