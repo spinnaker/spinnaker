@@ -86,6 +86,7 @@ module.exports = angular
     let addTriggers = () => {
       let pipeline = this.command.pipeline;
       if (!pipeline || !pipeline.triggers || !pipeline.triggers.length) {
+        this.triggers = null;
         this.command.trigger = null;
         return;
       }
@@ -130,6 +131,8 @@ module.exports = angular
 
       if (command.trigger && pipelineConfig.hasManualExecutionComponentForTriggerType(command.trigger.type)) {
         this.triggerComponent = pipelineConfig.getManualExecutionComponentForTriggerType(command.trigger.type);
+      } else {
+        this.triggerComponent = null;
       }
       updateCommand();
     };
@@ -207,7 +210,9 @@ module.exports = angular
 
     this.execute = () => {
       let selectedTrigger = this.command.trigger || {},
-        command = { trigger: selectedTrigger },
+        command = {
+          trigger: selectedTrigger,
+        },
         pipeline = this.command.pipeline;
 
       if (this.command.notificationEnabled && this.command.notification.address) {
