@@ -2,7 +2,7 @@
   "main": "lib/lib.js",
   "typings": "lib/kayenta/index.d.ts",
   "name": "@spinnaker/kayenta",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -74,7 +74,7 @@
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
-    "@spinnaker/core": "0.0.212",
+    "@spinnaker/core": "0.0.223",
     "@spinnaker/styleguide": "^1.0.1",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "^1.5.10",

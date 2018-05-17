@@ -73,9 +73,9 @@
     d3-collection "1"
     d3-interpolate "1"
 
-"@spinnaker/core@0.0.212":
-  version "0.0.212"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.212.tgz#b7af02d1aad3889434d9af766768430f5f7ebddb"
+"@spinnaker/core@0.0.223":
+  version "0.0.223"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.223.tgz#4786132755cba22de22ae3e2c773e659f28c3e42"
 
 "@spinnaker/styleguide@^1.0.1":
   version "1.0.1"

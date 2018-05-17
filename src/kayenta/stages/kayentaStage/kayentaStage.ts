@@ -4,7 +4,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import {
   IPipeline,
-  PipelineConfigProvider
+  Registry
 } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
@@ -297,9 +297,9 @@ module(KAYENTA_CANARY_STAGE, [
     KAYENTA_STAGE_TRANSFORMER,
     KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER,
   ])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+  .config(() => {
     'ngInject';
-    pipelineConfigProvider.registerStage({
+    Registry.pipeline.registerStage({
       label: 'Canary Analysis',
       description: 'Runs a canary task',
       key: 'kayentaCanary',
@@ -322,7 +322,7 @@ module(KAYENTA_CANARY_STAGE, [
     });
   })
   .controller('KayentaCanaryStageCtrl', CanaryStage)
-  .run((pipelineConfig: PipelineConfigProvider, kayentaStageTransformer: KayentaStageTransformer) => {
+  .run((kayentaStageTransformer: KayentaStageTransformer) => {
     'ngInject';
-    pipelineConfig.registerTransformer(kayentaStageTransformer);
+    Registry.pipeline.registerTransformer(kayentaStageTransformer);
   });
