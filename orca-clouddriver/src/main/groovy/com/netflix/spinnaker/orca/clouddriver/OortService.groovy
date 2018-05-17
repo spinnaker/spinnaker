@@ -45,6 +45,10 @@ interface OortService {
                                      @Query("region") String region,
                                      @Path("cloudProvider") String cloudProvider)
 
+  @GET("/manifests/{account}/_/{manifest}")
+  Manifest getManifest(@Path("account") String account,
+                       @Path("manifest") String manifest)
+
   @GET("/manifests/{account}/{location}/{manifest}")
   Manifest getManifest(@Path("account") String account,
                        @Path("location") String location,

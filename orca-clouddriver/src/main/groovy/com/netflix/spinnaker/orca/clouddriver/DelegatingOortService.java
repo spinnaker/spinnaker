@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
+import org.apache.commons.lang.StringUtils;
 import retrofit.client.Response;
 
 import java.util.List;
@@ -38,8 +39,13 @@ public class DelegatingOortService
   }
 
   @Override
+  public Manifest getManifest(String account, String name) {
+    return getService().getManifest(account, name);
+  }
+
+  @Override
   public Manifest getManifest(String account, String location, String name) {
-    return getService().getManifest(account, location, name);
+    return StringUtils.isEmpty(location) ? getService().getManifest(account, name) : getService().getManifest(account, location, name);
   }
 
   @Override
