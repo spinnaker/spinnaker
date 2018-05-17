@@ -1,3 +1,4 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
