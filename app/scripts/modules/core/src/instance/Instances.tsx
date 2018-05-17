@@ -71,7 +71,9 @@ export class Instances extends React.Component<IInstancesProps, IInstancesState>
 
   private partitionInstances(): IInstance[][] {
     const partitions: IInstance[][] = [];
-    const instances = (this.props.instances || []).sort((a, b) => a.launchTime - b.launchTime);
+    const instances = (this.props.instances || []).sort(
+      (a, b) => a.launchTime - b.launchTime || a.id.localeCompare(b.id),
+    );
     if (!instances.length) {
       return partitions;
     }

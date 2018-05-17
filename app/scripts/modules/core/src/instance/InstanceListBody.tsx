@@ -47,7 +47,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
       .takeUntil(this.destroy$)
       .subscribe(() => {
         this.setState({
-          activeInstanceId: this.$state.params.activeInstanceId,
+          activeInstanceId: this.$state.params.instanceId,
           multiselect: this.$state.params.multiselect,
         });
       });
