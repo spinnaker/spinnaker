@@ -6,7 +6,7 @@ import {
   OVERRIDE_REGISTRY,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
+  TaskMonitor,
   V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
@@ -19,7 +19,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     ECS_SERVER_GROUP_CONFIGURATION_SERVICE,
     SERVER_GROUP_WRITER,
-    TASK_MONITOR_BUILDER,
     V2_MODAL_WIZARD_SERVICE,
     OVERRIDE_REGISTRY,
     SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
@@ -33,7 +32,6 @@ module.exports = angular
     $state,
     serverGroupWriter,
     v2modalWizardService,
-    taskMonitorBuilder,
     overrideRegistry,
     ecsServerGroupConfigurationService,
     serverGroupCommandRegistry,
@@ -136,7 +134,7 @@ module.exports = angular
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,

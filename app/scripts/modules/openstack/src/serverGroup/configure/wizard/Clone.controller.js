@@ -2,14 +2,13 @@
 
 const angular = require('angular');
 
-import { FirewallLabels, SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { FirewallLabels, SERVER_GROUP_WRITER, TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.clone', [
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
     V2_MODAL_WIZARD_SERVICE,
-    TASK_MONITOR_BUILDER,
     require('../serverGroupConfiguration.service.js').name,
   ])
   .controller('openstackCloneServerGroupCtrl', function(
@@ -19,7 +18,6 @@ module.exports = angular
     $state,
     serverGroupWriter,
     v2modalWizardService,
-    taskMonitorBuilder,
     openstackServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -63,7 +61,7 @@ module.exports = angular
       );
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,

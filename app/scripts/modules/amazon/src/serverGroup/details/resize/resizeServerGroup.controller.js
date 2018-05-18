@@ -2,21 +2,19 @@
 
 const angular = require('angular');
 
-import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 import { AWS_RESIZE_CAPACITY_COMPONENT } from './resizeCapacity.component';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.resize.controller', [
     SERVER_GROUP_WRITER,
-    TASK_MONITOR_BUILDER,
     AWS_RESIZE_CAPACITY_COMPONENT,
   ])
   .controller('awsResizeServerGroupCtrl', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
-    taskMonitorBuilder,
     application,
     serverGroup,
   ) {
@@ -66,7 +64,7 @@ module.exports = angular
         : command.newSize !== null;
     };
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Resizing ' + serverGroup.name,
       modalInstance: $uibModalInstance,

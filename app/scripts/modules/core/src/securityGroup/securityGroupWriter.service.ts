@@ -5,7 +5,7 @@ import { InfrastructureCaches } from 'core/cache/infrastructureCaches';
 import { ISecurityGroup, ITask } from 'core/domain';
 import { FirewallLabels } from 'core/securityGroup/label';
 
-import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
+import { IJob, TaskExecutor } from 'core/task/taskExecutor';
 
 export interface ISecurityGroupJob extends IJob {
   credentials: string;
@@ -13,10 +13,6 @@ export interface ISecurityGroupJob extends IJob {
   securityGroupName: string;
 }
 export class SecurityGroupWriter {
-  constructor(private taskExecutor: TaskExecutor) {
-    'ngInject';
-  }
-
   public deleteSecurityGroup(
     securityGroup: ISecurityGroup,
     application: Application,
@@ -27,7 +23,7 @@ export class SecurityGroupWriter {
     params.regions = [securityGroup.region];
     params.credentials = securityGroup.accountId;
 
-    const operation: IPromise<ITask> = this.taskExecutor.executeTask({
+    const operation: IPromise<ITask> = TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Delete ${FirewallLabels.get('Firewall')}: ${securityGroup.name}`,
@@ -47,7 +43,7 @@ export class SecurityGroupWriter {
     params.credentials = securityGroup.credentials || securityGroup.accountName;
     const job: ISecurityGroupJob = { ...securityGroup, ...params };
 
-    const operation: IPromise<ITask> = this.taskExecutor.executeTask({
+    const operation: IPromise<ITask> = TaskExecutor.executeTask({
       job: [job],
       application,
       description: `${description} ${FirewallLabels.get('Firewall')}: ${securityGroup.name}`,
@@ -60,4 +56,4 @@ export class SecurityGroupWriter {
 }
 
 export const SECURITY_GROUP_WRITER = 'spinnaker.core.securityGroup.write.service';
-module(SECURITY_GROUP_WRITER, [TASK_EXECUTOR]).service('securityGroupWriter', SecurityGroupWriter);
+module(SECURITY_GROUP_WRITER, []).service('securityGroupWriter', SecurityGroupWriter);

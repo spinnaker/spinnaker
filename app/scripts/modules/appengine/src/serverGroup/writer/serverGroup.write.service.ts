@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { Application, IJob, ITask, ITaskCommand, TASK_EXECUTOR, TaskExecutor } from '@spinnaker/core';
+import { Application, IJob, ITask, ITaskCommand, TaskExecutor } from '@spinnaker/core';
 
 import { IAppengineServerGroup } from 'appengine/domain/index';
 
@@ -12,10 +12,6 @@ interface IAppengineServerGroupWriteJob extends IJob {
 }
 
 export class AppengineServerGroupWriter {
-  constructor(private taskExecutor: TaskExecutor) {
-    'ngInject';
-  }
-
   public startServerGroup(serverGroup: IAppengineServerGroup, application: Application): ng.IPromise<ITask> {
     const job = this.buildJob(serverGroup, application, 'startAppEngineServerGroup');
 
@@ -25,7 +21,7 @@ export class AppengineServerGroupWriter {
       description: `Start Server Group: ${serverGroup.name}`,
     };
 
-    return this.taskExecutor.executeTask(command);
+    return TaskExecutor.executeTask(command);
   }
 
   public stopServerGroup(serverGroup: IAppengineServerGroup, application: Application): ng.IPromise<ITask> {
@@ -37,7 +33,7 @@ export class AppengineServerGroupWriter {
       description: `Stop Server Group: ${serverGroup.name}`,
     };
 
-    return this.taskExecutor.executeTask(command);
+    return TaskExecutor.executeTask(command);
   }
 
   private buildJob(
@@ -58,7 +54,4 @@ export class AppengineServerGroupWriter {
 
 export const APPENGINE_SERVER_GROUP_WRITER = 'spinnaker.appengine.serverGroup.write.service';
 
-module(APPENGINE_SERVER_GROUP_WRITER, [TASK_EXECUTOR]).service(
-  'appengineServerGroupWriter',
-  AppengineServerGroupWriter,
-);
+module(APPENGINE_SERVER_GROUP_WRITER, []).service('appengineServerGroupWriter', AppengineServerGroupWriter);

@@ -3,19 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.autoscaling.process.controller', [TASK_MONITOR_BUILDER, TASK_EXECUTOR])
-  .controller('ModifyScalingProcessesCtrl', function(
-    $scope,
-    $uibModalInstance,
-    taskMonitorBuilder,
-    taskExecutor,
-    application,
-    serverGroup,
-    processes,
-  ) {
+  .module('spinnaker.amazon.serverGroup.details.autoscaling.process.controller', [])
+  .controller('ModifyScalingProcessesCtrl', function($scope, $uibModalInstance, application, serverGroup, processes) {
     $scope.command = angular.copy(processes);
     $scope.serverGroup = serverGroup;
     $scope.verification = {};
@@ -51,7 +43,7 @@ module.exports = angular
       return !!(toEnable.length || toSuspend.length);
     };
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Update Auto Scaling Processes for ' + serverGroup.name,
       modalInstance: $uibModalInstance,
@@ -97,7 +89,7 @@ module.exports = angular
       }
 
       var submitMethod = function() {
-        return taskExecutor.executeTask({
+        return TaskExecutor.executeTask({
           job: job,
           application: application,
           description: 'Update Auto Scaling Processes for ' + serverGroup.name,

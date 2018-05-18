@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
 import { BackendServiceTemplate, HealthCheckTemplate, HostRuleTemplate, ListenerTemplate } from './templates';
@@ -17,7 +17,6 @@ module.exports = angular
     require('./basicSettings/basicSettings.component.js').name,
     GCE_CACHE_REFRESH,
     V2_MODAL_WIZARD_SERVICE,
-    TASK_MONITOR_BUILDER,
     require('./commandBuilder.service.js').name,
     require('../../details/hostAndPathRules/hostAndPathRulesButton.component.js').name,
     require('./healthCheck/healthCheck.component.js').name,
@@ -31,11 +30,9 @@ module.exports = angular
     $uibModal,
     $uibModalInstance,
     application,
-    taskMonitorBuilder,
     loadBalancer,
     isNew,
     loadBalancerWriter,
-    taskExecutor,
     gceHttpLoadBalancerWriter,
     $state,
     wizardSubFormValidation,
@@ -99,7 +96,7 @@ module.exports = angular
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     };
 
-    $scope.taskMonitor = this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = this.taskMonitor = new TaskMonitor({
       application: this.application,
       title: (this.isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,

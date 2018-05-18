@@ -2,19 +2,13 @@
 
 const angular = require('angular');
 
-import {
-  AccountService,
-  LOAD_BALANCER_WRITE_SERVICE,
-  TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE,
-} from '@spinnaker/core';
+import { AccountService, LOAD_BALANCER_WRITE_SERVICE, TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.kubernetes.create.controller', [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_WRITE_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
-    TASK_MONITOR_BUILDER,
     require('../../../namespace/selectField.directive.js').name,
     require('../../transformer.js').name,
   ])
@@ -28,7 +22,6 @@ module.exports = angular
     kubernetesLoadBalancerTransformer,
     v2modalWizardService,
     loadBalancerWriter,
-    taskMonitorBuilder,
   ) {
     var ctrl = this;
     $scope.isNew = isNew;
@@ -68,7 +61,7 @@ module.exports = angular
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,

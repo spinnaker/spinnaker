@@ -10,8 +10,8 @@ import {
   NameUtils,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
   FirewallLabels,
+  TaskMonitor,
   V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
@@ -21,7 +21,6 @@ import { VPC_READ_SERVICE } from 'amazon/vpc/vpc.read.service';
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
     require('@uirouter/angularjs').default,
-    TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
     VPC_READ_SERVICE,
@@ -31,7 +30,6 @@ module.exports = angular
     $scope,
     $state,
     $uibModalInstance,
-    taskMonitorBuilder,
     application,
     securityGroup,
     securityGroupReader,
@@ -87,7 +85,7 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: `Creating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,

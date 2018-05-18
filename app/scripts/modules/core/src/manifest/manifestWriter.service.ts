@@ -2,17 +2,13 @@ import { IPromise, module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { ITask } from 'core/domain';
-import { TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
+import { TaskExecutor } from 'core/task/taskExecutor';
 
 export class ManifestWriter {
-  constructor(private taskExecutor: TaskExecutor) {
-    'ngInject';
-  }
-
   public deployManifest(command: any, application: Application): IPromise<ITask> {
     const description = 'Deploy manifest';
     command.type = 'deployManifest';
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [command],
       application,
       description,
@@ -22,7 +18,7 @@ export class ManifestWriter {
   public deleteManifest(command: any, application: Application): IPromise<ITask> {
     const description = 'Delete manifest';
     command.type = 'deleteManifest';
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [command],
       application,
       description,
@@ -32,7 +28,7 @@ export class ManifestWriter {
   public scaleManifest(command: any, application: Application): IPromise<ITask> {
     const description = 'Scale manifest';
     command.type = 'scaleManifest';
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [command],
       application,
       description,
@@ -42,7 +38,7 @@ export class ManifestWriter {
   public undoRolloutManifest(command: any, application: Application): IPromise<ITask> {
     const description = 'Undo rollout of manifest';
     command.type = 'undoRolloutManifest';
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [command],
       application,
       description,
@@ -52,7 +48,7 @@ export class ManifestWriter {
   public resumeRolloutManifest(command: any, application: Application): IPromise<ITask> {
     const description = 'Resume rollout of manifest';
     command.type = 'resumeRolloutManifest';
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [command],
       application,
       description,
@@ -62,7 +58,7 @@ export class ManifestWriter {
   public pauseRolloutManifest(command: any, application: Application): IPromise<ITask> {
     const description = 'Pause rollout of manifest';
     command.type = 'pauseRolloutManifest';
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [command],
       application,
       description,
@@ -72,7 +68,7 @@ export class ManifestWriter {
   public findArtifactsFromResource(command: any, application: Application): IPromise<ITask> {
     const description = 'Find artifacts from a Kubernetes resource';
     command.type = 'findArtifactsFromResource';
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [command],
       application,
       description,
@@ -81,4 +77,4 @@ export class ManifestWriter {
 }
 
 export const MANIFEST_WRITER = 'spinnaker.core.manifest.write.service';
-module(MANIFEST_WRITER, [TASK_EXECUTOR]).service('manifestWriter', ManifestWriter);
+module(MANIFEST_WRITER, []).service('manifestWriter', ManifestWriter);

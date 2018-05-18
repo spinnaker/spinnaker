@@ -2,14 +2,7 @@ import { IController, IScope, copy, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { get, merge } from 'lodash';
 
-import {
-  Application,
-  SERVER_GROUP_WRITER,
-  ServerGroupWriter,
-  TASK_MONITOR_BUILDER,
-  TaskMonitor,
-  TaskMonitorBuilder,
-} from '@spinnaker/core';
+import { Application, SERVER_GROUP_WRITER, ServerGroupWriter, TaskMonitor } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { AppengineServerGroupCommandBuilder, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
@@ -33,7 +26,6 @@ class AppengineCloneServerGroupCtrl implements IController {
     private $uibModalInstance: IModalInstanceService,
     public serverGroupCommand: IAppengineServerGroupCommand,
     private application: Application,
-    private taskMonitorBuilder: TaskMonitorBuilder,
     private serverGroupWriter: ServerGroupWriter,
     appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder,
   ) {
@@ -74,7 +66,7 @@ class AppengineCloneServerGroupCtrl implements IController {
 
   private initialize(): void {
     this.$scope.application = this.application;
-    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       application: this.application,
       title: 'Creating your server group',
       modalInstance: this.$uibModalInstance,
@@ -90,7 +82,6 @@ class AppengineCloneServerGroupCtrl implements IController {
 export const APPENGINE_CLONE_SERVER_GROUP_CTRL = 'spinnaker.appengine.cloneServerGroup.controller';
 module(APPENGINE_CLONE_SERVER_GROUP_CTRL, [
   SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
   APPENGINE_DYNAMIC_BRANCH_LABEL,
   APPENGINE_CONFIG_FILE_CONFIGURER,
 ]).controller('appengineCloneServerGroupCtrl', AppengineCloneServerGroupCtrl);

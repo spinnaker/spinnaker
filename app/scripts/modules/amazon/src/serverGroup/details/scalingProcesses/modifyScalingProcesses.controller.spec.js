@@ -1,27 +1,26 @@
 'use strict';
 
+import { TaskExecutor } from '@spinnaker/core';
+
 describe('Controller: modifyScalingProcesses', function() {
   const angular = require('angular');
 
   beforeEach(window.module(require('./modifyScalingProcesses.controller.js').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope) {
-      this.$uibModalInstance = { close: angular.noop };
-      this.taskMonitorBuilder = { buildTaskMonitor: angular.noop };
-      this.taskExecutor = { executeTask: angular.noop };
+    window.inject(function($controller, $rootScope, $q) {
+      this.$uibModalInstance = { close: angular.noop, result: { then: angular.noop } };
       this.$scope = $rootScope.$new();
 
       this.initializeController = function(serverGroup, processes) {
         this.processes = processes;
+        spyOn(TaskExecutor, 'executeTask').and.returnValue($q.when(null));
 
         this.controller = $controller('ModifyScalingProcessesCtrl', {
           $scope: this.$scope,
           serverGroup: serverGroup,
           processes: this.processes,
           application: { serverGroups: { refresh: angular.noop } },
-          taskMonitorBuilder: this.taskMonitorBuilder,
-          taskExecutor: this.taskExecutor,
           $uibModalInstance: this.$uibModalInstance,
         });
       };
@@ -64,19 +63,13 @@ describe('Controller: modifyScalingProcesses', function() {
         { name: 'Terminate', enabled: true },
         { name: 'AddToLoadBalancer', enabled: false },
       ];
-      this.taskMonitor = { submit: angular.noop };
-      spyOn(this.taskMonitorBuilder, 'buildTaskMonitor').and.returnValue(this.taskMonitor);
-      spyOn(this.taskMonitor, 'submit').and.callFake(function(method) {
-        method();
-      });
-      spyOn(this.taskExecutor, 'executeTask');
     });
 
     it('sends a resume job when processes are enabled', function() {
       this.initializeController(this.serverGroup, this.processes);
       this.$scope.command[2].enabled = true;
       this.controller.submit();
-      var job = this.taskExecutor.executeTask.calls.mostRecent().args[0].job;
+      var job = TaskExecutor.executeTask.calls.mostRecent().args[0].job;
 
       expect(job.length).toBe(1);
       expect(job[0].action).toBe('resume');
@@ -87,7 +80,7 @@ describe('Controller: modifyScalingProcesses', function() {
       this.initializeController(this.serverGroup, this.processes);
       this.$scope.command[1].enabled = false;
       this.controller.submit();
-      var job = this.taskExecutor.executeTask.calls.mostRecent().args[0].job;
+      var job = TaskExecutor.executeTask.calls.mostRecent().args[0].job;
 
       expect(job.length).toBe(1);
       expect(job[0].action).toBe('suspend');
@@ -99,7 +92,7 @@ describe('Controller: modifyScalingProcesses', function() {
       this.$scope.command[0].enabled = false;
       this.$scope.command[2].enabled = true;
       this.controller.submit();
-      var job = this.taskExecutor.executeTask.calls.mostRecent().args[0].job;
+      var job = TaskExecutor.executeTask.calls.mostRecent().args[0].job;
 
       expect(job.length).toBe(2);
       expect(job[0].action).toBe('resume');

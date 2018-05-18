@@ -6,8 +6,7 @@ import {
   ILoadBalancerDeleteCommand,
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
-  TASK_MONITOR_BUILDER,
-  TaskMonitorBuilder,
+  TaskMonitor,
 } from '@spinnaker/core';
 
 import {
@@ -41,7 +40,6 @@ class DeleteLoadBalancerModalController implements IController {
     private gceHttpLoadBalancerWriter: any,
     private loadBalancer: any,
     private loadBalancerWriter: LoadBalancerWriter,
-    private taskMonitorBuilder: TaskMonitorBuilder,
     private $uibModalInstance: IModalInstanceService,
   ) {
     'ngInject';
@@ -54,7 +52,7 @@ class DeleteLoadBalancerModalController implements IController {
       modalInstance: this.$uibModalInstance,
     };
 
-    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor(taskMonitorConfig);
+    this.taskMonitor = new TaskMonitor(taskMonitorConfig);
   }
 
   public isValid(): boolean {
@@ -102,7 +100,6 @@ class DeleteLoadBalancerModalController implements IController {
 export const DELETE_MODAL_CONTROLLER = 'spinnaker.gce.loadBalancer.deleteModal.controller';
 module(DELETE_MODAL_CONTROLLER, [
   require('angular-ui-bootstrap'),
-  TASK_MONITOR_BUILDER,
   LOAD_BALANCER_WRITE_SERVICE,
   require('../../configure/http/httpLoadBalancer.write.service.js').name,
   GCE_HTTP_LOAD_BALANCER_UTILS,

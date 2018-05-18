@@ -9,7 +9,7 @@ import {
   LOAD_BALANCER_WRITE_SERVICE,
   NameUtils,
   NETWORK_READ_SERVICE,
-  TASK_MONITOR_BUILDER,
+  TaskMonitor,
   V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
@@ -19,7 +19,6 @@ module.exports = angular
     LOAD_BALANCER_WRITE_SERVICE,
     require('../loadBalancer.transformer.js').name,
     V2_MODAL_WIZARD_SERVICE,
-    TASK_MONITOR_BUILDER,
     NETWORK_READ_SERVICE,
   ])
   .controller('azureCreateLoadBalancerCtrl', function(
@@ -30,7 +29,6 @@ module.exports = angular
     networkReader,
     v2modalWizardService,
     loadBalancerWriter,
-    taskMonitorBuilder,
     application,
     loadBalancer,
     isNew,
@@ -75,7 +73,7 @@ module.exports = angular
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,

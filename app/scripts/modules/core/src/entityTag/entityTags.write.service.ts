@@ -1,20 +1,16 @@
 import { IPromise, module } from 'angular';
 import { Application } from 'core/application/application.model';
 import { IEntityRef, IEntityTag, IEntityTags, ITask } from 'core/domain';
-import { TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
+import { TaskExecutor } from 'core/task/taskExecutor';
 
 export class EntityTagWriter {
-  public constructor(private taskExecutor: TaskExecutor) {
-    'ngInject';
-  }
-
   public upsertEntityTag(
     application: Application,
     tag: IEntityTag,
     entityRef: IEntityRef,
     isNew: boolean,
   ): IPromise<ITask> {
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       application,
       description: `${isNew ? 'Create' : 'Update'} entity tag on ${entityRef.entityId}`,
       job: [
@@ -31,7 +27,7 @@ export class EntityTagWriter {
   }
 
   public deleteEntityTag(application: Application, owner: any, entityTag: IEntityTags, tag: string) {
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       application,
       description: `Delete entity tag on ${owner.name}`,
       job: [
@@ -47,4 +43,4 @@ export class EntityTagWriter {
 }
 
 export const ENTITY_TAG_WRITER = 'spinnaker.core.entityTag.write.service';
-module(ENTITY_TAG_WRITER, [TASK_EXECUTOR]).service('entityTagWriter', EntityTagWriter);
+module(ENTITY_TAG_WRITER, []).service('entityTagWriter', EntityTagWriter);

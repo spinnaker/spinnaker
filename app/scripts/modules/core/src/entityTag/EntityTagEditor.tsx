@@ -14,7 +14,6 @@ import {
   IEntityTag,
   ReactInjector,
   TaskMonitor,
-  TaskMonitorBuilder,
   SubmitButton,
   Markdown,
 } from 'core';
@@ -70,7 +69,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     onUpdate: noop,
   };
 
-  private taskMonitorBuilder: TaskMonitorBuilder = ReactInjector.taskMonitorBuilder;
   private entityTagWriter: EntityTagWriter = ReactInjector.entityTagWriter;
   private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
 
@@ -130,7 +128,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
     tag.value.message = values.message;
 
-    const taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+    const taskMonitor = new TaskMonitor({
       application,
       title: `${isNew ? 'Create' : 'Update'} ${this.props.tag.value.type} for ${entityRef.entityId}`,
       modalInstance: this.$uibModalInstanceEmulation,

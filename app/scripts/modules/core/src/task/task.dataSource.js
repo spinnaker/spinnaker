@@ -1,22 +1,22 @@
 import { APPLICATION_DATA_SOURCE_REGISTRY } from '../application/service/applicationDataSource.registry';
-import { TASK_READ_SERVICE } from 'core/task/task.read.service';
+import { TaskReader } from 'core/task/task.read.service';
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.task.dataSource', [APPLICATION_DATA_SOURCE_REGISTRY, TASK_READ_SERVICE, CLUSTER_SERVICE])
-  .run(function($q, applicationDataSourceRegistry, taskReader, clusterService) {
+  .module('spinnaker.core.task.dataSource', [APPLICATION_DATA_SOURCE_REGISTRY, CLUSTER_SERVICE])
+  .run(function($q, applicationDataSourceRegistry, clusterService) {
     let addTasks = (application, tasks) => {
       return $q.when(angular.isArray(tasks) ? tasks : []);
     };
 
     let loadTasks = application => {
-      return taskReader.getTasks(application.name);
+      return TaskReader.getTasks(application.name);
     };
 
     let loadRunningTasks = application => {
-      return taskReader.getRunningTasks(application.name);
+      return TaskReader.getRunningTasks(application.name);
     };
 
     let addRunningTasks = (application, data) => {

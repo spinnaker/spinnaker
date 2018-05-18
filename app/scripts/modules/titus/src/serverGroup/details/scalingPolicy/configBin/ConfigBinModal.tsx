@@ -6,7 +6,7 @@ import { cloneDeep, partition } from 'lodash';
 import { $q } from 'ngimport';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { Application, HelpField, NgReact, ReactInjector, TaskMonitor } from '@spinnaker/core';
+import { Application, HelpField, NgReact, TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
 import { metricOptions } from './metricOptions';
 import { IClusterConfig, IClusterConfigExpression } from './configBin.reader';
@@ -155,7 +155,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     );
 
     const submitMethod = () => {
-      const promise = ReactInjector.taskExecutor.executeTask({
+      const promise = TaskExecutor.executeTask({
         application,
         description: `Update Config Bin metric forwarding for ${clusterName}`,
         job: [
@@ -171,7 +171,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
       return promise;
     };
 
-    const taskMonitor = ReactInjector.taskMonitorBuilder.buildTaskMonitor({
+    const taskMonitor = new TaskMonitor({
       application,
       title: `Update Config Bin metric forwarding`,
       modalInstance: this.$uibModalInstanceEmulation,

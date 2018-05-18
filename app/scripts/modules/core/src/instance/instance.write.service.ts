@@ -1,6 +1,6 @@
 import { IPromise, module } from 'angular';
 
-import { TASK_EXECUTOR, TaskExecutor, IJob } from 'core/task/taskExecutor';
+import { TaskExecutor, IJob } from 'core/task/taskExecutor';
 import { SERVER_GROUP_READER, ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { Application } from 'core/application/application.model';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
@@ -30,7 +30,6 @@ export interface IMultiInstanceJob {
 
 export class InstanceWriter {
   public constructor(
-    protected taskExecutor: TaskExecutor,
     protected serverGroupReader: ServerGroupReader,
     protected providerServiceDelegate: ProviderServiceDelegate,
   ) {
@@ -44,7 +43,7 @@ export class InstanceWriter {
     params['zone'] = instance.zone;
     params['credentials'] = instance.account;
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Terminate instance: ${instance.id}`,
@@ -65,7 +64,7 @@ export class InstanceWriter {
   ): IPromise<ITask> {
     const jobs = this.buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
     const descriptor = this.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: jobs,
       application,
       description: descriptor,
@@ -85,7 +84,7 @@ export class InstanceWriter {
     params.cloudProvider = instance.cloudProvider;
     params.application = application.name;
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Reboot instance: ${instance.id}`,
@@ -100,7 +99,7 @@ export class InstanceWriter {
     const jobs = this.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
     jobs.forEach(job => (job.loadBalancerNames = loadBalancerNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${loadBalancerNames.join(' and ')}`);
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: jobs,
       application,
       description: descriptor,
@@ -118,7 +117,7 @@ export class InstanceWriter {
     params.region = instance.region;
     params.credentials = instance.account;
     params.cloudProvider = instance.cloudProvider;
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Deregister instance: ${instance.id}`,
@@ -133,7 +132,7 @@ export class InstanceWriter {
     const jobs = this.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
     jobs.forEach(job => (job.loadBalancerNames = loadBalancerNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${loadBalancerNames.join(' and ')}`);
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: jobs,
       application,
       description: descriptor,
@@ -151,7 +150,7 @@ export class InstanceWriter {
     params.region = instance.region;
     params.credentials = instance.account;
     params.cloudProvider = instance.cloudProvider;
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Register instance: ${instance.id}`,
@@ -169,7 +168,7 @@ export class InstanceWriter {
   }
 
   public enableInstanceInDiscovery(instance: IInstance, application: Application): IPromise<ITask> {
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [
         {
           type: 'enableInstancesInDiscovery',
@@ -197,7 +196,7 @@ export class InstanceWriter {
   }
 
   public disableInstanceInDiscovery(instance: IInstance, application: Application): IPromise<ITask> {
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [
         {
           type: 'disableInstancesInDiscovery',
@@ -250,7 +249,7 @@ export class InstanceWriter {
         params.adjustMinIfNecessary = true;
         params.setMaxToNewDesired = serverGroup.asg.minSize === serverGroup.asg.maxSize;
 
-        return this.taskExecutor.executeTask({
+        return TaskExecutor.executeTask({
           job: [params],
           application,
           description: `Terminate instance ${instance.id} and shrink ${instance.serverGroup}`,
@@ -315,7 +314,7 @@ export class InstanceWriter {
 }
 
 export const INSTANCE_WRITE_SERVICE = 'spinnaker.core.instance.write.service';
-module(INSTANCE_WRITE_SERVICE, [TASK_EXECUTOR, SERVER_GROUP_READER, PROVIDER_SERVICE_DELEGATE]).service(
+module(INSTANCE_WRITE_SERVICE, [SERVER_GROUP_READER, PROVIDER_SERVICE_DELEGATE]).service(
   'instanceWriter',
   InstanceWriter,
 );

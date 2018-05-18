@@ -18,7 +18,6 @@ import {
   NameUtils,
   SecurityGroupReader,
   SubnetReader,
-  TaskMonitorBuilder,
   TaskMonitor,
   FirewallLabels,
 } from '@spinnaker/core';
@@ -78,7 +77,6 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     protected cacheInitializer: CacheInitializerService,
     protected v2modalWizardService: any,
     protected loadBalancerWriter: LoadBalancerWriter,
-    protected taskMonitorBuilder: TaskMonitorBuilder,
     protected subnetReader: SubnetReader,
     protected application: Application,
     protected isNew: boolean,
@@ -106,7 +104,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       submitting: false,
     };
 
-    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       application: this.application,
       title: `${this.isNew ? 'Creating' : 'Updating'} your load balancer`,
       modalInstance: this.$uibModalInstance,
@@ -212,7 +210,9 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     }
     return this.loadBalancerCommand.securityGroups.includes(a.id)
       ? -1
-      : this.loadBalancerCommand.securityGroups.includes(b.id) ? 1 : 0;
+      : this.loadBalancerCommand.securityGroups.includes(b.id)
+        ? 1
+        : 0;
   }
 
   private updateAvailableSecurityGroups(availableVpcIds: string[]): void {

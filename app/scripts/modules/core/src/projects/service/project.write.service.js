@@ -1,43 +1,41 @@
 'use strict';
 
-import { TASK_EXECUTOR } from 'core/task/taskExecutor';
+import { TaskExecutor } from 'core/task/taskExecutor';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.projects.write.service', [TASK_EXECUTOR])
-  .factory('projectWriter', function($q, taskExecutor) {
-    function upsertProject(project) {
-      let descriptor = project.id ? 'Update' : 'Create';
-      return taskExecutor.executeTask({
-        job: [
-          {
-            type: 'upsertProject',
-            project: project,
-          },
-        ],
-        project: project,
-        description: descriptor + ' project: ' + project.name,
-      });
-    }
+module.exports = angular.module('spinnaker.core.projects.write.service', []).factory('projectWriter', function($q) {
+  function upsertProject(project) {
+    let descriptor = project.id ? 'Update' : 'Create';
+    return TaskExecutor.executeTask({
+      job: [
+        {
+          type: 'upsertProject',
+          project: project,
+        },
+      ],
+      project: project,
+      description: descriptor + ' project: ' + project.name,
+    });
+  }
 
-    function deleteProject(project) {
-      return taskExecutor.executeTask({
-        job: [
-          {
-            type: 'deleteProject',
-            project: {
-              id: project.id,
-            },
+  function deleteProject(project) {
+    return TaskExecutor.executeTask({
+      job: [
+        {
+          type: 'deleteProject',
+          project: {
+            id: project.id,
           },
-        ],
-        project: project,
-        description: 'Delete project: ' + project.name,
-      });
-    }
+        },
+      ],
+      project: project,
+      description: 'Delete project: ' + project.name,
+    });
+  }
 
-    return {
-      upsertProject: upsertProject,
-      deleteProject: deleteProject,
-    };
-  });
+  return {
+    upsertProject: upsertProject,
+    deleteProject: deleteProject,
+  };
+});

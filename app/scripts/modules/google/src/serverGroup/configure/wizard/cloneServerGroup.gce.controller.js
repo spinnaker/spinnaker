@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { FirewallLabels, INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
+import { FirewallLabels, INSTANCE_TYPE_SERVICE, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
@@ -21,7 +21,6 @@ module.exports = angular
     $log,
     serverGroupWriter,
     v2modalWizardService,
-    taskMonitorBuilder,
     gceServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -113,7 +112,7 @@ module.exports = angular
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,

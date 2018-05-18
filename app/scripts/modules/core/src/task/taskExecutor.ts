@@ -1,9 +1,10 @@
-import { IHttpPromiseCallbackArg, IPromise, IQService, module } from 'angular';
+import { IHttpPromiseCallbackArg, IPromise } from 'angular';
 
 import { ITask } from 'core/domain';
-import { TASK_READ_SERVICE, TaskReader } from './task.read.service';
-import { TASK_WRITE_SERVICE, TaskWriter } from './task.write.service';
+import { TaskReader } from './task.read.service';
+import { TaskWriter } from './task.write.service';
 import { AuthenticationService } from '../authentication/AuthenticationService';
+import { $q } from 'ngimport';
 
 export interface IJob {
   [attribute: string]: any;
@@ -24,11 +25,7 @@ export interface ITaskCommand {
 }
 
 export class TaskExecutor {
-  public constructor(private $q: IQService, private taskReader: TaskReader, private taskWriter: TaskWriter) {
-    'ngInject';
-  }
-
-  public executeTask(taskCommand: ITaskCommand): IPromise<ITask> {
+  public static executeTask(taskCommand: ITaskCommand): IPromise<ITask> {
     const owner: any = taskCommand.application || taskCommand.project || { name: 'ad-hoc' };
     if (taskCommand.application && taskCommand.application.name) {
       taskCommand.application = taskCommand.application.name;
@@ -41,14 +38,14 @@ export class TaskExecutor {
     }
     taskCommand.job.forEach(j => (j.user = AuthenticationService.getAuthenticatedUser().name));
 
-    return this.taskWriter.postTaskCommand(taskCommand).then(
+    return TaskWriter.postTaskCommand(taskCommand).then(
       (task: any) => {
         const taskId: string = task.ref.split('/').pop();
 
         if (owner.runningTasks && owner.runningTasks.refresh) {
           owner.runningTasks.refresh();
         }
-        return this.taskReader.getTask(taskId);
+        return TaskReader.getTask(taskId);
       },
       (response: IHttpPromiseCallbackArg<any>) => {
         const error: any = {
@@ -60,12 +57,8 @@ export class TaskExecutor {
         } else {
           error.log = 'Sorry, no more information.';
         }
-        return this.$q.reject(error);
+        return $q.reject(error);
       },
     );
   }
 }
-
-export const TASK_EXECUTOR = 'spinnaker.core.task.executor';
-
-module(TASK_EXECUTOR, [TASK_READ_SERVICE, TASK_WRITE_SERVICE]).service('taskExecutor', TaskExecutor);

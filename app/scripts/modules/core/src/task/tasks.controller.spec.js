@@ -1,17 +1,16 @@
 import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import { TaskWriter } from './task.write.service';
 
 describe('Controller: tasks', function() {
   var controller;
-  var taskWriter;
   var scope;
   var $q;
 
   beforeEach(window.module(require('./tasks.controller.js').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _$q_, _taskWriter_, applicationModelBuilder) {
+    window.inject(function($controller, $rootScope, _$q_, applicationModelBuilder) {
       $q = _$q_;
-      taskWriter = _taskWriter_;
 
       this.initializeController = tasks => {
         let application = applicationModelBuilder.createApplication('app', { key: 'tasks', lazy: true });
@@ -30,7 +29,6 @@ describe('Controller: tasks', function() {
           app: application,
           $scope: scope,
           confirmationModalService: confirmationModalService,
-          taskWriter: taskWriter,
         });
       };
     }),
@@ -69,19 +67,19 @@ describe('Controller: tasks', function() {
     it('should confirm delete, then perform delete, then reload tasks', function() {
       var taskReloadCalls = 0,
         tasks = [{ id: 'a', name: 'resize something' }];
-      spyOn(taskWriter, 'deleteTask').and.returnValue($q.when(null));
+      spyOn(TaskWriter, 'deleteTask').and.returnValue($q.when(null));
 
       this.initializeController(tasks);
       spyOn(controller.application.tasks, 'refresh').and.callFake(() => taskReloadCalls++);
       scope.$digest();
 
       expect(taskReloadCalls).toBe(0);
-      expect(taskWriter.deleteTask.calls.count()).toBe(0);
+      expect(TaskWriter.deleteTask.calls.count()).toBe(0);
 
       controller.deleteTask('a');
 
       scope.$digest();
-      expect(taskWriter.deleteTask.calls.count()).toBe(1);
+      expect(TaskWriter.deleteTask.calls.count()).toBe(1);
       expect(taskReloadCalls).toBe(1);
     });
   });
@@ -90,19 +88,19 @@ describe('Controller: tasks', function() {
     it('should confirm delete, then perform delete, then reload tasks', function() {
       var taskReloadCalls = 0,
         tasks = [{ id: 'a', name: 'resize something' }];
-      spyOn(taskWriter, 'cancelTask').and.returnValue($q.when(null));
+      spyOn(TaskWriter, 'cancelTask').and.returnValue($q.when(null));
 
       this.initializeController(tasks);
       spyOn(controller.application.tasks, 'refresh').and.callFake(() => taskReloadCalls++);
       scope.$digest();
 
       expect(taskReloadCalls).toBe(0);
-      expect(taskWriter.cancelTask.calls.count()).toBe(0);
+      expect(TaskWriter.cancelTask.calls.count()).toBe(0);
 
       controller.cancelTask('a');
 
       scope.$digest();
-      expect(taskWriter.cancelTask.calls.count()).toBe(1);
+      expect(TaskWriter.cancelTask.calls.count()).toBe(1);
       expect(taskReloadCalls).toBe(1);
     });
   });

@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import { FirewallLabels } from '@spinnaker/core';
+import { FirewallLabels, TaskMonitor } from '@spinnaker/core';
 
 import { TITUS_SECURITY_GROUP_PICKER } from '../../../securityGroup/securityGroupPicker.component';
 import { TITUS_LOAD_BALANCER_SELECTOR } from '../../../loadBalancers/loadBalancerSelector.component';
@@ -19,7 +19,6 @@ module.exports = angular
     $state,
     serverGroupWriter,
     v2modalWizardService,
-    taskMonitorBuilder,
     titusServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -84,7 +83,7 @@ module.exports = angular
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,

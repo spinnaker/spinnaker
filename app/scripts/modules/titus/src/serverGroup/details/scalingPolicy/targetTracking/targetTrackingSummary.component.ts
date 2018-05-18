@@ -32,11 +32,7 @@ class TargetTrackingSummaryController implements IComponentController {
   public config: ITargetTrackingConfiguration;
   public popoverTemplate = require('./targetTrackingPopover.html');
 
-  constructor(
-    private $uibModal: IModalService,
-    private confirmationModalService: ConfirmationModalService,
-    private taskExecutor: TaskExecutor,
-  ) {
+  constructor(private $uibModal: IModalService, private confirmationModalService: ConfirmationModalService) {
     'ngInject';
   }
 
@@ -84,7 +80,7 @@ class TargetTrackingSummaryController implements IComponentController {
       provider: 'titus',
       taskMonitorConfig: taskMonitor,
       submitMethod: () =>
-        this.taskExecutor.executeTask({
+        TaskExecutor.executeTask({
           application,
           description: 'Delete scaling policy ' + policy.id,
           job: [

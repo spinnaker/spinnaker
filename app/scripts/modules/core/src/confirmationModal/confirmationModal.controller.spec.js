@@ -1,21 +1,19 @@
 'use strict';
 
 describe('Controller: ConfirmationModal', function() {
-  var controller, taskMonitorBuilder, params, $scope, modalInstance;
+  var controller, params, $scope, modalInstance;
 
   beforeEach(window.module(require('./confirmationModal.controller.js').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _taskMonitorBuilder_) {
+    window.inject(function($controller, $rootScope) {
       params = null;
       $scope = $rootScope.$new();
-      taskMonitorBuilder = _taskMonitorBuilder_;
       modalInstance = {};
 
       this.initialize = function() {
         controller = $controller('ConfirmationModalCtrl', {
           $scope: $scope,
-          taskMonitorBuilder: _taskMonitorBuilder_,
           params: params,
           $uibModalInstance: modalInstance,
         });
@@ -43,19 +41,6 @@ describe('Controller: ConfirmationModal', function() {
       this.initialize();
       $scope.$digest();
       expect($scope.verification.required).toBe(true);
-    });
-  });
-
-  describe('task monitor configuration', function() {
-    it('should configure the task monitor if config supplied, attaching modalInstance', function() {
-      params = {
-        taskMonitorConfig: {},
-      };
-      spyOn(taskMonitorBuilder, 'buildTaskMonitor').and.returnValue('your monitor');
-      this.initialize();
-
-      expect($scope.taskMonitor).toBe('your monitor');
-      expect(params.taskMonitorConfig.modalInstance).toBe(modalInstance);
     });
   });
 

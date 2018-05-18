@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IPromise } from 'angular';
 import { $log, $q, $timeout } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
@@ -6,9 +6,9 @@ import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedI
 import { ITask } from 'core/domain';
 
 export class TaskReader {
-  private activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
+  private static activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
-  public getTasks(applicationName: string, statuses: string[] = []): ng.IPromise<ITask[]> {
+  public static getTasks(applicationName: string, statuses: string[] = []): IPromise<ITask[]> {
     return API.one('applications', applicationName)
       .all('tasks')
       .getList({ statuses: statuses.join(',') })
@@ -18,11 +18,11 @@ export class TaskReader {
       });
   }
 
-  public getRunningTasks(applicationName: string): ng.IPromise<ITask[]> {
+  public static getRunningTasks(applicationName: string): IPromise<ITask[]> {
     return this.getTasks(applicationName, this.activeStatuses);
   }
 
-  public getTask(taskId: string): ng.IPromise<ITask> {
+  public static getTask(taskId: string): IPromise<ITask> {
     return API.one('tasks', taskId)
       .get()
       .then((task: ITask) => {
@@ -42,12 +42,12 @@ export class TaskReader {
       .catch((error: any) => $log.warn('There was an issue retrieving taskId: ', taskId, error));
   }
 
-  public waitUntilTaskMatches(
+  public static waitUntilTaskMatches(
     task: ITask,
     closure: (task: ITask) => boolean,
     failureClosure?: (task: ITask) => boolean,
     interval = 1000,
-  ): ng.IPromise<ITask> {
+  ): IPromise<ITask> {
     const deferred = $q.defer<ITask>();
     if (!task) {
       deferred.reject(null);
@@ -66,7 +66,7 @@ export class TaskReader {
     return deferred.promise;
   }
 
-  public waitUntilTaskCompletes(task: ITask, interval = 1000): ng.IPromise<ITask> {
+  public static waitUntilTaskCompletes(task: ITask, interval = 1000): IPromise<ITask> {
     return this.waitUntilTaskMatches(task, t => t.isCompleted, t => t.isFailed, interval);
   }
 
@@ -74,7 +74,7 @@ export class TaskReader {
    * When polling for a match, (most of) the new task's properties are copied into the original task; if you need
    * some other property, you'll need to update this method
    */
-  private updateTask(original: ITask, updated?: ITask): void {
+  private static updateTask(original: ITask, updated?: ITask): void {
     if (!updated) {
       return;
     }
@@ -86,14 +86,10 @@ export class TaskReader {
     original.history = updated.history;
   }
 
-  private setTaskProperties(task: ITask): void {
+  private static setTaskProperties(task: ITask): void {
     OrchestratedItemTransformer.defineProperties(task);
     if (task.steps && task.steps.length) {
       task.steps.forEach(step => OrchestratedItemTransformer.defineProperties(step));
     }
   }
 }
-
-export const TASK_READ_SERVICE = 'spinnaker.core.task.read.service';
-
-module(TASK_READ_SERVICE, []).service('taskReader', TaskReader);

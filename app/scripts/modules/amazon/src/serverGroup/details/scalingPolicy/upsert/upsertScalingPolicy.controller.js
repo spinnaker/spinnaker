@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { TaskMonitor } from '@spinnaker/core';
 
 import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
 import { SCALING_POLICY_WRITE_SERVICE } from '../scalingPolicy.write.service';
@@ -16,12 +16,10 @@ module.exports = angular
     require('./simple/simplePolicyAction.component.js').name,
     STEP_POLICY_ACTION,
     require('./alarm/alarmConfigurer.component.js').name,
-    TASK_MONITOR_BUILDER,
   ])
   .controller('awsUpsertScalingPolicyCtrl', function(
     $uibModalInstance,
     scalingPolicyWriter,
-    taskMonitorBuilder,
     serverGroup,
     application,
     policy,
@@ -196,7 +194,7 @@ module.exports = angular
       return command;
     };
 
-    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       application: application,
       title: this.action + ' scaling policy for ' + serverGroup.name,
       modalInstance: $uibModalInstance,

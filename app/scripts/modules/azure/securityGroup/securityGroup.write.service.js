@@ -3,18 +3,18 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { InfrastructureCaches, TASK_EXECUTOR, FirewallLabels } from '@spinnaker/core';
+import { InfrastructureCaches, TaskExecutor, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.securityGroup.write.service', [require('@uirouter/angularjs').default, TASK_EXECUTOR])
-  .factory('azureSecurityGroupWriter', function(taskExecutor) {
+  .module('spinnaker.azure.securityGroup.write.service', [require('@uirouter/angularjs').default])
+  .factory('azureSecurityGroupWriter', function() {
     function upsertSecurityGroup(securityGroup, application, descriptor, params = {}) {
       // We want to extend params with all attributes from securityGroup, but only if they don't already exist.
       _.assignWith(params, securityGroup, function(value, other) {
         return _.isUndefined(value) ? other : value;
       });
 
-      var operation = taskExecutor.executeTask({
+      var operation = TaskExecutor.executeTask({
         job: [params],
         application: application,
         description: `${descriptor} ${FirewallLabels.get('Firewall')}: ${name}`,
@@ -33,7 +33,7 @@ module.exports = angular
       //params.cloudProvider = securityGroup.providerType;
       params.appName = application.name;
 
-      var operation = taskExecutor.executeTask({
+      var operation = TaskExecutor.executeTask({
         job: [params],
         application: application,
         description: `Delete ${FirewallLabels.get('Firewalls')}: ${securityGroup.name}`,

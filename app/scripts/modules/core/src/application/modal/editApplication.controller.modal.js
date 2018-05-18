@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
 import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
-import { TASK_READ_SERVICE } from 'core/task/task.read.service';
+import { TaskReader } from 'core/task/task.read.service';
 import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
@@ -12,7 +12,6 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
     APPLICATION_WRITE_SERVICE,
-    TASK_READ_SERVICE,
     require('./applicationProviderFields.component.js').name,
   ])
   .controller('EditApplicationController', function(
@@ -22,7 +21,6 @@ module.exports = angular
     $uibModalInstance,
     application,
     applicationWriter,
-    taskReader,
   ) {
     var vm = this;
     this.data = {
@@ -105,7 +103,7 @@ module.exports = angular
       applicationWriter
         .updateApplication(vm.applicationAttributes)
         .then(
-          task => taskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
+          task => TaskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
           () => vm.errorMsgs.push('Could not update application'),
         );
     };

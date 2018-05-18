@@ -99,6 +99,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
       this.mockModal = {
         dismiss: jasmine.createSpy('modal.dismiss'),
         close: jasmine.createSpy('modal.close'),
+        result: $q.when(null),
       };
 
       this.mockApplication = applicationModelBuilder.createApplication('app', {
@@ -126,15 +127,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
       this.mockLoadBalancerReader = addDeferredMock({}, 'listLoadBalancers');
       this.mockLoadBalancerWriter = addDeferredMock({}, 'upsertLoadBalancer');
       this.mockSecurityGroupReader = addDeferredMock({}, 'getAllSecurityGroups');
-      this.mockTaskMonitor = {
-        submit: jasmine.createSpy('taskMonitor.submit'),
-      };
-      this.mockTaskMonitorBuilder = {
-        buildTaskMonitor: jasmine.createSpy('taskMonitorBuilder.buildTaskMonitor').and.callFake(function(arg) {
-          testSuite.taskCompletionCallback = arg.onTaskComplete;
-          return testSuite.mockTaskMonitor;
-        }),
-      };
 
       this.createController = function(loadBalancer) {
         this.ctrl = $controller('openstackUpsertLoadBalancerController', {
@@ -145,7 +137,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
           loadBalancer: loadBalancer,
           isNew: !loadBalancer,
           loadBalancerWriter: this.mockLoadBalancerWriter,
-          taskMonitorBuilder: this.mockTaskMonitorBuilder,
           securityGroupReader: this.mockSecurityGroupReader,
         });
       };
@@ -178,7 +169,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
     });
 
     it('builds the task monitor', function() {
-      expect(this.mockTaskMonitorBuilder.buildTaskMonitor).toHaveBeenCalled();
+      expect(this.$scope.taskMonitor).not.toBeNull();
     });
 
     it('requests the list of accounts', function() {
@@ -272,16 +263,17 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
 
           describe('& submit() called', function() {
             beforeEach(function() {
+              spyOn(this.$scope.taskMonitor, 'submit');
               this.ctrl.submit();
             });
 
             it('- calls mockTaskMonitor.submit()', function() {
-              expect(this.mockTaskMonitor.submit).toHaveBeenCalled();
+              expect(this.$scope.taskMonitor.submit).toHaveBeenCalled();
             });
 
             describe('& task monitor invokes callback', function() {
               beforeEach(function() {
-                this.mockTaskMonitor.submit.calls.mostRecent().args[0]();
+                this.$scope.taskMonitor.submit.calls.mostRecent().args[0]();
               });
 
               it('- calls upsertLoadBalancer()', function() {
@@ -300,7 +292,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
 
               describe('& task completes', function() {
                 beforeEach(function() {
-                  this.taskCompletionCallback();
+                  this.$scope.taskMonitor.onTaskComplete();
                 });
 
                 it('- refreshes the load balancers', function() {
@@ -345,9 +337,9 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
             });
 
             it('calls upsertLoadBalancer()', function() {
-              expect(this.mockTaskMonitor.submit).toHaveBeenCalled();
+              expect(this.$scope.taskMonitor.submit).toHaveBeenCalled();
 
-              this.mockTaskMonitor.submit.calls.mostRecent().args[0]();
+              this.$scope.taskMonitor.submit.calls.mostRecent().args[0]();
               expect(this.mockLoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
                 this.$scope.loadBalancer,
                 this.mockApplication,
@@ -360,7 +352,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
                 },
               );
 
-              this.taskCompletionCallback();
+              this.$scope.taskMonitor.onTaskComplete();
               expect(this.mockApplication.loadBalancers.refresh).toHaveBeenCalled();
 
               this.applicationRefreshCallback();
@@ -428,14 +420,15 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
 
     describe('submit() called', function() {
       beforeEach(function() {
+        spyOn(this.$scope.taskMonitor, 'submit');
         this.mockState.stateIncludesLoadBalancerDetails = true;
         this.ctrl.submit();
       });
 
       it('calls upsertLoadBalancer()', function() {
-        expect(this.mockTaskMonitor.submit).toHaveBeenCalled();
+        expect(this.$scope.taskMonitor.submit).toHaveBeenCalled();
 
-        this.mockTaskMonitor.submit.calls.mostRecent().args[0]();
+        this.$scope.taskMonitor.submit.calls.mostRecent().args[0]();
         expect(this.mockLoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
           this.$scope.loadBalancer,
           this.mockApplication,
@@ -448,7 +441,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
           },
         );
 
-        this.taskCompletionCallback();
+        this.$scope.taskMonitor.onTaskComplete();
         expect(this.mockApplication.loadBalancers.refresh).toHaveBeenCalled();
 
         this.applicationRefreshCallback();

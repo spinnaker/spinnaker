@@ -5,27 +5,22 @@ import Spy = jasmine.Spy;
 
 import { API } from 'core/api/ApiService';
 import { ITask } from 'core/domain';
-import { TASK_MONITOR_BUILDER, TaskMonitorBuilder } from 'core/task/monitor/taskMonitor.builder';
+import { TaskMonitor } from './taskMonitor';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 
-describe('Service: taskMonitorBuilder', () => {
-  let taskMonitorBuilder: TaskMonitorBuilder,
-    $scope: ng.IScope,
-    $http: ng.IHttpBackendService,
-    applicationModelBuilder: ApplicationModelBuilder;
+describe('TaskMonitor', () => {
+  let $scope: ng.IScope, $http: ng.IHttpBackendService, applicationModelBuilder: ApplicationModelBuilder;
 
-  beforeEach(mock.module(TASK_MONITOR_BUILDER, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
 
   beforeEach(
     mock.inject(
       (
-        _taskMonitorBuilder_: TaskMonitorBuilder,
         $rootScope: ng.IRootScopeService,
         $httpBackend: ng.IHttpBackendService,
         _applicationModelBuilder_: ApplicationModelBuilder,
       ) => {
-        taskMonitorBuilder = _taskMonitorBuilder_;
         $scope = $rootScope.$new();
         $http = $httpBackend;
         applicationModelBuilder = _applicationModelBuilder_;
@@ -40,7 +35,7 @@ describe('Service: taskMonitorBuilder', () => {
       OrchestratedItemTransformer.defineProperties(task);
 
       const operation = () => $q.when(task);
-      const monitor = taskMonitorBuilder.buildTaskMonitor({
+      const monitor = new TaskMonitor({
         application: applicationModelBuilder.createApplication('app', { key: 'runningTasks', lazy: true }),
         title: 'some task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
@@ -73,7 +68,7 @@ describe('Service: taskMonitorBuilder', () => {
       let completeCalled = false;
       const task = { failureMessage: 'it failed' };
       const operation = () => $q.reject(task);
-      const monitor = taskMonitorBuilder.buildTaskMonitor({
+      const monitor = new TaskMonitor({
         application: applicationModelBuilder.createApplication('app', { key: 'runningTasks', lazy: true }),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
@@ -97,7 +92,7 @@ describe('Service: taskMonitorBuilder', () => {
       OrchestratedItemTransformer.defineProperties(task);
 
       const operation = () => $q.when(task);
-      const monitor = taskMonitorBuilder.buildTaskMonitor({
+      const monitor = new TaskMonitor({
         application: applicationModelBuilder.createApplication('app', { key: 'runningTasks', lazy: true }),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,

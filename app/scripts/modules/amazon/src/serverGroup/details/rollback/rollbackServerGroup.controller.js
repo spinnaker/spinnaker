@@ -3,15 +3,14 @@
 const angular = require('angular');
 
 import { get } from 'lodash';
-import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.rollback.controller', [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER])
+  .module('spinnaker.amazon.serverGroup.details.rollback.controller', [SERVER_GROUP_WRITER])
   .controller('awsRollbackServerGroupCtrl', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
-    taskMonitorBuilder,
     application,
     serverGroup,
     previousServerGroup,
@@ -91,7 +90,7 @@ module.exports = angular
       return command.rollbackContext.restoreServerGroupName !== undefined;
     };
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Rollback ' + serverGroup.name,
       modalInstance: $uibModalInstance,

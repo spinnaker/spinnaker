@@ -1,14 +1,6 @@
 import { IPromise, module } from 'angular';
 
-import {
-  Application,
-  IJob,
-  IMetricAlarmDimension,
-  IServerGroup,
-  ITask,
-  TASK_EXECUTOR,
-  TaskExecutor,
-} from '@spinnaker/core';
+import { Application, IJob, IMetricAlarmDimension, IServerGroup, ITask, TaskExecutor } from '@spinnaker/core';
 
 import {
   AlarmComparisonOperator,
@@ -68,13 +60,9 @@ export interface IUpsertAlarmDescription extends IConfigurableMetric {
 }
 
 export class ScalingPolicyWriter {
-  constructor(private taskExecutor: TaskExecutor) {
-    'ngInject';
-  }
-
   public upsertScalingPolicy(application: Application, command: IUpsertScalingPolicyCommand): IPromise<ITask> {
     command.type = command.type || 'upsertScalingPolicy';
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       application,
       description: 'Upsert scaling policy ' + (command.name || command.serverGroupName),
       job: [command],
@@ -86,7 +74,7 @@ export class ScalingPolicyWriter {
     serverGroup: IServerGroup,
     scalingPolicy: IScalingPolicy,
   ): IPromise<ITask> {
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       application,
       description: 'Delete scaling policy ' + scalingPolicy.policyName,
       job: [
@@ -104,4 +92,4 @@ export class ScalingPolicyWriter {
 }
 
 export const SCALING_POLICY_WRITE_SERVICE = 'spinnaker.amazon.serverGroup.details.scalingPolicy.write.service';
-module(SCALING_POLICY_WRITE_SERVICE, [TASK_EXECUTOR]).service('scalingPolicyWriter', ScalingPolicyWriter);
+module(SCALING_POLICY_WRITE_SERVICE, []).service('scalingPolicyWriter', ScalingPolicyWriter);

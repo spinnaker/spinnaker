@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { TaskMonitor } from '@spinnaker/core';
 
 import './upsertAutoscalingPolicy.modal.less';
 
@@ -11,13 +11,11 @@ module.exports = angular
     require('google/autoscalingPolicy/autoscalingPolicy.write.service').name,
     require('google/autoscalingPolicy/components/basicSettings/basicSettings.component.js').name,
     require('google/autoscalingPolicy/components/metricSettings/metricSettings.component.js').name,
-    TASK_MONITOR_BUILDER,
   ])
   .controller('gceUpsertAutoscalingPolicyModalCtrl', function(
     policy,
     application,
     serverGroup,
-    taskMonitorBuilder,
     $uibModalInstance,
     gceAutoscalingPolicyWriter,
   ) {
@@ -26,7 +24,7 @@ module.exports = angular
 
     this.cancel = $uibModalInstance.dismiss;
 
-    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       application: application,
       title: `${this.action} scaling policy for ${serverGroup.name}`,
       modalInstance: $uibModalInstance,

@@ -1,15 +1,7 @@
 import { IController, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
-import {
-  Application,
-  IMoniker,
-  ManifestWriter,
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-  TaskMonitor,
-  TaskMonitorBuilder,
-} from '@spinnaker/core';
+import { Application, IMoniker, ManifestWriter, SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 import {
   IKubernetesManifestCommand,
@@ -33,7 +25,6 @@ class KubernetesEditManifestCtrl implements IController {
     private $uibModalInstance: IModalInstanceService,
     private application: Application,
     private manifestWriter: ManifestWriter,
-    private taskMonitorBuilder: TaskMonitorBuilder,
     private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder,
   ) {
     'ngInject';
@@ -61,7 +52,7 @@ class KubernetesEditManifestCtrl implements IController {
   }
 
   private initialize(): void {
-    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       application: this.application,
       title: 'Updating your manifest',
       modalInstance: this.$uibModalInstance,
@@ -78,8 +69,7 @@ class KubernetesEditManifestCtrl implements IController {
 }
 
 export const KUBERNETES_EDIT_MANIFEST_CTRL = 'spinnaker.kubernetes.v2.manifest.edit.controller';
-module(KUBERNETES_EDIT_MANIFEST_CTRL, [
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-  KUBERNETES_MANIFEST_COMMAND_BUILDER,
-]).controller('kubernetesV2ManifestEditCtrl', KubernetesEditManifestCtrl);
+module(KUBERNETES_EDIT_MANIFEST_CTRL, [SERVER_GROUP_WRITER, KUBERNETES_MANIFEST_COMMAND_BUILDER]).controller(
+  'kubernetesV2ManifestEditCtrl',
+  KubernetesEditManifestCtrl,
+);

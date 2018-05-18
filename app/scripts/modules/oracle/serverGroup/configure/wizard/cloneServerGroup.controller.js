@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import { FirewallLabels } from '@spinnaker/core';
+import { FirewallLabels, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.serverGroup.configure.cloneServerGroup', [require('@uirouter/angularjs').default])
@@ -10,7 +10,6 @@ module.exports = angular
     $uibModalInstance,
     $q,
     application,
-    taskMonitorBuilder,
     serverGroupWriter,
     serverGroupCommand,
     oraclebmcsServerGroupConfigurationService,
@@ -51,7 +50,7 @@ module.exports = angular
       );
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,

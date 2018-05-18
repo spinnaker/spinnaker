@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { TASK_EXECUTOR } from '@spinnaker/core';
+import { TaskExecutor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.serverGroup.details.autoscaler.write.service', [TASK_EXECUTOR])
-  .factory('kubernetesAutoscalerWriter', function(taskExecutor) {
+  .module('spinnaker.kubernetes.serverGroup.details.autoscaler.write.service', [])
+  .factory('kubernetesAutoscalerWriter', function() {
     function upsertAutoscaler(application, serverGroup, params = {}) {
       let job = {
         type: 'upsertScalingPolicy',
@@ -18,7 +18,7 @@ module.exports = angular
       };
       angular.extend(job, params);
 
-      return taskExecutor.executeTask({
+      return TaskExecutor.executeTask({
         application,
         description: 'Upsert autoscaler ' + serverGroup.name,
         job: [job],

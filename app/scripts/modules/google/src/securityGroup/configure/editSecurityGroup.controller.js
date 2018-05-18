@@ -2,19 +2,17 @@
 
 const angular = require('angular');
 
-import { FirewallLabels, InfrastructureCaches, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { FirewallLabels, InfrastructureCaches, SECURITY_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.edit.controller', [
     require('@uirouter/angularjs').default,
-    TASK_MONITOR_BUILDER,
     SECURITY_GROUP_WRITER,
   ])
   .controller('gceEditSecurityGroupCtrl', function(
     $scope,
     $uibModalInstance,
     $state,
-    taskMonitorBuilder,
     application,
     securityGroup,
     securityGroupWriter,
@@ -45,7 +43,7 @@ module.exports = angular
 
     $scope.isNew = false;
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: `Updating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,

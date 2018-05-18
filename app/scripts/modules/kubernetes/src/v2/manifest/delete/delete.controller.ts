@@ -1,14 +1,7 @@
 import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import {
-  Application,
-  MANIFEST_WRITER,
-  ManifestWriter,
-  TASK_MONITOR_BUILDER,
-  TaskMonitor,
-  TaskMonitorBuilder,
-} from '@spinnaker/core';
+import { Application, MANIFEST_WRITER, ManifestWriter, TaskMonitor } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 import { KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM } from './deleteOptionsForm.component';
 
@@ -34,7 +27,6 @@ class KubernetesManifestDeleteController implements IController {
 
   constructor(
     coordinates: IManifestCoordinates,
-    taskMonitorBuilder: TaskMonitorBuilder,
     private $uibModalInstance: IModalServiceInstance,
     private manifestWriter: ManifestWriter,
     private application: Application,
@@ -42,7 +34,7 @@ class KubernetesManifestDeleteController implements IController {
   ) {
     'ngInject';
 
-    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       title: `Deleting ${coordinates.name} in ${coordinates.namespace}`,
       application,
       modalInstance: $uibModalInstance,
@@ -82,8 +74,7 @@ class KubernetesManifestDeleteController implements IController {
 
 export const KUBERNETES_MANIFEST_DELETE_CTRL = 'spinnaker.kubernetes.v2.manifest.delete.controller';
 
-module(KUBERNETES_MANIFEST_DELETE_CTRL, [
-  TASK_MONITOR_BUILDER,
-  MANIFEST_WRITER,
-  KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM,
-]).controller('kubernetesV2ManifestDeleteCtrl', KubernetesManifestDeleteController);
+module(KUBERNETES_MANIFEST_DELETE_CTRL, [MANIFEST_WRITER, KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM]).controller(
+  'kubernetesV2ManifestDeleteCtrl',
+  KubernetesManifestDeleteController,
+);

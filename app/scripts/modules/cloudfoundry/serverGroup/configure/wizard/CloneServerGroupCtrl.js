@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { V2_MODAL_WIZARD_SERVICE, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.cf.cloneServerGroup', [
@@ -16,7 +16,6 @@ module.exports = angular
     $state,
     serverGroupWriter,
     v2modalWizardService,
-    taskMonitorBuilder,
     cfServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -82,7 +81,7 @@ module.exports = angular
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,

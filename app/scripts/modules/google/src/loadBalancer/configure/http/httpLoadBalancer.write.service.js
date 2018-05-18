@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { InfrastructureCaches, TASK_EXECUTOR } from '@spinnaker/core';
+import { InfrastructureCaches, TaskExecutor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.deck.gce.httpLoadBalancer.write.service', [TASK_EXECUTOR])
-  .factory('gceHttpLoadBalancerWriter', function(taskExecutor) {
+  .module('spinnaker.deck.gce.httpLoadBalancer.write.service', [])
+  .factory('gceHttpLoadBalancerWriter', function() {
     function upsertLoadBalancers(loadBalancers, application, descriptor) {
       loadBalancers.forEach(lb => {
         angular.extend(lb, {
@@ -20,7 +20,7 @@ module.exports = angular
       InfrastructureCaches.clearCache('backendServices');
       InfrastructureCaches.clearCache('healthChecks');
 
-      return taskExecutor.executeTask({
+      return TaskExecutor.executeTask({
         job: loadBalancers,
         application: application,
         description: `${descriptor} Load Balancer: ${loadBalancers[0].urlMapName}`,
@@ -44,7 +44,7 @@ module.exports = angular
       InfrastructureCaches.clearCache('backendServices');
       InfrastructureCaches.clearCache('healthChecks');
 
-      return taskExecutor.executeTask({
+      return TaskExecutor.executeTask({
         job: [job],
         application: application,
         description: `Delete load balancer: ${loadBalancer.urlMapName} in ${loadBalancer.account}:global`,

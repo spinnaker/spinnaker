@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import { AccountService } from 'core/account/AccountService';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { TaskMonitor } from 'core/task';
 
 module.exports = angular
   .module('spinnaker.core.projects.configure.modal.controller', [
@@ -19,7 +20,6 @@ module.exports = angular
     applicationReader,
     projectWriter,
     projectReader,
-    taskMonitorBuilder,
     v2modalWizardService,
     wizardSubFormValidation,
   ) {
@@ -140,7 +140,7 @@ module.exports = angular
       $scope.accounts = accounts;
     });
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: null,
       title: null, // will be configured by delete/update call
       modalInstance: $uibModalInstance,

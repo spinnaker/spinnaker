@@ -1,15 +1,7 @@
 import { copy, equals, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import {
-  Application,
-  ICapacity,
-  SERVER_GROUP_WRITER,
-  ServerGroupWriter,
-  TASK_MONITOR_BUILDER,
-  TaskMonitor,
-  TaskMonitorBuilder,
-} from '@spinnaker/core';
+import { Application, ICapacity, SERVER_GROUP_WRITER, ServerGroupWriter, TaskMonitor } from '@spinnaker/core';
 import { IKubernetesServerGroup } from '../IKubernetesServerGroup';
 
 interface IResizeCommand {
@@ -27,13 +19,12 @@ class KubernetesServerGroupResizeController implements IController {
 
   constructor(
     public serverGroup: IKubernetesServerGroup,
-    taskMonitorBuilder: TaskMonitorBuilder,
     private $uibModalInstance: IModalServiceInstance,
     private serverGroupWriter: ServerGroupWriter,
     private application: Application,
   ) {
     'ngInject';
-    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       title: `Resizing ${this.serverGroup.name}`,
       application,
       modalInstance: $uibModalInstance,
@@ -74,7 +65,7 @@ class KubernetesServerGroupResizeController implements IController {
 
 export const KUBERNETES_V2_SERVER_GROUP_RESIZE_CTRL = 'spinnaker.kubernetes.v2.serverGroup.details.resize.controller';
 
-module(KUBERNETES_V2_SERVER_GROUP_RESIZE_CTRL, [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER]).controller(
+module(KUBERNETES_V2_SERVER_GROUP_RESIZE_CTRL, [SERVER_GROUP_WRITER]).controller(
   'kubernetesV2ServerGroupResizeCtrl',
   KubernetesServerGroupResizeController,
 );

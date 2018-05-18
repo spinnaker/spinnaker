@@ -40,7 +40,6 @@ describe('Controller: CreateSecurityGroup', function() {
         $q,
         securityGroupReader,
         v2modalWizardService,
-        taskMonitorBuilder,
         securityGroupWriter,
         vpcReader,
       ) {
@@ -48,7 +47,6 @@ describe('Controller: CreateSecurityGroup', function() {
         this.$q = $q;
         this.securityGroupReader = securityGroupReader;
         this.v2modalWizardService = v2modalWizardService;
-        this.taskMonitorBuilder = taskMonitorBuilder;
         this.securityGroupWriter = securityGroupWriter;
         this.vpcReader = vpcReader;
 
@@ -103,7 +101,6 @@ describe('Controller: CreateSecurityGroup', function() {
             $uibModalInstance: { result: this.$q.when(null) },
             securityGroupReader: this.securityGroupReader,
             v2modalWizardService: this.v2modalWizardService,
-            taskMonitorBuilder: this.taskMonitorBuilder,
             securityGroupWriter: this.securityGroupWriter,
             vpcReader: this.vpcReader,
             application: this.application || { attributes: {} },

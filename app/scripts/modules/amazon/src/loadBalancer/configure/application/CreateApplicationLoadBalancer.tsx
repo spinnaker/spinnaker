@@ -198,7 +198,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
         onComplete && onComplete(loadBalancerCommandFormatted);
       });
     } else {
-      const taskMonitor = ReactInjector.taskMonitorBuilder.buildTaskMonitor({
+      const taskMonitor = new TaskMonitor({
         application: app,
         title: `${isNew ? 'Creating' : 'Updating'} your load balancer`,
         modalInstance: this.$uibModalInstanceEmulation,

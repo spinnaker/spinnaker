@@ -2,15 +2,14 @@
 
 const angular = require('angular');
 
-import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.titus.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER])
+  .module('spinnaker.titus.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER])
   .controller('titusResizeServerGroupCtrl', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
-    taskMonitorBuilder,
     application,
     serverGroup,
   ) {
@@ -41,7 +40,7 @@ module.exports = angular
         : command.newSize !== null;
     };
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Resizing ' + serverGroup.name,
       modalInstance: $uibModalInstance,

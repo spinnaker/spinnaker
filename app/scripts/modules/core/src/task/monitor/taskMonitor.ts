@@ -1,9 +1,10 @@
-import { module, noop } from 'angular';
+import { noop, IPromise } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import { $timeout } from 'ngimport';
 
 import { Application } from 'core/application/application.model';
 import { ITask } from 'core/domain';
-import { TASK_READ_SERVICE, TaskReader } from '../task.read.service';
+import { TaskReader } from '../task.read.service';
 
 export interface ITaskMonitorConfig {
   title: string;
@@ -12,7 +13,7 @@ export interface ITaskMonitorConfig {
   onTaskComplete?: () => any;
   onTaskRetry?: () => void;
   monitorInterval?: number;
-  submitMethod?: () => ng.IPromise<ITask>;
+  submitMethod?: () => IPromise<ITask>;
 }
 
 export class TaskMonitor {
@@ -22,13 +23,13 @@ export class TaskMonitor {
   public errorMessage: string;
   public title: string;
   public application: Application;
-  public submitMethod: (params?: any) => ng.IPromise<ITask>;
+  public submitMethod: (params?: any) => IPromise<ITask>;
   public modalInstance: IModalServiceInstance;
   private monitorInterval: number;
   private onTaskComplete: () => any;
   private onTaskRetry: () => void;
 
-  constructor(public config: ITaskMonitorConfig, private $timeout: ng.ITimeoutService, private taskReader: TaskReader) {
+  constructor(public config: ITaskMonitorConfig) {
     this.title = config.title;
     this.application = config.application;
     this.modalInstance = config.modalInstance;
@@ -42,7 +43,7 @@ export class TaskMonitor {
 
   public onModalClose(): void {
     if (this.task && this.task.poller) {
-      this.$timeout.cancel(this.task.poller);
+      $timeout.cancel(this.task.poller);
     }
   }
 
@@ -77,8 +78,7 @@ export class TaskMonitor {
     if (this.application && this.application.getDataSource('runningTasks')) {
       this.application.getDataSource('runningTasks').refresh();
     }
-    this.taskReader
-      .waitUntilTaskCompletes(task, this.monitorInterval)
+    TaskReader.waitUntilTaskCompletes(task, this.monitorInterval)
       .then(() => (this.onTaskComplete ? this.onTaskComplete() : noop))
       .catch(() => this.setError(task));
   }
@@ -90,12 +90,12 @@ export class TaskMonitor {
     }
   }
 
-  public submit(submitMethod?: () => ng.IPromise<ITask>) {
+  public submit = (submitMethod?: () => IPromise<ITask>) => {
     this.startSubmit();
     (submitMethod || this.submitMethod)()
       .then((task: ITask) => this.handleTaskSuccess(task))
       .catch((task: ITask) => this.setError(task));
-  }
+  };
 
   public callPreconfiguredSubmit(params: any) {
     this.startSubmit();
@@ -104,16 +104,3 @@ export class TaskMonitor {
       .catch((task: ITask) => this.setError(task));
   }
 }
-
-export class TaskMonitorBuilder {
-  constructor(private $timeout: ng.ITimeoutService, private taskReader: TaskReader) {
-    'ngInject';
-  }
-
-  public buildTaskMonitor(config: ITaskMonitorConfig) {
-    return new TaskMonitor(config, this.$timeout, this.taskReader);
-  }
-}
-
-export const TASK_MONITOR_BUILDER = 'spinnaker.core.task.monitor.builder';
-module(TASK_MONITOR_BUILDER, [TASK_READ_SERVICE]).service('taskMonitorBuilder', TaskMonitorBuilder);

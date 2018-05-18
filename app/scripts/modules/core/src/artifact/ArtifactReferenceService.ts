@@ -3,7 +3,7 @@ import { isEmpty, get } from 'lodash';
 
 export type SupportedStage = 'stage';
 
-type IWalker = (refContainer: any) => Array<Array<string | number>>;
+export type IWalker = (refContainer: any) => Array<Array<string | number>>;
 
 interface IReference {
   category: SupportedStage;

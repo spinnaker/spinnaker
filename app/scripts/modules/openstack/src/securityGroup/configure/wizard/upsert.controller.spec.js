@@ -63,6 +63,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       this.mockModal = {
         dismiss: jasmine.createSpy(),
         close: jasmine.createSpy(),
+        result: $q.when(null),
       };
       let application = applicationModelBuilder.createApplication('app', {
         key: 'securityGroups',
@@ -90,12 +91,6 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       this.mockTaskMonitor = {
         submit: jasmine.createSpy(),
       };
-      this.mockTaskMonitorBuilder = {
-        buildTaskMonitor: jasmine.createSpy().and.callFake(function(arg) {
-          testSuite.taskCompletionCallback = arg.onTaskComplete;
-          return testSuite.mockTaskMonitor;
-        }),
-      };
 
       this.createController = function(securityGroup) {
         this.ctrl = $controller('openstackUpsertSecurityGroupController', {
@@ -106,7 +101,6 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
           securityGroup: securityGroup,
           securityGroupReader: this.mockSecurityGroupReader,
           securityGroupWriter: this.mockSecurityGroupWriter,
-          taskMonitorBuilder: this.mockTaskMonitorBuilder,
         });
       };
     }),
@@ -138,7 +132,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
     });
 
     it('builds the task monitor', function() {
-      expect(this.mockTaskMonitorBuilder.buildTaskMonitor).toHaveBeenCalled();
+      expect(this.$scope.taskMonitor).not.toBeUndefined();
     });
 
     it('requests the list of accounts', function() {
@@ -171,6 +165,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
 
         describe('& account selection changed', function() {
           beforeEach(function() {
+            spyOn(this.$scope.taskMonitor, 'submit');
             this.$scope.securityGroup.account = 'account2';
             this.ctrl.accountUpdated();
           });
@@ -181,12 +176,12 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
             });
 
             it('- calls mockTaskMonitor.submit()', function() {
-              expect(this.mockTaskMonitor.submit).toHaveBeenCalled();
+              expect(this.$scope.taskMonitor.submit).toHaveBeenCalled();
             });
 
             describe('& task monitor invokes callback', function() {
               beforeEach(function() {
-                this.mockTaskMonitor.submit.calls.mostRecent().args[0]();
+                this.$scope.taskMonitor.submit.calls.mostRecent().args[0]();
               });
 
               it('- calls upsertSecurityGroup()', function() {
@@ -202,7 +197,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
 
               describe('& task completes', function() {
                 beforeEach(function() {
-                  this.taskCompletionCallback();
+                  this.$scope.taskMonitor.onTaskComplete();
                 });
 
                 it('- refreshes the firewalls', function() {
@@ -270,14 +265,15 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
 
     describe('submit() called', function() {
       beforeEach(function() {
+        spyOn(this.$scope.taskMonitor, 'submit');
         this.mockState.stateIncludesSecurityGroupDetails = true;
         this.ctrl.submit();
       });
 
       it('calls upsertSecurityGroup()', function() {
-        expect(this.mockTaskMonitor.submit).toHaveBeenCalled();
+        expect(this.$scope.taskMonitor.submit).toHaveBeenCalled();
 
-        this.taskCompletionCallback();
+        this.$scope.taskMonitor.onTaskComplete();
         expect(this.mockApplication.securityGroups.refresh).toHaveBeenCalled();
 
         this.applicationRefreshCallback();

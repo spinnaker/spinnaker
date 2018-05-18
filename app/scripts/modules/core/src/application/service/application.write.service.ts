@@ -1,7 +1,7 @@
 import { IPromise, module } from 'angular';
 import { cloneDeep } from 'lodash';
 
-import { TASK_EXECUTOR, IJob, TaskExecutor } from 'core/task/taskExecutor';
+import { IJob, TaskExecutor } from 'core/task/taskExecutor';
 import { RECENT_HISTORY_SERVICE, RecentHistoryService } from 'core/history/recentHistory.service';
 
 export interface IApplicationAttributes {
@@ -12,13 +12,13 @@ export interface IApplicationAttributes {
 }
 
 export class ApplicationWriter {
-  public constructor(private taskExecutor: TaskExecutor, private recentHistoryService: RecentHistoryService) {
+  public constructor(private recentHistoryService: RecentHistoryService) {
     'ngInject';
   }
 
   public createApplication(application: IApplicationAttributes): IPromise<any> {
     const jobs: IJob[] = this.buildJobs(application, 'createApplication', cloneDeep);
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: jobs,
       application,
       description: 'Create Application: ' + application.name,
@@ -27,7 +27,7 @@ export class ApplicationWriter {
 
   public updateApplication(application: IApplicationAttributes): IPromise<any> {
     const jobs: IJob[] = this.buildJobs(application, 'updateApplication', cloneDeep);
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: jobs,
       application,
       description: 'Update Application: ' + application.name,
@@ -38,12 +38,11 @@ export class ApplicationWriter {
     const jobs: IJob[] = this.buildJobs(application, 'deleteApplication', (app: IApplicationAttributes): any => {
       return { name: app.name };
     });
-    return this.taskExecutor
-      .executeTask({
-        job: jobs,
-        application,
-        description: 'Deleting Application: ' + application.name,
-      })
+    return TaskExecutor.executeTask({
+      job: jobs,
+      application,
+      description: 'Deleting Application: ' + application.name,
+    })
       .then((task: any): any => {
         this.recentHistoryService.removeByAppName(application.name);
         return task;
@@ -68,7 +67,4 @@ export class ApplicationWriter {
 
 export const APPLICATION_WRITE_SERVICE = 'spinnaker.core.application.write.service';
 
-module(APPLICATION_WRITE_SERVICE, [TASK_EXECUTOR, RECENT_HISTORY_SERVICE]).service(
-  'applicationWriter',
-  ApplicationWriter,
-);
+module(APPLICATION_WRITE_SERVICE, [RECENT_HISTORY_SERVICE]).service('applicationWriter', ApplicationWriter);

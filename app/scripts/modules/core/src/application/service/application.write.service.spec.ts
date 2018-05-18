@@ -1,26 +1,25 @@
 import { mock } from 'angular';
 
 import { APPLICATION_WRITE_SERVICE, ApplicationWriter, IApplicationAttributes } from './application.write.service';
-import { IJob } from 'core/task/taskExecutor';
+import { IJob, TaskExecutor } from 'core/task/taskExecutor';
+import Spy = jasmine.Spy;
 
 describe('Service: applicationWriter', function() {
   let applicationWriter: ApplicationWriter;
-  let taskExecutor: any;
   let $q: ng.IQService;
 
   beforeEach(mock.module(APPLICATION_WRITE_SERVICE));
 
   beforeEach(
-    mock.inject(function(_applicationWriter_: ApplicationWriter, _taskExecutor_: any, _$q_: ng.IQService) {
+    mock.inject(function(_applicationWriter_: ApplicationWriter, _$q_: ng.IQService) {
       applicationWriter = _applicationWriter_;
-      taskExecutor = _taskExecutor_;
       $q = _$q_;
     }),
   );
 
   describe('update an application', function() {
     it('should execute task', function() {
-      spyOn(taskExecutor, 'executeTask');
+      spyOn(TaskExecutor, 'executeTask');
 
       const application: IApplicationAttributes = {
         name: 'foo',
@@ -29,12 +28,12 @@ describe('Service: applicationWriter', function() {
 
       applicationWriter.updateApplication(application);
 
-      expect(taskExecutor.executeTask.calls.count()).toEqual(1);
+      expect((TaskExecutor.executeTask as Spy).calls.count()).toEqual(1);
     });
 
     it('should join cloud providers into a single string', function() {
       let job: IJob = null;
-      spyOn(taskExecutor, 'executeTask').and.callFake((task: any) => (job = task.job[0]));
+      spyOn(TaskExecutor, 'executeTask').and.callFake((task: any) => (job = task.job[0]));
 
       const application: IApplicationAttributes = {
         name: 'foo',
@@ -50,7 +49,7 @@ describe('Service: applicationWriter', function() {
 
   describe('delete an application', function() {
     it('should execute task', function() {
-      spyOn(taskExecutor, 'executeTask').and.returnValue($q.when({}));
+      spyOn(TaskExecutor, 'executeTask').and.returnValue($q.when({}));
 
       const application: IApplicationAttributes = {
         name: 'foo',
@@ -58,7 +57,7 @@ describe('Service: applicationWriter', function() {
 
       applicationWriter.deleteApplication(application);
 
-      expect(taskExecutor.executeTask.calls.count()).toEqual(1);
+      expect((TaskExecutor.executeTask as Spy).calls.count()).toEqual(1);
     });
   });
 });

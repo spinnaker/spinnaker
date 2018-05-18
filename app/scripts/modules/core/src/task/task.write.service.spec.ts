@@ -1,18 +1,14 @@
 import { mock, IHttpBackendService, ITimeoutService } from 'angular';
 
 import { API } from 'core/api/ApiService';
-import { TASK_WRITE_SERVICE, TaskWriter } from './task.write.service';
+import { TaskWriter } from './task.write.service';
 
-describe('Service: taskWriter', () => {
-  let taskWriter: TaskWriter;
+describe('Service: TaskWriter', () => {
   let $httpBackend: IHttpBackendService;
   let timeout: ITimeoutService;
 
-  beforeEach(mock.module(TASK_WRITE_SERVICE));
-
   beforeEach(
-    mock.inject((_taskWriter_: TaskWriter, _$httpBackend_: IHttpBackendService, _$timeout_: ITimeoutService) => {
-      taskWriter = _taskWriter_;
+    mock.inject((_$httpBackend_: IHttpBackendService, _$timeout_: ITimeoutService) => {
       $httpBackend = _$httpBackend_;
       timeout = _$timeout_;
     }),
@@ -34,7 +30,7 @@ describe('Service: taskWriter', () => {
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
       $httpBackend.expectGET(checkUrl).respond(200, { id: taskId });
 
-      taskWriter.cancelTask(application, taskId).then(() => (completed = true));
+      TaskWriter.cancelTask(application, taskId).then(() => (completed = true));
       $httpBackend.flush();
       expect(completed).toBe(false);
 
@@ -58,7 +54,7 @@ describe('Service: taskWriter', () => {
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
 
-      taskWriter.deleteTask(taskId).then(() => (completed = true));
+      TaskWriter.deleteTask(taskId).then(() => (completed = true));
 
       // first check: task is still present
       $httpBackend.expectGET(checkUrl).respond(200, [{ id: taskId }]);

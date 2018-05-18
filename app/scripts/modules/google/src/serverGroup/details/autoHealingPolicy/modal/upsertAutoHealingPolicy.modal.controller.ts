@@ -1,4 +1,4 @@
-import { Application, TaskMonitor, TaskMonitorBuilder } from '@spinnaker/core';
+import { Application, TaskMonitor } from '@spinnaker/core';
 import { IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { chain, cloneDeep, last } from 'lodash';
@@ -21,7 +21,6 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
     private application: Application,
     public serverGroup: IGceServerGroup,
     private gceHealthCheckReader: GceHealthCheckReader,
-    private taskMonitorBuilder: TaskMonitorBuilder,
     private gceAutoscalingPolicyWriter: any,
   ) {
     'ngInject';
@@ -67,7 +66,7 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
         this.autoHealingPolicy.healthCheck = last(this.autoHealingPolicy.healthCheck.split('/'));
       }
     }
-    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       application: this.application,
       title: `${this.action} autohealing policy for ${this.serverGroup.name}`,
       modalInstance: this.$uibModalInstance,

@@ -8,7 +8,7 @@ import {
   NameUtils,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
+  TaskMonitor,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -16,7 +16,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
-    TASK_MONITOR_BUILDER,
     require('../../../region/regionSelectField.directive.js').name,
     require('../../transformer.js').name,
   ])
@@ -30,7 +29,6 @@ module.exports = angular
     openstackSecurityGroupTransformer,
     securityGroupReader,
     securityGroupWriter,
-    taskMonitorBuilder,
   ) {
     var ctrl = this;
     $scope.firewallLabel = FirewallLabels.get('Firewall');
@@ -73,7 +71,7 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: `${$scope.isNew ? 'Creating ' : 'Updating '} your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,

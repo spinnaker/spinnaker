@@ -7,7 +7,7 @@ import {
   FirewallLabels,
   InfrastructureCaches,
   SECURITY_GROUP_READER,
-  TASK_MONITOR_BUILDER,
+  TaskMonitor,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -15,7 +15,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CACHE_INITIALIZER_SERVICE,
     SECURITY_GROUP_READER,
-    TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js').name,
   ])
   .controller('azureEditSecurityGroupCtrl', function(
@@ -24,7 +23,6 @@ module.exports = angular
     $exceptionHandler,
     $state,
     securityGroupReader,
-    taskMonitorBuilder,
     cacheInitializer,
     application,
     securityGroup,
@@ -47,7 +45,7 @@ module.exports = angular
       refreshingSecurityGroups: false,
     };
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: `Updating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,

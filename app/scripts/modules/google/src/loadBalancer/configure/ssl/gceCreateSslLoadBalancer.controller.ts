@@ -13,8 +13,7 @@ import {
   IRegion,
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
-  TASK_MONITOR_BUILDER,
-  TaskMonitorBuilder,
+  TaskMonitor,
 } from '@spinnaker/core';
 
 import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from 'google/domain/index';
@@ -98,7 +97,6 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
     private isNew: boolean,
     private loadBalancerWriter: LoadBalancerWriter,
     private wizardSubFormValidation: any,
-    private taskMonitorBuilder: TaskMonitorBuilder,
     $state: StateService,
   ) {
     'ngInject';
@@ -147,7 +145,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
           .register({ page: 'healthCheck', subForm: 'healthCheckForm' })
           .register({ page: 'advancedSettings', subForm: 'advancedSettingsForm' });
 
-        this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+        this.taskMonitor = new TaskMonitor({
           application: this.application,
           title: (this.isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
           modalInstance: this.$uibModalInstance,
@@ -232,5 +230,4 @@ module(GCE_SSL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
   LOAD_BALANCER_WRITE_SERVICE,
-  TASK_MONITOR_BUILDER,
 ]).controller('gceSslLoadBalancerCtrl', SslLoadBalancerCtrl);

@@ -1,14 +1,7 @@
 import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import {
-  Application,
-  MANIFEST_WRITER,
-  ManifestWriter,
-  TASK_MONITOR_BUILDER,
-  TaskMonitor,
-  TaskMonitorBuilder,
-} from '@spinnaker/core';
+import { Application, MANIFEST_WRITER, ManifestWriter, TaskMonitor } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 
 interface IPauseRolloutCommand {
@@ -27,14 +20,13 @@ class KubernetesManifestPauseRolloutController implements IController {
 
   constructor(
     coordinates: IManifestCoordinates,
-    taskMonitorBuilder: TaskMonitorBuilder,
     private $uibModalInstance: IModalServiceInstance,
     private manifestWriter: ManifestWriter,
     private application: Application,
   ) {
     'ngInject';
 
-    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       title: `Pause rollout of ${coordinates.name} in ${coordinates.namespace}`,
       application,
       modalInstance: $uibModalInstance,
@@ -68,7 +60,7 @@ class KubernetesManifestPauseRolloutController implements IController {
 
 export const KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL = 'spinnaker.kubernetes.v2.manifest.pauseRollout.controller';
 
-module(KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL, [TASK_MONITOR_BUILDER, MANIFEST_WRITER]).controller(
+module(KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL, [MANIFEST_WRITER]).controller(
   'kubernetesV2ManifestPauseRolloutCtrl',
   KubernetesManifestPauseRolloutController,
 );

@@ -3,15 +3,14 @@
 const angular = require('angular');
 import { get, set } from 'lodash';
 
-import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER])
+  .module('spinnaker.kubernetes.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER])
   .controller('kubernetesResizeServerGroupController', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,
-    taskMonitorBuilder,
     application,
     serverGroup,
     kubernetesAutoscalerWriter,
@@ -48,7 +47,7 @@ module.exports = angular
       return $scope.verification.verified && command.capacity !== null && command.capacity.desired !== null;
     };
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Resizing ' + serverGroup.name,
       modalInstance: $uibModalInstance,

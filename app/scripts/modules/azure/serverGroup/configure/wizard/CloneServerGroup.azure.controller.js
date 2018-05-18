@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE, FirewallLabels } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TaskMonitor, V2_MODAL_WIZARD_SERVICE, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.cloneServerGroup.controller', [
@@ -10,7 +10,6 @@ module.exports = angular
     require('../serverGroupConfiguration.service.js').name,
     require('../../serverGroup.transformer.js').name,
     SERVER_GROUP_WRITER,
-    TASK_MONITOR_BUILDER,
     V2_MODAL_WIZARD_SERVICE,
   ])
   .controller('azureCloneServerGroupCtrl', function(
@@ -20,7 +19,6 @@ module.exports = angular
     $state,
     serverGroupWriter,
     v2modalWizardService,
-    taskMonitorBuilder,
     azureServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -105,7 +103,7 @@ module.exports = angular
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,

@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { TASK_EXECUTOR } from '@spinnaker/core';
+import { TaskExecutor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.serverGroup.details.scalingPolicy.write.service', [TASK_EXECUTOR])
-  .factory('gceAutoscalingPolicyWriter', function(taskExecutor) {
+  .module('spinnaker.gce.serverGroup.details.scalingPolicy.write.service', [])
+  .factory('gceAutoscalingPolicyWriter', function() {
     function upsertAutoscalingPolicy(application, serverGroup, policy, params = {}) {
       let job = {
         type: 'upsertScalingPolicy',
@@ -18,7 +18,7 @@ module.exports = angular
       };
       angular.extend(job, params);
 
-      return taskExecutor.executeTask({
+      return TaskExecutor.executeTask({
         application,
         description: 'Upsert scaling policy ' + serverGroup.name,
         job: [job],
@@ -26,7 +26,7 @@ module.exports = angular
     }
 
     function deleteAutoscalingPolicy(application, serverGroup) {
-      return taskExecutor.executeTask({
+      return TaskExecutor.executeTask({
         application,
         description: 'Delete scaling policy ' + serverGroup.name,
         job: [
@@ -52,7 +52,7 @@ module.exports = angular
       };
       angular.extend(job, params);
 
-      return taskExecutor.executeTask({
+      return TaskExecutor.executeTask({
         application,
         description: 'Upsert autohealing policy ' + serverGroup.name,
         job: [job],
@@ -60,7 +60,7 @@ module.exports = angular
     }
 
     function deleteAutoHealingPolicy(application, serverGroup) {
-      return taskExecutor.executeTask({
+      return TaskExecutor.executeTask({
         application,
         description: 'Delete autohealing policy ' + serverGroup.name,
         job: [

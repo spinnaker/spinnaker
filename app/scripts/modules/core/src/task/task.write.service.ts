@@ -1,51 +1,48 @@
-import { IHttpPromiseCallbackArg, IPromise, IQService, ITimeoutService, module } from 'angular';
+import { IHttpPromiseCallbackArg, IPromise } from 'angular';
 
 import { API } from 'core/api/ApiService';
-import { TaskReader, TASK_READ_SERVICE } from './task.read.service';
+import { TaskReader } from './task.read.service';
 import { ITaskCommand } from './taskExecutor';
 import { DebugWindow } from 'core/utils/consoleDebug';
+import { $q, $timeout } from 'ngimport';
 
 export interface ITaskCreateResult {
   ref: string;
 }
 
 export class TaskWriter {
-  constructor(private taskReader: TaskReader, private $q: IQService, private $timeout: ITimeoutService) {
-    'ngInject';
-  }
-
-  public postTaskCommand(taskCommand: ITaskCommand): IPromise<ITaskCreateResult> {
+  public static postTaskCommand(taskCommand: ITaskCommand): IPromise<ITaskCreateResult> {
     return API.one('applications', taskCommand.application || taskCommand.project)
       .all('tasks')
       .post(taskCommand);
   }
 
-  public cancelTask(applicationName: string, taskId: string): IPromise<void> {
+  public static cancelTask(applicationName: string, taskId: string): IPromise<void> {
     return API.one('applications', applicationName)
       .all('tasks')
       .one(taskId, 'cancel')
       .put()
       .then(() =>
-        this.taskReader
-          .getTask(taskId)
-          .then(task => this.taskReader.waitUntilTaskMatches(task, updatedTask => updatedTask.status === 'CANCELED')),
+        TaskReader.getTask(taskId).then(task =>
+          TaskReader.waitUntilTaskMatches(task, updatedTask => updatedTask.status === 'CANCELED'),
+        ),
       );
   }
 
-  public deleteTask(taskId: string): IPromise<void> {
+  public static deleteTask(taskId: string): IPromise<void> {
     return API.one('tasks', taskId)
       .remove()
       .then(() => this.waitUntilTaskIsDeleted(taskId));
   }
 
-  private waitUntilTaskIsDeleted(taskId: string): IPromise<void> {
+  private static waitUntilTaskIsDeleted(taskId: string): IPromise<void> {
     // wait until the task is gone, i.e. the promise from the get() is rejected, before succeeding
-    const deferred = this.$q.defer<void>();
+    const deferred = $q.defer<void>();
     API.one('tasks', taskId)
       .get()
       .then(
         () => {
-          this.$timeout(
+          $timeout(
             () => {
               // task is still present, try again
               this.waitUntilTaskIsDeleted(taskId).then(() => deferred.resolve());
@@ -59,7 +56,7 @@ export class TaskWriter {
             // task is no longer present
             deferred.resolve();
           } else {
-            this.$timeout(
+            $timeout(
               () => {
                 // task is maybe still present, try again
                 this.waitUntilTaskIsDeleted(taskId).then(deferred.resolve);
@@ -74,7 +71,4 @@ export class TaskWriter {
   }
 }
 
-export const TASK_WRITE_SERVICE = 'spinnaker.core.task.write.service';
-module(TASK_WRITE_SERVICE, [TASK_READ_SERVICE]).service('taskWriter', TaskWriter);
-
-DebugWindow.addInjectable('taskWriter');
+DebugWindow.TaskWriter = TaskWriter;

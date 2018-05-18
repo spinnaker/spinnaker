@@ -11,7 +11,6 @@ import {
   ProviderServiceDelegate,
   SERVER_GROUP_READER,
   ServerGroupReader,
-  TASK_EXECUTOR,
   TaskExecutor,
 } from '@spinnaker/core';
 
@@ -27,12 +26,11 @@ export interface IAmazonMultiInstanceJob extends IMultiInstanceJob {
 
 export class AmazonInstanceWriter extends InstanceWriter {
   public constructor(
-    protected taskExecutor: TaskExecutor,
     protected serverGroupReader: ServerGroupReader,
     protected providerServiceDelegate: ProviderServiceDelegate,
   ) {
     'ngInject';
-    super(taskExecutor, serverGroupReader, providerServiceDelegate);
+    super(serverGroupReader, providerServiceDelegate);
   }
 
   public deregisterInstancesFromTargetGroup(
@@ -46,7 +44,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     ) as IAmazonMultiInstanceJob[];
     jobs.forEach(job => (job.targetGroupNames = targetGroupNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${targetGroupNames.join(' and ')}`);
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: jobs,
       application,
       description: descriptor,
@@ -64,7 +62,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     params.region = instance.region;
     params.credentials = instance.account;
     params.cloudProvider = instance.cloudProvider;
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Deregister instance: ${instance.id}`,
@@ -82,7 +80,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     ) as IAmazonMultiInstanceJob[];
     jobs.forEach(job => (job.targetGroupNames = targetGroupNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${targetGroupNames.join(' and ')}`);
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: jobs,
       application,
       description: descriptor,
@@ -100,7 +98,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     params.region = instance.region;
     params.credentials = instance.account;
     params.cloudProvider = instance.cloudProvider;
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Register instance: ${instance.id}`,
@@ -109,9 +107,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
 }
 
 export const AMAZON_INSTANCE_WRITE_SERVICE = 'spinnaker.amazon.instance.write.service';
-module(AMAZON_INSTANCE_WRITE_SERVICE, [
-  INSTANCE_WRITE_SERVICE,
-  TASK_EXECUTOR,
-  SERVER_GROUP_READER,
-  PROVIDER_SERVICE_DELEGATE,
-]).service('amazonInstanceWriter', AmazonInstanceWriter);
+module(AMAZON_INSTANCE_WRITE_SERVICE, [INSTANCE_WRITE_SERVICE, SERVER_GROUP_READER, PROVIDER_SERVICE_DELEGATE]).service(
+  'amazonInstanceWriter',
+  AmazonInstanceWriter,
+);

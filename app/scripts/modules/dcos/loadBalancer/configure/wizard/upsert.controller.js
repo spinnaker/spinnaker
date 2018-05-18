@@ -7,7 +7,7 @@ import {
   LOAD_BALANCER_READ_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
+  TaskMonitor,
   SEARCH_SERVICE,
 } from '@spinnaker/core';
 
@@ -16,7 +16,6 @@ module.exports = angular
     LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
-    TASK_MONITOR_BUILDER,
     SEARCH_SERVICE,
     require('../../transformer.js').name,
   ])
@@ -32,7 +31,6 @@ module.exports = angular
     searchService,
     v2modalWizardService,
     loadBalancerWriter,
-    taskMonitorBuilder,
   ) {
     var ctrl = this;
     $scope.isNew = isNew;
@@ -72,7 +70,7 @@ module.exports = angular
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,

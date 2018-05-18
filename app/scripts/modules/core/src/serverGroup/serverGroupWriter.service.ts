@@ -5,7 +5,7 @@ import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
 import { FirewallLabels } from 'core/securityGroup/label';
 import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
 import { IMoniker, NameUtils } from 'core/naming';
-import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
+import { IJob, TaskExecutor } from 'core/task/taskExecutor';
 
 export interface ICapacity {
   desired: number;
@@ -27,7 +27,7 @@ export interface IServerGroupJob extends IJob {
 }
 
 export class ServerGroupWriter {
-  constructor(private taskExecutor: TaskExecutor, private serverGroupTransformer: any) {
+  constructor(private serverGroupTransformer: any) {
     'ngInject';
   }
 
@@ -45,7 +45,7 @@ export class ServerGroupWriter {
       )}`;
     }
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command)],
       application,
       description,
@@ -65,7 +65,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Destroy Server Group: ${serverGroup.name}`,
@@ -85,7 +85,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application: appName,
       description: `Disable Server Group: ${serverGroup.name}`,
@@ -105,7 +105,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Enable Server Group: ${serverGroup.name}`,
@@ -125,7 +125,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Resize Server Group: ${serverGroup.name} to ${params.capacity.min}/${params.capacity.desired}/${
@@ -145,7 +145,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [params],
       application,
       description: `Rollback Server Group: ${serverGroup.name}`,
@@ -168,7 +168,7 @@ export class ServerGroupWriter {
       type: 'updateSecurityGroupsForServerGroup',
     };
 
-    return this.taskExecutor.executeTask({
+    return TaskExecutor.executeTask({
       job: [job],
       application,
       description: `Update ${FirewallLabels.get('firewalls')} for ${serverGroup.name}`,
@@ -177,7 +177,7 @@ export class ServerGroupWriter {
 }
 
 export const SERVER_GROUP_WRITER = 'spinnaker.core.serverGroup.write.service';
-module(SERVER_GROUP_WRITER, [TASK_EXECUTOR, require('./serverGroup.transformer.js').name]).service(
+module(SERVER_GROUP_WRITER, [require('./serverGroup.transformer.js').name]).service(
   'serverGroupWriter',
   ServerGroupWriter,
 );

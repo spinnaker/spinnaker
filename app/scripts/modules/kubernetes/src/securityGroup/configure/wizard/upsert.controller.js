@@ -8,7 +8,7 @@ import {
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
+  TaskMonitor,
   V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
@@ -19,7 +19,6 @@ module.exports = angular
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
     V2_MODAL_WIZARD_SERVICE,
-    TASK_MONITOR_BUILDER,
     require('../../../namespace/selectField.directive.js').name,
     require('../../transformer.js').name,
   ])
@@ -35,7 +34,6 @@ module.exports = angular
     loadBalancerReader,
     v2modalWizardService,
     securityGroupWriter,
-    taskMonitorBuilder,
   ) {
     var ctrl = this;
     $scope.firewallLabel = FirewallLabels.get('Firewall');
@@ -82,7 +80,7 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: `${$scope.isNew ? 'Creating ' : 'Updating '} your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,

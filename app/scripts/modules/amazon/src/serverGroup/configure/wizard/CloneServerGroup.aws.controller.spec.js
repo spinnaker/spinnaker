@@ -23,7 +23,6 @@ describe('Controller: awsCloneServerGroup', function() {
       awsInstanceTypeService,
       v2modalWizardService,
       securityGroupReader,
-      taskMonitorBuilder,
       awsServerGroupConfigurationService,
       $q,
       subnetReader,
@@ -39,7 +38,6 @@ describe('Controller: awsCloneServerGroup', function() {
       this.v2modalWizardService = v2modalWizardService;
       this.securityGroupReader = securityGroupReader;
       this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
-      this.taskMonitorBuilder = taskMonitorBuilder;
       this.subnetReader = subnetReader;
       this.keyPairsReader = keyPairsReader;
       this.loadBalancerReader = loadBalancerReader;
@@ -116,7 +114,6 @@ describe('Controller: awsCloneServerGroup', function() {
           v2modalWizardService: this.v2modalWizardService,
           securityGroupReader: this.securityGroupReader,
           awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
-          taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroupCommand,
           application: this.applicationModelBuilder.createApplication('x', { key: 'loadBalancers', lazy: true }),
           title: 'n/a',
@@ -236,7 +233,6 @@ describe('Controller: awsCloneServerGroup', function() {
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
           v2modalWizardService: this.v2modalWizardService,
-          taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroupCommand,
           application: this.applicationModelBuilder.createApplication('x', { key: 'loadBalancers', lazy: true }),
           title: 'n/a',
@@ -418,7 +414,6 @@ describe('Controller: awsCloneServerGroup', function() {
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
           v2modalWizardService: this.v2modalWizardService,
-          taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroup,
           application: this.applicationModelBuilder.createApplication('x', { key: 'loadBalancers', lazy: true }),
           title: 'n/a',

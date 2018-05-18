@@ -1,14 +1,7 @@
 import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import {
-  Application,
-  MANIFEST_WRITER,
-  ManifestWriter,
-  TASK_MONITOR_BUILDER,
-  TaskMonitor,
-  TaskMonitorBuilder,
-} from '@spinnaker/core';
+import { Application, MANIFEST_WRITER, ManifestWriter, TaskMonitor } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 import { KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM } from './scaleSettingsForm.component';
 
@@ -29,7 +22,6 @@ class KubernetesManifestScaleController implements IController {
 
   constructor(
     coordinates: IManifestCoordinates,
-    taskMonitorBuilder: TaskMonitorBuilder,
     currentReplicas: number,
     private $uibModalInstance: IModalServiceInstance,
     private manifestWriter: ManifestWriter,
@@ -37,7 +29,7 @@ class KubernetesManifestScaleController implements IController {
   ) {
     'ngInject';
 
-    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       title: `Scaling ${coordinates.name} in ${coordinates.namespace}`,
       application,
       modalInstance: $uibModalInstance,
@@ -72,8 +64,7 @@ class KubernetesManifestScaleController implements IController {
 
 export const KUBERNETES_MANIFEST_SCALE_CTRL = 'spinnaker.kubernetes.v2.manifest.scale.controller';
 
-module(KUBERNETES_MANIFEST_SCALE_CTRL, [
-  TASK_MONITOR_BUILDER,
-  MANIFEST_WRITER,
-  KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM,
-]).controller('kubernetesV2ManifestScaleCtrl', KubernetesManifestScaleController);
+module(KUBERNETES_MANIFEST_SCALE_CTRL, [MANIFEST_WRITER, KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM]).controller(
+  'kubernetesV2ManifestScaleCtrl',
+  KubernetesManifestScaleController,
+);

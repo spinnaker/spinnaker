@@ -8,7 +8,7 @@ import {
   NETWORK_READ_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
+  TaskMonitor,
   V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
@@ -19,7 +19,6 @@ import './securityGroup.configure.less';
 module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
     require('@uirouter/angularjs').default,
-    TASK_MONITOR_BUILDER,
     NETWORK_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     SECURITY_GROUP_READER,
@@ -30,7 +29,6 @@ module.exports = angular
     $scope,
     $state,
     $uibModalInstance,
-    taskMonitorBuilder,
     application,
     securityGroup,
     securityGroupReader,
@@ -151,7 +149,7 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: `Creating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,

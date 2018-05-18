@@ -4,7 +4,7 @@ import { cloneDeep } from 'lodash';
 import { Subject } from 'rxjs';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { Application, IServerGroup, TaskMonitorBuilder, TaskMonitor } from '@spinnaker/core';
+import { Application, IServerGroup, TaskMonitor } from '@spinnaker/core';
 
 import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from 'amazon/domain';
 import { IUpsertScalingPolicyCommand, ScalingPolicyWriter } from 'amazon/serverGroup';
@@ -34,7 +34,6 @@ export class UpsertTargetTrackingController implements IComponentController {
   constructor(
     private $uibModalInstance: IModalServiceInstance,
     private scalingPolicyWriter: ScalingPolicyWriter,
-    private taskMonitorBuilder: TaskMonitorBuilder,
     public policy: ITargetTrackingPolicy,
     public serverGroup: IServerGroup,
     public application: Application,
@@ -83,7 +82,7 @@ export class UpsertTargetTrackingController implements IComponentController {
   public save(): void {
     const action = this.policy.policyName ? 'Update' : 'Create';
     const command = cloneDeep(this.command);
-    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       application: this.application,
       title: `${action} scaling policy for ${this.serverGroup.name}`,
       modalInstance: this.$uibModalInstance,

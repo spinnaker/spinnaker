@@ -1,16 +1,13 @@
 'use strict';
 
 import { API } from 'core/api/ApiService';
-import { TASK_READ_SERVICE } from 'core/task/task.read.service';
+import { TaskReader } from './task.read.service';
 
 describe('Service: taskReader', function() {
-  var service, $http, scope, timeout, task;
-
-  beforeEach(window.module(TASK_READ_SERVICE));
+  var $http, scope, timeout, task;
 
   beforeEach(
-    window.inject(function(taskReader, $httpBackend, $rootScope, $timeout) {
-      service = taskReader;
+    window.inject(function($httpBackend, $rootScope, $timeout) {
       $http = $httpBackend;
       timeout = $timeout;
       scope = $rootScope.$new();
@@ -29,7 +26,7 @@ describe('Service: taskReader', function() {
     }
 
     beforeEach(function() {
-      service.getTask(1).then(result => (task = result));
+      TaskReader.getTask(1).then(result => (task = result));
     });
 
     it('resolves immediately if task already matches', function() {
@@ -43,7 +40,7 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      service.waitUntilTaskMatches(task, task => task.foo === 3).then(() => (completed = true));
+      TaskReader.waitUntilTaskMatches(task, task => task.foo === 3).then(() => (completed = true));
       scope.$digest();
 
       expect(completed).toBe(true);
@@ -61,9 +58,10 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      service
-        .waitUntilTaskMatches(task, task => task.foo === 4, task => task.foo === 3)
-        .then(() => (completed = true), () => (failed = true));
+      TaskReader.waitUntilTaskMatches(task, task => task.foo === 4, task => task.foo === 3).then(
+        () => (completed = true),
+        () => (failed = true),
+      );
       scope.$digest();
 
       expect(completed).toBe(false);
@@ -78,9 +76,10 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      service
-        .waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed)
-        .then(() => (completed = true), () => (failed = true));
+      TaskReader.waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed).then(
+        () => (completed = true),
+        () => (failed = true),
+      );
       scope.$digest();
 
       // still running
@@ -108,9 +107,10 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      service
-        .waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed)
-        .then(() => (completed = true), () => (failed = true));
+      TaskReader.waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed).then(
+        () => (completed = true),
+        () => (failed = true),
+      );
       scope.$digest();
 
       // still running
@@ -138,9 +138,10 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      service
-        .waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed)
-        .then(() => (completed = true), () => (failed = true));
+      TaskReader.waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed).then(
+        () => (completed = true),
+        () => (failed = true),
+      );
       scope.$digest();
 
       expect(completed).toBe(false);
@@ -150,7 +151,7 @@ describe('Service: taskReader', function() {
 
   describe('task running time', function() {
     function execute() {
-      service.getTask(1).then(function(resolved) {
+      TaskReader.getTask(1).then(function(resolved) {
         task = resolved;
       });
 

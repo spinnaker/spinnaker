@@ -11,8 +11,7 @@ import {
   IRegion,
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
-  TASK_MONITOR_BUILDER,
-  TaskMonitorBuilder,
+  TaskMonitor,
 } from '@spinnaker/core';
 
 import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet } from 'google/domain/index';
@@ -97,7 +96,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     private loadBalancerWriter: LoadBalancerWriter,
     private wizardSubFormValidation: any,
     private gceXpnNamingService: any,
-    private taskMonitorBuilder: TaskMonitorBuilder,
     $state: StateService,
   ) {
     'ngInject';
@@ -149,7 +147,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
           .register({ page: 'healthCheck', subForm: 'healthCheckForm' })
           .register({ page: 'advancedSettings', subForm: 'advancedSettingsForm' });
 
-        this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+        this.taskMonitor = new TaskMonitor({
           application: this.application,
           title: (this.isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
           modalInstance: this.$uibModalInstance,
@@ -269,5 +267,4 @@ module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
   require('google/common/xpnNaming.gce.service.js').name,
   LOAD_BALANCER_WRITE_SERVICE,
-  TASK_MONITOR_BUILDER,
 ]).controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);

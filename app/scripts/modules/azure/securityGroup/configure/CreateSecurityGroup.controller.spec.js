@@ -8,18 +8,10 @@ describe('Controller: Azure.CreateSecurityGroup', function() {
   describe('filtering', function() {
     // Initialize the controller and a mock scope
     beforeEach(
-      window.inject(function(
-        $controller,
-        $rootScope,
-        $q,
-        securityGroupReader,
-        taskMonitorBuilder,
-        azureSecurityGroupWriter,
-      ) {
+      window.inject(function($controller, $rootScope, $q, securityGroupReader, azureSecurityGroupWriter) {
         this.$scope = $rootScope.$new();
         this.$q = $q;
         this.securityGroupReader = securityGroupReader;
-        this.taskMonitorBuilder = taskMonitorBuilder;
         this.securityGroupWriter = azureSecurityGroupWriter;
 
         spyOn(AccountService, 'listAccounts').and.returnValue($q.when(['prod', 'test']));
@@ -62,7 +54,6 @@ describe('Controller: Azure.CreateSecurityGroup', function() {
             $scope: this.$scope,
             $uibModalInstance: { result: this.$q.when(null) },
             securityGroupReader: this.securityGroupReader,
-            taskMonitorBuilder: this.taskMonitorBuilder,
             securityGroupWriter: this.securityGroupWriter,
             application: {},
             securityGroup: { regions: [], securityGroupIngress: [] },

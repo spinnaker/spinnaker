@@ -3,11 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, TASK_MONITOR_BUILDER, FirewallLabels } from '@spinnaker/core';
+import { AccountService, TaskMonitor, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
-    TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js').name,
     require('../configure/CreateSecurityGroupCtrl.js').name,
   ])
@@ -16,7 +15,6 @@ module.exports = angular
     $uibModalInstance,
     $controller,
     $state,
-    taskMonitorBuilder,
     azureSecurityGroupWriter,
     securityGroup,
     application,
@@ -65,7 +63,7 @@ module.exports = angular
       refreshingSecurityGroups: false,
     };
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    $scope.taskMonitor = new TaskMonitor({
       application: application,
       title: `Updating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,

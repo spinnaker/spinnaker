@@ -5,7 +5,7 @@ import { AccountService } from 'core/account/AccountService';
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
 import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
 import { APPLICATION_NAME_VALIDATION_MESSAGES } from './validation/applicationNameValidationMessages.component';
-import { TASK_READ_SERVICE } from 'core/task/task.read.service';
+import { TaskReader } from 'core/task/task.read.service';
 import { VALIDATE_APPLICATION_NAME } from './validation/validateApplicationName.directive';
 import { CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 import { SETTINGS } from 'core/config/settings';
@@ -17,7 +17,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     APPLICATION_WRITE_SERVICE,
     APPLICATION_READ_SERVICE,
-    TASK_READ_SERVICE,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
     require('./applicationProviderFields.component.js').name,
@@ -31,7 +30,6 @@ module.exports = angular
     $uibModalInstance,
     applicationWriter,
     applicationReader,
-    taskReader,
     $timeout,
   ) {
     let applicationLoader = applicationReader.listApplications();
@@ -78,7 +76,7 @@ module.exports = angular
     $scope.$on('$destroy', () => $timeout.cancel(navigateTimeout));
 
     let waitUntilApplicationIsCreated = task => {
-      return taskReader.waitUntilTaskCompletes(task).then(routeToApplication, () => {
+      return TaskReader.waitUntilTaskCompletes(task).then(routeToApplication, () => {
         this.state.errorMessages.push('Could not create application: ' + task.failureMessage);
         goIdle();
       });

@@ -1,14 +1,7 @@
 import { IController, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
-import {
-  Application,
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-  TaskMonitor,
-  TaskMonitorBuilder,
-  ManifestWriter,
-} from '@spinnaker/core';
+import { Application, SERVER_GROUP_WRITER, TaskMonitor, ManifestWriter } from '@spinnaker/core';
 
 import {
   IKubernetesManifestCommand,
@@ -30,7 +23,6 @@ class KubernetesManifestWizardCtrl implements IController {
     private $uibModalInstance: IModalInstanceService,
     private application: Application,
     private manifestWriter: ManifestWriter,
-    private taskMonitorBuilder: TaskMonitorBuilder,
     private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder,
   ) {
     'ngInject';
@@ -55,7 +47,7 @@ class KubernetesManifestWizardCtrl implements IController {
   }
 
   private initialize(): void {
-    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+    this.taskMonitor = new TaskMonitor({
       application: this.application,
       title: 'Deploying your manifest',
       modalInstance: this.$uibModalInstance,
@@ -72,8 +64,7 @@ class KubernetesManifestWizardCtrl implements IController {
 }
 
 export const KUBERNETES_MANIFEST_CTRL = 'spinnaker.kubernetes.v2.manifest.wizard.controller';
-module(KUBERNETES_MANIFEST_CTRL, [
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-  KUBERNETES_MANIFEST_COMMAND_BUILDER,
-]).controller('kubernetesManifestWizardCtrl', KubernetesManifestWizardCtrl);
+module(KUBERNETES_MANIFEST_CTRL, [SERVER_GROUP_WRITER, KUBERNETES_MANIFEST_COMMAND_BUILDER]).controller(
+  'kubernetesManifestWizardCtrl',
+  KubernetesManifestWizardCtrl,
+);
