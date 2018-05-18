@@ -80,6 +80,9 @@ data:
         config:
           payload: false
       - name: release_branch_pull_request_handler
+        config:
+          omit_repos: 
+          - spinnaker/spinnaker
       - name: master_branch_pull_request_handler
 
     database:
