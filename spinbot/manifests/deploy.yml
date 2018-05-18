@@ -57,6 +57,7 @@ data:
       - spinnaker/orca
       - spinnaker/rosco
       - spinnaker/halyard
+      - spinnaker/spin
 
     logging:
       level: INFO
