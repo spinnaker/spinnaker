@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.deploy
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import spock.lang.Specification
 
 class DeployAtomicOperationUnitSpec extends Specification {
@@ -27,10 +29,19 @@ class DeployAtomicOperationUnitSpec extends Specification {
   }
 
   void "deploy handler is retrieved from registry"() {
-    setup:
+    given:
+    def createServerGroupEvent = new CreateServerGroupEvent("aws", "1234", "us-west-1", "app-v001")
+    def deployDescription = new DeployDescription() {
+      @Override
+      Collection<OperationEvent> getEvents() {
+        return [ createServerGroupEvent ]
+      }
+    }
+
+    and:
     def deployHandlerRegistry = Mock(DeployHandlerRegistry)
     def testDeployHandler = Mock(DeployHandler)
-    def deployAtomicOperation = new DeployAtomicOperation(Mock(DeployDescription))
+    def deployAtomicOperation = new DeployAtomicOperation(deployDescription)
     deployAtomicOperation.deploymentHandlerRegistry = deployHandlerRegistry
 
     when:
@@ -39,9 +50,11 @@ class DeployAtomicOperationUnitSpec extends Specification {
     then:
     1 * deployHandlerRegistry.findHandler(_) >> testDeployHandler
     1 * testDeployHandler.handle(_, _) >> { Mock(DeploymentResult) }
+
+    deployAtomicOperation.getEvents() == [ createServerGroupEvent ]
   }
 
-  void "exception is thrown when handler doesnt exist in registry"() {
+  void "exception is thrown when handler does not exist in registry"() {
     setup:
     def deployHandlerRegistry = Mock(DeployHandlerRegistry)
     def deployAtomicOperation = new DeployAtomicOperation(Mock(DeployDescription))

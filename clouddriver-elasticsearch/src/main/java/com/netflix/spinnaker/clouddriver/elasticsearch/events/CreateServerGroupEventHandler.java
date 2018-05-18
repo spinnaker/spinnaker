@@ -21,11 +21,15 @@ import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupE
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler;
 import com.netflix.spinnaker.clouddriver.tags.EntityTagger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CreateServerGroupEventHandler implements OperationEventHandler {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   private final ElasticSearchEntityTagger serverGroupTagger;
 
   @Autowired
@@ -38,6 +42,8 @@ public class CreateServerGroupEventHandler implements OperationEventHandler {
     if (!(operationEvent instanceof CreateServerGroupEvent)) {
       return;
     }
+
+    log.debug("Handling create server group event ({})", operationEvent);
 
     CreateServerGroupEvent createServerGroupEvent = (CreateServerGroupEvent) operationEvent;
     serverGroupTagger.deleteAll(

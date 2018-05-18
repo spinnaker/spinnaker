@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.deploy
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -30,7 +29,6 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
   DeployHandlerRegistry deploymentHandlerRegistry
 
   private final DeployDescription description
-  private final Collection<OperationEvent> events = []
 
   DeployAtomicOperation(DeployDescription description) {
     this.description = description
@@ -42,7 +40,7 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
 
   @Override
   Collection<OperationEvent> getEvents() {
-    return events
+    return this.description.getEvents() ?: []
   }
 
   @Override
@@ -58,9 +56,6 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
 
     task.updateStatus TASK_PHASE, "Invoking Handler."
     def deploymentResult = deployHandler.handle(description, priorOutputs)
-
-    def events = description.getEvents() ?: []
-    events.addAll(events)
 
     task.updateStatus TASK_PHASE, "Server Groups: ${deploymentResult.serverGroupNames} created."
 
