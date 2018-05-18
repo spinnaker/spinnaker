@@ -25,7 +25,7 @@ def ConfigurePolicies(_conf):
 
 def GetPolicyConfig(name):
     policy = next((p for p in conf.get('policies', []) if p.get('name') == name), {})
-    return policy.get('config')
+    return policy.get('config', {})
 
 def GetConfig():
     return conf
