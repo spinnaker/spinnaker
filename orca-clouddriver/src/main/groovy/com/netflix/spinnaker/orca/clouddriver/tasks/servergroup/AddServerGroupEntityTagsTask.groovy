@@ -76,6 +76,7 @@ class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implem
         operations <<
           [
             "upsertEntityTags": [
+              isPartial: false,
               tags     : tags,
               entityRef: [
                 entityType   : "servergroup",

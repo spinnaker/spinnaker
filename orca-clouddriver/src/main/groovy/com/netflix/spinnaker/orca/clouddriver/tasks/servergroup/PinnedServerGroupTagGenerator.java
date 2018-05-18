@@ -28,7 +28,10 @@ import java.util.Map;
 
 @Component
 public class PinnedServerGroupTagGenerator implements ServerGroupEntityTagGenerator {
+  private static final Logger log = LoggerFactory.getLogger(PinnedServerGroupTagGenerator.class);
+
   public static final String PINNED_CAPACITY_TAG = "spinnaker:pinned_capacity";
+
 
   @Override
   public Collection<Map<String, Object>> generateTags(Stage stage,
@@ -57,6 +60,17 @@ public class PinnedServerGroupTagGenerator implements ServerGroupEntityTagGenera
       .put("pinnedCapacity", stageData.capacity.toMap())
       .put("unpinnedCapacity", stageData.sourceServerGroupCapacitySnapshot.toMap())
       .build();
+
+    log.debug(
+      "{}:{}:{} has been tagged with '{}' (executionId: {}, stageId: {}, value: {})",
+      account,
+      location,
+      serverGroup,
+      PINNED_CAPACITY_TAG,
+      stage.getExecution().getId(),
+      stage.getId(),
+      value
+    );
 
     return Collections.singletonList(
       ImmutableMap.<String, Object>builder()
