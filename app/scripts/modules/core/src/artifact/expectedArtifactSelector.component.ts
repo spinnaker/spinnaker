@@ -16,7 +16,7 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public showIcons: boolean;
 
   public iconPath(expected: IExpectedArtifact): string {
-    const artifact = expected.matchArtifact || expected.defaultArtifact;
+    const artifact = expected && (expected.matchArtifact || expected.defaultArtifact);
     if (artifact == null) {
       return '';
     }

@@ -2,18 +2,11 @@ import { IComponentOptions, IController, module } from 'angular';
 
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { IStage, IExpectedArtifact, IPipeline } from 'core';
-import {
-  ArtifactReferenceServiceProvider,
-  ARTIFACT_REFERENCE_SERVICE_PROVIDER,
-} from 'core/artifact/ArtifactReferenceService';
+import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
 
 class ProducesArtifactsCtrl implements IController {
   public stage: IStage;
   public pipeline: IPipeline;
-
-  constructor(private artifactReferenceService: ArtifactReferenceServiceProvider) {
-    'nginject';
-  }
 
   public hasExpectedArtifacts(): boolean {
     return this.stage && this.stage.expectedArtifacts instanceof Array && this.stage.expectedArtifacts.length > 0;
@@ -26,7 +19,7 @@ class ProducesArtifactsCtrl implements IController {
 
     stage.expectedArtifacts = stage.expectedArtifacts.filter((a: IExpectedArtifact) => a.id !== expectedArtifact.id);
 
-    this.artifactReferenceService.removeReferenceFromStages(expectedArtifact.id, this.pipeline.stages);
+    ArtifactReferenceService.removeReferenceFromStages(expectedArtifact.id, this.pipeline.stages);
   };
 
   private defaultArtifact() {
@@ -56,7 +49,7 @@ class ProducesArtifactsComponent implements IComponentOptions {
     pipeline: '=',
   };
   public controllerAs = 'ctrl';
-  public controller = ['artifactReferenceService', ProducesArtifactsCtrl];
+  public controller = ProducesArtifactsCtrl;
   public template = `
     <div class="container-fluid form-horizontal">
       <expected-artifact
@@ -83,7 +76,4 @@ class ProducesArtifactsComponent implements IComponentOptions {
 }
 
 export const PRODUCES_ARTIFACTS = 'spinnaker.core.pipeline.stage.producesArtifacts';
-module(PRODUCES_ARTIFACTS, [ARTIFACT_REFERENCE_SERVICE_PROVIDER]).component(
-  'producesArtifacts',
-  new ProducesArtifactsComponent(),
-);
+module(PRODUCES_ARTIFACTS, []).component('producesArtifacts', new ProducesArtifactsComponent());

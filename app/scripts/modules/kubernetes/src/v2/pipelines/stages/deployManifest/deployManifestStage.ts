@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { ArtifactReferenceServiceProvider, Registry, SETTINGS } from '@spinnaker/core';
+import { ArtifactReferenceService, Registry, SETTINGS } from '@spinnaker/core';
 
 import { KubernetesV2DeployManifestConfigCtrl } from './deployManifestConfig.controller';
 import { KUBERNETES_MANIFEST_COMMAND_BUILDER } from '../../../manifest/manifestCommandBuilder.service';
@@ -14,7 +14,7 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
   KUBERNETES_DEPLOY_MANIFEST_DEPLOY_STATUS_MANIFEST_SUMMARY,
   KUBERNETES_EXECUTION_ARTIFACT_TAB,
 ])
-  .config((artifactReferenceServiceProvider: ArtifactReferenceServiceProvider) => {
+  .config(() => {
     // Todo: replace feature flag with proper versioned provider mechanism once available.
     if (SETTINGS.feature.versionedProviders) {
       Registry.pipeline.registerStage({
@@ -32,10 +32,7 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
         validators: [],
       });
 
-      artifactReferenceServiceProvider.registerReference('stage', () => [
-        ['manifestArtifactId'],
-        ['requiredArtifactIds'],
-      ]);
+      ArtifactReferenceService.registerReference('stage', () => [['manifestArtifactId'], ['requiredArtifactIds']]);
     }
   })
   .controller('KubernetesV2DeployManifestConfigCtrl', KubernetesV2DeployManifestConfigCtrl);

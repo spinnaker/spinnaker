@@ -1,13 +1,13 @@
 'use strict';
 
-import { ARTIFACT_REFERENCE_SERVICE_PROVIDER } from 'core/artifact/ArtifactReferenceService';
+import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { Registry } from 'core/registry';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.trigger.triggersDirective', [ARTIFACT_REFERENCE_SERVICE_PROVIDER])
+  .module('spinnaker.core.pipeline.config.trigger.triggersDirective', [])
   .directive('triggers', function() {
     return {
       restrict: 'E',
@@ -20,7 +20,7 @@ module.exports = angular
       templateUrl: require('./triggers.html'),
     };
   })
-  .controller('triggersCtrl', function($scope, artifactReferenceService) {
+  .controller('triggersCtrl', function($scope) {
     this.addTrigger = function() {
       var triggerTypes = Registry.pipeline.getTriggerTypes(),
         newTrigger = { enabled: true };
@@ -55,7 +55,7 @@ module.exports = angular
         }
       });
 
-      artifactReferenceService.removeReferenceFromStages(expectedArtifact.id, pipeline.stages);
+      ArtifactReferenceService.removeReferenceFromStages(expectedArtifact.id, pipeline.stages);
     };
 
     this.addArtifact = () => {

@@ -1,13 +1,14 @@
 import { module } from 'angular';
+import { get } from 'lodash';
 
-import { ArtifactReferenceServiceProvider, Registry, SETTINGS } from 'core';
+import { ArtifactReferenceService, Registry, SETTINGS } from 'core';
 
 import { BakeManifestConfigCtrl } from './bakeManifestConfig.controller';
 
 export const BAKE_MANIFEST_STAGE = 'spinnaker.core.pipeline.stage.bakeManifestStage';
 
 module(BAKE_MANIFEST_STAGE, [])
-  .config((artifactReferenceServiceProvider: ArtifactReferenceServiceProvider) => {
+  .config(() => {
     if (SETTINGS.feature.versionedProviders) {
       Registry.pipeline.registerStage({
         label: 'Bake (Manifest)',
@@ -20,7 +21,21 @@ module(BAKE_MANIFEST_STAGE, [])
         controllerAs: 'ctrl',
       });
 
-      artifactReferenceServiceProvider.registerReference('stage', () => [['expectedArtifactId']]);
+      ArtifactReferenceService.registerReference('stage', stage => {
+        if (stage.type !== 'bakeManifest') {
+          return [];
+        }
+        const paths = [['expectedArtifactId']];
+        const expected = get(stage, 'expectedArtifacts', []);
+        const inputs = get(stage, 'inputArtifacts', []);
+        expected.forEach((_e, i) => {
+          paths.push(['expectedArtifacts', String(i), 'id']);
+        });
+        inputs.forEach((_in, i) => {
+          paths.push(['inputArtifacts', String(i), 'id']);
+        });
+        return paths;
+      });
     }
   })
   .controller('BakeManifestConfigCtrl', BakeManifestConfigCtrl);

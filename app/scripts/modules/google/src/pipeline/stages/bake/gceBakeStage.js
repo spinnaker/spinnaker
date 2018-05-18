@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ARTIFACT_REFERENCE_SERVICE_PROVIDER,
+  ArtifactReferenceService,
   AuthenticationService,
   BakeExecutionLabel,
   BAKERY_SERVICE,
@@ -16,11 +16,10 @@ import {
 
 module.exports = angular
   .module('spinnaker.gce.pipeline.stage..bakeStage', [
-    ARTIFACT_REFERENCE_SERVICE_PROVIDER,
     require('./bakeExecutionDetails.controller.js').name,
     BAKERY_SERVICE,
   ])
-  .config(function(artifactReferenceServiceProvider) {
+  .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',
       cloudProvider: 'gce',
@@ -45,7 +44,7 @@ module.exports = angular
       ],
       restartable: true,
     });
-    artifactReferenceServiceProvider.registerReference('stage', () => [['packageArtifactIds']]);
+    ArtifactReferenceService.registerReference('stage', () => [['packageArtifactIds']]);
   })
   .controller('gceBakeStageCtrl', function($scope, bakeryService, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
