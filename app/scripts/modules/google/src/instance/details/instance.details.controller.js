@@ -6,13 +6,13 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
+  FirewallLabels,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
   RECENT_HISTORY_SERVICE,
 } from '@spinnaker/core';
 
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
-import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.instance.detail.gce.controller', [

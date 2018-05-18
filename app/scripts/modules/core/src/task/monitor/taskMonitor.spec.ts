@@ -5,7 +5,7 @@ import Spy = jasmine.Spy;
 
 import { API } from 'core/api/ApiService';
 import { ITask } from 'core/domain';
-import { TaskMonitor } from './taskMonitor';
+import { TaskMonitor } from './TaskMonitor';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 

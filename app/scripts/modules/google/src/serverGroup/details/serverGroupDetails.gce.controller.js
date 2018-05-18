@@ -6,6 +6,7 @@ import _ from 'lodash';
 import {
   CONFIRMATION_MODAL_SERVICE,
   ClusterTargetBuilder,
+  FirewallLabels,
   NETWORK_READ_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
@@ -16,7 +17,6 @@ import {
 require('../configure/serverGroup.configure.gce.module.js');
 
 import './serverGroupDetails.less';
-import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.gce.controller', [

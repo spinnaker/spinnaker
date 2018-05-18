@@ -6,11 +6,11 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
+  FirewallLabels,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   ServerGroupTemplates,
 } from '@spinnaker/core';
-import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.securityGroup.kubernetes.details.controller', [

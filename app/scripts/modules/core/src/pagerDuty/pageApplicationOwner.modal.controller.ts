@@ -2,7 +2,7 @@ import { module, IController } from 'angular';
 
 import { Application } from 'core/application';
 import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
-import { TaskMonitor } from 'core/task/monitor/taskMonitor';
+import { TaskMonitor } from 'core/task/monitor/TaskMonitor';
 import { PagerDutyWriter } from './pagerDuty.write.service';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 

@@ -21,7 +21,7 @@ import { ILegacySpinnerProps, SpinnerWrapperComponent } from '../widgets/Spinner
 import { IRunningTasksTagProps, runningTasksTagBindings } from '../serverGroup/pod/RunningTasksTag';
 import { IStageSummaryWrapperProps } from 'core/pipeline/details/StageSummaryWrapper';
 import { IStepExecutionDetailsWrapperProps } from 'core/pipeline/details/StepExecutionDetailsWrapper';
-import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitor';
+import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitorWrapper';
 import { IViewChangesLinkProps } from 'core/diffs/ViewChangesLink';
 import { IViewScalingActivitiesLinkProps } from 'core/serverGroup/details/scalingActivities/ViewScalingActivitiesLink';
 import { InsightLayoutComponent } from 'core/insight/insightLayout.component';

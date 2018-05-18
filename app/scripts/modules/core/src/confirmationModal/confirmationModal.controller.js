@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { TaskMonitor } from 'core/task/monitor/taskMonitor';
+import { TaskMonitor } from 'core/task/monitor/TaskMonitor';
 
 module.exports = angular
   .module('spinnaker.core.confirmationModal.controller', [require('angular-ui-bootstrap')])
