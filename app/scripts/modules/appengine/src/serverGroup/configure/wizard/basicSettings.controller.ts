@@ -1,8 +1,8 @@
-import { copy, extend, IController, IControllerService, IScope, module } from 'angular';
+import { extend, IController, IControllerService, IScope, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 import { set } from 'lodash';
 
-import { IArtifact, IExpectedArtifact, SETTINGS } from '@spinnaker/core';
+import { SETTINGS } from '@spinnaker/core';
 
 import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
 import { AppengineSourceType, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
@@ -47,19 +47,6 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
 
   public isContainerImageSource(): boolean {
     return this.$scope.command.sourceType === AppengineSourceType.CONTAINER_IMAGE;
-  }
-
-  // TODO(jtk54): this is a copy of core code, please dedup using expected-artifact-selector component
-  public summarizeExpectedArtifact(expected: IExpectedArtifact): string {
-    if (!expected) {
-      return '';
-    }
-
-    const artifact = copy(expected.matchArtifact);
-    return Object.keys(artifact)
-      .filter((k: keyof IArtifact) => artifact[k])
-      .map((k: keyof IArtifact) => `${k}: ${artifact[k]}`)
-      .join(', ');
   }
 
   public toggleResolveViaTrigger(): void {

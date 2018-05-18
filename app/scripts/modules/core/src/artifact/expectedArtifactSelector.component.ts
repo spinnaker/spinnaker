@@ -14,6 +14,7 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public expectedArtifacts: IExpectedArtifact[];
   public helpFieldKey: string;
   public showIcons: boolean;
+  public fieldColumns: number;
 
   public iconPath(expected: IExpectedArtifact): string {
     const artifact = expected && (expected.matchArtifact || expected.defaultArtifact);
@@ -33,13 +34,14 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
     accounts: '<',
     helpFieldKey: '@',
     showIcons: '<',
+    fieldColumns: '@',
   };
   public controller: any = ExpectedArtifactSelectorCtrl;
   public controllerAs = 'ctrl';
   public template = `
     <render-if-feature feature="artifacts">
       <ng-form name="artifact">
-        <stage-config-field label="Expected Artifact" help-key="{{ctrl.helpFieldKey}}">
+        <stage-config-field label="Expected Artifact" help-key="{{ctrl.helpFieldKey}}" field-columns="{{ ctrl.fieldColumns }}">
           <ui-select ng-model="ctrl.id"
                      class="form-control input-sm expected-artifact-selector" required>
             <ui-select-match>
@@ -53,7 +55,8 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
           </ui-select>
         </stage-config-field>
         <stage-config-field ng-if="ctrl.account !== undefined"
-                            label="Artifact Account">
+                            label="Artifact Account"
+                            fieldColumns="{{ ctrl.fieldColumns }}">
           <ui-select ng-model="ctrl.account"
                      class="form-control input-sm">
             <ui-select-match>{{ $select.selected.name }}</ui-select-match>

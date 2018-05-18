@@ -118,18 +118,13 @@
         </div>
       </div>
 
-      <div class="form-group" ng-if="command.fromArtifact">
-        <label class=" col-md-3 sm-label-right">Expected Artifact</label>
-        <div class="col-md-7">
-          <ui-select ng-model="command.expectedArtifactId"
-                     class="form-control input-sm">
-            <ui-select-match>{{ basicSettingsCtrl.summarizeExpectedArtifact($select.selected) }}</ui-select-match>
-            <ui-select-choices repeat="expected.id as expected in command.backingData.expectedArtifacts">
-              <span>{{ basicSettingsCtrl.summarizeExpectedArtifact(expected) }}</span>
-            </ui-select-choices>
-          </ui-select>
-        </div>
-      </div>
+      <expected-artifact-selector ng-if="command.fromArtifact"
+                                  command="command"
+                                  id="command.expectedArtifactId"
+                                  expected-artifacts="command.backingData.expectedArtifacts"
+                                  show-icons="true"
+                                  field-columns="7">
+      </expected-artifact-selector>
 
       <div class="form-group" ng-if="!command.fromArtifact">
         <div class="col-md-3 sm-label-right">
@@ -228,18 +223,13 @@
         </div>
       </div>
 
-      <div class="form-group" ng-if="command.fromArtifact">
-        <label class=" col-md-3 sm-label-right">Expected Artifact</label>
-        <div class="col-md-7">
-          <ui-select ng-model="command.expectedArtifactId"
-                     class="form-control input-sm">
-            <ui-select-match>{{ basicSettingsCtrl.summarizeExpectedArtifact($select.selected) }}</ui-select-match>
-            <ui-select-choices repeat="expected.id as expected in command.backingData.expectedArtifacts">
-              <span>{{ basicSettingsCtrl.summarizeExpectedArtifact(expected) }}</span>
-            </ui-select-choices>
-          </ui-select>
-        </div>
-      </div>
+      <expected-artifact-selector ng-if="command.fromArtifact"
+                                  command="command"
+                                  id="command.expectedArtifactId"
+                                  expected-artifacts="command.backingData.expectedArtifacts"
+                                  show-icons="true"
+                                  field-columns="7">
+      </expected-artifact-selector>
 
       <div class="form-group" ng-if="!command.fromArtifact">
         <div class="col-md-3 sm-label-right">
