@@ -40,8 +40,6 @@ ospackage {
 
 // installer scripts
   preInstall = file('pkg_scripts/preInstall.sh')
-  postInstall = file('pkg_scripts/postInstall.sh')
-  postUninstall = file('pkg_scripts/postUninstall.sh')
 
 // files to put in the meta package
   from('pylib') {
@@ -74,13 +72,6 @@ ospackage {
   }
 
 
-  from('etc/apache2/sites-available/spinnaker.conf') {
-    into '/etc/apache2/sites-available'
-    user = 'root'
-    permissionGroup = 'root'    
-    fileMode = 0644
-  }
-
   from('etc/default/spinnaker') {
     into '/etc/default'
     user = 'root'
@@ -89,21 +80,13 @@ ospackage {
   }
 
   configurationFile('/etc/default/spinnaker\n')
-  configurationFile('/etc/apache2/sites-available/spinnaker.conf\n')
 
   File configDir
   FileCollection collection = files { configDir.listFiles() }
 
   configDir = file('config')
   collection.each { configurationFile(spinnakerHome + '/' + relativePath(it) + '\n') }
-}
 
-
-// Ubuntu
-buildDeb {
-  // requires('openjdk-8-jdk')
-  // requires('oracle-java8-installer')
-  requires('redis-server', '3.0.5', GREATER | EQUAL)
   requires('spinnaker-clouddriver')
   requires('spinnaker-deck')
   requires('spinnaker-echo')
@@ -113,15 +96,44 @@ buildDeb {
   requires('spinnaker-igor')
   requires('spinnaker-orca')
   requires('spinnaker-rosco')
-  requires('apache2')
-  
 }
 
 
-// TO DO 
+// Ubuntu
+buildDeb {
+  postInstall = file('pkg_scripts/postInstall.sh')
+  postUninstall = file('pkg_scripts/postUninstall.sh')
+
+  from('etc/apache2/sites-available/spinnaker.conf') {
+    into '/etc/apache2/sites-available'
+    user = 'root'
+    permissionGroup = 'root'
+    fileMode = 0644
+  }
+  configurationFile('/etc/apache2/sites-available/spinnaker.conf\n')
+
+  // requires('openjdk-8-jdk')
+  // requires('oracle-java8-installer')
+  requires('redis-server', '3.0.5', GREATER | EQUAL)
+  requires('apache2')
+}
+
 buildRpm {
   arch = NOARCH
   os = LINUX
+
+  postInstall = file('pkg_scripts/postInstallRpm.sh')
+  postUninstall = file('pkg_scripts/postUninstallRpm.sh')
+
+  from('etc/apache2/sites-available/spinnaker.conf') {
+    into '/etc/httpd/sites-available'
+    user = 'root'
+    permissionGroup = 'root'
+    fileMode = 0644
+  }
+  configurationFile('/etc/httpd/sites-available/spinnaker.conf\n')
+
+  requires('httpd')
 }
 
 task publishInstallSpinnaker {

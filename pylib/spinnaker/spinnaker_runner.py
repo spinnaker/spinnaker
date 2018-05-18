@@ -493,14 +493,25 @@ To fix this run the following:
 Proceeding anyway.
 """.format(script_dir=self.__installation.UTILITY_SCRIPT_DIR))
 
-
   def stop_deck(self):
-    print 'Stopping apache server while stopping Spinnaker.'
-    run_quick('service apache2 stop', echo=True)
+    apache = self.get_apache_service_name()
+    print 'Stopping %s server while stopping Spinnaker.' % apache
+    run_quick('service %s stop' % apache, echo=True)
 
   def start_deck(self):
-    print 'Starting apache server.'
-    run_quick('service apache2 start', echo=True)
+    apache = self.get_apache_service_name()
+    print 'Starting %s server.' % apache
+    run_quick('service %s start' % apache, echo=True)
+
+  def get_apache_service_name(self):
+      result = run_quick('service --status-all', echo=False)
+      if "apache2" in result.stdout:
+          return "apache2"
+      if "httpd" in result.stdout:
+          return "httpd"
+
+      print 'Unable to determine apache service name. Using apache2.'
+      return "apache2"
 
   def start_all(self, options):
     self.check_configuration(options)
