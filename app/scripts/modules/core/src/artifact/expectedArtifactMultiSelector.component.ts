@@ -2,6 +2,9 @@ import { IComponentOptions, IController, module } from 'angular';
 
 import { IExpectedArtifact } from 'core/domain';
 import { EXPECTED_ARTIFACT_SERVICE, ExpectedArtifactService } from './expectedArtifact.service';
+import { ArtifactIconService } from './ArtifactIconService';
+
+import './artifactSelector.less';
 
 class ExpectedArtifactMultiSelectorCtrl implements IController {
   public command: any;
@@ -9,14 +12,30 @@ class ExpectedArtifactMultiSelectorCtrl implements IController {
   public label: string;
   public expectedArtifacts: IExpectedArtifact[];
   public helpFieldKey: string;
+  public showIcons: boolean;
 
   constructor(public expectedArtifactService: ExpectedArtifactService) {
     'ngInject';
   }
+
+  public iconPath(expected: IExpectedArtifact): string {
+    const artifact = expected.matchArtifact || expected.defaultArtifact;
+    if (artifact == null) {
+      return '';
+    }
+    return ArtifactIconService.getPath(artifact.type);
+  }
 }
 
 class ExpectedArtifactMultiSelectorComponent implements IComponentOptions {
-  public bindings: any = { command: '=', expectedArtifacts: '<', artifactLabel: '@', idsField: '@', helpFieldKey: '@' };
+  public bindings: any = {
+    command: '=',
+    expectedArtifacts: '<',
+    artifactLabel: '@',
+    idsField: '@',
+    helpFieldKey: '@',
+    showIcons: '<',
+  };
   public controller: any = ExpectedArtifactMultiSelectorCtrl;
   public controllerAs = 'ctrl';
   public template = `
@@ -25,9 +44,13 @@ class ExpectedArtifactMultiSelectorComponent implements IComponentOptions {
           <stage-config-field label="{{ctrl.artifactLabel}}" help-key="{{ctrl.helpFieldKey}}">
             <ui-select multiple
                        ng-model="ctrl.command[ctrl.idsField]"
-                       class="form-control input-sm">
-              <ui-select-match>{{ $item | summarizeExpectedArtifact }}</ui-select-match>
+                       class="form-control input-sm expected-artifact-multi-selector">
+              <ui-select-match>
+                <img ng-if="ctrl.showIcons" width="16" height="16" class="artifact-icon" ng-src="{{ ctrl.iconPath($item) }}" />
+                {{ $item | summarizeExpectedArtifact }}
+              </ui-select-match>
               <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
+                <img ng-if="ctrl.showIcons" width="16" height="16" class="artifact-icon" ng-src="{{ ctrl.iconPath(expected) }}" />
                 <span>{{ expected | summarizeExpectedArtifact }}</span>
               </ui-select-choices>
             </ui-select>
