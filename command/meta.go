@@ -144,6 +144,11 @@ func (m *ApiMeta) InitializeClient() (*http.Client, error) {
 			TLSClientConfig: &tls.Config{},
 		}
 
+		if !X509.IsValid() {
+			// Misconfigured.
+			return nil, errors.New("Incorrect x509 auth configuration.\nMust specify certPath/keyPath or cert/key pair.")
+		}
+
 		if X509.CertPath != "" && X509.KeyPath != "" {
 			certPath, err := homedir.Expand(X509.CertPath)
 			if err != nil {
@@ -164,21 +169,35 @@ func (m *ApiMeta) InitializeClient() (*http.Client, error) {
 				return nil, err
 			}
 
-			clientCertPool := x509.NewCertPool()
-			clientCertPool.AppendCertsFromPEM(clientCA)
+			return m.initializeX509Config(client, clientCA, cert), nil
+		} else if X509.Cert != "" && X509.Key != "" {
+			certBytes := []byte(X509.Cert)
+			keyBytes := []byte(X509.Key)
+			cert, err := tls.X509KeyPair(certBytes, keyBytes)
+			if err != nil {
+				return nil, err
+			}
 
-			client.Transport.(*http.Transport).TLSClientConfig.MinVersion = tls.VersionTLS12
-			client.Transport.(*http.Transport).TLSClientConfig.PreferServerCipherSuites = true
-			client.Transport.(*http.Transport).TLSClientConfig.Certificates = []tls.Certificate{cert}
-			client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true // TODO(jacobkiefer): Add a flag this.
-			return &client, nil
+			return m.initializeX509Config(client, certBytes, cert), nil
 		} else {
 			// Misconfigured.
-			return nil, errors.New("Missing certificate path or key path in x509 auth configuration.")
+			return nil, errors.New("Incorrect x509 auth configuration.\nMust specify certPath/keyPath or cert/key pair.")
 		}
 	} else {
 		return &client, nil
 	}
+}
+
+func (m *ApiMeta) initializeX509Config(client http.Client, clientCA []byte, cert tls.Certificate) *http.Client {
+	clientCertPool := x509.NewCertPool()
+	clientCertPool.AppendCertsFromPEM(clientCA)
+
+	client.Transport.(*http.Transport).TLSClientConfig.MinVersion = tls.VersionTLS12
+	client.Transport.(*http.Transport).TLSClientConfig.PreferServerCipherSuites = true
+	client.Transport.(*http.Transport).TLSClientConfig.Certificates = []tls.Certificate{cert}
+	client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true // TODO(jacobkiefer): Add a flag this.
+
+	return &client
 }
 
 func (m *ApiMeta) Help() string {

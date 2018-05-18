@@ -8,3 +8,14 @@ auth:
     # the key and cert files.
     certPath: "~/.spin/certpath"
     keyPath: "~/.spin/keypath" # This should point to an _unencrypted_ keyfile.
+
+    # Pipe to start a multi-line string. This is necessary to import the b64 cert/key value.
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      BLAHBLAHBLAHBLAHBLAHBLAH==
+      -----END RSA PRIVATE KEY-----
+    # Pipe to start a multi-line string. This is necessary to import the b64 cert/key value.
+    key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      BLAHBLAHBLAHBLAHBLAHBLAH==
+      -----END RSA PRIVATE KEY-----
