@@ -126,7 +126,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
           // forces a retry
           throw new IllegalStateException(e);
         }
-      }, 10, 2000, true); // retry 10x, at a max of 2s intervals
+      }, 10, 200, true); // retry 10x, starting at .2s intervals
       task.put("manifests", parsedManifests);
       task.put("source", "text");
     }
