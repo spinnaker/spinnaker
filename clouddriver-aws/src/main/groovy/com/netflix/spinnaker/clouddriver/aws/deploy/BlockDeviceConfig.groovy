@@ -49,6 +49,13 @@ class BlockDeviceConfig {
       "c5.9xlarge"  : defaultBlockDevicesForEbsOnly(),
       "c5.18xlarge" : defaultBlockDevicesForEbsOnly(),
 
+      "c5d.large"    : enumeratedBlockDevicesWithVirtualName(1),
+      "c5d.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "c5d.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "c5d.4xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "c5d.9xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "c5d.18xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+
       "cc2.8xlarge" : enumeratedBlockDevicesWithVirtualName(4),
 
       "cg1.4xlarge" : sizedBlockDevicesForEbs(120),
@@ -88,6 +95,7 @@ class BlockDeviceConfig {
       "i3.4xlarge"  : enumeratedBlockDevicesWithVirtualName(2),
       "i3.8xlarge"  : enumeratedBlockDevicesWithVirtualName(4),
       "i3.16xlarge" : enumeratedBlockDevicesWithVirtualName(8),
+      "i3.metal"    : enumeratedBlockDevicesWithVirtualName(8),
 
       "m1.small"    : enumeratedBlockDevicesWithVirtualName(1),
       "m1.medium"   : enumeratedBlockDevicesWithVirtualName(1),
