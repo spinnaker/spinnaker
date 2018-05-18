@@ -2,7 +2,7 @@ import re
 
 commit_types = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'chore', 'config']
 
-branchre = re.compile('release-(\d+\.\d+\.x)') 
+branchre = re.compile('release-(\d+\.\d+\.x)')
 commitre = re.compile('({})(.*): (.*)'.format('|'.join(commit_types)))
 
 def ReleaseBranchFor(branch):
