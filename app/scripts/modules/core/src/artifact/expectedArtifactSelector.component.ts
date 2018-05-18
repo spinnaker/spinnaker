@@ -16,6 +16,10 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public showIcons: boolean;
   public fieldColumns: number;
 
+  public $onInit() {
+    this.fieldColumns = this.fieldColumns || 8;
+  }
+
   public iconPath(expected: IExpectedArtifact): string {
     const artifact = expected && (expected.matchArtifact || expected.defaultArtifact);
     if (artifact == null) {
