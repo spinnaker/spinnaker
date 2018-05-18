@@ -4,7 +4,7 @@ metadata:
   name: spinbot
   namespace: spinbot
 spec:
-  schedule: "*/3 * * * *"
+  schedule: "*/1 * * * *"
   jobTemplate:
     spec:
       template:
@@ -74,6 +74,7 @@ data:
 
     event:
       handlers:
+      - name: label_issue_comment_event_handler
       - name: log_event_handler
         config:
           payload: false

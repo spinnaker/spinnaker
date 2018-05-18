@@ -27,7 +27,7 @@ class Client(object):
         self.monitoring_db.write('rate_limit_remaining', { 'value': ret.rate.remaining })
         return ret
 
-    def get_label_or_create(self, repo, name):
+    def get_label(self, repo, name, create=True):
         repo = self.g.get_repo(repo)
         label = None
         try:
@@ -35,7 +35,7 @@ class Client(object):
         except:
             pass
 
-        if label is None:
+        if label is None and create:
             label = repo.create_label(name, '000000')
 
         return label
@@ -73,3 +73,6 @@ class Client(object):
 
     def get_pull_request(self, repo, num):
         return self.g.get_repo(repo).get_pull(num)
+
+    def get_issue(self, repo, num):
+        return self.g.get_repo(repo).get_issue(num)
