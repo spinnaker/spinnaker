@@ -18,8 +18,8 @@ spectator:
 # rpm based imaged) and/or a chocolatey repository (used when baking a nuget based image).
 # You may specify a space separated list repositories per repository type.
 # The following commented-out lines are an example of what a valid entry looks like.
-# debianRepository: http://dl.bintray.com/spinnaker/ospackages ./
-# yumRepository: https://https://jfrog.bintray.com/...
+# debianRepository: http://dl.bintray.com/spinnaker/ospackages trusty main;http://other.repo.com/repo/packages trusty main
+# yumRepository: https://jfrog.bintray.com/yum/repos/some-package
 # chocolateyRepository: https://chocolatey.org/api/v2/
 
 defaultCloudProviderType: aws
