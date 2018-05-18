@@ -8,7 +8,7 @@ import {
   AuthenticationService,
   BakeExecutionLabel,
   BAKERY_SERVICE,
-  EXPECTED_ARTIFACT_SERVICE,
+  ExpectedArtifactService,
   PipelineTemplates,
   Registry,
   SETTINGS,
@@ -19,7 +19,6 @@ module.exports = angular
     ARTIFACT_REFERENCE_SERVICE_PROVIDER,
     require('./bakeExecutionDetails.controller.js').name,
     BAKERY_SERVICE,
-    EXPECTED_ARTIFACT_SERVICE,
   ])
   .config(function(artifactReferenceServiceProvider) {
     Registry.pipeline.registerStage({
@@ -48,7 +47,7 @@ module.exports = angular
     });
     artifactReferenceServiceProvider.registerReference('stage', () => [['packageArtifactIds']]);
   })
-  .controller('gceBakeStageCtrl', function($scope, bakeryService, $q, $uibModal, expectedArtifactService) {
+  .controller('gceBakeStageCtrl', function($scope, bakeryService, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.region = 'global';
 
@@ -70,7 +69,7 @@ module.exports = angular
         .all({
           baseOsOptions: bakeryService.getBaseOsOptions('gce'),
           baseLabelOptions: bakeryService.getBaseLabelOptions(),
-          expectedArtifacts: expectedArtifactService.getExpectedArtifactsAvailableToStage(
+          expectedArtifacts: ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
             $scope.stage,
             $scope.pipeline,
           ),

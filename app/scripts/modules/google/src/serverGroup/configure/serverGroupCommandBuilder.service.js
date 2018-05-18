@@ -3,12 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, EXPECTED_ARTIFACT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
+import { AccountService, ExpectedArtifactService, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
 import { GCEProviderSettings } from 'google/gce.settings';
 
 module.exports = angular
   .module('spinnaker.gce.serverGroupCommandBuilder.service', [
-    EXPECTED_ARTIFACT_SERVICE,
     INSTANCE_TYPE_SERVICE,
     require('google/common/xpnNaming.gce.service.js').name,
     require('./../../instance/custom/customInstanceBuilder.gce.service.js').name,
@@ -16,7 +15,6 @@ module.exports = angular
   ])
   .factory('gceServerGroupCommandBuilder', function(
     $q,
-    expectedArtifactService,
     instanceTypeService,
     gceCustomInstanceBuilderService,
     gceServerGroupHiddenMetadataKeys,
@@ -362,7 +360,7 @@ module.exports = angular
 
     // Only used to prepare view requiring template selecting
     function buildNewServerGroupCommandForPipeline(currentStage, pipeline) {
-      var expectedArtifacts = expectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
+      var expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
       return $q.when({
         viewState: {
           expectedArtifacts: expectedArtifacts,
@@ -485,7 +483,7 @@ module.exports = angular
       return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
 
-        var expectedArtifacts = expectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
+        var expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
         var viewState = {
           instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,

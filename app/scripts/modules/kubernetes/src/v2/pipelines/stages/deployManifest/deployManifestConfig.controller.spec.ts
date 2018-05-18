@@ -32,7 +32,6 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
   let stage: any;
   let scope: any;
   let cmdBuilder: any;
-  let artSvc: any;
 
   beforeEach(function() {
     metadata = {};
@@ -49,14 +48,11 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
     cmdBuilder = {
       buildNewManifestCommand: () => builtCmdPromise,
     };
-    artSvc = {
-      getExpectedArtifactsAvailableToStage: (): any[] => [],
-    };
   });
 
   describe('change', function() {
     it('normalizes yaml doc with a single manifest into an array', function(done) {
-      const ctrl = new Controller(scope, cmdBuilder, artSvc);
+      const ctrl = new Controller(scope, cmdBuilder);
       builtCmdPromise.then(() => {
         ctrl.metadata.manifestText = basicManifest;
         ctrl.change();
@@ -68,7 +64,7 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
     });
 
     it('normalizes a yaml doc with a single manifest in an array into a flat array', function(done) {
-      const ctrl = new Controller(scope, cmdBuilder, artSvc);
+      const ctrl = new Controller(scope, cmdBuilder);
       builtCmdPromise.then(() => {
         ctrl.metadata.manifestText = singleManifestArray;
         ctrl.change();
@@ -80,7 +76,7 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
     });
 
     it('normalizes a yaml doc with multiple manifest entries in an array into a flat array', function(done) {
-      const ctrl = new Controller(scope, cmdBuilder, artSvc);
+      const ctrl = new Controller(scope, cmdBuilder);
       builtCmdPromise.then(() => {
         ctrl.metadata.manifestText = multipleManifestArray;
         ctrl.change();
@@ -93,7 +89,7 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
     });
 
     it('normalizes a yaml doc with multiple manifest documents into a flat array', function(done) {
-      const ctrl = new Controller(scope, cmdBuilder, artSvc);
+      const ctrl = new Controller(scope, cmdBuilder);
       builtCmdPromise.then(() => {
         ctrl.metadata.manifestText = multipleManifestDocuments;
         ctrl.change();

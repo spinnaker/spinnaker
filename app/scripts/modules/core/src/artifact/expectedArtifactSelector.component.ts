@@ -2,7 +2,6 @@ import { IComponentOptions, IController, module } from 'angular';
 
 import { IExpectedArtifact } from 'core/domain';
 import { IAccount } from 'core/account';
-import { EXPECTED_ARTIFACT_SERVICE, ExpectedArtifactService } from './expectedArtifact.service';
 import { ArtifactIconService } from './ArtifactIconService';
 
 import './artifactSelector.less';
@@ -15,10 +14,6 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public expectedArtifacts: IExpectedArtifact[];
   public helpFieldKey: string;
   public showIcons: boolean;
-
-  constructor(public expectedArtifactService: ExpectedArtifactService) {
-    'ngInject';
-  }
 
   public iconPath(expected: IExpectedArtifact): string {
     const artifact = expected.matchArtifact || expected.defaultArtifact;
@@ -73,7 +68,7 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
 }
 
 export const EXPECTED_ARTIFACT_SELECTOR_COMPONENT = 'spinnaker.core.artifacts.expected.selector';
-module(EXPECTED_ARTIFACT_SELECTOR_COMPONENT, [EXPECTED_ARTIFACT_SERVICE]).component(
+module(EXPECTED_ARTIFACT_SELECTOR_COMPONENT, []).component(
   'expectedArtifactSelector',
   new ExpectedArtifactSelectorComponent(),
 );

@@ -20,11 +20,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
 
   public expectedArtifacts: IExpectedArtifact[];
 
-  constructor(
-    private $scope: IScope,
-    private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder,
-    private expectedArtifactService: ExpectedArtifactService,
-  ) {
+  constructor(private $scope: IScope, private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder) {
     'ngInject';
     this.kubernetesManifestCommandBuilder
       .buildNewManifestCommand(
@@ -46,7 +42,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
         this.state.loaded = true;
       });
 
-    this.expectedArtifacts = this.expectedArtifactService.getExpectedArtifactsAvailableToStage(
+    this.expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
       $scope.stage,
       $scope.$parent.pipeline,
     );
