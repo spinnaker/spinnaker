@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.transientconfig;
+package com.netflix.spinnaker.kork.dynamicconfig;
 
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
@@ -21,13 +21,13 @@ import java.util.function.Supplier;
 /**
  * A simple interface for interacting with dynamic Spring properties in the scope of feature flags.
  */
-public interface TransientConfigService {
+public interface DynamicConfigSerivce {
 
-  <T> T getTransientConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue);
+  <T> T getConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue);
 
-  default <T> T getTransientConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue, @Nonnull Supplier<Boolean> predicate) {
+  default <T> T getConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue, @Nonnull Supplier<Boolean> predicate) {
     if (predicate.get()) {
-      return getTransientConfig(configType, configName, defaultValue);
+      return getConfig(configType, configName, defaultValue);
     }
     return defaultValue;
   }

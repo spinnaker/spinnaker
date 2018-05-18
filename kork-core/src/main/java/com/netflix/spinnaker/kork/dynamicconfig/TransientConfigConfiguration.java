@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.transientconfig;
+package com.netflix.spinnaker.kork.dynamicconfig;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -23,8 +23,8 @@ import org.springframework.context.annotation.Configuration;
 public class TransientConfigConfiguration {
 
   @Bean
-  @ConditionalOnMissingBean(TransientConfigService.class)
-  TransientConfigService springTransientConfigService() {
-    return new SpringTransientConfigService();
+  @ConditionalOnMissingBean(DynamicConfigSerivce.class)
+  DynamicConfigSerivce springTransientConfigService() {
+    return new SpringDynamicConfigService();
   }
 }

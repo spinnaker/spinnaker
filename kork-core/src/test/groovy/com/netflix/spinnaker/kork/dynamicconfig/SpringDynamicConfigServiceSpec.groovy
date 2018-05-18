@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.transientconfig
+package com.netflix.spinnaker.kork.dynamicconfig
 
 import org.springframework.core.env.Environment
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.kork.transientconfig.ScopedCriteria.*
+import static com.netflix.spinnaker.kork.dynamicconfig.ScopedCriteria.*
 
-class SpringTransientConfigServiceSpec extends Specification {
+class SpringDynamicConfigServiceSpec extends Specification {
 
   Environment environment = Mock()
 
   @Subject
-  SpringTransientConfigService subject = new SpringTransientConfigService()
+  SpringDynamicConfigService subject = new SpringDynamicConfigService()
 
   @Unroll
   def "should return correctly chained feature flag"() {

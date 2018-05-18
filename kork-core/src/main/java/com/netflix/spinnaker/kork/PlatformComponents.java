@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kork;
 import com.netflix.spinnaker.kork.archaius.ArchaiusConfiguration;
 import com.netflix.spinnaker.kork.aws.AwsComponents;
 import com.netflix.spinnaker.kork.eureka.EurekaComponents;
-import com.netflix.spinnaker.kork.transientconfig.TransientConfigConfiguration;
+import com.netflix.spinnaker.kork.dynamicconfig.TransientConfigConfiguration;
 import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

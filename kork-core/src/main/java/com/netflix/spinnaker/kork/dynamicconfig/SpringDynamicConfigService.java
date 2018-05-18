@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.transientconfig;
+package com.netflix.spinnaker.kork.dynamicconfig;
 
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
@@ -26,14 +26,14 @@ import java.util.function.Supplier;
 import static java.lang.String.format;
 
 /**
- * The SpringTransientConfigService directly interacts with the Spring Environment.
+ * The SpringDynamicConfigService directly interacts with the Spring Environment.
  */
-public class SpringTransientConfigService implements TransientConfigService, EnvironmentAware {
+public class SpringDynamicConfigService implements DynamicConfigSerivce, EnvironmentAware {
 
   private Environment environment;
 
   @Override
-  public <T> T getTransientConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue) {
+  public <T> T getConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue) {
     if (environment == null) {
       return defaultValue;
     }
@@ -45,7 +45,7 @@ public class SpringTransientConfigService implements TransientConfigService, Env
     if (environment == null) {
       return defaultValue;
     }
-    return environment.getProperty(flagName, Boolean.class, defaultValue);
+    return environment.getProperty(flagPropertyName(flagName), Boolean.class, defaultValue);
   }
 
   @Override
@@ -58,7 +58,7 @@ public class SpringTransientConfigService implements TransientConfigService, Env
       booleanSupplier(flagName, "account", criteria.account),
       booleanSupplier(flagName, "cloudProvider", criteria.cloudProvider),
       booleanSupplier(flagName, "application", criteria.application),
-      () -> environment.getProperty(format("%s.enabled", flagName), Boolean.class)
+      () -> environment.getProperty(flagPropertyName(flagName), Boolean.class)
     )));
     return (value == null) ? defaultValue : value;
   }
@@ -78,5 +78,9 @@ public class SpringTransientConfigService implements TransientConfigService, Env
   @Override
   public void setEnvironment(Environment environment) {
     this.environment = environment;
+  }
+
+  private static String flagPropertyName(String flagName) {
+    return format("%s.enabled", flagName);
   }
 }

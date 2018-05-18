@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.transientconfig;
+package com.netflix.spinnaker.kork.dynamicconfig;
 
 public class ScopedCriteria {
   public final String region;
