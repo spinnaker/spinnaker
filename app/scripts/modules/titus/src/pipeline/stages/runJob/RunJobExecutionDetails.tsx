@@ -27,6 +27,10 @@ export class RunJobExecutionDetails extends React.Component<
 
   public componentDidMount() {
     this.mounted = true;
+    this.setEndpoint();
+  }
+
+  private setEndpoint(): void {
     const { context } = this.props.stage;
     AccountService.getAccountDetails(context.credentials).then(details => {
       const titusUiEndpoint = details.regions.find(r => r.name === context.cluster.region).endpoint;
@@ -36,6 +40,10 @@ export class RunJobExecutionDetails extends React.Component<
 
   public componentWillUnmount() {
     this.mounted = false;
+  }
+
+  public componentWillReceiveProps() {
+    this.setEndpoint();
   }
 
   public render() {
