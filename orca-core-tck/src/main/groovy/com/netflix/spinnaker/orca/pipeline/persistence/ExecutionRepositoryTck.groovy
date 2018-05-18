@@ -28,6 +28,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
 
@@ -494,6 +495,44 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     with(repository.retrieve(PIPELINE, execution.id)) {
       trigger.parentExecution instanceof Execution
     }
+  }
+
+  @Unroll
+  def "can filter retrieve by status"() {
+    given:
+    for (status in ExecutionStatus.values()) {
+      pipeline {
+        setStatus(status)
+      }.with { execution -> repository.store(execution) }
+      orchestration {
+        setStatus(status)
+      }.with { execution -> repository.store(execution) }
+    }
+
+    and:
+    def criteria = new ExecutionCriteria()
+      .setStatuses(statuses.collect { it.toString() })
+      .setLimit(limit)
+
+    expect:
+    with(repository.retrieve(type, criteria).toList().toBlocking().single()) {
+      size() == expectedResults
+      type.every { it == type }
+      if (statuses) {
+        statuses.every { it in statuses }
+      }
+    }
+
+    where:
+    statuses             | limit | type          | expectedResults
+    []                   | 0     | PIPELINE      | ExecutionStatus.values().size()
+    []                   | 0     | ORCHESTRATION | ExecutionStatus.values().size()
+    [RUNNING, SUCCEEDED] | 0     | PIPELINE      | 2
+    [RUNNING, SUCCEEDED] | 0     | ORCHESTRATION | 2
+    []                   | 1     | PIPELINE      | 1
+    []                   | 1     | ORCHESTRATION | 1
+    [RUNNING, SUCCEEDED] | 1     | PIPELINE      | 1
+    [RUNNING, SUCCEEDED] | 1     | ORCHESTRATION | 1
   }
 }
 

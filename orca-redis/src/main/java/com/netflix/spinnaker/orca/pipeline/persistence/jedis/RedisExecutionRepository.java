@@ -323,6 +323,29 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
   }
 
   @Override
+  public
+  @Nonnull Observable<Execution> retrieve(
+    @Nonnull ExecutionType type,
+    @Nonnull ExecutionCriteria criteria
+  ) {
+    List<Observable<Execution>> observables = allRedisDelegates()
+      .stream()
+      .map(d -> {
+          Observable<Execution> observable = all(type, d);
+          if (!criteria.getStatuses().isEmpty()) {
+            observable = observable.filter(execution -> criteria.getStatuses().contains(execution.getStatus()));
+          }
+          if (criteria.getLimit() > 0) {
+            observable = observable.limit(criteria.getLimit());
+          }
+          return observable;
+        }
+      )
+      .collect(Collectors.toList());
+    return Observable.merge(observables);
+  }
+
+  @Override
   public void delete(@Nonnull ExecutionType type, @Nonnull String id) {
     RedisClientDelegate delegate = getRedisDelegate(type, id);
     deleteInternal(delegate, type, id);
@@ -918,7 +941,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
   protected static String allBufferedExecutionsKey(ExecutionType type) {
     return format("buffered:%s", type);
   }
-  
+
   protected static String executionKeyPattern(@Nullable ExecutionType type) {
     final String all = "*:app:*";
     if (type == null) {

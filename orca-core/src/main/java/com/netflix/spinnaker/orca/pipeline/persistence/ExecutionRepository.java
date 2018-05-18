@@ -58,7 +58,10 @@ public interface ExecutionRepository {
   void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
   @Nonnull
-  Observable<Execution> retrieve(ExecutionType type);
+  Observable<Execution> retrieve(@Nonnull ExecutionType type);
+
+  @Nonnull
+  Observable<Execution> retrieve(@Nonnull ExecutionType type, @Nonnull ExecutionCriteria criteria);
 
   @Nonnull
   Observable<Execution> retrievePipelinesForApplication(@Nonnull String application);
