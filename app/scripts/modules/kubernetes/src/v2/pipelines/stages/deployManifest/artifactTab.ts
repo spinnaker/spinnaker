@@ -1,45 +1,55 @@
 import { IComponentOptions, IController, module } from 'angular';
-import { get, includes } from 'lodash';
-import { ARTIFACT_ICON_LIST } from '@spinnaker/core';
+import { has, get, includes } from 'lodash';
+import { ARTIFACT_ICON_LIST, IArtifact, IExpectedArtifact, IExecution, IStage } from '@spinnaker/core';
 
 import './artifactTab.less';
 
 class KubernetesExecutionArtifactTabController implements IController {
-  private _stage: any;
-  private _execution: any;
+  private _stage: IStage;
+  private _execution: IExecution;
 
-  public consumedArtifacts: any[] = [];
-  public producedArtifacts: any[] = [];
+  public consumedArtifacts: IArtifact[] = [];
+  public producedArtifacts: IArtifact[] = [];
 
-  get stage(): any {
+  get stage(): IStage {
     return this._stage;
   }
 
-  set stage(stage: any) {
+  set stage(stage: IStage) {
     this._stage = stage;
     this.populateArtifactLists();
   }
 
-  get execution(): any {
+  get execution(): IExecution {
     return this._execution;
   }
 
-  set execution(execution: any) {
+  set execution(execution: IExecution) {
     this._execution = execution;
     this.populateArtifactLists();
+  }
+
+  private extractBoundArtifactsFromExecution(execution: IExecution): IExpectedArtifact[] {
+    const triggerArtifacts = get(execution, ['trigger', 'resolvedExpectedArtifacts'], []);
+    const stageOutputArtifacts = get(execution, 'stages', []).reduce((out, stage) => {
+      const outputArtifacts = get(stage, ['outputs', 'resolvedExpectedArtifacts'], []);
+      return out.concat(outputArtifacts);
+    }, []);
+    const allArtifacts = triggerArtifacts.concat(stageOutputArtifacts);
+    return allArtifacts.filter(a => has(a, 'boundArtifact'));
   }
 
   public populateArtifactLists() {
     const requiredArtifactIds = get(this.stage, ['context', 'requiredArtifactIds'], []);
     const manifestArtifactId = get(this.stage, ['context', 'manifestArtifactId'], null);
-    const resolvedExpectedArtifacts = get(this.execution, ['trigger', 'resolvedExpectedArtifacts'], []);
+    const boundArtifacts = this.extractBoundArtifactsFromExecution(this.execution);
 
     const consumedIds = requiredArtifactIds.slice();
     if (manifestArtifactId) {
       consumedIds.push(manifestArtifactId);
     }
 
-    this.consumedArtifacts = resolvedExpectedArtifacts
+    this.consumedArtifacts = boundArtifacts
       .filter(rea => includes(consumedIds, rea.id))
       .map(rea => rea.boundArtifact)
       .filter(({ name, type }) => name && type);
