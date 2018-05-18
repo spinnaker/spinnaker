@@ -124,12 +124,15 @@ module.exports = angular
       controller.nameFilterUpdated();
     };
 
-    controller.nameFilterUpdated = function() {
+    controller.nameFilterUpdated = _.debounce(() => {
+      const params = { q: $scope.viewState.nameFilter };
       if ($state.includes('**.taskDetails')) {
-        $state.go('^');
+        $state.go('^', params);
+      } else {
+        $state.go('.', params);
       }
       controller.sortTasksAndResetPaginator();
-    };
+    }, 300);
 
     controller.cancelTask = function(taskId) {
       var task = application.tasks.data.filter(function(task) {
@@ -290,6 +293,15 @@ module.exports = angular
       application.setActiveState();
       application.tasks.deactivate();
     });
+
+    this.stateChanged = q => {
+      if ($scope.viewState.nameFilter !== q) {
+        $scope.viewState.nameFilter = q;
+        this.sortTasksAndResetPaginator();
+      }
+    };
+
+    $scope.$on('$stateChangeSuccess', (_event, _toState, toParams) => this.stateChanged(toParams.q));
 
     this.application.tasks.onRefresh($scope, this.sortTasks);
   });

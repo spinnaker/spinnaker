@@ -19,13 +19,16 @@ module(TASK_STATES, [APPLICATION_STATE_PROVIDER]).config((applicationStateProvid
 
   const tasks: INestedState = {
     name: 'tasks',
-    url: '/tasks',
+    url: '/tasks?q',
     views: {
       insight: {
         templateUrl: require('../task/tasks.html'),
         controller: 'TasksCtrl',
         controllerAs: 'tasks',
       },
+    },
+    params: {
+      q: { dynamic: true, value: null },
     },
     data: {
       pageTitleSection: {
