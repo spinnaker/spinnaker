@@ -32,7 +32,7 @@ public interface PrometheusRemoteService {
                                      @Query("end") String end,
                                      @Query("step") Long step);
 
-  // See https://prometheus.io/docs/querying/api/#range-queries
+  // See https://prometheus.io/docs/querying/api/#querying-label-values
   @GET("/api/v1/label/__name__/values")
   PrometheusMetricDescriptorsResponse listMetricDescriptors();
 }

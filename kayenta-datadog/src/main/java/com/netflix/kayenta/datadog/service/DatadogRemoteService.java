@@ -20,6 +20,8 @@ import retrofit.http.GET;
 import retrofit.http.Query;
 
 public interface DatadogRemoteService {
+
+  //See https://docs.datadoghq.com/api/?lang=python#query-time-series-points
   @GET("/api/v1/query")
   DatadogTimeSeries getTimeSeries(@Query("api_key") String apiKey,
                                   @Query("application_key") String applicationKey,
