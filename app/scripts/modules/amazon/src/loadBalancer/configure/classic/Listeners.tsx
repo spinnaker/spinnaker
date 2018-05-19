@@ -73,13 +73,13 @@ class ListenersImpl extends React.Component<
     newProtocol: ClassicListenerProtocol,
   ): void {
     listener.externalProtocol = newProtocol;
-    if (listener.externalProtocol === 'HTTPS') {
+    if (newProtocol === 'HTTPS' || newProtocol === 'SSL') {
       listener.externalPort = 443;
       if (this.state.certificateTypes.length >= 1) {
         listener.sslCertificateType = this.state.certificateTypes[0];
       }
     }
-    if (listener.externalProtocol === 'HTTP') {
+    if (newProtocol === 'HTTP') {
       listener.externalPort = 80;
     }
     this.updateListeners();
