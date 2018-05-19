@@ -15,9 +15,15 @@
  */
 package com.netflix.spinnaker.orca.qos
 
+import org.springframework.core.Ordered
 import java.util.function.Supplier
 
 /**
  * The BufferStateSupplier is responsible for actuating the overall state of the QoS system.
  */
-interface BufferStateSupplier : Supplier<BufferState>
+interface BufferStateSupplier : Supplier<BufferState>, Ordered {
+
+  fun enabled(): Boolean
+
+  override fun getOrder() = Ordered.LOWEST_PRECEDENCE
+}

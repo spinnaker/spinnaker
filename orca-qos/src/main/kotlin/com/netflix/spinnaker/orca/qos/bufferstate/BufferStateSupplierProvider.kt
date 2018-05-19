@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.orca.qos.bufferstate
 
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
+import com.netflix.spinnaker.orca.qos.BufferStateSupplier
+import org.springframework.stereotype.Component
 
-@Configuration
-@ComponentScan("com.netflix.spinnaker.orca.qos")
-class QosConfiguration
+@Component
+class BufferStateSupplierProvider(
+  bufferStateSuppliers: List<BufferStateSupplier>
+) {
+
+  private val suppliers = bufferStateSuppliers.sortedByDescending { it.order }
+
+  fun provide() = suppliers.firstOrNull { it.enabled() } ?: DefaultBufferStateSupplier()
+}

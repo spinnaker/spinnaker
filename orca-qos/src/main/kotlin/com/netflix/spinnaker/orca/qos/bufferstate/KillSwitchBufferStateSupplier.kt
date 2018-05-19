@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.qos
+package com.netflix.spinnaker.orca.qos.bufferstate
 
-import com.netflix.spinnaker.kork.transientconfig.TransientConfigService
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
 import com.netflix.spinnaker.orca.qos.BufferState.ACTIVE
 import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import com.netflix.spinnaker.orca.qos.BufferStateSupplier
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty(name = ["qos.bufferingState.supplier"], havingValue = "killSwitch")
 class KillSwitchBufferStateSupplier(
-  private val transientConfigService: TransientConfigService
+  private val configService: DynamicConfigSerivce
 ) : BufferStateSupplier {
+
+  override fun enabled() =
+    configService.getConfig(String::class.java, "qos.bufferingState.supplier", "") == "killSwitch"
+
   override fun get() =
-    when (transientConfigService.isEnabled("qos.bufferingState.active", false)) {
+    when (configService.isEnabled("qos.bufferingState.killSwitch", false)) {
       true  -> ACTIVE
       false -> INACTIVE
     }

@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.qos
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.kork.transientconfig.TransientConfigService
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
 import com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.events.BeforeInitialExecutionPersist
@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.qos.BufferAction.BUFFER
 import com.netflix.spinnaker.orca.qos.BufferAction.ENQUEUE
 import com.netflix.spinnaker.orca.qos.BufferState.ACTIVE
 import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
+import com.netflix.spinnaker.orca.qos.bufferstate.BufferStateSupplierProvider
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
@@ -35,20 +36,24 @@ import org.jetbrains.spek.subject.SubjectSpek
 
 class ExecutionBufferActuatorTest : SubjectSpek<ExecutionBufferActuator>({
 
-  val transientConfigService: TransientConfigService = mock()
+  val configService: DynamicConfigSerivce = mock()
   val bufferStateSupplier: BufferStateSupplier = mock()
   val policy1: BufferPolicy = mock()
   val policy2: BufferPolicy = mock()
 
   subject(CachingMode.GROUP) {
-    ExecutionBufferActuator(bufferStateSupplier, transientConfigService, NoopRegistry(), listOf(policy1, policy2))
+    ExecutionBufferActuator(
+      BufferStateSupplierProvider(listOf(bufferStateSupplier)),
+      configService, NoopRegistry(), listOf(policy1, policy2)
+    )
   }
 
   fun resetMocks() = reset(bufferStateSupplier, policy1, policy2)
 
   describe("buffering executions") {
     beforeGroup {
-      whenever(transientConfigService.isEnabled(any(), any())) doReturn false
+      whenever(configService.isEnabled(eq("qos"), any())) doReturn true
+      whenever(configService.isEnabled(eq("qos.learningMode"), any())) doReturn false
     }
     afterGroup(::resetMocks)
 
@@ -60,6 +65,7 @@ class ExecutionBufferActuatorTest : SubjectSpek<ExecutionBufferActuator>({
       }
 
       beforeGroup {
+        whenever(bufferStateSupplier.enabled()) doReturn true
         whenever(bufferStateSupplier.get()) doReturn INACTIVE
       }
 
@@ -83,6 +89,7 @@ class ExecutionBufferActuatorTest : SubjectSpek<ExecutionBufferActuator>({
       }
 
       beforeGroup {
+        whenever(bufferStateSupplier.enabled()) doReturn true
         whenever(bufferStateSupplier.get()) doReturn ACTIVE
         whenever(policy1.apply(any())) doReturn BufferResult(
           action = ENQUEUE,
@@ -187,7 +194,7 @@ class ExecutionBufferActuatorTest : SubjectSpek<ExecutionBufferActuator>({
           force = false,
           reason = "Should"
         )
-        whenever(transientConfigService.isEnabled(any(), any())) doReturn true
+        whenever(configService.isEnabled(any(), any())) doReturn true
       }
 
       on("before initial persist event") {

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.qos
+package com.netflix.spinnaker.orca.qos.bufferstate
 
 import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.stereotype.Component
+import com.netflix.spinnaker.orca.qos.BufferStateSupplier
 
-@Component
-@ConditionalOnMissingBean(BufferStateSupplier::class)
-class DefaultBufferStateSupplier :BufferStateSupplier {
+class DefaultBufferStateSupplier : BufferStateSupplier {
+  override fun enabled() = true
   override fun get() = INACTIVE
 }

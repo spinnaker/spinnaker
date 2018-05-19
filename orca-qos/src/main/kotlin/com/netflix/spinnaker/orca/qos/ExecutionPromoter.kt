@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanInitializationException
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -35,7 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 interface ExecutionPromoter
 
 @Component
-@ConditionalOnMissingBean(ExecutionPromoter::class)
 class DefaultExecutionPromoter(
   private val executionRepository: ExecutionRepository,
   private val policies: List<PromotionPolicy>,
@@ -46,7 +44,7 @@ class DefaultExecutionPromoter(
   private val discoveryActivated = AtomicBoolean()
 
   private val elapsedTimeId = registry.createId("qos.promoter.elapsedTime")
-  private val promotedId = registry.createId("qos.executionsPromoted")
+  private val promotedId = registry.createId("qos.promoter.executionsPromoted")
 
   init {
     if (policies.isEmpty()) {

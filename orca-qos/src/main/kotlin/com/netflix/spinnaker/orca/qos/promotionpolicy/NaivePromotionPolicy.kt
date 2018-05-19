@@ -15,20 +15,29 @@
  */
 package com.netflix.spinnaker.orca.qos.promotionpolicy
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.qos.PromotionPolicy
 import com.netflix.spinnaker.orca.qos.PromotionResult
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty("qos.promotionPolicy.naive.enabled")
-class NaivePromotionPolicy : PromotionPolicy {
+class NaivePromotionPolicy(
+  private val configService: DynamicConfigSerivce
+) : PromotionPolicy {
 
-  override fun apply(candidates: List<Execution>) =
-   PromotionResult(
-     candidates = candidates.subList(0, 1),
-     finalized = false,
-     reason = "Naive policy promotes 1 execution every cycle"
-  )
+  override fun apply(candidates: List<Execution>): PromotionResult {
+    if (!configService.isEnabled("qos.promotionPolicy.naive", true)) {
+      return PromotionResult(candidates, false, "Naive policy is disabled")
+    }
+
+    val maxPromoteSize = configService.getConfig(Int::class.java, "qos.promotionPolicy.naive.size", 1)
+    val promoteSize = if (maxPromoteSize > candidates.size) candidates.size else maxPromoteSize
+
+    return PromotionResult(
+      candidates = candidates.subList(0, promoteSize),
+      finalized = false,
+      reason = "Naive policy promotes $maxPromoteSize execution every cycle"
+    )
+  }
 }

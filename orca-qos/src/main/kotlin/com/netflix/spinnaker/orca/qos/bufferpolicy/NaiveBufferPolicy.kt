@@ -15,22 +15,29 @@
  */
 package com.netflix.spinnaker.orca.qos.bufferpolicy
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.qos.BufferAction
+import com.netflix.spinnaker.orca.qos.BufferAction.ENQUEUE
 import com.netflix.spinnaker.orca.qos.BufferPolicy
 import com.netflix.spinnaker.orca.qos.BufferResult
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty("qos.bufferPolicy.naive.enabled")
-class NaiveBufferPolicy : BufferPolicy {
+class NaiveBufferPolicy(
+  private val configService: DynamicConfigSerivce
+) : BufferPolicy {
 
-  override fun apply(execution: Execution): BufferResult = BufferResult(
-    action = BufferAction.BUFFER,
-    force = false,
-    // If we're getting to the point of passing an execution through a BufferPolicy, the BufferStateSupplier has
-    // already made buffering active. There's nothing to decide here.
-    reason = "Naive policy will always buffer executions"
-  )
+  override fun apply(execution: Execution): BufferResult {
+    if (!configService.isEnabled("qos.bufferPolicy.naive", true)) {
+      return BufferResult(ENQUEUE, false, "Naive policy is disabled")
+    }
+    return BufferResult(
+      action = BufferAction.BUFFER,
+      force = false,
+      // If we're getting to the point of passing an execution through a BufferPolicy, the BufferStateSupplier has
+      // already made buffering active. There's nothing to decide here.
+      reason = "Naive policy will always buffer executions"
+    )
+  }
 }
