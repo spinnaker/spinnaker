@@ -76,6 +76,9 @@ templates.keys().forEach(function(key) {
 
 export const CORE_MODULE = 'spinnaker.core';
 module(CORE_MODULE, [
+  // This must be here first so its config block is run and it's initialized before other components try to register
+  REGISTRY_MODULE,
+
   require('angular-messages'),
   require('angular-sanitize'),
   UI_ROUTER,
@@ -132,7 +135,6 @@ module(CORE_MODULE, [
 
   RECENT_HISTORY_SERVICE,
   REGION_MODULE,
-  REGISTRY_MODULE,
 
   require('./search/search.module').name,
   require('./securityGroup/securityGroup.module').name,

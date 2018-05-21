@@ -29,7 +29,6 @@ import { PagerDutyWriter } from '../pagerDuty/pagerDuty.write.service';
 import { PipelineConfigValidator } from '../pipeline/config/validation/pipelineConfig.validator';
 import { PipelineTemplateService } from '../pipeline/config/templates/pipelineTemplate.service';
 import { ProviderSelectionService } from '../cloudProvider/providerSelection/providerSelection.service';
-import { RecentHistoryService } from 'core/history/recentHistory.service';
 import { SchedulerFactory } from '../scheduler/scheduler.factory';
 import { ScrollToService } from '../utils/scrollTo/scrollTo.service';
 import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';

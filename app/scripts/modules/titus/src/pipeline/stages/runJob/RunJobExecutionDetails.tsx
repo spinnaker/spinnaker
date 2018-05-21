@@ -62,12 +62,16 @@ export class RunJobExecutionDetails extends React.Component<
               <dd>
                 <AccountTag account={context.credentials} />
               </dd>
-              <dt>Image</dt>
-              <dd>{cluster.imageId}</dd>
-              {cluster.entryPoint && (
+              {cluster && (
                 <>
-                  <dt>Entrypoint</dt>
-                  <dd>{cluster.entryPoint}</dd>
+                  <dt>Image</dt>
+                  <dd>{cluster.imageId}</dd>
+                  {cluster.entryPoint && (
+                    <>
+                      <dt>Entrypoint</dt>
+                      <dd>{cluster.entryPoint}</dd>
+                    </>
+                  )}
                 </>
               )}
               {jobId && (
@@ -99,10 +103,10 @@ export class RunJobExecutionDetails extends React.Component<
               <h5 style={{ marginBottom: 0, paddingBottom: '5px' }}>Property File</h5>
               <dl>
                 {Object.keys(context.propertyFileContents).map(key => (
-                  <>
+                  <React.Fragment key={key}>
                     <dt>{key}</dt>
                     <dd>{context.propertyFileContents[key]}</dd>
-                  </>
+                  </React.Fragment>
                 ))}
               </dl>
             </div>
