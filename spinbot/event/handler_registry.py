@@ -28,7 +28,7 @@ def GetConfig():
 
 def GetHandlerConfig(name):
     handler = next((h for h in conf.get('handlers', []) if h.get('name') == name), {})
-    return handler.get('config')
+    return handler.get('config', {})
 
 def RegisterHandler(handler):
     if len([h for h in handlers if h.id == handler.id]) > 0:
