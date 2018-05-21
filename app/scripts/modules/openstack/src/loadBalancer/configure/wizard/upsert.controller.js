@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import {
   AccountService,
+  FirewallLabels,
   LOAD_BALANCER_WRITE_SERVICE,
   SECURITY_GROUP_READER,
   TaskMonitor,
@@ -11,7 +12,6 @@ import {
 } from '@spinnaker/core';
 
 import '../../loadBalancer.less';
-import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.openstack.create.controller', [

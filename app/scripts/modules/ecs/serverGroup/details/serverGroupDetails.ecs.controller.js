@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 import { chain, filter, find, has, isEmpty } from 'lodash';
-import { FirewallLabels } from 'root/app/scripts/modules/core/src';
+import { FirewallLabels } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_TRANSFORMER } from '../serverGroup.transformer';
 

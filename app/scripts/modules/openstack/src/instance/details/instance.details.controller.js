@@ -6,11 +6,12 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
+  FirewallLabels,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
+  RecentHistoryService,
   SETTINGS,
 } from '@spinnaker/core';
-import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.instance.detail.openstack.controller', [

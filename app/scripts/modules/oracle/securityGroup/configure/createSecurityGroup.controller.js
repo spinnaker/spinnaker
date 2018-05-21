@@ -1,6 +1,6 @@
 'use strict';
 
-import { FirewallLabels } from 'root/app/scripts/modules/core/src';
+import { FirewallLabels } from '@spinnaker/core';
 
 const angular = require('angular');
 
