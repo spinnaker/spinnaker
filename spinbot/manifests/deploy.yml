@@ -84,6 +84,7 @@ data:
           omit_repos: 
           - spinnaker/spinnaker
       - name: master_branch_pull_request_handler
+      - name: pull_request_closed_event_handler
 
     database:
       influx:
