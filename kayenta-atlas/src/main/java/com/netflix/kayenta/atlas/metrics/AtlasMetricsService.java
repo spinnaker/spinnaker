@@ -146,12 +146,6 @@ public class AtlasMetricsService implements MetricsService {
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();
 
-    // TODO:  What we really want is a set of keys that are used in a :by operator, and no other keys.
-    List<Map<String, String>> allTags = idToAtlasResultsMap.values().stream()
-      .map(AtlasResults::getTags)
-      .collect(Collectors.toList());
-    List<String> interestingKeys = AtlasResultsHelper.interestingKeys(allTags);
-
     for (AtlasResults atlasResults : idToAtlasResultsMap.values()) {
       Instant responseStartTimeInstant = Instant.ofEpochMilli(atlasResults.getStart());
       List<Double> timeSeriesList = atlasResults.getData().getValues();
@@ -171,8 +165,14 @@ public class AtlasMetricsService implements MetricsService {
       Map<String, String> tags = atlasResults.getTags();
 
       if (tags != null) {
+        List<String> groupByKeys;
+        if (atlasResults.getGroupByKeys() == null) {
+          groupByKeys = Collections.emptyList();
+        } else {
+          groupByKeys = atlasResults.getGroupByKeys();
+        }
         Map<String, String> filteredTags = tags.entrySet().stream()
-          .filter(entry -> interestingKeys.contains(entry.getKey()))
+          .filter(entry -> groupByKeys.contains(entry.getKey()))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         metricSetBuilder.tags(filteredTags);
       }

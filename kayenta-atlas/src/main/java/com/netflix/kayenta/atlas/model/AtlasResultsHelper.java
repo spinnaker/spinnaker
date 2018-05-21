@@ -43,7 +43,8 @@ public class AtlasResultsHelper {
         .start(firstAtlasResults.getStart())
         .step(firstAtlasResults.getStep())
         .end(lastAtlasResults.getEnd())
-        .tags(firstAtlasResults.getTags());
+        .tags(firstAtlasResults.getTags())
+        .groupByKeys(firstAtlasResults.getGroupByKeys());
     List<Double> values = new ArrayList<>();
     Long lastTimestamp = null;
 
@@ -77,35 +78,4 @@ public class AtlasResultsHelper {
       .stream()
       .collect(Collectors.toMap(Map.Entry::getKey, e -> mergeByTime(e.getValue())));
   }
-
-  private static long countKeys(List<Map<String, String>> taglist, String key) {
-    return taglist.stream()
-      .filter(tags -> tags.containsKey(key))
-      .count();
-  }
-
-  private static long countValuesForKey(List<Map<String, String>> taglist, String key) {
-    return taglist.stream()
-      .map(tags -> tags.get(key))
-      .distinct()
-      .count();
-  }
-
-  //
-  // Return a list of all keys where every key exists in all maps, with different values.
-  //
-  public static List<String> interestingKeys(List<Map<String, String>> taglist) {
-    List<Map<String, String>> nonNulltaglist = taglist.stream()
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-
-    return nonNulltaglist.stream()
-      .filter(Objects::nonNull)
-      .flatMap(item -> item.keySet().stream())
-      .distinct()
-      .filter(key -> countKeys(nonNulltaglist, key) == nonNulltaglist.size())
-      .filter(key -> countValuesForKey(nonNulltaglist, key) > 1)
-      .collect(Collectors.toList());
-  }
-
 }

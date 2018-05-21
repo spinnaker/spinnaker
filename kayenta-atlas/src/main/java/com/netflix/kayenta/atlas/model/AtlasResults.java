@@ -69,6 +69,9 @@ public class AtlasResults {
   @Getter
   private Map<String, String> tags;
 
+  @Getter
+  private List<String> groupByKeys;
+
   @NotNull
   @Getter
   private TimeseriesData data;
