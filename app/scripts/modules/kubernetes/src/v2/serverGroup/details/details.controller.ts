@@ -31,14 +31,12 @@ class KubernetesServerGroupDetailsController implements IController {
     public app: Application,
     private $uibModal: IModalService,
     private $scope: IScope,
-    private kubernetesManifestService: KubernetesManifestService,
     private serverGroupReader: ServerGroupReader,
   ) {
     'ngInject';
 
-    this.kubernetesManifestService.makeManifestRefresher(
+    const unsubscribe = KubernetesManifestService.makeManifestRefresher(
       this.app,
-      this.$scope,
       {
         account: serverGroup.accountId,
         location: serverGroup.region,
@@ -46,6 +44,9 @@ class KubernetesServerGroupDetailsController implements IController {
       },
       this,
     );
+    this.$scope.$on('$destroy', () => {
+      unsubscribe();
+    });
 
     this.app
       .ready()

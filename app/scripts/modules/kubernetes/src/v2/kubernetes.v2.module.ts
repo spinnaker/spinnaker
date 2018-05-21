@@ -27,7 +27,6 @@ import { KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL } from './manifest/rollout/undo.c
 import { KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL } from './manifest/rollout/pause.controller';
 import { KUBERNETES_MANIFEST_RESUME_ROLLOUT_CTRL } from './manifest/rollout/resume.controller';
 import { KUBERNETES_MANIFEST_STATUS } from './manifest/status/status.component';
-import { KUBERNETES_MANIFEST_SERVICE } from './manifest/manifest.service';
 import { KUBERNETES_MANIFEST_CONDITION } from './manifest/status/condition.component';
 import { KUBERNETES_MANIFEST_ARTIFACT } from './manifest/artifact/artifact.component';
 import { KUBERNETES_MANIFEST_SELECTOR } from './manifest/selector/selector.component';
@@ -71,7 +70,6 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_ENTRY,
   KUBERNETES_MANIFEST_STATUS,
   KUBERNETES_MANIFEST_CONDITION,
-  KUBERNETES_MANIFEST_SERVICE,
   KUBERNETES_MANIFEST_ARTIFACT,
   KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER,
   KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER,

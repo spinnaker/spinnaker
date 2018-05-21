@@ -11,7 +11,7 @@ class KubernetesDeployManifestDeployStatusManifestSummaryController implements I
   public application: any;
   public manifest: any;
 
-  constructor(private kubernetesManifestService: KubernetesManifestService, private $scope: IScope) {
+  constructor(private $scope: IScope) {
     'ngInject';
   }
 
@@ -21,7 +21,10 @@ class KubernetesDeployManifestDeployStatusManifestSummaryController implements I
       location: this.manifestContents.metadata.namespace,
       name: this.manifestFullName(),
     };
-    this.kubernetesManifestService.makeManifestRefresher(this.application, this.$scope, params, this);
+    const unsubscribe = KubernetesManifestService.makeManifestRefresher(this.application, params, this);
+    this.$scope.$on('$destroy', () => {
+      unsubscribe();
+    });
   }
 
   private manifestFullName(): string {

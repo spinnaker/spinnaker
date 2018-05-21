@@ -14,14 +14,12 @@ class KubernetesServerGroupManagerDetailsController implements IController {
     serverGroupManager: IServerGroupManagerStateParams,
     private $scope: IScope,
     private $uibModal: IModalService,
-    private kubernetesManifestService: KubernetesManifestService,
     public app: Application,
   ) {
     'ngInject';
 
-    this.kubernetesManifestService.makeManifestRefresher(
+    const unsubscribe = KubernetesManifestService.makeManifestRefresher(
       this.app,
-      this.$scope,
       {
         account: serverGroupManager.accountId,
         location: serverGroupManager.region,
@@ -29,6 +27,9 @@ class KubernetesServerGroupManagerDetailsController implements IController {
       },
       this,
     );
+    this.$scope.$on('$destroy', () => {
+      unsubscribe();
+    });
 
     this.app.ready().then(() => {
       this.extractServerGroupManager(serverGroupManager);

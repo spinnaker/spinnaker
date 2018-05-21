@@ -1,6 +1,4 @@
-import { IScope, module } from 'angular';
-
-import { Application, IManifest, MANIFEST_READER, ManifestReader } from '@spinnaker/core';
+import { Application, IManifest, ManifestReader } from '@spinnaker/core';
 
 export interface IManifestContainer {
   manifest: IManifest;
@@ -13,27 +11,18 @@ export interface IManifestParams {
 }
 
 export class KubernetesManifestService {
-  constructor(private manifestReader: ManifestReader) {
-    'ngInject';
-  }
-
-  public makeManifestRefresher(
+  public static makeManifestRefresher(
     app: Application,
-    $scope: IScope,
     params: IManifestParams,
     container: IManifestContainer,
-  ) {
-    this.updateManifest(params, container);
-    app.onRefresh($scope, () => this.updateManifest(params, container));
+  ): () => void {
+    KubernetesManifestService.updateManifest(params, container);
+    return app.onRefresh(null, () => KubernetesManifestService.updateManifest(params, container));
   }
 
-  private updateManifest(params: IManifestParams, container: IManifestContainer) {
-    this.manifestReader
-      .getManifest(params.account, params.location, params.name)
-      .then((manifest: IManifest) => (container.manifest = manifest || container.manifest));
+  private static updateManifest(params: IManifestParams, container: IManifestContainer) {
+    ManifestReader.getManifest(params.account, params.location, params.name).then(
+      (manifest: IManifest) => (container.manifest = manifest || container.manifest),
+    );
   }
 }
-
-export const KUBERNETES_MANIFEST_SERVICE = 'spinnaker.kubernetes.v2.kubernetes.manifest.service';
-
-module(KUBERNETES_MANIFEST_SERVICE, [MANIFEST_READER]).service('kubernetesManifestService', KubernetesManifestService);
