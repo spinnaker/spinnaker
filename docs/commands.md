@@ -2270,7 +2270,7 @@ hal config generate [parameters]
 ---
 ## hal config metric-stores
 
-Configure Spinnaker's metric stores. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
+Configure Spinnaker's metric stores. Metrics stores are used to store Spinnaker metrics on various processes.  These metrics are not related in any way to canary deployments.  The technologies backing both are similar, but metrics stores are places to push metrics regarding spinnaker metrics, where as canary metrics stores are used to pull metrics to analyze deployments.  This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
 
 #### Usage
 ```
