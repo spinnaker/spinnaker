@@ -19,7 +19,7 @@ spec:
               mountPath: /home/spinbot/github
             - name: gcs-creds
               mountPath: /home/spinbot/credentials
-          restartPolicy: OnFailure
+          restartPolicy: Never
           volumes:
           - name: config
             configMap:
