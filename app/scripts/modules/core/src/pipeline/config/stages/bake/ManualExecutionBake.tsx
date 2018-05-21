@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { get } from 'lodash';
 
 import { HelpField } from 'core/help/HelpField';
 import { ITriggerTemplateComponentProps } from 'core/pipeline/manualExecution/TriggerTemplate';
@@ -12,7 +13,7 @@ export class ManualExecutionBake extends React.Component<ITriggerTemplateCompone
   };
 
   public render() {
-    const force = Boolean(this.props.command.trigger.rebake) ? 'true' : 'false';
+    const force = Boolean(get(this.props.command, 'trigger.rebake', false)) ? 'true' : 'false';
 
     return (
       <div className="form-group">
