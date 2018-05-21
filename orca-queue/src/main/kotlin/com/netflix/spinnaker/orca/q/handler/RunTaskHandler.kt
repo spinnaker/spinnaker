@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.exceptions.TimeoutException
+import com.netflix.spinnaker.orca.ext.failureStatus
 import com.netflix.spinnaker.orca.ext.shouldContinueOnFailure
 import com.netflix.spinnaker.orca.ext.shouldFailPipeline
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -249,10 +250,3 @@ class RunTaskHandler(
     }
   }
 }
-
-private fun Stage.failureStatus(default: ExecutionStatus = TERMINAL) =
-  when {
-    shouldContinueOnFailure() -> FAILED_CONTINUE
-    shouldFailPipeline()      -> default
-    else                      -> STOPPED
-  }

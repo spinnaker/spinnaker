@@ -99,7 +99,10 @@ class StartStageHandler(
               queue.push(message, retryDelay)
             } else {
               log.error("Error running ${stage.type} stage for ${message.executionType}[${message.executionId}]", e)
-              stage.context["exception"] = exceptionDetails
+              stage.apply {
+                context["exception"] = exceptionDetails
+                context["beforeStagePlanningFailed"] = true
+              }
               repository.storeStage(stage)
               queue.push(CompleteStage(message))
             }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.ext
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
@@ -109,3 +110,10 @@ fun Stage.shouldFailPipeline(): Boolean =
 
 fun Stage.shouldContinueOnFailure(): Boolean =
   context["continuePipeline"] == true
+
+fun Stage.failureStatus(default: ExecutionStatus = TERMINAL) =
+  when {
+    shouldContinueOnFailure() -> FAILED_CONTINUE
+    shouldFailPipeline()      -> default
+    else                      -> STOPPED
+  }

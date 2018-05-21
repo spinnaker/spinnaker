@@ -679,6 +679,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             pipeline.stageByRef("1").apply {
               context["failPipeline"] = false
               context["continuePipeline"] = false
+              context["beforeStagePlanningFailed"] = null
             }
 
             whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
@@ -701,6 +702,12 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
               assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
             })
           }
+
+          it("attaches flag to the stage context to indicate that before stage planning failed") {
+            verify(repository).storeStage(check {
+              assertThat(it.context["beforeStagePlanningFailed"]).isEqualTo(true)
+            })
+          }
         }
 
         and("the branch should be allowed to continue") {
@@ -708,6 +715,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
             pipeline.stageByRef("1").apply {
               context["failPipeline"] = false
               context["continuePipeline"] = true
+              context["beforeStagePlanningFailed"] = null
             }
 
             whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
@@ -728,6 +736,12 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           it("attaches the exception to the stage context") {
             verify(repository).storeStage(check {
               assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
+            })
+          }
+
+          it("attaches flag to the stage context to indicate that before stage planning failed") {
+            verify(repository).storeStage(check {
+              assertThat(it.context["beforeStagePlanningFailed"]).isEqualTo(true)
             })
           }
         }

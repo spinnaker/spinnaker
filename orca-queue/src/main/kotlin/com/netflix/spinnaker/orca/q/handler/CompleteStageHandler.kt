@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.ext.afterStages
+import com.netflix.spinnaker.orca.ext.failureStatus
 import com.netflix.spinnaker.orca.ext.firstAfterStages
 import com.netflix.spinnaker.orca.ext.syntheticStages
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
@@ -210,10 +211,14 @@ class CompleteStageHandler(
   }
 }
 
+private fun Stage.hasPlanningFailure() =
+  context["beforeStagePlanningFailed"] == true
+
 private fun Stage.determineStatus(): ExecutionStatus {
   val syntheticStatuses = syntheticStages().map(Stage::getStatus)
   val taskStatuses = tasks.map(Task::getStatus)
-  val allStatuses = syntheticStatuses + taskStatuses
+  val planningStatus = if (hasPlanningFailure()) listOf(failureStatus()) else emptyList()
+  val allStatuses = syntheticStatuses + taskStatuses + planningStatus
   val afterStageStatuses = afterStages().map(Stage::getStatus)
   return when {
     allStatuses.isEmpty()                    -> NOT_STARTED

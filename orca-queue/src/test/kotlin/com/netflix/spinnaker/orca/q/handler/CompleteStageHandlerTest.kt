@@ -1252,11 +1252,81 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       }
 
       it("does not re-plan any 'OnFailure' stages") {
+        val onFailureStage = pipeline.stages.first { it.name == "onFailure1" }
+        verify(queue, never()).push(StartStage(onFailureStage))
         verify(queue).push(CancelStage(message))
       }
 
       it("updates the stage status") {
         assertThat(pipeline.stageById(message.stageId).status).isEqualTo(TERMINAL)
+      }
+    }
+  }
+
+  describe("stage planning failure behavior") {
+    given("a stage that failed to plan its before stages") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          context = mutableMapOf<String, Any>("beforeStagePlanningFailed" to true)
+          type = stageWithSyntheticOnFailure.type
+          stageWithSyntheticOnFailure.buildFailureStages(this)
+        }
+      }
+      val message = CompleteStage(pipeline.stageByRef("1"))
+
+      and("it has not run its on failure stages yet") {
+        beforeGroup {
+          pipeline.stageById(message.stageId).apply {
+            status = RUNNING
+          }
+
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving the message") {
+          subject.handle(message)
+        }
+
+        it("plans the first on failure stage") {
+          val onFailureStage = pipeline.stages.first { it.name == "onFailure1" }
+          verify(queue).push(StartStage(onFailureStage))
+        }
+
+        it("does not (yet) update the stage status") {
+          assertThat(pipeline.stageById(message.stageId).status).isEqualTo(RUNNING)
+        }
+      }
+
+      and("it has already run its on failure stages") {
+        beforeGroup {
+          pipeline.stageById(message.stageId).apply {
+            status = RUNNING
+          }
+          pipeline.stages.filter { it.parentStageId == message.stageId }.forEach {
+            it.status = SUCCEEDED
+          }
+
+          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving the message again") {
+          subject.handle(message)
+        }
+
+        it("does not re-plan on failure stages") {
+          val onFailureStage = pipeline.stages.first { it.name == "onFailure1" }
+          verify(queue, never()).push(StartStage(onFailureStage))
+          verify(queue).push(CancelStage(message))
+        }
+
+        it("updates the stage status") {
+          assertThat(pipeline.stageById(message.stageId).status).isEqualTo(TERMINAL)
+        }
       }
     }
   }
