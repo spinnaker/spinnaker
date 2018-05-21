@@ -19,6 +19,7 @@ import com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
@@ -35,6 +36,7 @@ interface ExecutionPromoter
 
 @Component
 class DefaultExecutionPromoter(
+  private val executionLauncher: ExecutionLauncher,
   private val executionRepository: ExecutionRepository,
   private val policies: List<PromotionPolicy>,
   private val registry: Registry
@@ -96,6 +98,7 @@ class DefaultExecutionPromoter(
           result.candidates.forEach {
             log.info("Promoting execution {} for work: {}", value("executionId", it.id), result.reason)
             executionRepository.updateStatus(it.type, it.id, NOT_STARTED)
+            executionLauncher.start(it)
           }
           registry.counter(promotedId).increment(result.candidates.size.toLong())
         }

@@ -47,7 +47,7 @@ class ExecutionBufferActuator(
 
   private val bufferedId = registry.createId("qos.executionsBuffered")
   private val enqueuedId = registry.createId("qos.executionsEnqueued")
-  private val elapsedTimeId = registry.createId("qos.promoter.elapsedTime")
+  private val elapsedTimeId = registry.createId("qos.actuator.elapsedTime")
 
   @Sync
   @EventListener(BeforeInitialExecutionPersist::class)

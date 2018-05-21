@@ -46,6 +46,11 @@ class ActiveExecutionsBufferStateSupplier(
 
   @Scheduled(fixedDelayString = "\${pollers.qos.updateStateIntervalMs:5000}")
   private fun updateCurrentState() {
+    if (!enabled()) {
+      state = INACTIVE
+      return
+    }
+
     val activeExecutions = registry.gauges()
       .filter { it.id().name() == "executions.active" }
       .map { it.value() }

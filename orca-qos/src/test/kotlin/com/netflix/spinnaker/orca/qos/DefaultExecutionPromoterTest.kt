@@ -20,8 +20,9 @@ import com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.fixture.pipeline
+import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
@@ -33,11 +34,12 @@ import org.jetbrains.spek.subject.SubjectSpek
 
 class DefaultExecutionPromoterTest : SubjectSpek<DefaultExecutionPromoter>({
 
+  val executionLauncher: ExecutionLauncher = mock()
   val executionRepository: ExecutionRepository = mock()
   val policy: PromotionPolicy = mock()
 
   subject(CachingMode.GROUP) {
-    DefaultExecutionPromoter(executionRepository, listOf(policy), NoopRegistry())
+    DefaultExecutionPromoter(executionLauncher, executionRepository, listOf(policy), NoopRegistry())
       .also {
         it.onApplicationEvent(RemoteStatusChangedEvent(StatusChangeEvent(DOWN, UP)))
       }
@@ -58,9 +60,9 @@ class DefaultExecutionPromoterTest : SubjectSpek<DefaultExecutionPromoter>({
       }
 
       beforeGroup {
-        whenever(executionRepository.retrieveBufferedExecutions()) doReturn listOf(execution1, execution2)
+        whenever(executionRepository.retrieveBufferedExecutions()) doReturn listOf(execution1, execution2, execution3)
         whenever(policy.apply(any())) doReturn PromotionResult(
-          candidates = listOf(execution1, execution2, execution3),
+          candidates = listOf(execution1, execution2),
           finalized = false,
           reason = "Testing"
         )
@@ -70,11 +72,17 @@ class DefaultExecutionPromoterTest : SubjectSpek<DefaultExecutionPromoter>({
 
       on("promote schedule") {
         subject.promote()
-      }
 
-      it("promotes all policy-selected candidate executions via status update") {
-        verify(executionRepository).updateStatus(execution1.type, execution1.id, NOT_STARTED)
-        verify(executionRepository).updateStatus(execution2.type, execution2.id, NOT_STARTED)
+        it("promotes all policy-selected candidate executions via status update") {
+          verify(executionRepository).updateStatus(execution1.type, execution1.id, ExecutionStatus.NOT_STARTED)
+          verify(executionRepository).updateStatus(execution2.type, execution2.id, ExecutionStatus.NOT_STARTED)
+        }
+
+        it("starts the executions immediately") {
+          verify(executionLauncher).start(execution1)
+          verify(executionLauncher).start(execution2)
+          verifyNoMoreInteractions(executionLauncher)
+        }
       }
     }
   }
