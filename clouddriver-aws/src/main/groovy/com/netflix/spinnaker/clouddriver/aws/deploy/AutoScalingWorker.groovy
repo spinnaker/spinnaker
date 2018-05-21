@@ -303,14 +303,14 @@ class AutoScalingWorker {
 
     Set<String> failedPredicates = [
       "launch configuration": { return existingAsg.launchConfigurationName == request.launchConfigurationName },
-      "availability zones": { return existingAsg.availabilityZones == request.availabilityZones },
-      "subnets": { return existingAsg.getVPCZoneIdentifier() == request.getVPCZoneIdentifier() },
-      "load balancers": { return existingAsg.loadBalancerNames == request.loadBalancerNames },
-      "target groups": { return existingAsg.targetGroupARNs == request.targetGroupARNs },
+      "availability zones": { return existingAsg.availabilityZones.sort() == request.availabilityZones.sort() },
+      "subnets": { return existingAsg.getVPCZoneIdentifier()?.split(",")?.sort()?.toList() == request.getVPCZoneIdentifier()?.split(",")?.sort()?.toList() },
+      "load balancers": { return existingAsg.loadBalancerNames.sort() == request.loadBalancerNames.sort() },
+      "target groups": { return existingAsg.targetGroupARNs.sort() == request.targetGroupARNs.sort() },
       "cooldown": { return existingAsg.defaultCooldown == request.defaultCooldown },
       "health check grace period": { return existingAsg.healthCheckGracePeriod == request.healthCheckGracePeriod },
       "health check type": { return existingAsg.healthCheckType == request.healthCheckType },
-      "termination policies": { return existingAsg.terminationPolicies == request.terminationPolicies }
+      "termination policies": { return existingAsg.terminationPolicies.sort() == request.terminationPolicies.sort() }
     ].findAll { !((Supplier<Boolean>) it.value).get() }.keySet()
 
     if (!failedPredicates.isEmpty()) {
@@ -318,7 +318,7 @@ class AutoScalingWorker {
       return false
     }
     if (existingAsg.createdTime.toInstant().isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
-      task.updateStatus AWS_PHASE, "$asgName already exists and appears to be valid, but falls outside of window for deploy retry"
+      task.updateStatus AWS_PHASE, "$asgName already exists and appears to be valid, but falls outside of safety window for idempotent deploy (1 hour)"
       return false
     }
 
