@@ -48,6 +48,7 @@ import citest.kube_testing as kube
 import citest.json_contract as jc
 import citest.json_predicate as jp
 import citest.service_testing as st
+ov_factory = jc.ObservationPredicateFactory()
 
 # Spinnaker modules.
 import spinnaker_testing as sk
@@ -231,16 +232,21 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
 
     builder = kube.KubeContractBuilder(self.kube_observer)
     (builder.new_clause_builder('Service Removed', retryable_for_secs=15)
-     .get_resources(
-         'svc',
-         extra_args=['--namespace', self.TEST_NAMESPACE],
-         no_resource_ok=True))
+     .get_resources('svc', extra_args=['--namespace', self.TEST_NAMESPACE])
+     .EXPECT(ov_factory.value_list_path_excludes('items/metadata/name',
+                                                 jp.STR_EQ(self.__lb_name)))
+     .OR(self.__not_found_observation_predicate()))
 
     return st.OperationContract(
         self.new_post_operation(
             title='delete_load_balancer', data=payload, path='tasks'),
         contract=builder.build())
 
+  def __not_found_observation_predicate(self, title='Not Found Permitted'):
+    return ov_factory.error_list_contains(
+        st.CliAgentRunErrorPredicate(
+            title=title, error_regex='.* not found'))
+    
   def create_server_group(self):
     """Creates OperationContract for createServerGroup.
 
@@ -699,8 +705,10 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       (builder.new_clause_builder('Daemonset Deleted', retryable_for_secs=15)
        .get_resources(
           'daemonsets', extra_args=[self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
-                        '--namespace', self.TEST_NAMESPACE], no_resource_ok=True)
-       .contains_path_eq('targetSize', 0))
+                        '--namespace', self.TEST_NAMESPACE])
+       .EXPECT(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(0)))
+       .OR(self.__not_found_observation_predicate()))
+
       return st.OperationContract(
           self.new_post_operation(
               title='Delete_daemonset', data=payload,
@@ -721,8 +729,9 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       (builder.new_clause_builder('StatefulSet Deleted', retryable_for_secs=15)
        .get_resources(
           'statefulsets', extra_args=[self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
-                          '--namespace', self.TEST_NAMESPACE], no_resource_ok=True)
-       .contains_path_eq('targetSize', 0))
+                          '--namespace', self.TEST_NAMESPACE])
+       .EXPECT(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(0)))
+       .OR(self.__not_found_observation_predicate()))
       return st.OperationContract(
           self.new_post_operation(
               title='Delete_StatefulSet', data=payload,
@@ -804,9 +813,9 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Replica Set Removed')
      .get_resources(
          'rs',
-         extra_args=[group_name, '--namespace', self.TEST_NAMESPACE],
-         no_resource_ok=True)
-     .contains_path_eq('targetSize', 0))
+         extra_args=[group_name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(0)))
+     .OR(self.__not_found_observation_predicate()))
 
     return st.OperationContract(
         self.new_post_operation(
