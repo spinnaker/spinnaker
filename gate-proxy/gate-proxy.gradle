@@ -1,0 +1,7 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+dependencies {
+  compile project(":gate-core")
+
+  compile spinnaker.dependency("korkExceptions")
+}

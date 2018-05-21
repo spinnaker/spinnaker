@@ -1,6 +1,7 @@
 buildscript {
   ext {
     springBootVersion = "1.5.7.RELEASE"
+    kotlinVersion = "1.2.41"
   }
   repositories {
     jcenter()
@@ -10,6 +11,7 @@ buildscript {
   dependencies {
     classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.0.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath "com.netflix.nebula:nebula-kotlin-plugin:${kotlinVersion}"
   }
 }
 

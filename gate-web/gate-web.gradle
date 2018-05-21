@@ -21,6 +21,7 @@ repositories {
 
 dependencies {
   compile project(":gate-core")
+  compile project(":gate-proxy")
 
   spinnaker.group('retrofitDefault')
   spinnaker.group("test")
@@ -72,3 +73,5 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
+
+bootRun.systemProperties = System.properties
