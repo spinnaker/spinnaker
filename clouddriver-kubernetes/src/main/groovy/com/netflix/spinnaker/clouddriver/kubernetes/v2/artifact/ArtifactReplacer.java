@@ -64,8 +64,34 @@ public class ArtifactReplacer {
     return this;
   }
 
+  private static List<Artifact> filterKubernetesArtifactsByNamespace(String namespace, List<Artifact> artifacts) {
+    return artifacts.stream()
+        // Keep artifacts that either aren't k8s, or are in the same namespace as our manifest
+        .filter(a -> {
+          String type = a.getType();
+          if (StringUtils.isEmpty(type)) {
+            log.warn("Artifact {} without a type, ignoring", a);
+            return false;
+          }
+
+          if (!type.startsWith("kubernetes/")) {
+            return true;
+          }
+
+          String location = a.getLocation();
+          if (StringUtils.isEmpty(location)) {
+            return StringUtils.isEmpty(namespace);
+          } else {
+            return location.equals(namespace);
+          }
+        })
+        .collect(Collectors.toList());
+  }
+
   public ReplaceResult replaceAll(KubernetesManifest input, List<Artifact> artifacts) {
     log.debug("Doing replacement on {} using {}", input, artifacts);
+    // final to use in below lambda
+    final List<Artifact> finalArtifacts = filterKubernetesArtifactsByNamespace(input.getNamespace(), artifacts);
     DocumentContext document;
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
@@ -75,7 +101,7 @@ public class ArtifactReplacer {
     }
 
     Set<Artifact> replacedArtifacts = replacers.stream()
-        .map(r -> artifacts.stream()
+        .map(r -> finalArtifacts.stream()
             .filter(a -> r.replaceIfPossible(document, a))
             .collect(Collectors.toSet()))
         .flatMap(Collection::stream)
