@@ -25,7 +25,7 @@ module.exports = angular
 
     var ctrl = this;
 
-    ctrl.translate = FirewallLabels.get;
+    ctrl.translate = label => FirewallLabels.get(label);
 
     angular.extend(
       this,
