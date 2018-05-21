@@ -89,6 +89,10 @@ abstract class CloudProviderBakeHandler {
 
       // Package name is always part of key, even if it is an empty string
       keys << (package_name ? package_name.tokenize().join('|') : "")
+      // If any artifacts to bake were specified, include them in the key as well
+      if (package_artifacts) {
+        keys << package_artifacts.collect { it.getReference() ?: "" }.join('|')
+      }
 
       String providerSpecificBakeKeyComponent = produceProviderSpecificBakeKeyComponent(region, bakeRequest)
       if (providerSpecificBakeKeyComponent) {
