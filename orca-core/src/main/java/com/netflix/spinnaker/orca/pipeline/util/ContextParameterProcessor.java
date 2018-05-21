@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
@@ -89,7 +90,10 @@ public class ContextParameterProcessor {
       augmentedContext.putAll(stage.getContext());
     }
     if (stage.getExecution().getType() == PIPELINE) {
-      augmentedContext.put("trigger", stage.getExecution().getTrigger());
+      augmentedContext.put("trigger", mapper.convertValue(
+          stage.getExecution().getTrigger(),
+          new TypeReference<Map<String, Object>>() {})
+      );
       augmentedContext.put("execution", stage.getExecution());
     }
 
