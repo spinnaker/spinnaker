@@ -26,4 +26,5 @@ ArtifactIconService.registerType(/kubernetes\/.*/, require('./icons/kubernetes-a
 ArtifactIconService.registerType(/embedded\/base64/, require('./icons/embedded-base64-artifact.svg'));
 ArtifactIconService.registerType(/gcs\/object/, require('./icons/gcs-file-artifact.svg'));
 ArtifactIconService.registerType(/github\/file/, require('./icons/github-file-artifact.svg'));
+ArtifactIconService.registerType(/gitlab\/file/, require('./icons/gitlab-file-artifact.svg'));
 ArtifactIconService.registerType(/s3\/object/, require('./icons/s3-object-artifact.svg'));

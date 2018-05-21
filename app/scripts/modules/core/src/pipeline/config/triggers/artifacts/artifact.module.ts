@@ -7,8 +7,10 @@ import { DOCKER_ARTIFACT } from './docker/docker.artifact';
 import { DEFAULT_DOCKER_ARTIFACT } from './docker/defaultDocker.artifact';
 import { DEFAULT_GCS_ARTIFACT } from './gcs/defaultGcs.artifact';
 import { DEFAULT_GITHUB_ARTIFACT } from './github/defaultGithub.artifact';
+import { DEFAULT_GITLAB_ARTIFACT } from './gitlab/defaultGitlab.artifact';
 import { ARTIFACT } from './artifact.component';
 import { GITHUB_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/github/github.artifact';
+import { GITLAB_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/gitlab/gitlab.artifact';
 import { BASE64_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/base64/base64.artifact';
 import { DEFAULT_BASE64_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/base64/defaultBase64.artifact';
 import { S3_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/s3/s3.artifact';
@@ -21,6 +23,7 @@ module(ARTIFACT_MODULE, [
   CUSTOM_ARTIFACT,
   GCS_ARTIFACT,
   GITHUB_ARTIFACT,
+  GITLAB_ARTIFACT,
   DOCKER_ARTIFACT,
   BASE64_ARTIFACT,
   S3_ARTIFACT,
@@ -28,6 +31,7 @@ module(ARTIFACT_MODULE, [
   DEFAULT_DOCKER_ARTIFACT,
   DEFAULT_GCS_ARTIFACT,
   DEFAULT_GITHUB_ARTIFACT,
+  DEFAULT_GITLAB_ARTIFACT,
   DEFAULT_BASE64_ARTIFACT,
   ARTIFACT,
 ]);
