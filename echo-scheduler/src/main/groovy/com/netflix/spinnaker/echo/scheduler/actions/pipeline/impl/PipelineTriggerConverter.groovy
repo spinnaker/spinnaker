@@ -23,6 +23,8 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerAction
 
+import static com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.CronExpressionFuzzer.fuzz
+
 class PipelineTriggerConverter {
 
   static Map<String, String> toParameters(Pipeline pipeline, Trigger trigger, String timeZoneId) {
@@ -68,7 +70,7 @@ class PipelineTriggerConverter {
       .withParameters(toParameters(pipeline, trigger, timeZoneId))
 
     if (Trigger.Type.CRON.toString().equalsIgnoreCase(trigger.type)) {
-      actionInstanceBuilder.withTrigger(new CronTrigger(trigger.cronExpression, timeZoneId, new Date()))
+      actionInstanceBuilder.withTrigger(new CronTrigger(fuzz(trigger.id, trigger.cronExpression), timeZoneId, new Date()))
     }
 
     actionInstanceBuilder.build()
@@ -78,7 +80,7 @@ class PipelineTriggerConverter {
     if (trigger.type == Trigger.Type.CRON.toString()) {
       return (
         actionInstance.trigger instanceof CronTrigger &&
-          trigger.cronExpression == ((CronTrigger) actionInstance.trigger).cronExpression &&
+          fuzz(trigger.id, trigger.cronExpression) == ((CronTrigger) actionInstance.trigger).cronExpression &&
           timeZoneId == actionInstance?.context?.parameters?.triggerTimeZoneId &&
           trigger.runAsUser == actionInstance?.context?.parameters?.runAsUser
       )
