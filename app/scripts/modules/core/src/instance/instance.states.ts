@@ -69,9 +69,8 @@ module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).con
           templateUrl: require('../presentation/standalone.view.html'),
           controllerProvider: [
             '$stateParams',
-            'skinService',
-            ($stateParams: StateParams, skinService: SkinService) => {
-              return skinService.getValue($stateParams.provider, $stateParams.account, 'instance.detailsController');
+            ($stateParams: StateParams) => {
+              return SkinService.getValue($stateParams.provider, $stateParams.account, 'instance.detailsController');
             },
           ],
           controllerAs: 'ctrl',

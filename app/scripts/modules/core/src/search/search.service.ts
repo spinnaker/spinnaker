@@ -1,4 +1,6 @@
-import { module, ILogService, IHttpPromiseCallbackArg, IPromise } from 'angular';
+import { IHttpPromiseCallbackArg, IPromise } from 'angular';
+import { $log } from 'ngimport';
+
 import { API } from 'core/api/ApiService';
 import { ICache } from 'core/cache';
 
@@ -36,11 +38,7 @@ export class SearchService {
     return 500;
   }
 
-  constructor(private $log: ILogService) {
-    'ngInject';
-  }
-
-  public search<T extends ISearchResult>(
+  public static search<T extends ISearchResult>(
     searchParams: ISearchParams,
     cache: ICache = null,
   ): IPromise<ISearchResults<T>> {
@@ -62,11 +60,8 @@ export class SearchService {
         return response[0] || getFallbackResults();
       })
       .catch((response: IHttpPromiseCallbackArg<any>) => {
-        this.$log.error(response.data, response);
+        $log.error(response.data, response);
         return getFallbackResults();
       });
   }
 }
-
-export const SEARCH_SERVICE = 'spinnaker.core.search.service';
-module(SEARCH_SERVICE, []).service('searchService', SearchService);

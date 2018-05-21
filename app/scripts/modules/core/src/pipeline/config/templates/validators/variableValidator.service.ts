@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { IVariable, IVariableError } from '../inputs/variableInput.service';
 
 export interface IVariableValidator {
@@ -7,13 +6,13 @@ export interface IVariableValidator {
 }
 
 export class VariableValidatorService {
-  private validators = new Set<IVariableValidator>();
+  private static validators = new Set<IVariableValidator>();
 
-  public addValidator(validator: IVariableValidator): void {
+  public static addValidator(validator: IVariableValidator): void {
     this.validators.add(validator);
   }
 
-  public validate(variable: IVariable): IVariableError[] {
+  public static validate(variable: IVariable): IVariableError[] {
     const errors: IVariableError[] = [];
     this.validators.forEach(v => {
       if (v.handles(variable.type)) {
@@ -23,6 +22,3 @@ export class VariableValidatorService {
     return errors;
   }
 }
-
-export const VARIABLE_VALIDATOR_SERVICE = 'spinnaker.core.variableValidator.service';
-module(VARIABLE_VALIDATOR_SERVICE, []).service('variableValidatorService', VariableValidatorService);

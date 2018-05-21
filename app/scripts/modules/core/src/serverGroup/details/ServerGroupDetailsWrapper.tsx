@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
 import { AngularJSAdapter, ReactInjector } from 'core/reactShims';
+import { SkinService } from 'core/cloudProvider/skin.service';
 
 import { ServerGroupDetails } from './ServerGroupDetails';
 
@@ -70,14 +71,13 @@ export class ServerGroupDetailsWrapper extends React.Component<
 
   private getServerGroupDetailsTemplate(): void {
     const { provider, accountId } = ReactInjector.$stateParams;
-    const { skinService } = ReactInjector;
     $q
       .all([
-        skinService.getValue(provider, accountId, 'serverGroup.detailsActions'),
-        skinService.getValue(provider, accountId, 'serverGroup.detailsGetter'),
-        skinService.getValue(provider, accountId, 'serverGroup.detailsSections'),
-        skinService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
-        skinService.getValue(provider, accountId, 'serverGroup.detailsController'),
+        SkinService.getValue(provider, accountId, 'serverGroup.detailsActions'),
+        SkinService.getValue(provider, accountId, 'serverGroup.detailsGetter'),
+        SkinService.getValue(provider, accountId, 'serverGroup.detailsSections'),
+        SkinService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
+        SkinService.getValue(provider, accountId, 'serverGroup.detailsController'),
       ])
       .then(
         (

@@ -1,31 +1,25 @@
-import { mock } from 'angular';
 import { range, some } from 'lodash';
 
-import { RECENT_HISTORY_SERVICE, RecentHistoryService } from '../history/recentHistory.service';
+import { RecentHistoryService } from '../history/recentHistory.service';
 import { DeckCacheFactory, ICache } from '../cache/deckCacheFactory';
 
 describe('recent history service', () => {
-  let service: RecentHistoryService, backingCache: ICache;
+  let backingCache: ICache;
 
-  beforeEach(mock.module(RECENT_HISTORY_SERVICE));
-
-  beforeEach(
-    mock.inject((recentHistoryService: RecentHistoryService) => {
-      service = recentHistoryService;
-      DeckCacheFactory.clearCache('history', 'user');
-      backingCache = DeckCacheFactory.getCache('history', 'user');
-    }),
-  );
+  beforeEach(() => {
+    DeckCacheFactory.clearCache('history', 'user');
+    backingCache = DeckCacheFactory.getCache('history', 'user');
+  });
 
   describe('getItems returns items most recent first', () => {
     it('returns an empty list if none found', () => {
-      expect(service.getItems('something')).toEqual([]);
+      expect(RecentHistoryService.getItems('something')).toEqual([]);
     });
 
     it('returns whatever is in cache if something is found, ordered by accessTime', () => {
       backingCache.put('whatever', [{ accessTime: 1 }, { accessTime: 3 }, { accessTime: 2 }]);
       expect(
-        service.getItems('whatever').map(item => {
+        RecentHistoryService.getItems('whatever').map(item => {
           return item.accessTime;
         }),
       ).toEqual([3, 2, 1]);
@@ -43,8 +37,8 @@ describe('recent history service', () => {
 
     it('puts items in cache most recent first', () => {
       initializeCache(2);
-      service.addItem('whatever', 'state', { id: 'new item' });
-      const ids = service.getItems('whatever').map(item => {
+      RecentHistoryService.addItem('whatever', 'state', { id: 'new item' });
+      const ids = RecentHistoryService.getItems('whatever').map(item => {
         return item.params.id;
       });
       expect(ids).toEqual(['new item', 0, 1]);
@@ -52,8 +46,8 @@ describe('recent history service', () => {
 
     it('replaces oldest item if cache is full', () => {
       initializeCache(15);
-      service.addItem('whatever', 'state', { id: 'new item' });
-      const ids = service.getItems('whatever').map(item => {
+      RecentHistoryService.addItem('whatever', 'state', { id: 'new item' });
+      const ids = RecentHistoryService.getItems('whatever').map(item => {
         return item.params.id;
       });
       expect(ids).toEqual(['new item', 0, 1, 2, 3]);
@@ -61,8 +55,8 @@ describe('recent history service', () => {
 
     it('removes previous entry and adds replacement if params match, ignoring undefined values', () => {
       initializeCache(3);
-      service.addItem('whatever', 'state', { id: 1, someUndefinedValue: undefined });
-      const ids = service.getItems('whatever').map(item => {
+      RecentHistoryService.addItem('whatever', 'state', { id: 1, someUndefinedValue: undefined });
+      const ids = RecentHistoryService.getItems('whatever').map(item => {
         return item.params.id;
       });
       expect(ids).toEqual([1, 0, 2]);
@@ -74,13 +68,18 @@ describe('recent history service', () => {
         return { params: { id: idx, importantParam: idx, ignoredParam: idx + 1 }, accessTime: start - idx };
       });
       backingCache.put('whatever', currentItems);
-      service.addItem('whatever', 'state', { id: 1, importantParam: 1, ignoredParam: 1000 }, ['importantParam', 'id']);
-      let ids = service.getItems('whatever').map(item => {
+      RecentHistoryService.addItem('whatever', 'state', { id: 1, importantParam: 1, ignoredParam: 1000 }, [
+        'importantParam',
+        'id',
+      ]);
+      let ids = RecentHistoryService.getItems('whatever').map(item => {
         return item.params.id;
       });
       expect(ids).toEqual([1, 0, 2]);
-      service.addItem('whatever', 'state', { id: 1, importantParam: 1, ignoredParam: 1001 }, ['ignoredParam']);
-      ids = service.getItems('whatever').map(item => {
+      RecentHistoryService.addItem('whatever', 'state', { id: 1, importantParam: 1, ignoredParam: 1001 }, [
+        'ignoredParam',
+      ]);
+      ids = RecentHistoryService.getItems('whatever').map(item => {
         return item.params.id;
       });
       expect(ids).toEqual([1, 1, 0, 2]);
@@ -97,13 +96,13 @@ describe('recent history service', () => {
     });
 
     it('should have 3 items in the "applications" cache', () => {
-      const items = service.getItems('applications');
+      const items = RecentHistoryService.getItems('applications');
       expect(items.length).toBe(3);
     });
 
     it('should have 2 items in the "application" cache when we remove "foo" by application name', () => {
-      service.removeByAppName('foo');
-      const items = service.getItems('applications');
+      RecentHistoryService.removeByAppName('foo');
+      const items = RecentHistoryService.getItems('applications');
       expect(items.length).toBe(2);
       expect(some(items, { params: { application: 'foo' } })).toBeFalsy();
     });

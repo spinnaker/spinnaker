@@ -1,10 +1,11 @@
 'use strict';
 
+import { RecentHistoryService } from 'core/history';
+
 describe('Controller: Project Dashboard', function() {
   var executionService,
     projectReader,
     schedulerFactory,
-    recentHistoryService,
     projectConfig,
     vm,
     $q,
@@ -15,19 +16,10 @@ describe('Controller: Project Dashboard', function() {
   beforeEach(window.module(require('./dashboard.controller.js').name));
 
   beforeEach(
-    window.inject(function(
-      $controller,
-      $rootScope,
-      _executionService_,
-      _projectReader_,
-      _schedulerFactory_,
-      _recentHistoryService_,
-      _$q_,
-    ) {
+    window.inject(function($controller, $rootScope, _executionService_, _projectReader_, _schedulerFactory_, _$q_) {
       executionService = _executionService_;
       projectReader = _projectReader_;
       schedulerFactory = _schedulerFactory_;
-      recentHistoryService = _recentHistoryService_;
       $q = _$q_;
       $scope = $rootScope.$new();
       projectConfig = { name: 'the project', config: { applications: ['a', 'b'], clusters: ['a'] } };
@@ -38,7 +30,6 @@ describe('Controller: Project Dashboard', function() {
           executionService: executionService,
           projectReader: projectReader,
           schedulerFactory: schedulerFactory,
-          recentHistoryService: recentHistoryService,
           projectConfiguration: projectConfig,
         });
       };
@@ -49,7 +40,7 @@ describe('Controller: Project Dashboard', function() {
     it('adds project applications via recent history', function() {
       var historyType = null,
         appList = null;
-      spyOn(recentHistoryService, 'addExtraDataToLatest').and.callFake((type, project) => {
+      spyOn(RecentHistoryService, 'addExtraDataToLatest').and.callFake((type, project) => {
         historyType = type;
         appList = project.config.applications;
       });
@@ -61,7 +52,7 @@ describe('Controller: Project Dashboard', function() {
     it('removes project from recent history if not found', function() {
       var historyType = null;
       projectConfig.notFound = true;
-      spyOn(recentHistoryService, 'removeLastItem').and.callFake(type => (historyType = type));
+      spyOn(RecentHistoryService, 'removeLastItem').and.callFake(type => (historyType = type));
       this.initialize();
       expect(historyType).toBe('projects');
     });

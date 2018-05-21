@@ -23,6 +23,7 @@ import { UI_ROUTER_REACT_HYBRID } from '@uirouter/react-hybrid';
 require('Select2/select2.css');
 require('select2-bootstrap-css/select2-bootstrap.css');
 import 'source-sans-pro';
+import { RECENT_HISTORY_SERVICE } from 'core/history';
 require('root/app/fonts/spinnaker/icons.css');
 
 import { ANALYTICS_MODULE } from './analytics/analytics.module';
@@ -85,8 +86,6 @@ module(CORE_MODULE, [
   require('ui-select'),
   require('angular-spinner').angularSpinner.name,
 
-  REGISTRY_MODULE,
-
   ANALYTICS_MODULE,
   APPLICATION_MODULE,
   APPLICATION_BOOTSTRAP_MODULE,
@@ -131,7 +130,9 @@ module(CORE_MODULE, [
   require('./presentation/presentation.module').name,
   require('./projects/projects.module').name,
 
+  RECENT_HISTORY_SERVICE,
   REGION_MODULE,
+  REGISTRY_MODULE,
 
   require('./search/search.module').name,
   require('./securityGroup/securityGroup.module').name,

@@ -25,17 +25,12 @@ export interface IRecentHistoryEntry {
 const MAX_ITEMS = 5;
 
 export class RecentHistoryService {
-  private cache: ICache;
+  private static cache: ICache = DeckCacheFactory.createCache('history', 'user', {
+    version: 3,
+    maxAge: moment.duration(90, 'days').asMilliseconds(),
+  });
 
-  constructor() {
-    DeckCacheFactory.createCache('history', 'user', {
-      version: 3,
-      maxAge: moment.duration(90, 'days').asMilliseconds(),
-    });
-    this.cache = DeckCacheFactory.getCache('history', 'user');
-  }
-
-  public getItems(type: any): IRecentHistoryEntry[] {
+  public static getItems(type: any): IRecentHistoryEntry[] {
     const replacements: ICacheEntryStateMigrator[] = [
       {
         state: 'securityGroup',
@@ -62,7 +57,7 @@ export class RecentHistoryService {
     return sortBy(items, 'accessTime').reverse();
   }
 
-  public addItem(type: string, state: string, params: any, keyParams: string[] = []) {
+  public static addItem(type: string, state: string, params: any, keyParams: string[] = []) {
     const items: IRecentHistoryEntry[] = this.getItems(type).slice(0, MAX_ITEMS),
       existing: IRecentHistoryEntry = this.getExisting(items, params, keyParams),
       entry = {
@@ -82,7 +77,7 @@ export class RecentHistoryService {
     this.cache.put(type, items);
   }
 
-  public removeItem(type: string, id: string): void {
+  public static removeItem(type: string, id: string): void {
     const items: IRecentHistoryEntry[] = this.getItems(type),
       existing: IRecentHistoryEntry = items.find(i => i.id === id);
 
@@ -92,7 +87,7 @@ export class RecentHistoryService {
     }
   }
 
-  public removeLastItem(type: string): void {
+  public static removeLastItem(type: string): void {
     const items: IRecentHistoryEntry[] = this.getItems(type);
     if (items.length) {
       items.splice(0, 1);
@@ -107,7 +102,7 @@ export class RecentHistoryService {
    * @param type
    * @param extraData
    */
-  public addExtraDataToLatest(type: string, extraData: any): void {
+  public static addExtraDataToLatest(type: string, extraData: any): void {
     const items: IRecentHistoryEntry[] = this.getItems(type);
     if (items.length) {
       items[0].extraData = extraData;
@@ -119,7 +114,7 @@ export class RecentHistoryService {
    * Called when deleting an application to remove its record in recent history
    * @param appName
    */
-  public removeByAppName(appName: string) {
+  public static removeByAppName(appName: string) {
     const type = 'applications';
     const items: IRecentHistoryEntry[] = this.getItems(type);
     const remaining: IRecentHistoryEntry[] = items.filter(item => item.params.application !== appName);
@@ -128,7 +123,7 @@ export class RecentHistoryService {
     }
   }
 
-  private getExisting(items: IRecentHistoryEntry[], params: any, keyParams: string[]): IRecentHistoryEntry {
+  private static getExisting(items: IRecentHistoryEntry[], params: any, keyParams: string[]): IRecentHistoryEntry {
     if (!keyParams || !keyParams.length) {
       return find(items, { params: omitBy(params, isUndefined) });
     }
@@ -137,13 +132,11 @@ export class RecentHistoryService {
 }
 
 export const RECENT_HISTORY_SERVICE = 'spinnaker.core.history.recentHistory.service';
-module(RECENT_HISTORY_SERVICE, [])
-  .service('recentHistoryService', RecentHistoryService)
-  .run(($rootScope: ng.IRootScopeService, recentHistoryService: RecentHistoryService) => {
-    $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: any) => {
-      if (toState.data && toState.data.history) {
-        const params = omit(toParams || {}, ['debug', 'vis', 'trace']);
-        recentHistoryService.addItem(toState.data.history.type, toState.name, params, toState.data.history.keyParams);
-      }
-    });
+module(RECENT_HISTORY_SERVICE, []).run(($rootScope: ng.IRootScopeService) => {
+  $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: any) => {
+    if (toState.data && toState.data.history) {
+      const params = omit(toParams || {}, ['debug', 'vis', 'trace']);
+      RecentHistoryService.addItem(toState.data.history.type, toState.name, params, toState.data.history.keyParams);
+    }
   });
+});

@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import * as React from 'react';
 
 import {
@@ -39,7 +38,4 @@ export class BooleanInputBuilder implements IVariableInputBuilder {
   }
 }
 
-export const BOOLEAN_INPUT = 'spinnaker.core.pipelineTemplate.booleanInput';
-module(BOOLEAN_INPUT, []).run((variableInputService: VariableInputService) =>
-  variableInputService.addInput(new BooleanInputBuilder()),
-);
+VariableInputService.addInput(new BooleanInputBuilder());

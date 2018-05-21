@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { Observable } from 'rxjs';
 
-import { ReactInjector } from 'core/reactShims';
-
-import { ISearchParams, ISearchResult, ISearchResults } from '../search.service';
+import { ISearchParams, ISearchResult, ISearchResults, SearchService } from '../search.service';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { DefaultSearchResultTab } from './DefaultSearchResultTab';
 
@@ -43,9 +41,8 @@ export abstract class SearchResultType<T extends ISearchResult = ISearchResult> 
 
   /** Override this method as necessary */
   public search(params: ISearchParams, _otherResults?: Observable<ISearchResultSet>): Observable<ISearchResults<T>> {
-    const searchService = ReactInjector.searchService;
     const { key, ...otherParams } = params;
     const searchParams = { ...otherParams, q: key, type: this.id };
-    return Observable.fromPromise(searchService.search(searchParams));
+    return Observable.fromPromise(SearchService.search(searchParams));
   }
 }

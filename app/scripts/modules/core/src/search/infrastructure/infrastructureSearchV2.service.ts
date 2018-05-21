@@ -6,7 +6,7 @@ import { SETTINGS } from 'core/config';
 import { UrlBuilderService, URL_BUILDER_SERVICE, IQueryParams } from 'core/navigation';
 
 import { ISearchResultSet } from './infrastructureSearch.service';
-import { ISearchResult, SEARCH_SERVICE, ISearchResults } from '../search.service';
+import { ISearchResult, ISearchResults } from '../search.service';
 import { SearchResultType } from '../searchResult/searchResultType';
 import { SearchStatus } from '../searchResult/SearchResults';
 import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
@@ -65,7 +65,7 @@ export class InfrastructureSearchServiceV2 {
 }
 
 export const INFRASTRUCTURE_SEARCH_SERVICE_V2 = 'spinnaker.core.infrastructure.search.service.v2';
-module(INFRASTRUCTURE_SEARCH_SERVICE_V2, [SEARCH_SERVICE, URL_BUILDER_SERVICE]).service(
+module(INFRASTRUCTURE_SEARCH_SERVICE_V2, [URL_BUILDER_SERVICE]).service(
   'infrastructureSearchServiceV2',
   InfrastructureSearchServiceV2,
 );

@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import * as React from 'react';
 import {
   IVariableInputBuilder,
@@ -40,7 +39,4 @@ export class StringInputBuilder implements IVariableInputBuilder {
   }
 }
 
-export const STRING_INPUT = 'spinnaker.core.pipelineTemplate.stringInput';
-module(STRING_INPUT, []).run((variableInputService: VariableInputService) =>
-  variableInputService.addInput(new StringInputBuilder()),
-);
+VariableInputService.addInput(new StringInputBuilder());

@@ -3,7 +3,7 @@ import * as React from 'react';
 import { UIView } from '@uirouter/react';
 
 import { Application } from 'core/application';
-import { ReactInjector } from 'core/reactShims';
+import { RecentHistoryService } from 'core/history';
 import { DebugWindow } from 'core/utils/consoleDebug';
 
 import './application.less';
@@ -29,7 +29,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
 
   private mountApplication(app: Application) {
     if (app.notFound) {
-      ReactInjector.recentHistoryService.removeLastItem('applications');
+      RecentHistoryService.removeLastItem('applications');
       return;
     }
 

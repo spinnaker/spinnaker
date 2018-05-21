@@ -8,7 +8,6 @@ import { FirewallLabels } from 'core/securityGroup/label';
 import { SEARCH_RANK_FILTER } from '../searchRank.filter';
 import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
-import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
 import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
 import { INFRASTRUCTURE_SEARCH_SERVICE } from 'core/search/infrastructure/infrastructureSearch.service';
 import { SPINNER_COMPONENT } from 'core/widgets/spinners/spinner.component';
@@ -22,7 +21,6 @@ import { SearchService } from '../search.service';
 module.exports = angular
   .module('spinnaker.search.infrastructure.controller', [
     INFRASTRUCTURE_SEARCH_SERVICE,
-    RECENT_HISTORY_SERVICE,
     SEARCH_RESULT_COMPONENT,
     PAGE_TITLE_SERVICE,
     PROJECT_SUMMARY_POD_COMPONENT,
@@ -37,11 +35,9 @@ module.exports = angular
     infrastructureSearchService,
     $stateParams,
     $location,
-    searchService,
     cacheInitializer,
     overrideRegistry,
     pageTitleService,
-    recentHistoryService,
     $uibModal,
     $state,
   ) {

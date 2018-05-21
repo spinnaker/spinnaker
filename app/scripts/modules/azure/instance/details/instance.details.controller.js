@@ -9,7 +9,7 @@ import {
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
   InstanceTemplates,
-  RECENT_HISTORY_SERVICE,
+  RecentHistoryService,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -19,7 +19,6 @@ module.exports = angular
     INSTANCE_WRITE_SERVICE,
     INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    RECENT_HISTORY_SERVICE,
   ])
   .controller('azureInstanceDetailsCtrl', function(
     $scope,
@@ -27,7 +26,6 @@ module.exports = angular
     $uibModal,
     instanceWriter,
     confirmationModalService,
-    recentHistoryService,
     instanceReader,
     instance,
     app,
@@ -129,7 +127,7 @@ module.exports = angular
       if (instanceSummary && account && region) {
         extraData.account = account;
         extraData.region = region;
-        recentHistoryService.addExtraDataToLatest('instances', extraData);
+        RecentHistoryService.addExtraDataToLatest('instances', extraData);
         return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(
           function(details) {
             $scope.state.loading = false;

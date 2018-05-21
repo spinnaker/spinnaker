@@ -5,6 +5,7 @@ import { without, chain, has } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import { ReactInjector } from 'core/reactShims';
+import { VariableValidatorService } from './validators/variableValidator.service';
 
 import {
   PIPELINE_TEMPLATE_SERVICE,
@@ -161,7 +162,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
 
   public handleVariableChange = (newVariable: IVariable): void => {
     const oldVariable = this.getVariable(newVariable.name);
-    newVariable.errors = ReactInjector.variableValidatorService.validate(newVariable);
+    newVariable.errors = VariableValidatorService.validate(newVariable);
     this.variables = without(this.variables, oldVariable).concat([newVariable]);
 
     // `handleVariableChange` is passed to a React component, and Angular has no idea when it has been called.
@@ -202,7 +203,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
         hideErrors: true,
       };
     });
-    this.variables.forEach(v => (v.errors = ReactInjector.variableValidatorService.validate(v)));
+    this.variables.forEach(v => (v.errors = VariableValidatorService.validate(v)));
   }
 
   private getInitialVariableValue(variable: IVariableMetadata): any {

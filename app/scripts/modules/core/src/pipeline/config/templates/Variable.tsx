@@ -1,9 +1,7 @@
 import * as React from 'react';
 
-import { ReactInjector } from 'core/reactShims';
-
 import { IVariableMetadata } from './pipelineTemplate.service';
-import { IVariable, IVariableInputBuilder } from './inputs/variableInput.service';
+import { IVariable, IVariableInputBuilder, VariableInputService } from './inputs/variableInput.service';
 import { VariableMetadataHelpField } from './VariableMetadataHelpField';
 
 import './Variable.less';
@@ -16,9 +14,7 @@ export interface IVariableProps {
 
 export class Variable extends React.Component<IVariableProps> {
   private getVariableInput(): JSX.Element {
-    const input: IVariableInputBuilder = ReactInjector.variableInputService.getInputForType(
-      this.props.variableMetadata.type,
-    );
+    const input: IVariableInputBuilder = VariableInputService.getInputForType(this.props.variableMetadata.type);
     return input ? input.getInput(this.props.variable, this.props.onChange) : null;
   }
 

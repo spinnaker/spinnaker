@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { uniqWith } from 'lodash';
 
-import { InfrastructureCaches, ISearchResults, SEARCH_SERVICE, SearchService } from '@spinnaker/core';
+import { InfrastructureCaches, ISearchResults, SearchService } from '@spinnaker/core';
 
 import { IGceHealthCheck } from 'google/domain';
 
@@ -15,18 +15,16 @@ interface IHealthCheckSearchResults {
 }
 
 export class GceHealthCheckReader {
-  constructor(private searchService: SearchService) {
-    'ngInject';
-  }
-
   public listHealthChecks(type?: string): ng.IPromise<IGceHealthCheck[]> {
     if (type) {
       return this.listHealthChecks().then(healthChecks =>
         healthChecks.filter(healthCheck => healthCheck.healthCheckType === type),
       );
     } else {
-      return this.searchService
-        .search({ q: '', type: 'healthChecks', allowShortQuery: 'true' }, InfrastructureCaches.get('healthChecks'))
+      return SearchService.search(
+        { q: '', type: 'healthChecks', allowShortQuery: 'true' },
+        InfrastructureCaches.get('healthChecks'),
+      )
         .then((searchResults: ISearchResults<IHealthCheckSearchResults>) => {
           if (searchResults && searchResults.results) {
             const healthChecks = searchResults.results.filter(result => result.provider === 'gce').map(result => {
@@ -51,4 +49,4 @@ export class GceHealthCheckReader {
 }
 
 export const GCE_HEALTH_CHECK_READER = 'spinnaker.gce.healthCheck.reader';
-module(GCE_HEALTH_CHECK_READER, [SEARCH_SERVICE]).service('gceHealthCheckReader', GceHealthCheckReader);
+module(GCE_HEALTH_CHECK_READER, []).service('gceHealthCheckReader', GceHealthCheckReader);

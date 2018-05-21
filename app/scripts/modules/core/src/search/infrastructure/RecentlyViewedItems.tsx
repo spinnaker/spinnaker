@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Observable, Subject } from 'rxjs';
 import * as ReactGA from 'react-ga';
 
-import { IRecentHistoryEntry } from 'core/history';
+import { IRecentHistoryEntry, RecentHistoryService } from 'core/history';
 import { ReactInjector } from 'core/reactShims';
 
 import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchResultPods';
@@ -27,7 +27,6 @@ export interface IRecentlyViewedItemsState {
 export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsProps, IRecentlyViewedItemsState> {
   public state: IRecentlyViewedItemsState = { recentItems: [] };
   private categories = ['projects', 'applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups'];
-  private recentHistoryService = ReactInjector.recentHistoryService;
   private search = ReactInjector.infrastructureSearchService.getSearcher();
 
   private refresh$ = new Subject<string[]>();
@@ -47,7 +46,7 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
         return Observable.forkJoin(
           categories.map(category => {
             const config = this.search.getCategoryConfig(category);
-            const items = this.recentHistoryService.getItems(category);
+            const items = RecentHistoryService.getItems(category);
             const promises = items.map(item => this.getFullHistoryEntry(category, item));
             return Promise.all(promises).then(results => ({
               category,
@@ -75,12 +74,12 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
   }
 
   private handleRemoveProject = (projectId: string) => {
-    this.recentHistoryService.removeItem('projects', projectId);
+    RecentHistoryService.removeItem('projects', projectId);
     this.updateRecentItems();
   };
 
   private handleRemoveItem = (categoryName: string, itemId: string) => {
-    this.recentHistoryService.removeItem(categoryName, itemId);
+    RecentHistoryService.removeItem(categoryName, itemId);
     this.updateRecentItems();
   };
 

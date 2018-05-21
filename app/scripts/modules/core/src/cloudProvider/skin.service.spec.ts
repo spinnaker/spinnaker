@@ -1,32 +1,24 @@
 import { mock, IRootScopeService, IScope, IQService } from 'angular';
 
-import { SKIN_SERVICE, SkinService } from './skin.service';
+import { SkinService } from './skin.service';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application';
 
-describe('Service: skinService', () => {
-  let service: SkinService, appBuilder: ApplicationModelBuilder, scope: IScope, $q: IQService;
+describe('Service: SkinService', () => {
+  let appBuilder: ApplicationModelBuilder, scope: IScope, $q: IQService;
 
-  beforeEach(mock.module(SKIN_SERVICE, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    mock.inject(
-      (
-        $rootScope: IRootScopeService,
-        _$q_: IQService,
-        skinService: SkinService,
-        applicationModelBuilder: ApplicationModelBuilder,
-      ) => {
-        service = skinService;
-        appBuilder = applicationModelBuilder;
-        scope = $rootScope.$new();
-        $q = _$q_;
-      },
-    ),
+    mock.inject(($rootScope: IRootScopeService, _$q_: IQService, applicationModelBuilder: ApplicationModelBuilder) => {
+      appBuilder = applicationModelBuilder;
+      scope = $rootScope.$new();
+      $q = _$q_;
+    }),
   );
 
   describe('instance skin disambiguation', () => {
     beforeEach(() => {
-      spyOn(service, 'getAccounts').and.returnValue(
+      spyOn(SkinService, 'getAccounts').and.returnValue(
         $q.resolve([
           { name: 'v1-k8s-account', cloudProvider: 'kubernetes', skin: 'v1' },
           { name: 'v2-k8s-account', cloudProvider: 'kubernetes', skin: 'v2' },
@@ -39,10 +31,10 @@ describe('Service: skinService', () => {
     it('uses available accounts to determine skin if possible', () => {
       const app = appBuilder.createStandaloneApplication('myApp');
 
-      service.getInstanceSkin('appengine', 'my-instance-id', app).then(skin => {
+      SkinService.getInstanceSkin('appengine', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual('v1');
       });
-      service.getInstanceSkin('gce', 'my-instance-id', app).then(skin => {
+      SkinService.getInstanceSkin('gce', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual(null);
       });
 
@@ -69,7 +61,7 @@ describe('Service: skinService', () => {
         },
       ]);
 
-      service.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
+      SkinService.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual('v2');
       });
 
@@ -95,7 +87,7 @@ describe('Service: skinService', () => {
         },
       ]);
 
-      service.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
+      SkinService.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual('v2');
       });
 
@@ -127,7 +119,7 @@ describe('Service: skinService', () => {
         },
       ]);
 
-      service.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
+      SkinService.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual('v2');
       });
 

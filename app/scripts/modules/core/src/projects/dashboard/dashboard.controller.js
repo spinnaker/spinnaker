@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
-import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
+import { RecentHistoryService } from 'core/history/recentHistory.service';
 import { SCHEDULER_FACTORY } from 'core/scheduler/scheduler.factory';
 import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component';
 
@@ -17,7 +17,6 @@ module.exports = angular
     require('../service/project.read.service.js').name,
     EXECUTION_SERVICE,
     SCHEDULER_FACTORY,
-    RECENT_HISTORY_SERVICE,
     require('./regionFilter/regionFilter.component.js').name,
     require('./regionFilter/regionFilter.service.js').name,
   ])
@@ -29,7 +28,6 @@ module.exports = angular
     projectReader,
     regionFilterService,
     schedulerFactory,
-    recentHistoryService,
     $q,
   ) {
     this.project = projectConfiguration;
@@ -40,10 +38,10 @@ module.exports = angular
     this.executionRefreshTooltipTemplate = require('./executionRefresh.tooltip.html');
 
     if (projectConfiguration.notFound) {
-      recentHistoryService.removeLastItem('projects');
+      RecentHistoryService.removeLastItem('projects');
       return;
     } else {
-      recentHistoryService.addExtraDataToLatest('projects', {
+      RecentHistoryService.addExtraDataToLatest('projects', {
         config: {
           applications: projectConfiguration.config.applications,
         },

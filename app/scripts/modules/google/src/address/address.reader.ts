@@ -1,6 +1,6 @@
 import { IPromise, module } from 'angular';
 
-import { InfrastructureCaches, ISearchResults, SEARCH_SERVICE, SearchService } from '@spinnaker/core';
+import { InfrastructureCaches, ISearchResults, SearchService } from '@spinnaker/core';
 
 interface IAddressSearchResults {
   account: string;
@@ -27,21 +27,16 @@ export interface IGceAddress {
 }
 
 class GceAddressReader {
-  constructor(private searchService: SearchService) {
-    'ngInject';
-  }
-
   public listAddresses(region?: string): IPromise<IGceAddress[]> {
     if (region) {
       return this.listAddresses(null /* region */).then(addresses =>
         addresses.filter(address => address.region === region),
       );
     } else {
-      return this.searchService
-        .search<IAddressSearchResults>(
-          { q: '', type: 'addresses', allowShortQuery: 'true' },
-          InfrastructureCaches.get('addresses'),
-        )
+      return SearchService.search<IAddressSearchResults>(
+        { q: '', type: 'addresses', allowShortQuery: 'true' },
+        InfrastructureCaches.get('addresses'),
+      )
         .then((searchResults: ISearchResults<IAddressSearchResults>) => {
           if (searchResults && searchResults.results) {
             return searchResults.results.filter(result => result.provider === 'gce').map(result => {
@@ -54,10 +49,10 @@ class GceAddressReader {
             return [];
           }
         })
-        .catch(() => []);
+        .catch(() => [] as IGceAddress[]);
     }
   }
 }
 
 export const GCE_ADDRESS_READER = 'spinnaker.gce.addressReader.service';
-module(GCE_ADDRESS_READER, [SEARCH_SERVICE]).service('gceAddressReader', GceAddressReader);
+module(GCE_ADDRESS_READER, []).service('gceAddressReader', GceAddressReader);

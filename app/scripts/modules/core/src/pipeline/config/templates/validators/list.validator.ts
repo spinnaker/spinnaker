@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
 import { IVariable, IVariableError } from '../inputs/variableInput.service';
 
@@ -16,7 +15,4 @@ class ListValidator implements IVariableValidator {
   }
 }
 
-export const LIST_VALIDATOR = 'spinnaker.core.pipelineTemplate.listValidator';
-module(LIST_VALIDATOR, []).run((variableValidatorService: VariableValidatorService) =>
-  variableValidatorService.addValidator(new ListValidator()),
-);
+VariableValidatorService.addValidator(new ListValidator());

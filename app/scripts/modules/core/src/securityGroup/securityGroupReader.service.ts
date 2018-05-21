@@ -12,7 +12,7 @@ import {
 } from './securityGroupTransformer.service';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
 import { SETTINGS } from 'core/config/settings';
-import { SEARCH_SERVICE, SearchService, ISearchResults } from 'core/search/search.service';
+import { SearchService, ISearchResults } from 'core/search/search.service';
 import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { IMoniker } from 'core/naming/IMoniker';
@@ -276,7 +276,6 @@ export class SecurityGroupReader {
   constructor(
     private $log: ILogService,
     private $q: IQService,
-    private searchService: SearchService,
     private securityGroupTransformer: SecurityGroupTransformerService,
     private providerServiceDelegate: ProviderServiceDelegate,
     private entityTagsReader: EntityTagsReader,
@@ -412,28 +411,25 @@ export class SecurityGroupReader {
   }
 
   public loadSecurityGroupsByApplicationName(applicationName: string): IPromise<ISecurityGroup[]> {
-    return this.searchService
-      .search<ISecurityGroupSearchResult>({
-        q: applicationName,
-        type: 'securityGroups',
-        pageSize: 1000,
-      })
-      .then((searchResults: ISearchResults<ISecurityGroupSearchResult>) => {
-        let result: ISecurityGroup[] = [];
-        if (!searchResults || !searchResults.results) {
-          this.$log.warn('WARNING: Gate firewall endpoint appears to be down.');
-        } else {
-          result = filter(searchResults.results, { application: applicationName });
-        }
+    return SearchService.search<ISecurityGroupSearchResult>({
+      q: applicationName,
+      type: 'securityGroups',
+      pageSize: 1000,
+    }).then((searchResults: ISearchResults<ISecurityGroupSearchResult>) => {
+      let result: ISecurityGroup[] = [];
+      if (!searchResults || !searchResults.results) {
+        this.$log.warn('WARNING: Gate firewall endpoint appears to be down.');
+      } else {
+        result = filter(searchResults.results, { application: applicationName });
+      }
 
-        return result;
-      });
+      return result;
+    });
   }
 }
 
 export const SECURITY_GROUP_READER = 'spinnaker.core.securityGroup.read.service';
 module(SECURITY_GROUP_READER, [
-  SEARCH_SERVICE,
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   PROVIDER_SERVICE_DELEGATE,
   ENTITY_TAGS_READ_SERVICE,

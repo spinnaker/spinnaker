@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { IVariableValidator, VariableValidatorService } from './variableValidator.service';
 import { IVariable, IVariableError } from '../inputs/variableInput.service';
 
@@ -18,7 +17,4 @@ class NumberValidator implements IVariableValidator {
   }
 }
 
-export const NUMBER_VALIDATOR = 'spinnaker.core.pipelineTemplate.numberValidator';
-module(NUMBER_VALIDATOR, []).run((variableValidatorService: VariableValidatorService) =>
-  variableValidatorService.addValidator(new NumberValidator()),
-);
+VariableValidatorService.addValidator(new NumberValidator());

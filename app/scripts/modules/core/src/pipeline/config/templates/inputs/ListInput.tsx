@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
 import {
@@ -78,7 +77,4 @@ export class ListInputBuilder implements IVariableInputBuilder {
   }
 }
 
-export const LIST_INPUT = 'spinnaker.core.pipelineTemplate.listInput';
-module(LIST_INPUT, []).run((variableInputService: VariableInputService) =>
-  variableInputService.addInput(new ListInputBuilder()),
-);
+VariableInputService.addInput(new ListInputBuilder());

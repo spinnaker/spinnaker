@@ -8,7 +8,6 @@ import {
   LOAD_BALANCER_WRITE_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TaskMonitor,
-  SEARCH_SERVICE,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -16,7 +15,6 @@ module.exports = angular
     LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
-    SEARCH_SERVICE,
     require('../../transformer.js').name,
   ])
   .controller('dcosUpsertLoadBalancerController', function(
@@ -28,7 +26,6 @@ module.exports = angular
     isNew,
     loadBalancerReader,
     dcosLoadBalancerTransformer,
-    searchService,
     v2modalWizardService,
     loadBalancerWriter,
   ) {

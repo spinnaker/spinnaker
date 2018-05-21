@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { module } from 'angular';
 
 export interface IVariable {
   name: string;
@@ -29,16 +28,13 @@ export interface IVariableProps {
 export interface IVariableState {}
 
 export class VariableInputService {
-  private inputs = new Set<IVariableInputBuilder>();
+  private static inputs = new Set<IVariableInputBuilder>();
 
-  public addInput(input: IVariableInputBuilder): void {
+  public static addInput(input: IVariableInputBuilder): void {
     this.inputs.add(input);
   }
 
-  public getInputForType(type = 'string'): IVariableInputBuilder {
+  public static getInputForType(type = 'string'): IVariableInputBuilder {
     return Array.from(this.inputs).find(i => i.handles(type));
   }
 }
-
-export const VARIABLE_INPUT_SERVICE = 'spinnaker.core.variableInput.service';
-module(VARIABLE_INPUT_SERVICE, []).service('variableInputService', VariableInputService);

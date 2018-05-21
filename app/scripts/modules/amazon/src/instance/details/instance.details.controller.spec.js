@@ -20,9 +20,6 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
           $scope: scope,
           instance: instance,
           app: application,
-          recentHistoryService: {
-            addExtraDataToLatest: angular.noop,
-          },
           overrides: {},
         });
       };

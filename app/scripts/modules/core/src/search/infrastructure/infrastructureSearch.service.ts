@@ -5,7 +5,7 @@ import { URL_BUILDER_SERVICE } from 'core/navigation';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider';
 
 import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
-import { ISearchResult, SEARCH_SERVICE } from '../search.service';
+import { ISearchResult } from '../search.service';
 import { SearchResultType, searchResultTypeRegistry } from '../searchResult';
 import { SearchStatus } from '../searchResult/SearchResults';
 
@@ -93,7 +93,7 @@ export class InfrastructureSearchService {
 }
 
 export const INFRASTRUCTURE_SEARCH_SERVICE = 'spinnaker.infrastructure.search.service';
-module(INFRASTRUCTURE_SEARCH_SERVICE, [SEARCH_SERVICE, URL_BUILDER_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
+module(INFRASTRUCTURE_SEARCH_SERVICE, [URL_BUILDER_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
   'infrastructureSearchService',
   InfrastructureSearchService,
 );

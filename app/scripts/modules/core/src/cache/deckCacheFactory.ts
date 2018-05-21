@@ -167,7 +167,7 @@ export class DeckCacheFactory {
     };
   }
 
-  private static addLocalStorageCache(namespace: string, cacheId: string, cacheConfig: ICacheConfig): void {
+  private static addLocalStorageCache(namespace: string, cacheId: string, cacheConfig: ICacheConfig): ICache {
     const key: string = DeckCacheFactory.buildCacheKey(namespace, cacheId);
     const cacheFactory: CacheFactory = cacheConfig.cacheFactory || this.cacheFactory;
     const currentVersion: number = cacheConfig.version || 1;
@@ -181,9 +181,11 @@ export class DeckCacheFactory {
       storageMode: 'localStorage',
       storagePrefix: DeckCacheFactory.getStoragePrefix(key, currentVersion),
     });
-    this.caches[key] = cacheFactory.get(key) as ICache;
-    this.caches[key].getStats = DeckCacheFactory.getStats.bind(null, this.caches[key]);
-    this.caches[key].config = cacheConfig;
+    const cache = cacheFactory.get(key) as ICache;
+    this.caches[key] = cache;
+    cache.getStats = DeckCacheFactory.getStats.bind(null, this.caches[key]);
+    cache.config = cacheConfig;
+    return cache;
   }
 
   public static clearCache(namespace: string, key: string): void {
@@ -193,8 +195,8 @@ export class DeckCacheFactory {
     }
   }
 
-  public static createCache(namespace: string, cacheId: string, config: ICacheConfig): void {
-    this.addLocalStorageCache(namespace, cacheId, config);
+  public static createCache(namespace: string, cacheId: string, config: ICacheConfig): ICache {
+    return this.addLocalStorageCache(namespace, cacheId, config);
   }
 
   public static getCache(namespace: string = null, cacheId: string = null): ICache {

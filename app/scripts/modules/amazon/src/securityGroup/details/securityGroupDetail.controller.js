@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
+  RecentHistoryService,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   FirewallLabels,
@@ -19,7 +19,6 @@ module.exports = angular
     SECURITY_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     require('../clone/cloneSecurityGroup.controller.js').name,
-    RECENT_HISTORY_SERVICE,
   ])
   .controller('awsSecurityGroupDetailsCtrl', function(
     $scope,
@@ -29,7 +28,6 @@ module.exports = angular
     confirmationModalService,
     securityGroupWriter,
     securityGroupReader,
-    recentHistoryService,
     $uibModal,
   ) {
     this.application = app;
@@ -120,7 +118,7 @@ module.exports = angular
         $scope.group = securityGroup.name;
         $scope.state.notFound = true;
         $scope.state.loading = false;
-        recentHistoryService.removeLastItem('securityGroups');
+        RecentHistoryService.removeLastItem('securityGroups');
       } else {
         $state.params.allowModalToStayOpen = true;
         $state.go('^', null, { location: 'replace' });

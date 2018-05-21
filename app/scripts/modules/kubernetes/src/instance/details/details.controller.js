@@ -8,7 +8,7 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
-  RECENT_HISTORY_SERVICE,
+  RecentHistoryService,
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
@@ -19,7 +19,6 @@ module.exports = angular
     INSTANCE_WRITE_SERVICE,
     INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    RECENT_HISTORY_SERVICE,
   ])
   .controller('kubernetesInstanceDetailsController', function(
     $scope,
@@ -27,7 +26,6 @@ module.exports = angular
     $uibModal,
     instanceWriter,
     confirmationModalService,
-    recentHistoryService,
     instanceReader,
     instance,
     app,
@@ -122,7 +120,7 @@ module.exports = angular
       if (instanceSummary && account && namespace) {
         extraData.account = account;
         extraData.namespace = namespace;
-        recentHistoryService.addExtraDataToLatest('instances', extraData);
+        RecentHistoryService.addExtraDataToLatest('instances', extraData);
         return instanceReader.getInstanceDetails(account, namespace, instance.instanceId).then(function(details) {
           $scope.state.loading = false;
           $scope.instance = _.defaults(details, instanceSummary);

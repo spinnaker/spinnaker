@@ -1,5 +1,5 @@
 import { sortBy, throttle } from 'lodash';
-import { IScope, module } from 'angular';
+import { IScope } from 'angular';
 import { $timeout, $rootScope } from 'ngimport';
 
 interface IViewPlacement {
@@ -17,9 +17,9 @@ interface IWaypoint {
 }
 
 export class WaypointService {
-  private waypointRegistry: { [key: string]: IWaypoint } = Object.create(null);
+  private static waypointRegistry: { [key: string]: IWaypoint } = Object.create(null);
 
-  public registerWaypointContainer(elementScope: IScope, element: JQuery, key: string, offset: number): void {
+  public static registerWaypointContainer(elementScope: IScope, element: JQuery, key: string, offset: number): void {
     this.waypointRegistry[key] = this.waypointRegistry[key] || Object.create(null);
     this.waypointRegistry[key].container = element;
     this.waypointRegistry[key].offset = offset;
@@ -31,7 +31,7 @@ export class WaypointService {
     }
   }
 
-  private enableWaypointEvent(element: JQuery, key: string): void {
+  private static enableWaypointEvent(element: JQuery, key: string): void {
     const registryEntry = this.waypointRegistry[key];
     if (!registryEntry.scrollEnabled) {
       // because they do not affect rendering directly, we can debounce this pretty liberally
@@ -67,7 +67,7 @@ export class WaypointService {
     }
   }
 
-  public disableWaypointEvent(key: string): void {
+  public static disableWaypointEvent(key: string): void {
     const registry = this.waypointRegistry[key];
     if (registry && registry.container) {
       registry.container.unbind('scroll.waypointEvents resize.waypointEvents');
@@ -76,6 +76,3 @@ export class WaypointService {
     }
   }
 }
-
-export const WAYPOINT_SERVICE = 'spinnaker.core.utils.waypoints.service';
-module(WAYPOINT_SERVICE, []).service('waypointService', WaypointService);

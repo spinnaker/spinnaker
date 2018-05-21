@@ -2,7 +2,7 @@ import { IPromise, module } from 'angular';
 import { cloneDeep } from 'lodash';
 
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';
-import { RECENT_HISTORY_SERVICE, RecentHistoryService } from 'core/history/recentHistory.service';
+import { RecentHistoryService } from 'core/history/recentHistory.service';
 
 export interface IApplicationAttributes {
   name: string;
@@ -12,10 +12,6 @@ export interface IApplicationAttributes {
 }
 
 export class ApplicationWriter {
-  public constructor(private recentHistoryService: RecentHistoryService) {
-    'ngInject';
-  }
-
   public createApplication(application: IApplicationAttributes): IPromise<any> {
     const jobs: IJob[] = this.buildJobs(application, 'createApplication', cloneDeep);
     return TaskExecutor.executeTask({
@@ -44,7 +40,7 @@ export class ApplicationWriter {
       description: 'Deleting Application: ' + application.name,
     })
       .then((task: any): any => {
-        this.recentHistoryService.removeByAppName(application.name);
+        RecentHistoryService.removeByAppName(application.name);
         return task;
       })
       .catch((task: any): any => task);
@@ -67,4 +63,4 @@ export class ApplicationWriter {
 
 export const APPLICATION_WRITE_SERVICE = 'spinnaker.core.application.write.service';
 
-module(APPLICATION_WRITE_SERVICE, [RECENT_HISTORY_SERVICE]).service('applicationWriter', ApplicationWriter);
+module(APPLICATION_WRITE_SERVICE, []).service('applicationWriter', ApplicationWriter);

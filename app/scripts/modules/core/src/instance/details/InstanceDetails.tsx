@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 
 import { Overridable, IOverridableProps } from 'core/overrideRegistry';
-import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
 import { Spinner } from 'core/widgets';
-import { Observable } from 'rxjs/Observable';
+import { SkinService } from 'core/cloudProvider/skin.service';
 
 export interface IInstanceDetailsProps extends IOverridableProps {
   $stateParams: {
@@ -29,12 +28,10 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
   private props$ = new Subject<IInstanceDetailsProps>();
 
   public componentDidMount() {
-    const { skinService } = ReactInjector;
-
     this.props$
       .do(() => this.setState({ loading: true, accountId: null }))
       .switchMap(({ app, $stateParams }) => {
-        const acct = skinService.getAccountForInstance($stateParams.provider, $stateParams.instanceId, app);
+        const acct = SkinService.getAccountForInstance($stateParams.provider, $stateParams.instanceId, app);
         return Observable.fromPromise(acct);
       })
       .takeUntil(this.destroy$)

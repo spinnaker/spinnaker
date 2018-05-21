@@ -7,7 +7,7 @@ import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
-  RECENT_HISTORY_SERVICE,
+  RecentHistoryService,
   SETTINGS,
   FirewallLabels,
 } from '@spinnaker/core';
@@ -22,7 +22,6 @@ module.exports = angular
     INSTANCE_READ_SERVICE,
     require('../../vpc/vpcTag.directive.js').name,
     CONFIRMATION_MODAL_SERVICE,
-    RECENT_HISTORY_SERVICE,
   ])
   .controller('awsInstanceDetailsCtrl', function(
     $scope,
@@ -30,7 +29,6 @@ module.exports = angular
     $uibModal,
     amazonInstanceWriter,
     confirmationModalService,
-    recentHistoryService,
     instanceReader,
     instance,
     app,
@@ -173,7 +171,7 @@ module.exports = angular
       if (instanceSummary && account && region) {
         extraData.account = account;
         extraData.region = region;
-        recentHistoryService.addExtraDataToLatest('instances', extraData);
+        RecentHistoryService.addExtraDataToLatest('instances', extraData);
         return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
           if ($scope.$$destroyed) {
             return;
@@ -217,7 +215,7 @@ module.exports = angular
         $scope.state.loading = false;
         $scope.instanceIdNotFound = instance.instanceId;
         $scope.state.notFoundStandalone = true;
-        recentHistoryService.removeLastItem('instances');
+        RecentHistoryService.removeLastItem('instances');
       } else {
         $state.params.allowModalToStayOpen = true;
         $state.go('^', null, { location: 'replace' });

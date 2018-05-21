@@ -26,9 +26,6 @@ describe('Controller: azureInstanceDetailsCtrl', function() {
           $scope: scope,
           instance: instance,
           app: application,
-          recentHistoryService: {
-            addExtraDataToLatest: angular.noop,
-          },
         });
       };
     }),
