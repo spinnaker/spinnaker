@@ -71,13 +71,13 @@ public class GooglePubsubMonitor implements PollingMonitor {
     lastPoll = System.currentTimeMillis();
 
     GooglePubsubSubscriber googleSubscriber = (GooglePubsubSubscriber) subscriber;
-    googleSubscriber.getSubscriber().startAsync();
+    googleSubscriber.start();
   }
 
   private void closeConnection(PubsubSubscriber subscriber) {
     log.info("Closing async connection to {}", subscriber.subscriptionName());
     GooglePubsubSubscriber googleSubscriber = (GooglePubsubSubscriber) subscriber;
-    googleSubscriber.getSubscriber().stopAsync();
+    googleSubscriber.stop();
   }
 
   @Override

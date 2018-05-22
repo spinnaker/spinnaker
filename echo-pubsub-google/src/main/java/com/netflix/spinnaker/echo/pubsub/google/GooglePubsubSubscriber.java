@@ -26,8 +26,8 @@ import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.cloud.pubsub.v1.MessageReceiver;
 import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.PubsubMessage;
-import com.google.pubsub.v1.SubscriptionName;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.GooglePubsubProperties;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
@@ -57,16 +57,24 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
   private String name;
 
-  @Getter
+  private String project;
+
   private Subscriber subscriber;
+
+  private Credentials credentials;
+
+  private MessageReceiver messageReceiver;
 
   static private final PubsubSystem pubsubSystem = PubsubSystem.GOOGLE;
 
 
-  public GooglePubsubSubscriber(String name, String subscriptionName, String project, Subscriber subscriber) {
+  public GooglePubsubSubscriber(String name, String subscriptionName, String project, Credentials credentials,
+                                GooglePubsubMessageReceiver messageReceiver) {
     this.name = name;
-    this.subscriptionName = formatSubscriptionName(project, subscriptionName);
-    this.subscriber = subscriber;
+    this.subscriptionName = subscriptionName;
+    this.project = project;
+    this.messageReceiver = messageReceiver;
+    this.credentials = credentials;
   }
 
   @Override
@@ -90,7 +98,6 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
   public static GooglePubsubSubscriber buildSubscriber(GooglePubsubProperties.GooglePubsubSubscription subscription,
                                                        PubsubMessageHandler pubsubMessageHandler) {
-    Subscriber subscriber;
     String subscriptionName = subscription.getSubscriptionName();
     String project = subscription.getProject();
     String jsonPath = subscription.getJsonPath();
@@ -115,17 +122,33 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
       }
     }
 
-    subscriber = Subscriber
-        .defaultBuilder(SubscriptionName.create(project, subscriptionName), messageReceiver)
-        .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-        .setMaxAckExtensionPeriod(Duration.ofSeconds(0))
-        .build();
-
-    subscriber.addListener(new GooglePubsubFailureHandler(formatSubscriptionName(project, subscriptionName)), MoreExecutors.directExecutor());
-
-    return new GooglePubsubSubscriber(subscription.getName(), subscriptionName, project, subscriber);
+    return new GooglePubsubSubscriber(subscription.getName(), subscriptionName, project, credentials, messageReceiver);
   }
 
+  synchronized public void start() {
+    this.subscriber = Subscriber
+      .newBuilder(ProjectSubscriptionName.of(project, subscriptionName), messageReceiver)
+      .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+      .build();
+
+    subscriber.addListener(new GooglePubsubFailureHandler(this, formatSubscriptionName(project, subscriptionName)), MoreExecutors.directExecutor());
+    subscriber.startAsync().awaitRunning();
+    log.info("Google Pubsub subscriber started for {}", formatSubscriptionName(project, subscriptionName));
+  }
+
+  public void stop() {
+    subscriber.stopAsync().awaitTerminated();
+  }
+
+  private void restart() {
+    log.info("Waiting to restart Google Pubsub subscriber for {}", formatSubscriptionName(project, subscriptionName));
+    try {
+      // TODO: Use exponential backoff?
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+    }
+    start();
+  }
 
   private static class GooglePubsubMessageReceiver implements MessageReceiver {
 
@@ -188,11 +211,13 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
   @AllArgsConstructor
   private static class GooglePubsubFailureHandler extends ApiService.Listener {
 
+    private GooglePubsubSubscriber subscriber;
     private String subscriptionName;
 
     @Override
     public void failed(ApiService.State from, Throwable failure) {
       log.error("Google Pubsub listener for subscription name {} failure caused by {}", subscriptionName, failure.getMessage());
+      subscriber.restart();
     }
   }
 }

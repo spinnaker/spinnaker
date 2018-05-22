@@ -16,5 +16,5 @@
 
 dependencies {
   compile project(':echo-pubsub-core')
-  compile 'com.google.cloud:google-cloud-pubsub:0.33.0-beta'
+  compile 'com.google.cloud:google-cloud-pubsub:0.48.0-beta'
 }
