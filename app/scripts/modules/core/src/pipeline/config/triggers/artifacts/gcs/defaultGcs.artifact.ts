@@ -8,6 +8,7 @@ export const DEFAULT_GCS_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.de
 module(DEFAULT_GCS_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'GCS',
+    type: 'gcs/object',
     description: 'A GCS object.',
     key: 'default.gcs',
     isDefault: true,

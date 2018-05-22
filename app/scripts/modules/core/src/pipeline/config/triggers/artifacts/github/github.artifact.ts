@@ -9,6 +9,7 @@ module(GITHUB_ARTIFACT, []).config(() => {
     label: 'GitHub',
     description: 'A file stored in git, hosted by GitHub.',
     key: 'github',
+    type: 'github/file',
     isDefault: false,
     isMatch: true,
     controller: function(artifact: IArtifact) {

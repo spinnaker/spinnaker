@@ -7,6 +7,7 @@ export const GITLAB_ARTIFACT = 'spinnaker.core.pipeline.trigger.gitlab.artifact'
 module(GITLAB_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'Gitlab',
+    type: 'gitlab/file',
     description: 'A file stored in git, hosted by Gitlab.',
     key: 'gitlab',
     isDefault: false,

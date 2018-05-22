@@ -7,6 +7,7 @@ export const DOCKER_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.docker'
 module(DOCKER_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'Docker',
+    type: 'docker/image',
     isDefault: false,
     isMatch: true,
     description: 'A Docker image to be deployed.',

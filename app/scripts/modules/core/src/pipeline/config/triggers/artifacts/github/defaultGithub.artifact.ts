@@ -7,6 +7,7 @@ export const DEFAULT_GITHUB_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact
 module(DEFAULT_GITHUB_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'GitHub',
+    type: 'github/file',
     description: 'A file stored in git, hosted by GitHub.',
     key: 'default.github',
     isDefault: true,

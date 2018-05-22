@@ -1,5 +1,6 @@
 export interface IArtifactKindConfig {
   label: string;
+  type?: string;
   description: string;
   key: string;
   isDefault: boolean;

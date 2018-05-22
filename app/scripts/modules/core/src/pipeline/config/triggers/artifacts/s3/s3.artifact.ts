@@ -7,6 +7,7 @@ export const S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.s3.artifact';
 module(S3_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'S3',
+    type: 's3/object',
     description: 'An S3 object.',
     key: 's3',
     isDefault: false,

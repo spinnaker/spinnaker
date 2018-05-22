@@ -16,6 +16,7 @@ const DOMBase64Errors: { [key: string]: string } = {
 module(DEFAULT_BASE64_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'Base64',
+    type: 'embedded/base64',
     description: 'An artifact that includes its referenced resource as part of its payload.',
     key: 'default.base64',
     isDefault: true,
