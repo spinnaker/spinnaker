@@ -18,7 +18,8 @@ package com.netflix.spinnaker.clouddriver.aws.model;
 
 public enum AmazonLoadBalancerType {
   CLASSIC,
-  APPLICATION;
+  APPLICATION,
+  NETWORK;
 
   public static AmazonLoadBalancerType getByValue(String value) {
     for(AmazonLoadBalancerType lbt: values()) {

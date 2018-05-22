@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.elasticloadbalancingv2.model.*
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult
+import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -94,13 +96,13 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
       // Create/Update load balancer
       String dnsName
       if (loadBalancer == null) {
-        task.updateStatus BASE_PHASE, "Creating ${loadBalancerName} in ${description.credentials.name}:${region}..."
+        task.updateStatus BASE_PHASE, "Creating ${loadBalancerName} of type ${description.loadBalancerType} in ${description.credentials.name}:${region}..."
         def subnetIds = []
         if (description.subnetType) {
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
                   description.subnetType, SubnetTarget.ELB, 1)
         }
-        loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners, deployDefaults)
+        loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners, deployDefaults, description.loadBalancerType.toString())
         dnsName = loadBalancer.DNSName
 
         // Enable AWS shield. We only do this on creation. The ELB must be external, the account must be enabled with

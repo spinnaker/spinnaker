@@ -77,6 +77,7 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
         }
         break;
       case APPLICATION:
+      case NETWORK:
         UpsertAmazonLoadBalancerV2Description albDescription = (UpsertAmazonLoadBalancerV2Description) description;
         if (albDescription.targetGroups == null || albDescription.targetGroups.size() == 0) {
           errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.empty");

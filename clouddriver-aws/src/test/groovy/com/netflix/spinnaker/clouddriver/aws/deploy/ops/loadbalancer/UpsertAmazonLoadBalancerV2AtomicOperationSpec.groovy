@@ -80,7 +80,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
   def targetGroupArn = "test:target:group:arn"
   def targetGroup = new TargetGroup(targetGroupArn: targetGroupArn, targetGroupName: targetGroupName, port: 80, protocol: ProtocolEnum.HTTP)
   def targetGroupOld = new TargetGroup(targetGroupArn: targetGroupArn, targetGroupName: "target-group-foo-existing", port: 80, protocol: ProtocolEnum.HTTP)
-  def loadBalancerOld = new LoadBalancer(loadBalancerName: "foo-main-frontend", loadBalancerArn: loadBalancerArn)
+  def loadBalancerOld = new LoadBalancer(loadBalancerName: "foo-main-frontend", loadBalancerArn: loadBalancerArn, type: "application")
 
 
   AWSShield awsShield = Mock(AWSShield)
@@ -125,8 +125,9 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
             name: "foo-main-frontend",
             subnets: ["subnet-1"],
             securityGroups: ["sg-1234"],
-            scheme: "internal"
-    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn)])
+            scheme: "internal",
+            type: "application"
+    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn, type: "application")])
     1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
       loadBalancerArn: loadBalancerArn,
       securityGroups: ["sg-1234"]
@@ -283,8 +284,9 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
       name: "foo-main-frontend",
       subnets: ["subnet-1"],
-      securityGroups: ["sg-1234"]
-    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn)])
+      securityGroups: ["sg-1234"],
+      type: "application"
+    )) >> new CreateLoadBalancerResult(loadBalancers: [new LoadBalancer(dNSName: "dnsName1", loadBalancerArn: loadBalancerArn, type: "application")])
     1 * loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
       loadBalancerArn: loadBalancerArn,
       securityGroups: ["sg-1234"]

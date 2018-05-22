@@ -34,19 +34,18 @@ import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsR
 import com.amazonaws.services.elasticloadbalancingv2.model.Listener
 import com.amazonaws.services.elasticloadbalancingv2.model.ListenerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
+import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerTypeEnum
 import com.amazonaws.services.elasticloadbalancingv2.model.Matcher
 import com.amazonaws.services.elasticloadbalancingv2.model.ModifyListenerRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupAttributesRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.ProtocolEnum
 import com.amazonaws.services.elasticloadbalancingv2.model.ResourceInUseException
 import com.amazonaws.services.elasticloadbalancingv2.model.Rule
 import com.amazonaws.services.elasticloadbalancingv2.model.RuleCondition
 import com.amazonaws.services.elasticloadbalancingv2.model.SetSecurityGroupsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupAttribute
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -61,24 +60,31 @@ class LoadBalancerV2UpsertHandler {
     TaskRepository.threadLocalTask.get()
   }
 
-  private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes) {
-    return modifyTargetGroupAttributes(loadBalancing, targetGroup, attributes, null)
+  private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes) {
+    return modifyTargetGroupAttributes(loadBalancing, loadBalancer, targetGroup, attributes, null)
   }
-  private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes, DeployDefaults deployDefaults) {
+  private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes, DeployDefaults deployDefaults) {
     def targetGroupAttributes = []
     if (attributes) {
       Integer deregistrationDelay = [attributes.deregistrationDelay, deployDefaults?.loadBalancing?.deregistrationDelayDefault].findResult(Closure.IDENTITY)
       if (deregistrationDelay != null) {
         targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.timeout_seconds", value: deregistrationDelay.toString()))
       }
-      if (attributes.stickinessEnabled != null) {
-        targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.enabled", value: attributes.stickinessEnabled.toString()))
+      if (loadBalancer.type == 'application') {
+        if (attributes.stickinessEnabled != null) {
+          targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.enabled", value: attributes.stickinessEnabled.toString()))
+        }
+        if (attributes.stickinessType != null) {
+          targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.type", value: attributes.stickinessType))
+        }
+        if (attributes.stickinessDuration != null) {
+          targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.lb_cookie.duration_seconds", value: attributes.stickinessDuration.toString()))
+        }
       }
-      if (attributes.stickinessType != null) {
-        targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.type", value: attributes.stickinessType))
-      }
-      if (attributes.stickinessDuration != null) {
-        targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.lb_cookie.duration_seconds", value: attributes.stickinessDuration.toString()))
+      if(loadBalancer.type == 'network' ){
+        if(attributes.proxyProtocolV2 != null){
+          targetGroupAttributes.add(new TargetGroupAttribute(key: "proxy_protocol_v2.enabled", value: attributes.proxyProtocolV2))
+        }
       }
     }
 
@@ -102,21 +108,26 @@ class LoadBalancerV2UpsertHandler {
     targetGroupsToCreate.each { targetGroup ->
       TargetGroup createdTargetGroup
       try {
-        CreateTargetGroupResult createTargetGroupResult = loadBalancing.createTargetGroup(new CreateTargetGroupRequest()
+
+        CreateTargetGroupRequest createTargetGroupRequest = new CreateTargetGroupRequest()
           .withProtocol(targetGroup.protocol)
           .withPort(targetGroup.port)
           .withName(targetGroup.name)
           .withVpcId(loadBalancer.vpcId)
           .withHealthCheckIntervalSeconds(targetGroup.healthCheckInterval)
-          .withHealthCheckPath(targetGroup.healthCheckPath)
           .withHealthCheckPort(targetGroup.healthCheckPort)
           .withHealthCheckProtocol(targetGroup.healthCheckProtocol)
-          .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
           .withHealthyThresholdCount(targetGroup.healthyThreshold)
           .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
-          .withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
           .withTargetType(targetGroup.targetType)
-        )
+
+        if (targetGroup.healthCheckProtocol in [ProtocolEnum.HTTP, ProtocolEnum.HTTPS]) {
+          createTargetGroupRequest.withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+            .withHealthCheckPath(targetGroup.healthCheckPath)
+            .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+        }
+
+        CreateTargetGroupResult createTargetGroupResult = loadBalancing.createTargetGroup( createTargetGroupRequest )
         task.updateStatus BASE_PHASE, "Target group created in ${loadBalancerName} (${targetGroup.name}:${targetGroup.port}:${targetGroup.protocol})."
         createdTargetGroup = createTargetGroupResult.getTargetGroups().get(0)
       } catch (AmazonServiceException e) {
@@ -130,7 +141,7 @@ class LoadBalancerV2UpsertHandler {
         createdTargetGroups.add(createdTargetGroup)
 
         // Add attributes
-        String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, createdTargetGroup, targetGroup.attributes, deployDefaults)
+        String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, loadBalancer, createdTargetGroup, targetGroup.attributes, deployDefaults)
         if (exceptionMessage) {
           amazonErrors << exceptionMessage
         }
@@ -159,21 +170,26 @@ class LoadBalancerV2UpsertHandler {
   static void updateTargetGroups(List<TargetGroup> targetGroupsToUpdate, List<UpsertAmazonLoadBalancerV2Description.TargetGroup> updatedTargetGroups, AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, List<String> amazonErrors) {
     targetGroupsToUpdate.each { awsTargetGroup ->
       UpsertAmazonLoadBalancerV2Description.TargetGroup targetGroup = updatedTargetGroups.find({ it.name == awsTargetGroup.getTargetGroupName() })
-      loadBalancing.modifyTargetGroup(new ModifyTargetGroupRequest()
+
+      ModifyTargetGroupRequest modifyTargetGroupRequest = new ModifyTargetGroupRequest()
         .withTargetGroupArn(awsTargetGroup.targetGroupArn)
         .withHealthCheckIntervalSeconds(targetGroup.healthCheckInterval)
-        .withHealthCheckPath(targetGroup.healthCheckPath)
         .withHealthCheckPort(targetGroup.healthCheckPort)
         .withHealthCheckProtocol(targetGroup.healthCheckProtocol)
-        .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
         .withHealthyThresholdCount(targetGroup.healthyThreshold)
-        .withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
         .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
-      )
+
+      if (targetGroup.healthCheckProtocol in [ProtocolEnum.HTTP, ProtocolEnum.HTTPS]) {
+        modifyTargetGroupRequest.withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+          .withHealthCheckPath(targetGroup.healthCheckPath)
+          .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+      }
+
+      loadBalancing.modifyTargetGroup(modifyTargetGroupRequest)
       task.updateStatus BASE_PHASE, "Target group updated in ${loadBalancer.loadBalancerName} (${awsTargetGroup.targetGroupName}:${awsTargetGroup.port}:${awsTargetGroup.protocol})."
 
       // Update attributes
-      String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, awsTargetGroup, targetGroup.attributes)
+      String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, loadBalancer, awsTargetGroup, targetGroup.attributes)
       if (exceptionMessage) {
         amazonErrors << exceptionMessage
       }
@@ -296,7 +312,7 @@ class LoadBalancerV2UpsertHandler {
       throw new IllegalArgumentException("Load balancer ${loadBalancerName} must have at least one security group")
     }
 
-    if (securityGroups) {
+    if (securityGroups && loadBalancer.getType() == 'application') {
       loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
         loadBalancerArn: loadBalancerArn,
         securityGroups: securityGroups
@@ -338,7 +354,6 @@ class LoadBalancerV2UpsertHandler {
       existingListenerToRules.get(listener).any { rule -> rule.actions.any { targetGroupArnsToRemove.contains(it.targetGroupArn) } }
     }
     removeListeners(listenersToRemove, existingListeners, loadBalancing, loadBalancer)
-
 
     // Remove any target groups that we need to remove. This includes target groups that existed previously but were
     // not supplied in the upsert and it also includes target groups that had port, protocol, or ssl policy changed
@@ -429,7 +444,8 @@ class LoadBalancerV2UpsertHandler {
                                          Collection<String> subnetIds, Collection<String> securityGroups,
                                          List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
                                          List<UpsertAmazonLoadBalancerV2Description.Listener> listeners,
-                                         DeployDefaults deployDefaults) {
+                                         DeployDefaults deployDefaults,
+                                         String type) {
     def request = new CreateLoadBalancerRequest().withName(loadBalancerName)
 
     // Networking Related
@@ -439,7 +455,15 @@ class LoadBalancerV2UpsertHandler {
       if (isInternal) {
         request.scheme = 'internal'
       }
-      request.withSecurityGroups(securityGroups)
+      if (type == 'application') {
+        request.withSecurityGroups(securityGroups)
+      }
+    }
+
+    if (type == 'network') {
+      request.setType(LoadBalancerTypeEnum.Network)
+    } else {
+      request.setType(LoadBalancerTypeEnum.Application)
     }
 
     task.updateStatus BASE_PHASE, "Creating load balancer."

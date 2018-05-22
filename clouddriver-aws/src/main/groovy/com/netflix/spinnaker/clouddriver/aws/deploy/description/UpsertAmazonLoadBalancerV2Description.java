@@ -303,6 +303,7 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     private Boolean stickinessEnabled = false;
     private String stickinessType = "lb_cookie";
     private Integer stickinessDuration = 86400;
+    private Boolean proxyProtocolV2 = false;
 
     public Integer getDeregistrationDelay() {
       return deregistrationDelay;
@@ -335,6 +336,11 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     public void setStickinessDuration(Integer stickinessDuration) {
       this.stickinessDuration = stickinessDuration;
     }
+
+    public Boolean getProxyProtocolV2() { return proxyProtocolV2; }
+
+    public void setProxyProtocolV2(Boolean proxyProtocolV2) { this.proxyProtocolV2 = proxyProtocolV2; }
+
   }
 
   public static class RuleCondition {
