@@ -348,8 +348,16 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
-    providerCache.getAll(ON_DEMAND.ns, allLoadBalancers.collect {
-      Keys.getLoadBalancerKey(it.loadBalancerName, account.name, region, it.getVpcId(), it.getType()) }).each {
+
+    def loadBalancerKeys = allLoadBalancers.collect {
+      Keys.getLoadBalancerKey(it.loadBalancerName, account.name, region, it.getVpcId(), it.getType())
+    } as Set<String>
+    def pendingOnDemandRequestKeys = providerCache
+      .filterIdentifiers(ON_DEMAND.ns, Keys.getLoadBalancerKey("*", account.name, region, "*", "*"))
+      .findAll { loadBalancerKeys.contains(it) }
+
+    def pendingOnDemandRequestsForLoadBalancers = providerCache.getAll(ON_DEMAND.ns, pendingOnDemandRequestKeys)
+    pendingOnDemandRequestsForLoadBalancers.each {
       if (it.attributes.cacheTime < start) {
 //        evictableOnDemandCacheDatas << it
       } else {
