@@ -2,6 +2,7 @@ import policy
 import traceback
 import logging
 import monitoring
+import itertools
 from .policy_registry import GetConfig
 
 def ApplyPolicies(g):
@@ -12,8 +13,8 @@ def ApplyPolicies(g):
 
     monitoring_db = monitoring.GetDatabase('spinbot')
 
-    logging.info('Processing issues')
-    for i in g.issues():
+    logging.info('Processing issues, repos')
+    for i in itertools.chain(*[g.issues(), g.repos()]):
         for p in policy.Policies():
             if p.applies(i):
                 err = None

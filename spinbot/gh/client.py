@@ -10,7 +10,7 @@ class Client(object):
     def __init__(self, config):
         token = self.get_token(config)
         self.g = github.Github(token)
-        self.repos = config['repos']
+        self._repos = config['repos']
         self.monitoring_db = monitoring.GetDatabase('spinbot')
         self.logging = logging.getLogger('github_client_wrapper')
 
@@ -40,8 +40,14 @@ class Client(object):
 
         return label
 
+    def repos(self):
+        for r in self._repos:
+            yield self.g.get_repo(r)
+
+        raise StopIteration
+
     def issues(self):
-        for r in self.repos:
+        for r in self._repos:
             issues = 0
             self.logging.info('Reading issues from {}'.format(r))
             for i in self.g.get_repo(r).get_issues():
@@ -54,7 +60,7 @@ class Client(object):
 
     def events_since(self, date):
         return heapq.merge(
-                *[ reversed(list(self._events_since_repo_iter(date, r))) for r in self.repos ],
+                *[ reversed(list(self._events_since_repo_iter(date, r))) for r in self._repos ],
                 key=lambda e: e.created_at
         )
 

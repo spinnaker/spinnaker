@@ -4,7 +4,7 @@ metadata:
   name: spinbot
   namespace: spinbot
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "*/2 * * * *"
   jobTemplate:
     spec:
       template:
@@ -72,6 +72,7 @@ data:
     policy:
       policies:
       - name: log_issue_policy
+      - name: log_repository_policy
 
     event:
       handlers:
