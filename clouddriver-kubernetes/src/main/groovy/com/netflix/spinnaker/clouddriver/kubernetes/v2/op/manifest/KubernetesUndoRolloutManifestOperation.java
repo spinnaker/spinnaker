@@ -35,7 +35,7 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
   private final KubernetesV2Credentials credentials;
   private final KubernetesResourcePropertyRegistry registry;
   private final String accountName;
-  private static final String OP_NAME = "DELETE_KUBERNETES_MANIFEST";
+  private static final String OP_NAME = "UNDO_ROLLOUT_KUBERNETES_MANIFEST";
 
   public KubernetesUndoRolloutManifestOperation(KubernetesUndoRolloutManifestDescription description, KubernetesResourcePropertyRegistry registry) {
     this.description = description;
