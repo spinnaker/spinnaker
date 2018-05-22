@@ -8,6 +8,7 @@ export const DEFAULT_S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.def
 module(DEFAULT_S3_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'S3',
+    type: 's3/object',
     description: 'A S3 object.',
     key: 'default.s3',
     isDefault: true,

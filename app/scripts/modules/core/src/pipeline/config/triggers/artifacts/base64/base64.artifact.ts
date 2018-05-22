@@ -9,6 +9,7 @@ export const BASE64_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.base64'
 module(BASE64_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
     label: 'Base64',
+    type: 'embedded/base64',
     description: 'An artifact that includes its referenced resource as part of its payload.',
     key: 'base64',
     isDefault: false,

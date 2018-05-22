@@ -3,6 +3,7 @@ import { loadAll } from 'js-yaml';
 
 import {
   IKubernetesManifestCommandMetadata,
+  IKubernetesManifestCommandData,
   KubernetesManifestCommandBuilder,
 } from '../../../manifest/manifestCommandBuilder.service';
 
@@ -20,27 +21,25 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
 
   public expectedArtifacts: IExpectedArtifact[];
 
-  constructor(private $scope: IScope, private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder) {
+  constructor(private $scope: IScope) {
     'ngInject';
-    this.kubernetesManifestCommandBuilder
-      .buildNewManifestCommand(
-        this.$scope.application,
-        this.$scope.stage.manifests || this.$scope.stage.manifest,
-        this.$scope.stage.moniker,
-      )
-      .then(builtCommand => {
-        if (this.$scope.stage.isNew) {
-          Object.assign(this.$scope.stage, builtCommand.command);
-          this.$scope.stage.source = this.textSource;
-        }
+    KubernetesManifestCommandBuilder.buildNewManifestCommand(
+      this.$scope.application,
+      this.$scope.stage.manifests || this.$scope.stage.manifest,
+      this.$scope.stage.moniker,
+    ).then((builtCommand: IKubernetesManifestCommandData) => {
+      if (this.$scope.stage.isNew) {
+        Object.assign(this.$scope.stage, builtCommand.command);
+        this.$scope.stage.source = this.textSource;
+      }
 
-        if (!this.$scope.stage.manifestArtifactAccount) {
-          this.$scope.stage.manifestArtifactAccount = '';
-        }
+      if (!this.$scope.stage.manifestArtifactAccount) {
+        this.$scope.stage.manifestArtifactAccount = '';
+      }
 
-        this.metadata = builtCommand.metadata;
-        this.state.loaded = true;
-      });
+      this.metadata = builtCommand.metadata;
+      this.state.loaded = true;
+    });
 
     this.expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
       $scope.stage,
