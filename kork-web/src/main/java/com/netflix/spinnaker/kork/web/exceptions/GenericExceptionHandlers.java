@@ -108,7 +108,11 @@ public class GenericExceptionHandlers {
 
     if (responseStatus != null) {
       HttpStatus httpStatus = responseStatus.value();
-      logger.error(httpStatus.getReasonPhrase(), e);
+      if (httpStatus.is5xxServerError()) {
+        logger.error(httpStatus.getReasonPhrase(), e);
+      } else if (httpStatus != HttpStatus.NOT_FOUND) {
+        logger.error(httpStatus.getReasonPhrase() + ": " + e.toString());
+      }
 
       String message = e.getMessage();
       if (message == null || message.trim().isEmpty()) {
