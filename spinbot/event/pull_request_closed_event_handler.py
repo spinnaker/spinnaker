@@ -35,6 +35,7 @@ class PullRequestClosedEventHandler(Handler):
             },
             tags={
                 'repo': event.repo.name,
+                'user': event.actor.login,
                 'approved': approved,
                 'merged': merged
             }
