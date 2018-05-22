@@ -23,5 +23,7 @@ def AddLabel(gh, issue, name, create=True):
 def ObjectType(o):
     if isinstance(o, github.Issue.Issue):
         return 'issue'
+    elif isinstance(o, github.Repository.Repository):
+        return 'repository'
     else:
         return None
