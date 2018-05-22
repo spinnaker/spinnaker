@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.Message;
-import com.google.protobuf.util.JsonFormat;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.TitusException;
@@ -266,7 +264,7 @@ public class RegionScopedTitusClient implements TitusClient {
     String cursor = "";
     boolean hasMore;
     do {
-      Page.Builder jobPage = Page.newBuilder().setPageSize(1000);
+      Page.Builder jobPage = Page.newBuilder().setPageSize(titusRegion.getFeatureFlags().contains("largePages") ? 2000 : 1000);
       if (!cursor.isEmpty()) {
         jobPage.setCursor(cursor);
       }
@@ -301,7 +299,7 @@ public class RegionScopedTitusClient implements TitusClient {
     String cursor = "";
     boolean hasMore;
     do {
-      Page.Builder taskPage = Page.newBuilder().setPageSize(1000);
+      Page.Builder taskPage = Page.newBuilder().setPageSize(titusRegion.getFeatureFlags().contains("largePages") ? 2000 : 1000);
       if (!cursor.isEmpty()) {
         taskPage.setCursor(cursor);
       }
