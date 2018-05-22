@@ -19,23 +19,17 @@ git config --global --add url."git@github.com:".insteadOf "https://github.com/"
 
 for the `go get` command to work properly.
 
-Enter the code's directory:
+Enter the code's directory
 
 ```bash
 cd $GOPATH/src/github.com/spinnaker/spin
 ```
 
-You may need to fetch the [mitchellh/cli](https://github.com/mitchellh/cli)
-package first:
+Fetch dependencies and build with with
 
 ```bash
-go get github.com/mitchellh/cli
-```
-
-Build using
-
-```bash
-go build
+go get -d -v
+go build -v
 ```
 
 from the root `spin/` directory.
@@ -45,6 +39,14 @@ Run using
 ```bash
 ./spin <cmds> <flags>
 ```
+
+Test using
+
+```bash
+go test -v ./...
+```
+
+from the root `spin/` directory.
 
 # Configuration
 
