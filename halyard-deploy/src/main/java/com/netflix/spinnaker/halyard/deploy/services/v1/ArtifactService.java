@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.amazonaws.util.IOUtils;
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
@@ -61,15 +62,68 @@ public class ArtifactService {
   @Autowired
   VersionsService versionsService;
 
+  @Autowired
+  ArtifactSourcesConfig artifactSourcesConfig;
+
   BillOfMaterials getBillOfMaterials(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     String version = deploymentConfiguration.getVersion();
     return versionsService.getBillOfMaterials(version);
   }
 
+  /**
+   * Should use {@link #getArtifactSources(String, SpinnakerArtifact)} when it supports all types of
+   * deployments.
+   *
+   * To future devs: In order to remove this method for good, the remaining callers of this method
+   * need to be able to incorporate different repository sources. As of this writing (May 2018) the
+   * {@link com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider}
+   * and the
+   * {@link com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian.BakeDebianServiceProvider}
+   * are the two hold outs.
+   */
+  @Deprecated
   public BillOfMaterials.ArtifactSources getArtifactSources(String deploymentName) {
     BillOfMaterials bom = getBillOfMaterials(deploymentName);
     return bom.getArtifactSources();
+  }
+
+  public BillOfMaterials.ArtifactSources getArtifactSources(String deploymentName, SpinnakerArtifact artifact) {
+    BillOfMaterials bom = getBillOfMaterials(deploymentName);
+    BillOfMaterials.ArtifactSources baseline = bom.getArtifactSources();
+    BillOfMaterials.ArtifactSources overrides = bom.getArtifactSources(artifact.getName());
+    return mergeArtifactSources(baseline, overrides);
+  }
+
+  private BillOfMaterials.ArtifactSources mergeArtifactSources(BillOfMaterials.ArtifactSources baseline, BillOfMaterials.ArtifactSources overrides) {
+    if (baseline == null) {
+      return overrides;
+    }
+
+    if (overrides == null) {
+      return baseline;
+    }
+
+    BillOfMaterials.ArtifactSources merged = new BillOfMaterials.ArtifactSources()
+        .setDebianRepository(baseline.getDebianRepository())
+        .setDockerRegistry(baseline.getDockerRegistry())
+        .setGitPrefix(baseline.getGitPrefix())
+        .setGoogleImageProject(baseline.getGoogleImageProject());
+
+    if (StringUtils.isNotEmpty(overrides.getDebianRepository())) {
+      merged.setDebianRepository(overrides.getDebianRepository());
+    }
+    if (StringUtils.isNotEmpty(overrides.getDockerRegistry())) {
+      merged.setDockerRegistry(overrides.getDockerRegistry());
+    }
+    if (StringUtils.isNotEmpty(overrides.getGitPrefix())) {
+      merged.setGitPrefix(overrides.getGitPrefix());
+    }
+    if (StringUtils.isNotEmpty(overrides.getGoogleImageProject())) {
+      merged.setGoogleImageProject(overrides.getGoogleImageProject());
+    }
+
+    return merged;
   }
 
   public String getArtifactVersion(String deploymentName, SpinnakerArtifact artifact) {

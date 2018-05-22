@@ -21,6 +21,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +64,8 @@ public class GoogleDistributedServiceDelegate {
   @Getter
   GoogleConsulServerService consulServerService;
 
-  public String getGoogleImageProject(String deploymentName) {
-    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentName);
+  public String getGoogleImageProject(String deploymentName, SpinnakerArtifact artifact) {
+    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentName, artifact);
     return artifactSourcesConfig.mergeWithBomSources(artifactSources).getGoogleImageProject();
   }
 }

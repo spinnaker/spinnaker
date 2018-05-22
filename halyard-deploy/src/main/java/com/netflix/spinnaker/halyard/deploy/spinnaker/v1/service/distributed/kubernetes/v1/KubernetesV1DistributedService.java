@@ -48,12 +48,14 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails.Instance;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
@@ -95,7 +97,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public interface KubernetesV1DistributedService<T> extends DistributedService<T, KubernetesAccount>, LogCollector<T, AccountDeploymentDetails<KubernetesAccount>> {
-  String getDockerRegistry(String deploymentName);
+  String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact);
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
   ObjectMapper getObjectMapper();
@@ -123,8 +125,9 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
   default String getArtifactId(String deploymentName) {
     String artifactName = getArtifact().getName();
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
+    version = Versions.isLocal(version) ? Versions.fromLocal(version) : version;
 
-    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName));
+    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName, getArtifact()));
     return KubernetesUtil.getImageId(image);
   }
 

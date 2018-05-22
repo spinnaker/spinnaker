@@ -216,7 +216,7 @@ class KubernetesV1DistributedServiceSpec extends Specification {
     private KubernetesV1DistributedService createServiceTestDouble() {
         new KubernetesV1DistributedService() {
             @Override
-            String getDockerRegistry(String deploymentName) {
+            String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact) {
                 return null
             }
 

@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("spinnaker.artifacts")
 @Configuration
 public class ArtifactSourcesConfig {
+  String gitPrefix = "https://github.com/spinnaker";
   String googleImageProject = "marketplace-spinnaker-release";
   String dockerRegistry = "gcr.io/spinnaker-marketplace";
   String debianRepository = "https://dl.bintray.com/spinnaker-releases/debians";
@@ -37,16 +38,20 @@ public class ArtifactSourcesConfig {
       return this;
     }
 
-    if (!StringUtils.isEmpty(artifactSources.getGoogleImageProject())) {
+    if (StringUtils.isNotEmpty(artifactSources.getGoogleImageProject())) {
       googleImageProject = artifactSources.getGoogleImageProject();
     }
 
-    if (!StringUtils.isEmpty(artifactSources.getDockerRegistry())) {
+    if (StringUtils.isNotEmpty(artifactSources.getDockerRegistry())) {
       dockerRegistry = artifactSources.getDockerRegistry();
     }
 
-    if (!StringUtils.isEmpty(artifactSources.getDebianRepository())) {
+    if (StringUtils.isNotEmpty(artifactSources.getDebianRepository())) {
       debianRepository = artifactSources.getDebianRepository();
+    }
+
+    if (StringUtils.isNotEmpty(artifactSources.getDebianRepository())) {
+      gitPrefix = artifactSources.getGitPrefix();
     }
 
     return this;

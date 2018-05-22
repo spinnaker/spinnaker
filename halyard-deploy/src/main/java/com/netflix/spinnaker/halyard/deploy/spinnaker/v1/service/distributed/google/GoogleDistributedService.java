@@ -43,6 +43,7 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetai
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
@@ -80,7 +81,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   GoogleConsulServerService getConsulServerService();
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
-  String getGoogleImageProject(String deploymentName);
+  String getGoogleImageProject(String deploymentName, SpinnakerArtifact artifact);
   String getStartupScriptPath();
 
   default String getDefaultInstanceType() {
@@ -135,7 +136,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     String artifactName = getArtifact().getName();
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
     return String.format("projects/%s/global/images/%s",
-        getGoogleImageProject(deploymentName),
+        getGoogleImageProject(deploymentName, getArtifact()),
         String.join("-", "spinnaker", artifactName, version.replace(".", "-").replace(":", "-")));
   }
 

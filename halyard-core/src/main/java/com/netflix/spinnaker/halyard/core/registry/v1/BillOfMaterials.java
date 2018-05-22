@@ -48,6 +48,10 @@ public class BillOfMaterials {
     String getArtifactCommit(String artifactName) {
       return getFieldArtifact(Dependencies.class, this, artifactName).getCommit();
     }
+
+    ArtifactSources getArtifactSources(String artifactName) {
+      return getFieldArtifact(Dependencies.class, this, artifactName).getArtifactSources();
+    }
   }
 
   @Data
@@ -85,12 +89,17 @@ public class BillOfMaterials {
     String getArtifactCommit(String artifactName) {
       return getFieldArtifact(Services.class, this, artifactName).getCommit();
     }
+
+    ArtifactSources getArtifactSources(String artifactName) {
+      return getFieldArtifact(Services.class, this, artifactName).getArtifactSources();
+    }
   }
 
   @Data
   static class Artifact {
     String version;
     String commit;
+    ArtifactSources artifactSources;
   }
 
   static private <T> Artifact getFieldArtifact(Class<T> clazz, T obj, String artifactName) {
@@ -114,7 +123,7 @@ public class BillOfMaterials {
       if (result == null && !artifactName.equals("defaultArtifact")) {
         result = getFieldArtifact(clazz, obj, "defaultArtifact");
       }
-      
+
       if (result == null) {
         result = new Artifact();
       }
@@ -159,5 +168,19 @@ public class BillOfMaterials {
     }
 
     throw new IllegalArgumentException("No artifact with name " + artifactName + " could be found in the BOM");
+  }
+
+  public ArtifactSources getArtifactSources(String artifactName) {
+    try {
+      return services.getArtifactSources(artifactName);
+    } catch (NoKnownArtifact ignored) {
+    }
+
+    try {
+      return dependencies.getArtifactSources(artifactName);
+    } catch (NoKnownArtifact ignored) {
+    }
+
+    return null;
   }
 }

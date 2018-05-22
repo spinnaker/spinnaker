@@ -32,6 +32,7 @@ import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
 
 public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   String getServiceName();
-  String getDockerRegistry(String deploymentName);
+  String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact);
   String getSpinnakerStagingPath(String deploymentName);
   ArtifactService getArtifactService();
   ServiceSettings defaultServiceSettings();
@@ -300,7 +301,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
     version = Versions.isLocal(version) ? Versions.fromLocal(version) : version;
 
-    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName));
+    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName, getArtifact()));
     return KubernetesUtil.getImageId(image);
   }
 

@@ -51,7 +51,7 @@ public class KubernetesV1MonitoringDaemonService extends SpinnakerMonitoringDaem
     String artifactName = getArtifact().getName();
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
 
-    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName));
+    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName, getArtifact()));
     return KubernetesUtil.getImageId(image);
   }
 }
