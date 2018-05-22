@@ -272,7 +272,7 @@ public class RegionScopedTitusClient implements TitusClient {
       }
       jobQuery.setPage(jobPage);
       JobQuery criteria = jobQuery.build();
-      JobQueryResult resultPage = grpcBlockingStub.findJobs(criteria);
+      JobQueryResult resultPage = TitusClientCompressionUtil.attachCaller(grpcBlockingStub).findJobs(criteria);
       grpcJobs.addAll(resultPage.getItemsList());
       cursor = resultPage.getPagination().getCursor();
       hasMore = resultPage.getPagination().getHasMore();
@@ -318,7 +318,7 @@ public class RegionScopedTitusClient implements TitusClient {
         filterByStates = filterByStates + ",KillInitiated,Finished";
       }
       taskQueryBuilder.putFilteringCriteria("taskStates", filterByStates);
-      taskResults = grpcBlockingStub.findTasks(
+      taskResults = TitusClientCompressionUtil.attachCaller(grpcBlockingStub).findTasks(
         taskQueryBuilder.build()
       );
       tasks.addAll(taskResults.getItemsList());
