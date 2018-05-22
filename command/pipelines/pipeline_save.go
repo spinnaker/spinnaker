@@ -53,7 +53,7 @@ func (c *PipelineSaveCommand) parsePipelineFile() (map[string]interface{}, error
 func (c *PipelineSaveCommand) pipelineIsValid(pipelineJson map[string]interface{}) bool {
 	// TODO: Dry-run pipeline save and report errors?
 	var exists bool
-	if _, exists = pipelineJson["name"]; !exists {
+	if _, exists := pipelineJson["name"]; !exists {
 		c.ApiMeta.Ui.Error("Required pipeline key 'name' missing...\n")
 		return false
 	}

@@ -52,6 +52,11 @@ func (c *PipelineListCommand) Run(args []string) int {
 		return 1
 	}
 
+	if c.application == "" {
+		c.ApiMeta.Ui.Error("Required parameter 'application' not set.\n")
+		return 1
+	}
+
 	successPayload, resp, err := c.listPipelines(c.application)
 
 	if err != nil {

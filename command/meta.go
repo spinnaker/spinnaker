@@ -94,14 +94,17 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 	configLocation := filepath.Join(usr.HomeDir, ".spin", "config")
 	yamlFile, err := ioutil.ReadFile(configLocation)
 	if err != nil {
-		m.Ui.Error(fmt.Sprintf("Could not read configuration file from %d, failing.", configLocation))
-		return args, err
+		m.Ui.Warn(fmt.Sprintf("Could not read configuration file from %s.", configLocation))
 	}
 
-	err = yaml.UnmarshalStrict(yamlFile, &m.Config)
-	if err != nil {
-		m.Ui.Error(fmt.Sprintf("Could not deserialize config file with contents: %d, failing.", yamlFile))
-		return args, err
+	if yamlFile != nil {
+		err = yaml.UnmarshalStrict(yamlFile, &m.Config)
+		if err != nil {
+			m.Ui.Error(fmt.Sprintf("Could not deserialize config file with contents: %d, failing.", yamlFile))
+			return args, err
+		}
+	} else {
+		m.Config = config.Config{}
 	}
 
 	// Api client initialization.
