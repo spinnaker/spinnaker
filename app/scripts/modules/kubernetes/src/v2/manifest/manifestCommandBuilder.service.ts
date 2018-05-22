@@ -1,7 +1,5 @@
-import { copy, IPromise, IQService, module } from 'angular';
-
+import { cloneDeep } from 'lodash';
 import { dump, loadAll } from 'js-yaml';
-
 import { AccountService, Application, IMoniker } from '@spinnaker/core';
 
 export interface IKubernetesManifestCommandData {
@@ -34,12 +32,8 @@ export interface IKubernetesManifestSpinnakerRelationships {
 }
 
 export class KubernetesManifestCommandBuilder {
-  constructor(private $q: IQService) {
-    'ngInject';
-  }
-
   // TODO(lwander) add explanatory error messages
-  public manifestCommandIsValid(command: IKubernetesManifestCommand): boolean {
+  public static manifestCommandIsValid(command: IKubernetesManifestCommand): boolean {
     if (!command.moniker) {
       return false;
     }
@@ -51,28 +45,32 @@ export class KubernetesManifestCommandBuilder {
     return true;
   }
 
-  public copyAndCleanCommand(
+  public static copyAndCleanCommand(
     metadata: IKubernetesManifestCommandMetadata,
     input: IKubernetesManifestCommand,
   ): IKubernetesManifestCommand {
-    const command = copy(input);
+    const command = cloneDeep(input);
     command.manifests = [];
     loadAll(metadata.manifestText, doc => command.manifests.push(doc));
     delete command.source;
     return command;
   }
 
-  public buildNewManifestCommand(
+  public static buildNewManifestCommand(
     app: Application,
     sourceManifest?: any,
     sourceMoniker?: IMoniker,
-  ): IPromise<IKubernetesManifestCommandData> {
-    const dataToFetch = {
-      accounts: AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
-      artifactAccounts: AccountService.getArtifactAccounts(),
-    };
+  ): Promise<IKubernetesManifestCommandData> {
+    const dataToFetch = [
+      AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
+      AccountService.getArtifactAccounts(),
+    ];
 
-    return this.$q.all(dataToFetch).then((backingData: any) => {
+    return Promise.all(dataToFetch).then(([accounts, artifactAccounts]) => {
+      const backingData = {
+        accounts,
+        artifactAccounts,
+      };
       const accountData = backingData.accounts[0];
       let account: string = null;
       if (accountData) {
@@ -119,10 +117,3 @@ export class KubernetesManifestCommandBuilder {
     });
   }
 }
-
-export const KUBERNETES_MANIFEST_COMMAND_BUILDER = 'spinnaker.kubernetes.v2.manifestBuilder.service';
-
-module(KUBERNETES_MANIFEST_COMMAND_BUILDER, []).service(
-  'kubernetesManifestCommandBuilder',
-  KubernetesManifestCommandBuilder,
-);

@@ -6,7 +6,6 @@ import { Application, SERVER_GROUP_WRITER, TaskMonitor, ManifestWriter } from '@
 import {
   IKubernetesManifestCommand,
   IKubernetesManifestCommandMetadata,
-  KUBERNETES_MANIFEST_COMMAND_BUILDER,
   KubernetesManifestCommandBuilder,
 } from '../manifestCommandBuilder.service';
 
@@ -23,10 +22,9 @@ class KubernetesManifestWizardCtrl implements IController {
     private $uibModalInstance: IModalInstanceService,
     private application: Application,
     private manifestWriter: ManifestWriter,
-    private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder,
   ) {
     'ngInject';
-    this.kubernetesManifestCommandBuilder.buildNewManifestCommand(application).then(builtCommand => {
+    KubernetesManifestCommandBuilder.buildNewManifestCommand(application).then(builtCommand => {
       const { command, metadata } = builtCommand;
       this.command = command;
       this.metadata = metadata;
@@ -41,7 +39,7 @@ class KubernetesManifestWizardCtrl implements IController {
   }
 
   public submit(): void {
-    const command = this.kubernetesManifestCommandBuilder.copyAndCleanCommand(this.metadata, this.command);
+    const command = KubernetesManifestCommandBuilder.copyAndCleanCommand(this.metadata, this.command);
     const submitMethod = () => this.manifestWriter.deployManifest(command, this.application);
     this.taskMonitor.submit(submitMethod);
   }
@@ -59,12 +57,12 @@ class KubernetesManifestWizardCtrl implements IController {
   }
 
   public isValid(): boolean {
-    return this.kubernetesManifestCommandBuilder.manifestCommandIsValid(this.command);
+    return KubernetesManifestCommandBuilder.manifestCommandIsValid(this.command);
   }
 }
 
 export const KUBERNETES_MANIFEST_CTRL = 'spinnaker.kubernetes.v2.manifest.wizard.controller';
-module(KUBERNETES_MANIFEST_CTRL, [SERVER_GROUP_WRITER, KUBERNETES_MANIFEST_COMMAND_BUILDER]).controller(
+module(KUBERNETES_MANIFEST_CTRL, [SERVER_GROUP_WRITER]).controller(
   'kubernetesManifestWizardCtrl',
   KubernetesManifestWizardCtrl,
 );

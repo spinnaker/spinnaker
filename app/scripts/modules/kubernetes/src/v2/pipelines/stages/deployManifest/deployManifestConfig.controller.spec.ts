@@ -1,4 +1,5 @@
 import { KubernetesV2DeployManifestConfigCtrl as Controller } from './deployManifestConfig.controller';
+import { KubernetesManifestCommandBuilder } from '../../../manifest/manifestCommandBuilder.service';
 
 const basicManifest = `
 kind: Deployment
@@ -31,7 +32,6 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
   let builtCmdPromise: any;
   let stage: any;
   let scope: any;
-  let cmdBuilder: any;
 
   beforeEach(function() {
     metadata = {};
@@ -45,14 +45,12 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
         pipeline: {},
       },
     };
-    cmdBuilder = {
-      buildNewManifestCommand: () => builtCmdPromise,
-    };
+    spyOn(KubernetesManifestCommandBuilder, 'buildNewManifestCommand').and.callFake(() => builtCmdPromise);
   });
 
   describe('change', function() {
     it('normalizes yaml doc with a single manifest into an array', function(done) {
-      const ctrl = new Controller(scope, cmdBuilder);
+      const ctrl = new Controller(scope);
       builtCmdPromise.then(() => {
         ctrl.metadata.manifestText = basicManifest;
         ctrl.change();
@@ -64,7 +62,7 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
     });
 
     it('normalizes a yaml doc with a single manifest in an array into a flat array', function(done) {
-      const ctrl = new Controller(scope, cmdBuilder);
+      const ctrl = new Controller(scope);
       builtCmdPromise.then(() => {
         ctrl.metadata.manifestText = singleManifestArray;
         ctrl.change();
@@ -76,7 +74,7 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
     });
 
     it('normalizes a yaml doc with multiple manifest entries in an array into a flat array', function(done) {
-      const ctrl = new Controller(scope, cmdBuilder);
+      const ctrl = new Controller(scope);
       builtCmdPromise.then(() => {
         ctrl.metadata.manifestText = multipleManifestArray;
         ctrl.change();
@@ -89,7 +87,7 @@ describe('KubernetesV2DeployManifestConfigCtrl', function() {
     });
 
     it('normalizes a yaml doc with multiple manifest documents into a flat array', function(done) {
-      const ctrl = new Controller(scope, cmdBuilder);
+      const ctrl = new Controller(scope);
       builtCmdPromise.then(() => {
         ctrl.metadata.manifestText = multipleManifestDocuments;
         ctrl.change();

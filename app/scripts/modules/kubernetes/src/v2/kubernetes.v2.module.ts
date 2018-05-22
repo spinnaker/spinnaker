@@ -3,7 +3,6 @@ import { module } from 'angular';
 import { CloudProviderRegistry } from '@spinnaker/core';
 
 import '../logo/kubernetes.logo.less';
-import { KUBERNETES_MANIFEST_COMMAND_BUILDER } from './manifest/manifestCommandBuilder.service';
 import { KUBERNETES_MANIFEST_BASIC_SETTINGS } from './manifest/wizard/basicSettings.component';
 import { KUBERNETES_MANIFEST_CTRL } from './manifest/wizard/manifestWizard.controller';
 import { KUBERNETES_EDIT_MANIFEST_CTRL } from './manifest/edit/editManifestWizard.controller';
@@ -59,7 +58,6 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_V2_SERVER_GROUP_RESIZE_CTRL,
   KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL,
   KUBERNETES_MANIFEST_BASIC_SETTINGS,
-  KUBERNETES_MANIFEST_COMMAND_BUILDER,
   KUBERNETES_MANIFEST_CTRL,
   KUBERNETES_EDIT_MANIFEST_CTRL,
   KUBERNETES_MANIFEST_DELETE_CTRL,
