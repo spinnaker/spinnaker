@@ -27,6 +27,8 @@ module.exports = angular
     instanceWriter,
     instance,
     app,
+    moniker,
+    environment,
     $q,
     overrides,
   ) {
@@ -40,6 +42,8 @@ module.exports = angular
     };
 
     $scope.application = app;
+    $scope.moniker = moniker;
+    $scope.environment = environment;
 
     const cloudProvider = 'ecs';
     const defaultRequestParams = { cloudProvider: cloudProvider };

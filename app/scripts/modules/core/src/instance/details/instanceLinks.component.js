@@ -12,6 +12,8 @@ module.exports = angular.module('spinnaker.core.instance.details.instanceLinks',
     address: '=',
     application: '=',
     instance: '=',
+    moniker: '=',
+    environment: '=',
   },
   templateUrl: require('./instanceLinks.component.html'),
   controller: function($interpolate) {
@@ -25,7 +27,12 @@ module.exports = angular.module('spinnaker.core.instance.details.instanceLinks',
         let url = link.path;
         // handle interpolated variables
         if (url.includes('{{')) {
-          url = $interpolate(url)(Object.assign({}, this.instance, { ipAddress: this.address }));
+          url = $interpolate(url)(
+            Object.assign({}, this.instance, this.moniker, {
+              ipAddress: this.address,
+              environment: this.environment,
+            }),
+          );
         }
         // handle relative paths
         if (!url.includes('//')) {

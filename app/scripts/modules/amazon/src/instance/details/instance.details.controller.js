@@ -32,6 +32,8 @@ module.exports = angular
     instanceReader,
     instance,
     app,
+    moniker,
+    environment,
     $q,
     overrides,
   ) {
@@ -45,6 +47,8 @@ module.exports = angular
     };
 
     $scope.application = app;
+    $scope.moniker = moniker;
+    $scope.environment = environment;
 
     $scope.securityGroupsLabel = FirewallLabels.get('Firewalls');
 

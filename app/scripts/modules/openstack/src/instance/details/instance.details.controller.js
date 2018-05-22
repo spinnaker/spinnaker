@@ -30,6 +30,8 @@ module.exports = angular
     instanceReader,
     instance,
     app,
+    moniker,
+    environment,
     $q,
     overrides,
   ) {
@@ -45,6 +47,8 @@ module.exports = angular
     $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.application = app;
+    $scope.moniker = moniker;
+    $scope.environment = environment;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances

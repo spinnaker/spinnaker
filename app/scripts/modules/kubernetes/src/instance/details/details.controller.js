@@ -29,6 +29,8 @@ module.exports = angular
     instanceReader,
     instance,
     app,
+    moniker,
+    environment,
     kubernetesProxyUiService,
     $q,
   ) {
@@ -41,6 +43,8 @@ module.exports = angular
     };
 
     this.application = app;
+    $scope.moniker = moniker;
+    $scope.environment = environment;
 
     this.uiLink = function uiLink() {
       return kubernetesProxyUiService.buildLink(
