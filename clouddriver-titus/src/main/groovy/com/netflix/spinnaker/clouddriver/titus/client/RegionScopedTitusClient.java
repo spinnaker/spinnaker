@@ -328,24 +328,4 @@ public class RegionScopedTitusClient implements TitusClient {
     return tasks.stream().collect(Collectors.groupingBy(task -> task.getJobId()));
   }
 
-  @Override
-  public Object getJobJson(String jobId) {
-    return toJson(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()));
-  }
-
-  @Override
-  public Object getTaskJson(String taskId) {
-    return toJson(grpcBlockingStub.findTask(TaskId.newBuilder().setId(taskId).build()));
-  }
-
-  private Object toJson(Message message) {
-    Object job = null;
-    try {
-      job = objectMapper.readValue(JsonFormat.printer().print(message), Object.class);
-    } catch (Exception e) {
-
-    }
-    return job;
-  }
-
 }

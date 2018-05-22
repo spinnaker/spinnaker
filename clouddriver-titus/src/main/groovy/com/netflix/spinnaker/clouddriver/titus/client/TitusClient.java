@@ -101,8 +101,4 @@ public interface TitusClient {
    */
   public List<Job> getAllJobs();
 
-  public Object getJobJson(String jobId);
-
-  public Object getTaskJson(String taskId);
-
 }
