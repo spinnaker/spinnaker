@@ -35,7 +35,28 @@ import java.util.concurrent.ConcurrentHashMap;
 class KubernetesV2Provider extends AgentSchedulerAware implements Provider {
   public static final String PROVIDER_NAME = KubernetesCloudProvider.getID();
 
-  private final Collection<Agent> agents = Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private Collection<Agent> agents = emptyAgentCollection();
+
+  private Collection<Agent> nextAgentSet = emptyAgentCollection();
+
+  private static Collection<Agent> emptyAgentCollection() {
+    return Collections.newSetFromMap(new ConcurrentHashMap<>());
+  }
+
+  public void addAllAgents(Collection<Agent> agents) {
+    nextAgentSet.addAll(agents);
+  }
+
+  public void clearNewAgentSet() {
+    nextAgentSet.clear();
+  }
+
+  public void switchToNewAgents() {
+    Collection<Agent> nextAgentSetCopy = emptyAgentCollection();
+    nextAgentSetCopy.addAll(nextAgentSet);
+    agents = nextAgentSetCopy;
+    clearNewAgentSet();
+  }
 
   @Override
   public String getProviderName() {

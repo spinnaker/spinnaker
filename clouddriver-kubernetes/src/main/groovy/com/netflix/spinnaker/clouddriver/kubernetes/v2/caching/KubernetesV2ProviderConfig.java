@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -97,34 +98,40 @@ class KubernetesV2ProviderConfig implements Runnable {
   ) {
     Set<KubernetesNamedAccountCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, KubernetesNamedAccountCredentials.class, ProviderVersion.v2);
 
-    kubernetesV2Provider.getAgents().clear();
+    try {
+      for (KubernetesNamedAccountCredentials credentials : allAccounts) {
+        KubernetesV2Credentials v2Credentials = (KubernetesV2Credentials) credentials.getCredentials();
+        v2Credentials.getCustomResources().forEach(cr -> {
+          try {
+            KubernetesResourceProperties properties = KubernetesResourceProperties.fromCustomResource(cr);
+            kubernetesResourcePropertyRegistry.registerAccountProperty(credentials.getName(), properties);
+          } catch (Exception e) {
+            log.warn("Error encountered registering {}: ", cr, e);
+          }
+        });
 
-    for (KubernetesNamedAccountCredentials credentials : allAccounts) {
-      KubernetesV2Credentials v2Credentials = (KubernetesV2Credentials) credentials.getCredentials();
-      v2Credentials.getCustomResources().forEach(cr -> {
-        try {
-          KubernetesResourceProperties properties = KubernetesResourceProperties.fromCustomResource(cr);
-          kubernetesResourcePropertyRegistry.registerAccountProperty(credentials.getName(), properties);
-        } catch (Exception e) {
-          log.warn("Error encountered registering {}: ", cr, e);
-        }
-      });
+        List<Agent> newlyAddedAgents = kubernetesV2CachingAgentDispatcher.buildAllCachingAgents(credentials)
+            .stream()
+            .map(c -> (Agent) c)
+            .collect(Collectors.toList());
 
-      List<Agent> newlyAddedAgents = kubernetesV2CachingAgentDispatcher.buildAllCachingAgents(credentials)
-          .stream()
-          .map(c -> (Agent) c)
-          .collect(Collectors.toList());
+        log.info("Adding {} agents for account {}", newlyAddedAgents.size(), credentials.getName());
 
-      log.info("Adding {} agents for account {}", newlyAddedAgents.size(), credentials.getName());
-
-      // If there is an agent scheduler, then this provider has been through the AgentController in the past.
-      // In that case, we need to do the scheduling here (because accounts have been added to a running system).
-      if (kubernetesV2Provider.getAgentScheduler() != null) {
-        ProviderUtils.rescheduleAgents(kubernetesV2Provider, newlyAddedAgents);
+        kubernetesV2Provider.addAllAgents(newlyAddedAgents);
       }
-
-      kubernetesV2Provider.getAgents().addAll(newlyAddedAgents);
+    } catch (Exception e) {
+      log.warn("Error encountered scheduling new agents -- using old agent set instead", e);
+      kubernetesV2Provider.clearNewAgentSet();
+      return new KubernetesV2ProviderSynchronizer();
     }
+
+    // If there is an agent scheduler, then this provider has been through the AgentController in the past.
+    // In that case, we need to do the scheduling here (because accounts have been added to a running system).
+    if (kubernetesV2Provider.getAgentScheduler() != null) {
+      ProviderUtils.rescheduleAgents(kubernetesV2Provider, new ArrayList<>(kubernetesV2Provider.getNextAgentSet()));
+    }
+
+    kubernetesV2Provider.switchToNewAgents();
 
     return new KubernetesV2ProviderSynchronizer();
   }
