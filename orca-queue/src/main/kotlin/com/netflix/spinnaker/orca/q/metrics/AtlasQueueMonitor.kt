@@ -21,12 +21,14 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.ExecutionLevel
+import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,6 +45,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit.MINUTES
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.PostConstruct
@@ -58,6 +61,8 @@ class AtlasQueueMonitor
   private val registry: Registry,
   private val repository: ExecutionRepository,
   private val clock: Clock,
+  private val activator: Activator,
+  private val conch: NotificationClusterLock,
   @Value("\${queue.zombieCheck.enabled:false}")private val zombieCheckEnabled: Boolean,
   @Qualifier("scheduler") private val zombieCheckScheduler: Optional<Scheduler>,
   @Value("\${queue.zombieCheck.cutoffMinutes:10}") private val zombieCheckCutoffMinutes: Long
@@ -91,7 +96,7 @@ class AtlasQueueMonitor
 
   @Scheduled(fixedDelayString = "\${queue.zombieCheck.intervalMs:3600000}")
   fun checkForZombies() {
-    if (!zombieCheckEnabled) return
+    if (!zombieCheckEnabled || !activator.enabled || !conch.tryAcquireLock("zombie", TimeUnit.MINUTES.toSeconds(5))) return
 
     val startedAt = clock.instant()
     val criteria = ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING)

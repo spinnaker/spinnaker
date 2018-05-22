@@ -28,10 +28,10 @@ public class RedisNotificationClusterLock implements NotificationClusterLock {
   }
 
   @Override
-  public boolean tryAcquireLock(@Nonnull String notificationType, long lockTimeout) {
+  public boolean tryAcquireLock(@Nonnull String notificationType, long lockTimeoutSeconds) {
     String key = "lock:" + notificationType;
     return redisClientDelegate.withCommandsClient(client -> {
-      return "OK".equals(client.set(key, "\uD83D\uDD12", "NX", "EX", lockTimeout));
+      return "OK".equals(client.set(key, "\uD83D\uDD12", "NX", "EX", lockTimeoutSeconds));
     });
   }
 }

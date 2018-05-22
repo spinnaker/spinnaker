@@ -23,10 +23,12 @@ import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.fixture.pipeline
+import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.q.StartExecution
+import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.*
 import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
@@ -47,6 +49,8 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
   val queue: MonitorableQueue = mock()
   val repository: ExecutionRepository = mock()
   val clock = fixedClock(instant = now().minus(Duration.ofHours(1)))
+  val activator: Activator = mock()
+  val conch: NotificationClusterLock = mock()
 
   val pushCounter: Counter = mock()
   val ackCounter: Counter = mock()
@@ -69,7 +73,17 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
   }
 
   subject(GROUP) {
-    AtlasQueueMonitor(queue, registry, repository, clock, true, Optional.of(Schedulers.immediate()), 10)
+    AtlasQueueMonitor(
+      queue,
+      registry,
+      repository,
+      clock,
+      activator,
+      conch,
+      true,
+      Optional.of(Schedulers.immediate()),
+      10
+    )
   }
 
   fun resetMocks() =
@@ -230,68 +244,146 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
 
   describe("detecting zombie executions") {
     val criteria = ExecutionCriteria().setStatuses(RUNNING)
-    given("a non-running pipeline with no associated messages") {
-      val pipeline = pipeline {
-        status = SUCCEEDED
-        buildTime = clock.instant().minus(1, HOURS).toEpochMilli()
-      }
 
+    given("the instance is disabled") {
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
-        whenever(queue.containsMessage(any())) doReturn true
+        whenever(activator.enabled) doReturn false
+        whenever(conch.tryAcquireLock(eq("zombie"), any())) doReturn true
       }
 
-      afterGroup(::resetMocks)
+      afterGroup {
+        reset(activator, conch)
+      }
 
-      on("looking for zombies") {
-        subject.checkForZombies()
+      given("a running pipeline with no associated messages") {
+        val pipeline = pipeline {
+          status = RUNNING
+          buildTime = clock.instant().minus(1, HOURS).toEpochMilli()
+        }
 
-        it("does not increment the counter") {
-          verifyZeroInteractions(zombieCounter)
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
+          whenever(queue.containsMessage(any())) doReturn true
+        }
+
+        afterGroup(::resetMocks)
+
+        on("looking for zombies") {
+          subject.checkForZombies()
+
+          it("does not run a zombie check") {
+            verifyZeroInteractions(repository, queue, zombieCounter)
+          }
         }
       }
     }
 
-    given("a running pipeline with an associated messages") {
-      val pipeline = pipeline {
-        status = RUNNING
-        buildTime = clock.instant().minus(1, HOURS).toEpochMilli()
-      }
-
+    given("the instance cannot acquire a cluster lock") {
       beforeGroup {
-        whenever(repository.retrieve(pipeline.type, criteria)) doReturn just(pipeline)
-        whenever(queue.containsMessage(any())) doReturn true
+        whenever(activator.enabled) doReturn true
+        whenever(conch.tryAcquireLock(eq("zombie"), any())) doReturn false
       }
 
-      afterGroup(::resetMocks)
+      afterGroup {
+        reset(activator, conch)
+      }
 
-      on("looking for zombies") {
-        subject.checkForZombies()
+      given("a running pipeline with no associated messages") {
+        val pipeline = pipeline {
+          status = RUNNING
+          buildTime = clock.instant().minus(1, HOURS).toEpochMilli()
+        }
 
-        it("does not increment the counter") {
-          verifyZeroInteractions(zombieCounter)
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
+          whenever(queue.containsMessage(any())) doReturn true
+        }
+
+        afterGroup(::resetMocks)
+
+        on("looking for zombies") {
+          subject.checkForZombies()
+
+          it("does not run a zombie check") {
+            verifyZeroInteractions(repository, queue, zombieCounter)
+          }
         }
       }
     }
 
-    given("a running pipeline with no associated messages") {
-      val pipeline = pipeline {
-        status = RUNNING
-        buildTime = clock.instant().minus(1, HOURS).toEpochMilli()
-      }
-
+    given("the instance is active and can acquire a cluster lock") {
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
-        whenever(queue.containsMessage(any())) doReturn false
+        whenever(activator.enabled) doReturn true
+        whenever(conch.tryAcquireLock(eq("zombie"), any())) doReturn true
       }
 
-      afterGroup(::resetMocks)
+      afterGroup {
+        reset(activator, conch)
+      }
 
-      on("looking for zombies") {
-        subject.checkForZombies()
+      given("a non-running pipeline with no associated messages") {
+        val pipeline = pipeline {
+          status = SUCCEEDED
+          buildTime = clock.instant().minus(1, HOURS).toEpochMilli()
+        }
 
-        it("increments the counter") {
-          verify(zombieCounter).increment()
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
+          whenever(queue.containsMessage(any())) doReturn true
+        }
+
+        afterGroup(::resetMocks)
+
+        on("looking for zombies") {
+          subject.checkForZombies()
+
+          it("does not increment the counter") {
+            verifyZeroInteractions(zombieCounter)
+          }
+        }
+      }
+
+      given("a running pipeline with an associated messages") {
+        val pipeline = pipeline {
+          status = RUNNING
+          buildTime = clock.instant().minus(1, HOURS).toEpochMilli()
+        }
+
+        beforeGroup {
+          whenever(repository.retrieve(pipeline.type, criteria)) doReturn just(pipeline)
+          whenever(queue.containsMessage(any())) doReturn true
+        }
+
+        afterGroup(::resetMocks)
+
+        on("looking for zombies") {
+          subject.checkForZombies()
+
+          it("does not increment the counter") {
+            verifyZeroInteractions(zombieCounter)
+          }
+        }
+      }
+
+      given("a running pipeline with no associated messages") {
+        val pipeline = pipeline {
+          status = RUNNING
+          buildTime = clock.instant().minus(1, HOURS).toEpochMilli()
+        }
+
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
+          whenever(queue.containsMessage(any())) doReturn false
+        }
+
+        afterGroup(::resetMocks)
+
+        on("looking for zombies") {
+          subject.checkForZombies()
+
+          it("increments the counter") {
+            verify(zombieCounter).increment()
+          }
         }
       }
     }

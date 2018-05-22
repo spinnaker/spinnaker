@@ -16,5 +16,5 @@
 package com.netflix.spinnaker.orca.notifications
 
 interface NotificationClusterLock {
-  fun tryAcquireLock(notificationType: String, lockTimeout: Long): Boolean
+  fun tryAcquireLock(notificationType: String, lockTimeoutSeconds: Long): Boolean
 }
