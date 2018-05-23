@@ -139,16 +139,16 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
       return result.unstable("Waiting for all replicas to be updated");
     }
 
-    if (status.getReplicas() > existing) {
+    if (status.getReplicas() != null && status.getReplicas() > existing) {
       return result.unstable("Waiting for old replicas to finish termination");
     }
 
-    if (status.getAvailableReplicas() < existing) {
+    if (status.getAvailableReplicas() == null || status.getAvailableReplicas() < existing) {
       return result.unstable("Waiting for all replicas to be available");
     }
 
     existing = status.getReadyReplicas();
-    if (existing == null || desiredReplicas > existing) {
+    if (existing == null || (desiredReplicas != null && desiredReplicas > existing)) {
       return result.unstable("Waiting for all replicas to be ready");
     }
 
