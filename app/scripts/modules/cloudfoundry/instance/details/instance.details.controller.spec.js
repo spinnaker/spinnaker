@@ -13,6 +13,8 @@ describe('Controller: cfInstanceDetailsCtrl', function() {
       controller = $controller('cfInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
+        moniker: {},
+        environment: 'test',
         app: { isStandalone: true },
       });
     }),

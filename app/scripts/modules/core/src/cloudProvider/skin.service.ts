@@ -6,6 +6,7 @@ import { SETTINGS } from 'core/config/settings';
 import { AccountService, IAccountDetails } from 'core/account';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ILoadBalancer, IServerGroup } from 'core/domain';
+import { IMoniker } from 'core/naming';
 import { Application } from 'core/application';
 
 export class SkinService {
@@ -83,6 +84,27 @@ export class SkinService {
         .concat(loadBalancerServerGroups);
       const found = all.find(hasInstance);
       return found && found.account;
+    });
+  }
+
+  public static getMonikerForInstance(cloudProvider: string, instanceId: string, app: Application): IPromise<IMoniker> {
+    return app.ready().then(() => {
+      const serverGroups = app.getDataSource('serverGroups').data as IServerGroup[];
+      const loadBalancers = app.getDataSource('loadBalancers').data as ILoadBalancer[];
+      const loadBalancerServerGroups = loadBalancers.map(lb => lb.serverGroups).reduce((acc, sg) => acc.concat(sg), []);
+
+      const hasInstance = (obj: IServerGroup | ILoadBalancer) => {
+        return (
+          obj.cloudProvider === cloudProvider && (obj.instances || []).some(instance => instance.id === instanceId)
+        );
+      };
+
+      const all: Array<IServerGroup | ILoadBalancer> = []
+        .concat(serverGroups)
+        .concat(loadBalancers)
+        .concat(loadBalancerServerGroups);
+      const found = all.find(hasInstance);
+      return found && found.moniker;
     });
   }
 

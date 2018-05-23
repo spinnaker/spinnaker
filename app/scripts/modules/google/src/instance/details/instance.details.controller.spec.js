@@ -14,6 +14,8 @@ describe('Controller: gceInstanceDetailsCtrl', function() {
       controller = $controller('gceInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
+        moniker: {},
+        environment: 'test',
         app: { isStandalone: true },
       });
     }),

@@ -33,6 +33,8 @@ module.exports = angular
     instanceReader,
     instance,
     app,
+    moniker,
+    environment,
     titusSecurityGroupReader,
   ) {
     // needed for standalone instances
@@ -45,6 +47,8 @@ module.exports = angular
     $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.application = app;
+    $scope.moniker = moniker;
+    $scope.environment = environment;
     $scope.gateUrl = SETTINGS.gateUrl;
 
     function extractHealthMetrics(instance, latest) {

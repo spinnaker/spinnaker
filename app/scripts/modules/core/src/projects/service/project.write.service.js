@@ -4,7 +4,7 @@ import { TaskExecutor } from 'core/task/taskExecutor';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.projects.write.service', []).factory('projectWriter', function($q) {
+module.exports = angular.module('spinnaker.core.projects.write.service', []).factory('projectWriter', function() {
   function upsertProject(project) {
     let descriptor = project.id ? 'Update' : 'Create';
     return TaskExecutor.executeTask({

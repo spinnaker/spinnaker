@@ -18,9 +18,11 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
       this.createController = function(application, instance) {
         controller = $controller('awsInstanceDetailsCtrl', {
           $scope: scope,
-          instance: instance,
           app: application,
           overrides: {},
+          moniker: {},
+          environment: 'test',
+          instance,
         });
       };
 
