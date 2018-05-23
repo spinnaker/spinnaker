@@ -23,7 +23,7 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerAction
 
-import static com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.CronExpressionFuzzer.fuzz
+import static com.netflix.scheduledactions.triggers.CronExpressionFuzzer.fuzz
 
 class PipelineTriggerConverter {
 
