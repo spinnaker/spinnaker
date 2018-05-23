@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,12 +66,6 @@ public abstract class AbstractCommitController {
     @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Could not contact the server")
     public void handleRuntimeException(RuntimeException ex) {
         log.error("Could not contact the server", ex);
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Could not find either project|repo|to commit|from commit")
-    public void handleResourceNotFoundException(ResourceNotFoundException ex) {
-        log.error("Could not find either project|repo|to commit|from commit", ex);
     }
 
     @Autowired
