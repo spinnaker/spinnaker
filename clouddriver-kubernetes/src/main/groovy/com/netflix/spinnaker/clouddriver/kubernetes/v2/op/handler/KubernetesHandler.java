@@ -138,6 +138,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
 
   // lower "value" is deployed before higher "value"
   public enum DeployPriority {
+    LOWEST_PRIORITY(1000),
     WORKLOAD_CONTROLLER_PRIORITY(100),
     WORKLOAD_PRIORITY(100),
     WORKLOAD_ATTACHMENT_PRIORITY(80),

@@ -96,6 +96,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Path serviceAccountNamespacePath = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
 
   public boolean isValidKind(KubernetesKind kind) {
+    if (kind == KubernetesKind.NONE) {
+      return false;
+    }
+
     if (!this.kinds.isEmpty()) {
       return kinds.contains(kind);
     } else if (!this.omitKinds.isEmpty()) {
@@ -254,8 +258,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           oAuthScopes,
           serviceAccount,
           customResources,
-          KubernetesKind.fromStringList(kinds),
-          KubernetesKind.fromStringList(omitKinds),
+          KubernetesKind.registeredStringList(kinds),
+          KubernetesKind.registeredStringList(omitKinds),
           debug
       );
     }
@@ -332,7 +336,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   public List<KubernetesManifest> list(List<KubernetesKind> kinds, String namespace) {
-    return runAndRecordMetrics("list", kinds, namespace, () -> jobExecutor.list(this, kinds, namespace));
+    if (kinds.isEmpty()) {
+      return new ArrayList<>();
+    } else {
+      return runAndRecordMetrics("list", kinds, namespace, () -> jobExecutor.list(this, kinds, namespace));
+    }
   }
 
   public String logs(String namespace, String podName, String containerName) {

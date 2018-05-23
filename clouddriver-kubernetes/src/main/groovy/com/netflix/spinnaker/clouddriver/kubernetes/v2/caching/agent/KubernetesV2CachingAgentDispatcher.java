@@ -36,6 +36,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.NONE;
+
 @Component
 @Slf4j
 public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgentDispatcher {
@@ -58,7 +60,7 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
             .stream()
             .map(KubernetesResourceProperties::getHandler)
             .filter(Objects::nonNull)
-            .filter(h -> v2Credentials.isValidKind(h.kind()))
+            .filter(h -> v2Credentials.isValidKind(h.kind()) || h.kind() == NONE)
             .map(h -> h.buildCachingAgent(credentials, propertyRegistry, objectMapper, registry, i, credentials.getCacheThreads()))
             .filter(Objects::nonNull)
             .forEach(c -> result.add((KubernetesCachingAgent) c))

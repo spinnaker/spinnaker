@@ -52,6 +52,11 @@ public class KubernetesResourcePropertyRegistry {
   public KubernetesResourceProperties get(String account, KubernetesKind kind) {
     ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> propertyMap = accountProperties.get(account);
     KubernetesResourceProperties properties = null;
+
+    if (!kind.isRegistered()) {
+      return globalProperties.get(KubernetesKind.NONE);
+    }
+
     if (propertyMap != null) {
       // account-level properties take precedence
       properties = propertyMap.get(kind);

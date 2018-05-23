@@ -33,6 +33,7 @@ public class KubernetesKind {
   public static KubernetesKind CLUSTER_ROLE_BINDING = new KubernetesKind("clusterRoleBinding", false);
   public static KubernetesKind CONFIG_MAP = new KubernetesKind("configMap", "cm");
   public static KubernetesKind CONTROLLER_REVISION = new KubernetesKind("controllerRevision");
+  public static KubernetesKind CUSTOM_RESOURCE_DEFINITION = new KubernetesKind("customResourceDefinition", "crd", false, false);
   public static KubernetesKind DAEMON_SET = new KubernetesKind("daemonSet", "ds", true, true);
   public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy", true, true);
   public static KubernetesKind EVENT = new KubernetesKind("event");
@@ -52,11 +53,18 @@ public class KubernetesKind {
   public static KubernetesKind SERVICE_ACCOUNT = new KubernetesKind("serviceAccount", "sa");
   public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet", null, true, true);
 
+  // special kind that should never be assigned to a manifest, used only to represent objects whose kind is not in spinnaker's registry
+  public static KubernetesKind NONE = new KubernetesKind("none", null, true, false);
+
   private final String name;
   private final String alias;
   private final boolean isNamespaced;
+  // generally reserved for workloads, can be read as "does this belong to a spinnaker cluster?"
   private final boolean hasClusterRelationship;
+  // was this kind found after spinnaker started?
   private boolean isDynamic;
+  // was this kind added by a user in their clouddriver.yml?
+  private boolean isRegistered;
 
   @Getter
   private static List<KubernetesKind> values;
@@ -71,6 +79,7 @@ public class KubernetesKind {
     this.isNamespaced = isNamespaced;
     this.hasClusterRelationship = hasClusterRelationship;
     this.isDynamic = false;
+    this.isRegistered = true;
     values.add(this);
   }
 
@@ -98,6 +107,10 @@ public class KubernetesKind {
     return this.isDynamic;
   }
 
+  public boolean isRegistered() {
+    return this.isRegistered;
+  }
+
   @Override
   @JsonValue
   public String toString() {
@@ -106,8 +119,16 @@ public class KubernetesKind {
 
   @JsonCreator
   public static KubernetesKind fromString(String name) {
+    return fromString(name, true, true);
+  }
+
+  public static KubernetesKind fromString(String name, boolean registered, boolean namespaced) {
     if (StringUtils.isEmpty(name)) {
       return null;
+    }
+
+    if (name.equalsIgnoreCase(KubernetesKind.NONE.toString())) {
+      throw new IllegalArgumentException("The 'NONE' kind cannot be read.");
     }
 
     synchronized (values) {
@@ -119,12 +140,13 @@ public class KubernetesKind {
       return kindOptional.orElseGet(() -> {
         KubernetesKind result = new KubernetesKind(name);
         result.isDynamic = true;
+        result.isRegistered = registered;
         return result;
       });
     }
   }
 
-  public static List<KubernetesKind> fromStringList(List<String> names) {
+  public static List<KubernetesKind> registeredStringList(List<String> names) {
     return names.stream()
         .map(KubernetesKind::fromString)
         .collect(Collectors.toList());
