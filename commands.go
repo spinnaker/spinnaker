@@ -12,13 +12,18 @@ func init() {
 	meta := command.ApiMeta{}
 
 	Commands = map[string]cli.CommandFactory{
-		"pipeline save": func() (cli.Command, error) {
-			return &pipelines.PipelineSaveCommand{
+		"pipeline get": func() (cli.Command, error) {
+			return &pipelines.PipelineGetCommand{
 				ApiMeta: meta,
 			}, nil
 		},
 		"pipeline list": func() (cli.Command, error) {
 			return &pipelines.PipelineListCommand{
+				ApiMeta: meta,
+			}, nil
+		},
+		"pipeline save": func() (cli.Command, error) {
+			return &pipelines.PipelineSaveCommand{
 				ApiMeta: meta,
 			}, nil
 		},

@@ -92,5 +92,5 @@ usage: spin pipeline list [options]
 }
 
 func (c *PipelineListCommand) Synopsis() string {
-	return "List the provided pipeline."
+	return "List the pipelines for the provided application."
 }
