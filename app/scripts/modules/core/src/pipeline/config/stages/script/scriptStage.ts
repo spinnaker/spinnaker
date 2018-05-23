@@ -21,6 +21,7 @@ module(SCRIPT_STAGE, [])
       templateUrl: require('./scriptStage.html'),
       executionDetailsSections: [ScriptExecutionDetails, ExecutionDetailsTasks],
       strategy: true,
+      validators: [{ type: 'requiredField', fieldName: 'command' }, { type: 'requiredField', fieldName: 'scriptPath' }],
     });
   })
   .controller('ScriptStageCtrl', function($scope: IScope, stage: IStage) {
