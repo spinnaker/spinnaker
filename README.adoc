@@ -2,6 +2,10 @@
 
 image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker.io]
 
+Spinnaker is a continuous delivery platform for releasing changes with high velocity and confidence.
+
+This repository is used only to store and organize ancillary configuration, build, and testing tools for the Spinnaker project. The core code making up Spinnaker's microservices is found in the other https://github.com/spinnaker[Spinnaker repositories].
+
 = Using Spinnaker
 
 If you are only interested in using Spinnaker, please refer to the main
