@@ -95,9 +95,16 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
       DockerRegistryTags tags = null
       try {
         tags = credentials.client.getTags(repository)
-      } catch (e) {
-        log.error("Could not load tags for ${repository} in ${credentials.client.address}", e)
+      } catch (Exception e) {
+        if (e instanceof RetrofitError && e.response?.status == 404) {
+          log.error("Could not load tags for ${repository} in ${credentials.client.address}, reason: ${re.message}")
+        } else {
+          log.error("Could not load tags for ${repository} in ${credentials.client.address}", e)
+        }
+
+        return [:]
       }
+
       def name = tags?.name
       def imageTags = tags?.tags
       if (name && imageTags) {
