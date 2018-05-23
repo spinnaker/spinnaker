@@ -1,9 +1,6 @@
 import { module } from 'angular';
 
-import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ApplicationDataSourceRegistry,
-} from 'core/application/service/applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { Application } from 'core/application/application.model';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
@@ -11,16 +8,8 @@ import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entit
 import { ISecurityGroup } from 'core/domain';
 
 export const SECURITY_GROUP_DATA_SOURCE = 'spinnaker.core.securityGroup.dataSource';
-module(SECURITY_GROUP_DATA_SOURCE, [
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ENTITY_TAGS_READ_SERVICE,
-  SECURITY_GROUP_READER,
-]).run(
-  (
-    applicationDataSourceRegistry: ApplicationDataSourceRegistry,
-    securityGroupReader: SecurityGroupReader,
-    entityTagsReader: EntityTagsReader,
-  ) => {
+module(SECURITY_GROUP_DATA_SOURCE, [ENTITY_TAGS_READ_SERVICE, SECURITY_GROUP_READER]).run(
+  (securityGroupReader: SecurityGroupReader, entityTagsReader: EntityTagsReader) => {
     const loadSecurityGroups = (application: Application) => {
       return securityGroupReader.loadSecurityGroupsByApplicationName(application.name);
     };
@@ -33,7 +22,7 @@ module(SECURITY_GROUP_DATA_SOURCE, [
       return entityTagsReader.addTagsToSecurityGroups(application);
     };
 
-    applicationDataSourceRegistry.registerDataSource({
+    ApplicationDataSourceRegistry.registerDataSource({
       key: 'securityGroups',
       label: 'Firewalls',
       category: INFRASTRUCTURE_KEY,

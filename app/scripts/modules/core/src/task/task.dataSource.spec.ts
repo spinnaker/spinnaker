@@ -2,37 +2,27 @@ import { mock, IQService } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
-import { APPLICATION_DATA_SOURCE_REGISTRY } from '../application/service/applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { TaskReader } from 'core/task/task.read.service';
 
 describe('Task Data Source', function() {
-  let application: Application,
-    $scope: any,
-    applicationModelBuilder: any,
-    applicationDataSourceRegistry: any,
-    $q: IQService;
+  let application: Application, $scope: any, applicationModelBuilder: any, $q: IQService;
+
+  beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
+
+  beforeEach(mock.module(require('./task.dataSource').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    mock.module(require('./task.dataSource').name, APPLICATION_DATA_SOURCE_REGISTRY, APPLICATION_MODEL_BUILDER),
-  );
-
-  beforeEach(
-    mock.inject(function(
-      _$q_: any,
-      $rootScope: any,
-      _applicationModelBuilder_: any,
-      _applicationDataSourceRegistry_: any,
-    ) {
+    mock.inject(function(_$q_: any, $rootScope: any, _applicationModelBuilder_: any) {
       $q = _$q_;
       $scope = $rootScope.$new();
       applicationModelBuilder = _applicationModelBuilder_;
-      applicationDataSourceRegistry = _applicationDataSourceRegistry_;
     }),
   );
 
   function configureApplication() {
-    applicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
-    application = applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
+    ApplicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
+    application = applicationModelBuilder.createApplication('app', ApplicationDataSourceRegistry.getDataSources());
     application.refresh();
     application.getDataSource('tasks').activate();
     $scope.$digest();

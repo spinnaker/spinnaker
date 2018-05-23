@@ -9,10 +9,7 @@ import {
 import { ITaskCommand } from 'core/task/taskExecutor';
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ApplicationDataSourceRegistry,
-} from 'core/application/service/applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 
 interface IApplicationTask {
   refresh: () => void;
@@ -25,24 +22,21 @@ class TestApplication extends Application {
 describe('serverGroupWriter', function() {
   let $httpBackend: ng.IHttpBackendService,
     applicationModelBuilder: ApplicationModelBuilder,
-    applicationDataSourceRegistry: ApplicationDataSourceRegistry,
     serverGroupTransformer: any,
     serverGroupWriter: ServerGroupWriter;
 
-  beforeEach(mock.module(APPLICATION_DATA_SOURCE_REGISTRY, APPLICATION_MODEL_BUILDER, SERVER_GROUP_WRITER));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, SERVER_GROUP_WRITER));
 
   beforeEach(function() {
     mock.inject(function(
       _serverGroupWriter_: ServerGroupWriter,
       _$httpBackend_: ng.IHttpBackendService,
       _applicationModelBuilder_: ApplicationModelBuilder,
-      _applicationDataSourceRegistry_: ApplicationDataSourceRegistry,
       _serverGroupTransformer_: any,
     ) {
       serverGroupWriter = _serverGroupWriter_;
       $httpBackend = _$httpBackend_;
       applicationModelBuilder = _applicationModelBuilder_;
-      applicationDataSourceRegistry = _applicationDataSourceRegistry_;
       serverGroupTransformer = _serverGroupTransformer_;
     });
   });
@@ -72,7 +66,7 @@ describe('serverGroupWriter', function() {
 
       const application: TestApplication = applicationModelBuilder.createApplication(
         'app',
-        applicationDataSourceRegistry.getDataSources(),
+        ApplicationDataSourceRegistry.getDataSources(),
       ) as TestApplication;
       application.tasks = {
         refresh: noop,
@@ -89,7 +83,7 @@ describe('serverGroupWriter', function() {
     beforeEach(() => {
       const application: Application = applicationModelBuilder.createApplication(
         'app',
-        applicationDataSourceRegistry.getDataSources(),
+        ApplicationDataSourceRegistry.getDataSources(),
       );
       command = {
         viewState: {

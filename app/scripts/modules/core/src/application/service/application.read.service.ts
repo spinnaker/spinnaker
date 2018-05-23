@@ -6,7 +6,7 @@ import { API } from 'core/api/ApiService';
 import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 import { Application } from '../application.model';
 import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
-import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from './applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
 
@@ -35,7 +35,6 @@ export class ApplicationReader {
     private $log: ILogService,
     private $filter: IFilterService,
     private $uiRouter: UIRouter,
-    private applicationDataSourceRegistry: ApplicationDataSourceRegistry,
   ) {
     'ngInject';
   }
@@ -90,7 +89,7 @@ export class ApplicationReader {
   }
 
   private addDataSources(application: Application): void {
-    const dataSources: IDataSourceConfig[] = this.applicationDataSourceRegistry.getDataSources();
+    const dataSources: IDataSourceConfig[] = ApplicationDataSourceRegistry.getDataSources();
     dataSources.forEach((ds: IDataSourceConfig) => {
       const dataSource: ApplicationDataSource = new ApplicationDataSource(
         ds,
@@ -145,8 +144,7 @@ export class ApplicationReader {
 
 export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service';
 
-module(APPLICATION_READ_SERVICE, [
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ROBOT_TO_HUMAN_FILTER,
-  require('@uirouter/angularjs').default,
-]).service('applicationReader', ApplicationReader);
+module(APPLICATION_READ_SERVICE, [ROBOT_TO_HUMAN_FILTER, require('@uirouter/angularjs').default]).service(
+  'applicationReader',
+  ApplicationReader,
+);

@@ -7,7 +7,7 @@ import {
   APPLICATION_READ_SERVICE,
 } from './application.read.service';
 import { API } from 'core/api/ApiService';
-import { ApplicationDataSourceRegistry } from './applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import { Application } from '../application.model';
 import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSource';
 import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
@@ -23,7 +23,8 @@ describe('Service: applicationReader', function() {
   let clusterService: ClusterService;
   let $q: ng.IQService;
   let $scope: ng.IScope;
-  let applicationDataSourceRegistry: ApplicationDataSourceRegistry;
+
+  beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
   beforeEach(
     mock.module(
@@ -45,7 +46,6 @@ describe('Service: applicationReader', function() {
       _$q_: ng.IQService,
       _loadBalancerReader_: LoadBalancerReader,
       $rootScope: ng.IRootScopeService,
-      _applicationDataSourceRegistry_: ApplicationDataSourceRegistry,
     ) {
       applicationReader = _applicationReader_;
       securityGroupReader = _securityGroupReader_;
@@ -53,7 +53,6 @@ describe('Service: applicationReader', function() {
       loadBalancerReader = _loadBalancerReader_;
       $q = _$q_;
       $scope = $rootScope.$new();
-      applicationDataSourceRegistry = _applicationDataSourceRegistry_;
     }),
   );
 
@@ -116,7 +115,7 @@ describe('Service: applicationReader', function() {
 
     describe('opt-in data sources', function() {
       beforeEach(function() {
-        applicationDataSourceRegistry.registerDataSource({
+        ApplicationDataSourceRegistry.registerDataSource({
           key: 'optInSource',
           visible: true,
           optional: true,

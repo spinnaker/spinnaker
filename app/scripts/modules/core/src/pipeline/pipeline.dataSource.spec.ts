@@ -2,10 +2,7 @@ import { IQProvider, mock } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ApplicationDataSourceRegistry,
-} from '../application/service/applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { EXECUTION_SERVICE } from './service/execution.service';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
@@ -14,17 +11,11 @@ describe('Pipeline Data Source', function() {
     executionService: any,
     $scope: ng.IScope,
     applicationModelBuilder: ApplicationModelBuilder,
-    applicationDataSourceRegistry: ApplicationDataSourceRegistry,
     $q: ng.IQService;
 
-  beforeEach(
-    mock.module(
-      require('./pipeline.dataSource').name,
-      EXECUTION_SERVICE,
-      APPLICATION_DATA_SOURCE_REGISTRY,
-      APPLICATION_MODEL_BUILDER,
-    ),
-  );
+  beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
+
+  beforeEach(mock.module(require('./pipeline.dataSource').name, EXECUTION_SERVICE, APPLICATION_MODEL_BUILDER));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
   beforeEach(
@@ -39,19 +30,17 @@ describe('Pipeline Data Source', function() {
       _$q_: ng.IQService,
       $rootScope: ng.IRootScopeService,
       _applicationModelBuilder_: ApplicationModelBuilder,
-      _applicationDataSourceRegistry_: ApplicationDataSourceRegistry,
     ) {
       $q = _$q_;
       $scope = $rootScope.$new();
       executionService = _executionService_;
       applicationModelBuilder = _applicationModelBuilder_;
-      applicationDataSourceRegistry = _applicationDataSourceRegistry_;
     }),
   );
 
   function configureApplication() {
-    applicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
-    application = applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
+    ApplicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
+    application = applicationModelBuilder.createApplication('app', ApplicationDataSourceRegistry.getDataSources());
     application.refresh();
     $scope.$digest();
   }

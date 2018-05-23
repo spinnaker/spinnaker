@@ -2,7 +2,6 @@ import { IQService, IRootScopeService, IScope } from 'angular';
 import IInjectorService = angular.auto.IInjectorService;
 
 import { StateParams, StateService, UIRouter } from '@uirouter/core';
-import { ApplicationDataSourceRegistry } from 'core/application/service/applicationDataSource.registry';
 
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationReader } from '../application/service/application.read.service';
@@ -48,7 +47,6 @@ export class CoreReactInject extends ReactInject {
   public get $rootScope() { return this.$injector.get('$rootScope') as IScope; }
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
   public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
-  public get applicationDataSourceRegistry() { return this.$injector.get('applicationDataSourceRegistry') as ApplicationDataSourceRegistry; }
   public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }
   public get applicationReader() { return this.$injector.get('applicationReader') as ApplicationReader; }
   public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }

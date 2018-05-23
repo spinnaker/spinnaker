@@ -1,8 +1,5 @@
 import { module, IQService } from 'angular';
-import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ApplicationDataSourceRegistry,
-} from '../application/service/applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from '../entityTag/entityTags.read.service';
 import { CLUSTER_SERVICE, ClusterService } from 'core/cluster/cluster.service';
@@ -12,10 +9,9 @@ import { IServerGroup } from 'core/domain';
 
 export const SERVER_GROUP_DATA_SOURCE = 'spinnaker.core.serverGroup.dataSource';
 
-module(SERVER_GROUP_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY, ENTITY_TAGS_READ_SERVICE, CLUSTER_SERVICE]).run(
+module(SERVER_GROUP_DATA_SOURCE, [ENTITY_TAGS_READ_SERVICE, CLUSTER_SERVICE]).run(
   (
     $q: IQService,
-    applicationDataSourceRegistry: ApplicationDataSourceRegistry,
     clusterService: ClusterService,
     entityTagsReader: EntityTagsReader,
   ) => {
@@ -42,7 +38,7 @@ module(SERVER_GROUP_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY, ENTITY_TAGS_
       entityTagsReader.addTagsToServerGroups(application);
     };
 
-    applicationDataSourceRegistry.registerDataSource({
+    ApplicationDataSourceRegistry.registerDataSource({
       key: 'serverGroups',
       label: 'Clusters',
       category: INFRASTRUCTURE_KEY,

@@ -2,7 +2,7 @@ import { mock } from 'angular';
 
 import { Application } from './application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from './applicationModel.builder';
-import { ApplicationDataSourceRegistry } from './service/applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from './service/ApplicationDataSourceRegistry';
 import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSource';
 import { SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
 import { SERVER_GROUP_DATA_SOURCE } from 'core/serverGroup/serverGroup.dataSource';
@@ -17,8 +17,9 @@ describe('Application Model', function() {
     clusterService: any,
     $q: ng.IQService,
     $scope: ng.IScope,
-    applicationModelBuilder: ApplicationModelBuilder,
-    applicationDataSourceRegistry: ApplicationDataSourceRegistry;
+    applicationModelBuilder: ApplicationModelBuilder;
+
+  beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
   beforeEach(
     mock.module(
@@ -37,7 +38,6 @@ describe('Application Model', function() {
       _loadBalancerReader_: any,
       $rootScope: any,
       _applicationModelBuilder_: ApplicationModelBuilder,
-      _applicationDataSourceRegistry_: ApplicationDataSourceRegistry,
     ) {
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;
@@ -45,7 +45,6 @@ describe('Application Model', function() {
       $q = _$q_;
       $scope = $rootScope.$new();
       applicationModelBuilder = _applicationModelBuilder_;
-      applicationDataSourceRegistry = _applicationDataSourceRegistry_;
     }),
   );
 
@@ -62,14 +61,14 @@ describe('Application Model', function() {
     ) {
       return $q.when(groupsByName || []);
     });
-    application = applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
+    application = applicationModelBuilder.createApplication('app', ApplicationDataSourceRegistry.getDataSources());
     application.refresh();
     $scope.$digest();
   }
 
   describe('lazy dataSources', function() {
     beforeEach(function() {
-      applicationDataSourceRegistry.registerDataSource({
+      ApplicationDataSourceRegistry.registerDataSource({
         key: 'lazySource',
         lazy: true,
         loader: () => {

@@ -1,9 +1,6 @@
 import { module, IQService } from 'angular';
 
-import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ApplicationDataSourceRegistry,
-} from 'core/application/service/applicationDataSource.registry';
+import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { Application } from 'core/application/application.model';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from './entityTags.read.service';
 import { IEntityTags } from 'core/domain/IEntityTags';
@@ -12,12 +9,8 @@ import { LOAD_BALANCER_READ_SERVICE } from 'core/loadBalancer/loadBalancer.read.
 import { SETTINGS } from 'core/config/settings';
 
 export const ENTITY_TAGS_DATA_SOURCE = 'spinnaker.core.entityTag.dataSource';
-module(ENTITY_TAGS_DATA_SOURCE, [
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ENTITY_TAGS_READ_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-]).run(
-  ($q: IQService, applicationDataSourceRegistry: ApplicationDataSourceRegistry, entityTagsReader: EntityTagsReader) => {
+module(ENTITY_TAGS_DATA_SOURCE, [ENTITY_TAGS_READ_SERVICE, LOAD_BALANCER_READ_SERVICE]).run(
+  ($q: IQService, entityTagsReader: EntityTagsReader) => {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
@@ -44,7 +37,7 @@ module(ENTITY_TAGS_DATA_SOURCE, [
         .then(() => entityTagsReader.addTagsToSecurityGroups(application), noop);
     };
 
-    applicationDataSourceRegistry.registerDataSource({
+    ApplicationDataSourceRegistry.registerDataSource({
       key: 'entityTags',
       visible: false,
       loader: loadEntityTags,

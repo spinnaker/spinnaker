@@ -1,11 +1,9 @@
-import { module } from 'angular';
-
 import { cloneDeep } from 'lodash';
 
 import { IDataSourceConfig } from './applicationDataSource';
 
 export class ApplicationDataSourceRegistry {
-  private defaultDataSourceOrder: string[] = [
+  private static defaultDataSourceOrder: string[] = [
     'executions',
     'serverGroups',
     'loadBalancers',
@@ -13,15 +11,15 @@ export class ApplicationDataSourceRegistry {
     'tasks',
     'config',
   ];
-  private dataSources: IDataSourceConfig[] = [];
-  private dataSourceOrder: string[] = [];
+  private static dataSources: IDataSourceConfig[] = [];
+  private static dataSourceOrder: string[] = [];
 
-  public setDataSourceOrder(keys: string[]): void {
+  public static setDataSourceOrder(keys: string[]): void {
     this.dataSourceOrder = keys;
     this.sortDataSources();
   }
 
-  private sortDataSources(): void {
+  private static sortDataSources(): void {
     let order = this.defaultDataSourceOrder;
     if (this.dataSourceOrder.length) {
       order = this.dataSourceOrder;
@@ -34,16 +32,16 @@ export class ApplicationDataSourceRegistry {
     this.dataSources.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
   }
 
-  public registerDataSource(config: IDataSourceConfig): void {
+  public static registerDataSource(config: IDataSourceConfig): void {
     this.dataSources.push(config);
     this.sortDataSources();
   }
 
-  public getDataSources(): IDataSourceConfig[] {
+  public static getDataSources(): IDataSourceConfig[] {
     return cloneDeep(this.dataSources);
   }
+
+  public static clearDataSources(): void {
+    this.dataSources.length = 0;
+  }
 }
-
-export const APPLICATION_DATA_SOURCE_REGISTRY = 'spinnaker.core.application.section.registry';
-
-module(APPLICATION_DATA_SOURCE_REGISTRY, []).service('applicationDataSourceRegistry', ApplicationDataSourceRegistry);
