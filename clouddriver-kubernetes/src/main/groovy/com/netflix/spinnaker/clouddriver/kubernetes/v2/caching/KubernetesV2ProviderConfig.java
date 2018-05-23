@@ -41,12 +41,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Configuration
 @Slf4j
-class KubernetesV2ProviderConfig implements Runnable {
+class KubernetesV2ProviderConfig {
   @Bean
   @DependsOn("kubernetesNamedAccountCredentials")
   KubernetesV2Provider kubernetesV2Provider(KubernetesCloudProvider kubernetesCloudProvider,
@@ -61,7 +60,7 @@ class KubernetesV2ProviderConfig implements Runnable {
 
     ScheduledExecutorService poller = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(KubernetesV2ProviderConfig.class.getSimpleName()));
 
-    poller.scheduleAtFixedRate(this, 0, 30, TimeUnit.SECONDS);
+    synchronizeKubernetesV2Provider(kubernetesV2Provider, accountCredentialsRepository);
 
     return kubernetesV2Provider;
   }
@@ -74,11 +73,6 @@ class KubernetesV2ProviderConfig implements Runnable {
   @Bean
   KubernetesV2ProviderSynchronizerTypeWrapper kubernetesV2ProviderSynchronizerTypeWrapper() {
     return new KubernetesV2ProviderSynchronizerTypeWrapper();
-  }
-
-  @Override
-  public void run() {
-    synchronizeKubernetesV2Provider(kubernetesV2Provider, accountCredentialsRepository);
   }
 
   class KubernetesV2ProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
