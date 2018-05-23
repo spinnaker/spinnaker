@@ -57,24 +57,24 @@ class ExecutionBufferActuator(
     }
 
     val bufferStateSupplier = bufferStateSupplierProvider.provide()
-    log.debug("Using ${bufferStateSupplier.javaClass.simpleName}")
 
+    val supplierName = bufferStateSupplier.javaClass.simpleName
     if (bufferStateSupplier.get() == ACTIVE) {
       val execution = event.execution
       withActionDecision(execution) {
         when (it.action) {
           BUFFER -> {
             if (configService.isEnabled("qos.learningMode", true)) {
-              log.debug("Learning mode: Would have buffered execution {}, reason: ${it.reason}", value("executionId", execution.id))
+              log.debug("Learning mode: Would have buffered execution {} (using $supplierName), reason: ${it.reason}", value("executionId", execution.id))
               registry.counter(bufferedId.withTag("learning", "true")).increment()
             } else {
-              log.warn("Buffering execution {}, reason: ${it.reason}", value("executionId", execution.id))
+              log.warn("Buffering execution {} (using $supplierName), reason: ${it.reason}", value("executionId", execution.id))
               registry.counter(bufferedId.withTag("learning", "false")).increment()
               execution.status = BUFFERED
             }
           }
           ENQUEUE -> {
-            log.debug("Enqueuing execution {}, reason: ${it.reason}", value("executionId", execution.id))
+            log.debug("Enqueuing execution {} (using $supplierName), reason: ${it.reason}", value("executionId", execution.id))
             registry.counter(enqueuedId).increment()
           }
         }
