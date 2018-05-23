@@ -60,7 +60,7 @@
           <label class="col-md-4 sm-label-right">Trigger</label>
           <div class="col-md-6">
             <p class="form-control-static"
-               ng-if="vm.triggers.length === 1">{{vm.command.trigger.description}}</p>
+               ng-if="vm.triggers.length === 1">{{vm.triggers[0].description}}</p>
             <select class="form-control input-sm"
                     ng-if="vm.triggers.length > 1"
                     ng-model="vm.command.trigger"
@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <stage-manual-components command="vm.command" components="vm.stageComponents" />
+      <stage-manual-components ng-if="vm.stageComponents" command="vm.command" components="vm.stageComponents" />
 
       <div class="form-group">
         <label class="col-md-4 sm-label-right">Notifications</label>
