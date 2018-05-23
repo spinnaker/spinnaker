@@ -1,10 +1,11 @@
 import { module, IController, IComponentOptions, IScope } from 'angular';
 
 import { Application } from 'core/application';
-import { IExecution, IExecutionStage } from 'core/domain';
+import { IExecution, IExecutionStage, IStageTypeConfig } from 'core/domain';
 
 export class StepExecutionDetailsController implements IController {
   public application: Application;
+  public config: IStageTypeConfig;
   public configSections: string[];
   public execution: IExecution;
   public sourceUrl: string;
@@ -28,8 +29,9 @@ export class StepExecutionDetailsController implements IController {
 
   private updateScope(): void {
     this.$scope.application = this.application;
-    this.$scope.execution = this.execution;
+    this.$scope.config = this.config;
     this.$scope.configSections = this.configSections;
+    this.$scope.execution = this.execution;
     this.$scope.stage = this.stage;
   }
 }
@@ -37,6 +39,7 @@ export class StepExecutionDetailsController implements IController {
 export class StepExecutionDetailsComponent implements IComponentOptions {
   public bindings: any = {
     application: '<',
+    config: '<',
     configSections: '<',
     execution: '<',
     sourceUrl: '<',

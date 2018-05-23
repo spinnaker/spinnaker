@@ -1,5 +1,5 @@
 import { IComponentOptions, IController, module } from 'angular';
-import { ArtifactIconService } from '@spinnaker/core';
+import { ArtifactIconService } from './ArtifactIconService';
 
 class ArtifactIconListController implements IController {
   public artifacts: any[];
@@ -26,5 +26,5 @@ class ArtifactIconListComponent implements IComponentOptions {
   `;
 }
 
-export const ARTIFACT_ICON_LIST = 'spinnaker.kubernetes.v2.kubernetes.artifact.iconList';
+export const ARTIFACT_ICON_LIST = 'spinnaker.core.artifact.iconList';
 module(ARTIFACT_ICON_LIST, []).component('artifactIconList', new ArtifactIconListComponent());

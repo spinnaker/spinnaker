@@ -11,6 +11,7 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   accountExtractor?: (stage: IStage) => string;
   addAliasToConfig?: boolean;
   alias?: string;
+  artifactFields?: string[];
   cloudProvider?: string;
   cloudProviders?: string[];
   configAccountExtractor?: any;

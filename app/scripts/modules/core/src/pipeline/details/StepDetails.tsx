@@ -55,10 +55,10 @@ export class StepDetails extends React.Component<IStepDetailsProps, IStepDetails
   }
 
   public render(): React.ReactElement<StepDetails> {
-    const { application, execution, stage } = this.props;
+    const { application, config, execution, stage } = this.props;
     const { executionDetailsSections, provider, sourceUrl, configSections } = this.state;
     const { StepExecutionDetailsWrapper } = NgReact;
-    const detailsProps = { application, execution, provider, stage };
+    const detailsProps = { application, config, execution, provider, stage };
 
     return (
       <div className="stage-details">
