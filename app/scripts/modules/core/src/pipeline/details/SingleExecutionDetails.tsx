@@ -6,7 +6,7 @@ import { UISref } from '@uirouter/react';
 import { Application } from 'core/application/application.model';
 import { IExecution } from 'core/domain';
 import { Execution } from 'core/pipeline/executions/execution/Execution';
-import { IScheduler } from 'core/scheduler';
+import { IScheduler, SchedulerFactory } from 'core/scheduler';
 import { ReactInjector, IStateChange } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
 import { ISortFilter } from 'core/filterModel';
@@ -53,7 +53,7 @@ export class SingleExecutionDetails extends React.Component<
   }
 
   private getExecution() {
-    const { executionService, $state, schedulerFactory } = ReactInjector;
+    const { executionService, $state } = ReactInjector;
     const { app } = this.props;
 
     if (!app || app.notFound) {
@@ -66,7 +66,7 @@ export class SingleExecutionDetails extends React.Component<
         executionService.transformExecution(app, execution);
         executionService.synchronizeExecution(stateExecution, execution);
         if (execution.isActive && !this.executionScheduler) {
-          this.executionScheduler = schedulerFactory.createScheduler(5000);
+          this.executionScheduler = SchedulerFactory.createScheduler(5000);
           this.executionLoader = this.executionScheduler.subscribe(() => this.getExecution());
         }
         if (!execution.isActive && this.executionScheduler) {

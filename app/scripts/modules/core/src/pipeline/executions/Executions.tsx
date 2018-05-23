@@ -1,6 +1,6 @@
 import { IPromise } from 'angular';
 import { CreatePipelineButton } from 'core/pipeline/create/CreatePipelineButton';
-import { IScheduler } from 'core/scheduler/scheduler.factory';
+import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { Transition, HookMatchCriteria } from '@uirouter/core';
@@ -22,6 +22,7 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ExecutionState } from 'core/state';
 import { ScrollToService } from 'core/utils';
+import { SchedulerFactory } from 'core/scheduler';
 
 import './executions.less';
 
@@ -73,7 +74,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     app.setActiveState(app.executions);
     app.executions.activate();
     app.pipelineConfigs.activate();
-    this.activeRefresher = ReactInjector.schedulerFactory.createScheduler(5000);
+    this.activeRefresher = SchedulerFactory.createScheduler(5000);
     this.activeRefresher.subscribe(() => {
       app.getDataSource('runningExecutions').refresh();
     });

@@ -1,17 +1,13 @@
 import { AUTHENTICATION_INTERCEPTOR_SERVICE } from './authentication.interceptor.service';
 import { AuthenticationInitializer } from './AuthenticationInitializer';
-import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
+import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
 export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
 angular
-  .module(AUTHENTICATION_MODULE, [
-    AUTHENTICATION_INTERCEPTOR_SERVICE,
-    require('./userMenu/userMenu.module.js').name,
-    SCHEDULER_FACTORY,
-  ])
+  .module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE, require('./userMenu/userMenu.module.js').name])
   .config(function($httpProvider: ng.IHttpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
   })
@@ -25,12 +21,12 @@ angular
       },
     };
   })
-  .run(function(schedulerFactory: SchedulerFactory) {
+  .run(function() {
     if (SETTINGS.authEnabled) {
       // schedule deck to re-authenticate every 10 min.
-      schedulerFactory
-        .createScheduler(SETTINGS.authTtl || 600000)
-        .subscribe(() => AuthenticationInitializer.reauthenticateUser());
+      SchedulerFactory.createScheduler(SETTINGS.authTtl || 600000).subscribe(() =>
+        AuthenticationInitializer.reauthenticateUser(),
+      );
       AuthenticationInitializer.authenticateUser();
     }
   });

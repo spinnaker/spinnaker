@@ -1,5 +1,5 @@
 import { ITimeoutService, mock } from 'angular';
-import { SCHEDULER_FACTORY, SchedulerFactory } from './scheduler.factory';
+import { SchedulerFactory } from './SchedulerFactory';
 
 describe('scheduler', function() {
   const angular = require('angular');
@@ -8,12 +8,11 @@ describe('scheduler', function() {
 
   beforeEach(function() {
     const pollSchedule = 25;
-    mock.module(SCHEDULER_FACTORY);
 
     this.pollSchedule = pollSchedule;
 
-    mock.inject(function(schedulerFactory: SchedulerFactory, _$timeout_: ITimeoutService) {
-      this.scheduler = schedulerFactory.createScheduler();
+    mock.inject(function(_$timeout_: ITimeoutService) {
+      this.scheduler = SchedulerFactory.createScheduler();
       $timeout = _$timeout_;
     });
 

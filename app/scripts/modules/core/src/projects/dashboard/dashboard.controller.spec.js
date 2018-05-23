@@ -5,7 +5,6 @@ import { RecentHistoryService } from 'core/history';
 describe('Controller: Project Dashboard', function() {
   var executionService,
     projectReader,
-    schedulerFactory,
     projectConfig,
     vm,
     $q,
@@ -16,10 +15,9 @@ describe('Controller: Project Dashboard', function() {
   beforeEach(window.module(require('./dashboard.controller.js').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _executionService_, _projectReader_, _schedulerFactory_, _$q_) {
+    window.inject(function($controller, $rootScope, _executionService_, _projectReader_, _$q_) {
       executionService = _executionService_;
       projectReader = _projectReader_;
-      schedulerFactory = _schedulerFactory_;
       $q = _$q_;
       $scope = $rootScope.$new();
       projectConfig = { name: 'the project', config: { applications: ['a', 'b'], clusters: ['a'] } };
@@ -29,7 +27,6 @@ describe('Controller: Project Dashboard', function() {
           $scope: $scope,
           executionService: executionService,
           projectReader: projectReader,
-          schedulerFactory: schedulerFactory,
           projectConfiguration: projectConfig,
         });
       };

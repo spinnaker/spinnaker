@@ -1,1 +1,1 @@
-export * from './scheduler.factory';
+export * from './SchedulerFactory';

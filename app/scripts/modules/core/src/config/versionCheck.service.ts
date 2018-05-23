@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { NotifierService } from 'core/widgets/notifier/notifier.service';
-import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
+import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 import { SETTINGS } from 'core/config/settings';
 
 interface IDeckVersion {
@@ -14,12 +14,7 @@ class VersionCheckService {
   private newVersionSeenCount = 0;
   private scheduler: any;
 
-  constructor(
-    private $http: ng.IHttpService,
-    private schedulerFactory: SchedulerFactory,
-    private $log: ng.ILogService,
-    private $filter: any,
-  ) {
+  constructor(private $http: ng.IHttpService, private $log: ng.ILogService, private $filter: any) {
     'ngInject';
   }
 
@@ -30,7 +25,7 @@ class VersionCheckService {
       'created',
       this.$filter('timestamp')(this.currentVersion.created),
     );
-    this.scheduler = this.schedulerFactory.createScheduler();
+    this.scheduler = SchedulerFactory.createScheduler();
     this.scheduler.subscribe(() => this.checkVersion());
   }
 
@@ -63,7 +58,7 @@ class VersionCheckService {
 }
 
 export const VERSION_CHECK_SERVICE = 'spinnaker.core.config.versionCheck.service';
-module(VERSION_CHECK_SERVICE, [SCHEDULER_FACTORY])
+module(VERSION_CHECK_SERVICE, [])
   .service('versionCheckService', VersionCheckService)
   .run((versionCheckService: VersionCheckService) => {
     if (SETTINGS.checkForUpdates) {

@@ -3,7 +3,7 @@ import { IFilterService, ILogService, IPromise, IQService, module } from 'angula
 import { UIRouter } from '@uirouter/core';
 
 import { API } from 'core/api/ApiService';
-import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
+import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 import { Application } from '../application.model';
 import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from './applicationDataSource.registry';
@@ -35,7 +35,6 @@ export class ApplicationReader {
     private $log: ILogService,
     private $filter: IFilterService,
     private $uiRouter: UIRouter,
-    private schedulerFactory: SchedulerFactory,
     private applicationDataSourceRegistry: ApplicationDataSourceRegistry,
   ) {
     'ngInject';
@@ -62,7 +61,7 @@ export class ApplicationReader {
       .then((fromServer: Application) => {
         const application: Application = new Application(
           fromServer.name,
-          this.schedulerFactory.createScheduler(),
+          SchedulerFactory.createScheduler(),
           this.$q,
           this.$log,
         );
@@ -147,7 +146,6 @@ export class ApplicationReader {
 export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service';
 
 module(APPLICATION_READ_SERVICE, [
-  SCHEDULER_FACTORY,
   APPLICATION_DATA_SOURCE_REGISTRY,
   ROBOT_TO_HUMAN_FILTER,
   require('@uirouter/angularjs').default,

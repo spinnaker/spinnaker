@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { $window } from 'ngimport';
 
-import { IScheduler } from 'core/scheduler/scheduler.factory';
-import { ReactInjector } from 'core/reactShims';
+import { IScheduler } from 'core/scheduler/SchedulerFactory';
+import { SchedulerFactory } from 'core/scheduler';
 import { Tooltip } from 'core/presentation';
 import { relativeTime, timestamp } from 'core/utils/timeFormatters';
 
@@ -30,8 +30,7 @@ export class Refresher extends React.Component<IRefresherProps, IRefresherState>
     this.state = this.parseState(props);
 
     // Update the state on an interval to make sure the color and tooltip get updated
-    const { schedulerFactory } = ReactInjector;
-    this.activeRefresher = schedulerFactory.createScheduler(2000);
+    this.activeRefresher = SchedulerFactory.createScheduler(2000);
     this.activeRefresher.subscribe(() => {
       this.setState(this.parseState(this.props));
     });

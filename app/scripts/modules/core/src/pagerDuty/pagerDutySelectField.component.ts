@@ -1,7 +1,7 @@
 import { IComponentController, IComponentOptions, module } from 'angular';
 
 import { SETTINGS } from 'core/config/settings';
-import { SchedulerFactory } from 'core/scheduler/scheduler.factory';
+import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
@@ -24,12 +24,8 @@ export class PagerDutySelectFieldController implements IComponentController {
   public required = (SETTINGS.pagerDuty && SETTINGS.pagerDuty.required) || false;
   public label = `PagerDuty${this.required ? ' *' : ''}`;
 
-  public constructor(private schedulerFactory: SchedulerFactory) {
-    'ngInject';
-  }
-
   public $onInit() {
-    this.scheduler = this.schedulerFactory.createScheduler(10000);
+    this.scheduler = SchedulerFactory.createScheduler(10000);
     this.scheduler.subscribe(() => this.loadPagerDutyServices());
     this.loadPagerDutyServices();
   }

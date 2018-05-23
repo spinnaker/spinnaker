@@ -4,8 +4,8 @@ import { has } from 'lodash';
 
 import { IBuildTrigger, ICronTrigger, IDockerTrigger, IExecution, IArtifact } from 'core/domain';
 import { HoverablePopover } from 'core/presentation';
-import { IScheduler } from 'core/scheduler/scheduler.factory';
-import { ReactInjector } from 'core/reactShims';
+import { IScheduler } from 'core/scheduler/SchedulerFactory';
+import { SchedulerFactory } from 'core/scheduler';
 import { relativeTime, timestamp } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
@@ -65,7 +65,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
   }
 
   public componentDidMount(): void {
-    this.timestampScheduler = ReactInjector.schedulerFactory.createScheduler();
+    this.timestampScheduler = SchedulerFactory.createScheduler();
     this.timestampScheduler.subscribe(() => this.validateTimestamp());
   }
 
