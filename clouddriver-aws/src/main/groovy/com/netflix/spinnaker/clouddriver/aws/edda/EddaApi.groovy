@@ -37,6 +37,12 @@ interface EddaApi {
   @GET('/REST/v2/view/appLoadBalancerListeners/{loadBalancerName}')
   List<Listener> listeners(@Path("loadBalancerName") String loadBalancerName)
 
+  @GET('/REST/v2/view/appLoadBalancerListeners;_expand')
+  List<List<Listener>> allListeners()
+
   @GET('/REST/v2/view/appLoadBalancerRules/{loadBalancerName}')
   List<EddaRule> rules(@Path("loadBalancerName") String loadBalancerName)
+
+  @GET('/REST/v2/view/appLoadBalancerRules;_expand')
+  List<List<EddaRule>> allRules()
 }
