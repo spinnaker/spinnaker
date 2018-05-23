@@ -56,7 +56,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus basePhase, "Initializing ${basePhase.toLowerCase()} operation..."
+    task.updateStatus basePhase, "Initializing ${basePhase.toLowerCase()} operation for ${description.serverGroupName}..."
     task.updateStatus basePhase, "Looking up provided namespace..."
 
     def credentials = description.credentials.credentials
@@ -166,10 +166,10 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       })
     }
 
-    pool.shutdown();
+    pool.shutdown()
     pool.awaitTermination(1, TimeUnit.HOURS)
 
-    task.updateStatus basePhase, "Finished ${verb} server group."
+    task.updateStatus basePhase, "Finished ${verb} server group ${description.serverGroupName}."
 
     null // Return nothing from void
   }
