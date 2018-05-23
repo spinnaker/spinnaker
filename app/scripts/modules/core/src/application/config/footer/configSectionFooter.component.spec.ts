@@ -1,20 +1,16 @@
 import { mock } from 'angular';
 
+import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { CONFIG_SECTION_FOOTER, ConfigSectionFooterController } from './configSectionFooter.component';
 
 describe('Component: ConfigSectionFooter', () => {
   let $componentController: ng.IComponentControllerService,
-    applicationWriter: any,
     $ctrl: ConfigSectionFooterController,
     $q: ng.IQService,
     $scope: ng.IScope;
 
   const initializeController = (data: any) => {
-    $ctrl = $componentController(
-      'configSectionFooter',
-      { $scope: null, applicationWriter },
-      data,
-    ) as ConfigSectionFooterController;
+    $ctrl = $componentController('configSectionFooter', { $scope: null }, data) as ConfigSectionFooterController;
   };
 
   beforeEach(mock.module(CONFIG_SECTION_FOOTER));
@@ -25,12 +21,10 @@ describe('Component: ConfigSectionFooter', () => {
         _$componentController_: ng.IComponentControllerService,
         _$q_: ng.IQService,
         $rootScope: ng.IRootScopeService,
-        _applicationWriter_: any,
       ) => {
         $scope = $rootScope.$new();
         $componentController = _$componentController_;
         $q = _$q_;
-        applicationWriter = _applicationWriter_;
       },
     ),
   );
@@ -79,7 +73,7 @@ describe('Component: ConfigSectionFooter', () => {
 
     it('sets state to saving, saves, then sets flags appropriately', () => {
       const viewState = data.viewState;
-      spyOn(applicationWriter, 'updateApplication').and.returnValue($q.when(null));
+      spyOn(ApplicationWriter, 'updateApplication').and.returnValue($q.when(null));
       initializeController(data);
       $ctrl.save();
 
@@ -96,7 +90,7 @@ describe('Component: ConfigSectionFooter', () => {
 
     it('sets appropriate flags when save fails', () => {
       const viewState = data.viewState;
-      spyOn(applicationWriter, 'updateApplication').and.returnValue($q.reject(null));
+      spyOn(ApplicationWriter, 'updateApplication').and.returnValue($q.reject(null));
       initializeController(data);
       $ctrl.save();
 

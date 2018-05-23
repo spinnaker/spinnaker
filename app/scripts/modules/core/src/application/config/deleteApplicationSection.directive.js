@@ -2,14 +2,13 @@
 
 const angular = require('angular');
 
-import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
+import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 
 module.exports = angular
   .module('spinnaker.core.application.config.delete.directive', [
     require('@uirouter/angularjs').default,
-    APPLICATION_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,
   ])
@@ -28,7 +27,7 @@ module.exports = angular
       controller: 'DeleteApplicationSectionCtrl',
     };
   })
-  .controller('DeleteApplicationSectionCtrl', function($state, applicationWriter, confirmationModalService) {
+  .controller('DeleteApplicationSectionCtrl', function($state, confirmationModalService) {
     if (this.application.notFound) {
       return;
     }
@@ -38,7 +37,7 @@ module.exports = angular
 
     this.deleteApplication = () => {
       var submitMethod = () => {
-        return applicationWriter.deleteApplication(this.application.attributes);
+        ApplicationWriter.deleteApplication(this.application.attributes);
       };
 
       var taskMonitor = {

@@ -3,10 +3,10 @@ import { mock } from 'angular';
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { APPLICATION_DATA_SOURCE_EDITOR, DataSourceEditorController } from './applicationDataSourceEditor.component';
+import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 
 describe('Component: Application Data Source Editor', () => {
-  let applicationWriter: any,
-    applicationModelBuilder: ApplicationModelBuilder,
+  let applicationModelBuilder: ApplicationModelBuilder,
     application: Application,
     $componentController: ng.IComponentControllerService,
     ctrl: DataSourceEditorController,
@@ -16,7 +16,7 @@ describe('Component: Application Data Source Editor', () => {
   const initialize = () => {
     ctrl = $componentController(
       'applicationDataSourceEditor',
-      { $scope: null, applicationWriter },
+      { $scope: null },
       { application },
     ) as DataSourceEditorController;
     ctrl.$onInit();
@@ -27,13 +27,11 @@ describe('Component: Application Data Source Editor', () => {
   beforeEach(
     mock.inject(
       (
-        _applicationWriter_: any,
         _applicationModelBuilder_: ApplicationModelBuilder,
         _$componentController_: ng.IComponentControllerService,
         _$q_: ng.IQService,
         $rootScope: ng.IRootScopeService,
       ) => {
-        applicationWriter = _applicationWriter_;
         applicationModelBuilder = _applicationModelBuilder_;
         $componentController = _$componentController_;
         $q = _$q_;
@@ -127,7 +125,7 @@ describe('Component: Application Data Source Editor', () => {
 
   describe('save', () => {
     it('sets state flags, saves, then updates existing data sources and refreshes application', () => {
-      spyOn(applicationWriter, 'updateApplication').and.returnValue($q.when());
+      spyOn(ApplicationWriter, 'updateApplication').and.returnValue($q.when());
       spyOn(application, 'refresh').and.returnValue(null);
       initialize();
       expect(ctrl.saving).toBe(false);
@@ -140,7 +138,7 @@ describe('Component: Application Data Source Editor', () => {
 
       expect(ctrl.isDirty).toBe(true);
       expect(ctrl.saving).toBe(true);
-      expect(applicationWriter.updateApplication.calls.mostRecent().args[0]).toEqual({
+      expect(ApplicationWriter.updateApplication.calls.mostRecent().args[0]).toEqual({
         name: 'app',
         accounts: ['test'],
         dataSources: { enabled: ['optInSource'], disabled: ['optionalSource'] },
@@ -155,7 +153,7 @@ describe('Component: Application Data Source Editor', () => {
     });
 
     it('sets error flag when save fails', () => {
-      spyOn(applicationWriter, 'updateApplication').and.returnValue($q.reject());
+      spyOn(ApplicationWriter, 'updateApplication').and.returnValue($q.reject());
       spyOn(application, 'refresh');
       initialize();
       expect(ctrl.saving).toBe(false);

@@ -1,6 +1,7 @@
-import { IPromise, module } from 'angular';
+import { IPromise } from 'angular';
 import { cloneDeep } from 'lodash';
 
+import { ITask } from 'core/domain';
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';
 import { RecentHistoryService } from 'core/history/recentHistory.service';
 
@@ -12,7 +13,7 @@ export interface IApplicationAttributes {
 }
 
 export class ApplicationWriter {
-  public createApplication(application: IApplicationAttributes): IPromise<any> {
+  public static createApplication(application: IApplicationAttributes): IPromise<ITask> {
     const jobs: IJob[] = this.buildJobs(application, 'createApplication', cloneDeep);
     return TaskExecutor.executeTask({
       job: jobs,
@@ -21,7 +22,7 @@ export class ApplicationWriter {
     });
   }
 
-  public updateApplication(application: IApplicationAttributes): IPromise<any> {
+  public static updateApplication(application: IApplicationAttributes): IPromise<ITask> {
     const jobs: IJob[] = this.buildJobs(application, 'updateApplication', cloneDeep);
     return TaskExecutor.executeTask({
       job: jobs,
@@ -30,7 +31,7 @@ export class ApplicationWriter {
     });
   }
 
-  public deleteApplication(application: IApplicationAttributes): IPromise<any> {
+  public static deleteApplication(application: IApplicationAttributes): IPromise<ITask> {
     const jobs: IJob[] = this.buildJobs(application, 'deleteApplication', (app: IApplicationAttributes): any => {
       return { name: app.name };
     });
@@ -46,7 +47,7 @@ export class ApplicationWriter {
       .catch((task: any): any => task);
   }
 
-  private buildJobs(application: IApplicationAttributes, type: string, commandTransformer: any): IJob[] {
+  private static buildJobs(application: IApplicationAttributes, type: string, commandTransformer: any): IJob[] {
     const jobs: IJob[] = [];
     const command = commandTransformer(application);
     if (application.cloudProviders) {
@@ -60,7 +61,3 @@ export class ApplicationWriter {
     return jobs;
   }
 }
-
-export const APPLICATION_WRITE_SERVICE = 'spinnaker.core.application.write.service';
-
-module(APPLICATION_WRITE_SERVICE, []).service('applicationWriter', ApplicationWriter);

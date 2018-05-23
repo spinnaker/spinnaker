@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import { AccountService } from 'core/account/AccountService';
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
-import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
+import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { APPLICATION_NAME_VALIDATION_MESSAGES } from './validation/applicationNameValidationMessages.component';
 import { TaskReader } from 'core/task/task.read.service';
 import { VALIDATE_APPLICATION_NAME } from './validation/validateApplicationName.directive';
@@ -15,7 +15,6 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.application.create.modal.controller', [
     require('@uirouter/angularjs').default,
-    APPLICATION_WRITE_SERVICE,
     APPLICATION_READ_SERVICE,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
@@ -28,7 +27,6 @@ module.exports = angular
     $log,
     $state,
     $uibModalInstance,
-    applicationWriter,
     applicationReader,
     $timeout,
   ) {
@@ -88,9 +86,10 @@ module.exports = angular
     };
 
     this.createApplication = () => {
-      return applicationWriter
-        .createApplication(this.application)
-        .then(waitUntilApplicationIsCreated, createApplicationFailure);
+      return ApplicationWriter.createApplication(this.application).then(
+        waitUntilApplicationIsCreated,
+        createApplicationFailure,
+      );
     };
 
     this.updateCloudProviderHealthWarning = () => {

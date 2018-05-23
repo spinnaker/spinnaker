@@ -3,25 +3,15 @@
 import _ from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
-import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
+import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { TaskReader } from 'core/task/task.read.service';
 import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.editApplication.modal.controller', [
-    APPLICATION_WRITE_SERVICE,
-    require('./applicationProviderFields.component.js').name,
-  ])
-  .controller('EditApplicationController', function(
-    $scope,
-    $window,
-    $state,
-    $uibModalInstance,
-    application,
-    applicationWriter,
-  ) {
+  .module('spinnaker.editApplication.modal.controller', [require('./applicationProviderFields.component.js').name])
+  .controller('EditApplicationController', function($scope, $window, $state, $uibModalInstance, application) {
     var vm = this;
     this.data = {
       gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'],
@@ -100,12 +90,10 @@ module.exports = angular
           .join(',');
       }
 
-      applicationWriter
-        .updateApplication(vm.applicationAttributes)
-        .then(
-          task => TaskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
-          () => vm.errorMsgs.push('Could not update application'),
-        );
+      ApplicationWriter.updateApplication(vm.applicationAttributes).then(
+        task => TaskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
+        () => vm.errorMsgs.push('Could not update application'),
+      );
     };
 
     function permissionsAreValid(permissions) {

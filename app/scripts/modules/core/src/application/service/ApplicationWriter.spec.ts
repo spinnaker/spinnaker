@@ -1,18 +1,14 @@
 import { mock } from 'angular';
 
-import { APPLICATION_WRITE_SERVICE, ApplicationWriter, IApplicationAttributes } from './application.write.service';
+import { ApplicationWriter, IApplicationAttributes } from './ApplicationWriter';
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';
 import Spy = jasmine.Spy;
 
-describe('Service: applicationWriter', function() {
-  let applicationWriter: ApplicationWriter;
+describe('ApplicationWriter', function() {
   let $q: ng.IQService;
 
-  beforeEach(mock.module(APPLICATION_WRITE_SERVICE));
-
   beforeEach(
-    mock.inject(function(_applicationWriter_: ApplicationWriter, _$q_: ng.IQService) {
-      applicationWriter = _applicationWriter_;
+    mock.inject(function(_$q_: ng.IQService) {
       $q = _$q_;
     }),
   );
@@ -26,7 +22,7 @@ describe('Service: applicationWriter', function() {
         cloudProviders: [],
       };
 
-      applicationWriter.updateApplication(application);
+      ApplicationWriter.updateApplication(application);
 
       expect((TaskExecutor.executeTask as Spy).calls.count()).toEqual(1);
     });
@@ -40,7 +36,7 @@ describe('Service: applicationWriter', function() {
         cloudProviders: ['titus', 'cf'],
       };
 
-      applicationWriter.updateApplication(application);
+      ApplicationWriter.updateApplication(application);
 
       expect(job).not.toBe(null);
       expect(job.application.cloudProviders).toBe('titus,cf');
@@ -55,7 +51,7 @@ describe('Service: applicationWriter', function() {
         name: 'foo',
       };
 
-      applicationWriter.deleteApplication(application);
+      ApplicationWriter.deleteApplication(application);
 
       expect((TaskExecutor.executeTask as Spy).calls.count()).toEqual(1);
     });

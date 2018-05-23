@@ -1,7 +1,6 @@
 import { module, IController } from 'angular';
 
 import { Application } from 'core/application';
-import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
 import { TaskMonitor } from 'core/task/monitor/TaskMonitor';
 import { PagerDutyWriter } from './pagerDuty.write.service';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
@@ -31,4 +30,4 @@ export class PageModalCtrl implements IController {
   }
 }
 export const PAGE_MODAL_CONTROLLER = 'spinnaker.core.pageApplicationOwner.modal.controller';
-module(PAGE_MODAL_CONTROLLER, [APPLICATION_WRITE_SERVICE]).controller('PageModalCtrl', PageModalCtrl);
+module(PAGE_MODAL_CONTROLLER, []).controller('PageModalCtrl', PageModalCtrl);

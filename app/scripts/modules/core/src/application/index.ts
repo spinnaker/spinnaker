@@ -5,7 +5,7 @@ export * from './nav/defaultCategories';
 export * from './modal/validation/applicationName.validator';
 export * from './listExtractor/listExtractor.service';
 export * from './service/application.read.service';
-export * from './service/application.write.service';
+export * from './service/ApplicationWriter';
 export * from './service/applicationDataSource';
 export * from './service/applicationDataSource.registry';
 export * from './application.state.provider';
