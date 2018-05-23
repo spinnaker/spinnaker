@@ -12,7 +12,6 @@ import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../applicati
 
 describe('Service: inferredApplicationWarning', () => {
   let inferredApplicationWarningService: InferredApplicationWarningService,
-    notifierService: NotifierService,
     applicationModelBuilder: ApplicationModelBuilder;
 
   beforeEach(mock.module(APPLICATION_MODEL_BUILDER, INFERRED_APPLICATION_WARNING_SERVICE));
@@ -21,11 +20,9 @@ describe('Service: inferredApplicationWarning', () => {
     mock.inject(
       (
         _inferredApplicationWarningService_: InferredApplicationWarningService,
-        _notifierService_: NotifierService,
         _applicationModelBuilder_: ApplicationModelBuilder,
       ) => {
         inferredApplicationWarningService = _inferredApplicationWarningService_;
-        notifierService = _notifierService_;
         applicationModelBuilder = _applicationModelBuilder_;
       },
     ),
@@ -41,19 +38,19 @@ describe('Service: inferredApplicationWarning', () => {
       inferredApp = applicationModelBuilder.createNotFoundApplication('myInferredApp');
 
       inferredApplicationWarningService.resetViewedApplications();
-      spyOn(notifierService, 'publish');
+      spyOn(NotifierService, 'publish');
     });
 
     it('should warn a user when an application is inferred (i.e., missing attributes)', () => {
       inferredApplicationWarningService.checkIfInferredAndWarn(inferredApp);
 
-      expect(notifierService.publish).toHaveBeenCalled();
+      expect(NotifierService.publish).toHaveBeenCalled();
     });
 
     it('should not warn a user when an application is properly configured (i.e., not missing attributes)', () => {
       inferredApplicationWarningService.checkIfInferredAndWarn(configuredApp);
 
-      expect(notifierService.publish).not.toHaveBeenCalled();
+      expect(NotifierService.publish).not.toHaveBeenCalled();
     });
 
     it('should not warn a user more than once about an inferred application', () => {
@@ -61,7 +58,7 @@ describe('Service: inferredApplicationWarning', () => {
       inferredApplicationWarningService.checkIfInferredAndWarn(inferredApp);
       inferredApplicationWarningService.checkIfInferredAndWarn(inferredApp);
 
-      expect((notifierService.publish as Spy).calls.count()).toEqual(1);
+      expect((NotifierService.publish as Spy).calls.count()).toEqual(1);
     });
   });
 });

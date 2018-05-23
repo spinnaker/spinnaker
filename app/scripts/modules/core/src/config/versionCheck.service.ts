@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { NOTIFIER_SERVICE } from 'core/widgets/notifier/notifier.service';
+import { NotifierService } from 'core/widgets/notifier/notifier.service';
 import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
 import { SETTINGS } from 'core/config/settings';
 
@@ -16,7 +16,6 @@ class VersionCheckService {
 
   constructor(
     private $http: ng.IHttpService,
-    private notifierService: any,
     private schedulerFactory: SchedulerFactory,
     private $log: ng.ILogService,
     private $filter: any,
@@ -51,9 +50,9 @@ class VersionCheckService {
       this.newVersionSeenCount++;
       if (this.newVersionSeenCount > 5) {
         this.$log.debug('New Deck version:', data.version, 'created', this.$filter('timestamp')(data.created));
-        this.notifierService.publish({
+        NotifierService.publish({
           key: 'newVersion',
-          position: 'bottom',
+          action: 'create',
           body: `A new version of Spinnaker is available
               <a role="button" class="action" onclick="document.location.reload(true)">Refresh</a>`,
         });
@@ -64,7 +63,7 @@ class VersionCheckService {
 }
 
 export const VERSION_CHECK_SERVICE = 'spinnaker.core.config.versionCheck.service';
-module(VERSION_CHECK_SERVICE, [NOTIFIER_SERVICE, SCHEDULER_FACTORY])
+module(VERSION_CHECK_SERVICE, [SCHEDULER_FACTORY])
   .service('versionCheckService', VersionCheckService)
   .run((versionCheckService: VersionCheckService) => {
     if (SETTINGS.checkForUpdates) {

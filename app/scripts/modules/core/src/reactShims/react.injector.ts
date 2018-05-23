@@ -21,7 +21,6 @@ import { InfrastructureSearchServiceV2 } from 'core/search/infrastructure/infras
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import { LoadBalancerWriter } from '../loadBalancer/loadBalancer.write.service';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
-import { NotifierService } from '../widgets/notifier/notifier.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
 import { PageTitleService } from 'core/pageTitle';
 import { PagerDutyReader } from '../pagerDuty/pagerDuty.read.service';
@@ -82,7 +81,6 @@ export class CoreReactInject extends ReactInject {
   public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
   public get loadBalancerWriter() { return this.$injector.get('loadBalancerWriter') as LoadBalancerWriter; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
-  public get notifierService() { return this.$injector.get('notifierService') as NotifierService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pagerDutyReader() { return this.$injector.get('pagerDutyReader') as PagerDutyReader; }
   public get pagerDutyWriter() { return this.$injector.get('pagerDutyWriter') as PagerDutyWriter; }
