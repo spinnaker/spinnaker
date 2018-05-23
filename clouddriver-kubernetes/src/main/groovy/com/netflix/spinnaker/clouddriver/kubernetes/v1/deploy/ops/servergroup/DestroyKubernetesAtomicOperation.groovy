@@ -24,7 +24,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DESTROY"
 
