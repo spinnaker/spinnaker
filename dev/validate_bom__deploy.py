@@ -49,7 +49,7 @@ SUPPORTED_DISTRIBUTED_PLATFORMS = ['kubernetes']
 HALYARD_SERVICES = ['halyard']
 SPINNAKER_SERVICES = [
     'clouddriver', 'echo', 'fiat', 'front50', 'gate', 'igor', 'orca',
-    'rosco'
+    'rosco', 'kayenta', 'spinnaker-monitoring'
 ]
 
 
@@ -692,17 +692,19 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
   def do_fetch_service_log_file(self, service, log_dir):
     """Implements the BaseBomValidateDeployer interface."""
     write_data_to_secure_path('', os.path.join(log_dir, service + '.log'))
+    service_dir = service if service != 'spinnaker-monitoring' else 'monitoring'
     retcode, stdout = run_subprocess(
         'scp'
         ' -i {ssh_key}'
         ' -o StrictHostKeyChecking=no'
         ' -o UserKnownHostsFile=/dev/null'
-        ' {user}@{ip}:/var/log/spinnaker/{service}/{service}.log'
+        ' {user}@{ip}:/var/log/spinnaker/{service_dir}/{service_name}.log'
         ' {log_dir}'
         .format(user=self.hal_user,
                 ip=self.instance_ip,
                 ssh_key=self.ssh_key_path,
-                service=service,
+                service_dir=service_dir,
+                service_name=service,
                 log_dir=log_dir))
     if retcode != 0:
       logging.warning('Failed obtaining %s.log: %s', service, stdout)
