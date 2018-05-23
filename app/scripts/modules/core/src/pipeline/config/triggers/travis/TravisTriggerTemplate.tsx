@@ -5,7 +5,7 @@ import { IPromise } from 'angular';
 
 import { IBuild, IBuildInfo, IBuildTrigger } from 'core/domain';
 import { ITriggerTemplateComponentProps } from 'core/pipeline/manualExecution/TriggerTemplate';
-import { ReactInjector } from 'core/reactShims';
+import { IgorService } from 'core/ci';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { buildDisplayName } from 'core/pipeline/executionBuild/buildDisplayName.filter';
 import { timestamp } from 'core/utils/timeFormatters';
@@ -88,9 +88,7 @@ export class TravisTriggerTemplate extends React.Component<
       return;
     }
 
-    ReactInjector.igorService
-      .listBuildsForJob(trigger.master, trigger.job)
-      .then(this.buildLoadSuccess, this.buildLoadFailure);
+    IgorService.listBuildsForJob(trigger.master, trigger.job).then(this.buildLoadSuccess, this.buildLoadFailure);
   };
 
   public componentWillReceiveProps(nextProps: ITriggerTemplateComponentProps) {

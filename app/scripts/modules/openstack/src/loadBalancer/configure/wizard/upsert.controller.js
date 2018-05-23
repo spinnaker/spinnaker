@@ -5,7 +5,7 @@ const angular = require('angular');
 import {
   AccountService,
   FirewallLabels,
-  LOAD_BALANCER_WRITE_SERVICE,
+  LoadBalancerWriter,
   SECURITY_GROUP_READER,
   TaskMonitor,
   V2_MODAL_WIZARD_SERVICE,
@@ -16,7 +16,6 @@ import '../../loadBalancer.less';
 module.exports = angular
   .module('spinnaker.loadBalancer.openstack.create.controller', [
     require('@uirouter/angularjs').default,
-    LOAD_BALANCER_WRITE_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     require('../../transformer.js').name,
     require('../../../region/regionSelectField.directive.js').name,
@@ -33,7 +32,6 @@ module.exports = angular
     loadBalancer,
     isNew,
     openstackLoadBalancerTransformer,
-    loadBalancerWriter,
     securityGroupReader,
   ) {
     var ctrl = this;
@@ -256,7 +254,7 @@ module.exports = angular
           accountId: $scope.loadBalancer.accountId,
           securityGroups: $scope.loadBalancer.securityGroups,
         };
-        return loadBalancerWriter.upsertLoadBalancer(
+        return LoadBalancerWriter.upsertLoadBalancer(
           _.omit($scope.loadBalancer, 'accountId'),
           application,
           descriptor,

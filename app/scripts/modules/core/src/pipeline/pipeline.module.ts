@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE } from './config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module';
-import { BAKE_MANIFEST_STAGE } from './config/stages/bakeManifest/bakeManifestStage'
+import { BAKE_MANIFEST_STAGE } from './config/stages/bakeManifest/bakeManifestStage';
 import { CHECK_PRECONDITIONS_STAGE_MODULE } from './config/stages/checkPreconditions/checkPreconditionsStage.module';
 import { CLONE_SERVER_GROUP_STAGE } from './config/stages/cloneServerGroup/cloneServerGroupStage.module';
 import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.controller';
@@ -28,7 +28,6 @@ import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.modul
 import { PIPELINE_STATES } from './pipeline.states';
 import { BUILD_DISPLAY_NAME_FILTER } from './executionBuild/buildDisplayName.filter';
 import { EXECUTION_DETAILS_SECTION_NAV } from './details/executionDetailsSectionNav.component';
-import { EXECUTION_FILTER_SERVICE } from 'core/pipeline/filter/executionFilter.service';
 import { STAGE_FAILURE_MESSAGE_COMPONENT } from './details/stageFailureMessage.component';
 import { STEP_EXECUTION_DETAILS_COMPONENT } from './details/stepExecutionDetails.component';
 import { STAGE_SUMMARY_COMPONENT } from './details/stageSummary.component';
@@ -42,7 +41,6 @@ export const PIPELINE_MODULE = 'spinnaker.core.pipeline';
 module(PIPELINE_MODULE, [
   'ui.sortable',
   EXECUTION_DETAILS_SECTION_NAV,
-  EXECUTION_FILTER_SERVICE,
 
   BUILD_DISPLAY_NAME_FILTER,
 

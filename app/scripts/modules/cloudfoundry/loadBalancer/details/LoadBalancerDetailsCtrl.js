@@ -6,14 +6,13 @@ import {
   AccountService,
   CONFIRMATION_MODAL_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
-  LOAD_BALANCER_WRITE_SERVICE,
+  LoadBalancerWriter,
 } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.cf.details.controller', [
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
-    LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
   ])
   .controller('cfLoadBalancerDetailsCtrl', function(
@@ -23,7 +22,6 @@ module.exports = angular
     loadBalancer,
     app,
     confirmationModalService,
-    loadBalancerWriter,
     loadBalancerReader,
     $q,
   ) {
@@ -113,7 +111,7 @@ module.exports = angular
         region: loadBalancer.region,
       };
 
-      const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, application);
+      const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, application);
 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',

@@ -1,8 +1,8 @@
-import { ILogService, module } from 'angular';
 import { chain, compact, find, flattenDeep, forOwn, get, groupBy, includes, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 import * as moment from 'moment';
+import { $log } from 'ngimport';
 
 import { Application } from 'core/application/application.model';
 import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
@@ -33,17 +33,14 @@ const boundaries = [
 ];
 
 export class ExecutionFilterService {
-  public groupsUpdatedStream: Subject<IExecutionGroup[]> = new Subject<IExecutionGroup[]>();
+  public static groupsUpdatedStream: Subject<IExecutionGroup[]> = new Subject<IExecutionGroup[]>();
 
-  private lastApplication: Application = null;
-  private isFilterable: (sortFilterModel: { [key: string]: boolean }) => boolean;
+  private static lastApplication: Application = null;
+  private static isFilterable: (
+    sortFilterModel: { [key: string]: boolean },
+  ) => boolean = FilterModelService.isFilterable;
 
-  constructor(private $log: ILogService) {
-    'ngInject';
-    this.isFilterable = FilterModelService.isFilterable;
-  }
-
-  private groupByTimeBoundary(executions: IExecution[]): { [boundaryName: string]: IExecution[] } {
+  private static groupByTimeBoundary(executions: IExecution[]): { [boundaryName: string]: IExecution[] } {
     return groupBy(
       executions,
       execution =>
@@ -55,7 +52,7 @@ export class ExecutionFilterService {
   }
 
   @Debounce(25)
-  public updateExecutionGroups(application: Application): void {
+  public static updateExecutionGroups(application: Application): void {
     if (!application) {
       application = this.lastApplication;
       if (!this.lastApplication) {
@@ -74,7 +71,7 @@ export class ExecutionFilterService {
     this.groupsUpdatedStream.next(groups);
   }
 
-  private pipelineNameFilter(execution: IExecution): boolean {
+  private static pipelineNameFilter(execution: IExecution): boolean {
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     if (this.isFilterable(sortFilter.pipeline)) {
       const checkedPipelineNames = FilterModelService.getCheckValues(sortFilter.pipeline);
@@ -84,7 +81,7 @@ export class ExecutionFilterService {
     }
   }
 
-  private getValuesAsString(object: any, blacklist: string[] = []): string {
+  private static getValuesAsString(object: any, blacklist: string[] = []): string {
     if (typeof object === 'string') {
       return object;
     }
@@ -107,7 +104,7 @@ export class ExecutionFilterService {
     return '';
   }
 
-  private addSearchText(execution: IExecution): void {
+  private static addSearchText(execution: IExecution): void {
     if (execution.searchField) {
       return;
     }
@@ -121,7 +118,7 @@ export class ExecutionFilterService {
     execution.searchField = searchText.join(' ').toLowerCase();
   }
 
-  private textFilter(execution: IExecution): boolean {
+  private static textFilter(execution: IExecution): boolean {
     const filter = ExecutionState.filterModel.asFilterModel.sortFilter.filter.toLowerCase();
     if (!filter) {
       return true;
@@ -130,7 +127,7 @@ export class ExecutionFilterService {
     return execution.searchField.includes(filter);
   }
 
-  private statusFilter(execution: IExecution): boolean {
+  private static statusFilter(execution: IExecution): boolean {
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     if (this.isFilterable(sortFilter.status)) {
       const checkedStatus = FilterModelService.getCheckValues(sortFilter.status);
@@ -140,7 +137,7 @@ export class ExecutionFilterService {
     }
   }
 
-  public filterExecutionsForDisplay(executions: IExecution[]): IExecution[] {
+  public static filterExecutionsForDisplay(executions: IExecution[]): IExecution[] {
     return chain(executions)
       .filter((e: IExecution) => this.textFilter(e))
       .filter((e: IExecution) => this.pipelineNameFilter(e))
@@ -148,7 +145,7 @@ export class ExecutionFilterService {
       .value();
   }
 
-  private addEmptyPipelines(groups: IExecutionGroup[], application: Application): void {
+  private static addEmptyPipelines(groups: IExecutionGroup[], application: Application): void {
     const configs = application.pipelineConfigs.data || [];
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     if (!this.isFilterable(sortFilter.pipeline) && !this.isFilterable(sortFilter.status) && !sortFilter.filter) {
@@ -174,7 +171,7 @@ export class ExecutionFilterService {
     }
   }
 
-  private extractAccounts(config: IPipeline): string[] {
+  private static extractAccounts(config: IPipeline): string[] {
     if (!config) {
       return [];
     }
@@ -188,14 +185,14 @@ export class ExecutionFilterService {
     return uniq(compact(flattenDeep(configAccounts))).filter(a => !a.includes('${')); // exclude parameterized accounts
   }
 
-  private fixName(execution: IExecution, application: Application): void {
+  private static fixName(execution: IExecution, application: Application): void {
     const config: IPipeline = find<IPipeline>(application.pipelineConfigs.data, { id: execution.pipelineConfigId });
     if (config) {
       execution.name = config.name;
     }
   }
 
-  private groupExecutions(filteredExecutions: IExecution[], application: Application): IExecutionGroup[] {
+  private static groupExecutions(filteredExecutions: IExecution[], application: Application): IExecutionGroup[] {
     const groups: IExecutionGroup[] = [];
     let executions: IExecution[] = [];
     forOwn(groupBy(filteredExecutions, 'name'), groupedExecutions => {
@@ -255,7 +252,7 @@ export class ExecutionFilterService {
     return groups;
   }
 
-  private diffExecutionGroups(oldGroups: IExecutionGroup[], newGroups: IExecutionGroup[]): void {
+  private static diffExecutionGroups(oldGroups: IExecutionGroup[], newGroups: IExecutionGroup[]): void {
     const groupsToRemove: number[] = [];
 
     oldGroups.forEach((oldGroup, idx) => {
@@ -280,16 +277,16 @@ export class ExecutionFilterService {
     oldGroups.forEach(group => group.executions.sort((a, b) => this.executionSorter(a, b)));
   }
 
-  private diffExecutions(oldGroup: IExecutionGroup, newGroup: IExecutionGroup): void {
+  private static diffExecutions(oldGroup: IExecutionGroup, newGroup: IExecutionGroup): void {
     const toRemove: number[] = [];
     oldGroup.executions.forEach((execution, idx) => {
       const newExecution = find(newGroup.executions, { id: execution.id });
       if (!newExecution) {
-        this.$log.debug('execution no longer found, removing:', execution.id);
+        $log.debug('execution no longer found, removing:', execution.id);
         toRemove.push(idx);
       } else {
         if (execution.stringVal !== newExecution.stringVal) {
-          this.$log.debug('change detected, updating execution:', execution.id);
+          $log.debug('change detected, updating execution:', execution.id);
           oldGroup.executions[idx] = newExecution;
         }
       }
@@ -300,13 +297,13 @@ export class ExecutionFilterService {
     newGroup.executions.forEach(execution => {
       const oldExecution = find(oldGroup.executions, { id: execution.id });
       if (!oldExecution) {
-        this.$log.debug('new execution found, adding', execution.id);
+        $log.debug('new execution found, adding', execution.id);
         oldGroup.executions.push(execution);
       }
     });
   }
 
-  private applyGroupsToModel(groups: IExecutionGroup[]): void {
+  private static applyGroupsToModel(groups: IExecutionGroup[]): void {
     this.diffExecutionGroups(ExecutionState.filterModel.asFilterModel.groups, groups);
 
     // sort groups in place so Angular doesn't try to update the world
@@ -315,7 +312,7 @@ export class ExecutionFilterService {
     );
   }
 
-  public executionGroupSorter(a: IExecutionGroup, b: IExecutionGroup): number {
+  public static executionGroupSorter(a: IExecutionGroup, b: IExecutionGroup): number {
     if (ExecutionState.filterModel.asFilterModel.sortFilter.groupBy === 'timeBoundary') {
       return b.executions[0].startTime - a.executions[0].startTime;
     }
@@ -340,7 +337,7 @@ export class ExecutionFilterService {
     return 0;
   }
 
-  private executionSorter(a: IExecution, b: IExecution): number {
+  private static executionSorter(a: IExecution, b: IExecution): number {
     if (a.isActive && b.isActive) {
       return b.startTime - a.startTime;
     }
@@ -353,14 +350,8 @@ export class ExecutionFilterService {
     return b.endTime - a.endTime;
   }
 
-  public clearFilters(): void {
+  public static clearFilters(): void {
     ExecutionState.filterModel.asFilterModel.clearFilters();
     ExecutionState.filterModel.asFilterModel.applyParamsToUrl();
   }
 }
-
-export const EXECUTION_FILTER_SERVICE = 'spinnaker.core.pipeline.filter.executionFilter.service';
-module(EXECUTION_FILTER_SERVICE, []).factory(
-  'executionFilterService',
-  ($log: ILogService) => new ExecutionFilterService($log),
-);

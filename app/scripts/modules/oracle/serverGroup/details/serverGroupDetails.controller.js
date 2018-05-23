@@ -5,21 +5,18 @@ const angular = require('angular');
 import {
   CONFIRMATION_MODAL_SERVICE,
   NETWORK_READ_SERVICE,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  ServerGroupReader,
+  ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
-  SUBNET_READ_SERVICE,
+  SubnetReader,
 } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.serverGroup.details.controller', [
     require('@uirouter/angularjs').default,
-    SERVER_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     NETWORK_READ_SERVICE,
-    SUBNET_READ_SERVICE,
     require('../../image/image.reader.js').name,
     require('./resize/resizeServerGroup.controller.js').name,
     require('./rollback/rollbackServerGroup.controller.js').name,
@@ -31,12 +28,9 @@ module.exports = angular
     app,
     serverGroup,
     confirmationModalService,
-    serverGroupReader,
     serverGroupWriter,
     networkReader,
-    subnetReader,
     oraclebmcsImageReader,
-    serverGroupWarningMessageService,
   ) {
     const provider = 'oraclebmcs';
 
@@ -52,16 +46,19 @@ module.exports = angular
     /////////////////////////////////////////////////////////
 
     let retrieveServerGroup = () => {
-      return serverGroupReader
-        .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-        .then(details => {
-          cancelLoader();
-          details.account = serverGroup.accountId;
-          this.serverGroup = details;
-          retrieveNetwork();
-          retrieveSubnet();
-          retrieveImage();
-        });
+      return ServerGroupReader.getServerGroup(
+        app.name,
+        serverGroup.accountId,
+        serverGroup.region,
+        serverGroup.name,
+      ).then(details => {
+        cancelLoader();
+        details.account = serverGroup.accountId;
+        this.serverGroup = details;
+        retrieveNetwork();
+        retrieveSubnet();
+        retrieveImage();
+      });
     };
 
     let retrieveNetwork = () => {
@@ -74,7 +71,7 @@ module.exports = angular
     };
 
     let retrieveSubnet = () => {
-      subnetReader.getSubnetByIdAndProvider(this.serverGroup.launchConfig.subnetId, provider).then(subnet => {
+      SubnetReader.getSubnetByIdAndProvider(this.serverGroup.launchConfig.subnetId, provider).then(subnet => {
         this.serverGroup.subnet = subnet;
       });
     };
@@ -182,7 +179,7 @@ module.exports = angular
         askForReason: true,
       };
 
-      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Oracle'];

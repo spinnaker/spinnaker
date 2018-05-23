@@ -12,7 +12,7 @@ describe('Controller: cfCreateLoadBalancerCtrl', function() {
 
   // Initialize the controller and a mock scope
   beforeEach(
-    window.inject(function($controller, $rootScope, _v2modalWizardService_, applicationModelBuilder) {
+    window.inject(function($controller, $rootScope, applicationModelBuilder) {
       this.$scope = $rootScope.$new();
       const app = applicationModelBuilder.createApplication('app', { key: 'loadBalancers', lazy: true });
       this.ctrl = $controller('cfCreateLoadBalancerCtrl', {
@@ -22,7 +22,6 @@ describe('Controller: cfCreateLoadBalancerCtrl', function() {
         loadBalancer: null,
         isNew: true,
       });
-      this.wizardService = _v2modalWizardService_;
     }),
   );
 

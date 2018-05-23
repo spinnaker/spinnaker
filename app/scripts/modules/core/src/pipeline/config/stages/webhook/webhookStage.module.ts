@@ -1,7 +1,6 @@
 import { module } from 'angular';
 
 import { WEBHOOK_STAGE } from './webhookStage';
-import { IGOR_SERVICE } from 'core/ci/igor.service';
 import { STAGE_CORE_MODULE } from '../core/stage.core.module';
 import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
 import { WEBHOOK_EXECUTION_DETAILS_CONTROLLER } from './webhookExecutionDetails.controller';
@@ -13,7 +12,6 @@ module(WEBHOOK_STAGE_MODULE, [
   require('../stage.module.js').name,
   STAGE_CORE_MODULE,
   TIME_FORMATTERS,
-  IGOR_SERVICE,
   WEBHOOK_EXECUTION_DETAILS_CONTROLLER,
   WEBHOOK_STAGE_ADD_CUSTOM_HEADER_MODAL_CONTROLLER,
 ]);

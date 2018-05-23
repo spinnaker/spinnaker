@@ -1,7 +1,7 @@
 import { IPromise, module } from 'angular';
 
 import { TaskExecutor, IJob } from 'core/task/taskExecutor';
-import { SERVER_GROUP_READER, ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
+import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { Application } from 'core/application/application.model';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
 import { IInstance, IServerGroup, ITask } from 'core/domain';
@@ -29,10 +29,7 @@ export interface IMultiInstanceJob {
 }
 
 export class InstanceWriter {
-  public constructor(
-    protected serverGroupReader: ServerGroupReader,
-    protected providerServiceDelegate: ProviderServiceDelegate,
-  ) {
+  public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {
     'ngInject';
   }
 
@@ -236,25 +233,28 @@ export class InstanceWriter {
     application: Application,
     params: any = {},
   ): IPromise<ITask> {
-    return this.serverGroupReader
-      .getServerGroup(application.name, instance.account, instance.region, instance.serverGroup)
-      .then((serverGroup: IServerGroup) => {
-        params.type = 'terminateInstanceAndDecrementServerGroup';
-        params.instance = instance.id;
-        params.serverGroupName = instance.serverGroup;
-        params.asgName = instance.serverGroup; // still needed on the backend
-        params.region = instance.region;
-        params.credentials = instance.account;
-        params.cloudProvider = instance.cloudProvider;
-        params.adjustMinIfNecessary = true;
-        params.setMaxToNewDesired = serverGroup.asg.minSize === serverGroup.asg.maxSize;
+    return ServerGroupReader.getServerGroup(
+      application.name,
+      instance.account,
+      instance.region,
+      instance.serverGroup,
+    ).then((serverGroup: IServerGroup) => {
+      params.type = 'terminateInstanceAndDecrementServerGroup';
+      params.instance = instance.id;
+      params.serverGroupName = instance.serverGroup;
+      params.asgName = instance.serverGroup; // still needed on the backend
+      params.region = instance.region;
+      params.credentials = instance.account;
+      params.cloudProvider = instance.cloudProvider;
+      params.adjustMinIfNecessary = true;
+      params.setMaxToNewDesired = serverGroup.asg.minSize === serverGroup.asg.maxSize;
 
-        return TaskExecutor.executeTask({
-          job: [params],
-          application,
-          description: `Terminate instance ${instance.id} and shrink ${instance.serverGroup}`,
-        });
+      return TaskExecutor.executeTask({
+        job: [params],
+        application,
+        description: `Terminate instance ${instance.id} and shrink ${instance.serverGroup}`,
       });
+    });
   }
 
   protected buildMultiInstanceJob(instanceGroups: IMultiInstanceGroup[], type: string, additionalJobProperties = {}) {
@@ -314,7 +314,4 @@ export class InstanceWriter {
 }
 
 export const INSTANCE_WRITE_SERVICE = 'spinnaker.core.instance.write.service';
-module(INSTANCE_WRITE_SERVICE, [SERVER_GROUP_READER, PROVIDER_SERVICE_DELEGATE]).service(
-  'instanceWriter',
-  InstanceWriter,
-);
+module(INSTANCE_WRITE_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service('instanceWriter', InstanceWriter);

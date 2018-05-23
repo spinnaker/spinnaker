@@ -3,19 +3,17 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, NETWORK_READ_SERVICE, SECURITY_GROUP_READER, SUBNET_READ_SERVICE } from '@spinnaker/core';
+import { AccountService, NETWORK_READ_SERVICE, SECURITY_GROUP_READER, SubnetReader } from '@spinnaker/core';
 import { OracleBMCSProviderSettings } from '../../oraclebmcs.settings';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.serverGroup.configure.configuration.service', [
     NETWORK_READ_SERVICE,
-    SUBNET_READ_SERVICE,
     SECURITY_GROUP_READER,
   ])
   .factory('oraclebmcsServerGroupConfigurationService', function(
     $q,
     networkReader,
-    subnetReader,
     oraclebmcsImageReader,
     securityGroupReader,
   ) {
@@ -41,7 +39,7 @@ module.exports = angular
         .all({
           credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount(oracle),
           networks: networkReader.listNetworksByProvider(oracle),
-          subnets: subnetReader.listSubnetsByProvider(oracle),
+          subnets: SubnetReader.listSubnetsByProvider(oracle),
           securityGroups: securityGroupReader.getAllSecurityGroups(),
           images: loadImages(),
           availDomains: AccountService.getAvailabilityZonesForAccountAndRegion(

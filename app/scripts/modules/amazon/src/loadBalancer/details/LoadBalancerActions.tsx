@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { get } from 'lodash';
 
-import { Application, SETTINGS, NgReact, ReactInjector } from '@spinnaker/core';
+import { Application, LoadBalancerWriter, SETTINGS, NgReact, ReactInjector } from '@spinnaker/core';
 
 import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon';
 
@@ -76,7 +76,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
       vpcId: get(loadBalancer, 'elb.vpcId', null),
     };
 
-    const submitMethod = () => ReactInjector.loadBalancerWriter.deleteLoadBalancer(command, app);
+    const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, app);
 
     ReactInjector.confirmationModalService.confirm({
       header: `Really delete ${loadBalancerFromParams.name} in ${loadBalancerFromParams.region}: ${

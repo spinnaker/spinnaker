@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   CONFIRMATION_MODAL_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
-  LOAD_BALANCER_WRITE_SERVICE,
+  LoadBalancerWriter,
   SECURITY_GROUP_READER,
   FirewallLabels,
 } from '@spinnaker/core';
@@ -15,7 +15,6 @@ module.exports = angular
   .module('spinnaker.azure.loadBalancer.details.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
   ])
@@ -28,7 +27,6 @@ module.exports = angular
     app,
     securityGroupReader,
     confirmationModalService,
-    loadBalancerWriter,
     loadBalancerReader,
     $q,
   ) {
@@ -139,7 +137,7 @@ module.exports = angular
         appName: app.name,
       };
 
-      const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, app);
+      const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, app);
 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',

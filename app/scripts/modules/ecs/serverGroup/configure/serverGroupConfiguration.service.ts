@@ -18,7 +18,6 @@ import {
   LoadBalancerReader,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   ServerGroupCommandRegistry,
-  SUBNET_READ_SERVICE,
   SubnetReader,
 } from '@spinnaker/core';
 
@@ -73,7 +72,6 @@ export class EcsServerGroupConfigurationService {
   constructor(
     private $q: IQService,
     private cacheInitializer: CacheInitializerService,
-    private subnetReader: SubnetReader,
     private loadBalancerReader: LoadBalancerReader,
     private serverGroupCommandRegistry: ServerGroupCommandRegistry,
     private iamRoleReader: IamRoleReader,
@@ -123,7 +121,7 @@ export class EcsServerGroupConfigurationService {
       .all({
         credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('ecs'),
         loadBalancers: this.loadBalancerReader.listLoadBalancers('ecs'),
-        subnets: this.subnetReader.listSubnets(),
+        subnets: SubnetReader.listSubnets(),
         iamRoles: this.iamRoleReader.listRoles('ecs'),
         ecsClusters: this.ecsClusterReader.listClusters(),
         metricAlarms: this.metricAlarmReader.listMetricAlarms(),
@@ -402,7 +400,6 @@ export class EcsServerGroupConfigurationService {
 
 export const ECS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.ecs.serverGroup.configure.service';
 module(ECS_SERVER_GROUP_CONFIGURATION_SERVICE, [
-  SUBNET_READ_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,

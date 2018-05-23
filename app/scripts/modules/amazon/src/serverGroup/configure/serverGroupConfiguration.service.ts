@@ -37,7 +37,6 @@ import {
   SecurityGroupReader,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   ServerGroupCommandRegistry,
-  SUBNET_READ_SERVICE,
   SubnetReader,
 } from '@spinnaker/core';
 
@@ -112,7 +111,6 @@ export class AwsServerGroupConfigurationService {
     private securityGroupReader: SecurityGroupReader,
     private awsInstanceTypeService: any,
     private cacheInitializer: CacheInitializerService,
-    private subnetReader: SubnetReader,
     private keyPairsReader: KeyPairsReader,
     private loadBalancerReader: LoadBalancerReader,
     private serverGroupCommandRegistry: ServerGroupCommandRegistry,
@@ -194,7 +192,7 @@ export class AwsServerGroupConfigurationService {
       .all({
         credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('aws'),
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
-        subnets: this.subnetReader.listSubnets(),
+        subnets: SubnetReader.listSubnets(),
         preferredZones: AccountService.getPreferredZonesByAccount('aws'),
         keyPairs: this.keyPairsReader.listKeyPairs(),
         packageImages: imageLoader,
@@ -697,7 +695,6 @@ export const AWS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.amazon.serverGr
 module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE, [
   require('amazon/image/image.reader.js').name,
   SECURITY_GROUP_READER,
-  SUBNET_READ_SERVICE,
   require('amazon/instance/awsInstanceType.service.js').name,
   KEY_PAIRS_READ_SERVICE,
   LOAD_BALANCER_READ_SERVICE,

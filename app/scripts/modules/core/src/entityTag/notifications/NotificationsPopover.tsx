@@ -4,7 +4,13 @@ import { uniq, pick } from 'lodash';
 
 import { Application } from 'core/application';
 import { IEntityTags, IEntityTag } from 'core/domain';
-import { EntityTagEditor, GroupedNotificationList, IEntityTagEditorProps, NotificationList } from 'core/entityTag';
+import {
+  EntityTagEditor,
+  EntityTagWriter,
+  GroupedNotificationList,
+  IEntityTagEditorProps,
+  NotificationList,
+} from 'core/entityTag';
 import { Placement, HoverablePopover, IHoverablePopoverContentsProps } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { noop } from 'core/utils';
@@ -130,7 +136,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
   }
 
   public handleDeleteNotification(notification: INotification): void {
-    const { entityTagWriter, confirmationModalService } = ReactInjector;
+    const { confirmationModalService } = ReactInjector;
     const { application, entity, onUpdate } = this.props;
     const { entityTags, entityTag } = notification;
     const type = entityTag.value['type'];
@@ -148,7 +154,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
       account: entity.account,
       applicationName: application.name,
       taskMonitorConfig,
-      submitMethod: () => entityTagWriter.deleteEntityTag(application, entity, entityTags, entityTag.name),
+      submitMethod: () => EntityTagWriter.deleteEntityTag(application, entity, entityTags, entityTag.name),
     });
   }
 

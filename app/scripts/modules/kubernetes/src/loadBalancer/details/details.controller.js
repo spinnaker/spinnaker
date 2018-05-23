@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE, ServerGroupTemplates } from '@spinnaker/core';
+import { CONFIRMATION_MODAL_SERVICE, LoadBalancerWriter, ServerGroupTemplates } from '@spinnaker/core';
 
 import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
 
@@ -11,7 +11,6 @@ module.exports = angular
   .module('spinnaker.loadBalancer.kubernetes.details.controller', [
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
-    LOAD_BALANCER_WRITE_SERVICE,
   ])
   .controller('kubernetesLoadBalancerDetailsController', function(
     $interpolate,
@@ -21,7 +20,6 @@ module.exports = angular
     loadBalancer,
     app,
     confirmationModalService,
-    loadBalancerWriter,
     kubernetesProxyUiService,
   ) {
     let application = app;
@@ -125,7 +123,7 @@ module.exports = angular
         namespace: loadBalancer.region,
       };
 
-      const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, application);
+      const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, application);
 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',

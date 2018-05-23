@@ -3,14 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { SUBNET_READ_SERVICE } from '@spinnaker/core';
+import { SubnetReader } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.subnet.subnetSelectField.directive', [
-    SUBNET_READ_SERVICE,
     require('../common/selectField.component.js').name,
   ])
-  .directive('osSubnetSelectField', function(subnetReader) {
+  .directive('osSubnetSelectField', function() {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -36,7 +35,7 @@ module.exports = angular
           backingCache: 'subnets',
 
           updateOptions: function() {
-            return subnetReader.listSubnetsByProvider('openstack').then(function(subnets) {
+            return SubnetReader.listSubnetsByProvider('openstack').then(function(subnets) {
               scope.options = _.chain(subnets)
                 .filter(scope.filter || {})
                 .map(function(s) {

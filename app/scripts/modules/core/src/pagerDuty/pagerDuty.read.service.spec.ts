@@ -6,13 +6,11 @@ import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
 describe('PagerDutyReader', () => {
   let $http: IHttpBackendService;
-  let pagerDutyReader: PagerDutyReader;
 
   beforeEach(mock.module());
   beforeEach(
     mock.inject((_$httpBackend_: IHttpBackendService) => {
       $http = _$httpBackend_;
-      pagerDutyReader = new PagerDutyReader();
     }),
   );
 
@@ -26,7 +24,7 @@ describe('PagerDutyReader', () => {
     $http.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
 
     let executed = false;
-    pagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
+    PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
       expect(pagerDutyServices).toBeDefined();
       expect(pagerDutyServices.length).toBe(0);
       executed = true; // can't use done() function b/c $digest is already in progress
@@ -58,7 +56,7 @@ describe('PagerDutyReader', () => {
     $http.whenGET(`${API.baseUrl}/pagerDuty/services`).respond(200, services);
 
     let executed = false;
-    pagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
+    PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
       expect(pagerDutyServices).toBeDefined();
       expect(pagerDutyServices.length).toBe(2);
       executed = true; // can't use done() function b/c $digest is already in progress

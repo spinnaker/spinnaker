@@ -4,9 +4,7 @@ import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 import { PAGER_DUTY_TAG_COMPONENT, PagerDutyTagComponentController } from './pagerDutyTag.component';
 
 describe('PagerDutyTagComponent', () => {
-  let $componentController: IComponentControllerService,
-    $ctrl: PagerDutyTagComponentController,
-    pagerDutyReader: PagerDutyReader;
+  let $componentController: IComponentControllerService, $ctrl: PagerDutyTagComponentController;
 
   const services: IPagerDutyService[] = [
     {
@@ -36,21 +34,16 @@ describe('PagerDutyTagComponent', () => {
   ];
 
   const initialize = (apiKey: string) => {
-    $ctrl = $componentController(
-      'pagerDutyTag',
-      { $scope: null, pagerDutyReader },
-      { apiKey },
-    ) as PagerDutyTagComponentController;
+    $ctrl = $componentController('pagerDutyTag', { $scope: null }, { apiKey }) as PagerDutyTagComponentController;
     $ctrl.$onInit();
   };
 
   beforeEach(mock.module(PAGER_DUTY_TAG_COMPONENT));
 
   beforeEach(
-    mock.inject((_$componentController_: IComponentControllerService, _pagerDutyReader_: PagerDutyReader) => {
+    mock.inject((_$componentController_: IComponentControllerService) => {
       $componentController = _$componentController_;
-      pagerDutyReader = _pagerDutyReader_;
-      spyOn(pagerDutyReader, 'listServices').and.returnValue(Observable.of(services));
+      spyOn(PagerDutyReader, 'listServices').and.returnValue(Observable.of(services));
     }),
   );
 

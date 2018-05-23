@@ -2,19 +2,11 @@
 
 const angular = require('angular');
 
-import {
-  AccountService,
-  LOAD_BALANCER_READ_SERVICE,
-  LOAD_BALANCER_WRITE_SERVICE,
-  V2_MODAL_WIZARD_SERVICE,
-  TaskMonitor,
-} from '@spinnaker/core';
+import { AccountService, LOAD_BALANCER_READ_SERVICE, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.dcos.loadBalancer.create.controller', [
-    LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
-    V2_MODAL_WIZARD_SERVICE,
     require('../../transformer.js').name,
   ])
   .controller('dcosUpsertLoadBalancerController', function(
@@ -26,8 +18,6 @@ module.exports = angular
     isNew,
     loadBalancerReader,
     dcosLoadBalancerTransformer,
-    v2modalWizardService,
-    loadBalancerWriter,
   ) {
     var ctrl = this;
     $scope.isNew = isNew;
@@ -157,7 +147,7 @@ module.exports = angular
           cloudProvider: 'dcos',
           availabilityZones: zones,
         };
-        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+        return LoadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
       });
     };
 

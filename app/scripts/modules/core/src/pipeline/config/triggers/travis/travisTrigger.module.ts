@@ -1,6 +1,6 @@
 import { IController, IScope, module } from 'angular';
 
-import { IGOR_SERVICE, IgorService, BuildServiceType } from 'core/ci/igor.service';
+import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { Registry } from 'core/registry';
 import { SERVICE_ACCOUNT_SERVICE, ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
 import { IBuildTrigger } from 'core/domain/ITrigger';
@@ -24,12 +24,7 @@ export class TravisTrigger implements IController {
   public fiatEnabled: boolean;
   public serviceAccounts: string[];
 
-  constructor(
-    $scope: IScope,
-    public trigger: IBuildTrigger,
-    private igorService: IgorService,
-    serviceAccountService: ServiceAccountService,
-  ) {
+  constructor($scope: IScope, public trigger: IBuildTrigger, serviceAccountService: ServiceAccountService) {
     'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     serviceAccountService.getServiceAccounts().then(accounts => {
@@ -60,7 +55,7 @@ export class TravisTrigger implements IController {
   }
 
   private initializeMasters(): void {
-    this.igorService.listMasters(BuildServiceType.Travis).then((masters: string[]) => {
+    IgorService.listMasters(BuildServiceType.Travis).then((masters: string[]) => {
       this.masters = masters;
       this.viewState.mastersLoaded = true;
       this.viewState.mastersRefreshing = false;
@@ -71,7 +66,7 @@ export class TravisTrigger implements IController {
     if (this.trigger && this.trigger.master) {
       this.viewState.jobsLoaded = false;
       this.jobs = [];
-      this.igorService.listJobsForMaster(this.trigger.master).then(jobs => {
+      IgorService.listJobsForMaster(this.trigger.master).then(jobs => {
         this.viewState.jobsLoaded = true;
         this.viewState.jobsRefreshing = false;
         this.jobs = jobs;
@@ -84,7 +79,7 @@ export class TravisTrigger implements IController {
 }
 
 export const TRAVIS_TRIGGER = 'spinnaker.core.pipeline.config.trigger.travis';
-module(TRAVIS_TRIGGER, [require('../trigger.directive.js').name, IGOR_SERVICE, SERVICE_ACCOUNT_SERVICE])
+module(TRAVIS_TRIGGER, [require('../trigger.directive.js').name, SERVICE_ACCOUNT_SERVICE])
   .config(() => {
     Registry.pipeline.registerTrigger({
       label: 'Travis',

@@ -1,21 +1,14 @@
-import { mock } from 'angular';
-
-import { EXECUTION_FILTER_SERVICE, ExecutionFilterService } from './executionFilter.service';
+import { ExecutionFilterService } from './executionFilter.service';
 import { ExecutionFilterModel } from 'core/pipeline/filter/ExecutionFilterModel';
 import { ExecutionState } from 'core/state';
 
-describe('Service: executionFilterService', function() {
-  let service: ExecutionFilterService;
+describe('ExecutionFilterService', function() {
   let model: ExecutionFilterModel;
 
   beforeEach(function() {
-    mock.module(EXECUTION_FILTER_SERVICE);
-    mock.inject(function(executionFilterService: ExecutionFilterService) {
-      service = executionFilterService;
-      model = ExecutionState.filterModel;
-      model.asFilterModel.groups = [];
-      spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
-    });
+    model = ExecutionState.filterModel;
+    model.asFilterModel.groups = [];
+    spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
   });
 
   describe('Sorting', () => {
@@ -26,7 +19,7 @@ describe('Service: executionFilterService', function() {
       const adHocA = { heading: 'a' };
       const adHocB = { heading: 'b' };
       const groups = [strategy, adHocB, adHocA, secondGroup, firstGroup];
-      const sorted = groups.sort((a: any, b: any) => service.executionGroupSorter(a, b));
+      const sorted = groups.sort((a: any, b: any) => ExecutionFilterService.executionGroupSorter(a, b));
 
       expect(sorted).toEqual([firstGroup, secondGroup, strategy, adHocA, adHocB]);
     });

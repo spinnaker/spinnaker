@@ -2,13 +2,13 @@
 
 import { Registry } from 'core/registry';
 
-import { IGOR_SERVICE, BuildServiceType } from 'core/ci/igor.service';
+import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { JenkinsExecutionLabel } from './JenkinsExecutionLabel';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.jenkinsStage', [IGOR_SERVICE])
+  .module('spinnaker.core.pipeline.stage.jenkinsStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
       label: 'Jenkins',
@@ -33,7 +33,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('JenkinsStageCtrl', function($scope, stage, igorService) {
+  .controller('JenkinsStageCtrl', function($scope, stage) {
     $scope.stage = stage;
     $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
     $scope.stage.continuePipeline = $scope.stage.continuePipeline === undefined ? false : $scope.stage.continuePipeline;
@@ -54,7 +54,7 @@ module.exports = angular
     this.waitForCompletionChanged = () => (stage.waitForCompletion = $scope.viewState.waitForCompletion);
 
     function initializeMasters() {
-      igorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
+      IgorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
         $scope.masters = masters;
         $scope.viewState.mastersLoaded = true;
         $scope.viewState.mastersRefreshing = false;
@@ -83,7 +83,7 @@ module.exports = angular
         }
         $scope.viewState.jobsLoaded = false;
         $scope.jobs = [];
-        igorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
+        IgorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
           $scope.viewState.jobsLoaded = true;
           $scope.viewState.jobsRefreshing = false;
           $scope.jobs = jobs;
@@ -101,7 +101,7 @@ module.exports = angular
       let stage = $scope.stage,
         view = $scope.viewState;
       if (stage && stage.master && stage.job && !view.masterIsParameterized && !view.jobIsParameterized) {
-        igorService.getJobConfig($scope.stage.master, $scope.stage.job).then(config => {
+        IgorService.getJobConfig($scope.stage.master, $scope.stage.job).then(config => {
           config = config || {};
           if (!$scope.stage.parameters) {
             $scope.stage.parameters = {};

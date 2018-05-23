@@ -6,8 +6,6 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   IManifest,
   IServerGroup,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_WRITER,
   ServerGroupReader,
 } from '@spinnaker/core';
@@ -31,7 +29,6 @@ class KubernetesServerGroupDetailsController implements IController {
     public app: Application,
     private $uibModal: IModalService,
     private $scope: IScope,
-    private serverGroupReader: ServerGroupReader,
   ) {
     'ngInject';
 
@@ -155,21 +152,22 @@ class KubernetesServerGroupDetailsController implements IController {
   }
 
   private extractServerGroup(fromParams: IServerGroupFromStateParams): ng.IPromise<void> {
-    return this.serverGroupReader
-      .getServerGroup(this.app.name, fromParams.accountId, fromParams.region, fromParams.name)
-      .then((serverGroupDetails: IServerGroup) => {
-        this.serverGroup = this.transformServerGroup(serverGroupDetails);
-        this.serverGroup.account = fromParams.accountId;
-        this.state.loading = false;
-      });
+    return ServerGroupReader.getServerGroup(
+      this.app.name,
+      fromParams.accountId,
+      fromParams.region,
+      fromParams.name,
+    ).then((serverGroupDetails: IServerGroup) => {
+      this.serverGroup = this.transformServerGroup(serverGroupDetails);
+      this.serverGroup.account = fromParams.accountId;
+      this.state.loading = false;
+    });
   }
 }
 
 export const KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.kubernetes.v2.serverGroup.details.controller';
 
-module(KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL, [
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WRITER,
-]).controller('kubernetesV2ServerGroupDetailsCtrl', KubernetesServerGroupDetailsController);
+module(KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL, [CONFIRMATION_MODAL_SERVICE, SERVER_GROUP_WRITER]).controller(
+  'kubernetesV2ServerGroupDetailsCtrl',
+  KubernetesServerGroupDetailsController,
+);

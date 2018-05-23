@@ -2,7 +2,7 @@ import { IPromise } from 'angular';
 import { isEmpty } from 'lodash';
 import { Observable } from 'rxjs';
 
-import { AccountService, IServerGroupDetailsProps, ISubnet, ReactInjector } from '@spinnaker/core';
+import { AccountService, IServerGroupDetailsProps, ISubnet, ServerGroupReader, SubnetReader } from '@spinnaker/core';
 
 import { AwsReactInjector } from 'amazon/reactShims';
 import { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
@@ -42,38 +42,41 @@ export function amazonServerGroupDetailsGetter(
   const { app, serverGroup: serverGroupInfo } = props;
   return new Observable<IAmazonServerGroupView>(observer => {
     extractServerGroupSummary(props).then(summary => {
-      ReactInjector.serverGroupReader
-        .getServerGroup(app.name, serverGroupInfo.accountId, serverGroupInfo.region, serverGroupInfo.name)
-        .then((details: IAmazonServerGroup) => {
-          // it's possible the summary was not found because the clusters are still loading
-          Object.assign(details, summary, { account: serverGroupInfo.accountId });
+      ServerGroupReader.getServerGroup(
+        app.name,
+        serverGroupInfo.accountId,
+        serverGroupInfo.region,
+        serverGroupInfo.name,
+      ).then((details: IAmazonServerGroup) => {
+        // it's possible the summary was not found because the clusters are still loading
+        Object.assign(details, summary, { account: serverGroupInfo.accountId });
 
-          const serverGroup = AwsReactInjector.awsServerGroupTransformer.normalizeServerGroupDetails(details);
+        const serverGroup = AwsReactInjector.awsServerGroupTransformer.normalizeServerGroupDetails(details);
 
-          AccountService.getAccountDetails(serverGroup.account).then(accountDetails => {
-            serverGroup.accountDetails = accountDetails;
-            observer.next(serverGroup);
-          });
+        AccountService.getAccountDetails(serverGroup.account).then(accountDetails => {
+          serverGroup.accountDetails = accountDetails;
+          observer.next(serverGroup);
+        });
 
-          if (!isEmpty(serverGroup)) {
-            const vpc = serverGroup.asg ? serverGroup.asg.vpczoneIdentifier : '';
+        if (!isEmpty(serverGroup)) {
+          const vpc = serverGroup.asg ? serverGroup.asg.vpczoneIdentifier : '';
 
-            if (vpc !== '') {
-              const subnetId = vpc.split(',')[0];
-              ReactInjector.subnetReader.listSubnets().then((subnets: ISubnet[]) => {
-                const subnet = subnets.find(s => s.id === subnetId);
-                serverGroup.subnetType = subnet.purpose;
-                observer.next(serverGroup);
-              });
-            }
-
-            serverGroup.disabledDate = AwsReactInjector.autoScalingProcessService.getDisabledDate(serverGroup);
-
-            observer.next(serverGroup);
-          } else {
-            autoClose();
+          if (vpc !== '') {
+            const subnetId = vpc.split(',')[0];
+            SubnetReader.listSubnets().then((subnets: ISubnet[]) => {
+              const subnet = subnets.find(s => s.id === subnetId);
+              serverGroup.subnetType = subnet.purpose;
+              observer.next(serverGroup);
+            });
           }
-        }, autoClose);
+
+          serverGroup.disabledDate = AwsReactInjector.autoScalingProcessService.getDisabledDate(serverGroup);
+
+          observer.next(serverGroup);
+        } else {
+          autoClose();
+        }
+      }, autoClose);
     }, autoClose);
   });
 }

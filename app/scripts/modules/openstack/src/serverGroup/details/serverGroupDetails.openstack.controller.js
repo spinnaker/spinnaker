@@ -9,9 +9,10 @@ import {
   FirewallLabels,
   OVERRIDE_REGISTRY,
   SECURITY_GROUP_READER,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  ServerGroupReader,
+  ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
+  SubnetReader,
 } from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.openstack.module.js');
@@ -22,9 +23,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
     SECURITY_GROUP_READER,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     OVERRIDE_REGISTRY,
-    SERVER_GROUP_READER,
     require('../configure/ServerGroupCommandBuilder.js').name,
     require('../serverGroup.transformer.js').name,
   ])
@@ -33,16 +32,13 @@ module.exports = angular
     $state,
     app,
     serverGroup,
-    serverGroupReader,
     openstackServerGroupCommandBuilder,
     $uibModal,
     confirmationModalService,
     serverGroupWriter,
-    subnetReader,
     networkReader,
     securityGroupReader,
     loadBalancerReader,
-    serverGroupWarningMessageService,
     openstackServerGroupTransformer,
     overrideRegistry,
   ) {
@@ -95,31 +91,34 @@ module.exports = angular
     let retrieveServerGroup = () => {
       return extractServerGroupSummary()
         .then(summary => {
-          return serverGroupReader
-            .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-            .then(details => {
-              cancelLoader();
+          return ServerGroupReader.getServerGroup(
+            app.name,
+            serverGroup.accountId,
+            serverGroup.region,
+            serverGroup.name,
+          ).then(details => {
+            cancelLoader();
 
-              angular.extend(details, summary);
+            angular.extend(details, summary);
 
-              // it's possible the summary was not found because the clusters are still loading
-              if (!details.account) {
-                details.account = serverGroup.accountId;
-              }
+            // it's possible the summary was not found because the clusters are still loading
+            if (!details.account) {
+              details.account = serverGroup.accountId;
+            }
 
-              openstackServerGroupTransformer.normalizeServerGroup(details);
+            openstackServerGroupTransformer.normalizeServerGroup(details);
 
-              this.serverGroup = details;
-              this.applyAccountDetails(this.serverGroup);
-              this.applySubnetDetails();
-              this.applyFloatingIpDetails();
-              this.applySecurityGroupDetails(this.serverGroup);
-              this.applyLoadBalancerDetails(this.serverGroup);
+            this.serverGroup = details;
+            this.applyAccountDetails(this.serverGroup);
+            this.applySubnetDetails();
+            this.applyFloatingIpDetails();
+            this.applySecurityGroupDetails(this.serverGroup);
+            this.applyLoadBalancerDetails(this.serverGroup);
 
-              if (_.isEmpty(this.serverGroup)) {
-                autoClose();
-              }
-            });
+            if (_.isEmpty(this.serverGroup)) {
+              autoClose();
+            }
+          });
         })
         .catch(autoClose);
     };
@@ -180,7 +179,7 @@ module.exports = angular
         confirmationModalParams.interestingHealthProviderNames = ['Openstack'];
       }
 
-      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };
@@ -213,7 +212,7 @@ module.exports = angular
         confirmationModalParams.interestingHealthProviderNames = ['Openstack'];
       }
 
-      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };
@@ -344,7 +343,7 @@ module.exports = angular
     };
 
     this.applySubnetDetails = () => {
-      return subnetReader.getSubnetByIdAndProvider(this.serverGroup.subnetId, 'openstack').then(details => {
+      return SubnetReader.getSubnetByIdAndProvider(this.serverGroup.subnetId, 'openstack').then(details => {
         ctrl.subnetName = (details || {}).name;
       });
     };

@@ -2,13 +2,11 @@
 
 const angular = require('angular');
 
-import { AccountService, LOAD_BALANCER_WRITE_SERVICE, TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { AccountService, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.kubernetes.create.controller', [
     require('@uirouter/angularjs').default,
-    LOAD_BALANCER_WRITE_SERVICE,
-    V2_MODAL_WIZARD_SERVICE,
     require('../../../namespace/selectField.directive.js').name,
     require('../../transformer.js').name,
   ])
@@ -20,8 +18,6 @@ module.exports = angular
     loadBalancer,
     isNew,
     kubernetesLoadBalancerTransformer,
-    v2modalWizardService,
-    loadBalancerWriter,
   ) {
     var ctrl = this;
     $scope.isNew = isNew;
@@ -151,7 +147,7 @@ module.exports = angular
           cloudProvider: 'kubernetes',
           availabilityZones: zones,
         };
-        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+        return LoadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
       });
     };
 

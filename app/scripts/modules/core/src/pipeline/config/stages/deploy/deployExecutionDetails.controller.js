@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { NameUtils } from 'core/naming';
 import { EXECUTION_DETAILS_SECTION_SERVICE } from 'core/pipeline/details/executionDetailsSection.service';
-import { SERVER_GROUP_READER } from 'core/serverGroup/serverGroupReader.service';
+import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
 import { ClusterState } from 'core/state';
 
@@ -17,14 +17,12 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     EXECUTION_DETAILS_SECTION_SERVICE,
     URL_BUILDER_SERVICE,
-    SERVER_GROUP_READER,
   ])
   .controller('DeployExecutionDetailsCtrl', function(
     $scope,
     $stateParams,
     executionDetailsSectionService,
     urlBuilderService,
-    serverGroupReader,
   ) {
     $scope.configSections = ['deploymentConfig', 'taskStatus'];
 
@@ -93,8 +91,7 @@ module.exports = angular
 
       if (_.has(context, 'source.region') && context['deploy.server.groups']) {
         const serverGroupName = context['deploy.server.groups'][context.source.region][0];
-        serverGroupReader
-          .getServerGroup(context.application, context.account, context.source.region, serverGroupName)
+        ServerGroupReader.getServerGroup(context.application, context.account, context.source.region, serverGroupName)
           .then(serverGroup => {
             if (_.has(serverGroup, 'buildInfo.jenkins')) {
               $scope.changeConfig.buildInfo.jenkins = serverGroup.buildInfo.jenkins;

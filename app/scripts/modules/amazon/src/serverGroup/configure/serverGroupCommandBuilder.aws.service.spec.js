@@ -1,6 +1,6 @@
 'use strict';
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
@@ -8,17 +8,9 @@ describe('Service: awsServerGroup', function() {
   beforeEach(window.module(require('./serverGroupCommandBuilder.service.js').name));
 
   beforeEach(
-    window.inject(function(
-      _$httpBackend_,
-      awsServerGroupCommandBuilder,
-      _instanceTypeService_,
-      _$q_,
-      _subnetReader_,
-      $rootScope,
-    ) {
+    window.inject(function(_$httpBackend_, awsServerGroupCommandBuilder, _instanceTypeService_, _$q_, $rootScope) {
       this.$httpBackend = _$httpBackend_;
       this.service = awsServerGroupCommandBuilder;
-      this.subnetReader = _subnetReader_;
       this.$q = _$q_;
       this.$scope = $rootScope;
       spyOn(_instanceTypeService_, 'getCategoryForInstanceType').and.returnValue(_$q_.when('custom'));
@@ -91,7 +83,7 @@ describe('Service: awsServerGroup', function() {
   describe('buildServerGroupCommandFromExisting', function() {
     beforeEach(function() {
       spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue(this.$q.when([]));
-      spyOn(this.subnetReader, 'listSubnets').and.returnValue(this.$q.when([]));
+      spyOn(SubnetReader, 'listSubnets').and.returnValue(this.$q.when([]));
     });
 
     it('retains non-core suspended processes', function() {

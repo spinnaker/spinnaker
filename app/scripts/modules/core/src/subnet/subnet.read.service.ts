@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IPromise } from 'angular';
 import { InfrastructureCaches } from 'core/cache/infrastructureCaches';
 import { API } from 'core/api/ApiService';
 import { ISubnet } from 'core/domain';
@@ -6,9 +6,9 @@ import { ISubnet } from 'core/domain';
 export class SubnetReader {
   private static NAMESPACE = 'subnets';
 
-  public listSubnets(): ng.IPromise<ISubnet[]> {
+  public static listSubnets(): IPromise<ISubnet[]> {
     return API.one('subnets')
-      .useCache(InfrastructureCaches.get(SubnetReader.NAMESPACE))
+      .useCache(InfrastructureCaches.get(this.NAMESPACE))
       .getList()
       .then((subnets: ISubnet[]) => {
         subnets.forEach((subnet: ISubnet) => {
@@ -22,25 +22,22 @@ export class SubnetReader {
       });
   }
 
-  public listSubnetsByProvider(cloudProvider: string): ng.IPromise<ISubnet[]> {
+  public static listSubnetsByProvider(cloudProvider: string): ng.IPromise<ISubnet[]> {
     return API.one('subnets', cloudProvider)
-      .useCache(InfrastructureCaches.get(SubnetReader.NAMESPACE))
+      .useCache(InfrastructureCaches.get(this.NAMESPACE))
       .getList();
   }
 
-  public getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): ng.IPromise<ISubnet> {
+  public static getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): ng.IPromise<ISubnet> {
     return this.listSubnetsByProvider(cloudProvider).then((subnets: ISubnet[]) => {
       return subnets.find(subnet => subnet.id === subnetId);
     });
   }
 
-  public getSubnetPurpose(subnetId: string): ng.IPromise<string> {
+  public static getSubnetPurpose(subnetId: string): ng.IPromise<string> {
     return this.listSubnets().then((subnets: ISubnet[]) => {
       const match: ISubnet = subnets.find(test => test.id === subnetId);
       return match ? match.purpose : null;
     });
   }
 }
-
-export const SUBNET_READ_SERVICE = 'spinnaker.core.subnet.read.service';
-module(SUBNET_READ_SERVICE, []).service('subnetReader', SubnetReader);

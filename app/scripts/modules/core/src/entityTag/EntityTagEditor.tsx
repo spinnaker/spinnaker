@@ -12,7 +12,6 @@ import {
   HelpField,
   IEntityRef,
   IEntityTag,
-  ReactInjector,
   TaskMonitor,
   SubmitButton,
   Markdown,
@@ -69,7 +68,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     onUpdate: noop,
   };
 
-  private entityTagWriter: EntityTagWriter = ReactInjector.entityTagWriter;
   private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
 
   /** Shows the Entity Tag Editor modal */
@@ -136,7 +134,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     });
 
     const submitMethod = () => {
-      const promise = this.entityTagWriter.upsertEntityTag(application, tag, entityRef, isNew);
+      const promise = EntityTagWriter.upsertEntityTag(application, tag, entityRef, isNew);
       const done = () => this.setState({ isSubmitting: false });
       promise.then(done, done);
       return promise;

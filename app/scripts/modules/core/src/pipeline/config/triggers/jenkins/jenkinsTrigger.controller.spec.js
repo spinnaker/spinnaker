@@ -2,19 +2,19 @@
 
 import _ from 'lodash';
 
+import { IgorService } from 'core/ci';
+
 describe('Controller: jenkinsTrigger', function() {
   beforeEach(window.module(require('./jenkinsTrigger.module.js').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, $q, igorService) {
+    window.inject(function($controller, $rootScope, $q) {
       this.$q = $q;
-      this.igorService = igorService;
       this.$scope = $rootScope.$new();
       this.initializeController = function(trigger) {
         this.controller = $controller('JenkinsTriggerCtrl', {
           $scope: this.$scope,
           trigger: trigger,
-          igorService: this.igorService,
         });
       };
     }),
@@ -27,8 +27,8 @@ describe('Controller: jenkinsTrigger', function() {
         jobs = ['some_job', 'some_other_job'],
         trigger = { master: 'jenkins', job: 'some_job' };
 
-      spyOn(this.igorService, 'listJobsForMaster').and.returnValue($q.when(jobs));
-      spyOn(this.igorService, 'listMasters').and.returnValue($q.when(['jenkins']));
+      spyOn(IgorService, 'listJobsForMaster').and.returnValue($q.when(jobs));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when(['jenkins']));
       this.initializeController(trigger);
       expect($scope.viewState.jobsLoaded).toBe(false);
       expect($scope.viewState.mastersLoaded).toBe(false);
@@ -56,10 +56,10 @@ describe('Controller: jenkinsTrigger', function() {
         $scope = this.$scope,
         $q = this.$q;
 
-      spyOn(this.igorService, 'listJobsForMaster').and.callFake(function() {
+      spyOn(IgorService, 'listJobsForMaster').and.callFake(function() {
         return $q.when(_.find([masterA, masterB], { name: $scope.trigger.master }).jobs);
       });
-      spyOn(this.igorService, 'listMasters').and.returnValue($q.when(['masterA', 'masterB']));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when(['masterA', 'masterB']));
       this.initializeController(trigger);
       $scope.$digest();
 
@@ -92,10 +92,10 @@ describe('Controller: jenkinsTrigger', function() {
         $scope = this.$scope,
         $q = this.$q;
 
-      spyOn(this.igorService, 'listJobsForMaster').and.callFake(function() {
+      spyOn(IgorService, 'listJobsForMaster').and.callFake(function() {
         return $q.when([]);
       });
-      spyOn(this.igorService, 'listMasters').and.returnValue($q.when(['masterA']));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when(['masterA']));
       this.initializeController(trigger);
       $scope.$digest();
 

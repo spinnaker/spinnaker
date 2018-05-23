@@ -1,11 +1,11 @@
 'use strict';
 
-import { CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE, ServerGroupTemplates } from '@spinnaker/core';
+import { CONFIRMATION_MODAL_SERVICE, LoadBalancerWriter, ServerGroupTemplates } from '@spinnaker/core';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.dcos.loadBalancer.details.controller', [CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE])
+  .module('spinnaker.dcos.loadBalancer.details.controller', [CONFIRMATION_MODAL_SERVICE])
   .controller('dcosLoadBalancerDetailsController', function(
     $scope,
     $state,
@@ -13,7 +13,6 @@ module.exports = angular
     loadBalancer,
     app,
     confirmationModalService,
-    loadBalancerWriter,
     dcosProxyUiService,
     $q,
   ) {
@@ -107,7 +106,7 @@ module.exports = angular
         credentials: $scope.loadBalancer.account,
       };
 
-      const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, application);
+      const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, application);
 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',

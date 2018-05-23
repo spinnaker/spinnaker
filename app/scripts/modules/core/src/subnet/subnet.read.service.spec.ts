@@ -1,21 +1,14 @@
-import { mock } from 'angular';
+import { mock, IHttpBackendService, IRootScopeService, IScope } from 'angular';
 
 import { API } from 'core/api/ApiService';
-import { SUBNET_READ_SERVICE, SubnetReader } from 'core/subnet/subnet.read.service';
+import { SubnetReader } from 'core/subnet/subnet.read.service';
 import { ISubnet } from 'core/domain';
 
-describe('subnetReader', function() {
-  let service: SubnetReader, $http: ng.IHttpBackendService, $scope: ng.IScope;
-
-  beforeEach(mock.module(SUBNET_READ_SERVICE));
+describe('SubnetReader', function() {
+  let $http: IHttpBackendService, $scope: IScope;
 
   beforeEach(
-    mock.inject(function(
-      $httpBackend: ng.IHttpBackendService,
-      $rootScope: ng.IRootScopeService,
-      _subnetReader_: SubnetReader,
-    ) {
-      service = _subnetReader_;
+    mock.inject(function($httpBackend: IHttpBackendService, $rootScope: IRootScopeService) {
       $http = $httpBackend;
       $scope = $rootScope.$new();
     }),
@@ -32,7 +25,7 @@ describe('subnetReader', function() {
 
     let result: ISubnet[] = null;
 
-    service.listSubnets().then((subnets: ISubnet[]) => {
+    SubnetReader.listSubnets().then((subnets: ISubnet[]) => {
       result = subnets;
     });
 

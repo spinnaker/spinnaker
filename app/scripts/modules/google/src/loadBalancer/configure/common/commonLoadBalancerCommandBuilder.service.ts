@@ -9,7 +9,6 @@ import {
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
-  SUBNET_READ_SERVICE,
   SubnetReader,
 } from '@spinnaker/core';
 
@@ -39,7 +38,7 @@ export class GceCommonLoadBalancerCommandBuilder {
     },
     accounts: (): IPromise<IAccount[]> => AccountService.listAccounts('gce'),
     networks: (): IPromise<INetwork[]> => this.networkReader.listNetworksByProvider('gce'),
-    subnets: (): IPromise<ISubnet[]> => this.subnetReader.listSubnetsByProvider('gce'),
+    subnets: (): IPromise<ISubnet[]> => SubnetReader.listSubnetsByProvider('gce'),
     healthChecks: (): IPromise<IGceHealthCheck[]> => this.gceHealthCheckReader.listHealthChecks(),
     certificates: (): IPromise<IGceCertificate[]> => this.gceCertificateReader.listCertificates(),
   };
@@ -47,7 +46,6 @@ export class GceCommonLoadBalancerCommandBuilder {
   constructor(
     private $q: ng.IQService,
     private loadBalancerReader: LoadBalancerReader,
-    private subnetReader: SubnetReader,
     private gceHealthCheckReader: GceHealthCheckReader,
     private networkReader: any,
     private gceCertificateReader: GceCertificateReader,
@@ -96,6 +94,5 @@ export const GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER = 'spinnaker.gce.commonLoa
 module(GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER, [
   LOAD_BALANCER_READ_SERVICE,
   GCE_CERTIFICATE_READER,
-  SUBNET_READ_SERVICE,
   GCE_HEALTH_CHECK_READER,
 ]).service('gceCommonLoadBalancerCommandBuilder', GceCommonLoadBalancerCommandBuilder);

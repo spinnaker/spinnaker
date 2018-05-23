@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import { NameUtils } from '@spinnaker/core';
+import { NameUtils, SubnetReader } from '@spinnaker/core';
 
 import { OpenStackProviderSettings } from '../../openstack.settings';
 
@@ -13,7 +13,6 @@ module.exports = angular
   .factory('openstackServerGroupCommandBuilder', function(
     $q,
     openstackImageReader,
-    subnetReader,
     loadBalancerReader,
     applicationReader,
   ) {
@@ -61,7 +60,7 @@ module.exports = angular
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
-      var subnetsLoader = subnetReader.listSubnetsByProvider('openstack');
+      var subnetsLoader = SubnetReader.listSubnetsByProvider('openstack');
       var serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
       var asyncLoader = $q.all({
         subnets: subnetsLoader,

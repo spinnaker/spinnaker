@@ -9,7 +9,7 @@ import {
   Application,
   IPagerDutyService,
   NgReact,
-  ReactInjector,
+  PagerDutyWriter,
   SETTINGS,
   SubmitButton,
   TaskMonitor,
@@ -87,7 +87,6 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
   };
 
   public sendPage = (): void => {
-    const { pagerDutyWriter } = ReactInjector;
     const taskMonitor = new TaskMonitor({
       title: `Sending page to ${this.state.pageCount} policies`,
       modalInstance: this.$uibModalInstanceEmulation,
@@ -98,7 +97,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
       const { applications, services } = this.props;
       const { subject, details } = this.state;
 
-      return pagerDutyWriter.sendPage(applications, services.map(s => s.integration_key), subject, { details });
+      return PagerDutyWriter.sendPage(applications, services.map(s => s.integration_key), subject, { details });
     };
 
     taskMonitor.submit(submitMethod);

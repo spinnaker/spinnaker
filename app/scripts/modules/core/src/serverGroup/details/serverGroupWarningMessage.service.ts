@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { has } from 'lodash';
 
 import { Application } from 'core/application/application.model';
@@ -6,7 +5,7 @@ import { IConfirmationModalParams } from 'core/confirmationModal/confirmationMod
 import { ICluster, IServerGroup } from 'core/domain';
 
 export class ServerGroupWarningMessageService {
-  public addDestroyWarningMessage(
+  public static addDestroyWarningMessage(
     application: Application,
     serverGroup: IServerGroup,
     params: IConfirmationModalParams,
@@ -28,7 +27,7 @@ export class ServerGroupWarningMessageService {
     }
   }
 
-  public addDisableWarningMessage(
+  public static addDisableWarningMessage(
     application: Application,
     serverGroup: IServerGroup,
     params: IConfirmationModalParams,
@@ -67,7 +66,7 @@ export class ServerGroupWarningMessageService {
     }
   }
 
-  private getOtherServerGroupsInCluster(application: Application, serverGroup: IServerGroup): IServerGroup[] {
+  private static getOtherServerGroupsInCluster(application: Application, serverGroup: IServerGroup): IServerGroup[] {
     const cluster: ICluster = application.clusters.find(
       (c: ICluster) => c.account === serverGroup.account && c.name === serverGroup.cluster,
     );
@@ -76,7 +75,7 @@ export class ServerGroupWarningMessageService {
       : [];
   }
 
-  private getRemainingServerGroupsForDisplay(serverGroups: IServerGroup[]): string {
+  private static getRemainingServerGroupsForDisplay(serverGroups: IServerGroup[]): string {
     return serverGroups
       .sort((a, b) => b.name.localeCompare(a.name))
       .map(sg => {
@@ -89,9 +88,3 @@ export class ServerGroupWarningMessageService {
       .join('\n');
   }
 }
-
-export const SERVER_GROUP_WARNING_MESSAGE_SERVICE = 'spinnaker.core.serverGroup.details.warningMessage.service';
-module(SERVER_GROUP_WARNING_MESSAGE_SERVICE, []).service(
-  'serverGroupWarningMessageService',
-  ServerGroupWarningMessageService,
-);

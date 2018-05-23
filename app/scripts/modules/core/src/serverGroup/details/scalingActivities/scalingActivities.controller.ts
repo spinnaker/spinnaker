@@ -2,7 +2,7 @@ import { IController, module } from 'angular';
 import * as _ from 'lodash';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { SERVER_GROUP_READER, ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
+import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { IServerGroup } from 'core/domain';
 
 export interface IScalingActivitiesViewState {
@@ -35,11 +35,7 @@ export class ScalingActivitiesCtrl implements IController {
   public viewState: IScalingActivitiesViewState;
   public activities: IScalingEventSummary[] = [];
 
-  public constructor(
-    private $uibModalInstance: IModalServiceInstance,
-    private serverGroupReader: ServerGroupReader,
-    public serverGroup: IServerGroup,
-  ) {
+  public constructor(private $uibModalInstance: IModalServiceInstance, public serverGroup: IServerGroup) {
     'ngInject';
     this.serverGroup = serverGroup;
   }
@@ -77,7 +73,7 @@ export class ScalingActivitiesCtrl implements IController {
       loading: true,
       error: false,
     };
-    this.serverGroupReader.getScalingActivities(this.serverGroup).then(
+    ServerGroupReader.getScalingActivities(this.serverGroup).then(
       (activities: IRawScalingActivity[]) => {
         this.viewState.loading = false;
         this.groupActivities(activities);
@@ -94,4 +90,4 @@ export class ScalingActivitiesCtrl implements IController {
 }
 
 export const SCALING_ACTIVITIES_CTRL = 'spinnaker.core.serverGroup.scalingActivities.controller';
-module(SCALING_ACTIVITIES_CTRL, [SERVER_GROUP_READER]).controller('ScalingActivitiesCtrl', ScalingActivitiesCtrl);
+module(SCALING_ACTIVITIES_CTRL, []).controller('ScalingActivitiesCtrl', ScalingActivitiesCtrl);

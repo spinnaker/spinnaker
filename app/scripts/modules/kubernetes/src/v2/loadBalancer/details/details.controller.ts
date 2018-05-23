@@ -2,7 +2,7 @@ import { copy, IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
-import { Application, CONFIRMATION_MODAL_SERVICE, ILoadBalancer, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
+import { Application, ILoadBalancer } from '@spinnaker/core';
 
 import { IKubernetesLoadBalancer } from './IKubernetesLoadBalancer';
 
@@ -93,7 +93,7 @@ class KubernetesLoadBalancerDetailsController implements IController {
 }
 
 export const KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.kubernetes.v2.loadBalancerDetails.controller';
-module(KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL, [LOAD_BALANCER_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE]).controller(
+module(KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL, []).controller(
   'kubernetesV2LoadBalancerDetailsCtrl',
   KubernetesLoadBalancerDetailsController,
 );

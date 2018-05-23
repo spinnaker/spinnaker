@@ -1,4 +1,4 @@
-import { PAGER_DUTY_READ_SERVICE, PagerDutyReader, IPagerDutyService } from './pagerDuty.read.service';
+import { PagerDutyReader, IPagerDutyService } from './pagerDuty.read.service';
 import { module, IComponentController, IComponentOptions } from 'angular';
 
 export class PagerDutyTagComponentController implements IComponentController {
@@ -7,13 +7,9 @@ export class PagerDutyTagComponentController implements IComponentController {
   public servicesLoaded = false;
   public currentService: IPagerDutyService;
 
-  constructor(private pagerDutyReader: PagerDutyReader) {
-    'ngInject';
-  }
-
   private setCurrentService(): void {
     this.servicesLoaded = false;
-    this.pagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
+    PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
       this.currentService = pagerDutyServices.find((service: IPagerDutyService) => {
         return service.integration_key === this.apiKey;
       });
@@ -51,4 +47,4 @@ const pagerDutyTagComponent: IComponentOptions = {
 };
 
 export const PAGER_DUTY_TAG_COMPONENT = 'spinnaker.core.pagerDuty.pagerDutyTag.component';
-module(PAGER_DUTY_TAG_COMPONENT, [PAGER_DUTY_READ_SERVICE]).component('pagerDutyTag', pagerDutyTagComponent);
+module(PAGER_DUTY_TAG_COMPONENT, []).component('pagerDutyTag', pagerDutyTagComponent);

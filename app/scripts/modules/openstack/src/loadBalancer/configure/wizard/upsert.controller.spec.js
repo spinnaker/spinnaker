@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { AccountService, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { AccountService, LoadBalancerWriter, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
 
 import { OpenStackProviderSettings } from '../../../openstack.settings';
 
@@ -124,8 +124,8 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
       }
 
       spyOn(AccountService, 'listAccounts').and.returnValue($q.when(this.testData.accountList));
+      spyOn(LoadBalancerWriter, 'upsertLoadBalancer');
       this.mockLoadBalancerReader = addDeferredMock({}, 'listLoadBalancers');
-      this.mockLoadBalancerWriter = addDeferredMock({}, 'upsertLoadBalancer');
       this.mockSecurityGroupReader = addDeferredMock({}, 'getAllSecurityGroups');
 
       this.createController = function(loadBalancer) {
@@ -136,7 +136,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
           application: this.mockApplication,
           loadBalancer: loadBalancer,
           isNew: !loadBalancer,
-          loadBalancerWriter: this.mockLoadBalancerWriter,
           securityGroupReader: this.mockSecurityGroupReader,
         });
       };
@@ -277,7 +276,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
               });
 
               it('- calls upsertLoadBalancer()', function() {
-                expect(this.mockLoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
+                expect(LoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
                   this.$scope.loadBalancer,
                   this.mockApplication,
                   'Create',
@@ -340,7 +339,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
               expect(this.$scope.taskMonitor.submit).toHaveBeenCalled();
 
               this.$scope.taskMonitor.submit.calls.mostRecent().args[0]();
-              expect(this.mockLoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
+              expect(LoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
                 this.$scope.loadBalancer,
                 this.mockApplication,
                 'Create',
@@ -429,7 +428,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
         expect(this.$scope.taskMonitor.submit).toHaveBeenCalled();
 
         this.$scope.taskMonitor.submit.calls.mostRecent().args[0]();
-        expect(this.mockLoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
+        expect(LoadBalancerWriter.upsertLoadBalancer).toHaveBeenCalledWith(
           this.$scope.loadBalancer,
           this.mockApplication,
           'Update',

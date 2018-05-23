@@ -6,28 +6,16 @@ import { INavigationPage } from './pageNavigationState';
 import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 
 describe('Component: Page Navigator', () => {
-  let $compile: ng.ICompileService,
-    $scope: ng.IScope,
-    $timeout: ng.ITimeoutService,
-    elem: JQuery,
-    scrollToService: ScrollToService;
+  let $compile: ng.ICompileService, $scope: ng.IScope, $timeout: ng.ITimeoutService, elem: JQuery;
 
   beforeEach(mock.module(PAGE_NAVIGATOR_COMPONENT));
 
   beforeEach(
-    mock.inject(
-      (
-        _$compile_: ng.ICompileService,
-        $rootScope: ng.IScope,
-        _$timeout_: ng.ITimeoutService,
-        _scrollToService_: ScrollToService,
-      ) => {
-        $compile = _$compile_;
-        $scope = $rootScope.$new();
-        $timeout = _$timeout_;
-        scrollToService = _scrollToService_;
-      },
-    ),
+    mock.inject((_$compile_: ng.ICompileService, $rootScope: ng.IScope, _$timeout_: ng.ITimeoutService) => {
+      $compile = _$compile_;
+      $scope = $rootScope.$new();
+      $timeout = _$timeout_;
+    }),
   );
 
   const initialize = (pages: INavigationPage[]) => {
@@ -73,7 +61,7 @@ describe('Component: Page Navigator', () => {
   describe('navigation', () => {
     beforeEach(() => {
       $.fx.off = true;
-      spyOn(scrollToService, 'scrollTo');
+      spyOn(ScrollToService, 'scrollTo');
     });
     it('scrolls to selected page and adds a highlighted class, removing from previously highlighted ones', () => {
       const pages = [{ key: '1', label: 'Page 1' }, { key: '2', label: 'Page 2' }];
@@ -84,7 +72,7 @@ describe('Component: Page Navigator', () => {
       navigator.find('a:eq(1)').click();
       expect(elem.find('[data-page-id=2]').hasClass('highlighted')).toBe(true);
       $timeout.flush();
-      expect(scrollToService.scrollTo).toHaveBeenCalledWith('[data-page-id=2]', '.container', 0);
+      expect(ScrollToService.scrollTo).toHaveBeenCalledWith('[data-page-id=2]', '.container', 0);
 
       navigator.find('a:eq(0)').click();
       expect(elem.find('[data-page-id=1]').hasClass('highlighted')).toBe(true);

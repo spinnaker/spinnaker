@@ -1,20 +1,20 @@
 'use strict';
 
+import { IgorService } from 'core/ci';
+
 describe('Jenkins Stage Controller', function() {
-  var scope, igorService, $q;
+  var scope, $q;
 
   beforeEach(window.module(require('./jenkinsStage').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _igorService_, _$q_) {
-      igorService = _igorService_;
+    window.inject(function($controller, $rootScope, _$q_) {
       scope = $rootScope.$new();
       $q = _$q_;
       this.initialize = function(stage) {
         $controller('JenkinsStageCtrl', {
           $scope: scope,
           stage: stage,
-          igorService: igorService,
         });
       };
     }),
@@ -22,11 +22,11 @@ describe('Jenkins Stage Controller', function() {
 
   describe('updateJobsList', function() {
     beforeEach(function() {
-      spyOn(igorService, 'listMasters').and.returnValue($q.when([]));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when([]));
     });
 
     it('does nothing if master is parameterized', function() {
-      spyOn(igorService, 'listJobsForMaster');
+      spyOn(IgorService, 'listJobsForMaster');
       let stage = {
         master: '${parameter.master}',
       };
@@ -34,11 +34,11 @@ describe('Jenkins Stage Controller', function() {
       scope.$digest();
       expect(scope.jobs).toBeUndefined();
       expect(scope.viewState.jobsLoaded).toBe(true);
-      expect(igorService.listJobsForMaster.calls.count()).toBe(0);
+      expect(IgorService.listJobsForMaster.calls.count()).toBe(0);
     });
 
     it('does nothing if job is parameterized', function() {
-      spyOn(igorService, 'listJobsForMaster');
+      spyOn(IgorService, 'listJobsForMaster');
       let stage = {
         master: 'not-parameterized',
         job: '${parameter.job}',
@@ -47,11 +47,11 @@ describe('Jenkins Stage Controller', function() {
       scope.$digest();
       expect(scope.jobs).toBeUndefined();
       expect(scope.viewState.jobsLoaded).toBe(true);
-      expect(igorService.listJobsForMaster.calls.count()).toBe(0);
+      expect(IgorService.listJobsForMaster.calls.count()).toBe(0);
     });
 
     it('gets jobs from igor and adds them to scope', function() {
-      spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
+      spyOn(IgorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
       let stage = {
         master: 'not-parameterized',
       };
@@ -62,8 +62,8 @@ describe('Jenkins Stage Controller', function() {
     });
 
     it('clears job if no longer present when retrieving from igor', function() {
-      spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
-      spyOn(igorService, 'getJobConfig').and.returnValue($q.when(null));
+      spyOn(IgorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
+      spyOn(IgorService, 'getJobConfig').and.returnValue($q.when(null));
       let stage = {
         master: 'not-parameterized',
         job: 'c',
@@ -78,12 +78,12 @@ describe('Jenkins Stage Controller', function() {
 
   describe('updateJobConfig', function() {
     beforeEach(function() {
-      spyOn(igorService, 'listMasters').and.returnValue($q.when([]));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when([]));
     });
 
     it('does nothing if master is parameterized', function() {
-      spyOn(igorService, 'listJobsForMaster');
-      spyOn(igorService, 'getJobConfig');
+      spyOn(IgorService, 'listJobsForMaster');
+      spyOn(IgorService, 'getJobConfig');
       let stage = {
         master: '${parameter.master}',
       };
@@ -91,13 +91,13 @@ describe('Jenkins Stage Controller', function() {
       scope.$digest();
       expect(scope.jobs).toBeUndefined();
       expect(scope.viewState.jobsLoaded).toBe(true);
-      expect(igorService.listJobsForMaster.calls.count()).toBe(0);
-      expect(igorService.getJobConfig.calls.count()).toBe(0);
+      expect(IgorService.listJobsForMaster.calls.count()).toBe(0);
+      expect(IgorService.getJobConfig.calls.count()).toBe(0);
     });
 
     it('does nothing if job is parameterized', function() {
-      spyOn(igorService, 'listJobsForMaster');
-      spyOn(igorService, 'getJobConfig');
+      spyOn(IgorService, 'listJobsForMaster');
+      spyOn(IgorService, 'getJobConfig');
       let stage = {
         master: 'not-parameterized',
         job: '${parameter.job}',
@@ -106,8 +106,8 @@ describe('Jenkins Stage Controller', function() {
       scope.$digest();
       expect(scope.jobs).toBeUndefined();
       expect(scope.viewState.jobsLoaded).toBe(true);
-      expect(igorService.listJobsForMaster.calls.count()).toBe(0);
-      expect(igorService.getJobConfig.calls.count()).toBe(0);
+      expect(IgorService.listJobsForMaster.calls.count()).toBe(0);
+      expect(IgorService.getJobConfig.calls.count()).toBe(0);
     });
 
     it('gets job config and adds parameters to scope, setting defaults if present and not overridden', function() {
@@ -119,8 +119,8 @@ describe('Jenkins Stage Controller', function() {
       let jobConfig = {
         parameterDefinitionList: params,
       };
-      spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
-      spyOn(igorService, 'getJobConfig').and.returnValue($q.when(jobConfig));
+      spyOn(IgorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
+      spyOn(IgorService, 'getJobConfig').and.returnValue($q.when(jobConfig));
       let stage = {
         master: 'not-parameterized',
         job: 'a',

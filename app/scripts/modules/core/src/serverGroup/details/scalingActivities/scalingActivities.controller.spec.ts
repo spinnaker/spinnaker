@@ -1,5 +1,7 @@
 import { mock } from 'angular';
 
+import { ServerGroupReader } from '../../serverGroupReader.service';
+
 import {
   SCALING_ACTIVITIES_CTRL,
   ScalingActivitiesCtrl,
@@ -11,26 +13,18 @@ describe('Controller: ScalingActivitiesCtrl', () => {
   let activities: IRawScalingActivity[] = [],
     $scope: ng.IScope,
     $q: ng.IQService,
-    serverGroupReader: any,
     ctrl: ScalingActivitiesCtrl;
 
   beforeEach(mock.module(SCALING_ACTIVITIES_CTRL));
 
   beforeEach(function() {
-    mock.inject(function(
-      $controller: ng.IControllerService,
-      $rootScope: ng.IRootScopeService,
-      _serverGroupReader_: any,
-      _$q_: ng.IQService,
-    ) {
+    mock.inject(function($controller: ng.IControllerService, $rootScope: ng.IRootScopeService, _$q_: ng.IQService) {
       $scope = $rootScope.$new();
       $q = _$q_;
-      serverGroupReader = _serverGroupReader_;
 
-      spyOn(serverGroupReader, 'getScalingActivities').and.callFake(() => $q.when(activities));
+      spyOn(ServerGroupReader, 'getScalingActivities').and.callFake(() => $q.when(activities));
 
       ctrl = $controller('ScalingActivitiesCtrl', {
-        serverGroupReader,
         serverGroup: {
           name: 'asg-v001',
           region: 'us-east-1',

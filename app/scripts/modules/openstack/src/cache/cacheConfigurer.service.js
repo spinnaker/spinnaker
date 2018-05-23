@@ -2,15 +2,11 @@
 
 const angular = require('angular');
 
-import { AccountService, LOAD_BALANCER_READ_SERVICE, NETWORK_READ_SERVICE, SUBNET_READ_SERVICE } from '@spinnaker/core';
+import { AccountService, LOAD_BALANCER_READ_SERVICE, NETWORK_READ_SERVICE, SubnetReader } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.cache.initializer', [
-    LOAD_BALANCER_READ_SERVICE,
-    NETWORK_READ_SERVICE,
-    SUBNET_READ_SERVICE,
-  ])
-  .factory('openstackCacheConfigurer', function(loadBalancerReader, networkReader, subnetReader) {
+  .module('spinnaker.openstack.cache.initializer', [LOAD_BALANCER_READ_SERVICE, NETWORK_READ_SERVICE])
+  .factory('openstackCacheConfigurer', function(loadBalancerReader, networkReader) {
     let config = Object.create(null);
 
     config.credentials = {
@@ -30,7 +26,7 @@ module.exports = angular
     };
 
     config.subnets = {
-      initializers: [() => subnetReader.listSubnetsByProvider('openstack')],
+      initializers: [() => SubnetReader.listSubnetsByProvider('openstack')],
     };
 
     return config;

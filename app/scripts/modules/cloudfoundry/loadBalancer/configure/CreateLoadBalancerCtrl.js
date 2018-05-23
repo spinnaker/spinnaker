@@ -2,14 +2,12 @@
 
 const angular = require('angular');
 
-import { AccountService, LOAD_BALANCER_WRITE_SERVICE, TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { AccountService, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.cf.create.controller', [
     require('@uirouter/angularjs').default,
-    LOAD_BALANCER_WRITE_SERVICE,
     require('../loadBalancer.transformer.js').name,
-    V2_MODAL_WIZARD_SERVICE,
   ])
   .controller('cfCreateLoadBalancerCtrl', function(
     $scope,
@@ -19,8 +17,6 @@ module.exports = angular
     loadBalancer,
     isNew,
     cfLoadBalancerTransformer,
-    v2modalWizardService,
-    loadBalancerWriter,
   ) {
     var ctrl = this;
 
@@ -145,7 +141,7 @@ module.exports = angular
           loadBalancerName: $scope.loadBalancer.name,
         };
 
-        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+        return LoadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
       });
     };
 

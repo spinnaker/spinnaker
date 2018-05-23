@@ -10,7 +10,7 @@ import {
   BAKERY_SERVICE,
   NETWORK_READ_SERVICE,
   Registry,
-  SUBNET_READ_SERVICE,
+  SubnetReader,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -18,7 +18,6 @@ module.exports = angular
     require('./bakeExecutionDetails.controller.js').name,
     BAKERY_SERVICE,
     NETWORK_READ_SERVICE,
-    SUBNET_READ_SERVICE,
   ])
   .config(function() {
     Registry.pipeline.registerStage({
@@ -52,7 +51,7 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('oraclebmcsBakeStageCtrl', function($scope, bakeryService, networkReader, subnetReader, $q) {
+  .controller('oraclebmcsBakeStageCtrl', function($scope, bakeryService, networkReader, $q) {
     const provider = 'oraclebmcs';
 
     if (!$scope.stage.cloudProvider) {
@@ -139,7 +138,7 @@ module.exports = angular
     };
 
     $scope.getSubNetworks = function(provider) {
-      return subnetReader.listSubnetsByProvider(provider).then(subnets => subnets.sort());
+      return SubnetReader.listSubnetsByProvider(provider).then(subnets => subnets.sort());
     };
 
     /**

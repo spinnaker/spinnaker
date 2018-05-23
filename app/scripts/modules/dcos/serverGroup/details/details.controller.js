@@ -5,8 +5,8 @@ import _ from 'lodash';
 
 import {
   CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_READER,
+  ServerGroupWarningMessageService,
+  ServerGroupReader,
   SERVER_GROUP_WRITER,
   ServerGroupTemplates,
 } from '@spinnaker/core';
@@ -15,8 +15,6 @@ module.exports = angular
   .module('spinnaker.dcos.serverGroup.details.controller', [
     require('../configure/configure.dcos.module.js').name,
     CONFIRMATION_MODAL_SERVICE,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-    SERVER_GROUP_READER,
     SERVER_GROUP_WRITER,
     require('../paramsMixin.js').name,
   ])
@@ -25,10 +23,8 @@ module.exports = angular
     $state,
     app,
     serverGroup,
-    serverGroupReader,
     $uibModal,
     serverGroupWriter,
-    serverGroupWarningMessageService,
     dcosServerGroupCommandBuilder,
     dcosServerGroupParamsMixin,
     confirmationModalService,
@@ -93,16 +89,19 @@ module.exports = angular
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      return serverGroupReader
-        .getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-        .then(function(details) {
-          cancelLoader();
+      return ServerGroupReader.getServerGroup(
+        application.name,
+        serverGroup.accountId,
+        serverGroup.region,
+        serverGroup.name,
+      ).then(function(details) {
+        cancelLoader();
 
-          angular.extend(details, summary);
+        angular.extend(details, summary);
 
-          $scope.serverGroup = details;
-          normalizeDeploymentStatus($scope.serverGroup);
-        }, autoClose);
+        $scope.serverGroup = details;
+        normalizeDeploymentStatus($scope.serverGroup);
+      }, autoClose);
     }
 
     function autoClose() {
@@ -170,7 +169,7 @@ module.exports = angular
         },
       };
 
-      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };

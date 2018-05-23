@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   AccountService,
   InfrastructureCaches,
-  LOAD_BALANCER_WRITE_SERVICE,
+  LoadBalancerWriter,
   NameUtils,
   NETWORK_READ_SERVICE,
   TaskMonitor,
@@ -16,7 +16,6 @@ import {
 module.exports = angular
   .module('spinnaker.azure.loadBalancer.create.controller', [
     require('@uirouter/angularjs').default,
-    LOAD_BALANCER_WRITE_SERVICE,
     require('../loadBalancer.transformer.js').name,
     V2_MODAL_WIZARD_SERVICE,
     NETWORK_READ_SERVICE,
@@ -28,7 +27,6 @@ module.exports = angular
     azureLoadBalancerTransformer,
     networkReader,
     v2modalWizardService,
-    loadBalancerWriter,
     application,
     loadBalancer,
     isNew,
@@ -257,7 +255,7 @@ module.exports = angular
           $scope.loadBalancer.probes[0].probePath = undefined;
         }
 
-        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+        return LoadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
       });
     };
 

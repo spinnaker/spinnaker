@@ -6,26 +6,22 @@ import { IBuildTrigger } from 'core/domain/ITrigger';
 import { TRAVIS_TRIGGER, TravisTrigger } from './travisTrigger.module';
 
 describe('Controller: travisTrigger', () => {
-  let $scope: IScope, igorService: IgorService, $q: IQService, $ctrl: IControllerService;
+  let $scope: IScope, $q: IQService, $ctrl: IControllerService;
 
   beforeEach(mock.module(TRAVIS_TRIGGER));
 
   beforeEach(
-    mock.inject(
-      ($controller: IControllerService, $rootScope: IRootScopeService, _$q_: IQService, _igorService_: IgorService) => {
-        $ctrl = $controller;
-        $q = _$q_;
-        igorService = _igorService_;
-        $scope = $rootScope.$new();
-      },
-    ),
+    mock.inject(($controller: IControllerService, $rootScope: IRootScopeService, _$q_: IQService) => {
+      $ctrl = $controller;
+      $q = _$q_;
+      $scope = $rootScope.$new();
+    }),
   );
 
   const initializeController = (trigger: IBuildTrigger): TravisTrigger => {
     return $ctrl(TravisTrigger, {
       trigger,
       $scope,
-      igorService,
     });
   };
 
@@ -34,8 +30,8 @@ describe('Controller: travisTrigger', () => {
       const jobs = ['some_job', 'some_other_job'],
         trigger = { master: 'travis', job: 'some_job' } as IBuildTrigger;
 
-      spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(jobs));
-      spyOn(igorService, 'listMasters').and.returnValue($q.when(['travis']));
+      spyOn(IgorService, 'listJobsForMaster').and.returnValue($q.when(jobs));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when(['travis']));
       const controller = initializeController(trigger);
       expect(controller.viewState.jobsLoaded).toBe(false);
       expect(controller.viewState.mastersLoaded).toBe(false);
@@ -60,10 +56,10 @@ describe('Controller: travisTrigger', () => {
           job: 'a',
         } as IBuildTrigger;
 
-      spyOn(igorService, 'listJobsForMaster').and.callFake((master: string) => {
+      spyOn(IgorService, 'listJobsForMaster').and.callFake((master: string) => {
         return $q.when(find([masterA, masterB], { name: master }).jobs);
       });
-      spyOn(igorService, 'listMasters').and.returnValue($q.when(['masterA', 'masterB']));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when(['masterA', 'masterB']));
 
       const controller = initializeController(trigger);
       $scope.$digest();
@@ -95,10 +91,10 @@ describe('Controller: travisTrigger', () => {
         job: 'a',
       } as IBuildTrigger;
 
-      spyOn(igorService, 'listJobsForMaster').and.callFake(() => {
+      spyOn(IgorService, 'listJobsForMaster').and.callFake(() => {
         return $q.when([]);
       });
-      spyOn(igorService, 'listMasters').and.returnValue($q.when(['masterA']));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when(['masterA']));
       initializeController(trigger);
       $scope.$digest();
 

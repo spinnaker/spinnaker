@@ -1,10 +1,10 @@
-import { IPromise, module } from 'angular';
+import { IPromise } from 'angular';
 import { Application } from 'core/application/application.model';
 import { IEntityRef, IEntityTag, IEntityTags, ITask } from 'core/domain';
 import { TaskExecutor } from 'core/task/taskExecutor';
 
 export class EntityTagWriter {
-  public upsertEntityTag(
+  public static upsertEntityTag(
     application: Application,
     tag: IEntityTag,
     entityRef: IEntityRef,
@@ -26,7 +26,7 @@ export class EntityTagWriter {
     });
   }
 
-  public deleteEntityTag(application: Application, owner: any, entityTag: IEntityTags, tag: string) {
+  public static deleteEntityTag(application: Application, owner: any, entityTag: IEntityTags, tag: string) {
     return TaskExecutor.executeTask({
       application,
       description: `Delete entity tag on ${owner.name}`,
@@ -41,6 +41,3 @@ export class EntityTagWriter {
     });
   }
 }
-
-export const ENTITY_TAG_WRITER = 'spinnaker.core.entityTag.write.service';
-module(ENTITY_TAG_WRITER, []).service('entityTagWriter', EntityTagWriter);

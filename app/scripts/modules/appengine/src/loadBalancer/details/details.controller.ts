@@ -9,7 +9,6 @@ import {
   ConfirmationModalService,
   ILoadBalancer,
   ILoadBalancerDeleteCommand,
-  LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
 } from '@spinnaker/core';
 
@@ -33,7 +32,6 @@ class AppengineLoadBalancerDetailsController implements IController {
     private $scope: IScope,
     loadBalancer: ILoadBalancerFromStateParams,
     private app: Application,
-    private loadBalancerWriter: LoadBalancerWriter,
     private confirmationModalService: ConfirmationModalService,
   ) {
     'ngInject';
@@ -70,7 +68,7 @@ class AppengineLoadBalancerDetailsController implements IController {
         loadBalancerName: this.loadBalancer.name,
         credentials: this.loadBalancer.account,
       };
-      return this.loadBalancerWriter.deleteLoadBalancer(loadBalancer, this.app);
+      return LoadBalancerWriter.deleteLoadBalancer(loadBalancer, this.app);
     };
 
     this.confirmationModalService.confirm({
@@ -156,7 +154,7 @@ class AppengineLoadBalancerDetailsController implements IController {
 }
 
 export const APPENGINE_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.appengine.loadBalancerDetails.controller';
-module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [LOAD_BALANCER_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE]).controller(
+module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [CONFIRMATION_MODAL_SERVICE]).controller(
   'appengineLoadBalancerDetailsCtrl',
   AppengineLoadBalancerDetailsController,
 );

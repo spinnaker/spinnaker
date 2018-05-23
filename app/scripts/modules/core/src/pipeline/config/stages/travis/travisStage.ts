@@ -4,7 +4,7 @@ import * as moment from 'moment';
 
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
-import { IGOR_SERVICE, IgorService, BuildServiceType } from 'core/ci/igor.service';
+import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { IJobConfig, IParameterDefinitionList, IStage } from 'core/domain';
 import { TravisExecutionLabel } from './TravisExecutionLabel';
 
@@ -35,7 +35,7 @@ export class TravisStage implements IController {
   public filterLimit = 100;
   private filterThreshold = 500;
 
-  constructor(public stage: any, $scope: IScope, private igorService: IgorService, private $uibModal: IModalService) {
+  constructor(public stage: any, $scope: IScope, private $uibModal: IModalService) {
     this.stage.failPipeline = this.stage.failPipeline === undefined ? true : this.stage.failPipeline;
     this.stage.continuePipeline = this.stage.continuePipeline === undefined ? false : this.stage.continuePipeline;
     this.viewState = {
@@ -75,7 +75,7 @@ export class TravisStage implements IController {
   }
 
   private initializeMasters(): void {
-    this.igorService.listMasters(BuildServiceType.Travis).then((masters: string[]) => {
+    IgorService.listMasters(BuildServiceType.Travis).then((masters: string[]) => {
       this.masters = masters;
       this.viewState.mastersLoaded = true;
       this.viewState.mastersRefreshing = false;
@@ -94,7 +94,7 @@ export class TravisStage implements IController {
     }
     viewState.jobsLoaded = false;
     this.jobs = [];
-    this.igorService.listJobsForMaster(master).then((jobs: string[]) => {
+    IgorService.listJobsForMaster(master).then((jobs: string[]) => {
       this.viewState.jobsLoaded = true;
       this.viewState.jobsRefreshing = false;
       this.jobs = jobs;
@@ -111,7 +111,7 @@ export class TravisStage implements IController {
     const stage = this.stage;
     const view = this.viewState;
     if (stage && stage.job && stage.master && !view.masterIsParameterized && !view.jobIsParameterized) {
-      this.igorService.getJobConfig(stage.master, stage.job).then((config: IJobConfig) => {
+      IgorService.getJobConfig(stage.master, stage.job).then((config: IJobConfig) => {
         config = config || ({} as IJobConfig);
         if (!stage.parameters) {
           stage.parameters = {};
@@ -153,7 +153,7 @@ export class TravisStage implements IController {
 
 export const TRAVIS_STAGE = 'spinnaker.core.pipeline.stage.travisStage';
 
-module(TRAVIS_STAGE, [IGOR_SERVICE])
+module(TRAVIS_STAGE, [])
   .config(() => {
     if (SETTINGS.feature.travis) {
       Registry.pipeline.registerStage({

@@ -10,11 +10,7 @@ export class PageModalCtrl implements IController {
   public reason: string;
   public taskMonitor: TaskMonitor;
 
-  constructor(
-    public $uibModalInstance: IModalInstanceService,
-    public pagerDutyWriter: PagerDutyWriter,
-    public application: Application,
-  ) {
+  constructor(public $uibModalInstance: IModalInstanceService, public application: Application) {
     'ngInject';
   }
 
@@ -27,7 +23,7 @@ export class PageModalCtrl implements IController {
 
     const submitMethod = () => {
       const reason = `[${this.application.name.toUpperCase()}] ${this.reason}`;
-      return this.pagerDutyWriter.pageApplicationOwner(this.application, reason);
+      return PagerDutyWriter.pageApplicationOwner(this.application, reason);
     };
 
     this.taskMonitor = new TaskMonitor(taskMonitorConfig);

@@ -11,11 +11,9 @@ import {
   ISecurityGroup,
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
-  LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerReader,
   SECURITY_GROUP_READER,
   SecurityGroupReader,
-  SUBNET_READ_SERVICE,
   SubnetReader,
   FirewallLabels,
 } from '@spinnaker/core';
@@ -56,7 +54,6 @@ export class AwsLoadBalancerDetailsController implements IController {
     private app: Application,
     private securityGroupReader: SecurityGroupReader,
     private loadBalancerReader: LoadBalancerReader,
-    private subnetReader: SubnetReader,
   ) {
     'ngInject';
     this.application = app;
@@ -170,11 +167,11 @@ export class AwsLoadBalancerDetailsController implements IController {
             if (this.loadBalancer.subnets) {
               this.loadBalancer.subnetDetails = this.loadBalancer.subnets.reduce(
                 (subnetDetails: ISubnet[], subnetId: string) => {
-                  this.subnetReader
-                    .getSubnetByIdAndProvider(subnetId, this.loadBalancer.provider)
-                    .then((subnetDetail: ISubnet) => {
+                  SubnetReader.getSubnetByIdAndProvider(subnetId, this.loadBalancer.provider).then(
+                    (subnetDetail: ISubnet) => {
                       subnetDetails.push(subnetDetail);
-                    });
+                    },
+                  );
 
                   return subnetDetails;
                 },
@@ -206,8 +203,6 @@ module(AWS_LOAD_BALANCER_DETAILS_CTRL, [
   APPLICATION_READ_SERVICE,
   SECURITY_GROUP_READER,
   LOAD_BALANCER_ACTIONS,
-  LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  SUBNET_READ_SERVICE,
 ]).controller('awsLoadBalancerDetailsCtrl', AwsLoadBalancerDetailsController);

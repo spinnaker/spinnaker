@@ -10,6 +10,7 @@ import {
   ModalInjector,
   NgReact,
   ReactInjector,
+  ServerGroupWarningMessageService,
   SETTINGS,
 } from '@spinnaker/core';
 
@@ -93,7 +94,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       },
     };
 
-    ReactInjector.serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+    ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
     if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
       confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
@@ -127,7 +128,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       askForReason: true,
     };
 
-    ReactInjector.serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+    ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
     if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
       confirmationModalParams.interestingHealthProviderNames = ['Amazon'];

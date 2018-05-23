@@ -2,11 +2,12 @@
 
 const angular = require('angular');
 
+import { SubnetReader } from '@spinnaker/core';
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
 module.exports = angular
   .module('spinnaker.amazon.cache.initializer', [VPC_READ_SERVICE])
-  .factory('awsCacheConfigurer', function($q, subnetReader, vpcReader) {
+  .factory('awsCacheConfigurer', function($q, vpcReader) {
     let config = Object.create(null);
 
     // cache no longer used; version incremented and retained to clear any existing caches
@@ -23,7 +24,7 @@ module.exports = angular
 
     config.subnets = {
       version: 2,
-      initializers: [() => subnetReader.listSubnets()],
+      initializers: [() => SubnetReader.listSubnets()],
     };
 
     config.networks = {

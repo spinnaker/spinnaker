@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { Observable } from 'rxjs';
 
 import { API } from 'core/api/ApiService';
@@ -24,14 +23,11 @@ export interface IOnCall {
 }
 
 export class PagerDutyReader {
-  public listServices(): Observable<IPagerDutyService[]> {
+  public static listServices(): Observable<IPagerDutyService[]> {
     return Observable.fromPromise(API.one('pagerDuty/services').getList());
   }
 
-  public listOnCalls(): Observable<{ [id: string]: IOnCall[] }> {
+  public static listOnCalls(): Observable<{ [id: string]: IOnCall[] }> {
     return Observable.fromPromise(API.one('pagerDuty/oncalls').getList());
   }
 }
-
-export const PAGER_DUTY_READ_SERVICE = 'spinnaker.core.pagerDuty.read.service';
-module(PAGER_DUTY_READ_SERVICE, []).service('pagerDutyReader', PagerDutyReader);

@@ -5,8 +5,8 @@ import _ from 'lodash';
 
 import {
   CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  ServerGroupReader,
+  ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
   FirewallLabels,
 } from '@spinnaker/core';
@@ -17,10 +17,8 @@ module.exports = angular
   .module('spinnaker.azure.serverGroup.details.controller', [
     require('@uirouter/angularjs').default,
     require('../configure/serverGroupCommandBuilder.service.js').name,
-    SERVER_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   ])
   .controller('azureServerGroupDetailsCtrl', function(
     $scope,
@@ -28,8 +26,6 @@ module.exports = angular
     $templateCache,
     app,
     serverGroup,
-    serverGroupWarningMessageService,
-    serverGroupReader,
     azureServerGroupCommandBuilder,
     $uibModal,
     confirmationModalService,
@@ -71,52 +67,55 @@ module.exports = angular
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      return serverGroupReader
-        .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-        .then(function(details) {
-          cancelLoader();
+      return ServerGroupReader.getServerGroup(
+        app.name,
+        serverGroup.accountId,
+        serverGroup.region,
+        serverGroup.name,
+      ).then(function(details) {
+        cancelLoader();
 
-          angular.extend(details, summary);
-          details.account = serverGroup.accountId; // it's possible the summary was not found because the clusters are still loading
+        angular.extend(details, summary);
+        details.account = serverGroup.accountId; // it's possible the summary was not found because the clusters are still loading
 
-          $scope.serverGroup = details;
+        $scope.serverGroup = details;
 
-          if (!_.isEmpty($scope.serverGroup)) {
-            $scope.image = details.image ? details.image : undefined;
+        if (!_.isEmpty($scope.serverGroup)) {
+          $scope.image = details.image ? details.image : undefined;
 
-            if (details.image && details.image.description) {
-              var tags = details.image.description.split(', ');
-              tags.forEach(function(tag) {
-                var keyVal = tag.split('=');
-                if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
-                  details.image.baseImage = keyVal[1];
-                }
-              });
-            }
-
-            if (details.launchConfig && details.launchConfig.securityGroups) {
-              $scope.securityGroups = _.chain(details.launchConfig.securityGroups)
-                .map(function(id) {
-                  return (
-                    _.find(app.securityGroups.data, {
-                      accountName: serverGroup.accountId,
-                      region: serverGroup.region,
-                      id: id,
-                    }) ||
-                    _.find(app.securityGroups.data, {
-                      accountName: serverGroup.accountId,
-                      region: serverGroup.region,
-                      name: id,
-                    })
-                  );
-                })
-                .compact()
-                .value();
-            }
-          } else {
-            $state.go('^');
+          if (details.image && details.image.description) {
+            var tags = details.image.description.split(', ');
+            tags.forEach(function(tag) {
+              var keyVal = tag.split('=');
+              if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
+                details.image.baseImage = keyVal[1];
+              }
+            });
           }
-        });
+
+          if (details.launchConfig && details.launchConfig.securityGroups) {
+            $scope.securityGroups = _.chain(details.launchConfig.securityGroups)
+              .map(function(id) {
+                return (
+                  _.find(app.securityGroups.data, {
+                    accountName: serverGroup.accountId,
+                    region: serverGroup.region,
+                    id: id,
+                  }) ||
+                  _.find(app.securityGroups.data, {
+                    accountName: serverGroup.accountId,
+                    region: serverGroup.region,
+                    name: id,
+                  })
+                );
+              })
+              .compact()
+              .value();
+          }
+        } else {
+          $state.go('^');
+        }
+      });
     }
 
     function cancelLoader() {
@@ -162,7 +161,7 @@ module.exports = angular
         },
       };
 
-      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };
@@ -185,7 +184,7 @@ module.exports = angular
         submitMethod: submitMethod,
       };
 
-      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };

@@ -9,8 +9,8 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   FirewallLabels,
   NameUtils,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  ServerGroupReader,
+  ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
   SETTINGS,
 } from '@spinnaker/core';
@@ -25,8 +25,6 @@ module.exports = angular
     require('../../securityGroup/securityGroup.read.service').name,
     require('@uirouter/angularjs').default,
     require('../configure/ServerGroupCommandBuilder.js').name,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-    SERVER_GROUP_READER,
     CONFIG_BIN_LINK_COMPONENT,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
@@ -42,12 +40,10 @@ module.exports = angular
     app,
     serverGroup,
     titusServerGroupCommandBuilder,
-    serverGroupReader,
     $uibModal,
     confirmationModalService,
     serverGroupWriter,
     awsServerGroupTransformer,
-    serverGroupWarningMessageService,
     titusSecurityGroupReader,
   ) {
     let application = app;
@@ -74,56 +70,59 @@ module.exports = angular
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      return serverGroupReader
-        .getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-        .then(function(details) {
-          cancelLoader();
+      return ServerGroupReader.getServerGroup(
+        application.name,
+        serverGroup.accountId,
+        serverGroup.region,
+        serverGroup.name,
+      ).then(function(details) {
+        cancelLoader();
 
-          // it's possible the summary was not found because the clusters are still loading
-          details.account = serverGroup.accountId;
+        // it's possible the summary was not found because the clusters are still loading
+        details.account = serverGroup.accountId;
 
-          AccountService.getAccountDetails(details.account).then(accountDetails => {
-            details.apiEndpoint = _.filter(accountDetails.regions, { name: details.region })[0].endpoint;
-          });
+        AccountService.getAccountDetails(details.account).then(accountDetails => {
+          details.apiEndpoint = _.filter(accountDetails.regions, { name: details.region })[0].endpoint;
+        });
 
-          angular.extend(details, summary);
+        angular.extend(details, summary);
 
-          $scope.serverGroup = details;
-          var labels = $scope.serverGroup.labels;
-          delete labels['name'];
-          delete labels['source'];
-          delete labels['spinnakerAccount'];
-          delete labels['NETFLIX_APP_METADATA'];
-          delete labels['NETFLIX_APP_METADATA_SIG'];
+        $scope.serverGroup = details;
+        var labels = $scope.serverGroup.labels;
+        delete labels['name'];
+        delete labels['source'];
+        delete labels['spinnakerAccount'];
+        delete labels['NETFLIX_APP_METADATA'];
+        delete labels['NETFLIX_APP_METADATA_SIG'];
 
-          Object.keys(labels).forEach(key => {
-            if (key.startsWith('titus.')) {
-              delete labels[key];
-            }
-          });
-
-          $scope.labels = labels;
-
-          transformScalingPolicies(details);
-
-          if (!_.isEmpty($scope.serverGroup)) {
-            if (details.securityGroups) {
-              $scope.securityGroups = _.chain(details.securityGroups)
-                .map(function(id) {
-                  return titusSecurityGroupReader.resolveIndexedSecurityGroup(
-                    application['securityGroupsIndex'],
-                    details,
-                    id,
-                  );
-                })
-                .compact()
-                .value();
-            }
-            configureEntityTagTargets();
-          } else {
-            autoClose();
+        Object.keys(labels).forEach(key => {
+          if (key.startsWith('titus.')) {
+            delete labels[key];
           }
-        }, autoClose);
+        });
+
+        $scope.labels = labels;
+
+        transformScalingPolicies(details);
+
+        if (!_.isEmpty($scope.serverGroup)) {
+          if (details.securityGroups) {
+            $scope.securityGroups = _.chain(details.securityGroups)
+              .map(function(id) {
+                return titusSecurityGroupReader.resolveIndexedSecurityGroup(
+                  application['securityGroupsIndex'],
+                  details,
+                  id,
+                );
+              })
+              .compact()
+              .value();
+          }
+          configureEntityTagTargets();
+        } else {
+          autoClose();
+        }
+      }, autoClose);
     }
 
     $scope.addConfigBinData = () => {
@@ -258,7 +257,7 @@ module.exports = angular
         },
       };
 
-      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };
@@ -290,7 +289,7 @@ module.exports = angular
         submitMethod: submitMethod,
       };
 
-      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };

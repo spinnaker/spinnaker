@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { SCROLL_TO_SERVICE, ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
+import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 
 export interface IWizardPageState {
   done: boolean;
@@ -22,8 +22,6 @@ export class V2ModalWizardService {
   public pageRegistry: IWizardPage[] = [];
   public currentPage: IWizardPage;
   public heading: string;
-
-  public constructor(private scrollToService: ScrollToService) {}
 
   public setHeading(heading: string): void {
     this.heading = heading;
@@ -59,7 +57,7 @@ export class V2ModalWizardService {
     }
 
     if (!skipScroll) {
-      this.scrollToService.scrollTo(`[waypoint="${page.key}"]`, '[waypoint-container]', 143);
+      ScrollToService.scrollTo(`[waypoint="${page.key}"]`, '[waypoint-container]', 143);
     }
   }
 
@@ -121,4 +119,4 @@ export class V2ModalWizardService {
 }
 
 export const V2_MODAL_WIZARD_SERVICE = 'spinnaker.core.modalWizard.service.v2';
-module(V2_MODAL_WIZARD_SERVICE, [SCROLL_TO_SERVICE]).service('v2modalWizardService', V2ModalWizardService);
+module(V2_MODAL_WIZARD_SERVICE, []).service('v2modalWizardService', V2ModalWizardService);

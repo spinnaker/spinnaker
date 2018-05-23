@@ -32,7 +32,6 @@ module.exports = angular
     application,
     loadBalancer,
     isNew,
-    loadBalancerWriter,
     gceHttpLoadBalancerWriter,
     $state,
     wizardSubFormValidation,

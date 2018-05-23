@@ -10,9 +10,10 @@ import {
   AccountService,
   CONFIRMATION_MODAL_SERVICE,
   OVERRIDE_REGISTRY,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  ServerGroupReader,
   SERVER_GROUP_WRITER,
+  ServerGroupWarningMessageService,
+  SubnetReader,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -21,8 +22,6 @@ module.exports = angular
     ECS_SERVER_GROUP_TRANSFORMER,
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,
-    SERVER_GROUP_READER,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     SERVER_GROUP_WRITER,
     require('../configure/serverGroupCommandBuilder.service.js').name,
     require('./resize/resizeServerGroup.controller').name,
@@ -33,14 +32,11 @@ module.exports = angular
     $state,
     app,
     serverGroup,
-    serverGroupReader,
     ecsServerGroupCommandBuilder,
     $uibModal,
     confirmationModalService,
     serverGroupWriter,
-    subnetReader,
     ecsServerGroupTransformer,
-    serverGroupWarningMessageService,
     overrideRegistry,
   ) {
     this.state = {
@@ -91,59 +87,62 @@ module.exports = angular
     let retrieveServerGroup = () => {
       return extractServerGroupSummary()
         .then(summary => {
-          return serverGroupReader
-            .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-            .then(details => {
-              cancelLoader();
+          return ServerGroupReader.getServerGroup(
+            app.name,
+            serverGroup.accountId,
+            serverGroup.region,
+            serverGroup.name,
+          ).then(details => {
+            cancelLoader();
 
-              // it's possible the summary was not found because the clusters are still loading
-              angular.extend(details, summary, { account: serverGroup.accountId });
+            // it's possible the summary was not found because the clusters are still loading
+            angular.extend(details, summary, { account: serverGroup.accountId });
 
-              this.serverGroup = ecsServerGroupTransformer.normalizeServerGroupDetails(details);
-              this.applyAccountDetails(this.serverGroup);
+            this.serverGroup = ecsServerGroupTransformer.normalizeServerGroupDetails(details);
+            this.applyAccountDetails(this.serverGroup);
 
-              if (!isEmpty(this.serverGroup)) {
-                this.image = details.image ? details.image : undefined;
+            if (!isEmpty(this.serverGroup)) {
+              this.image = details.image ? details.image : undefined;
 
-                var vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
+              var vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
 
-                if (vpc !== '') {
-                  var subnetId = vpc.split(',')[0];
-                  subnetReader.listSubnets().then(subnets => {
-                    var subnet = chain(subnets)
-                      .find({ id: subnetId })
-                      .value();
-                    this.serverGroup.subnetType = subnet.purpose;
-                  });
-                }
+              if (vpc !== '') {
+                var subnetId = vpc.split(',')[0];
+                SubnetReader.listSubnets().then(subnets => {
+                  var subnet = chain(subnets)
+                    .find({ id: subnetId })
+                    .value();
+                  this.serverGroup.subnetType = subnet.purpose;
+                });
+              }
 
-                if (details.image && details.image.description) {
-                  var tags = details.image.description.split(', ');
-                  tags.forEach(tag => {
-                    var keyVal = tag.split('=');
-                    if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
-                      details.image.baseImage = keyVal[1];
-                    }
-                  });
-                }
-
-                if (details.image && details.image.tags) {
-                  var baseAmiVersionTag = details.image.tags.find(tag => tag.key === 'base_ami_version');
-                  if (baseAmiVersionTag) {
-                    details.baseAmiVersion = baseAmiVersionTag.value;
+              if (details.image && details.image.description) {
+                var tags = details.image.description.split(', ');
+                tags.forEach(tag => {
+                  var keyVal = tag.split('=');
+                  if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
+                    details.image.baseImage = keyVal[1];
                   }
+                });
+              }
+
+              if (details.image && details.image.tags) {
+                var baseAmiVersionTag = details.image.tags.find(tag => tag.key === 'base_ami_version');
+                if (baseAmiVersionTag) {
+                  details.baseAmiVersion = baseAmiVersionTag.value;
                 }
+              }
 
-                this.scalingPolicies = this.serverGroup.scalingPolicies;
-                // TODO - figure out whether we need the commented out block below, or not.  IF we do, then we need to make it stop crashing
+              this.scalingPolicies = this.serverGroup.scalingPolicies;
+              // TODO - figure out whether we need the commented out block below, or not.  IF we do, then we need to make it stop crashing
 
-                if (has(this.serverGroup, 'buildInfo.jenkins')) {
-                  this.changeConfig.buildInfo = {
-                    jenkins: this.serverGroup.buildInfo.jenkins,
-                  };
-                }
+              if (has(this.serverGroup, 'buildInfo.jenkins')) {
+                this.changeConfig.buildInfo = {
+                  jenkins: this.serverGroup.buildInfo.jenkins,
+                };
+              }
 
-                /*this.scalingPoliciesDisabled = this.scalingPolicies.length && this.autoScalingProcesses
+              /*this.scalingPoliciesDisabled = this.scalingPolicies.length && this.autoScalingProcesses
                     .filter(p => !p.enabled)
                     .some(p => ['Launch','Terminate','AlarmNotification'].includes(p.name));
                 this.scheduledActionsDisabled = this.serverGroup.scheduledActions.length && this.autoScalingProcesses
@@ -155,10 +154,10 @@ module.exports = angular
                   metadata: get(this.serverGroup.entityTags, 'creationMetadata')
                 };
                 */
-              } else {
-                autoClose();
-              }
-            });
+            } else {
+              autoClose();
+            }
+          });
         })
         .catch(autoClose);
     };
@@ -204,7 +203,7 @@ module.exports = angular
         },
       };
 
-      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Ecs'];
@@ -237,7 +236,7 @@ module.exports = angular
         askForReason: true,
       };
 
-      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Ecs'];

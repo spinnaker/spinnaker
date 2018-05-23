@@ -9,8 +9,6 @@ import {
   ITask,
   PROVIDER_SERVICE_DELEGATE,
   ProviderServiceDelegate,
-  SERVER_GROUP_READER,
-  ServerGroupReader,
   TaskExecutor,
 } from '@spinnaker/core';
 
@@ -25,12 +23,9 @@ export interface IAmazonMultiInstanceJob extends IMultiInstanceJob {
 }
 
 export class AmazonInstanceWriter extends InstanceWriter {
-  public constructor(
-    protected serverGroupReader: ServerGroupReader,
-    protected providerServiceDelegate: ProviderServiceDelegate,
-  ) {
+  public constructor(protected providerServiceDelegate: ProviderServiceDelegate) {
     'ngInject';
-    super(serverGroupReader, providerServiceDelegate);
+    super(providerServiceDelegate);
   }
 
   public deregisterInstancesFromTargetGroup(
@@ -107,7 +102,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
 }
 
 export const AMAZON_INSTANCE_WRITE_SERVICE = 'spinnaker.amazon.instance.write.service';
-module(AMAZON_INSTANCE_WRITE_SERVICE, [INSTANCE_WRITE_SERVICE, SERVER_GROUP_READER, PROVIDER_SERVICE_DELEGATE]).service(
+module(AMAZON_INSTANCE_WRITE_SERVICE, [INSTANCE_WRITE_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
   'amazonInstanceWriter',
   AmazonInstanceWriter,
 );

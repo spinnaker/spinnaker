@@ -1,7 +1,7 @@
 import { IController, module } from 'angular';
 import { PageNavigationState, PAGE_NAVIGATION_STATE } from './pageNavigationState';
 import { throttle } from 'lodash';
-import { ScrollToService, SCROLL_TO_SERVICE } from 'core/utils/scrollTo/scrollTo.service';
+import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 import { PAGE_SECTION_COMPONENT } from './pageSection.component';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import './pageNavigation.less';
@@ -16,11 +16,7 @@ class PageNavigatorController implements IController {
     return `scroll.pageNavigation.${this.id}`;
   }
 
-  public constructor(
-    private $element: JQuery,
-    private scrollToService: ScrollToService,
-    public pageNavigationState: PageNavigationState,
-  ) {
+  public constructor(private $element: JQuery, public pageNavigationState: PageNavigationState) {
     'ngInject';
   }
 
@@ -38,7 +34,7 @@ class PageNavigatorController implements IController {
 
   public setCurrentSection(key: string): void {
     this.pageNavigationState.setCurrentPage(key);
-    this.scrollToService.scrollTo(`[data-page-id=${key}]`, this.scrollableContainer, this.container.offset().top);
+    ScrollToService.scrollTo(`[data-page-id=${key}]`, this.scrollableContainer, this.container.offset().top);
     this.container.find('.highlighted').removeClass('highlighted');
     this.container.find(`[data-page-id=${key}]`).addClass('highlighted');
   }
@@ -106,7 +102,7 @@ class PageNavigatorComponent implements ng.IComponentOptions {
 
 export const PAGE_NAVIGATOR_COMPONENT = 'spinnaker.core.presentation.navigation.pageNavigator';
 
-module(PAGE_NAVIGATOR_COMPONENT, [PAGE_NAVIGATION_STATE, SCROLL_TO_SERVICE, PAGE_SECTION_COMPONENT]).component(
+module(PAGE_NAVIGATOR_COMPONENT, [PAGE_NAVIGATION_STATE, PAGE_SECTION_COMPONENT]).component(
   'pageNavigator',
   new PageNavigatorComponent(),
 );

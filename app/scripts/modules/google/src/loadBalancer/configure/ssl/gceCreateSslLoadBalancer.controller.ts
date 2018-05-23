@@ -11,7 +11,6 @@ import {
   ILoadBalancerUpsertCommand,
   IInstance,
   IRegion,
-  LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
   TaskMonitor,
 } from '@spinnaker/core';
@@ -95,7 +94,6 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
     private loadBalancer: SslLoadBalancer,
     private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
     private isNew: boolean,
-    private loadBalancerWriter: LoadBalancerWriter,
     private wizardSubFormValidation: any,
     $state: StateService,
   ) {
@@ -209,7 +207,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
     delete toSubmitLoadBalancer.instances;
 
     this.taskMonitor.submit(() =>
-      this.loadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {
+      LoadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {
         healthCheck: {},
       }),
     );
@@ -229,5 +227,4 @@ export const GCE_SSL_LOAD_BALANCER_CTRL = 'spinnaker.gce.sslLoadBalancer.control
 module(GCE_SSL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
-  LOAD_BALANCER_WRITE_SERVICE,
 ]).controller('gceSslLoadBalancerCtrl', SslLoadBalancerCtrl);

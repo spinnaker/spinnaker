@@ -11,7 +11,6 @@ import {
   ILoadBalancerUpsertCommand,
   IInstance,
   IRegion,
-  LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
   TaskMonitor,
 } from '@spinnaker/core';
@@ -93,7 +92,6 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     private loadBalancer: TcpLoadBalancer,
     private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
     private isNew: boolean,
-    private loadBalancerWriter: LoadBalancerWriter,
     private wizardSubFormValidation: any,
     $state: StateService,
   ) {
@@ -200,7 +198,7 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     delete toSubmitLoadBalancer.instances;
 
     this.taskMonitor.submit(() =>
-      this.loadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {
+      LoadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {
         healthCheck: {},
       }),
     );
@@ -219,5 +217,4 @@ export const GCE_TCP_LOAD_BALANCER_CTRL = 'spinnaker.gce.tcpLoadBalancer.control
 module(GCE_TCP_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
-  LOAD_BALANCER_WRITE_SERVICE,
 ]).controller('gceTcpLoadBalancerCtrl', TcpLoadBalancerCtrl);

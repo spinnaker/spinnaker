@@ -1,4 +1,5 @@
-import { IPromise, module, IQService } from 'angular';
+import { IPromise } from 'angular';
+import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
 import { IBuild, IJobConfig } from 'core/domain';
@@ -9,16 +10,12 @@ export enum BuildServiceType {
 }
 
 export class IgorService {
-  constructor(private $q: IQService) {
-    'ngInject';
-  }
-
-  public listMasters(type: BuildServiceType = null): IPromise<string[]> {
+  public static listMasters(type: BuildServiceType = null): IPromise<string[]> {
     const allMasters: IPromise<string[]> = API.one('v2')
       .one('builds')
       .get();
     if (!allMasters) {
-      return this.$q.reject('An error occurred when retrieving build masters');
+      return $q.reject('An error occurred when retrieving build masters');
     }
     switch (type) {
       case BuildServiceType.Jenkins:
@@ -30,7 +27,7 @@ export class IgorService {
     }
   }
 
-  public listJobsForMaster(master: string): IPromise<string[]> {
+  public static listJobsForMaster(master: string): IPromise<string[]> {
     return API.one('v2')
       .one('builds')
       .one(master)
@@ -38,7 +35,7 @@ export class IgorService {
       .get();
   }
 
-  public listBuildsForJob(master: string, job: string): IPromise<IBuild[]> {
+  public static listBuildsForJob(master: string, job: string): IPromise<IBuild[]> {
     return API.one('v2')
       .one('builds')
       .one(master)
@@ -47,7 +44,7 @@ export class IgorService {
       .get();
   }
 
-  public getJobConfig(master: string, job: string): IPromise<IJobConfig> {
+  public static getJobConfig(master: string, job: string): IPromise<IJobConfig> {
     return API.one('v2')
       .one('builds')
       .one(master)
@@ -56,6 +53,3 @@ export class IgorService {
       .get();
   }
 }
-
-export const IGOR_SERVICE = 'spinnaker.core.ci.jenkins.igor.service';
-module(IGOR_SERVICE, []).factory('igorService', ($q: IQService) => new IgorService($q));

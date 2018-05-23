@@ -5,18 +5,16 @@ import _ from 'lodash';
 
 import {
   CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  ServerGroupReader,
   SERVER_GROUP_WRITER,
   ServerGroupTemplates,
+  ServerGroupWarningMessageService,
 } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.cf.controller', [
     require('@uirouter/angularjs').default,
     require('../configure/ServerGroupCommandBuilder.js').name,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-    SERVER_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
     require('./resize/resizeServerGroup.controller').name,
@@ -30,11 +28,9 @@ module.exports = angular
     app,
     serverGroup,
     cfServerGroupCommandBuilder,
-    serverGroupReader,
     $uibModal,
     confirmationModalService,
     serverGroupWriter,
-    serverGroupWarningMessageService,
   ) {
     let application = (this.application = app);
 
@@ -67,46 +63,49 @@ module.exports = angular
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      return serverGroupReader
-        .getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-        .then(function(details) {
-          cancelLoader();
+      return ServerGroupReader.getServerGroup(
+        application.name,
+        serverGroup.accountId,
+        serverGroup.region,
+        serverGroup.name,
+      ).then(function(details) {
+        cancelLoader();
 
-          // it's possible the summary was not found because the clusters are still loading
-          details.account = serverGroup.accountId;
-          angular.extend(details, summary);
+        // it's possible the summary was not found because the clusters are still loading
+        details.account = serverGroup.accountId;
+        angular.extend(details, summary);
 
-          $scope.serverGroup = details;
+        $scope.serverGroup = details;
 
-          if (!_.isEmpty($scope.serverGroup)) {
-            if (details.securityGroups) {
-              $scope.securityGroups = _.chain(details.securityGroups)
-                .map(function(id) {
-                  return (
-                    _.find(application.securityGroups.data, {
-                      accountName: serverGroup.accountId,
-                      region: serverGroup.region,
-                      id: id,
-                    }) ||
-                    _.find(application.securityGroups.data, {
-                      accountName: serverGroup.accountId,
-                      region: serverGroup.region,
-                      name: id,
-                    })
-                  );
-                })
-                .compact()
-                .value();
-            }
-
-            //var pathSegments = $scope.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
-            //var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
-
-            // TODO Add link to CF console outputs
-          } else {
-            autoClose();
+        if (!_.isEmpty($scope.serverGroup)) {
+          if (details.securityGroups) {
+            $scope.securityGroups = _.chain(details.securityGroups)
+              .map(function(id) {
+                return (
+                  _.find(application.securityGroups.data, {
+                    accountName: serverGroup.accountId,
+                    region: serverGroup.region,
+                    id: id,
+                  }) ||
+                  _.find(application.securityGroups.data, {
+                    accountName: serverGroup.accountId,
+                    region: serverGroup.region,
+                    name: id,
+                  })
+                );
+              })
+              .compact()
+              .value();
           }
-        }, autoClose);
+
+          //var pathSegments = $scope.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
+          //var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
+
+          // TODO Add link to CF console outputs
+        } else {
+          autoClose();
+        }
+      }, autoClose);
     }
 
     function autoClose() {
@@ -165,7 +164,7 @@ module.exports = angular
         },
       };
 
-      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };
@@ -194,7 +193,7 @@ module.exports = angular
         submitMethod: submitMethod,
       };
 
-      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+      ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };

@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 import { SERVICE_ACCOUNT_SERVICE } from 'core/serviceAccount/serviceAccount.service.ts';
-import { IGOR_SERVICE, BuildServiceType } from 'core/ci/igor.service';
+import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
@@ -11,7 +11,6 @@ import { JenkinsTriggerTemplate } from './JenkinsTriggerTemplate';
 module.exports = angular
   .module('spinnaker.core.pipeline.config.trigger.jenkins', [
     require('../trigger.directive.js').name,
-    IGOR_SERVICE,
     SERVICE_ACCOUNT_SERVICE,
   ])
   .config(function() {
@@ -38,7 +37,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, serviceAccountService) {
+  .controller('JenkinsTriggerCtrl', function($scope, trigger, serviceAccountService) {
     $scope.trigger = trigger;
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     serviceAccountService.getServiceAccounts().then(accounts => {
@@ -53,7 +52,7 @@ module.exports = angular
     };
 
     function initializeMasters() {
-      igorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
+      IgorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
         $scope.masters = masters;
         $scope.viewState.mastersLoaded = true;
         $scope.viewState.mastersRefreshing = false;
@@ -74,7 +73,7 @@ module.exports = angular
       if ($scope.trigger && $scope.trigger.master) {
         $scope.viewState.jobsLoaded = false;
         $scope.jobs = [];
-        igorService.listJobsForMaster($scope.trigger.master).then(function(jobs) {
+        IgorService.listJobsForMaster($scope.trigger.master).then(function(jobs) {
           $scope.viewState.jobsLoaded = true;
           $scope.viewState.jobsRefreshing = false;
           $scope.jobs = jobs;

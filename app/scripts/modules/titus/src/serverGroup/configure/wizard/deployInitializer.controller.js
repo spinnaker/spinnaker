@@ -3,14 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { SERVER_GROUP_READER } from '@spinnaker/core';
+import { ServerGroupReader } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.titus.deployInitialization.controller', [
-    SERVER_GROUP_READER,
     require('../ServerGroupCommandBuilder.js').name,
   ])
-  .controller('titusDeployInitializerCtrl', function($scope, titusServerGroupCommandBuilder, serverGroupReader) {
+  .controller('titusDeployInitializerCtrl', function($scope, titusServerGroupCommandBuilder) {
     var controller = this;
 
     var noTemplate = { label: 'None', serverGroup: null, cluster: null };
@@ -53,16 +52,19 @@ module.exports = angular
     }
 
     function buildCommandFromTemplate(serverGroup) {
-      return serverGroupReader
-        .getServerGroup($scope.application.name, serverGroup.account, serverGroup.region, serverGroup.name)
-        .then(function(details) {
-          angular.extend(details, serverGroup);
-          return titusServerGroupCommandBuilder
-            .buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline')
-            .then(function(command) {
-              applyCommandToScope(command);
-            });
-        });
+      return ServerGroupReader.getServerGroup(
+        $scope.application.name,
+        serverGroup.account,
+        serverGroup.region,
+        serverGroup.name,
+      ).then(function(details) {
+        angular.extend(details, serverGroup);
+        return titusServerGroupCommandBuilder
+          .buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline')
+          .then(function(command) {
+            applyCommandToScope(command);
+          });
+      });
     }
 
     controller.selectTemplate = function() {

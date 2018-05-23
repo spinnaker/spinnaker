@@ -6,36 +6,32 @@ import { IJobConfig, IParameterDefinitionList } from 'core/domain';
 import { TRAVIS_STAGE, TravisStage } from './travisStage';
 
 describe('Travis Stage Controller', () => {
-  let $scope: IScope, igorService: IgorService, $q: IQService, $ctrl: IControllerService;
+  let $scope: IScope, $q: IQService, $ctrl: IControllerService;
 
   beforeEach(mock.module(TRAVIS_STAGE, require('angular-ui-bootstrap')));
 
   beforeEach(
-    mock.inject(
-      ($controller: IControllerService, $rootScope: IRootScopeService, _igorService_: IgorService, _$q_: IQService) => {
-        $ctrl = $controller;
-        igorService = _igorService_;
-        $scope = $rootScope.$new();
-        $q = _$q_;
-      },
-    ),
+    mock.inject(($controller: IControllerService, $rootScope: IRootScopeService, _$q_: IQService) => {
+      $ctrl = $controller;
+      $scope = $rootScope.$new();
+      $q = _$q_;
+    }),
   );
 
   const initialize = (stage: any): TravisStage => {
     return $ctrl(TravisStage, {
       stage,
       $scope,
-      igorService,
     });
   };
 
   describe('updateJobsList', () => {
     beforeEach(() => {
-      spyOn(igorService, 'listMasters').and.returnValue($q.when([]));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when([]));
     });
 
     it('does nothing if master is parameterized', () => {
-      spyOn(igorService, 'listJobsForMaster');
+      spyOn(IgorService, 'listJobsForMaster');
       const stage = {
         master: '${parameter.master}',
       };
@@ -43,11 +39,11 @@ describe('Travis Stage Controller', () => {
       $scope.$digest();
       expect(controller.jobs).toBeUndefined();
       expect(controller.viewState.jobsLoaded).toBe(true);
-      expect((igorService.listJobsForMaster as Spy).calls.count()).toBe(0);
+      expect((IgorService.listJobsForMaster as Spy).calls.count()).toBe(0);
     });
 
     it('does nothing if job is parameterized', () => {
-      spyOn(igorService, 'listJobsForMaster');
+      spyOn(IgorService, 'listJobsForMaster');
       const stage = {
         master: 'not-parameterized',
         job: '${parameter.job}',
@@ -56,11 +52,11 @@ describe('Travis Stage Controller', () => {
       $scope.$digest();
       expect(controller.jobs).toBeUndefined();
       expect(controller.viewState.jobsLoaded).toBe(true);
-      expect((igorService.listJobsForMaster as Spy).calls.count()).toBe(0);
+      expect((IgorService.listJobsForMaster as Spy).calls.count()).toBe(0);
     });
 
     it('gets jobs from igor and adds them to scope', () => {
-      spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
+      spyOn(IgorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
       const stage = {
         master: 'not-parameterized',
       };
@@ -71,8 +67,8 @@ describe('Travis Stage Controller', () => {
     });
 
     it('clears job if no longer present when retrieving from igor', () => {
-      spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
-      spyOn(igorService, 'getJobConfig').and.returnValue($q.when(null));
+      spyOn(IgorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
+      spyOn(IgorService, 'getJobConfig').and.returnValue($q.when(null));
       const stage = {
         master: 'not-parameterized',
         job: 'c',
@@ -87,12 +83,12 @@ describe('Travis Stage Controller', () => {
 
   describe('updateJobConfig', () => {
     beforeEach(() => {
-      spyOn(igorService, 'listMasters').and.returnValue($q.when([]));
+      spyOn(IgorService, 'listMasters').and.returnValue($q.when([]));
     });
 
     it('does nothing if master is parameterized', () => {
-      spyOn(igorService, 'listJobsForMaster');
-      spyOn(igorService, 'getJobConfig');
+      spyOn(IgorService, 'listJobsForMaster');
+      spyOn(IgorService, 'getJobConfig');
       const stage = {
         master: '${parameter.master}',
       };
@@ -100,13 +96,13 @@ describe('Travis Stage Controller', () => {
       $scope.$digest();
       expect(controller.jobs).toBeUndefined();
       expect(controller.viewState.jobsLoaded).toBe(true);
-      expect((igorService.listJobsForMaster as Spy).calls.count()).toBe(0);
-      expect((igorService.getJobConfig as Spy).calls.count()).toBe(0);
+      expect((IgorService.listJobsForMaster as Spy).calls.count()).toBe(0);
+      expect((IgorService.getJobConfig as Spy).calls.count()).toBe(0);
     });
 
     it('does nothing if job is parameterized', () => {
-      spyOn(igorService, 'listJobsForMaster');
-      spyOn(igorService, 'getJobConfig');
+      spyOn(IgorService, 'listJobsForMaster');
+      spyOn(IgorService, 'getJobConfig');
       const stage = {
         master: 'not-parameterized',
         job: '${parameter.job}',
@@ -115,8 +111,8 @@ describe('Travis Stage Controller', () => {
       $scope.$digest();
       expect(controller.jobs).toBeUndefined();
       expect(controller.viewState.jobsLoaded).toBe(true);
-      expect((igorService.listJobsForMaster as Spy).calls.count()).toBe(0);
-      expect((igorService.getJobConfig as Spy).calls.count()).toBe(0);
+      expect((IgorService.listJobsForMaster as Spy).calls.count()).toBe(0);
+      expect((IgorService.getJobConfig as Spy).calls.count()).toBe(0);
     });
 
     it('gets job config and adds parameters to scope, setting defaults if present and not overridden', () => {
@@ -128,8 +124,8 @@ describe('Travis Stage Controller', () => {
       const jobConfig = {
         parameterDefinitionList: params,
       } as IJobConfig;
-      spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
-      spyOn(igorService, 'getJobConfig').and.returnValue($q.when(jobConfig));
+      spyOn(IgorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
+      spyOn(IgorService, 'getJobConfig').and.returnValue($q.when(jobConfig));
       const stage = {
         master: 'not-parameterized',
         job: 'a',

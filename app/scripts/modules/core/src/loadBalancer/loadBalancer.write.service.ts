@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IPromise } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { InfrastructureCaches } from 'core/cache';
@@ -29,7 +29,7 @@ export interface ILoadBalancerDeleteCommand extends IJob {
 }
 
 export class LoadBalancerWriter {
-  public deleteLoadBalancer(command: ILoadBalancerDeleteCommand, application: Application): ng.IPromise<ITask> {
+  public static deleteLoadBalancer(command: ILoadBalancerDeleteCommand, application: Application): ng.IPromise<ITask> {
     command.type = 'deleteLoadBalancer';
 
     InfrastructureCaches.clearCache('loadBalancers');
@@ -41,12 +41,12 @@ export class LoadBalancerWriter {
     });
   }
 
-  public upsertLoadBalancer(
+  public static upsertLoadBalancer(
     command: ILoadBalancerUpsertCommand,
     application: Application,
     descriptor: string,
     params: any = {},
-  ): ng.IPromise<ITask> {
+  ): IPromise<ITask> {
     Object.assign(command, params);
     command.type = 'upsertLoadBalancer';
 
@@ -59,6 +59,3 @@ export class LoadBalancerWriter {
     });
   }
 }
-
-export const LOAD_BALANCER_WRITE_SERVICE = 'spinnaker.core.loadBalancer.write.service';
-module(LOAD_BALANCER_WRITE_SERVICE, []).service('loadBalancerWriter', LoadBalancerWriter);

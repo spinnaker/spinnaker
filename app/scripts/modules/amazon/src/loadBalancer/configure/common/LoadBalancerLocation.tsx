@@ -15,9 +15,9 @@ import {
   IWizardPageProps,
   NameUtils,
   NgReact,
-  ReactInjector,
   RegionSelectField,
   Spinner,
+  SubnetReader,
   ValidationError,
   wizardPage,
 } from '@spinnaker/core';
@@ -163,7 +163,7 @@ class LoadBalancerLocationImpl extends React.Component<
   private getAvailableSubnets(): IPromise<ISubnet[]> {
     const account = this.props.values.credentials,
       region = this.props.values.region;
-    return ReactInjector.subnetReader.listSubnets().then(subnets => {
+    return SubnetReader.listSubnets().then(subnets => {
       return chain(subnets)
         .filter({ account, region })
         .reject({ target: 'ec2' })

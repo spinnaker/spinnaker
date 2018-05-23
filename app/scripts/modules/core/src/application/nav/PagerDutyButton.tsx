@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { Application } from 'core/application';
-import { ReactInjector } from 'core/reactShims';
+import { PagerDutyWriter } from 'core/pagerDuty';
 import { Tooltip } from 'core/presentation';
 
 export interface IPagerDutyButtonProps {
@@ -10,7 +10,7 @@ export interface IPagerDutyButtonProps {
 
 export class PagerDutyButton extends React.Component<IPagerDutyButtonProps> {
   private pageApplicationOwner = (): void => {
-    ReactInjector.pagerDutyWriter.pageApplicationOwnerModal(this.props.app);
+    PagerDutyWriter.pageApplicationOwnerModal(this.props.app);
   };
 
   public render() {

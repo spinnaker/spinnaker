@@ -2,12 +2,11 @@
 
 const angular = require('angular');
 
-import { AccountService, LOAD_BALANCER_WRITE_SERVICE, TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { AccountService, LoadBalancerWriter, TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.gce.create.controller', [
     require('@uirouter/angularjs').default,
-    LOAD_BALANCER_WRITE_SERVICE,
     require('../../loadBalancer.transformer.js').name,
     V2_MODAL_WIZARD_SERVICE,
     require('../../../gceRegionSelectField.directive.js').name,
@@ -21,7 +20,6 @@ module.exports = angular
     loadBalancer,
     isNew,
     v2modalWizardService,
-    loadBalancerWriter,
   ) {
     var ctrl = this;
 
@@ -204,7 +202,7 @@ module.exports = angular
           }
         }
 
-        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+        return LoadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
       });
     };
 

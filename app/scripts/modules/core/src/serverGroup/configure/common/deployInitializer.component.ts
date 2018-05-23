@@ -5,7 +5,7 @@ import { groupBy, sortBy } from 'lodash';
 import { IServerGroup } from 'core/domain';
 import { Application } from 'core/application';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
-import { SERVER_GROUP_READER, ServerGroupReader } from 'core/serverGroup';
+import { ServerGroupReader } from 'core/serverGroup';
 
 export interface IDeployTemplate {
   label?: string;
@@ -41,7 +41,7 @@ export class DeployInitializerController implements IController {
 
   private noTemplate: IDeployTemplate = { label: 'None', serverGroup: null, cluster: null };
 
-  constructor(private providerServiceDelegate: ProviderServiceDelegate, private serverGroupReader: ServerGroupReader) {
+  constructor(private providerServiceDelegate: ProviderServiceDelegate) {
     'ngInject';
   }
 
@@ -98,12 +98,15 @@ export class DeployInitializerController implements IController {
       this.cloudProvider,
       'serverGroup.commandBuilder',
     );
-    return this.serverGroupReader
-      .getServerGroup(this.application.name, serverGroup.account, serverGroup.region, serverGroup.name)
-      .then(details => {
-        details.account = serverGroup.account;
-        return commandBuilder.buildServerGroupCommandFromExisting(this.application, details, 'editPipeline');
-      });
+    return ServerGroupReader.getServerGroup(
+      this.application.name,
+      serverGroup.account,
+      serverGroup.region,
+      serverGroup.name,
+    ).then(details => {
+      details.account = serverGroup.account;
+      return commandBuilder.buildServerGroupCommandFromExisting(this.application, details, 'editPipeline');
+    });
   }
 
   private buildEmptyCommand(): IPromise<any> {
@@ -143,7 +146,4 @@ const component: IComponentOptions = {
 };
 
 export const DEPLOY_INITIALIZER_COMPONENT = 'spinnaker.core.serverGroup.configure.deployInitializer';
-module(DEPLOY_INITIALIZER_COMPONENT, [PROVIDER_SERVICE_DELEGATE, SERVER_GROUP_READER]).component(
-  'deployInitializer',
-  component,
-);
+module(DEPLOY_INITIALIZER_COMPONENT, [PROVIDER_SERVICE_DELEGATE]).component('deployInitializer', component);

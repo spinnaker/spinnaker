@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, LOAD_BALANCER_READ_SERVICE, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
+import { AccountService, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import { GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT } from '../configure/choice/loadBalancerTypeToWizardMap.constant';
 import { GCE_BACKEND_SERVICE_DETAILS_COMPONENT } from './backendService/backendService.component';
@@ -14,7 +14,6 @@ import { DELETE_MODAL_CONTROLLER } from './deleteModal/deleteModal.controller';
 module.exports = angular
   .module('spinnaker.loadBalancer.gce.details.controller', [
     require('@uirouter/angularjs').default,
-    LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     require('google/common/xpnNaming.gce.service.js').name,
     require('./hostAndPathRules/hostAndPathRulesButton.component.js').name,
@@ -33,7 +32,6 @@ module.exports = angular
     loadBalancer,
     app,
     gceHttpLoadBalancerUtils,
-    loadBalancerWriter,
     loadBalancerReader,
     $q,
     loadBalancerTypeToWizardMap,

@@ -1,13 +1,7 @@
 import { IController, IPromise, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
-import {
-  Application,
-  ILoadBalancerDeleteCommand,
-  LOAD_BALANCER_WRITE_SERVICE,
-  LoadBalancerWriter,
-  TaskMonitor,
-} from '@spinnaker/core';
+import { Application, ILoadBalancerDeleteCommand, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
 import {
   GCE_HTTP_LOAD_BALANCER_UTILS,
@@ -39,7 +33,6 @@ class DeleteLoadBalancerModalController implements IController {
     private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils,
     private gceHttpLoadBalancerWriter: any,
     private loadBalancer: any,
-    private loadBalancerWriter: LoadBalancerWriter,
     private $uibModalInstance: IModalInstanceService,
   ) {
     'ngInject';
@@ -91,7 +84,7 @@ class DeleteLoadBalancerModalController implements IController {
           loadBalancerType: this.loadBalancer.loadBalancerType || 'NETWORK',
           deleteHealthChecks: this.params.deleteHealthChecks,
         };
-        return this.loadBalancerWriter.deleteLoadBalancer(command, this.application);
+        return LoadBalancerWriter.deleteLoadBalancer(command, this.application);
       };
     }
   }
@@ -100,7 +93,6 @@ class DeleteLoadBalancerModalController implements IController {
 export const DELETE_MODAL_CONTROLLER = 'spinnaker.gce.loadBalancer.deleteModal.controller';
 module(DELETE_MODAL_CONTROLLER, [
   require('angular-ui-bootstrap'),
-  LOAD_BALANCER_WRITE_SERVICE,
   require('../../configure/http/httpLoadBalancer.write.service.js').name,
   GCE_HTTP_LOAD_BALANCER_UTILS,
 ]).controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);

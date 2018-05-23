@@ -3,7 +3,7 @@ import { IComponentController, IComponentOptions, module } from 'angular';
 import { SETTINGS } from 'core/config/settings';
 import { SchedulerFactory } from 'core/scheduler/scheduler.factory';
 
-import { IPagerDutyService, PAGER_DUTY_READ_SERVICE, PagerDutyReader } from './pagerDuty.read.service';
+import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
 export class PagerDutySelectFieldController implements IComponentController {
   public component: any;
@@ -24,7 +24,7 @@ export class PagerDutySelectFieldController implements IComponentController {
   public required = (SETTINGS.pagerDuty && SETTINGS.pagerDuty.required) || false;
   public label = `PagerDuty${this.required ? ' *' : ''}`;
 
-  public constructor(private pagerDutyReader: PagerDutyReader, private schedulerFactory: SchedulerFactory) {
+  public constructor(private schedulerFactory: SchedulerFactory) {
     'ngInject';
   }
 
@@ -39,7 +39,7 @@ export class PagerDutySelectFieldController implements IComponentController {
   }
 
   private loadPagerDutyServices(): void {
-    this.pagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
+    PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
       this.pagerDutyServices = pagerDutyServices.filter(service => service.integration_key);
       this.servicesLoaded = true;
     });
@@ -67,7 +67,4 @@ const pagerDutySelectField: IComponentOptions = {
 };
 
 export const PAGER_DUTY_SELECT_FIELD_COMPONENT = 'spinnaker.core.pagerDuty.pagerDutySelectField.component';
-module(PAGER_DUTY_SELECT_FIELD_COMPONENT, [PAGER_DUTY_READ_SERVICE]).component(
-  'pagerDutySelectField',
-  pagerDutySelectField,
-);
+module(PAGER_DUTY_SELECT_FIELD_COMPONENT, []).component('pagerDutySelectField', pagerDutySelectField);

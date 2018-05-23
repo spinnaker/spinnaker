@@ -9,7 +9,6 @@ import {
   IAccount,
   ICredentials,
   IRegion,
-  LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
   TaskMonitor,
 } from '@spinnaker/core';
@@ -93,7 +92,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     private loadBalancer: InternalLoadBalancer,
     private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
     private isNew: boolean,
-    private loadBalancerWriter: LoadBalancerWriter,
     private wizardSubFormValidation: any,
     private gceXpnNamingService: any,
     $state: StateService,
@@ -238,7 +236,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     delete toSubmitLoadBalancer.instances;
 
     this.taskMonitor.submit(() =>
-      this.loadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {
+      LoadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {
         healthCheck: {},
       }),
     );
@@ -266,5 +264,4 @@ module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
   require('google/common/xpnNaming.gce.service.js').name,
-  LOAD_BALANCER_WRITE_SERVICE,
 ]).controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);
