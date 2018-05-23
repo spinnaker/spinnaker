@@ -24,7 +24,7 @@ module.exports = angular
     executionDetailsSectionService,
     urlBuilderService,
   ) {
-    $scope.configSections = ['deploymentConfig', 'taskStatus'];
+    $scope.configSections = ['deploymentConfig', 'taskStatus', 'artifactStatus'];
 
     function areJarDiffsEmpty() {
       let result = true;

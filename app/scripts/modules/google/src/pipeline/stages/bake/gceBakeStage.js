@@ -21,6 +21,7 @@ module.exports = angular
   ])
   .config(function() {
     Registry.pipeline.registerStage({
+      artifactFields: ['packageArtifactIds'],
       provides: 'bake',
       cloudProvider: 'gce',
       label: 'Bake',

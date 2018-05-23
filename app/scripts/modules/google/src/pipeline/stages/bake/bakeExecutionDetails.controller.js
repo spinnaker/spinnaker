@@ -12,7 +12,7 @@ module.exports = angular
     executionDetailsSectionService,
     $interpolate,
   ) {
-    $scope.configSections = ['bakeConfig', 'taskStatus'];
+    $scope.configSections = ['bakeConfig', 'taskStatus', 'artifactStatus'];
 
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;

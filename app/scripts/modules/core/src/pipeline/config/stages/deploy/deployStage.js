@@ -13,6 +13,7 @@ module.exports = angular
   .module('spinnaker.core.pipeline.stage.deployStage', [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CLUSTER_SERVICE])
   .config(function(clusterServiceProvider) {
     Registry.pipeline.registerStage({
+      artifactFields: ['imageArtifactId'],
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
       strategyDescription: 'Deploys the image specified',
