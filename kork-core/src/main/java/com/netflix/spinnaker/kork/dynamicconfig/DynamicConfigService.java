@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 /**
  * A simple interface for interacting with dynamic Spring properties in the scope of feature flags.
  */
-public interface DynamicConfigSerivce {
+public interface DynamicConfigService {
 
   <T> T getConfig(@Nonnull Class<T> configType, @Nonnull String configName, @Nonnull T defaultValue);
 

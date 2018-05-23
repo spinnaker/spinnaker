@@ -28,7 +28,7 @@ import static java.lang.String.format;
 /**
  * The SpringDynamicConfigService directly interacts with the Spring Environment.
  */
-public class SpringDynamicConfigService implements DynamicConfigSerivce, EnvironmentAware {
+public class SpringDynamicConfigService implements DynamicConfigService, EnvironmentAware {
 
   private Environment environment;
 

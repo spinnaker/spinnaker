@@ -23,8 +23,8 @@ import org.springframework.context.annotation.Configuration;
 public class TransientConfigConfiguration {
 
   @Bean
-  @ConditionalOnMissingBean(DynamicConfigSerivce.class)
-  DynamicConfigSerivce springTransientConfigService() {
+  @ConditionalOnMissingBean(DynamicConfigService.class)
+  DynamicConfigService springTransientConfigService() {
     return new SpringDynamicConfigService();
   }
 }
