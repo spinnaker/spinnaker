@@ -26,7 +26,6 @@ import org.apache.http.client.utils.URIBuilder;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -119,5 +118,24 @@ public class ServiceSettings {
 
   public String getBaseUrl() {
     return buildBaseUri().toString();
+  }
+
+  @JsonIgnore
+  public String getMetricsUrl() {
+    URIBuilder builder = new URIBuilder()
+            .setScheme(getScheme())
+            .setPort(getPort())
+            .setHost("localhost")
+            .setPath("spectator/metrics");
+
+    if (getBasicAuthEnabled() != null && getBasicAuthEnabled()) {
+      builder.setUserInfo(getUsername(), getPassword());
+    }
+
+    try {
+      return builder.build().toString();
+    } catch (URISyntaxException e) {
+      throw new HalException(Problem.Severity.FATAL, "Could not build metrics endpoint. This is probably a bug.", e);
+    }
   }
 }

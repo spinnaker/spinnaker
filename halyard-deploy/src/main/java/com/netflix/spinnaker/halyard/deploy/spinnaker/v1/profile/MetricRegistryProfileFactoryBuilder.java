@@ -19,19 +19,13 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 @Component
 public class MetricRegistryProfileFactoryBuilder {
@@ -53,19 +47,7 @@ public class MetricRegistryProfileFactoryBuilder {
 
       @Override
       protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-        URI uri;
-        try {
-          String baseUrl;
-          if (settings.getBasicAuthEnabled() != null && settings.getBasicAuthEnabled()) {
-            baseUrl = settings.getAuthBaseUrl();
-          } else {
-            baseUrl = settings.getBaseUrl();
-          }
-          uri = new URIBuilder(baseUrl).setHost("localhost").setPath("/spectator/metrics").build();
-        } catch (URISyntaxException e) {
-          throw new HalException(Problem.Severity.FATAL, "Unable to build service URL: " + e.getMessage());
-        }
-        profile.appendContents("metrics_url: " + uri.toString());
+        profile.appendContents("metrics_url: " + settings.getMetricsUrl());
       }
 
       @Override
