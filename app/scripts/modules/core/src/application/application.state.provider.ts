@@ -7,10 +7,7 @@ import { ApplicationModelBuilder } from './applicationModel.builder';
 import { ApplicationReader } from './service/application.read.service';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
 import { NgReact } from 'core/reactShims';
-import {
-  INFERRED_APPLICATION_WARNING_SERVICE,
-  InferredApplicationWarningService,
-} from './service/inferredApplicationWarning.service';
+import { InferredApplicationWarningService } from './service/InferredApplicationWarningService';
 
 export class ApplicationStateProvider implements IServiceProvider {
   private childStates: INestedState[] = [];
@@ -84,18 +81,16 @@ export class ApplicationStateProvider implements IServiceProvider {
         app: [
           '$stateParams',
           'applicationReader',
-          'inferredApplicationWarningService',
           'applicationModelBuilder',
           (
             $stateParams: StateParams,
             applicationReader: ApplicationReader,
-            inferredApplicationWarningService: InferredApplicationWarningService,
             applicationModelBuilder: ApplicationModelBuilder,
           ) => {
             return applicationReader
               .getApplication($stateParams.application, false)
               .then((app: Application): Application => {
-                inferredApplicationWarningService.checkIfInferredAndWarn(app);
+                InferredApplicationWarningService.checkIfInferredAndWarn(app);
                 return app || applicationModelBuilder.createNotFoundApplication($stateParams.application);
               })
               .catch(() => applicationModelBuilder.createNotFoundApplication($stateParams.application));
@@ -128,7 +123,4 @@ export class ApplicationStateProvider implements IServiceProvider {
 }
 
 export const APPLICATION_STATE_PROVIDER = 'spinnaker.core.application.state.provider';
-module(APPLICATION_STATE_PROVIDER, [INFERRED_APPLICATION_WARNING_SERVICE, STATE_CONFIG_PROVIDER]).provider(
-  'applicationState',
-  ApplicationStateProvider,
-);
+module(APPLICATION_STATE_PROVIDER, [STATE_CONFIG_PROVIDER]).provider('applicationState', ApplicationStateProvider);

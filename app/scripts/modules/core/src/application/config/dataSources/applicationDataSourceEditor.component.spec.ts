@@ -138,7 +138,7 @@ describe('Component: Application Data Source Editor', () => {
 
       expect(ctrl.isDirty).toBe(true);
       expect(ctrl.saving).toBe(true);
-      expect(ApplicationWriter.updateApplication.calls.mostRecent().args[0]).toEqual({
+      expect((ApplicationWriter.updateApplication as any).calls.mostRecent().args[0]).toEqual({
         name: 'app',
         accounts: ['test'],
         dataSources: { enabled: ['optInSource'], disabled: ['optionalSource'] },

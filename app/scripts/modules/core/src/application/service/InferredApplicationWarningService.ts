@@ -1,26 +1,24 @@
-import { module } from 'angular';
-
 import { Application } from 'core/application/application.model';
 import { NotifierService } from 'core/widgets/notifier/notifier.service';
 
 export class InferredApplicationWarningService {
-  private viewedApplications: string[] = [];
+  private static viewedApplications: string[] = [];
 
-  public resetViewedApplications(): void {
+  public static resetViewedApplications(): void {
     this.viewedApplications.length = 0;
   }
 
-  public isInferredApplication(app: Application): boolean {
+  public static isInferredApplication(app: Application): boolean {
     return !app.attributes || !app.attributes.email;
   }
 
-  public checkIfInferredAndWarn(app: Application): void {
+  public static checkIfInferredAndWarn(app: Application): void {
     if (this.check(app)) {
       this.warn(app.name);
     }
   }
 
-  private check(app: Application): boolean {
+  private static check(app: Application): boolean {
     const { name } = app;
     const hasViewed = this.viewedApplications.includes(name);
 
@@ -28,7 +26,7 @@ export class InferredApplicationWarningService {
     return !hasViewed && this.isInferredApplication(app);
   }
 
-  private warn(appName: string): void {
+  private static warn(appName: string): void {
     NotifierService.publish({
       key: 'inferredApplicationWarning',
       action: 'create',
@@ -36,9 +34,3 @@ export class InferredApplicationWarningService {
     });
   }
 }
-
-export const INFERRED_APPLICATION_WARNING_SERVICE = 'spinnaker.core.application.inferredApplicationWarning.service';
-module(INFERRED_APPLICATION_WARNING_SERVICE, []).service(
-  'inferredApplicationWarningService',
-  InferredApplicationWarningService,
-);

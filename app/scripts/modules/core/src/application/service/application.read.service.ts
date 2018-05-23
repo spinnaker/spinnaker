@@ -8,10 +8,7 @@ import { Application } from '../application.model';
 import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from './applicationDataSource.registry';
 import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
-import {
-  INFERRED_APPLICATION_WARNING_SERVICE,
-  InferredApplicationWarningService,
-} from './inferredApplicationWarning.service';
+import { InferredApplicationWarningService } from './InferredApplicationWarningService';
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];
@@ -39,7 +36,6 @@ export class ApplicationReader {
     private $filter: IFilterService,
     private $uiRouter: UIRouter,
     private schedulerFactory: SchedulerFactory,
-    private inferredApplicationWarningService: InferredApplicationWarningService,
     private applicationDataSourceRegistry: ApplicationDataSourceRegistry,
   ) {
     'ngInject';
@@ -116,7 +112,7 @@ export class ApplicationReader {
       appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
     if (!appDataSources) {
       allDataSources.filter(ds => ds.optIn).forEach(ds => this.setDataSourceDisabled(ds, application, true));
-      if (this.inferredApplicationWarningService.isInferredApplication(application)) {
+      if (InferredApplicationWarningService.isInferredApplication(application)) {
         allDataSources
           .filter(ds => ds.requireConfiguredApp)
           .forEach(ds => this.setDataSourceDisabled(ds, application, true));
@@ -153,7 +149,6 @@ export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service
 module(APPLICATION_READ_SERVICE, [
   SCHEDULER_FACTORY,
   APPLICATION_DATA_SOURCE_REGISTRY,
-  INFERRED_APPLICATION_WARNING_SERVICE,
   ROBOT_TO_HUMAN_FILTER,
   require('@uirouter/angularjs').default,
 ]).service('applicationReader', ApplicationReader);
