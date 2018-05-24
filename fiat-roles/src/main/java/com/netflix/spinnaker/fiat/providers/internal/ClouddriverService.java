@@ -72,7 +72,7 @@ public class ClouddriverService implements HealthTrackable, InitializingBean {
           return accountCache.get();
         },
         (Throwable cause) -> {
-          log.warn("Falling back to account cache. Cause: " + cause.getMessage());
+          logFallback("account", cause);
           List<Account> accounts = accountCache.get();
           if (accounts == null) {
             throw new HystrixBadRequestException("Clouddriver is unavailable", cause);
@@ -91,7 +91,7 @@ public class ClouddriverService implements HealthTrackable, InitializingBean {
           return applicationCache.get();
         },
         (Throwable cause) -> {
-          log.warn("Falling back to application cache. Cause: " + cause.getMessage());
+          logFallback("application", cause);
           List<Application> applications = applicationCache.get();
           if (applications == null) {
             throw new HystrixBadRequestException("Clouddriver is unavailable", cause);
@@ -99,5 +99,10 @@ public class ClouddriverService implements HealthTrackable, InitializingBean {
           return applications;
         })
         .execute();
+  }
+
+  private static void logFallback(String resource, Throwable cause) {
+    String message = cause != null ? "Cause: " + cause.getMessage() : "";
+    log.info("Falling back to {} cache. {}", resource, message);
   }
 }

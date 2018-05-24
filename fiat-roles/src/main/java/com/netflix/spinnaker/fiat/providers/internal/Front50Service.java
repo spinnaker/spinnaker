@@ -68,7 +68,7 @@ public class Front50Service implements HealthTrackable, InitializingBean {
           return applicationCache.get();
         },
         (Throwable cause) -> {
-          log.warn("Falling back to application cache. Cause: " + cause.getMessage());
+          logFallback("application", cause);
           List<Application> applications = applicationCache.get();
           if (applications == null) {
             throw new HystrixBadRequestException("Front50 is unavailable", cause);
@@ -87,12 +87,17 @@ public class Front50Service implements HealthTrackable, InitializingBean {
           return serviceAccountCache.get();
         },
         (Throwable cause) -> {
-          log.warn("Falling back to service account cache. Cause: " + cause.getMessage());
+          logFallback("service account", cause);
           List<ServiceAccount> serviceAccounts = serviceAccountCache.get();
           if (serviceAccounts == null) {
             throw new HystrixBadRequestException("Front50 is unavailable", cause);
           }
           return serviceAccounts;
         }).execute();
+  }
+
+  private static void logFallback(String resource, Throwable cause) {
+    String message = cause != null ? "Cause: " + cause.getMessage() : "";
+    log.info("Falling back to {} cache. {}", resource, message);
   }
 }
