@@ -108,7 +108,7 @@ class PermissionService {
       } catch (RetrofitError e) {
         classifyError(e)
       }
-    } as Set<Role>
+    }.execute() as Set<Role>
   }
 
   List<String> getServiceAccounts(@SpinnakerUser User user) {
@@ -130,6 +130,6 @@ class PermissionService {
       } catch (RetrofitError re) {
         throw classifyError(re)
       }
-    } as List<String>
+    }.execute() as List<String>
   }
 }
