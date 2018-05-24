@@ -29,8 +29,9 @@ class MasterBranchPullRequestHandler(Handler):
         bad_commits = []
         
         for commit in commits:
-            message = ParseCommitMessage(commit.commit.message)
-            if message is None:
+            commit_message = commit.commit.message 
+            parsed_message = ParseCommitMessage(commit_message)
+            if parsed_message is None and not commit_message.startswith('Merge branch'):
                 bad_commits.append(commit.commit)
         
         if len(bad_commits) > 0:
