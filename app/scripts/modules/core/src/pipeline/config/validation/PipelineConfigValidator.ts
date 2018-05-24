@@ -1,5 +1,6 @@
-import { ILogService, IPromise, IQService, IServiceProvider, module } from 'angular';
+import { IPromise } from 'angular';
 import { Subject, Subscription } from 'rxjs';
+import { $log, $q } from 'ngimport';
 
 import {
   IPipeline,
@@ -46,19 +47,15 @@ export interface ICustomValidator extends IStageOrTriggerValidator, IValidatorCo
   [k: string]: any;
 }
 
-export class PipelineConfigValidator implements IServiceProvider {
-  private validators: Map<string, IStageOrTriggerValidator> = new Map();
-  private validationStream: Subject<IPipelineValidationResults> = new Subject();
+export class PipelineConfigValidator {
+  private static validators: Map<string, IStageOrTriggerValidator> = new Map();
+  private static validationStream: Subject<IPipelineValidationResults> = new Subject();
 
-  public registerValidator(type: string, validator: IStageOrTriggerValidator) {
+  public static registerValidator(type: string, validator: IStageOrTriggerValidator) {
     this.validators.set(type, validator);
   }
 
-  constructor(private $log: ILogService, private $q: IQService) {
-    'ngInject';
-  }
-
-  public validatePipeline(pipeline: IPipeline): IPromise<IPipelineValidationResults> {
+  public static validatePipeline(pipeline: IPipeline): IPromise<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [],
       triggers: ITrigger[] = pipeline.triggers || [],
       validations: Array<IPromise<string>> = [],
@@ -72,14 +69,14 @@ export class PipelineConfigValidator implements IServiceProvider {
         config.validators.forEach(validator => {
           const typedValidator = this.getValidator(validator);
           if (!typedValidator) {
-            this.$log.warn(
+            $log.warn(
               `No validator of type "${validator.type}" found, ignoring validation on trigger "${index + 1}" (${
                 trigger.type
               })`,
             );
           } else {
             validations.push(
-              this.$q.resolve<string>(typedValidator.validate(pipeline, trigger, validator, config)).then(message => {
+              $q.resolve<string>(typedValidator.validate(pipeline, trigger, validator, config)).then(message => {
                 if (message && !pipelineValidations.includes(message)) {
                   pipelineValidations.push(message);
                   if (validator.preventSave) {
@@ -102,14 +99,14 @@ export class PipelineConfigValidator implements IServiceProvider {
           }
           const typedValidator = this.getValidator(validator);
           if (!typedValidator) {
-            this.$log.warn(
+            $log.warn(
               `No validator of type "${validator.type}" found, ignoring validation on stage "${stage.name}" (${
                 stage.type
               })`,
             );
           } else {
             validations.push(
-              this.$q
+              $q
                 .resolve<string>(typedValidator.validate(pipeline, stage, validator, config))
                 .then((message: string) => {
                   if (message) {
@@ -131,7 +128,7 @@ export class PipelineConfigValidator implements IServiceProvider {
       }
     });
 
-    return this.$q.all(validations).then(() => {
+    return $q.all(validations).then(() => {
       const results = {
         stages: Array.from(stageValidations).map(([stage, messages]) => ({ stage, messages })),
         pipeline: pipelineValidations,
@@ -144,11 +141,11 @@ export class PipelineConfigValidator implements IServiceProvider {
     });
   }
 
-  private getValidator(validator: IValidatorConfig): IStageOrTriggerValidator {
+  private static getValidator(validator: IValidatorConfig): IStageOrTriggerValidator {
     return validator.type === 'custom' ? (validator as ICustomValidator) : this.validators.get(validator.type);
   }
 
-  private getPipelineLevelValidations(pipeline: IPipeline): string[] {
+  private static getPipelineLevelValidations(pipeline: IPipeline): string[] {
     const messages: string[] = [];
     if ((pipeline.parameterConfig || []).some(p => !p.name)) {
       messages.push('<b>Name</b> is a required field for parameters.');
@@ -167,19 +164,10 @@ export class PipelineConfigValidator implements IServiceProvider {
    * @param method
    * @returns {Subscription}, which should be unsubscribed when the subscriber is destroyed
    */
-  public subscribe(method: (result: IPipelineValidationResults) => any): Subscription {
+  public static subscribe(method: (result: IPipelineValidationResults) => any): Subscription {
     return this.validationStream.subscribe(method);
-  }
-
-  public $get() {
-    return this;
   }
 }
 
-export const PIPELINE_CONFIG_VALIDATOR = 'spinnaker.core.pipeline.config.validator';
-module(PIPELINE_CONFIG_VALIDATOR, [])
-  .service('pipelineConfigValidator', PipelineConfigValidator)
-  .run((pipelineConfigValidator: PipelineConfigValidator) => {
-    // placeholder - custom validators must implement the ICustomValidator interface
-    pipelineConfigValidator.registerValidator('custom', null);
-  });
+// placeholder - custom validators must implement the ICustomValidator interface
+PipelineConfigValidator.registerValidator('custom', null);

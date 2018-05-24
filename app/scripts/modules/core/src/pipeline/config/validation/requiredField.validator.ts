@@ -1,8 +1,6 @@
-import { module } from 'angular';
-
 import { IPipeline, IStage, IStageOrTriggerTypeConfig, ITrigger } from 'core/domain';
 import { BaseRequiredFieldValidator, IRequiredField } from './baseRequiredField.validator';
-import { PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator } from './pipelineConfig.validator';
+import { PipelineConfigValidator } from './PipelineConfigValidator';
 import { IBaseRequiredFieldValidationConfig } from 'core/pipeline/config/validation/baseRequiredField.validator';
 
 export interface IRequiredField {
@@ -30,9 +28,4 @@ export class RequiredFieldValidator extends BaseRequiredFieldValidator {
   }
 }
 
-export const REQUIRED_FIELD_VALIDATOR = 'spinnaker.core.pipeline.config.validation.requiredField';
-module(REQUIRED_FIELD_VALIDATOR, [PIPELINE_CONFIG_VALIDATOR])
-  .service('requiredFieldValidator', RequiredFieldValidator)
-  .run((pipelineConfigValidator: PipelineConfigValidator, requiredFieldValidator: RequiredFieldValidator) => {
-    pipelineConfigValidator.registerValidator('requiredField', requiredFieldValidator);
-  });
+PipelineConfigValidator.registerValidator('requiredField', new RequiredFieldValidator());

@@ -6,24 +6,18 @@ import {
 import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from '../entityTag/entityTags.read.service';
 import { CLUSTER_SERVICE, ClusterService } from 'core/cluster/cluster.service';
-import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
+import { JsonUtils } from 'core/utils';
 import { Application } from 'core/application/application.model';
 import { IServerGroup } from 'core/domain';
 
 export const SERVER_GROUP_DATA_SOURCE = 'spinnaker.core.serverGroup.dataSource';
 
-module(SERVER_GROUP_DATA_SOURCE, [
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ENTITY_TAGS_READ_SERVICE,
-  CLUSTER_SERVICE,
-  JSON_UTILITY_SERVICE,
-]).run(
+module(SERVER_GROUP_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY, ENTITY_TAGS_READ_SERVICE, CLUSTER_SERVICE]).run(
   (
     $q: IQService,
     applicationDataSourceRegistry: ApplicationDataSourceRegistry,
     clusterService: ClusterService,
     entityTagsReader: EntityTagsReader,
-    jsonUtilityService: JsonUtilityService,
   ) => {
     const loadServerGroups = (application: Application) => {
       return clusterService.loadServerGroups(application);
@@ -32,7 +26,7 @@ module(SERVER_GROUP_DATA_SOURCE, [
     const addServerGroups = (application: Application, serverGroups: IServerGroup[]) => {
       serverGroups.forEach(
         serverGroup =>
-          (serverGroup.stringVal = jsonUtilityService.makeSortedStringFromAngularObject(serverGroup, [
+          (serverGroup.stringVal = JsonUtils.makeSortedStringFromAngularObject(serverGroup, [
             'executions',
             'runningTasks',
           ])),

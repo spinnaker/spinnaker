@@ -3,7 +3,7 @@ import * as React from 'react';
 import { HelpField } from 'core/help/HelpField';
 import { Placement } from 'core/presentation';
 
-import { IVariableMetadata } from './pipelineTemplate.service';
+import { IVariableMetadata } from './PipelineTemplateReader';
 
 export interface IVariableMetadataHelpFieldProps {
   metadata: IVariableMetadata;

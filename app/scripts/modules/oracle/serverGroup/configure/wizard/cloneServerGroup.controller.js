@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import { FirewallLabels, TaskMonitor } from '@spinnaker/core';
+import { FirewallLabels, ModalWizard, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.serverGroup.configure.cloneServerGroup', [require('@uirouter/angularjs').default])
@@ -13,7 +13,6 @@ module.exports = angular
     serverGroupWriter,
     serverGroupCommand,
     oraclebmcsServerGroupConfigurationService,
-    v2modalWizardService,
     title,
   ) {
     $scope.title = title;
@@ -63,11 +62,11 @@ module.exports = angular
     }
 
     this.isValid = function() {
-      return $scope.command && $scope.form.$valid && v2modalWizardService.isComplete();
+      return $scope.command && $scope.form.$valid && ModalWizard.isComplete();
     };
 
     this.showSubmitButton = function() {
-      return v2modalWizardService.allPagesVisited();
+      return ModalWizard.allPagesVisited();
     };
 
     this.cancel = function() {

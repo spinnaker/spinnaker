@@ -4,12 +4,10 @@ const angular = require('angular');
 
 import { Subject } from 'rxjs';
 
-import { CLOUD_METRICS_READ_SERVICE } from '@spinnaker/core';
 import { METRIC_SELECTOR_COMPONENT } from './metricSelector.component';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.alarm.configurer', [
-    CLOUD_METRICS_READ_SERVICE,
     require('./dimensionsEditor.component').name,
     METRIC_SELECTOR_COMPONENT,
   ])

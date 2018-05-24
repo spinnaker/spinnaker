@@ -1,6 +1,6 @@
 import { IController, module } from 'angular';
 import { V2_WIZARD_PAGE_COMPONENT } from './v2wizardPage.component';
-import { V2_MODAL_WIZARD_SERVICE } from './v2modalWizard.service';
+import { ModalWizard } from './ModalWizard';
 
 import './modalWizard.less';
 
@@ -10,23 +10,24 @@ export class V2ModalWizard implements IController {
   public taskMonitor: any;
   public dismiss: () => any;
 
-  public constructor(private $scope: ng.IScope, v2modalWizardService: any) {
-    this.wizard = v2modalWizardService;
+  public constructor(private $scope: ng.IScope) {
+    'ngInject';
+    this.wizard = ModalWizard;
   }
 
   public $onInit() {
     this.$scope.$on('waypoints-changed', (_event: any, snapshot: any) => {
-      const ids = snapshot.lastWindow.map((entry: any) => entry.elem).filter((key: string) => this.wizard.getPage(key));
+      const ids = snapshot.lastWindow.map((entry: any) => entry.elem).filter((key: string) => ModalWizard.getPage(key));
       ids.reverse().forEach((id: string) => {
-        this.wizard.setCurrentPage(this.wizard.getPage(id), true);
+        ModalWizard.setCurrentPage(ModalWizard.getPage(id), true);
       });
     });
 
-    this.wizard.setHeading(this.heading);
+    ModalWizard.setHeading(this.heading);
   }
 
   public $onDestroy() {
-    this.wizard.resetWizard();
+    ModalWizard.resetWizard();
   }
 }
 
@@ -43,7 +44,4 @@ class V2ModalWizardComponent implements ng.IComponentOptions {
 }
 
 export const V2_MODAL_WIZARD_COMPONENT = 'spinnaker.core.modal.wizard.wizard.component';
-module(V2_MODAL_WIZARD_COMPONENT, [V2_WIZARD_PAGE_COMPONENT, V2_MODAL_WIZARD_SERVICE]).component(
-  'v2ModalWizard',
-  new V2ModalWizardComponent(),
-);
+module(V2_MODAL_WIZARD_COMPONENT, [V2_WIZARD_PAGE_COMPONENT]).component('v2ModalWizard', new V2ModalWizardComponent());

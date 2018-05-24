@@ -2,7 +2,7 @@ import { IController } from 'angular';
 import { cloneDeepWith } from 'lodash';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { jsonUtilityService } from 'core/utils/json/json.utility.service';
+import { JsonUtils } from 'core/utils';
 import { IPipeline, IStage } from 'core/domain';
 
 export interface IEditPipelineJsonModalCommand {
@@ -56,8 +56,8 @@ export class EditPipelineJsonModalCtrl implements IController {
 
     this.isStrategy = this.pipeline.strategy || false;
     this.command = {
-      pipelineJSON: jsonUtilityService.makeSortedStringFromObject(copy),
-      pipelinePlanJSON: copyPlan ? jsonUtilityService.makeSortedStringFromObject(copyPlan) : null,
+      pipelineJSON: JsonUtils.makeSortedStringFromObject(copy),
+      pipelinePlanJSON: copyPlan ? JsonUtils.makeSortedStringFromObject(copyPlan) : null,
       locked: copy.locked,
     };
   }

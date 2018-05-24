@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { TaskMonitor } from '@spinnaker/core';
 
 import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
 import { BackendServiceTemplate, HealthCheckTemplate, HostRuleTemplate, ListenerTemplate } from './templates';
@@ -16,7 +16,6 @@ module.exports = angular
     require('./backendService/backendService.component.js').name,
     require('./basicSettings/basicSettings.component.js').name,
     GCE_CACHE_REFRESH,
-    V2_MODAL_WIZARD_SERVICE,
     require('./commandBuilder.service.js').name,
     require('../../details/hostAndPathRules/hostAndPathRulesButton.component.js').name,
     require('./healthCheck/healthCheck.component.js').name,

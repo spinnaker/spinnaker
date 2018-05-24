@@ -3,13 +3,12 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { IMAGE_READER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { IMAGE_READER, ModalWizard } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.openstack.instanceSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    V2_MODAL_WIZARD_SERVICE,
     IMAGE_READER,
     require('../../../../instance/osInstanceTypeSelectField.directive.js').name,
   ])
@@ -18,7 +17,6 @@ module.exports = angular
     $controller,
     $uibModalStack,
     $state,
-    v2modalWizardService,
     imageReader,
   ) {
     function ensureCommandBackingDataFilteredExists() {
@@ -63,10 +61,10 @@ module.exports = angular
 
     $scope.$watch('instanceSettings.$valid', function(newVal) {
       if (newVal) {
-        v2modalWizardService.markClean('instance-settings');
-        v2modalWizardService.markComplete('instance-settings');
+        ModalWizard.markClean('instance-settings');
+        ModalWizard.markComplete('instance-settings');
       } else {
-        v2modalWizardService.markIncomplete('instance-settings');
+        ModalWizard.markIncomplete('instance-settings');
       }
     });
   });

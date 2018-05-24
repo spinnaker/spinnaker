@@ -9,6 +9,7 @@ import {
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
+  NetworkReader,
   SubnetReader,
 } from '@spinnaker/core';
 
@@ -37,7 +38,7 @@ export class GceCommonLoadBalancerCommandBuilder {
       });
     },
     accounts: (): IPromise<IAccount[]> => AccountService.listAccounts('gce'),
-    networks: (): IPromise<INetwork[]> => this.networkReader.listNetworksByProvider('gce'),
+    networks: (): IPromise<INetwork[]> => NetworkReader.listNetworksByProvider('gce'),
     subnets: (): IPromise<ISubnet[]> => SubnetReader.listSubnetsByProvider('gce'),
     healthChecks: (): IPromise<IGceHealthCheck[]> => this.gceHealthCheckReader.listHealthChecks(),
     certificates: (): IPromise<IGceCertificate[]> => this.gceCertificateReader.listCertificates(),
@@ -47,7 +48,6 @@ export class GceCommonLoadBalancerCommandBuilder {
     private $q: ng.IQService,
     private loadBalancerReader: LoadBalancerReader,
     private gceHealthCheckReader: GceHealthCheckReader,
-    private networkReader: any,
     private gceCertificateReader: GceCertificateReader,
   ) {
     'ngInject';

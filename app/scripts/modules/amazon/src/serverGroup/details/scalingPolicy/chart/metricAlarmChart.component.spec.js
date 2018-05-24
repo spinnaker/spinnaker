@@ -1,27 +1,20 @@
 'use strict';
 
 import { Subject } from 'rxjs';
+import { CloudMetricsReader } from '@spinnaker/core';
 
 describe('Component: metricAlarmChart', function() {
-  var $ctrl, $scope, cloudMetricsReader, $q;
+  var $ctrl, $scope, $q;
 
   beforeEach(window.module(require('./metricAlarmChart.component').name));
 
   beforeEach(
-    window.inject(function($componentController, $rootScope, _cloudMetricsReader_, _$q_) {
+    window.inject(function($componentController, $rootScope, _$q_) {
       $scope = $rootScope.$new();
-      cloudMetricsReader = _cloudMetricsReader_;
       $q = _$q_;
 
       this.initialize = bindings => {
-        $ctrl = $componentController(
-          'metricAlarmChart',
-          {
-            $scope: $scope,
-            cloudMetricsReader: cloudMetricsReader,
-          },
-          bindings,
-        );
+        $ctrl = $componentController('metricAlarmChart', { $scope }, bindings);
       };
     }),
   );
@@ -92,7 +85,7 @@ describe('Component: metricAlarmChart', function() {
     });
 
     it('sets loading flag, fetches data, then converts datapoints and applies them to chartData', function() {
-      spyOn(cloudMetricsReader, 'getMetricStatistics').and.returnValue(
+      spyOn(CloudMetricsReader, 'getMetricStatistics').and.returnValue(
         $q.when({
           datapoints: [{ timestamp: 1 }, { timestamp: 2 }],
         }),
@@ -113,7 +106,7 @@ describe('Component: metricAlarmChart', function() {
     });
 
     it('sets noData flag when datapoints is missing from response', function() {
-      spyOn(cloudMetricsReader, 'getMetricStatistics').and.returnValue($q.when({}));
+      spyOn(CloudMetricsReader, 'getMetricStatistics').and.returnValue($q.when({}));
       this.initialize({ alarm: alarm, serverGroup: serverGroup });
       $ctrl.$onInit();
       $scope.$digest();
@@ -122,7 +115,7 @@ describe('Component: metricAlarmChart', function() {
     });
 
     it('sets noData flag when datapoints is empty in response', function() {
-      spyOn(cloudMetricsReader, 'getMetricStatistics').and.returnValue($q.when({ datapoints: [] }));
+      spyOn(CloudMetricsReader, 'getMetricStatistics').and.returnValue($q.when({ datapoints: [] }));
       this.initialize({ alarm: alarm, serverGroup: serverGroup });
       $ctrl.$onInit();
       $scope.$digest();
@@ -131,7 +124,7 @@ describe('Component: metricAlarmChart', function() {
     });
 
     it('sets noData flag when request fails', function() {
-      spyOn(cloudMetricsReader, 'getMetricStatistics').and.returnValue($q.reject({ datapoints: [{ timestamp: 1 }] }));
+      spyOn(CloudMetricsReader, 'getMetricStatistics').and.returnValue($q.reject({ datapoints: [{ timestamp: 1 }] }));
       this.initialize({ alarm: alarm, serverGroup: serverGroup });
       $ctrl.$onInit();
       $scope.$digest();
@@ -223,17 +216,17 @@ describe('Component: metricAlarmChart', function() {
     });
 
     it('updates chart and data when updater triggers', function() {
-      spyOn(cloudMetricsReader, 'getMetricStatistics').and.returnValue($q.when({}));
+      spyOn(CloudMetricsReader, 'getMetricStatistics').and.returnValue($q.when({}));
       this.initialize({ alarm: alarm, serverGroup: {}, alarmUpdated: updater });
       $ctrl.$onInit();
       $scope.$digest();
 
-      expect(cloudMetricsReader.getMetricStatistics.calls.count()).toBe(1);
+      expect(CloudMetricsReader.getMetricStatistics.calls.count()).toBe(1);
       expect($ctrl.chartData.threshold.map(d => d.val)).toEqual([5, 5]);
 
       alarm.threshold = 6;
       updater.next();
-      expect(cloudMetricsReader.getMetricStatistics.calls.count()).toBe(2);
+      expect(CloudMetricsReader.getMetricStatistics.calls.count()).toBe(2);
       expect($ctrl.chartData.threshold.map(d => d.val)).toEqual([6, 6]);
     });
   });

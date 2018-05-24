@@ -2,23 +2,17 @@ import { mock, IQService, IRootScopeService, IScope } from 'angular';
 
 import { AWS_SERVER_GROUP_TRANSFORMER, AwsServerGroupTransformer } from './serverGroup.transformer';
 import { IScalingPolicyAlarmView, IAmazonServerGroup, IStepAdjustment } from '../domain';
-import { VPC_READ_SERVICE, VpcReader } from '../vpc/vpc.read.service';
+import { VpcReader } from '../vpc/VpcReader';
 
 describe('awsServerGroupTransformer', () => {
-  let transformer: AwsServerGroupTransformer, vpcReader: VpcReader, $q: IQService, $scope: IScope;
+  let transformer: AwsServerGroupTransformer, $q: IQService, $scope: IScope;
 
-  beforeEach(mock.module(AWS_SERVER_GROUP_TRANSFORMER, VPC_READ_SERVICE));
+  beforeEach(mock.module(AWS_SERVER_GROUP_TRANSFORMER));
 
   beforeEach(
     mock.inject(
-      (
-        _awsServerGroupTransformer_: AwsServerGroupTransformer,
-        _vpcReader_: VpcReader,
-        _$q_: IQService,
-        $rootScope: IRootScopeService,
-      ) => {
+      (_awsServerGroupTransformer_: AwsServerGroupTransformer, _$q_: IQService, $rootScope: IRootScopeService) => {
         transformer = _awsServerGroupTransformer_;
-        vpcReader = _vpcReader_;
         $q = _$q_;
         $scope = $rootScope.$new();
       },
@@ -27,7 +21,7 @@ describe('awsServerGroupTransformer', () => {
 
   describe('normalize server group', () => {
     beforeEach(() => {
-      spyOn(vpcReader, 'listVpcs').and.returnValue(
+      spyOn(VpcReader, 'listVpcs').and.returnValue(
         $q.when([{ account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main' }]),
       );
     });

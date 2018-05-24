@@ -9,9 +9,12 @@ import { cloneDeep, get, uniqBy } from 'lodash';
 import { Application } from 'core/application/application.model';
 import { IPipeline } from 'core/domain/IPipeline';
 import { SubmitButton } from 'core/modal/buttons/SubmitButton';
-import { ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config/settings';
-import { IPipelineTemplateConfig, IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
+import {
+  IPipelineTemplateConfig,
+  IPipelineTemplate,
+  PipelineTemplateReader,
+} from 'core/pipeline/config/templates/PipelineTemplateReader';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
@@ -272,8 +275,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   public loadPipelineTemplates(): void {
     if (SETTINGS.feature.pipelineTemplates) {
       this.setState({ loading: true });
-      ReactInjector.pipelineTemplateService
-        .getPipelineTemplatesByScopes([this.props.application.name, 'global'])
+      PipelineTemplateReader.getPipelineTemplatesByScopes([this.props.application.name, 'global'])
         .then(templates => {
           templates = uniqBy(templates, 'id');
           this.setState({ templates, loading: false });
@@ -297,8 +299,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   private loadPipelineTemplateFromSource(sourceUrl: string): void {
     if (sourceUrl) {
       this.setState({ loadingTemplateFromSource: true, loadingTemplateFromSourceError: false });
-      ReactInjector.pipelineTemplateService
-        .getPipelineTemplateFromSourceUrl(sourceUrl)
+      PipelineTemplateReader.getPipelineTemplateFromSourceUrl(sourceUrl)
         .then(template => (this.state.command.template = template))
         .catch(() => this.setState({ loadingTemplateFromSourceError: true }))
         .finally(() => this.setState({ loadingTemplateFromSource: false }));

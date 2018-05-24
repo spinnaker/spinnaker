@@ -17,13 +17,9 @@ import {
   IAmazonClassicLoadBalancerUpsertCommand,
   ITargetGroup,
 } from 'amazon/domain';
-import { VPC_READ_SERVICE, VpcReader } from 'amazon/vpc/vpc.read.service';
+import { VpcReader } from 'amazon/vpc/VpcReader';
 
 export class AwsLoadBalancerTransformer {
-  public constructor(private vpcReader: VpcReader) {
-    'ngInject';
-  }
-
   private updateHealthCounts(serverGroup: IServerGroup | ITargetGroup | IAmazonLoadBalancer): void {
     const instances = serverGroup.instances;
     let serverGroups: IServerGroup[] = [serverGroup] as IServerGroup[];
@@ -117,9 +113,7 @@ export class AwsLoadBalancerTransformer {
       .value();
     this.updateHealthCounts(targetGroup);
 
-    return this.vpcReader
-      .listVpcs()
-      .then((vpcs: IVpc[]) => this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup);
+    return VpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup);
   }
 
   public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): IPromise<IAmazonLoadBalancer> {
@@ -143,9 +137,9 @@ export class AwsLoadBalancerTransformer {
       .flatten<IInstance>()
       .value();
     this.updateHealthCounts(loadBalancer);
-    return this.vpcReader
-      .listVpcs()
-      .then((vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs) as IAmazonLoadBalancer);
+    return VpcReader.listVpcs().then(
+      (vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs) as IAmazonLoadBalancer,
+    );
   }
 
   public convertClassicLoadBalancerForEditing(
@@ -426,7 +420,4 @@ export class AwsLoadBalancerTransformer {
 }
 
 export const AWS_LOAD_BALANCER_TRANSFORMER = 'spinnaker.amazon.loadBalancer.transformer';
-module(AWS_LOAD_BALANCER_TRANSFORMER, [VPC_READ_SERVICE]).service(
-  'awsLoadBalancerTransformer',
-  AwsLoadBalancerTransformer,
-);
+module(AWS_LOAD_BALANCER_TRANSFORMER, []).service('awsLoadBalancerTransformer', AwsLoadBalancerTransformer);

@@ -7,7 +7,7 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   ClusterTargetBuilder,
   FirewallLabels,
-  NETWORK_READ_SERVICE,
+  NetworkReader,
   ServerGroupReader,
   ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
@@ -23,7 +23,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('../configure/serverGroupCommandBuilder.service.js').name,
     CONFIRMATION_MODAL_SERVICE,
-    NETWORK_READ_SERVICE,
     SERVER_GROUP_WRITER,
     require('google/common/xpnNaming.gce.service.js').name,
     require('./resize/resizeServerGroup.controller').name,
@@ -42,7 +41,6 @@ module.exports = angular
     $uibModal,
     confirmationModalService,
     serverGroupWriter,
-    networkReader,
     gceXpnNamingService,
   ) {
     this.state = {
@@ -327,7 +325,7 @@ module.exports = angular
     };
 
     let retrieveSubnet = projectId => {
-      networkReader.listNetworksByProvider('gce').then(networks => {
+      NetworkReader.listNetworksByProvider('gce').then(networks => {
         let autoCreateSubnets = _.chain(networks)
           .filter({ account: this.serverGroup.account, id: this.serverGroup.network })
           .map('autoCreateSubnets')

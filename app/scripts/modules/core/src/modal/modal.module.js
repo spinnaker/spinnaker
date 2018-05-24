@@ -3,7 +3,6 @@
 const angular = require('angular');
 
 import { V2_MODAL_WIZARD_COMPONENT } from './wizard/v2modalWizard.component';
-import { V2_MODAL_WIZARD_SERVICE } from './wizard/v2modalWizard.service';
 import { MODAL_CLOSE_COMPONENT } from './buttons/modalClose.component';
 import { SUBMIT_BUTTON_COMPONENT } from './buttons/submitButton.component';
 
@@ -16,7 +15,6 @@ module.exports = angular
     require('./wizard/wizardSubFormValidation.service').name,
     MODAL_CLOSE_COMPONENT,
     SUBMIT_BUTTON_COMPONENT,
-    V2_MODAL_WIZARD_SERVICE,
     V2_MODAL_WIZARD_COMPONENT,
   ])
   .run(function($rootScope, $uibModalStack) {

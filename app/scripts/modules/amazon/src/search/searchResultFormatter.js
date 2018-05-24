@@ -2,14 +2,14 @@
 
 const angular = require('angular');
 
-import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
+import { VpcReader } from '../vpc/VpcReader';
 
 module.exports = angular
-  .module('spinnaker.amazon.search.searchResultFormatter', [VPC_READ_SERVICE])
-  .factory('awsSearchResultFormatter', function(vpcReader) {
+  .module('spinnaker.amazon.search.searchResultFormatter', [])
+  .factory('awsSearchResultFormatter', function() {
     return {
       securityGroups: function(entry) {
-        return vpcReader.getVpcName(entry.vpcId).then(function(vpcName) {
+        return VpcReader.getVpcName(entry.vpcId).then(function(vpcName) {
           let region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
           return entry.name + ' (' + region + ')';
         });

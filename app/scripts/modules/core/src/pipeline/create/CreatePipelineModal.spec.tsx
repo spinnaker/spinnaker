@@ -3,11 +3,7 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 
 import { CreatePipelineModal, ICreatePipelineModalProps } from './CreatePipelineModal';
-import {
-  PIPELINE_TEMPLATE_SERVICE,
-  PipelineTemplateService,
-} from 'core/pipeline/config/templates/pipelineTemplate.service';
-import { ReactInjector, REACT_MODULE } from 'core/reactShims';
+import { PipelineTemplateReader } from 'core/pipeline/config/templates/PipelineTemplateReader';
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { IPipeline } from 'core/domain';
@@ -20,13 +16,11 @@ describe('CreatePipelineModal', () => {
   let application: Application;
   let initializeComponent: (configs?: Array<Partial<IPipeline>>) => void;
   let component: CreatePipelineModal;
-  let pipelineTemplateService: PipelineTemplateService;
 
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, PIPELINE_TEMPLATE_SERVICE, REACT_MODULE));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
 
   beforeEach(
     mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
-      pipelineTemplateService = ReactInjector.pipelineTemplateService;
       $q = _$q_;
       $scope = $rootScope.$new();
       initializeComponent = (configs = []) => {
@@ -97,7 +91,7 @@ describe('CreatePipelineModal', () => {
     afterEach(SETTINGS.resetToOriginal);
 
     it('loads pipeline templates', () => {
-      spyOn(pipelineTemplateService, 'getPipelineTemplatesByScopes').and.callFake(() => {
+      spyOn(PipelineTemplateReader, 'getPipelineTemplatesByScopes').and.callFake(() => {
         const templates = [
           {
             id: 'templateA',
@@ -118,7 +112,7 @@ describe('CreatePipelineModal', () => {
     });
 
     it('sets error flag, message when load is rejected', () => {
-      spyOn(pipelineTemplateService, 'getPipelineTemplatesByScopes').and.callFake(() => {
+      spyOn(PipelineTemplateReader, 'getPipelineTemplatesByScopes').and.callFake(() => {
         return $q.reject(null);
       });
 

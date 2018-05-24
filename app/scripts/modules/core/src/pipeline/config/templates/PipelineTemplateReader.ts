@@ -1,4 +1,5 @@
-import { module, IPromise, IQService } from 'angular';
+import { IPromise } from 'angular';
+import { $q } from 'ngimport';
 import { flatten } from 'lodash';
 import { API } from 'core/api/ApiService';
 import { IPipeline } from 'core/domain/IPipeline';
@@ -74,12 +75,8 @@ export interface IPipelineTemplatePlanError {
   nestedErrors: IPipelineTemplatePlanError[];
 }
 
-export class PipelineTemplateService {
-  constructor(private $q: IQService) {
-    'ngInject';
-  }
-
-  public getPipelineTemplateFromSourceUrl(
+export class PipelineTemplateReader {
+  public static getPipelineTemplateFromSourceUrl(
     source: string,
     executionId?: String,
     pipelineConfigId?: string,
@@ -94,20 +91,20 @@ export class PipelineTemplateService {
       });
   }
 
-  public getPipelinePlan(config: IPipelineTemplateConfig, executionId?: String): IPromise<IPipeline> {
+  public static getPipelinePlan(config: IPipelineTemplateConfig, executionId?: String): IPromise<IPipeline> {
     return API.one('pipelines')
       .one('start')
       .post({ ...config, plan: true, executionId });
   }
 
-  public getPipelineTemplatesByScope = (scope: string): IPromise<IPipelineTemplate[]> => {
+  public static getPipelineTemplatesByScope = (scope: string): IPromise<IPipelineTemplate[]> => {
     return API.one('pipelineTemplates')
       .withParams({ scope })
       .get();
   };
 
-  public getPipelineTemplatesByScopes(scopes: string[]): IPromise<IPipelineTemplate[]> {
-    return this.$q
+  public static getPipelineTemplatesByScopes(scopes: string[]): IPromise<IPipelineTemplate[]> {
+    return $q
       .all(scopes.map(this.getPipelineTemplatesByScope))
       .then(templates => flatten(templates))
       .then(templates => {
@@ -116,6 +113,3 @@ export class PipelineTemplateService {
       });
   }
 }
-
-export const PIPELINE_TEMPLATE_SERVICE = 'spinnaker.core.pipelineTemplate.service';
-module(PIPELINE_TEMPLATE_SERVICE, []).service('pipelineTemplateService', PipelineTemplateService);

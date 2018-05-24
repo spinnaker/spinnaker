@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import { FirewallLabels, TaskMonitor } from '@spinnaker/core';
+import { FirewallLabels, ModalWizard, TaskMonitor } from '@spinnaker/core';
 
 import { TITUS_SECURITY_GROUP_PICKER } from '../../../securityGroup/securityGroupPicker.component';
 import { TITUS_LOAD_BALANCER_SELECTOR } from '../../../loadBalancers/loadBalancerSelector.component';
@@ -18,7 +18,6 @@ module.exports = angular
     $q,
     $state,
     serverGroupWriter,
-    v2modalWizardService,
     titusServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -90,7 +89,7 @@ module.exports = angular
       onTaskComplete: onTaskComplete,
     });
 
-    let securityGroupsRemoved = () => v2modalWizardService.markDirty('securityGroups');
+    let securityGroupsRemoved = () => ModalWizard.markDirty('securityGroups');
 
     serverGroupCommand.deferredInitialization = true;
     function configureCommand() {
@@ -109,12 +108,12 @@ module.exports = angular
         $scope.command.credentials !== null &&
         $scope.command.region !== null &&
         $scope.command.capacity.desired !== null &&
-        v2modalWizardService.isComplete()
+        ModalWizard.isComplete()
       );
     };
 
     this.showSubmitButton = function() {
-      return v2modalWizardService.allPagesVisited();
+      return ModalWizard.allPagesVisited();
     };
 
     this.clone = function() {

@@ -9,7 +9,6 @@ import { IUpsertAlarmDescription } from 'amazon/serverGroup';
 import { METRIC_SELECTOR_COMPONENT, MetricSelectorController } from './metricSelector.component';
 
 describe('Component: metric selector', () => {
-  let cloudMetricsReader: CloudMetricsReader;
   let $ctrl: MetricSelectorController;
   let $componentController: IComponentControllerService;
   let $q: IQService;
@@ -23,13 +22,7 @@ describe('Component: metric selector', () => {
 
   beforeEach(
     mock.inject(
-      (
-        _cloudMetricsReader_: CloudMetricsReader,
-        _$componentController_: IComponentControllerService,
-        _$q_: IQService,
-        $rootScope: IRootScopeService,
-      ) => {
-        cloudMetricsReader = _cloudMetricsReader_;
+      (_$componentController_: IComponentControllerService, _$q_: IQService, $rootScope: IRootScopeService) => {
         $componentController = _$componentController_;
         $q = _$q_;
         $scope = $rootScope.$new();
@@ -40,7 +33,7 @@ describe('Component: metric selector', () => {
   const initialize = () => {
     $ctrl = $componentController(
       'awsMetricSelector',
-      { $scope, cloudMetricsReader },
+      { $scope },
       { alarm, serverGroup, alarmUpdated },
     ) as MetricSelectorController;
     $ctrl.$onInit();
@@ -107,7 +100,7 @@ describe('Component: metric selector', () => {
     });
 
     it('updates available metrics on initialization, triggers alarmUpdated once', () => {
-      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue(
+      spyOn(CloudMetricsReader, 'listMetrics').and.returnValue(
         $q.when([
           {
             namespace: 'AWS/EC2',
@@ -141,7 +134,7 @@ describe('Component: metric selector', () => {
         { name: 'AutoScalingGroupName', value: 'asg-v000' },
       ]);
       serverGroup = makeServerGroup('asg-v000');
-      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue(
+      spyOn(CloudMetricsReader, 'listMetrics').and.returnValue(
         $q.when([
           {
             namespace: 'AWS/EC2',
@@ -202,7 +195,7 @@ describe('Component: metric selector', () => {
         { name: 'AutoScalingGroupName', value: 'asg-v000' },
       ]);
       serverGroup = makeServerGroup('asg-v000');
-      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue(
+      spyOn(CloudMetricsReader, 'listMetrics').and.returnValue(
         $q.when([
           {
             namespace: 'AWS/EC2',
@@ -253,7 +246,7 @@ describe('Component: metric selector', () => {
       serverGroup = makeServerGroup('asg-v000');
 
       initialize();
-      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue($q.reject(null));
+      spyOn(CloudMetricsReader, 'listMetrics').and.returnValue($q.reject(null));
 
       $ctrl.$onInit();
       $scope.$digest();

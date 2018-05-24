@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
+import { IPipelineTemplate } from 'core/pipeline/config/templates/PipelineTemplateReader';
 import { SETTINGS } from 'core/config/settings';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 

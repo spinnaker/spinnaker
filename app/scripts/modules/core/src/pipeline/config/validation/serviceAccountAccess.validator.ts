@@ -1,15 +1,8 @@
-import { module } from 'angular';
-
 import { SETTINGS } from 'core/config/settings';
 import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
-import { ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
+import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 
-import {
-  IStageOrTriggerValidator,
-  IValidatorConfig,
-  PIPELINE_CONFIG_VALIDATOR,
-  PipelineConfigValidator,
-} from './pipelineConfig.validator';
+import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
 
 export interface ITriggerWithServiceAccount extends IStage {
   runAsUser: string;
@@ -20,10 +13,6 @@ export interface IServiceAccountAccessValidationConfig extends IValidatorConfig 
 }
 
 export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
-  constructor(private serviceAccountService: ServiceAccountService) {
-    'ngInject';
-  }
-
   public validate(
     _pipeline: IPipeline,
     stage: ITriggerWithServiceAccount,
@@ -31,7 +20,7 @@ export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
     _config: IStageOrTriggerTypeConfig,
   ): ng.IPromise<string> {
     if (SETTINGS.feature.fiatEnabled) {
-      return this.serviceAccountService.getServiceAccounts().then((serviceAccounts: string[]) => {
+      return ServiceAccountReader.getServiceAccounts().then((serviceAccounts: string[]) => {
         if (stage.runAsUser && !serviceAccounts.includes(stage.runAsUser)) {
           return validator.message;
         } else {
@@ -44,14 +33,4 @@ export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
   }
 }
 
-export const SERVICE_ACCOUNT_ACCESS_VALIDATOR = 'spinnaker.core.pipeline.validation.config.serviceAccountAccess';
-module(SERVICE_ACCOUNT_ACCESS_VALIDATOR, [PIPELINE_CONFIG_VALIDATOR])
-  .service('serviceAccountAccessValidator', ServiceAccountAccessValidator)
-  .run(
-    (
-      pipelineConfigValidator: PipelineConfigValidator,
-      serviceAccountAccessValidator: ServiceAccountAccessValidator,
-    ) => {
-      pipelineConfigValidator.registerValidator('serviceAccountAccess', serviceAccountAccessValidator);
-    },
-  );
+PipelineConfigValidator.registerValidator('serviceAccountAccess', new ServiceAccountAccessValidator());

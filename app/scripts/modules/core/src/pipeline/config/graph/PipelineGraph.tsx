@@ -7,9 +7,9 @@ import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, 
 import { Subscription } from 'rxjs';
 
 import { IExecution, IPipeline } from 'core/domain';
-import { IPipelineValidationResults } from 'core/pipeline/config/validation/pipelineConfig.validator';
-import { ReactInjector } from 'core/reactShims';
+import { IPipelineValidationResults } from 'core/pipeline/config/validation/PipelineConfigValidator';
 import { UUIDGenerator } from 'core/utils/uuid.service';
+import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
 
 import {
   IExecutionViewState,
@@ -396,7 +396,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   public componentDidMount() {
     window.addEventListener('resize', this.windowResize);
-    this.validationSubscription = ReactInjector.pipelineConfigValidator.subscribe(validations => {
+    this.validationSubscription = PipelineConfigValidator.subscribe(validations => {
       this.pipelineValidations = validations;
       this.updateGraph(this.props);
     });
@@ -411,7 +411,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   @Debounce(300)
   private validatePipeline(pipeline: IPipeline): void {
-    ReactInjector.pipelineConfigValidator.validatePipeline(pipeline).catch(() => {});
+    PipelineConfigValidator.validatePipeline(pipeline).catch(() => {});
   }
 
   public componentWillReceiveProps(nextProps: IPipelineGraphProps) {

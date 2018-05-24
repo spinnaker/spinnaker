@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 
 export interface IWizardPageState {
@@ -17,37 +16,37 @@ export interface IWizardPage {
   label: string;
 }
 
-export class V2ModalWizardService {
-  public renderedPages: IWizardPage[] = [];
-  public pageRegistry: IWizardPage[] = [];
-  public currentPage: IWizardPage;
-  public heading: string;
+export class ModalWizard {
+  public static renderedPages: IWizardPage[] = [];
+  public static pageRegistry: IWizardPage[] = [];
+  public static currentPage: IWizardPage;
+  public static heading: string;
 
-  public setHeading(heading: string): void {
+  public static setHeading(heading: string): void {
     this.heading = heading;
   }
 
-  public getPage(key: string): IWizardPage {
+  public static getPage(key: string): IWizardPage {
     return this.pageRegistry.find(p => p.key === key);
   }
 
-  public markDirty(key: string): void {
+  public static markDirty(key: string): void {
     this.getPage(key).state.dirty = true;
   }
 
-  public markClean(key: string): void {
+  public static markClean(key: string): void {
     this.getPage(key).state.dirty = false;
   }
 
-  public markComplete(key: string): void {
+  public static markComplete(key: string): void {
     this.getPage(key).state.done = true;
   }
 
-  public markIncomplete(key: string): void {
+  public static markIncomplete(key: string): void {
     this.getPage(key).state.done = false;
   }
 
-  public setCurrentPage(page: IWizardPage, skipScroll?: boolean): void {
+  public static setCurrentPage(page: IWizardPage, skipScroll?: boolean): void {
     this.pageRegistry.forEach(test => (test.state.current = test === page));
     this.currentPage = page;
     this.markClean(page.key);
@@ -61,7 +60,7 @@ export class V2ModalWizardService {
     }
   }
 
-  public registerPage(key: string, label: string, state?: IWizardPageState): void {
+  public static registerPage(key: string, label: string, state?: IWizardPageState): void {
     state = state || {
       done: false,
       blocked: true,
@@ -75,7 +74,7 @@ export class V2ModalWizardService {
     this.renderPages();
   }
 
-  public renderPages(): void {
+  public static renderPages(): void {
     const renderedPages: IWizardPage[] = this.pageRegistry.filter(page => page.state.rendered);
     this.renderedPages = renderedPages;
     if (renderedPages.length === 1) {
@@ -83,40 +82,37 @@ export class V2ModalWizardService {
     }
   }
 
-  public isComplete(): boolean {
+  public static isComplete(): boolean {
     return this.renderedPages
       .map(p => p.state)
       .filter(s => s.rendered && s.required)
       .every(s => s.done && !s.dirty);
   }
 
-  public allPagesVisited(): boolean {
+  public static allPagesVisited(): boolean {
     return this.renderedPages
       .map(p => p.state)
       .filter(s => s.rendered && s.required)
       .every(s => s.done);
   }
 
-  public setRendered(key: string, rendered: boolean): void {
+  public static setRendered(key: string, rendered: boolean): void {
     this.pageRegistry.filter(page => page.key === key).forEach(page => (page.state.rendered = rendered));
     this.renderPages();
   }
 
-  public includePage(key: string): void {
+  public static includePage(key: string): void {
     this.setRendered(key, true);
   }
 
-  public excludePage(key: string): void {
+  public static excludePage(key: string): void {
     this.setRendered(key, false);
   }
 
-  public resetWizard(): void {
+  public static resetWizard(): void {
     this.renderedPages.length = 0;
     this.pageRegistry.length = 0;
     this.currentPage = null;
     this.heading = null;
   }
 }
-
-export const V2_MODAL_WIZARD_SERVICE = 'spinnaker.core.modalWizard.service.v2';
-module(V2_MODAL_WIZARD_SERVICE, []).service('v2modalWizardService', V2ModalWizardService);

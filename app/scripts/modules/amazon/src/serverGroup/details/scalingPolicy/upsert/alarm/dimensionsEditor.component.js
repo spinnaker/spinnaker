@@ -3,13 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { CLOUD_METRICS_READ_SERVICE } from '@spinnaker/core';
+import { CloudMetricsReader } from '@spinnaker/core';
 import { Observable, Subject } from 'rxjs';
 
 import './dimensionsEditor.component.less';
 
 module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.dimensionEditor', [CLOUD_METRICS_READ_SERVICE])
+  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.dimensionEditor', [])
   .component('dimensionsEditor', {
     bindings: {
       alarm: '=',
@@ -18,7 +18,7 @@ module.exports = angular
       namespaceUpdated: '=',
     },
     templateUrl: require('./dimensionsEditor.component.html'),
-    controller: function(cloudMetricsReader) {
+    controller: function() {
       this.viewState = {
         loadingDimensions: false,
       };
@@ -27,7 +27,7 @@ module.exports = angular
         this.viewState.loadingDimensions = true;
         let filters = { namespace: this.alarm.namespace };
         return Observable.fromPromise(
-          cloudMetricsReader.listMetrics('aws', this.serverGroup.account, this.serverGroup.region, filters),
+          CloudMetricsReader.listMetrics('aws', this.serverGroup.account, this.serverGroup.region, filters),
         );
       };
 

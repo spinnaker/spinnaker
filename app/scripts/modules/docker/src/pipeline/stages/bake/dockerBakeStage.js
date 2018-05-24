@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AuthenticationService, BakeExecutionLabel, BAKERY_SERVICE, Registry } from '@spinnaker/core';
+import { AuthenticationService, BakeExecutionLabel, BakeryReader, Registry } from '@spinnaker/core';
 
 /*
   This stage is just here so that we can experiment with baking Docker containers within pipelines.
@@ -11,10 +11,7 @@ import { AuthenticationService, BakeExecutionLabel, BAKERY_SERVICE, Registry } f
   execution details.
  */
 module.exports = angular
-  .module('spinnaker.docker.pipeline.stage.bakeStage', [
-    require('./bakeExecutionDetails.controller.js').name,
-    BAKERY_SERVICE,
-  ])
+  .module('spinnaker.docker.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller.js').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',
@@ -32,7 +29,7 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('dockerBakeStageCtrl', function($scope, bakeryService, $q) {
+  .controller('dockerBakeStageCtrl', function($scope, $q) {
     var stage = $scope.stage;
 
     stage.region = 'global';
@@ -49,8 +46,8 @@ module.exports = angular
       $scope.viewState.providerSelected = true;
       $q
         .all({
-          baseOsOptions: bakeryService.getBaseOsOptions('docker'),
-          baseLabelOptions: bakeryService.getBaseLabelOptions(),
+          baseOsOptions: BakeryReader.getBaseOsOptions('docker'),
+          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
         })
         .then(function(results) {
           $scope.baseOsOptions = results.baseOsOptions.baseImages;

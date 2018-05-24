@@ -4,7 +4,7 @@ export * from './details/serverGroupWarningMessage.service';
 export * from './details/ServerGroupDetails';
 export * from './details/ServerGroupDetailsWrapper';
 export * from './details/ShowUserData';
-export * from './metrics/cloudMetrics.read.service';
+export * from './metrics/CloudMetricsReader';
 export * from './configure/common/serverGroupCommandBuilder.service';
 export * from './configure/common/serverGroupCommandRegistry.provider';
 export * from './templates';

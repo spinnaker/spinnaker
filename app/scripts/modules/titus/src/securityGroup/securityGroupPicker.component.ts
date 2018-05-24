@@ -13,7 +13,7 @@ import {
   SECURITY_GROUP_READER,
 } from '@spinnaker/core';
 
-import { VPC_READ_SERVICE } from '@spinnaker/amazon';
+import { VpcReader } from '@spinnaker/amazon';
 
 class SecurityGroupPickerController implements ng.IComponentController {
   public securityGroups: any;
@@ -35,7 +35,6 @@ class SecurityGroupPickerController implements ng.IComponentController {
     private $q: ng.IQService,
     private securityGroupReader: any,
     private cacheInitializer: CacheInitializerService,
-    private vpcReader: any,
   ) {
     'ngInject';
   }
@@ -49,7 +48,7 @@ class SecurityGroupPickerController implements ng.IComponentController {
     const groupLoader: ng.IPromise<void> = this.securityGroupReader.getAllSecurityGroups().then((groups: any[]) => {
       this.securityGroups = groups;
     });
-    const vpcLoader: ng.IPromise<void> = this.vpcReader.listVpcs().then((vpcs: IVpc[]) => (this.vpcs = vpcs));
+    const vpcLoader = VpcReader.listVpcs().then((vpcs: IVpc[]) => (this.vpcs = vpcs));
     this.$q.all([credentialLoader, groupLoader, vpcLoader]).then(() => this.configureSecurityGroupOptions());
     this.subscriptions = [
       this.accountChanged.subscribe(() => this.configureSecurityGroupOptions()),
@@ -168,7 +167,7 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
 }
 
 export const TITUS_SECURITY_GROUP_PICKER = 'spinnaker.titus.securityGroup.picker.component';
-module(TITUS_SECURITY_GROUP_PICKER, [SECURITY_GROUP_READER, CACHE_INITIALIZER_SERVICE, VPC_READ_SERVICE]).component(
+module(TITUS_SECURITY_GROUP_PICKER, [SECURITY_GROUP_READER, CACHE_INITIALIZER_SERVICE]).component(
   'titusSecurityGroupPicker',
   new SecurityGroupPickerComponent(),
 );

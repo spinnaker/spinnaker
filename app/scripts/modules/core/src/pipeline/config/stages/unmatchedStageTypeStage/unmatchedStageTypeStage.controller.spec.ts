@@ -1,7 +1,6 @@
 import { mock } from 'angular';
 
 import { UNMATCHED_STAGE_TYPE_STAGE_CTRL, UnmatchedStageTypeStageCtrl } from './unmatchedStageTypeStage.controller';
-import { JsonUtilityService } from 'core/utils/json/json.utility.service';
 
 describe('Controller: UnmatchedStageTypeStageCtrl', () => {
   let ctrl: UnmatchedStageTypeStageCtrl;
@@ -9,19 +8,12 @@ describe('Controller: UnmatchedStageTypeStageCtrl', () => {
   beforeEach(mock.module(UNMATCHED_STAGE_TYPE_STAGE_CTRL));
 
   beforeEach(() => {
-    mock.inject(
-      (
-        $controller: ng.IControllerService,
-        $rootScope: ng.IRootScopeService,
-        _jsonUtilityService_: JsonUtilityService,
-      ) => {
-        ctrl = $controller('UnmatchedStageTypeStageCtrl', {
-          $scope: $rootScope.$new(),
-          jsonUtilityService: _jsonUtilityService_,
-        }) as UnmatchedStageTypeStageCtrl;
-        ctrl.$onInit();
-      },
-    );
+    mock.inject(($controller: ng.IControllerService, $rootScope: ng.IRootScopeService) => {
+      ctrl = $controller('UnmatchedStageTypeStageCtrl', {
+        $scope: $rootScope.$new(),
+      }) as UnmatchedStageTypeStageCtrl;
+      ctrl.$onInit();
+    });
   });
 
   describe('Stage validation', () => {

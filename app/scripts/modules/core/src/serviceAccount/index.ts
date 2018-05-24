@@ -1,1 +1,1 @@
-export * from './serviceAccount.service';
+export * from './ServiceAccountReader';

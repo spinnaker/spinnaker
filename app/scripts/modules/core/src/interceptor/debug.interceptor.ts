@@ -1,12 +1,8 @@
 import { module, IRequestConfig, IHttpInterceptor, IHttpProvider } from 'angular';
 import { $log, $location } from 'ngimport';
-import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
+import { JsonUtils } from 'core/utils';
 
 export class DebugInterceptor implements IHttpInterceptor {
-  constructor(private jsonUtilityService: JsonUtilityService) {
-    'ngInject';
-  }
-
   public request = (config: IRequestConfig): IRequestConfig => {
     try {
       // This is a great opportunity to break Deck, so be careful.
@@ -23,12 +19,12 @@ export class DebugInterceptor implements IHttpInterceptor {
       $location.url().includes('debug=true') &&
       ['POST', 'PUT', 'DELETE'].includes(config.method)
     ) {
-      $log.log(`${config.method}: ${config.url} \n`, this.jsonUtilityService.makeSortedStringFromObject(config.data));
+      $log.log(`${config.method}: ${config.url} \n`, JsonUtils.makeSortedStringFromObject(config.data));
     }
   }
 }
 
 export const DEBUG_INTERCEPTOR = 'spinnaker.core.debug.interceptor';
-module(DEBUG_INTERCEPTOR, [JSON_UTILITY_SERVICE])
+module(DEBUG_INTERCEPTOR, [])
   .service('debugInterceptor', DebugInterceptor)
   .config(($httpProvider: IHttpProvider) => $httpProvider.interceptors.push('debugInterceptor'));

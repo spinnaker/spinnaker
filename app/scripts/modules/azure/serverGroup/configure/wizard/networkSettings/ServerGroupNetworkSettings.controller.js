@@ -2,17 +2,17 @@
 
 const angular = require('angular');
 
-import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { ModalWizard } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.serverGroup.configure.networkSettings.controller', [V2_MODAL_WIZARD_SERVICE])
-  .controller('azureServerGroupNetworkSettingsCtrl', function($scope, v2modalWizardService) {
-    v2modalWizardService.markClean('network-settings');
+  .module('spinnaker.azure.serverGroup.configure.networkSettings.controller', [])
+  .controller('azureServerGroupNetworkSettingsCtrl', function($scope) {
+    ModalWizard.markClean('network-settings');
 
     this.networkSettingsChanged = function(item) {
       $scope.command.vnet = $scope.command.selectedVnet.name;
       $scope.command.subnet = item;
-      v2modalWizardService.markComplete('network-settings');
+      ModalWizard.markComplete('network-settings');
     };
 
     this.getVnetName = function() {

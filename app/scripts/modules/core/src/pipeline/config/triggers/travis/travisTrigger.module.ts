@@ -2,7 +2,7 @@ import { IController, IScope, module } from 'angular';
 
 import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { Registry } from 'core/registry';
-import { SERVICE_ACCOUNT_SERVICE, ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
+import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { IBuildTrigger } from 'core/domain/ITrigger';
 import { SETTINGS } from 'core/config/settings';
 
@@ -24,10 +24,10 @@ export class TravisTrigger implements IController {
   public fiatEnabled: boolean;
   public serviceAccounts: string[];
 
-  constructor($scope: IScope, public trigger: IBuildTrigger, serviceAccountService: ServiceAccountService) {
+  constructor($scope: IScope, public trigger: IBuildTrigger) {
     'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
-    serviceAccountService.getServiceAccounts().then(accounts => {
+    ServiceAccountReader.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];
     });
     this.viewState = {
@@ -79,7 +79,7 @@ export class TravisTrigger implements IController {
 }
 
 export const TRAVIS_TRIGGER = 'spinnaker.core.pipeline.config.trigger.travis';
-module(TRAVIS_TRIGGER, [require('../trigger.directive.js').name, SERVICE_ACCOUNT_SERVICE])
+module(TRAVIS_TRIGGER, [require('../trigger.directive.js').name])
   .config(() => {
     Registry.pipeline.registerTrigger({
       label: 'Travis',

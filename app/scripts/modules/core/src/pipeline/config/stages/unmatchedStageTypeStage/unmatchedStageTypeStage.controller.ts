@@ -1,6 +1,6 @@
 import { module, IController, IScope, isDefined } from 'angular';
 import { cloneDeep, isEqual } from 'lodash';
-import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
+import { JsonUtils } from 'core/utils';
 import { IStage } from 'core/domain/IStage';
 
 export class UnmatchedStageTypeStageCtrl implements IController {
@@ -23,14 +23,12 @@ export class UnmatchedStageTypeStageCtrl implements IController {
     'name',
   ]);
 
-  constructor(public $scope: IScope, private jsonUtilityService: JsonUtilityService) {
+  constructor(public $scope: IScope) {
     'ngInject';
   }
 
   public $onInit(): void {
-    this.stageJson = this.jsonUtilityService.makeSortedStringFromObject(
-      this.makeCleanStageCopy(this.$scope.stage || {}),
-    );
+    this.stageJson = JsonUtils.makeSortedStringFromObject(this.makeCleanStageCopy(this.$scope.stage || {}));
     this.textareaRows = this.stageJson.split('\n').length;
   }
 
@@ -63,7 +61,7 @@ export class UnmatchedStageTypeStageCtrl implements IController {
     // If there are no property differences between the JSON string and the stage object, don't bother updating -
     // we might end up cutting out whitespace unexpectedly.
     if (!isEqual(stageCopy, JSON.parse(this.stageJson || '{}'))) {
-      this.stageJson = this.jsonUtilityService.makeStringFromObject(stageCopy);
+      this.stageJson = JsonUtils.makeStringFromObject(stageCopy);
     }
   }
 
@@ -79,7 +77,4 @@ export class UnmatchedStageTypeStageCtrl implements IController {
 }
 
 export const UNMATCHED_STAGE_TYPE_STAGE_CTRL = 'spinnaker.core.pipeline.stage.unmatchedStageTypeStage.controller';
-module(UNMATCHED_STAGE_TYPE_STAGE_CTRL, [JSON_UTILITY_SERVICE]).controller(
-  'UnmatchedStageTypeStageCtrl',
-  UnmatchedStageTypeStageCtrl,
-);
+module(UNMATCHED_STAGE_TYPE_STAGE_CTRL, []).controller('UnmatchedStageTypeStageCtrl', UnmatchedStageTypeStageCtrl);

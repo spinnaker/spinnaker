@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { DIFF_VIEW_COMPONENT } from 'core/pipeline/config/actions/history/diffView.component';
-import { JSON_UTILITY_SERVICE } from 'core/utils/json/json.utility.service';
+import { JsonUtils } from 'core/utils/json/JsonUtils';
 
 import './snapshotDiff.modal.less';
 
@@ -14,7 +14,6 @@ module.exports = angular
     require('../snapshot.read.service.js').name,
     require('../snapshot.write.service.js').name,
     CONFIRMATION_MODAL_SERVICE,
-    JSON_UTILITY_SERVICE,
     require('../../pipeline/config/actions/history/diffSummary.component.js').name,
     DIFF_VIEW_COMPONENT,
   ])
@@ -25,7 +24,6 @@ module.exports = angular
     $uibModalInstance,
     snapshotReader,
     snapshotWriter,
-    jsonUtilityService,
     confirmationModalService,
   ) {
     this.availableAccounts = availableAccounts;
@@ -48,7 +46,7 @@ module.exports = angular
         loading: true,
         error: false,
       };
-      this.diff = jsonUtilityService.diff([], []);
+      this.diff = JsonUtils.diff([], []);
       this.snapshots = [];
       this.version = 0;
     };
@@ -125,7 +123,7 @@ module.exports = angular
 
       this.right = this.snapshots[this.version].contents;
       this.left = this.findLeftMap[this.compareTo](this.right, this.version);
-      this.diff = jsonUtilityService.diff(this.left, this.right);
+      this.diff = JsonUtils.diff(this.left, this.right);
     };
 
     this.getSnapshotHistoryForAccount(this.selectedAccount);

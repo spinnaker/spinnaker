@@ -6,7 +6,7 @@ import {
   AccountService,
   INSTANCE_TYPE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
-  NETWORK_READ_SERVICE,
+  NetworkReader,
   SubnetReader,
 } from '@spinnaker/core';
 
@@ -20,7 +20,6 @@ module.exports = angular
     GCE_HEALTH_CHECK_READER,
     INSTANCE_TYPE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
-    NETWORK_READ_SERVICE,
   ])
   .factory('gceCacheConfigurer', function(
     gceAddressReader,
@@ -29,7 +28,6 @@ module.exports = angular
     gceHealthCheckReader,
     instanceTypeService,
     loadBalancerReader,
-    networkReader,
   ) {
     let config = Object.create(null);
 
@@ -62,7 +60,7 @@ module.exports = angular
     };
 
     config.networks = {
-      initializers: [() => networkReader.listNetworksByProvider('gce')],
+      initializers: [() => NetworkReader.listNetworksByProvider('gce')],
     };
 
     config.subnets = {

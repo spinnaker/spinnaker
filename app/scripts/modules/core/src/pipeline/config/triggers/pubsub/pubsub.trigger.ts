@@ -3,7 +3,7 @@ import { IController, module } from 'angular';
 import { IPubsubSubscription, IPubsubTrigger } from 'core/domain';
 import { PUBSUB_SUBSCRIPTION_SERVICE, PubsubSubscriptionService } from 'core/pubsub';
 import { Registry } from 'core/registry';
-import { ServiceAccountService } from 'core/serviceAccount';
+import { ServiceAccountReader } from 'core/serviceAccount';
 import { SETTINGS } from 'core/config/settings';
 
 class PubsubTriggerController implements IController {
@@ -13,16 +13,12 @@ class PubsubTriggerController implements IController {
   public subscriptionsLoaded = false;
   public serviceAccounts: string[];
 
-  constructor(
-    public trigger: IPubsubTrigger,
-    private pubsubSubscriptionService: PubsubSubscriptionService,
-    private serviceAccountService: ServiceAccountService,
-  ) {
+  constructor(public trigger: IPubsubTrigger, private pubsubSubscriptionService: PubsubSubscriptionService) {
     'ngInject';
 
     this.subscriptionsLoaded = false;
     this.refreshPubsubSubscriptions();
-    this.serviceAccountService.getServiceAccounts().then(accounts => {
+    ServiceAccountReader.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];
     });
   }

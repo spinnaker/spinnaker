@@ -2,13 +2,12 @@
 
 const angular = require('angular');
 
-import { FirewallLabels, SERVER_GROUP_WRITER, TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { FirewallLabels, SERVER_GROUP_WRITER, TaskMonitor, ModalWizard } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.clone', [
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
-    V2_MODAL_WIZARD_SERVICE,
     require('../serverGroupConfiguration.service.js').name,
   ])
   .controller('openstackCloneServerGroupCtrl', function(
@@ -17,7 +16,6 @@ module.exports = angular
     $q,
     $state,
     serverGroupWriter,
-    v2modalWizardService,
     openstackServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -85,17 +83,17 @@ module.exports = angular
     function initializeWizardState() {
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        v2modalWizardService.markComplete('location');
-        v2modalWizardService.markComplete('access-settings');
+        ModalWizard.markComplete('location');
+        ModalWizard.markComplete('access-settings');
       }
     }
 
     this.isValid = function() {
-      return $scope.command && $scope.command.account !== null && v2modalWizardService.isComplete();
+      return $scope.command && $scope.command.account !== null && ModalWizard.isComplete();
     };
 
     this.showSubmitButton = function() {
-      return v2modalWizardService.allPagesVisited();
+      return ModalWizard.allPagesVisited();
     };
 
     this.submit = function() {

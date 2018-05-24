@@ -3,20 +3,16 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
-
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.basicSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    V2_MODAL_WIZARD_SERVICE,
   ])
   .controller('kubernetesServerGroupBasicSettingsController', function(
     $scope,
     $controller,
     $uibModalStack,
     $state,
-    v2modalWizardService,
     kubernetesImageReader,
     kubernetesServerGroupConfigurationService,
   ) {

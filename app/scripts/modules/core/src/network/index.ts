@@ -1,1 +1,1 @@
-export * from './network.read.service';
+export * from './NetworkReader';

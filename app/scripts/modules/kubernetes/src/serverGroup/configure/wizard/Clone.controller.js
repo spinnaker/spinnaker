@@ -2,13 +2,12 @@
 
 const angular = require('angular');
 
-import { FirewallLabels, SERVER_GROUP_WRITER, TaskMonitor, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { FirewallLabels, SERVER_GROUP_WRITER, TaskMonitor, ModalWizard } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.clone', [
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
-    V2_MODAL_WIZARD_SERVICE,
     require('../configuration.service.js').name,
   ])
   .controller('kubernetesCloneServerGroupController', function(
@@ -17,7 +16,6 @@ module.exports = angular
     $q,
     $state,
     serverGroupWriter,
-    v2modalWizardService,
     kubernetesServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -88,11 +86,11 @@ module.exports = angular
     function initializeWizardState() {
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        v2modalWizardService.markComplete('location');
-        v2modalWizardService.markComplete('deployment');
-        v2modalWizardService.markComplete('load-balancers');
-        v2modalWizardService.markComplete('replicas');
-        v2modalWizardService.markComplete('volumes');
+        ModalWizard.markComplete('location');
+        ModalWizard.markComplete('deployment');
+        ModalWizard.markComplete('load-balancers');
+        ModalWizard.markComplete('replicas');
+        ModalWizard.markComplete('volumes');
       }
 
       wizardSubFormValidation
@@ -106,13 +104,13 @@ module.exports = angular
         $scope.command &&
         $scope.command.containers.length > 0 &&
         $scope.command.account !== null &&
-        v2modalWizardService.isComplete() &&
+        ModalWizard.isComplete() &&
         wizardSubFormValidation.subFormsAreValid()
       );
     };
 
     this.showSubmitButton = function() {
-      return v2modalWizardService.allPagesVisited();
+      return ModalWizard.allPagesVisited();
     };
 
     this.clone = function() {

@@ -8,7 +8,6 @@ import {
   LoadBalancerWriter,
   SECURITY_GROUP_READER,
   TaskMonitor,
-  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
 import '../../loadBalancer.less';
@@ -16,7 +15,6 @@ import '../../loadBalancer.less';
 module.exports = angular
   .module('spinnaker.loadBalancer.openstack.create.controller', [
     require('@uirouter/angularjs').default,
-    V2_MODAL_WIZARD_SERVICE,
     require('../../transformer.js').name,
     require('../../../region/regionSelectField.directive.js').name,
     require('../../../subnet/subnetSelectField.directive.js').name,

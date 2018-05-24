@@ -10,7 +10,7 @@ import {
 } from 'core/pipeline/service/executions.transformer.service';
 import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
 import { Registry } from 'core/registry';
-import { JsonUtilityService, JSON_UTILITY_SERVICE } from 'core/utils/json/json.utility.service';
+import { JsonUtils } from 'core/utils';
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
 import { DebugWindow } from 'core/utils/consoleDebug';
@@ -42,7 +42,6 @@ export class ExecutionService {
     private $state: StateService,
     private $timeout: ITimeoutService,
     private executionsTransformer: ExecutionsTransformerService,
-    private jsonUtilityService: JsonUtilityService,
   ) {
     'ngInject';
   }
@@ -569,21 +568,15 @@ export class ExecutionService {
   }
 
   private stringify(object: IExecution | IExecutionStageSummary): string {
-    return this.jsonUtilityService.makeSortedStringFromAngularObject({ ...object }, this.ignoredStringValFields);
+    return JsonUtils.makeSortedStringFromAngularObject({ ...object }, this.ignoredStringValFields);
   }
 }
 
 export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
-module(EXECUTION_SERVICE, [EXECUTIONS_TRANSFORMER_SERVICE, JSON_UTILITY_SERVICE]).factory(
+module(EXECUTION_SERVICE, [EXECUTIONS_TRANSFORMER_SERVICE]).factory(
   'executionService',
-  (
-    $http: IHttpService,
-    $q: IQService,
-    $state: StateService,
-    $timeout: ITimeoutService,
-    executionsTransformer: any,
-    jsonUtilityService: JsonUtilityService,
-  ) => new ExecutionService($http, $q, $state, $timeout, executionsTransformer, jsonUtilityService),
+  ($http: IHttpService, $q: IQService, $state: StateService, $timeout: ITimeoutService, executionsTransformer: any) =>
+    new ExecutionService($http, $q, $state, $timeout, executionsTransformer),
 );
 
 DebugWindow.addInjectable('executionService');

@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import {
   CONFIRMATION_MODAL_SERVICE,
-  NETWORK_READ_SERVICE,
+  NetworkReader,
   ServerGroupReader,
   ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
@@ -16,7 +16,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
-    NETWORK_READ_SERVICE,
     require('../../image/image.reader.js').name,
     require('./resize/resizeServerGroup.controller.js').name,
     require('./rollback/rollbackServerGroup.controller.js').name,
@@ -29,7 +28,6 @@ module.exports = angular
     serverGroup,
     confirmationModalService,
     serverGroupWriter,
-    networkReader,
     oraclebmcsImageReader,
   ) {
     const provider = 'oraclebmcs';
@@ -62,7 +60,7 @@ module.exports = angular
     };
 
     let retrieveNetwork = () => {
-      networkReader.listNetworksByProvider(provider).then(networks => {
+      NetworkReader.listNetworksByProvider(provider).then(networks => {
         this.serverGroup.network = _.chain(networks)
           .filter({ account: this.serverGroup.account, id: this.serverGroup.launchConfig.vpcId })
           .head()

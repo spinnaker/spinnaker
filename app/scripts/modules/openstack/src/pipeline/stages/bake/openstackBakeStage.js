@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   AuthenticationService,
-  BAKERY_SERVICE,
+  BakeryReader,
   BakeExecutionLabel,
   Registry,
   PipelineTemplates,
@@ -13,10 +13,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.pipeline.stage.bakeStage', [
-    require('./bakeExecutionDetails.controller.js').name,
-    BAKERY_SERVICE,
-  ])
+  .module('spinnaker.openstack.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller.js').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',
@@ -45,7 +42,7 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, $uibModal) {
+  .controller('openstackBakeStageCtrl', function($scope, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
 
@@ -60,9 +57,9 @@ module.exports = angular
     function initialize() {
       $q
         .all({
-          regions: bakeryService.getRegions('openstack'),
-          baseOsOptions: bakeryService.getBaseOsOptions('openstack'),
-          baseLabelOptions: bakeryService.getBaseLabelOptions(),
+          regions: BakeryReader.getRegions('openstack'),
+          baseOsOptions: BakeryReader.getBaseOsOptions('openstack'),
+          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
         })
         .then(function(results) {
           $scope.regions = results.regions;

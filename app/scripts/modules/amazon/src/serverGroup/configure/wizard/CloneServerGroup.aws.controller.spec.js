@@ -1,6 +1,6 @@
 'use strict';
 
-import { APPLICATION_MODEL_BUILDER, AccountService, SearchService, SubnetReader } from '@spinnaker/core';
+import { APPLICATION_MODEL_BUILDER, AccountService, ModalWizard, SearchService, SubnetReader } from '@spinnaker/core';
 
 /*
  This is more of an integration test between awsServerGroupConfigurationService and awsCloneServerGroupCtrl.
@@ -20,7 +20,6 @@ describe('Controller: awsCloneServerGroup', function() {
       serverGroupWriter,
       awsImageReader,
       awsInstanceTypeService,
-      v2modalWizardService,
       securityGroupReader,
       awsServerGroupConfigurationService,
       $q,
@@ -32,7 +31,6 @@ describe('Controller: awsCloneServerGroup', function() {
       this.serverGroupWriter = serverGroupWriter;
       this.awsImageReader = awsImageReader;
       this.awsInstanceTypeService = awsInstanceTypeService;
-      this.v2modalWizardService = v2modalWizardService;
       this.securityGroupReader = securityGroupReader;
       this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
       this.keyPairsReader = keyPairsReader;
@@ -106,7 +104,6 @@ describe('Controller: awsCloneServerGroup', function() {
           serverGroupWriter: this.serverGroupWriter,
           awsImageReader: this.awsImageReader,
           awsInstanceTypeService: this.awsInstanceTypeService,
-          v2modalWizardService: this.v2modalWizardService,
           securityGroupReader: this.securityGroupReader,
           awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
           serverGroupCommand: serverGroupCommand,
@@ -136,8 +133,8 @@ describe('Controller: awsCloneServerGroup', function() {
       );
 
       spyOn(SearchService, 'search').and.callFake(resolve({ results: [] }));
-      spyOn(this.v2modalWizardService, 'markComplete').and.stub();
-      spyOn(this.v2modalWizardService, 'markDirty').and.stub();
+      spyOn(ModalWizard, 'markComplete').and.stub();
+      spyOn(ModalWizard, 'markDirty').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
     }
@@ -170,7 +167,7 @@ describe('Controller: awsCloneServerGroup', function() {
 
       expect($scope.command.viewState.usePreferredZones).toBe(true);
       expect($scope.command.availabilityZones).toEqual(['c', 'd']);
-      expect(this.v2modalWizardService.markDirty.calls.count()).toBe(0);
+      expect(ModalWizard.markDirty.calls.count()).toBe(0);
     });
 
     it('clears availability zones when region changed and not using preferred values', function() {
@@ -189,7 +186,7 @@ describe('Controller: awsCloneServerGroup', function() {
 
       expect($scope.command.viewState.usePreferredZones).toBe(false);
       expect($scope.command.availabilityZones).toEqual(['b', 'c']);
-      expect(this.v2modalWizardService.markDirty.calls.count()).toBe(1);
+      expect(ModalWizard.markDirty.calls.count()).toBe(1);
     });
 
     it('sets/clears availability zones to preferred zones when toggled on/off', function() {
@@ -227,7 +224,6 @@ describe('Controller: awsCloneServerGroup', function() {
           $uibModalInstance: this.modalInstance,
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
-          v2modalWizardService: this.v2modalWizardService,
           serverGroupCommand: serverGroupCommand,
           application: this.applicationModelBuilder.createApplication('x', { key: 'loadBalancers', lazy: true }),
           title: 'n/a',
@@ -253,7 +249,7 @@ describe('Controller: awsCloneServerGroup', function() {
       spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
 
       spyOn(SearchService, 'search').and.callFake(resolve({ results: [] }));
-      spyOn(this.v2modalWizardService, 'markComplete').and.stub();
+      spyOn(ModalWizard, 'markComplete').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
     }
@@ -408,7 +404,6 @@ describe('Controller: awsCloneServerGroup', function() {
           $uibModalInstance: this.modalInstance,
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
-          v2modalWizardService: this.v2modalWizardService,
           serverGroupCommand: serverGroup,
           application: this.applicationModelBuilder.createApplication('x', { key: 'loadBalancers', lazy: true }),
           title: 'n/a',
@@ -434,7 +429,7 @@ describe('Controller: awsCloneServerGroup', function() {
       spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
 
       spyOn(SearchService, 'search').and.callFake(resolve({ results: [] }));
-      spyOn(this.v2modalWizardService, 'markComplete').and.stub();
+      spyOn(ModalWizard, 'markComplete').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
       spyOn(this.awsImageReader, 'findImages').and.callFake(this.resolve([]));

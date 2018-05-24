@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { SERVER_GROUP_WRITER, TaskMonitor, V2_MODAL_WIZARD_SERVICE, FirewallLabels } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TaskMonitor, ModalWizard, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.cloneServerGroup.controller', [
@@ -10,7 +10,6 @@ module.exports = angular
     require('../serverGroupConfiguration.service.js').name,
     require('../../serverGroup.transformer.js').name,
     SERVER_GROUP_WRITER,
-    V2_MODAL_WIZARD_SERVICE,
   ])
   .controller('azureCloneServerGroupCtrl', function(
     $scope,
@@ -18,7 +17,6 @@ module.exports = angular
     $q,
     $state,
     serverGroupWriter,
-    v2modalWizardService,
     azureServerGroupConfigurationService,
     serverGroupCommand,
     application,
@@ -126,10 +124,10 @@ module.exports = angular
     function initializeWizardState() {
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        v2modalWizardService.markComplete('basic-settings');
-        v2modalWizardService.markComplete('load-balancers');
-        v2modalWizardService.markComplete('network-settings');
-        v2modalWizardService.markComplete('security-groups');
+        ModalWizard.markComplete('basic-settings');
+        ModalWizard.markComplete('load-balancers');
+        ModalWizard.markComplete('network-settings');
+        ModalWizard.markComplete('security-groups');
       }
     }
 
@@ -151,11 +149,11 @@ module.exports = angular
 
     function processCommandUpdateResult(result) {
       if (result.dirty.loadBalancers) {
-        v2modalWizardService.markDirty('load-balancers');
-        v2modalWizardService.markDirty('network-settings');
+        ModalWizard.markDirty('load-balancers');
+        ModalWizard.markDirty('network-settings');
       }
       if (result.dirty.securityGroups) {
-        v2modalWizardService.markDirty('security-groups');
+        ModalWizard.markDirty('security-groups');
       }
     }
 

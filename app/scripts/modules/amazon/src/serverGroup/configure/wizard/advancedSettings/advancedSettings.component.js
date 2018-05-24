@@ -2,22 +2,22 @@
 
 const angular = require('angular');
 
-import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { ModalWizard } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
 module.exports = angular
-  .module('spinnaker.amazon.serverGroup.configure.wizard.advancedSettings.component', [V2_MODAL_WIZARD_SERVICE])
+  .module('spinnaker.amazon.serverGroup.configure.wizard.advancedSettings.component', [])
   .component('awsServerGroupAdvancedSettings', {
     bindings: {
       command: '=',
       application: '=',
     },
     templateUrl: require('./advancedSettings.component.html'),
-    controller: function(v2modalWizardService) {
+    controller: function() {
       this.fieldChanged = () => {
         if (this.command.keyPair) {
-          v2modalWizardService.markComplete('advanced');
+          ModalWizard.markComplete('advanced');
         }
       };
 

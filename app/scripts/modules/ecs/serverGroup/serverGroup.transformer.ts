@@ -11,15 +11,10 @@ import {
   IStepAdjustmentView,
   IScalingPolicy,
   IAmazonServerGroupView,
-  VPC_READ_SERVICE,
   VpcReader,
 } from '@spinnaker/amazon';
 
 export class EcsServerGroupTransformer {
-  public constructor(private vpcReader: VpcReader) {
-    'ngInject';
-  }
-
   private addComparator(alarm: IScalingPolicyAlarmView): void {
     if (!alarm.comparisonOperator) {
       return;
@@ -77,7 +72,7 @@ export class EcsServerGroupTransformer {
     serverGroup.instances.forEach(instance => {
       instance.vpcId = serverGroup.vpcId;
     });
-    return this.vpcReader.listVpcs().then(vpc => this.addVpcNameToServerGroup(serverGroup)(vpc));
+    return VpcReader.listVpcs().then(vpc => this.addVpcNameToServerGroup(serverGroup)(vpc));
   }
 
   private addVpcNameToServerGroup(serverGroup: IAmazonServerGroup): (vpc: IVpc[]) => IAmazonServerGroup {
@@ -115,7 +110,4 @@ export class EcsServerGroupTransformer {
 }
 
 export const ECS_SERVER_GROUP_TRANSFORMER = 'spinnaker.ecs.serverGroup.transformer';
-module(ECS_SERVER_GROUP_TRANSFORMER, [VPC_READ_SERVICE]).service(
-  'ecsServerGroupTransformer',
-  EcsServerGroupTransformer,
-);
+module(ECS_SERVER_GROUP_TRANSFORMER, []).service('ecsServerGroupTransformer', EcsServerGroupTransformer);

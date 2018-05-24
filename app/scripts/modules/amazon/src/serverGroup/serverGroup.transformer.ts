@@ -13,13 +13,9 @@ import {
   IAmazonServerGroupView,
   ITargetTrackingPolicy,
 } from '../domain';
-import { VPC_READ_SERVICE, VpcReader } from '../vpc/vpc.read.service';
+import { VpcReader } from '../vpc/VpcReader';
 
 export class AwsServerGroupTransformer {
-  public constructor(private vpcReader: VpcReader) {
-    'ngInject';
-  }
-
   private addComparator(alarm: IScalingPolicyAlarmView): void {
     if (!alarm.comparisonOperator) {
       return;
@@ -77,7 +73,7 @@ export class AwsServerGroupTransformer {
     serverGroup.instances.forEach(instance => {
       instance.vpcId = serverGroup.vpcId;
     });
-    return this.vpcReader.listVpcs().then(vpc => this.addVpcNameToServerGroup(serverGroup)(vpc));
+    return VpcReader.listVpcs().then(vpc => this.addVpcNameToServerGroup(serverGroup)(vpc));
   }
 
   private addVpcNameToServerGroup(serverGroup: IAmazonServerGroup): (vpc: IVpc[]) => IAmazonServerGroup {
@@ -155,7 +151,4 @@ export class AwsServerGroupTransformer {
 }
 
 export const AWS_SERVER_GROUP_TRANSFORMER = 'spinnaker.amazon.serverGroup.transformer';
-module(AWS_SERVER_GROUP_TRANSFORMER, [VPC_READ_SERVICE]).service(
-  'awsServerGroupTransformer',
-  AwsServerGroupTransformer,
-);
+module(AWS_SERVER_GROUP_TRANSFORMER, []).service('awsServerGroupTransformer', AwsServerGroupTransformer);

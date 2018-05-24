@@ -3,14 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { NETWORK_READ_SERVICE } from '@spinnaker/core';
+import { NetworkReader } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.network.networkSelectField.directive', [
-    NETWORK_READ_SERVICE,
     require('../common/selectField.component.js').name,
   ])
-  .directive('networkSelectField', function(networkReader) {
+  .directive('networkSelectField', function() {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -35,7 +34,7 @@ module.exports = angular
           backingCache: 'networks',
 
           updateOptions: function() {
-            return networkReader.listNetworksByProvider('openstack').then(function(networks) {
+            return NetworkReader.listNetworksByProvider('openstack').then(function(networks) {
               scope.options = _.chain(networks)
                 .filter(scope.filter || {})
                 .map(function(a) {

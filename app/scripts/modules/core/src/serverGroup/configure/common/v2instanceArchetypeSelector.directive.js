@@ -4,15 +4,14 @@ import _ from 'lodash';
 
 import { InfrastructureCaches } from 'core/cache';
 import { CloudProviderRegistry } from 'core/cloudProvider';
-import { V2_MODAL_WIZARD_SERVICE } from 'core/modal/wizard/v2modalWizard.service';
+import { ModalWizard } from 'core/modal/wizard/ModalWizard';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector', [
     require('./costFactor.js').name,
-    require('../../../presentation/isVisible/isVisible.directive.js').name,
-    V2_MODAL_WIZARD_SERVICE,
+    require('core/presentation/isVisible/isVisible.directive.js').name,
   ])
   .directive('v2InstanceArchetypeSelector', function() {
     return {
@@ -29,7 +28,6 @@ module.exports = angular
     $scope,
     instanceTypeService,
     serverGroupConfigurationService,
-    v2modalWizardService,
   ) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
@@ -70,9 +68,9 @@ module.exports = angular
 
     this.updateInstanceType = () => {
       if ($scope.command.instanceType) {
-        v2modalWizardService.markComplete('instance-type');
+        ModalWizard.markComplete('instance-type');
       } else {
-        v2modalWizardService.markIncomplete('instance-type');
+        ModalWizard.markIncomplete('instance-type');
       }
     };
 

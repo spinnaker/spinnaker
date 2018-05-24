@@ -1,15 +1,8 @@
-import { module } from 'angular';
-
 import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
 import { NameUtils } from 'core/naming';
 
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
-import {
-  IStageOrTriggerValidator,
-  IValidatorConfig,
-  PipelineConfigValidator,
-  PIPELINE_CONFIG_VALIDATOR,
-} from './pipelineConfig.validator';
+import { IStageOrTriggerValidator, IValidatorConfig, PipelineConfigValidator } from './PipelineConfigValidator';
 
 export interface ITargetImpedanceValidationConfig extends IValidatorConfig {
   stageTypes?: string[];
@@ -66,9 +59,4 @@ export class TargetImpedanceValidator implements IStageOrTriggerValidator {
   }
 }
 
-export const TARGET_IMPEDANCE_VALIDATOR = 'spinnaker.core.pipeline.validation.config.targetImpedance';
-module(TARGET_IMPEDANCE_VALIDATOR, [PIPELINE_CONFIG_VALIDATOR])
-  .service('targetImpedanceValidator', TargetImpedanceValidator)
-  .run((pipelineConfigValidator: PipelineConfigValidator, targetImpedanceValidator: TargetImpedanceValidator) => {
-    pipelineConfigValidator.registerValidator('targetImpedance', targetImpedanceValidator);
-  });
+PipelineConfigValidator.registerValidator('targetImpedance', new TargetImpedanceValidator());

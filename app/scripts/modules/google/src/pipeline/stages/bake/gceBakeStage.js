@@ -7,7 +7,7 @@ import {
   ArtifactReferenceService,
   AuthenticationService,
   BakeExecutionLabel,
-  BAKERY_SERVICE,
+  BakeryReader,
   ExpectedArtifactService,
   PipelineTemplates,
   Registry,
@@ -15,10 +15,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..bakeStage', [
-    require('./bakeExecutionDetails.controller.js').name,
-    BAKERY_SERVICE,
-  ])
+  .module('spinnaker.gce.pipeline.stage..bakeStage', [require('./bakeExecutionDetails.controller.js').name])
   .config(function() {
     Registry.pipeline.registerStage({
       artifactFields: ['packageArtifactIds'],
@@ -47,7 +44,7 @@ module.exports = angular
     });
     ArtifactReferenceService.registerReference('stage', () => [['packageArtifactIds']]);
   })
-  .controller('gceBakeStageCtrl', function($scope, bakeryService, $q, $uibModal) {
+  .controller('gceBakeStageCtrl', function($scope, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.region = 'global';
 
@@ -67,8 +64,8 @@ module.exports = angular
       $scope.viewState.providerSelected = true;
       $q
         .all({
-          baseOsOptions: bakeryService.getBaseOsOptions('gce'),
-          baseLabelOptions: bakeryService.getBaseLabelOptions(),
+          baseOsOptions: BakeryReader.getBaseOsOptions('gce'),
+          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
           expectedArtifacts: ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
             $scope.stage,
             $scope.pipeline,

@@ -1,6 +1,6 @@
 'use strict';
 
-import { FirewallLabels } from '@spinnaker/core';
+import { FirewallLabels, ModalWizard } from '@spinnaker/core';
 
 const angular = require('angular');
 
@@ -10,13 +10,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../../../../common/cacheBackedMultiSelectField.directive.js').name,
   ])
-  .controller('openstackServerGroupAccessSettingsCtrl', function(
-    $scope,
-    loadBalancerReader,
-    securityGroupReader,
-    networkReader,
-    v2modalWizardService,
-  ) {
+  .controller('openstackServerGroupAccessSettingsCtrl', function($scope) {
     $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     // Loads all load balancers in the current application, region, and account
@@ -46,10 +40,10 @@ module.exports = angular
 
     $scope.$watch('accessSettings.$valid', function(newVal) {
       if (newVal) {
-        v2modalWizardService.markClean('access-settings');
-        v2modalWizardService.markComplete('access-settings');
+        ModalWizard.markClean('access-settings');
+        ModalWizard.markComplete('access-settings');
       } else {
-        v2modalWizardService.markIncomplete('access-settings');
+        ModalWizard.markIncomplete('access-settings');
       }
     });
 

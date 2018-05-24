@@ -7,6 +7,7 @@ import {
   AccountService,
   CONFIRMATION_MODAL_SERVICE,
   FirewallLabels,
+  NetworkReader,
   OVERRIDE_REGISTRY,
   SECURITY_GROUP_READER,
   ServerGroupReader,
@@ -36,7 +37,6 @@ module.exports = angular
     $uibModal,
     confirmationModalService,
     serverGroupWriter,
-    networkReader,
     securityGroupReader,
     loadBalancerReader,
     openstackServerGroupTransformer,
@@ -349,7 +349,7 @@ module.exports = angular
     };
 
     this.applyFloatingIpDetails = () => {
-      return networkReader.listNetworksByProvider('openstack').then(networks => {
+      return NetworkReader.listNetworksByProvider('openstack').then(networks => {
         ctrl.floatingNetworkName = (
           _.find(networks, net => {
             return net.id === ctrl.serverGroup.launchConfig.floatingNetworkId;

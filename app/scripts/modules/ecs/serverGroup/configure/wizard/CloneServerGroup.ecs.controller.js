@@ -7,7 +7,7 @@ import {
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   SERVER_GROUP_WRITER,
   TaskMonitor,
-  V2_MODAL_WIZARD_SERVICE,
+  ModalWizard,
 } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_CONFIGURATION_SERVICE } from '../serverGroupConfiguration.service';
@@ -19,7 +19,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     ECS_SERVER_GROUP_CONFIGURATION_SERVICE,
     SERVER_GROUP_WRITER,
-    V2_MODAL_WIZARD_SERVICE,
     OVERRIDE_REGISTRY,
     SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
     IAM_ROLE_READ_SERVICE,
@@ -31,7 +30,6 @@ module.exports = angular
     $q,
     $state,
     serverGroupWriter,
-    v2modalWizardService,
     overrideRegistry,
     ecsServerGroupConfigurationService,
     serverGroupCommandRegistry,
@@ -192,7 +190,7 @@ module.exports = angular
     };
 
     this.showSubmitButton = function() {
-      return v2modalWizardService.allPagesVisited();
+      return ModalWizard.allPagesVisited();
     };
 
     this.submit = function() {

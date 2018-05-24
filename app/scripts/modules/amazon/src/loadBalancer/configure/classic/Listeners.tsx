@@ -6,13 +6,12 @@ import { FormikProps } from 'formik';
 import { IWizardPageProps, wizardPage } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { AwsReactInjector } from 'amazon/reactShims';
 import {
   ClassicListenerProtocol,
   IAmazonClassicLoadBalancerUpsertCommand,
   IClassicListenerDescription,
 } from 'amazon/domain';
-import { IAmazonCertificate } from 'amazon/certificates/amazon.certificate.read.service';
+import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/AmazonCertificateReader';
 
 import './Listeners.less';
 
@@ -46,7 +45,7 @@ class ListenersImpl extends React.Component<
   }
 
   private loadCertificates(): void {
-    AwsReactInjector.amazonCertificateReader.listCertificates().then(certificates => {
+    AmazonCertificateReader.listCertificates().then(certificates => {
       this.setState({ certificates });
     });
   }

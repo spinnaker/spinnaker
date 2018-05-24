@@ -1,1 +1,1 @@
-export * from './vpc.read.service';
+export * from './VpcReader';

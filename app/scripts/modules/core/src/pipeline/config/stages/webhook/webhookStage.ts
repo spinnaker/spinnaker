@@ -2,7 +2,7 @@ import { IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import { API } from 'core/api/ApiService';
-import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
+import { JsonUtils } from 'core/utils';
 import { Registry } from 'core/registry';
 
 export interface IWebhookStageViewState {
@@ -47,7 +47,7 @@ export class WebhookStage implements IController {
   public noUserConfigurableFields: boolean;
   public parameters: IWebhookParameter[] = [];
 
-  constructor(public stage: any, private jsonUtilityService: JsonUtilityService, private $uibModal: IModalService) {
+  constructor(public stage: any, private $uibModal: IModalService) {
     'ngInject';
     this.methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
 
@@ -57,7 +57,7 @@ export class WebhookStage implements IController {
     };
 
     this.command = {
-      payloadJSON: this.jsonUtilityService.makeSortedStringFromObject(this.stage.payload || {}),
+      payloadJSON: JsonUtils.makeSortedStringFromObject(this.stage.payload || {}),
     };
 
     this.stage.statusUrlResolution = this.viewState.statusUrlResolution;
@@ -132,7 +132,7 @@ export class WebhookStage implements IController {
 
 export const WEBHOOK_STAGE = 'spinnaker.core.pipeline.stage.webhookStage';
 
-module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE])
+module(WEBHOOK_STAGE, [])
   .config(() => {
     Registry.pipeline.registerStage({
       label: 'Webhook',

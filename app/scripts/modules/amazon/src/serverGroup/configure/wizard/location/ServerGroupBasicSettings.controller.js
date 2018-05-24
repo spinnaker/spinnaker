@@ -3,25 +3,17 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { IMAGE_READER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { IMAGE_READER, ModalWizard } from '@spinnaker/core';
 import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.basicSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    V2_MODAL_WIZARD_SERVICE,
     IMAGE_READER,
     SUBNET_SELECT_FIELD_COMPONENT,
   ])
-  .controller('awsServerGroupBasicSettingsCtrl', function(
-    $scope,
-    $controller,
-    $uibModalStack,
-    $state,
-    v2modalWizardService,
-    imageReader,
-  ) {
+  .controller('awsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state, imageReader) {
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
         {
@@ -98,10 +90,10 @@ module.exports = angular
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
-        v2modalWizardService.markClean('location');
-        v2modalWizardService.markComplete('location');
+        ModalWizard.markClean('location');
+        ModalWizard.markComplete('location');
       } else {
-        v2modalWizardService.markIncomplete('location');
+        ModalWizard.markIncomplete('location');
       }
     });
   });

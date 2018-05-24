@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
 import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
-import { jsonUtilityService } from 'core/utils';
+import { JsonUtils } from 'core/utils';
 
 export function FindArtifactFromExecutionExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
@@ -13,10 +13,10 @@ export function FindArtifactFromExecutionExecutionDetails(props: IExecutionDetai
         <div className="col-md-9">
           <dl className="dl-narrow dl-horizontal">
             <dt>Match Artifact</dt>
-            <dd>{jsonUtilityService.makeSortedStringFromObject(stage.context.expectedArtifact.matchArtifact)}</dd>
+            <dd>{JsonUtils.makeSortedStringFromObject(stage.context.expectedArtifact.matchArtifact)}</dd>
             {stage.context.expectedArtifact.useDefaultArtifact && <dt>Default Artifact</dt>}
             {stage.context.expectedArtifact.useDefaultArtifact && (
-              <dd>{jsonUtilityService.makeSortedStringFromObject(stage.context.expectedArtifact.defaultArtifact)}</dd>
+              <dd>{JsonUtils.makeSortedStringFromObject(stage.context.expectedArtifact.defaultArtifact)}</dd>
             )}
           </dl>
         </div>

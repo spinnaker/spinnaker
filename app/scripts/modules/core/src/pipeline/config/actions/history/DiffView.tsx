@@ -1,4 +1,4 @@
-import { IJsonDiff } from 'core/utils/json/json.utility.service';
+import { IJsonDiff } from 'core/utils';
 
 export interface IDiffViewProps {
   diff: IJsonDiff;

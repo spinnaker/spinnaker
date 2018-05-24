@@ -2,16 +2,18 @@
 
 const angular = require('angular');
 
+import { ModalWizard } from '@spinnaker/core';
+
 module.exports = angular
   .module('spinnaker.serverGroup.configure.titus.resourcesCtrl', [])
-  .controller('titusInstanceResourcesCtrl', function($scope, v2modalWizardService) {
-    v2modalWizardService.markComplete('resources');
+  .controller('titusInstanceResourcesCtrl', function($scope) {
+    ModalWizard.markComplete('resources');
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
-        v2modalWizardService.markClean('resources');
+        ModalWizard.markClean('resources');
       } else {
-        v2modalWizardService.markDirty('resources');
+        ModalWizard.markDirty('resources');
       }
     });
 

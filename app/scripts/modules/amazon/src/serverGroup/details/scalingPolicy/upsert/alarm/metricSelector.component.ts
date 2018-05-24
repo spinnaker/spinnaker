@@ -3,13 +3,7 @@ import { IController, IComponentOptions, module } from 'angular';
 import { Dictionary, get } from 'lodash';
 import { Subject } from 'rxjs';
 
-import {
-  CLOUD_METRICS_READ_SERVICE,
-  CloudMetricsReader,
-  ICloudMetricDescriptor,
-  IServerGroup,
-  IMetricAlarmDimension,
-} from '@spinnaker/core';
+import { CloudMetricsReader, ICloudMetricDescriptor, IServerGroup, IMetricAlarmDimension } from '@spinnaker/core';
 
 import { IConfigurableMetric } from 'amazon/serverGroup';
 import { AWSProviderSettings } from 'amazon/aws.settings';
@@ -40,10 +34,6 @@ export class MetricSelectorController implements IController {
   public namespaces = get(AWSProviderSettings, 'metrics.customNamespaces', []).concat(NAMESPACES);
   public state: IMetricEditorState;
   public serverGroup: IServerGroup;
-
-  constructor(private cloudMetricsReader: CloudMetricsReader) {
-    'ngInject';
-  }
 
   public $onInit(): void {
     this.state = {
@@ -83,8 +73,7 @@ export class MetricSelectorController implements IController {
       dimensions.namespace = alarm.namespace;
     }
 
-    this.cloudMetricsReader
-      .listMetrics('aws', this.serverGroup.account, this.serverGroup.region, dimensions)
+    CloudMetricsReader.listMetrics('aws', this.serverGroup.account, this.serverGroup.region, dimensions)
       .then(results => {
         results = results || [];
         this.state.metricsLoaded = true;
@@ -242,4 +231,4 @@ const component: IComponentOptions = {
 };
 
 export const METRIC_SELECTOR_COMPONENT = 'spinnaker.amazon.scalingPolicy.alarm.metric.editor';
-module(METRIC_SELECTOR_COMPONENT, [CLOUD_METRICS_READ_SERVICE]).component('awsMetricSelector', component);
+module(METRIC_SELECTOR_COMPONENT, []).component('awsMetricSelector', component);

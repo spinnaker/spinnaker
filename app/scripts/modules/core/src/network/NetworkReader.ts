@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { InfrastructureCaches } from 'core/cache';
 import { API } from 'core/api/ApiService';
 
@@ -13,19 +11,16 @@ export interface INetwork {
 }
 
 export class NetworkReader {
-  public listNetworks(): INetwork[] {
+  public static listNetworks(): INetwork[] {
     return API.one('networks')
       .useCache(InfrastructureCaches.get('networks'))
       .getList();
   }
 
-  public listNetworksByProvider(cloudProvider: string) {
+  public static listNetworksByProvider(cloudProvider: string) {
     return API.one('networks')
       .one(cloudProvider)
       .useCache(InfrastructureCaches.get('networks'))
       .getList();
   }
 }
-
-export const NETWORK_READ_SERVICE = 'spinnaker.core.network.read.service';
-module(NETWORK_READ_SERVICE, []).service('networkReader', NetworkReader);

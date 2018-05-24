@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { AccountService, NETWORK_READ_SERVICE } from '@spinnaker/core';
+import { AccountService, NetworkReader } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.cache.initializer', [NETWORK_READ_SERVICE])
-  .factory('oraclebmcsCacheConfigurer', function(networkReader) {
+  .module('spinnaker.oraclebmcs.cache.initializer', [])
+  .factory('oraclebmcsCacheConfigurer', function() {
     let config = Object.create(null);
     let provider = 'oraclebmcs';
 
@@ -19,7 +19,7 @@ module.exports = angular
     };
 
     config.networks = {
-      initializers: [() => networkReader.listNetworksByProvider(provider)],
+      initializers: [() => NetworkReader.listNetworksByProvider(provider)],
     };
 
     return config;

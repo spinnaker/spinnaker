@@ -1,23 +1,23 @@
 'use strict';
 
+import { JsonUtils } from 'core/utils';
+
 describe('Controller: SnapshotDiffModalCtrl', function() {
   beforeEach(
     window.module(require('./snapshotDiff.modal.controller.js').name, require('../snapshot.read.service.js').name),
   );
 
   beforeEach(
-    window.inject(function($controller, $filter, jsonUtilityService, snapshotReader) {
+    window.inject(function($controller, $filter, snapshotReader) {
       this.controller = $controller('SnapshotDiffModalCtrl', {
         availableAccounts: ['my-google-account'],
         application: { name: 'myApplication' },
         $uibModalInstance: { dismiss: angular.noop },
-        jsonUtilityService,
         snapshotReader,
         $filter,
       });
 
       this.snapshotReader = snapshotReader;
-      this.jsonUtilityService = jsonUtilityService;
     }),
   );
 
@@ -39,8 +39,8 @@ describe('Controller: SnapshotDiffModalCtrl', function() {
         },
       ];
 
-      spyOn(this.jsonUtilityService, 'diff');
-      // prevents unnecessary call to jsonUtilityService.diff).
+      spyOn(JsonUtils, 'diff');
+      // prevents unnecessary call to JsonUtilityService#diff).
       spyOn(this.controller, 'getSnapshotHistoryForAccount');
     });
 
@@ -50,7 +50,7 @@ describe('Controller: SnapshotDiffModalCtrl', function() {
       [0, 1, 2].forEach(version => {
         this.controller.version = version;
         this.controller.updateDiff();
-        expect(this.jsonUtilityService.diff).toHaveBeenCalledWith(
+        expect(JsonUtils.diff).toHaveBeenCalledWith(
           'third snapshot',
           ['third snapshot', 'second snapshot', 'first snapshot'][version],
         );
@@ -61,16 +61,16 @@ describe('Controller: SnapshotDiffModalCtrl', function() {
         to the previous snapshot (if previous exists)`, function() {
       this.controller.version = 0;
       this.controller.updateDiff();
-      expect(this.jsonUtilityService.diff).toHaveBeenCalledWith('second snapshot', 'third snapshot');
+      expect(JsonUtils.diff).toHaveBeenCalledWith('second snapshot', 'third snapshot');
 
       this.controller.version = 1;
       this.controller.updateDiff();
-      expect(this.jsonUtilityService.diff).toHaveBeenCalledWith('first snapshot', 'second snapshot');
+      expect(JsonUtils.diff).toHaveBeenCalledWith('first snapshot', 'second snapshot');
 
       this.controller.version = 2;
       this.controller.updateDiff();
 
-      expect(this.jsonUtilityService.diff).toHaveBeenCalledWith('first snapshot', 'first snapshot');
+      expect(JsonUtils.diff).toHaveBeenCalledWith('first snapshot', 'first snapshot');
     });
   });
 });

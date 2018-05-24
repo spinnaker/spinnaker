@@ -6,17 +6,14 @@ import _ from 'lodash';
 import {
   AuthenticationService,
   BakeExecutionLabel,
-  BAKERY_SERVICE,
+  BakeryReader,
   Registry,
   PipelineTemplates,
   SETTINGS,
 } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.pipeline.stage.bakeStage', [
-    require('./bakeExecutionDetails.controller.js').name,
-    BAKERY_SERVICE,
-  ])
+  .module('spinnaker.azure.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller.js').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',
@@ -45,7 +42,7 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('azureBakeStageCtrl', function($scope, bakeryService, $q, $uibModal) {
+  .controller('azureBakeStageCtrl', function($scope, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
 
@@ -60,9 +57,9 @@ module.exports = angular
     function initialize() {
       $q
         .all({
-          regions: bakeryService.getRegions('azure'),
-          baseOsOptions: bakeryService.getBaseOsOptions('azure'),
-          baseLabelOptions: bakeryService.getBaseLabelOptions(),
+          regions: BakeryReader.getRegions('azure'),
+          baseOsOptions: BakeryReader.getBaseOsOptions('azure'),
+          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
         })
         .then(function(results) {
           $scope.regions = results.regions;

@@ -3,26 +3,18 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { IMAGE_READER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { IMAGE_READER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.basicSettings.controller', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    V2_MODAL_WIZARD_SERVICE,
     IMAGE_READER,
     require('../../../../gceRegionSelectField.directive.js').name,
     require('../../../../gceNetworkSelectField.directive.js').name,
     require('../../../../subnet/subnetSelectField.directive.js').name,
   ])
-  .controller('gceServerGroupBasicSettingsCtrl', function(
-    $scope,
-    $controller,
-    $uibModalStack,
-    $state,
-    v2modalWizardService,
-    imageReader,
-  ) {
+  .controller('gceServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state, imageReader) {
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
         {

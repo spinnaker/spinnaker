@@ -7,7 +7,6 @@ import { FormikErrors, FormikProps } from 'formik';
 import { HelpField, IWizardPageProps, Tooltip, ValidationError, wizardPage } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { AwsReactInjector } from 'amazon/reactShims';
 import {
   ALBListenerProtocol,
   IALBListenerCertificate,
@@ -18,7 +17,7 @@ import {
   IListenerRuleCondition,
   ListenerRuleConditionField,
 } from 'amazon/domain';
-import { IAmazonCertificate } from 'amazon/certificates/amazon.certificate.read.service';
+import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/AmazonCertificateReader';
 
 export interface IALBListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };
@@ -90,7 +89,7 @@ class ALBListenersImpl extends React.Component<
   }
 
   private loadCertificates(): void {
-    AwsReactInjector.amazonCertificateReader.listCertificates().then(certificates => {
+    AmazonCertificateReader.listCertificates().then(certificates => {
       this.setState({ certificates });
     });
   }

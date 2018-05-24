@@ -1,6 +1,6 @@
 'use strict';
 
-import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { APPLICATION_MODEL_BUILDER, ModalWizard } from '@spinnaker/core';
 
 describe('Controller: gceCreateLoadBalancerCtrl', function() {
   const angular = require('angular');
@@ -12,7 +12,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
 
   // Initialize the controller and a mock scope
   beforeEach(
-    window.inject(function($controller, $rootScope, _v2modalWizardService_, applicationModelBuilder) {
+    window.inject(function($controller, $rootScope, applicationModelBuilder) {
       this.$scope = $rootScope.$new();
       const app = applicationModelBuilder.createApplication('app', { key: 'loadBalancers', lazy: true });
       this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
@@ -22,7 +22,6 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
         loadBalancer: null,
         isNew: true,
       });
-      this.wizardService = _v2modalWizardService_;
     }),
   );
 
@@ -59,16 +58,16 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
   });
 
   it('should make the health check tab invisible then visible again', function() {
-    spyOn(this.wizardService, 'includePage');
-    spyOn(this.wizardService, 'markIncomplete');
-    spyOn(this.wizardService, 'excludePage');
-    spyOn(this.wizardService, 'markComplete');
+    spyOn(ModalWizard, 'includePage');
+    spyOn(ModalWizard, 'markIncomplete');
+    spyOn(ModalWizard, 'excludePage');
+    spyOn(ModalWizard, 'markComplete');
     this.$scope.loadBalancer.listeners[0].healthCheck = false;
     this.ctrl.setVisibilityHealthCheckTab();
-    expect(this.wizardService.excludePage.calls.count()).toEqual(2);
+    expect(ModalWizard.excludePage.calls.count()).toEqual(2);
 
     this.$scope.loadBalancer.listeners[0].healthCheck = true;
     this.ctrl.setVisibilityHealthCheckTab();
-    expect(this.wizardService.includePage.calls.count()).toEqual(2);
+    expect(ModalWizard.includePage.calls.count()).toEqual(2);
   });
 });

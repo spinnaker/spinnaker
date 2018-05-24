@@ -4,7 +4,7 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { cloneDeepWith } from 'lodash';
 
 import { IStage } from 'core/domain';
-import { JsonUtilityService } from 'core/utils/json/json.utility.service';
+import { JsonUtils } from 'core/utils';
 
 export class EditStageJsonController implements IController {
   public stageJSON: string;
@@ -13,11 +13,7 @@ export class EditStageJsonController implements IController {
 
   private immutableFields = ['$$hashKey', 'refId', 'requisiteStageRefIds'];
 
-  constructor(
-    private $uibModalInstance: IModalServiceInstance,
-    private jsonUtilityService: JsonUtilityService,
-    private stage: IStage,
-  ) {
+  constructor(private $uibModalInstance: IModalServiceInstance, private stage: IStage) {
     'ngInject';
     const copy = cloneDeepWith<IStage>(stage, (value: any) => {
       if (value && value.$$hashKey) {
@@ -26,7 +22,7 @@ export class EditStageJsonController implements IController {
       return undefined; // required for clone operation and typescript happiness
     });
     this.immutableFields.forEach(k => delete copy[k]);
-    this.stageJSON = this.jsonUtilityService.makeSortedStringFromObject(copy);
+    this.stageJSON = JsonUtils.makeSortedStringFromObject(copy);
   }
 
   public updateStage(): void {

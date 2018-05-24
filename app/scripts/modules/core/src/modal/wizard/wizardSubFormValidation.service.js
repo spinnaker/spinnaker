@@ -1,17 +1,17 @@
 'use strict';
 
 import _ from 'lodash';
-import { V2_MODAL_WIZARD_SERVICE } from './v2modalWizard.service';
+import { ModalWizard } from './ModalWizard';
 
 const angular = require('angular');
 
 /**
- * Propagates standard Angular form validation to v2modalWizardService.
+ * Propagates standard Angular form validation to ModalWizard.
  */
 
 module.exports = angular
-  .module('spinnaker.core.modalWizard.subFormValidation.service', [V2_MODAL_WIZARD_SERVICE])
-  .factory('wizardSubFormValidation', function(v2modalWizardService) {
+  .module('spinnaker.core.modalWizard.subFormValidation.service', [])
+  .factory('wizardSubFormValidation', function() {
     let validatorRegistry = {};
 
     function buildWatchString(form, subForm, formKey) {
@@ -58,7 +58,7 @@ module.exports = angular
           value => {
             this.state.valid = validator(value);
 
-            if (v2modalWizardService.getPage(this.page)) {
+            if (ModalWizard.getPage(this.page)) {
               if (this.state.valid) {
                 this.emitValid();
               } else {
@@ -74,12 +74,12 @@ module.exports = angular
         let pageIsValid = validatorRegistry[this.page].every(v => v.state.valid);
 
         if (pageIsValid) {
-          v2modalWizardService.markComplete(this.page);
+          ModalWizard.markComplete(this.page);
         }
       }
 
       emitInvalid() {
-        v2modalWizardService.markIncomplete(this.page);
+        ModalWizard.markIncomplete(this.page);
       }
     }
 

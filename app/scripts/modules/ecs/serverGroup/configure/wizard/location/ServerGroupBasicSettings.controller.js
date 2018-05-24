@@ -2,21 +2,14 @@
 
 const angular = require('angular');
 
-import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { ModalWizard } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.ecs.serverGroup.configure.basicSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    V2_MODAL_WIZARD_SERVICE,
   ])
-  .controller('ecsServerGroupBasicSettingsCtrl', function(
-    $scope,
-    $controller,
-    $uibModalStack,
-    $state,
-    v2modalWizardService,
-  ) {
+  .controller('ecsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state) {
     angular.extend(
       this,
       $controller('BasicSettingsMixin', {
@@ -28,10 +21,10 @@ module.exports = angular
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
-        v2modalWizardService.markClean('location');
-        v2modalWizardService.markComplete('location');
+        ModalWizard.markClean('location');
+        ModalWizard.markComplete('location');
       } else {
-        v2modalWizardService.markIncomplete('location');
+        ModalWizard.markIncomplete('location');
       }
     });
   });

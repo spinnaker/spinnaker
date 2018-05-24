@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { isPlainObject, isArray, isNumber, isString } from 'lodash';
 
 const DiffMatchPatch = require('expose-loader?diff_match_patch!diff-match-patch');
@@ -29,8 +28,8 @@ export interface IJsonDiff {
   summary: IDiffSummary;
 }
 
-export class JsonUtilityService {
-  private generateDiff(left: string, right: string): [[number, string]] {
+export class JsonUtils {
+  private static generateDiff(left: string, right: string): [[number, string]] {
     const dmp: any = new DiffMatchPatch();
     const a = dmp.diff_linesToChars_(left, right);
     const diffs = dmp.diff_main(a.chars1, a.chars2, false);
@@ -38,7 +37,7 @@ export class JsonUtilityService {
     return diffs;
   }
 
-  private sortObject(o: any): any {
+  private static sortObject(o: any): any {
     if (!o || isNumber(o) || isString(o)) {
       return o;
     }
@@ -57,19 +56,19 @@ export class JsonUtilityService {
       }, {});
   }
 
-  private makeSortedString(str: string): string {
+  private static makeSortedString(str: string): string {
     return this.makeSortedStringFromObject(JSON.parse(str));
   }
 
-  public makeSortedStringFromObject(obj: any): string {
+  public static makeSortedStringFromObject(obj: any): string {
     return this.makeStringFromObject(this.sortObject(obj));
   }
 
-  public makeStringFromObject(obj: any): string {
+  public static makeStringFromObject(obj: any): string {
     return JSON.stringify(obj, null, 2);
   }
 
-  public makeSortedStringFromAngularObject(obj: any, omit: string[] = []): string {
+  public static makeSortedStringFromAngularObject(obj: any, omit: string[] = []): string {
     const replacer = (key: string, value: string) => {
       let val = value;
       if (typeof key === 'string' && key.charAt(0) === '$' && key.charAt(1) === '$') {
@@ -83,7 +82,7 @@ export class JsonUtilityService {
     return JSON.stringify(this.sortObject(obj), replacer);
   }
 
-  public diff(left: any, right: any, sortKeys = false): IJsonDiff {
+  public static diff(left: any, right: any, sortKeys = false): IJsonDiff {
     if (sortKeys) {
       left = this.makeSortedString(left);
       right = this.makeSortedString(right);
@@ -128,7 +127,3 @@ export class JsonUtilityService {
     };
   }
 }
-
-export const jsonUtilityService = new JsonUtilityService();
-export const JSON_UTILITY_SERVICE = 'spinnaker.core.utils.json.service';
-module(JSON_UTILITY_SERVICE, []).service('jsonUtilityService', JsonUtilityService);

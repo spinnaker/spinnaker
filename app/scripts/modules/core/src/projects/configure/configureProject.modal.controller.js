@@ -5,6 +5,7 @@ const angular = require('angular');
 import { AccountService } from 'core/account/AccountService';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { TaskMonitor } from 'core/task';
+import { ModalWizard } from 'core/modal/wizard/ModalWizard';
 
 module.exports = angular
   .module('spinnaker.core.projects.configure.modal.controller', [
@@ -20,7 +21,6 @@ module.exports = angular
     applicationReader,
     projectWriter,
     projectReader,
-    v2modalWizardService,
     wizardSubFormValidation,
   ) {
     if (!projectConfig.name) {
@@ -173,7 +173,7 @@ module.exports = angular
     };
 
     this.showSubmitButton = () => {
-      return v2modalWizardService.allPagesVisited() && wizardSubFormValidation.subFormsAreValid();
+      return ModalWizard.allPagesVisited() && wizardSubFormValidation.subFormsAreValid();
     };
 
     wizardSubFormValidation

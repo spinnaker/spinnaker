@@ -1,18 +1,17 @@
 'use strict';
 
-import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
+import { VpcReader } from '../vpc/VpcReader';
 
 describe('Directives: vpcTag', function() {
-  var $q, vpcReader;
+  var $q;
 
-  beforeEach(window.module(require('./vpcTag.directive.js').name, VPC_READ_SERVICE));
+  beforeEach(window.module(require('./vpcTag.directive.js').name));
 
   beforeEach(
-    window.inject(function($rootScope, $compile, _$q_, _vpcReader_) {
+    window.inject(function($rootScope, $compile, _$q_) {
       this.scope = $rootScope.$new();
       this.compile = $compile;
       $q = _$q_;
-      vpcReader = _vpcReader_;
     }),
   );
 
@@ -39,7 +38,7 @@ describe('Directives: vpcTag', function() {
 
   describe('vpc tag rendering - VPC provided', function() {
     it('displays vpc name when found', function() {
-      spyOn(vpcReader, 'getVpcName').and.callFake(function() {
+      spyOn(VpcReader, 'getVpcName').and.callFake(function() {
         return $q.when('Main VPC');
       });
       this.scope.vpcId = 'vpc-1';
@@ -49,7 +48,7 @@ describe('Directives: vpcTag', function() {
     });
 
     it('displays vpc id when not found', function() {
-      spyOn(vpcReader, 'getVpcName').and.callFake(function() {
+      spyOn(VpcReader, 'getVpcName').and.callFake(function() {
         return $q.when(null);
       });
       this.scope.vpcId = 'vpc-2';

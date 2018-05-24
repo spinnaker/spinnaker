@@ -3,7 +3,7 @@ import Spy = jasmine.Spy;
 import { SETTINGS } from 'core/config/settings';
 
 import { IPipeline, IStage, IStageTypeConfig } from 'core/domain';
-import { ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
+import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Registry } from 'core/registry';
 
@@ -11,26 +11,16 @@ import {
   ICustomValidator,
   IPipelineValidationResults,
   IValidatorConfig,
-  PIPELINE_CONFIG_VALIDATOR,
   PipelineConfigValidator,
-} from './pipelineConfig.validator';
+} from './PipelineConfigValidator';
 import { IRequiredFieldValidationConfig } from './requiredField.validator';
 import { IServiceAccountAccessValidationConfig, ITriggerWithServiceAccount } from './serviceAccountAccess.validator';
 import { IStageBeforeTypeValidationConfig } from './stageBeforeType.validator';
-import {
-  IStageOrTriggerBeforeTypeValidationConfig,
-  StageOrTriggerBeforeTypeValidator,
-} from './stageOrTriggerBeforeType.validator';
+import { IStageOrTriggerBeforeTypeValidationConfig } from './stageOrTriggerBeforeType.validator';
 import { ITargetImpedanceValidationConfig } from './targetImpedance.validator';
 
 describe('pipelineConfigValidator', () => {
-  let pipeline: IPipeline,
-    validate: () => void,
-    validationResults: IPipelineValidationResults,
-    pipelineConfigValidator: PipelineConfigValidator,
-    serviceAccountService: ServiceAccountService,
-    stageOrTriggerBeforeTypeValidator: StageOrTriggerBeforeTypeValidator,
-    $q: ng.IQService;
+  let pipeline: IPipeline, validate: () => void, validationResults: IPipelineValidationResults, $q: ng.IQService;
 
   function buildPipeline(stages: any[], triggers: any[] = []): IPipeline {
     stages.forEach((stage, idx) => {
@@ -73,32 +63,21 @@ describe('pipelineConfigValidator', () => {
 
   beforeEach(() => Registry.initialize());
 
-  beforeEach(mock.module(PIPELINE_CONFIG_VALIDATOR, require('../pipelineConfig.module.js').name));
+  beforeEach(mock.module(require('../pipelineConfig.module.js').name));
 
   beforeEach(function() {
     SETTINGS.feature.fiatEnabled = true;
   });
 
   beforeEach(() => {
-    mock.inject(
-      (
-        _pipelineConfigValidator_: PipelineConfigValidator,
-        _serviceAccountService_: ServiceAccountService,
-        _stageOrTriggerBeforeTypeValidator_: StageOrTriggerBeforeTypeValidator,
-        _$q_: ng.IQService,
-        $rootScope: ng.IRootScopeService,
-      ) => {
-        pipelineConfigValidator = _pipelineConfigValidator_;
-        serviceAccountService = _serviceAccountService_;
-        stageOrTriggerBeforeTypeValidator = _stageOrTriggerBeforeTypeValidator_;
-        $q = _$q_;
-        validate = () => {
-          validationResults = null;
-          pipelineConfigValidator.validatePipeline(pipeline).then(result => (validationResults = result));
-          $rootScope.$new().$digest();
-        };
-      },
-    );
+    mock.inject((_$q_: ng.IQService, $rootScope: ng.IRootScopeService) => {
+      $q = _$q_;
+      validate = () => {
+        validationResults = null;
+        PipelineConfigValidator.validatePipeline(pipeline).then(result => (validationResults = result));
+        $rootScope.$new().$digest();
+      };
+    });
   });
 
   afterEach(SETTINGS.resetToOriginal);
@@ -287,7 +266,7 @@ describe('pipelineConfigValidator', () => {
 
         pipeline = buildPipeline(
           [{ type: 'withValidationIncludingParent', refId: 1 }],
-          [{ type: 'pipeline', application: 'someApp', pipeline: 'abcd' }],
+          [{ type: 'pipeline', application: 'someApp2', pipeline: 'abcd' }],
         );
 
         validate();
@@ -295,10 +274,6 @@ describe('pipelineConfigValidator', () => {
 
         validate();
         expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
-
-        stageOrTriggerBeforeTypeValidator.clearCache();
-        validate();
-        expect((PipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(2);
       });
 
       it('fails if own stages and parent pipeline triggers do not match', () => {
@@ -311,10 +286,10 @@ describe('pipelineConfigValidator', () => {
 
         pipeline = buildPipeline(
           [{ type: 'withValidationIncludingParent', refId: 1 }],
-          [{ type: 'pipeline', application: 'someApp', pipeline: 'abcd' }],
+          [{ type: 'pipeline', application: 'someApp3', pipeline: 'abcd' }],
         );
         validate();
-        expect(PipelineConfigService.getPipelinesForApplication).toHaveBeenCalledWith('someApp');
+        expect(PipelineConfigService.getPipelinesForApplication).toHaveBeenCalledWith('someApp3');
         expect(validationResults.stages.length).toBe(1);
       });
 
@@ -886,7 +861,7 @@ describe('pipelineConfigValidator', () => {
         return buildStageTypeConfig();
       });
 
-      spyOn(serviceAccountService, 'getServiceAccounts').and.returnValue($q.resolve(['my-account']));
+      spyOn(ServiceAccountReader, 'getServiceAccounts').and.returnValue($q.resolve(['my-account']));
     });
 
     it('calls service account access validator', () => {

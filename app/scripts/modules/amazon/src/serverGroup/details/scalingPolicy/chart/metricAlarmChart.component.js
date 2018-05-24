@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 import { Subject } from 'rxjs';
 
-import { CLOUD_METRICS_READ_SERVICE } from '@spinnaker/core';
+import { CloudMetricsReader } from '@spinnaker/core';
 
 // TODO: Remove LineChartHack, replace require with commented out one once
 // https://github.com/n3-charts/line-chart/issues/512 is resolved
@@ -14,7 +14,6 @@ import './metricAlarmChart.component.less';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.metricAlarmChart.component', [
-    CLOUD_METRICS_READ_SERVICE,
     require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js'),
   ])
   .component('metricAlarmChart', {
@@ -28,7 +27,7 @@ module.exports = angular
       // not provide a unit of measurement for an alarm or a metric, only statistics
     },
     templateUrl: require('./metricAlarmChart.component.html'),
-    controller: function(cloudMetricsReader, $filter) {
+    controller: function($filter) {
       // converts alarm into parameters used to retrieve statistic data
       let getFilterParameters = () => {
         let alarm = this.alarm;
@@ -86,14 +85,13 @@ module.exports = angular
       };
 
       let updateChartData = () => {
-        cloudMetricsReader
-          .getMetricStatistics(
-            this.serverGroup.type,
-            this.serverGroup.account,
-            this.serverGroup.region,
-            this.alarm.metricName,
-            getFilterParameters(),
-          )
+        CloudMetricsReader.getMetricStatistics(
+          this.serverGroup.type,
+          this.serverGroup.account,
+          this.serverGroup.region,
+          this.alarm.metricName,
+          getFilterParameters(),
+        )
           .then(stats => {
             if (this.stats) {
               this.stats.unit = stats.unit;

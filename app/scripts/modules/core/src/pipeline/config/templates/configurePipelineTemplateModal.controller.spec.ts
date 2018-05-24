@@ -7,8 +7,8 @@ import {
 import { IVariable } from './inputs/variableInput.service';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { Application } from 'core/application/application.model';
-import { REACT_MODULE, ReactInjector } from 'core/reactShims';
 import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
+import { PipelineTemplateReader } from './PipelineTemplateReader';
 
 describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
   let ctrl: ConfigurePipelineTemplateModalController, $scope: IScope, $q: IQService, application: Application;
@@ -74,14 +74,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
     ],
   };
 
-  beforeEach(
-    mock.module(
-      APPLICATION_MODEL_BUILDER,
-      CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL,
-      PIPELINE_TEMPLATE_MODULE,
-      REACT_MODULE,
-    ),
-  );
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, PIPELINE_TEMPLATE_MODULE));
 
   beforeEach(() => {
     mock.inject(
@@ -118,7 +111,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
 
   describe('data initialization', () => {
     beforeEach(() => {
-      spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
+      spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
         return $q.resolve(template);
       });
     });
@@ -195,7 +188,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
     // 2). User updates the template to add another variable (now the template is `templateB`).
     // 3). User reopens the config modal - the new variable should be initialized with its default value.
     it('initializes a new variable field with its default value', () => {
-      const spy = spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl');
+      const spy = spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl');
       spy.and.callFake(() => $q.resolve(templateA));
 
       ctrl.initialize();
@@ -218,7 +211,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
     // 2). User updates the template to remove a variable (now the template is `templateA`).
     // 3). User reopens the config modal - on save, the removed variable should no longer exist in the config.
     it('prunes variables from the config if they no longer exist on the template', () => {
-      const spy = spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl');
+      const spy = spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl');
       spy.and.callFake(() => $q.resolve(templateB));
 
       ctrl.initialize();
@@ -238,7 +231,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
 
   describe('config creation', () => {
     beforeEach(() => {
-      spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
+      spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
         return $q.resolve(template);
       });
     });
@@ -268,7 +261,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
     };
 
     beforeEach(() => {
-      spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
+      spyOn(PipelineTemplateReader, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
         return $q.resolve(template);
       });
     });

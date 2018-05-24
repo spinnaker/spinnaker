@@ -3,20 +3,12 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, NETWORK_READ_SERVICE, SECURITY_GROUP_READER, SubnetReader } from '@spinnaker/core';
+import { AccountService, NetworkReader, SECURITY_GROUP_READER, SubnetReader } from '@spinnaker/core';
 import { OracleBMCSProviderSettings } from '../../oraclebmcs.settings';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.configure.configuration.service', [
-    NETWORK_READ_SERVICE,
-    SECURITY_GROUP_READER,
-  ])
-  .factory('oraclebmcsServerGroupConfigurationService', function(
-    $q,
-    networkReader,
-    oraclebmcsImageReader,
-    securityGroupReader,
-  ) {
+  .module('spinnaker.oraclebmcs.serverGroup.configure.configuration.service', [SECURITY_GROUP_READER])
+  .factory('oraclebmcsServerGroupConfigurationService', function($q, oraclebmcsImageReader, securityGroupReader) {
     let oracle = 'oraclebmcs';
 
     let getShapes = image => {
@@ -38,7 +30,7 @@ module.exports = angular
       return $q
         .all({
           credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount(oracle),
-          networks: networkReader.listNetworksByProvider(oracle),
+          networks: NetworkReader.listNetworksByProvider(oracle),
           subnets: SubnetReader.listSubnetsByProvider(oracle),
           securityGroups: securityGroupReader.getAllSecurityGroups(),
           images: loadImages(),

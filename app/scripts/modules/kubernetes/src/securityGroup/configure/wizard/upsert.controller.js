@@ -9,7 +9,6 @@ import {
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   TaskMonitor,
-  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -18,7 +17,6 @@ module.exports = angular
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
-    V2_MODAL_WIZARD_SERVICE,
     require('../../../namespace/selectField.directive.js').name,
     require('../../transformer.js').name,
   ])
@@ -32,7 +30,6 @@ module.exports = angular
     kubernetesSecurityGroupTransformer,
     securityGroupReader,
     loadBalancerReader,
-    v2modalWizardService,
     securityGroupWriter,
   ) {
     var ctrl = this;

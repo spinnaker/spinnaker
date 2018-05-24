@@ -1,21 +1,20 @@
 'use strict';
 
-import { V2_MODAL_WIZARD_SERVICE } from './v2modalWizard.service';
+import { ModalWizard } from './ModalWizard';
 
 describe('Service: wizardSubFormValidation', function() {
   const angular = require('angular');
-  let wizardSubFormValidation, v2modalWizardService, $rootScope, $compile;
+  let wizardSubFormValidation, $rootScope, $compile;
 
-  beforeEach(window.module(require('./wizardSubFormValidation.service.js').name, V2_MODAL_WIZARD_SERVICE));
+  beforeEach(window.module(require('./wizardSubFormValidation.service.js').name));
 
   beforeEach(
-    window.inject(function(_wizardSubFormValidation_, _v2modalWizardService_, _$rootScope_, _$compile_) {
+    window.inject(function(_wizardSubFormValidation_, _$rootScope_, _$compile_) {
       wizardSubFormValidation = _wizardSubFormValidation_;
-      v2modalWizardService = _v2modalWizardService_;
       $rootScope = _$rootScope_;
       $compile = _$compile_;
 
-      spyOn(v2modalWizardService, 'getPage').and.returnValue(true);
+      spyOn(ModalWizard, 'getPage').and.returnValue(true);
     }),
   );
 
@@ -75,23 +74,23 @@ describe('Service: wizardSubFormValidation', function() {
     });
 
     it('registers page and sub-form; calls v2ModalWizard.markIncomplete on page if sub-form is invalid', function() {
-      spyOn(v2modalWizardService, 'markIncomplete');
+      spyOn(ModalWizard, 'markIncomplete');
 
       wizardSubFormValidation.register({ page: 'myPage', subForm: 'mySubForm' });
       form.mySubForm.$setValidity('myInput.required', false);
       scope.$digest();
 
-      expect(v2modalWizardService.markIncomplete).toHaveBeenCalledWith('myPage');
+      expect(ModalWizard.markIncomplete).toHaveBeenCalledWith('myPage');
     });
 
     it('registers page and sub-form; calls v2ModalWizard.markComplete on page if sub-form is valid', function() {
-      spyOn(v2modalWizardService, 'markComplete');
+      spyOn(ModalWizard, 'markComplete');
 
       wizardSubFormValidation.register({ page: 'myPage', subForm: 'mySubForm' });
       form.mySubForm.$setValidity('myInput.required', true);
       scope.$digest();
 
-      expect(v2modalWizardService.markComplete).toHaveBeenCalledWith('myPage');
+      expect(ModalWizard.markComplete).toHaveBeenCalledWith('myPage');
     });
   });
 });
