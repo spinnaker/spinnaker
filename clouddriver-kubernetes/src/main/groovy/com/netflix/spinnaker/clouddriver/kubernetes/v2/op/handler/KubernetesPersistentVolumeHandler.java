@@ -41,7 +41,7 @@ public class KubernetesPersistentVolumeHandler extends KubernetesHandler impleme
 
   @Override
   public boolean versioned() {
-    return true;
+    return false;
   }
 
   @Override
