@@ -264,7 +264,7 @@ public class RegionScopedTitusClient implements TitusClient {
     String cursor = "";
     boolean hasMore;
     do {
-      Page.Builder jobPage = Page.newBuilder().setPageSize(titusRegion.getFeatureFlags().contains("largePages") ? 2000 : 1000);
+      Page.Builder jobPage = Page.newBuilder().setPageSize(1000);
       if (!cursor.isEmpty()) {
         jobPage.setCursor(cursor);
       }
