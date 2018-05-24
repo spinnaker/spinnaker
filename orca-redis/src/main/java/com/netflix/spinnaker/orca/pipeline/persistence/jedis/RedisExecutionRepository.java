@@ -570,21 +570,23 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
   @Nonnull
   @Override
   public List<String> retrieveAllApplicationNames(@Nullable ExecutionType type, int minExecutions) {
-    return redisClientDelegate.withMultiClient(c -> {
+    return redisClientDelegate.withMultiClient(mc -> {
       ScanParams scanParams = new ScanParams().match(executionKeyPattern(type)).count(2000);
       String cursor = "0";
 
-      Map<String, Integer> results = new HashMap<>();
+      Map<String, Long> results = new HashMap<>();
       while (true) {
         String finalCursor = cursor;
-        ScanResult<String> chunk = c.scan(finalCursor, scanParams);
+        ScanResult<String> chunk = mc.scan(finalCursor, scanParams);
 
-
-        chunk.getResult().forEach(id -> {
-          String[] parts = id.split(":");
-          String app = parts[2];
-          results.compute(app, (s, integer) -> results.getOrDefault(s, 0) + 1);
+        redisClientDelegate.withCommandsClient(cc -> {
+          chunk.getResult().forEach(id -> {
+            String[] parts = id.split(":");
+            String app = parts[2];
+            results.put(app, cc.scard(id));
+          });
         });
+
         cursor = chunk.getStringCursor();
         if (cursor.equals("0")) {
           break;

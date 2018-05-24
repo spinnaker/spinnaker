@@ -55,11 +55,15 @@ abstract class PollingAgentExecutionRepositoryTck<T extends PollingAgentExecutio
     def execution3 = orchestration {
       application = "spindemo"
     }
+    def execution4 = orchestration {
+      application = "spindemo"
+    }
 
     when:
     repository.store(execution1)
     repository.store(execution2)
     repository.store(execution3)
+    repository.store(execution4)
     def apps = repository.retrieveAllApplicationNames(executionType, minExecutions)
 
     then:
