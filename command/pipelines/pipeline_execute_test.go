@@ -36,7 +36,7 @@ func TestPipelineExecute_basic(t *testing.T) {
 }
 
 func TestPipelineExecute_fail(t *testing.T) {
-	ts := testGateServerFail()
+	ts := GateServerFail()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -57,7 +57,7 @@ func TestPipelineExecute_fail(t *testing.T) {
 }
 
 func TestPipelineExecute_flags(t *testing.T) {
-	ts := testGateServerSuccess()
+	ts := GateServerSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -72,7 +72,7 @@ func TestPipelineExecute_flags(t *testing.T) {
 }
 
 func TestPipelineExecute_missingname(t *testing.T) {
-	ts := testGateServerSuccess()
+	ts := GateServerSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -93,7 +93,7 @@ func TestPipelineExecute_missingname(t *testing.T) {
 }
 
 func TestPipelineExecute_missingapp(t *testing.T) {
-	ts := testGateServerSuccess()
+	ts := GateServerSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}

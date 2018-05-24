@@ -12,7 +12,7 @@ import (
 )
 
 func TestPipelineSave_basic(t *testing.T) {
-	ts := testGateServerSuccess()
+	ts := GateServerSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -33,7 +33,7 @@ func TestPipelineSave_basic(t *testing.T) {
 }
 
 func TestPipelineSave_fail(t *testing.T) {
-	ts := testGateServerFail()
+	ts := GateServerFail()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -54,7 +54,7 @@ func TestPipelineSave_fail(t *testing.T) {
 }
 
 func TestPipelineSave_flags(t *testing.T) {
-	ts := testGateServerSuccess()
+	ts := GateServerSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -69,7 +69,7 @@ func TestPipelineSave_flags(t *testing.T) {
 }
 
 func TestPipelineSave_missingname(t *testing.T) {
-	ts := testGateServerSuccess()
+	ts := GateServerSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -90,7 +90,7 @@ func TestPipelineSave_missingname(t *testing.T) {
 }
 
 func TestPipelineSave_missingid(t *testing.T) {
-	ts := testGateServerSuccess()
+	ts := GateServerSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -111,7 +111,7 @@ func TestPipelineSave_missingid(t *testing.T) {
 }
 
 func TestPipelineSave_missingapp(t *testing.T) {
-	ts := testGateServerSuccess()
+	ts := GateServerSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -141,17 +141,17 @@ func tempPipelineFile(pipelineContent string) *os.File {
 	return tempFile
 }
 
-// testGateServerSuccess spins up a local http server that we will configure the GateClient
+// GateServerSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with a 200 OK.
-func testGateServerSuccess() *httptest.Server {
+func GateServerSuccess() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "") // Just write an empty 200 success on save.
 	}))
 }
 
-// testGateServerFail spins up a local http server that we will configure the GateClient
+// GateServerFail spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with a 500 InternalServerError.
-func testGateServerFail() *httptest.Server {
+func GateServerFail() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO(jacobkiefer): Mock more robust errors once implemented upstream.
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
