@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlException;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +75,10 @@ public class KubernetesUnregisteredCustomResourceCachingAgent extends Kubernetes
 
   @Override
   protected List<KubernetesKind> primaryKinds() {
-    return liveCrdSupplier.get();
+    try {
+      return liveCrdSupplier.get();
+    } catch (KubectlException e) {
+      return new ArrayList<>();
+    }
   }
 }
