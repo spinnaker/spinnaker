@@ -38,6 +38,10 @@ public interface OrcaService {
   @GET("/pipelines")
   Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds);
 
+  @GET("/pipelines")
+  Collection<PipelineResponse> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds,
+                                                           @Query("limit") Integer limit);
+
   // GET /pipelines accepts extra query params, which is used for echo extensions.
   @GET("/pipelines")
   Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds,

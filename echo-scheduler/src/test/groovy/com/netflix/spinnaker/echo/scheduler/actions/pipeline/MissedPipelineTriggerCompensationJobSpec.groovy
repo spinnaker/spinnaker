@@ -72,15 +72,15 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     compensationJob.triggerMissedExecutions(pipelines)
 
     then:
-    1 * orcaService.getLatestPipelineExecutions(_) >> {
-      rx.Observable.just([
+    1 * orcaService.getLatestPipelineExecutions(_, _) >> {
+      [
         new OrcaService.PipelineResponse(pipelineConfigId: '1', startTime: getDateOffset(0).time),
         new OrcaService.PipelineResponse(pipelineConfigId: '2', startTime: getDateOffset(0).time),
         new OrcaService.PipelineResponse(pipelineConfigId: '3', startTime: getDateOffset(0).time),
         new OrcaService.PipelineResponse(pipelineConfigId: '3', startTime: null),
         new OrcaService.PipelineResponse(pipelineConfigId: '4', startTime: getDateOffset(0).time),
         new OrcaService.PipelineResponse(pipelineConfigId: '4', startTime: getDateOffset(30).time)
-      ])
+      ]
     }
     1 * pipelineInitiator.call((Pipeline) pipelines[0])
     1 * gaugeService.submit(_, _)
@@ -110,10 +110,10 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     compensationJob.triggerMissedExecutions(pipelines)
 
     then:
-    1 * orcaService.getLatestPipelineExecutions(_) >> {
-      rx.Observable.just([
+    1 * orcaService.getLatestPipelineExecutions(_, _) >> {
+      [
         new OrcaService.PipelineResponse(pipelineConfigId: '1', startTime: getDateOffset(0).time)
-      ])
+      ]
     }
     0 * pipelineInitiator.call(_)
     1 * gaugeService.submit(_, _)

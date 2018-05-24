@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import retrofit.RestAdapter;
+import retrofit.RestAdapter.LogLevel;
 import retrofit.client.Client;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
@@ -66,6 +67,7 @@ public class PipelineTriggerConfiguration {
     return new RestAdapter.Builder().setClient(retrofitClient)
                                     .setConverter(new JacksonConverter(new ObjectMapper()))
                                     .setEndpoint(endpoint)
+                                    .setLogLevel(LogLevel.BASIC)
                                     .setLog(new Slf4jRetrofitLogger(type))
                                     .build()
                                     .create(type);

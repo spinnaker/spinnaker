@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl
 
+import com.google.common.collect.Lists
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
@@ -158,12 +159,18 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     List<Trigger> triggers = getEnabledCronTriggers(pipelines)
 
     List<String> ids = getPipelineConfigIds(pipelines, triggers)
-    orcaService.getLatestPipelineExecutions(ids)
-      .subscribe({
-        onOrcaResponse(it, pipelines, triggers)
-      }, { onOrcaError(it) })
 
-    log.info("Done searching for cron trigger misfires")
+    long startTime = System.currentTimeMillis()
+
+    log.info("Checking ${ids.size()} pipelines with cron triggers")
+    Lists.partition(ids, 10).forEach { idsPartition ->
+      try {
+        onOrcaResponse(orcaService.getLatestPipelineExecutions(idsPartition, 1), pipelines, triggers)
+      } catch (Exception e) {
+        onOrcaError(e)
+      }
+    }
+    log.info("Done searching for cron trigger misfires in ${System.currentTimeMillis() - startTime}")
   }
 
   void onOrcaResponse(Collection<PipelineResponse> response, List<Pipeline> pipelines, List<Trigger> triggers) {
