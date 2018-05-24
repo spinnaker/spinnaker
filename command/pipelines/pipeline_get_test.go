@@ -103,7 +103,7 @@ func testGatePipelineGetMalformed() *httptest.Server {
 // testGatePipelineGetMissing returns a 404 Not Found for an errant pipeline name|application pair.
 func testGatePipelineGetMissing() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "404 Not Found", http.StatusNotFound)
+		http.NotFound(w, r)
 	}))
 }
 
