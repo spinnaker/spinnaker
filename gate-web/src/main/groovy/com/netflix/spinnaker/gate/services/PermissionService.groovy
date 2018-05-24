@@ -21,17 +21,21 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
-import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.gate.security.SpinnakerUser
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+import static com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest.classifyError
+
 @Slf4j
 @Component
 class PermissionService {
+
+  static final String HYSTRIX_GROUP = "permission"
 
   @Autowired
   FiatService fiatService
@@ -48,25 +52,49 @@ class PermissionService {
 
   void login(String userId) {
     if (fiatConfig.enabled) {
-      fiatService.loginUser(userId, "")
+      HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "login") {
+        try {
+          fiatService.loginUser(userId, "")
+        } catch (RetrofitError e) {
+          classifyError(e)
+        }
+      }.execute()
     }
   }
 
   void loginWithRoles(String userId, Collection<String> roles) {
     if (fiatConfig.enabled) {
-      fiatService.loginWithRoles(userId, roles)
+      HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "loginWithRoles") {
+        try {
+          fiatService.loginWithRoles(userId, roles)
+        } catch (RetrofitError e) {
+          classifyError(e)
+        }
+      }.execute()
     }
   }
 
   void logout(String userId) {
     if (fiatConfig.enabled) {
-      fiatService.logoutUser(userId)
+      HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "logout") {
+        try {
+          fiatService.logoutUser(userId)
+        } catch (RetrofitError e) {
+          classifyError(e)
+        }
+      }.execute()
     }
   }
 
   void sync() {
     if (fiatConfig.enabled) {
-      fiatService.sync()
+      HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "sync") {
+        try {
+          fiatService.sync()
+        } catch (RetrofitError e) {
+          classifyError(e)
+        }
+      }.execute()
     }
   }
 
@@ -74,7 +102,13 @@ class PermissionService {
     if (!fiatConfig.enabled) {
       return []
     }
-    return permissionEvaluator.getPermission(userId)?.roles ?: []
+    return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getRoles") {
+      try {
+        return permissionEvaluator.getPermission(userId)?.roles ?: []
+      } catch (RetrofitError e) {
+        classifyError(e)
+      }
+    } as Set<Role>
   }
 
   List<String> getServiceAccounts(@SpinnakerUser User user) {
@@ -89,12 +123,13 @@ class PermissionService {
       return []
     }
 
-    // TODO(ttomsu): Use Hystrix for this?
-    try {
-      UserPermission.View view = permissionEvaluator.getPermission(user.username)
-      return view.getServiceAccounts().collect { it.name }
-    } catch (RetrofitError re) {
-      throw UpstreamBadRequest.classifyError(re)
-    }
+    return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getServiceAccounts") {
+      try {
+        UserPermission.View view = permissionEvaluator.getPermission(user.username)
+        return view.getServiceAccounts().collect { it.name }
+      } catch (RetrofitError re) {
+        throw classifyError(re)
+      }
+    } as List<String>
   }
 }
