@@ -65,6 +65,9 @@ public class KubernetesManifestAnnotater {
       return;
     }
 
+    if (annotations.containsKey(key)) {
+      return;
+    }
 
     try {
       if (value instanceof String) {
