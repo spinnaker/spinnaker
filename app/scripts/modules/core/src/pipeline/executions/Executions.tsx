@@ -3,7 +3,7 @@ import { CreatePipelineButton } from 'core/pipeline/create/CreatePipelineButton'
 import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { Transition, HookMatchCriteria } from '@uirouter/core';
+import { Transition } from '@uirouter/core';
 import { get } from 'lodash';
 import { $timeout, $q } from 'ngimport';
 import { Subscription } from 'rxjs';
@@ -42,8 +42,7 @@ export interface IExecutionsState {
 export class Executions extends React.Component<IExecutionsProps, IExecutionsState> {
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
-  private deregisterScrollHook: Function;
-  private deregisterRefreshHook: Function;
+  private locationChangeUnsubscribe: Function;
   private insightFilterStateModel = ReactInjector.insightFilterStateModel;
   private activeRefresher: IScheduler;
 
@@ -189,45 +188,41 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     );
   }
 
-  // if we're navigating to a different execution on the same page, scroll the new execution into view
-  // or, if we are navigating back to the same execution after scrolling down the page, scroll it into view
-  // but don't scroll it into view if we're navigating to a different stage in the same execution
-  private maybeScrollToExecution(transition: Transition): void {
+  public handleTransitionSuccess(transition: Transition): void {
     const toParams = transition.params('to');
     const fromParams = transition.params('from');
-    const shouldScroll =
-      toParams.executionId &&
+    // if we're navigating to a different execution on the same page, scroll the new execution into view
+    // or, if we are navigating back to the same execution after scrolling down the page, scroll it into view
+    // but don't scroll it into view if we're navigating to a different stage in the same execution
+    let shouldScroll = false;
+    if (
+      transition.to.name.indexOf(transition.from.name) === 0 &&
       toParams.application === fromParams.application &&
-      toParams.executionId !== fromParams.executionId;
-
+      toParams.executionId
+    ) {
+      shouldScroll = true;
+      if (toParams.executionId === fromParams.executionId && toParams.details) {
+        if (
+          toParams.stage !== fromParams.stage ||
+          toParams.step !== fromParams.step ||
+          toParams.details !== fromParams.details
+        ) {
+          shouldScroll = false;
+        }
+      }
+    }
     if (shouldScroll) {
       this.scrollIntoView(0);
     }
   }
 
-  // If the execution filter parameters changed, refresh executions
-  private maybeRefreshExecutions(transition: Transition): void {
-    const toParams = transition.params('to');
-    const fromParams = transition.params('from');
-    const compareParams = ['pipeline', 'status'];
-    const shouldRefresh = compareParams.some(param => toParams[param] !== fromParams[param]);
-
-    if (shouldRefresh) {
-      const { app } = this.props;
-      app.executions.refresh(true);
-      app.executions.reloadingForFilters = true;
-    }
-  }
-
   public componentDidMount(): void {
-    const { app } = this.props;
-
-    const retainedCriteria: HookMatchCriteria = { retained: 'home.**.application.pipelines.executions.**' };
-    const transitionService = ReactInjector.$uiRouter.transitionService;
-    this.deregisterScrollHook = transitionService.onSuccess(retainedCriteria, t => this.maybeScrollToExecution(t));
-    this.deregisterRefreshHook = transitionService.onSuccess(retainedCriteria, t => this.maybeRefreshExecutions(t));
     this.groupsUpdatedSubscription = ExecutionFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
+    this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, t =>
+      this.handleTransitionSuccess(t),
+    );
 
+    const { app } = this.props;
     this.executionsRefreshUnsubscribe = app.executions.onRefresh(
       null,
       () => {
@@ -268,8 +263,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     app.pipelineConfigs.deactivate();
     this.executionsRefreshUnsubscribe();
     this.groupsUpdatedSubscription.unsubscribe();
-    this.deregisterScrollHook();
-    this.deregisterRefreshHook();
+    this.locationChangeUnsubscribe();
     this.activeRefresher && this.activeRefresher.unsubscribe();
   }
 

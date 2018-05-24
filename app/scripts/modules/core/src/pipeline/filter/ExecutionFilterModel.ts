@@ -1,14 +1,13 @@
+import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 import { extend } from 'lodash';
 import { Subject } from 'rxjs';
 import { $rootScope } from 'ngimport';
-import { Transition } from '@uirouter/core';
 
 import { ICache, ViewStateCache } from 'core/cache';
 import { IExecutionGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 import { FilterModelService } from 'core/filterModel';
 import { UrlParser } from 'core/navigation/urlParser';
-import { ReactInjector } from 'core/reactShims';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
@@ -60,27 +59,42 @@ export class ExecutionFilterModel {
       }
     });
 
-    // Wire up transition hooks
-    const saveFilterState = (trans: Transition) =>
-      this.asFilterModel.saveState(trans.from(), trans.params('from'), mostRecentParams);
+    $rootScope.$on(
+      '$stateChangeStart',
+      (
+        _event,
+        toState: Ng1StateDeclaration,
+        _toParams: StateParams,
+        fromState: Ng1StateDeclaration,
+        fromParams: StateParams,
+      ) => {
+        if (this.movingFromExecutionsState(toState, fromState)) {
+          this.asFilterModel.saveState(fromState, fromParams, mostRecentParams);
+        }
+      },
+    );
 
-    const applyCachedViewState = (trans: Transition) => {
-      this.mostRecentApplication = trans.params().application;
-      this.assignViewStateFromCache();
-    };
-
-    const updateUrl = () => this.asFilterModel.applyParamsToUrl();
-
-    const restoreSavedState = (trans: Transition) =>
-      this.asFilterModel.hasSavedState(trans.params()) && this.asFilterModel.restoreState(trans.params());
-
-    const transitionService = ReactInjector.$uiRouter.transitionService;
-    const executionsGlob = 'home.**.application.pipelines.executions.**';
-    transitionService.onSuccess({ exiting: executionsGlob }, saveFilterState);
-    transitionService.onSuccess({ to: executionsGlob }, applyCachedViewState);
-    // Priority < 0 so it executes after the router updates the URL
-    transitionService.onSuccess({ retained: executionsGlob }, updateUrl, { priority: -1 });
-    transitionService.onSuccess({ entering: executionsGlob }, restoreSavedState);
+    $rootScope.$on(
+      '$stateChangeSuccess',
+      (_event, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
+        if (this.movingToExecutionsState(toState) && (!toParams.pipeline || !this.groupCount)) {
+          this.mostRecentApplication = toParams.application;
+          this.assignViewStateFromCache();
+        }
+        if (this.movingToExecutionsState(toState) && this.isExecutionStateOrChild(fromState.name)) {
+          this.asFilterModel.applyParamsToUrl();
+          return;
+        }
+        if (this.movingToExecutionsState(toState)) {
+          if (this.shouldRouteToSavedState(toParams, fromState)) {
+            this.asFilterModel.restoreState(toParams);
+          }
+          if (this.fromApplicationListState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
+            this.asFilterModel.clearFilters();
+          }
+        }
+      },
+    );
 
     // A nice way to avoid watches is to define a property on an object
     Object.defineProperty(this.asFilterModel.sortFilter, 'count', {
@@ -144,5 +158,36 @@ export class ExecutionFilterModel {
       globalCacheData.showDurations = this.showDurations;
       this.configViewStateCache.put(GLOBAL_CACHE_KEY, globalCacheData);
     }
+  }
+
+  private isExecutionState(stateName: string): boolean {
+    return (
+      stateName === 'home.applications.application.pipelines.executions' ||
+      stateName === 'home.project.application.pipelines.executions'
+    );
+  }
+
+  private isChildState(stateName: string): boolean {
+    return stateName.includes('executions.execution');
+  }
+
+  private isExecutionStateOrChild(stateName: string): boolean {
+    return this.isExecutionState(stateName) || this.isChildState(stateName);
+  }
+
+  private movingToExecutionsState(toState: Ng1StateDeclaration): boolean {
+    return this.isExecutionStateOrChild(toState.name);
+  }
+
+  private movingFromExecutionsState(toState: Ng1StateDeclaration, fromState: Ng1StateDeclaration): boolean {
+    return this.isExecutionStateOrChild(fromState.name) && !this.isExecutionStateOrChild(toState.name);
+  }
+
+  private fromApplicationListState(fromState: Ng1StateDeclaration): boolean {
+    return fromState.name === 'home.applications';
+  }
+
+  private shouldRouteToSavedState(toParams: StateParams, fromState: Ng1StateDeclaration): boolean {
+    return this.asFilterModel.hasSavedState(toParams) && !this.isExecutionStateOrChild(fromState.name);
   }
 }

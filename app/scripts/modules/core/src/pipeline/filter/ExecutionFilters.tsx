@@ -84,6 +84,8 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
   private refreshExecutions = (): void => {
     ExecutionState.filterModel.asFilterModel.applyParamsToUrl();
+    this.props.application.executions.refresh(true);
+    this.props.application.executions.reloadingForFilters = true;
   };
 
   private clearFilters = (): void => {
