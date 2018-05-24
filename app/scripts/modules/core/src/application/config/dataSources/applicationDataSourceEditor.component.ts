@@ -3,7 +3,7 @@ import { IController, module } from 'angular';
 import { Application } from '../../application.model';
 import { ApplicationDataSource } from '../../service/applicationDataSource';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
-import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
+import { ApplicationReader } from 'core/application/service/ApplicationReader';
 
 import './applicationDataSourceEditor.component.less';
 
@@ -19,10 +19,6 @@ export class DataSourceEditorController implements IController {
   public original: string;
 
   public dataSources: ApplicationDataSource[];
-
-  constructor(private applicationReader: ApplicationReader) {
-    'ngInject';
-  }
 
   public $onInit() {
     if (this.application.notFound) {
@@ -73,7 +69,7 @@ export class DataSourceEditorController implements IController {
     }).then(
       () => {
         this.application.attributes.dataSources = newDataSources;
-        this.applicationReader.setDisabledDataSources(this.application);
+        ApplicationReader.setDisabledDataSources(this.application);
         this.application.refresh(true);
         this.saving = false;
         this.isDirty = false;
@@ -96,7 +92,7 @@ class ApplicationDataSourceEditorComponent implements ng.IComponentOptions {
 }
 
 export const APPLICATION_DATA_SOURCE_EDITOR = 'spinnaker.core.application.config.applicationDataSourceEditor';
-module(APPLICATION_DATA_SOURCE_EDITOR, [APPLICATION_READ_SERVICE]).component(
+module(APPLICATION_DATA_SOURCE_EDITOR, []).component(
   'applicationDataSourceEditor',
   new ApplicationDataSourceEditorComponent(),
 );

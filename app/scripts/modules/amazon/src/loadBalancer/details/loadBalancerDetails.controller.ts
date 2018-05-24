@@ -4,7 +4,6 @@ import { head, sortBy, uniq } from 'lodash';
 
 import {
   Application,
-  APPLICATION_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   IApplicationSecurityGroup,
   ILoadBalancer,
@@ -200,7 +199,6 @@ export class AwsLoadBalancerDetailsController implements IController {
 export const AWS_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.amazon.loadBalancer.details.controller';
 module(AWS_LOAD_BALANCER_DETAILS_CTRL, [
   require('@uirouter/angularjs').default,
-  APPLICATION_READ_SERVICE,
   SECURITY_GROUP_READER,
   LOAD_BALANCER_ACTIONS,
   LOAD_BALANCER_READ_SERVICE,

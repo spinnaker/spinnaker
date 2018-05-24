@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { AccountService } from 'core/account/AccountService';
+import { ApplicationReader } from 'core/application';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { TaskMonitor } from 'core/task';
 import { ModalWizard } from 'core/modal/wizard/ModalWizard';
@@ -18,7 +19,6 @@ module.exports = angular
     projectConfig,
     $uibModalInstance,
     $q,
-    applicationReader,
     projectWriter,
     projectReader,
     wizardSubFormValidation,
@@ -131,7 +131,7 @@ module.exports = angular
       $scope.viewState.pipelinesLoaded = true;
     });
 
-    applicationReader.listApplications().then(applications => {
+    ApplicationReader.listApplications().then(applications => {
       $scope.applications = applications.map(application => application.name).sort();
       $scope.viewState.applicationsLoaded = true;
     });

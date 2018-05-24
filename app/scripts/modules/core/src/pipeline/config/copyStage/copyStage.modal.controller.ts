@@ -4,11 +4,7 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import { API } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
-import {
-  APPLICATION_READ_SERVICE,
-  ApplicationReader,
-  IApplicationSummary,
-} from 'core/application/service/application.read.service';
+import { ApplicationReader, IApplicationSummary } from 'core/application/service/ApplicationReader';
 import { COPY_STAGE_CARD_COMPONENT } from './copyStageCard.component';
 import { IPipeline, IStage, IStrategy } from 'core/domain';
 
@@ -31,7 +27,6 @@ class CopyStageModalCtrl implements IController {
   constructor(
     private $q: IQService,
     public application: Application,
-    private applicationReader: ApplicationReader,
     private $uibModalInstance: IModalInstanceService,
     private forStrategyConfig: boolean,
   ) {
@@ -42,7 +37,7 @@ class CopyStageModalCtrl implements IController {
     this.$q
       .all({
         stages: this.getStagesForApplication(this.application.name),
-        applications: this.applicationReader.listApplications(),
+        applications: ApplicationReader.listApplications(),
       })
       .then(({ stages, applications }) => {
         this.stages = stages;
@@ -109,7 +104,4 @@ class CopyStageModalCtrl implements IController {
 
 export const COPY_STAGE_MODAL_CONTROLLER = 'spinnaker.core.copyStage.modal.controller';
 
-module(COPY_STAGE_MODAL_CONTROLLER, [COPY_STAGE_CARD_COMPONENT, APPLICATION_READ_SERVICE]).controller(
-  'CopyStageModalCtrl',
-  CopyStageModalCtrl,
-);
+module(COPY_STAGE_MODAL_CONTROLLER, [COPY_STAGE_CARD_COMPONENT]).controller('CopyStageModalCtrl', CopyStageModalCtrl);

@@ -1,5 +1,4 @@
 import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
-import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
 import { ClusterState } from 'core/state';
 import * as State from 'core/state';
 
@@ -7,13 +6,7 @@ describe('Controller: MultipleServerGroups', function() {
   var controller;
   var scope;
 
-  beforeEach(
-    window.module(
-      require('./multipleServerGroups.controller').name,
-      APPLICATION_READ_SERVICE,
-      APPLICATION_MODEL_BUILDER,
-    ),
-  );
+  beforeEach(window.module(require('./multipleServerGroups.controller').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(() => State.initialize());
 

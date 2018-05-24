@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { get } from 'lodash';
 
-import { Application, LoadBalancerWriter, SETTINGS, NgReact, ReactInjector } from '@spinnaker/core';
+import { Application, ApplicationReader, LoadBalancerWriter, SETTINGS, NgReact, ReactInjector } from '@spinnaker/core';
 
 import { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from 'amazon';
 
@@ -34,8 +34,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
       application = app;
     } else {
       // Load balancer is a part of a different application
-      ReactInjector.applicationReader
-        .getApplication(loadBalancerAppName)
+      ApplicationReader.getApplication(loadBalancerAppName)
         .then(loadBalancerApp => {
           this.setState({ application: loadBalancerApp });
         })

@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 import { AccountService } from 'core/account/AccountService';
-import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
+import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { APPLICATION_NAME_VALIDATION_MESSAGES } from './validation/applicationNameValidationMessages.component';
 import { TaskReader } from 'core/task/task.read.service';
@@ -15,22 +15,13 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.application.create.modal.controller', [
     require('@uirouter/angularjs').default,
-    APPLICATION_READ_SERVICE,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
     require('./applicationProviderFields.component.js').name,
     CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
-  .controller('CreateApplicationModalCtrl', function(
-    $scope,
-    $q,
-    $log,
-    $state,
-    $uibModalInstance,
-    applicationReader,
-    $timeout,
-  ) {
-    let applicationLoader = applicationReader.listApplications();
+  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, $timeout) {
+    let applicationLoader = ApplicationReader.listApplications();
     applicationLoader.then(applications => (this.data.appNameList = _.map(applications, 'name')));
 
     let providerLoader = AccountService.listProviders();

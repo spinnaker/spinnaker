@@ -1,6 +1,6 @@
 import { IController, IComponentOptions, module } from 'angular';
 
-import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
+import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { IParameter, IPipeline } from 'core/domain';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
@@ -32,12 +32,8 @@ class PipelineSelectorController implements IController {
     currentApplicationCount: 20,
   };
 
-  constructor(private applicationReader: ApplicationReader) {
-    'ngInject';
-  }
-
   public $onInit() {
-    this.applicationReader.listApplications().then(applications => {
+    ApplicationReader.listApplications().then(applications => {
       this.state.applications = applications.map(a => a.name).sort();
       this.initializePipelines();
     });
@@ -117,7 +113,4 @@ const pipelineSelectorComponent: IComponentOptions = {
 };
 
 export const PIPELINE_SELECTOR_COMPONENT = 'spinnaker.core.deploymentStrategy.rollingredblack.pipelineSelector';
-module(PIPELINE_SELECTOR_COMPONENT, [APPLICATION_READ_SERVICE]).component(
-  'pipelineSelector',
-  pipelineSelectorComponent,
-);
+module(PIPELINE_SELECTOR_COMPONENT, []).component('pipelineSelector', pipelineSelectorComponent);

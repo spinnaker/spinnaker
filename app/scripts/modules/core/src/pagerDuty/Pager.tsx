@@ -19,14 +19,10 @@ import {
   TableHeaderProps,
 } from 'react-virtualized';
 
-import {
-  IApplicationSummary,
-  IOnCall,
-  IPagerDutyService,
-  PagerDutyReader,
-  ReactInjector,
-  SETTINGS,
-} from '@spinnaker/core';
+import { ApplicationReader, IApplicationSummary } from 'core/application';
+import { IOnCall, IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
+import { ReactInjector } from 'core/reactShims';
+import { SETTINGS } from 'core/config';
 
 import './pager.less';
 
@@ -111,10 +107,9 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   }
 
   public componentDidMount(): void {
-    const { applicationReader } = ReactInjector;
     // Get the data from all the necessary sources before rendering
     Observable.forkJoin(
-      Observable.fromPromise(applicationReader.listApplications()),
+      Observable.fromPromise(ApplicationReader.listApplications()),
       PagerDutyReader.listOnCalls(),
       PagerDutyReader.listServices(),
     ).subscribe((results: [IApplicationSummary[], { [id: string]: IOnCall[] }, IPagerDutyService[]]) => {

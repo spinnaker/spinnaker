@@ -2,7 +2,7 @@ import * as moment from 'moment';
 import { cloneDeep, uniq } from 'lodash';
 import { module, noop } from 'angular';
 
-import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
+import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { INFRASTRUCTURE_CACHE_CONFIG, IInfrastructureCacheConfig } from './infrastructureCacheConfig';
@@ -25,7 +25,7 @@ export class CacheInitializerService {
   private initializers: IInitializers = {
     credentials: [() => AccountService.listAccounts()],
     securityGroups: [() => this.securityGroupReader.getAllSecurityGroups()],
-    applications: [() => this.applicationReader.listApplications()],
+    applications: [() => ApplicationReader.listApplications()],
     buildMasters: [() => IgorService.listMasters()],
   };
 
@@ -83,7 +83,6 @@ export class CacheInitializerService {
 
   constructor(
     private $q: ng.IQService,
-    private applicationReader: ApplicationReader,
     private securityGroupReader: SecurityGroupReader,
     private providerServiceDelegate: any,
   ) {}
@@ -115,7 +114,4 @@ export class CacheInitializerService {
 }
 
 export const CACHE_INITIALIZER_SERVICE = 'spinnaker.core.cache.initializer';
-module(CACHE_INITIALIZER_SERVICE, [SECURITY_GROUP_READER, APPLICATION_READ_SERVICE]).service(
-  'cacheInitializer',
-  CacheInitializerService,
-);
+module(CACHE_INITIALIZER_SERVICE, [SECURITY_GROUP_READER]).service('cacheInitializer', CacheInitializerService);

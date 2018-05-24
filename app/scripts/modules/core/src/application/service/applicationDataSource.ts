@@ -1,11 +1,12 @@
 import { IDeferred, ILogService, IPromise, IQService, IScope } from 'angular';
 import { get } from 'lodash';
-import { UIRouter } from '@uirouter/core';
 import { Subject, Subscription } from 'rxjs';
 
 import { Application } from '../application.model';
 import { IEntityTags } from 'core/domain/IEntityTags';
 import { FirewallLabels } from 'core/securityGroup/label/FirewallLabels';
+import { ReactInjector } from 'core/reactShims';
+import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
 export interface IDataSourceConfig {
   /**
@@ -212,7 +213,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * Indicates the data source is not used by the application. A disabled data source does not contribute to the
    * application's refresh cycle, nor does it appear in the application header.
    *
-   * This flag is set by the applicationReader, based on the dataSources attribute, which is stored in Front50.
+   * This flag is set by the ApplicationReader, based on the dataSources attribute, which is stored in Front50.
    */
   public disabled = false;
 
@@ -279,12 +280,11 @@ export class ApplicationDataSource implements IDataSourceConfig {
     private $q: IQService,
     private $log: ILogService,
     private $filter: any,
-    $uiRouter: UIRouter,
   ) {
     Object.assign(this, config);
 
     if (!config.label && this.$filter) {
-      this.label = this.$filter('robotToHuman')(config.key);
+      this.label = robotToHuman(config.key);
     }
     this.label = FirewallLabels.get(this.label);
 
@@ -293,8 +293,8 @@ export class ApplicationDataSource implements IDataSourceConfig {
     }
 
     if (config.autoActivate) {
-      $uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
-      $uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
+      ReactInjector.$uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
+      ReactInjector.$uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
     }
   }
 

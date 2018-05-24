@@ -4,7 +4,7 @@ import { StateParams } from '@uirouter/angularjs';
 import { Application } from './application.model';
 import { ApplicationComponent } from './ApplicationComponent';
 import { ApplicationModelBuilder } from './applicationModel.builder';
-import { ApplicationReader } from './service/application.read.service';
+import { ApplicationReader } from './service/ApplicationReader';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
 import { NgReact } from 'core/reactShims';
 import { InferredApplicationWarningService } from './service/InferredApplicationWarningService';
@@ -80,15 +80,9 @@ export class ApplicationStateProvider implements IServiceProvider {
       resolve: {
         app: [
           '$stateParams',
-          'applicationReader',
           'applicationModelBuilder',
-          (
-            $stateParams: StateParams,
-            applicationReader: ApplicationReader,
-            applicationModelBuilder: ApplicationModelBuilder,
-          ) => {
-            return applicationReader
-              .getApplication($stateParams.application, false)
+          ($stateParams: StateParams, applicationModelBuilder: ApplicationModelBuilder) => {
+            return ApplicationReader.getApplication($stateParams.application, false)
               .then((app: Application): Application => {
                 InferredApplicationWarningService.checkIfInferredAndWarn(app);
                 return app || applicationModelBuilder.createNotFoundApplication($stateParams.application);

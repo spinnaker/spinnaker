@@ -4,7 +4,7 @@ export * from './applicationModel.builder';
 export * from './nav/defaultCategories';
 export * from './modal/validation/applicationName.validator';
 export * from './listExtractor/listExtractor.service';
-export * from './service/application.read.service';
+export * from './service/ApplicationReader';
 export * from './service/ApplicationWriter';
 export * from './service/applicationDataSource';
 export * from './service/ApplicationDataSourceRegistry';

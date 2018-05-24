@@ -2,7 +2,7 @@ import * as React from 'react';
 import { uniqBy } from 'lodash';
 import { Observable } from 'rxjs';
 
-import { IApplicationSummary } from 'core/application';
+import { ApplicationReader, IApplicationSummary } from 'core/application';
 import { IQueryParams, urlBuilderRegistry } from 'core/navigation';
 import { ReactInjector } from 'core/reactShims';
 import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
@@ -88,7 +88,7 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
     _params: IQueryParams,
     otherResults: Observable<ISearchResultSet>,
   ): Observable<ISearchResults<IClusterSearchResult>> {
-    const applications: Map<string, IApplicationSummary> = ReactInjector.applicationReader.getApplicationMap();
+    const applications: Map<string, IApplicationSummary> = ApplicationReader.getApplicationMap();
 
     return otherResults
       .filter(resultSet => resultSet.type.id === 'serverGroups')

@@ -1,6 +1,6 @@
 import { IController, IScope } from 'angular';
 
-import { ApplicationReader } from 'core/application/service/application.read.service';
+import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { IArtifact, IExpectedArtifact, IPipeline } from 'core/domain';
@@ -29,7 +29,7 @@ export class FindArtifactFromExecutionCtrl implements IController {
     },
   };
 
-  constructor(private $scope: IScope, private applicationReader: ApplicationReader) {
+  constructor(private $scope: IScope) {
     'ngInject';
     this.stage = this.$scope.stage as IFindArtifactFromExecutionStage;
     if (this.$scope.stage.isNew) {
@@ -50,7 +50,7 @@ export class FindArtifactFromExecutionCtrl implements IController {
   }
 
   private loadApplications() {
-    this.applicationReader.listApplications().then(apps => {
+    ApplicationReader.listApplications().then(apps => {
       this.state.applications = apps.map(a => a.name);
       this.state.applicationsLoaded = true;
     });

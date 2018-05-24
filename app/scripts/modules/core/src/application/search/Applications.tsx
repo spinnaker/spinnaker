@@ -5,11 +5,10 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { IAccount } from 'core/account';
 import { ICache, ViewStateCache } from 'core/cache';
-import { IApplicationSummary } from 'core/application';
+import { ApplicationReader, IApplicationSummary } from 'core/application';
 import { ApplicationTable } from './ApplicationsTable';
 import { PaginationControls } from './PaginationControls';
 import { InsightMenu } from 'core/insight/InsightMenu';
-import { ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets';
 
 import '../applications.less';
@@ -72,7 +71,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
       return (a[key] || '').localeCompare(b[key] || '') * (reverse ? -1 : 1);
     };
 
-    Observable.fromPromise(ReactInjector.applicationReader.listApplications())
+    Observable.fromPromise(ApplicationReader.listApplications())
       .map(apps => apps.map(app => this.fixAccount(app)))
 
       // Apply filter/sort

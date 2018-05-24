@@ -1,6 +1,6 @@
 import { IController, IComponentOptions, module } from 'angular';
 
-import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
+import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { IParameter, IPipeline } from 'core/domain';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
@@ -33,15 +33,11 @@ class CustomStrategySelectorController implements IController {
     currentApplicationCount: 20,
   };
 
-  constructor(private applicationReader: ApplicationReader) {
-    'ngInject';
-  }
-
   public $onInit() {
     if (!this.command.strategyApplication) {
       this.command.strategyApplication = this.command.application;
     }
-    this.applicationReader.listApplications().then(applications => {
+    ApplicationReader.listApplications().then(applications => {
       this.state.applications = applications.map(a => a.name).sort();
       this.initializeStrategies();
     });
@@ -121,7 +117,4 @@ const customStrategyComponent: IComponentOptions = {
 };
 
 export const CUSTOM_STRATEGY_SELECTOR_COMPONENT = 'spinnaker.core.deploymentStrategy.custom.customStrategySelector';
-module(CUSTOM_STRATEGY_SELECTOR_COMPONENT, [APPLICATION_READ_SERVICE]).component(
-  'customStrategySelector',
-  customStrategyComponent,
-);
+module(CUSTOM_STRATEGY_SELECTOR_COMPONENT, []).component('customStrategySelector', customStrategyComponent);

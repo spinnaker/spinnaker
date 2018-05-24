@@ -1,13 +1,11 @@
-import { IFilterService, ILogService, IPromise, IQService, module } from 'angular';
-
-import { UIRouter } from '@uirouter/core';
+import { IPromise } from 'angular';
+import { $q, $log, $filter } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
 import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 import { Application } from '../application.model';
 import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
-import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
 
 export interface IApplicationDataSourceAttribute {
@@ -28,18 +26,9 @@ export interface IApplicationSummary {
 }
 
 export class ApplicationReader {
-  private applicationMap: Map<string, IApplicationSummary> = new Map<string, IApplicationSummary>();
+  private static applicationMap: Map<string, IApplicationSummary> = new Map<string, IApplicationSummary>();
 
-  public constructor(
-    private $q: IQService,
-    private $log: ILogService,
-    private $filter: IFilterService,
-    private $uiRouter: UIRouter,
-  ) {
-    'ngInject';
-  }
-
-  public listApplications(populateMap = false): IPromise<IApplicationSummary[]> {
+  public static listApplications(populateMap = false): IPromise<IApplicationSummary[]> {
     return API.all('applications')
       .useCache()
       .getList()
@@ -53,17 +42,12 @@ export class ApplicationReader {
       });
   }
 
-  public getApplication(name: string, expand = true): IPromise<Application> {
+  public static getApplication(name: string, expand = true): IPromise<Application> {
     return API.one('applications', name)
       .withParams({ expand: expand })
       .get()
       .then((fromServer: Application) => {
-        const application: Application = new Application(
-          fromServer.name,
-          SchedulerFactory.createScheduler(),
-          this.$q,
-          this.$log,
-        );
+        const application: Application = new Application(fromServer.name, SchedulerFactory.createScheduler(), $q, $log);
         application.attributes = fromServer.attributes;
         this.splitAttributes(application.attributes, ['accounts', 'cloudProviders']);
         this.addDataSources(application);
@@ -72,11 +56,11 @@ export class ApplicationReader {
       });
   }
 
-  public getApplicationMap(): Map<string, IApplicationSummary> {
+  public static getApplicationMap(): Map<string, IApplicationSummary> {
     return this.applicationMap;
   }
 
-  private splitAttributes(attributes: any, fields: string[]) {
+  private static splitAttributes(attributes: any, fields: string[]) {
     fields.forEach(field => {
       if (attributes[field]) {
         if (!Array.isArray(attributes[field])) {
@@ -88,24 +72,17 @@ export class ApplicationReader {
     });
   }
 
-  private addDataSources(application: Application): void {
+  private static addDataSources(application: Application): void {
     const dataSources: IDataSourceConfig[] = ApplicationDataSourceRegistry.getDataSources();
     dataSources.forEach((ds: IDataSourceConfig) => {
-      const dataSource: ApplicationDataSource = new ApplicationDataSource(
-        ds,
-        application,
-        this.$q,
-        this.$log,
-        this.$filter,
-        this.$uiRouter,
-      );
+      const dataSource: ApplicationDataSource = new ApplicationDataSource(ds, application, $q, $log, $filter);
       application.dataSources.push(dataSource);
       application[ds.key] = dataSource;
     });
     this.setDisabledDataSources(application);
   }
 
-  public setDisabledDataSources(application: Application) {
+  public static setDisabledDataSources(application: Application) {
     const allDataSources: ApplicationDataSource[] = application.dataSources,
       appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
     if (!appDataSources) {
@@ -134,17 +111,10 @@ export class ApplicationReader {
     });
   }
 
-  private setDataSourceDisabled(dataSource: ApplicationDataSource, application: Application, disabled: boolean) {
+  private static setDataSourceDisabled(dataSource: ApplicationDataSource, application: Application, disabled: boolean) {
     dataSource.disabled = disabled;
     if (dataSource.badge) {
       application.dataSources.find(ds => ds.key === dataSource.badge).disabled = disabled;
     }
   }
 }
-
-export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service';
-
-module(APPLICATION_READ_SERVICE, [ROBOT_TO_HUMAN_FILTER, require('@uirouter/angularjs').default]).service(
-  'applicationReader',
-  ApplicationReader,
-);

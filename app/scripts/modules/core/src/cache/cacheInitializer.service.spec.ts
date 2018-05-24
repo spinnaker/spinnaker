@@ -3,7 +3,7 @@ import { flatten } from 'lodash';
 import { mock, IQService, IRootScopeService } from 'angular';
 import { CACHE_INITIALIZER_SERVICE, CacheInitializerService } from './cacheInitializer.service';
 import { AccountService } from 'core/account/AccountService';
-import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
+import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { InfrastructureCaches } from 'core/cache';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
 import { IgorService } from 'core/ci/igor.service';
@@ -25,22 +25,19 @@ describe('Service: cacheInitializer', function() {
   let $root: IRootScopeService;
   let cacheInitializer: CacheInitializerService;
   let securityGroupReader: SecurityGroupReader;
-  let applicationReader: ApplicationReader;
 
-  beforeEach(mock.module(CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER, APPLICATION_READ_SERVICE));
+  beforeEach(mock.module(CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER));
   beforeEach(
     mock.inject(function(
       _$q_: ng.IQService,
       _$rootScope_: ng.IRootScopeService,
       _cacheInitializer_: CacheInitializerService,
       _securityGroupReader_: SecurityGroupReader,
-      _applicationReader_: ApplicationReader,
     ) {
       $q = _$q_;
       $root = _$rootScope_;
       cacheInitializer = _cacheInitializer_;
       securityGroupReader = _securityGroupReader_;
-      applicationReader = _applicationReader_;
     }),
   );
   beforeEach(() => {
@@ -52,7 +49,6 @@ describe('Service: cacheInitializer', function() {
     expect($root).toBeDefined();
     expect(cacheInitializer).toBeDefined();
     expect(securityGroupReader).toBeDefined();
-    expect(applicationReader).toBeDefined();
   });
 
   describe('spinnaker.core.cache.initializer', () => {
@@ -68,7 +64,7 @@ describe('Service: cacheInitializer', function() {
       initialized = false;
       spyOn(AccountService, 'listAllAccounts').and.returnValue($q.when(keys.account));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(keys.sg));
-      spyOn(applicationReader, 'listApplications').and.returnValue($q.when(keys.app));
+      spyOn(ApplicationReader, 'listApplications').and.returnValue($q.when(keys.app));
       spyOn(IgorService, 'listMasters').and.returnValue($q.when(keys.bm));
       spyOn(AccountService, 'listProviders').and.returnValue($q.when([]));
     });

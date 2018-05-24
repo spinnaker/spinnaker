@@ -1,5 +1,4 @@
 import { module } from 'angular';
-import { UIRouter } from '@uirouter/core';
 
 import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
@@ -8,12 +7,7 @@ import { Application } from './application.model';
 import { ApplicationDataSource, IDataSourceConfig } from './service/applicationDataSource';
 
 export class ApplicationModelBuilder {
-  constructor(
-    private $log: ng.ILogService,
-    private $q: ng.IQService,
-    private $filter: any,
-    private $uiRouter: UIRouter,
-  ) {
+  constructor(private $log: ng.ILogService, private $q: ng.IQService, private $filter: any) {
     'ngInject';
   }
 
@@ -43,7 +37,7 @@ export class ApplicationModelBuilder {
   }
 
   private addDataSource(config: IDataSourceConfig, application: Application): void {
-    const source = new ApplicationDataSource(config, application, this.$q, this.$log, this.$filter, this.$uiRouter);
+    const source = new ApplicationDataSource(config, application, this.$q, this.$log, this.$filter);
     application.dataSources.push(source);
     application[config.key] = source;
   }

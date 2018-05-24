@@ -4,7 +4,6 @@ import IInjectorService = angular.auto.IInjectorService;
 import { StateParams, StateService, UIRouter } from '@uirouter/core';
 
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import { ApplicationReader } from '../application/service/application.read.service';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { CancelModalService } from '../cancelModal/cancelModal.service';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
@@ -48,7 +47,6 @@ export class CoreReactInject extends ReactInject {
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
   public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
   public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }
-  public get applicationReader() { return this.$injector.get('applicationReader') as ApplicationReader; }
   public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }
   public get cancelModalService() { return this.$injector.get('cancelModalService') as CancelModalService; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
