@@ -59,9 +59,10 @@ class ServerGroupController {
   @Autowired(required = false)
   ServerGroupViewModelPostProcessor serverGroupViewModelPostProcessor
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
+  @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/serverGroups/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  ServerGroup getServerGroupByApplication(@PathVariable String application, // needed for @PreAuthorize
+  ServerGroup getServerGroupByApplication(@PathVariable String application, // needed to not break api
                                           @PathVariable String account,
                                           @PathVariable String region,
                                           @PathVariable() String name,
