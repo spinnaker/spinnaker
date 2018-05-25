@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { IPromise } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { InfrastructureCaches } from 'core/cache/infrastructureCaches';
@@ -13,7 +13,7 @@ export interface ISecurityGroupJob extends IJob {
   securityGroupName: string;
 }
 export class SecurityGroupWriter {
-  public deleteSecurityGroup(
+  public static deleteSecurityGroup(
     securityGroup: ISecurityGroup,
     application: Application,
     params: ISecurityGroupJob,
@@ -33,7 +33,7 @@ export class SecurityGroupWriter {
     return operation;
   }
 
-  public upsertSecurityGroup(
+  public static upsertSecurityGroup(
     securityGroup: ISecurityGroup,
     application: Application,
     description: string,
@@ -54,6 +54,3 @@ export class SecurityGroupWriter {
     return operation;
   }
 }
-
-export const SECURITY_GROUP_WRITER = 'spinnaker.core.securityGroup.write.service';
-module(SECURITY_GROUP_WRITER, []).service('securityGroupWriter', SecurityGroupWriter);

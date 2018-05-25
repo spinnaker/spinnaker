@@ -1,5 +1,7 @@
 'use strict';
 
+import { ProjectReader } from './service/ProjectReader';
+
 describe('Controller: Projects', function() {
   beforeEach(window.module(require('./projects.controller').name, require('angular-ui-bootstrap')));
 
@@ -11,23 +13,11 @@ describe('Controller: Projects', function() {
 
     // Initialize the controller and a mock scope
     beforeEach(
-      window.inject(function(
-        $controller,
-        $rootScope,
-        $window,
-        $q,
-        $uibModal,
-        $log,
-        $filter,
-        $state,
-        $timeout,
-        projectReader,
-      ) {
+      window.inject(function($controller, $rootScope, $window, $q, $uibModal, $log, $filter, $state, $timeout) {
         this.$scope = $rootScope.$new();
         this.$q = $q;
-        this.projectReader = projectReader;
 
-        spyOn(this.projectReader, 'listProjects').and.callFake(function() {
+        spyOn(ProjectReader, 'listProjects').and.callFake(function() {
           return $q.when(projectList);
         });
 

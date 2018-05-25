@@ -1,4 +1,4 @@
-import { AccountService, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { AccountService, APPLICATION_MODEL_BUILDER, SecurityGroupWriter } from '@spinnaker/core';
 
 import { OpenStackProviderSettings } from '../../../openstack.settings';
 
@@ -86,8 +86,8 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       }
 
       spyOn(AccountService, 'listAccounts').and.returnValue($q.when(this.testData.accountList));
+      spyOn(SecurityGroupWriter, 'upsertSecurityGroup');
       this.mockSecurityGroupReader = addDeferredMock({}, 'loadSecurityGroups');
-      this.mockSecurityGroupWriter = addDeferredMock({}, 'upsertSecurityGroup');
       this.mockTaskMonitor = {
         submit: jasmine.createSpy(),
       };
@@ -100,7 +100,6 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
           application: this.mockApplication,
           securityGroup: securityGroup,
           securityGroupReader: this.mockSecurityGroupReader,
-          securityGroupWriter: this.mockSecurityGroupWriter,
         });
       };
     }),
@@ -185,7 +184,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
               });
 
               it('- calls upsertSecurityGroup()', function() {
-                expect(this.mockSecurityGroupWriter.upsertSecurityGroup).toHaveBeenCalledWith(
+                expect(SecurityGroupWriter.upsertSecurityGroup).toHaveBeenCalledWith(
                   this.$scope.securityGroup,
                   this.mockApplication,
                   'Create',

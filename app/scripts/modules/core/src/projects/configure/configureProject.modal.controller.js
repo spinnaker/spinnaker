@@ -7,11 +7,11 @@ import { ApplicationReader } from 'core/application';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { TaskMonitor } from 'core/task';
 import { ModalWizard } from 'core/modal/wizard/ModalWizard';
+import { ProjectReader } from '../service/ProjectReader';
+import { ProjectWriter } from '../service/ProjectWriter';
 
 module.exports = angular
   .module('spinnaker.core.projects.configure.modal.controller', [
-    require('../service/project.write.service.js').name,
-    require('../service/project.read.service.js').name,
     require('../../modal/wizard/wizardSubFormValidation.service.js').name,
   ])
   .controller('ConfigureProjectModalCtrl', function(
@@ -19,8 +19,6 @@ module.exports = angular
     projectConfig,
     $uibModalInstance,
     $q,
-    projectWriter,
-    projectReader,
     wizardSubFormValidation,
   ) {
     if (!projectConfig.name) {
@@ -147,14 +145,14 @@ module.exports = angular
     });
 
     this.deleteProject = () => {
-      var submitMethod = () => projectWriter.deleteProject($scope.command);
+      var submitMethod = () => ProjectWriter.deleteProject($scope.command);
 
       $scope.taskMonitor.onTaskComplete = () => $uibModalInstance.close({ action: 'delete' });
       $scope.taskMonitor.title = 'Deleting ' + $scope.command.name;
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    projectReader.listProjects().then(projects => {
+    ProjectReader.listProjects().then(projects => {
       $scope.projectNames = projects
         .map(project => project.name.toLowerCase())
         .filter(projectName => projectName !== projectConfig.name.toLowerCase());
@@ -162,7 +160,7 @@ module.exports = angular
     });
 
     this.updateProject = () => {
-      var submitMethod = () => projectWriter.upsertProject($scope.command);
+      var submitMethod = () => ProjectWriter.upsertProject($scope.command);
       let descriptor = $scope.command.id ? 'Updating ' : 'Creating ';
 
       $scope.taskMonitor.onTaskComplete = () =>

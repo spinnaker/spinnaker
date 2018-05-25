@@ -7,7 +7,7 @@ import {
   FirewallLabels,
   NameUtils,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
+  SecurityGroupWriter,
   TaskMonitor,
 } from '@spinnaker/core';
 
@@ -15,7 +15,6 @@ module.exports = angular
   .module('spinnaker.securityGroup.openstack.create.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    SECURITY_GROUP_WRITER,
     require('../../../region/regionSelectField.directive.js').name,
     require('../../transformer.js').name,
   ])
@@ -28,7 +27,6 @@ module.exports = angular
     securityGroup,
     openstackSecurityGroupTransformer,
     securityGroupReader,
-    securityGroupWriter,
   ) {
     var ctrl = this;
     $scope.firewallLabel = FirewallLabels.get('Firewall');
@@ -190,7 +188,7 @@ module.exports = angular
         var copyOfSG = angular.copy($scope.securityGroup);
         copyOfSG = openstackSecurityGroupTransformer.prepareForSaving(copyOfSG);
 
-        return securityGroupWriter.upsertSecurityGroup(copyOfSG, application, descriptor, params);
+        return SecurityGroupWriter.upsertSecurityGroup(copyOfSG, application, descriptor, params);
       });
     };
 

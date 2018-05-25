@@ -9,7 +9,7 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   FirewallLabels,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
+  SecurityGroupWriter,
 } from '@spinnaker/core';
 
 import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE } from '../securityGroupHelpText.service';
@@ -18,7 +18,6 @@ module.exports = angular
   .module('spinnaker.securityGroup.gce.details.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    SECURITY_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     require('../clone/cloneSecurityGroup.controller.js').name,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
@@ -29,7 +28,6 @@ module.exports = angular
     resolvedSecurityGroup,
     app,
     confirmationModalService,
-    securityGroupWriter,
     securityGroupReader,
     $uibModal,
     gceSecurityGroupHelpTextService,
@@ -211,7 +209,7 @@ module.exports = angular
       };
 
       var submitMethod = function() {
-        return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
+        return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
           cloudProvider: $scope.securityGroup.type,
           securityGroupName: securityGroup.name,
         });

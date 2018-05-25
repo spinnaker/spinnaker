@@ -5,7 +5,7 @@ require('jquery-textcomplete');
 
 import './spel.less';
 
-let decorateFn = function($delegate, jsonListBuilder, spelAutocomplete) {
+let decorateFn = function($delegate, spelAutocomplete) {
   let directive = $delegate[0];
 
   let link = directive.link.pre;
@@ -60,10 +60,7 @@ let decorateFn = function($delegate, jsonListBuilder, spelAutocomplete) {
 };
 
 module.exports = angular
-  .module('spinnaker.core.widget.spelText', [
-    require('./spelAutocomplete.service').name,
-    require('./jsonListBuilder').name,
-  ])
+  .module('spinnaker.core.widget.spelText', [require('./spelAutocomplete.service').name])
   .config(function($provide) {
     $provide.decorator('inputDirective', decorateFn);
     $provide.decorator('textareaDirective', decorateFn);

@@ -50,8 +50,6 @@ module(PIPELINE_MODULE, [
   STEP_EXECUTION_DETAILS_COMPONENT,
   STAGE_SUMMARY_COMPONENT,
 
-  require('../utils/appendTransform.js').name,
-
   require('./pipeline.dataSource').name,
   PIPELINE_STATES,
   require('./config/pipelineConfig.module').name,

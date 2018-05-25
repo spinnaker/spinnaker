@@ -3,7 +3,7 @@ export * from './application.model';
 export * from './applicationModel.builder';
 export * from './nav/defaultCategories';
 export * from './modal/validation/ApplicationNameValidator';
-export * from './listExtractor/listExtractor.service';
+export * from './listExtractor/AppListExtractor';
 export * from './service/ApplicationReader';
 export * from './service/ApplicationWriter';
 export * from './service/applicationDataSource';

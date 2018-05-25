@@ -3,6 +3,7 @@ import { StateParams } from '@uirouter/angularjs';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
 import { IProject } from '../domain/IProject';
+import { ProjectReader } from './service/ProjectReader';
 
 export interface IProjectStateParms extends StateParams {
   project: string;
@@ -39,9 +40,8 @@ module(PROJECTS_STATES_CONFIG, [
     resolve: {
       projectConfiguration: [
         '$stateParams',
-        'projectReader',
-        ($stateParams: IProjectStateParms, projectReader: any) => {
-          return projectReader.getProjectConfig($stateParams.project).then(
+        ($stateParams: IProjectStateParms) => {
+          return ProjectReader.getProjectConfig($stateParams.project).then(
             (projectConfig: IProject) => projectConfig,
             (): IProject => {
               return {

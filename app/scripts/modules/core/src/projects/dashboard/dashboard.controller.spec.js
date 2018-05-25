@@ -1,10 +1,10 @@
 'use strict';
 
 import { RecentHistoryService } from 'core/history';
+import { ProjectReader } from '../service/ProjectReader';
 
 describe('Controller: Project Dashboard', function() {
   var executionService,
-    projectReader,
     projectConfig,
     vm,
     $q,
@@ -15,9 +15,8 @@ describe('Controller: Project Dashboard', function() {
   beforeEach(window.module(require('./dashboard.controller.js').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _executionService_, _projectReader_, _$q_) {
+    window.inject(function($controller, $rootScope, _executionService_, _$q_) {
       executionService = _executionService_;
-      projectReader = _projectReader_;
       $q = _$q_;
       $scope = $rootScope.$new();
       projectConfig = { name: 'the project', config: { applications: ['a', 'b'], clusters: ['a'] } };
@@ -26,7 +25,6 @@ describe('Controller: Project Dashboard', function() {
         vm = $controller('ProjectDashboardCtrl', {
           $scope: $scope,
           executionService: executionService,
-          projectReader: projectReader,
           projectConfiguration: projectConfig,
         });
       };
@@ -57,7 +55,7 @@ describe('Controller: Project Dashboard', function() {
 
   describe('initialization, no errors', function() {
     beforeEach(function() {
-      spyOn(projectReader, 'getProjectClusters').and.callFake(() => $q.when(clusters));
+      spyOn(ProjectReader, 'getProjectClusters').and.callFake(() => $q.when(clusters));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.when(executions));
     });
 
@@ -100,7 +98,7 @@ describe('Controller: Project Dashboard', function() {
 
   describe('initialization with errors', function() {
     it('loads clusters as expected, but sets error flag when executions fail to load', function() {
-      spyOn(projectReader, 'getProjectClusters').and.callFake(() => $q.when(clusters));
+      spyOn(ProjectReader, 'getProjectClusters').and.callFake(() => $q.when(clusters));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.reject(null));
 
       this.initialize();
@@ -123,7 +121,7 @@ describe('Controller: Project Dashboard', function() {
     });
 
     it('loads executions as expected, but sets error flag when clusters fail to load', function() {
-      spyOn(projectReader, 'getProjectClusters').and.callFake(() => $q.reject(null));
+      spyOn(ProjectReader, 'getProjectClusters').and.callFake(() => $q.reject(null));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.when(executions));
 
       this.initialize();

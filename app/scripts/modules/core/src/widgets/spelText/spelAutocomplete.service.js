@@ -1,12 +1,13 @@
 'use strict';
 
 import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
+import { JsonListBuilder } from './JsonListBuilder';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.widget.spelAutocomplete', [require('./jsonListBuilder').name, EXECUTION_SERVICE])
-  .factory('spelAutocomplete', function($q, jsonListBuilder, executionService) {
+  .module('spinnaker.core.widget.spelAutocomplete', [EXECUTION_SERVICE])
+  .factory('spelAutocomplete', function($q, executionService) {
     let brackets = [{ open: '(', close: ')' }, { open: '[', close: ']' }];
     let quotes = [{ open: "'", close: "'" }, { open: '"', close: '"' }];
     let helperFunctions = [
@@ -127,7 +128,7 @@ module.exports = angular
 
     let addExecutionForAutocomplete = (pipeline, textcompleteConfig) => {
       if (pipeline) {
-        let executionList = jsonListBuilder.convertJsonKeysToBracketedList(pipeline, ['task']);
+        let executionList = JsonListBuilder.convertJsonKeysToBracketedList(pipeline, ['task']);
 
         let configList = [
           {
@@ -148,7 +149,7 @@ module.exports = angular
 
     let addDeloyedServerGroupsForAutoComplete = (pipeline, textcompleteConfig) => {
       if (pipeline && pipeline.context && pipeline.context.deploymentDetails) {
-        let deployList = jsonListBuilder.convertJsonKeysToBracketedList(pipeline.context.deploymentDetails);
+        let deployList = JsonListBuilder.convertJsonKeysToBracketedList(pipeline.context.deploymentDetails);
 
         let configList = [
           {
@@ -170,11 +171,11 @@ module.exports = angular
     let addStageDataForAutocomplete = (pipeline, textcompleteConfig) => {
       if (pipeline && pipeline.stages) {
         let configList = pipeline.stages.map(stage => {
-          let stageList = jsonListBuilder.convertJsonKeysToBracketedList(stage, ['task']);
+          let stageList = JsonListBuilder.convertJsonKeysToBracketedList(stage, ['task']);
 
           return {
             id: `stage config for ${stage.name}`,
-            match: new RegExp(`#stage\\(\\s*'${jsonListBuilder.escapeForRegEx(stage.name)}'\\s*\\)(.*)$`),
+            match: new RegExp(`#stage\\(\\s*'${JsonListBuilder.escapeForRegEx(stage.name)}'\\s*\\)(.*)$`),
             index: 1,
             search: listSearchFn(stageList),
             template: leafTemplateFn,
@@ -194,11 +195,11 @@ module.exports = angular
         let manualJudgementStageList = pipeline.stages.filter(stage => stage.type === 'manualJudgment');
 
         let configList = manualJudgementStageList.map(stage => {
-          let stageList = jsonListBuilder.convertJsonKeysToBracketedList(stage);
+          let stageList = JsonListBuilder.convertJsonKeysToBracketedList(stage);
 
           return {
             id: `judgement config for ${stage.name}`,
-            match: new RegExp(`#judgment\\(\\s*'\\s*${jsonListBuilder.escapeForRegEx(stage.name)}'\\s*\\)(.*)$`),
+            match: new RegExp(`#judgment\\(\\s*'\\s*${JsonListBuilder.escapeForRegEx(stage.name)}'\\s*\\)(.*)$`),
             index: 1,
             search: listSearchFn(stageList),
             template: leafTemplateFn,
@@ -218,7 +219,7 @@ module.exports = angular
       if (pipeline && pipeline.trigger) {
         let triggerAsList = [pipeline.trigger];
         let configList = triggerAsList.map(trigger => {
-          let triggerInfoList = jsonListBuilder.convertJsonKeysToBracketedList(trigger);
+          let triggerInfoList = JsonListBuilder.convertJsonKeysToBracketedList(trigger);
           return {
             id: `trigger config: ${trigger.type}`,
             match: /trigger(\w*|\s*)$/,
@@ -241,7 +242,7 @@ module.exports = angular
       if (pipeline && pipeline.parameterConfig) {
         let paramsAsList = [pipeline.parameterConfig];
         let configList = paramsAsList.map(params => {
-          let paramsInfoList = jsonListBuilder.convertJsonKeysToBracketedList(params);
+          let paramsInfoList = JsonListBuilder.convertJsonKeysToBracketedList(params);
           return {
             id: `parameter config: ${Object.keys(params).join(',')}`,
             match: /parameters(\w*|\s*)$/,

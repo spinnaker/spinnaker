@@ -73,12 +73,12 @@
           </span>
           <select class="input input-sm"
                   ng-model="window.startHour"
-                  ng-options="option.key as option.label for option in hours">
+                  ng-options="option.value as option.label for option in hours">
           </select>
           :
           <select class="input input-sm"
                   ng-model="window.startMin"
-                  ng-options="option.key as option.label for option in minutes">
+                  ng-options="option.value as option.label for option in minutes">
           </select>
           <span class="start-end-divider">
             to
@@ -86,12 +86,12 @@
 
           <select class="input input-sm"
                   ng-model="window.endHour"
-                  ng-options="option.key as option.label for option in hours">
+                  ng-options="option.value as option.label for option in hours">
           </select>
           :
           <select class="input input-sm"
                   ng-model="window.endMin"
-                  ng-options="option.key as option.label for option in minutes">
+                  ng-options="option.value as option.label for option in minutes">
           </select>
 
           <button class="btn-link btn-remove"

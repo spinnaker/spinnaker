@@ -5,10 +5,10 @@ import _ from 'lodash';
 const angular = require('angular');
 
 import { AccountService } from 'core/account/AccountService';
-import { LIST_EXTRACTOR_SERVICE } from 'core/application/listExtractor/listExtractor.service';
+import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
 
 module.exports = angular
-  .module('spinnaker.core.accountNamespaceClusterSelector.directive', [LIST_EXTRACTOR_SERVICE])
+  .module('spinnaker.core.accountNamespaceClusterSelector.directive', [])
   .directive('accountNamespaceClusterSelector', function() {
     return {
       restrict: 'E',
@@ -22,7 +22,7 @@ module.exports = angular
       },
       templateUrl: require('./accountNamespaceClusterSelector.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService) {
+      controller: function controller() {
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
@@ -33,18 +33,18 @@ module.exports = angular
         let setNamespaceList = () => {
           let accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
           // TODO(lwander): Move away from regions to namespaces here.
-          let namespaceList = appListExtractorService.getRegions([vm.application], accountFilter);
+          let namespaceList = AppListExtractor.getRegions([vm.application], accountFilter);
           vm.namespaces = namespaceList.length ? namespaceList : namespaces;
         };
 
         let setClusterList = () => {
           let namespaceField = vm.component.namespaces;
           // TODO(lwander): Move away from regions to namespaces here.
-          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(
+          let clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
             vm.component.credentials,
             namespaceField,
           );
-          vm.clusterList = appListExtractorService.getClusters([vm.application], clusterFilter);
+          vm.clusterList = AppListExtractor.getClusters([vm.application], clusterFilter);
         };
 
         vm.namespaceChanged = () => {

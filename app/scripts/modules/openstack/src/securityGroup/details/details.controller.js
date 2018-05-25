@@ -8,7 +8,7 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   FirewallLabels,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
+  SecurityGroupWriter,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -16,7 +16,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
     SECURITY_GROUP_READER,
-    SECURITY_GROUP_WRITER,
   ])
   .controller('openstackSecurityGroupDetailsController', function(
     $scope,
@@ -24,7 +23,6 @@ module.exports = angular
     resolvedSecurityGroup,
     app,
     confirmationModalService,
-    securityGroupWriter,
     securityGroupReader,
     $uibModal,
   ) {
@@ -103,7 +101,7 @@ module.exports = angular
       };
 
       var submitMethod = function() {
-        return securityGroupWriter.deleteSecurityGroup(_.omit(securityGroup, 'accountId'), application, {
+        return SecurityGroupWriter.deleteSecurityGroup(_.omit(securityGroup, 'accountId'), application, {
           cloudProvider: securityGroup.provider,
           id: $scope.securityGroup.id,
           region: securityGroup.region,

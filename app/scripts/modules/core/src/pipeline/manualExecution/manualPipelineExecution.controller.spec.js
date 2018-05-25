@@ -1,13 +1,14 @@
 'use strict';
 
+import { AppNotificationsService } from 'core/notification/AppNotificationsService';
+
 describe('Controller: ManualPipelineExecution', function() {
   beforeEach(window.module(require('./manualPipelineExecution.controller').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, $q, _notificationService_) {
+    window.inject(function($controller, $rootScope, $q) {
       this.scope = $rootScope.$new();
       this.$q = $q;
-      this.notificationService = _notificationService_;
 
       this.initializeController = function(application, pipeline, modalInstance) {
         this.ctrl = $controller('ManualPipelineExecutionCtrl', {
@@ -16,7 +17,6 @@ describe('Controller: ManualPipelineExecution', function() {
           pipeline: pipeline,
           $uibModalInstance: modalInstance || {},
           trigger: null,
-          notificationService: this.notificationService,
         });
       };
     }),
@@ -89,7 +89,7 @@ describe('Controller: ManualPipelineExecution', function() {
         { type: 'slack', address: 'spinnaker' },
         { type: 'email', address: 'pipeline@spinnaker.io' },
       ];
-      spyOn(this.notificationService, 'getNotificationsForApplication').and.returnValue(
+      spyOn(AppNotificationsService, 'getNotificationsForApplication').and.returnValue(
         this.$q.when({
           application: 'myapp',
           email: [notifications[0], notifications[1]],
@@ -121,7 +121,7 @@ describe('Controller: ManualPipelineExecution', function() {
         { type: 'email', address: 'example2@spinnaker.io' },
         { type: 'slack', address: 'spinnaker' },
       ];
-      spyOn(this.notificationService, 'getNotificationsForApplication').and.returnValue(
+      spyOn(AppNotificationsService, 'getNotificationsForApplication').and.returnValue(
         this.$q.when({
           application: 'myapp',
           email: [notifications[1]],

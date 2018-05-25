@@ -8,7 +8,7 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   FirewallLabels,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
+  SecurityGroupWriter,
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
@@ -16,7 +16,6 @@ module.exports = angular
   .module('spinnaker.securityGroup.kubernetes.details.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    SECURITY_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
   ])
   .controller('kubernetesSecurityGroupDetailsController', function(
@@ -25,7 +24,6 @@ module.exports = angular
     resolvedSecurityGroup,
     app,
     confirmationModalService,
-    securityGroupWriter,
     securityGroupReader,
     $uibModal,
   ) {
@@ -120,7 +118,7 @@ module.exports = angular
       };
 
       var submitMethod = function() {
-        return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
+        return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
           cloudProvider: $scope.securityGroup.type,
           securityGroupName: securityGroup.name,
           namespace: $scope.securityGroup.region,

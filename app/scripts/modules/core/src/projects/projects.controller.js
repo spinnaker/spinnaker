@@ -4,16 +4,16 @@ const angular = require('angular');
 import { ANY_FIELD_FILTER } from '../presentation/anyFieldFilter/anyField.filter';
 import { ViewStateCache } from 'core/cache';
 
+import { ProjectReader } from './service/ProjectReader';
+
 module.exports = angular
   .module('spinnaker.projects.controller', [
     require('@uirouter/angularjs').default,
-    require('./service/project.write.service.js').name,
-    require('./service/project.read.service.js').name,
     ANY_FIELD_FILTER,
     require('../presentation/sortToggle/sorttoggle.directive.js').name,
     require('../insight/insightmenu.directive.js').name,
   ])
-  .controller('ProjectsCtrl', function($scope, $uibModal, $log, $filter, $state, projectWriter, projectReader) {
+  .controller('ProjectsCtrl', function($scope, $uibModal, $log, $filter, $state) {
     var projectsViewStateCache =
       ViewStateCache.get('projects') || ViewStateCache.createCache('projects', { version: 1 });
 
@@ -98,7 +98,7 @@ module.exports = angular
 
     var ctrl = this;
 
-    projectReader.listProjects().then(function(projects) {
+    ProjectReader.listProjects().then(function(projects) {
       $scope.projects = projects;
       ctrl.filterProjects();
       $scope.projectsLoaded = true;

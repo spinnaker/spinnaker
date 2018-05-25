@@ -3,10 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
+import { AccountService, AppListExtractor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('kubernetes.namespace.multiSelectField.component', [LIST_EXTRACTOR_SERVICE])
+  .module('kubernetes.namespace.multiSelectField.component', [])
   .directive('namespaceMultiSelectField', function() {
     return {
       restrict: 'E',
@@ -19,7 +19,7 @@ module.exports = angular
       },
       templateUrl: require('./multiSelectField.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService) {
+      controller: function controller() {
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
@@ -29,17 +29,17 @@ module.exports = angular
 
         let setNamespaceList = () => {
           let accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
-          let namespaceList = appListExtractorService.getRegions([vm.application], accountFilter);
+          let namespaceList = AppListExtractor.getRegions([vm.application], accountFilter);
           vm.namespaces = namespaceList.length ? namespaceList : namespaces;
         };
 
         let setClusterList = () => {
           let namespaceField = vm.component.regionss;
-          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(
+          let clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
             vm.component.credentials,
             namespaceField,
           );
-          vm.clusterList = appListExtractorService.getClusters([vm.application], clusterFilter);
+          vm.clusterList = AppListExtractor.getClusters([vm.application], clusterFilter);
         };
 
         vm.namespaceChanged = () => {

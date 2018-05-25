@@ -2,20 +2,16 @@
 
 const angular = require('angular');
 
-import { FirewallLabels, InfrastructureCaches, SECURITY_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
+import { FirewallLabels, InfrastructureCaches, SecurityGroupWriter, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.google.securityGroup.edit.controller', [
-    require('@uirouter/angularjs').default,
-    SECURITY_GROUP_WRITER,
-  ])
+  .module('spinnaker.google.securityGroup.edit.controller', [require('@uirouter/angularjs').default])
   .controller('gceEditSecurityGroupCtrl', function(
     $scope,
     $uibModalInstance,
     $state,
     application,
     securityGroup,
-    securityGroupWriter,
     $controller,
   ) {
     $scope.pages = {
@@ -115,7 +111,7 @@ module.exports = angular
           return rule;
         });
 
-        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Update', {
+        return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Update', {
           cloudProvider: 'gce',
           securityGroupName: $scope.securityGroup.name,
           sourceRanges: _.uniq(_.map($scope.securityGroup.sourceRanges, 'value')),

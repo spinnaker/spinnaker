@@ -50,7 +50,6 @@ describe('Controller: openstackSecurityGroupDetailsController', function() {
           resolvedSecurityGroup: resolvedSecurityGroup,
 
           securityGroupReader: this.mockSecurityGroupReader,
-          securityGroupWriter: this.mockSecurityGroupWriter,
 
           confirmationModalService: this.mockState,
         });

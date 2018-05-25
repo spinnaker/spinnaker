@@ -35,11 +35,10 @@ describe('Controller: CreateSecurityGroup', function() {
 
     // Initialize the controller and a mock scope
     beforeEach(
-      window.inject(function($controller, $rootScope, $q, securityGroupReader, securityGroupWriter) {
+      window.inject(function($controller, $rootScope, $q, securityGroupReader) {
         this.$scope = $rootScope.$new();
         this.$q = $q;
         this.securityGroupReader = securityGroupReader;
-        this.securityGroupWriter = securityGroupWriter;
 
         spyOn(AccountService, 'listAccounts').and.returnValue($q.when(['prod', 'test']));
 
@@ -91,7 +90,6 @@ describe('Controller: CreateSecurityGroup', function() {
             $scope: this.$scope,
             $uibModalInstance: { result: this.$q.when(null) },
             securityGroupReader: this.securityGroupReader,
-            securityGroupWriter: this.securityGroupWriter,
             application: this.application || { attributes: {} },
             securityGroup: { regions: [], securityGroupIngress: [] },
           });

@@ -3,21 +3,16 @@
 import { JsonUtils } from 'core/utils';
 
 describe('Controller: SnapshotDiffModalCtrl', function() {
-  beforeEach(
-    window.module(require('./snapshotDiff.modal.controller.js').name, require('../snapshot.read.service.js').name),
-  );
+  beforeEach(window.module(require('./snapshotDiff.modal.controller.js').name));
 
   beforeEach(
-    window.inject(function($controller, $filter, snapshotReader) {
+    window.inject(function($controller, $filter) {
       this.controller = $controller('SnapshotDiffModalCtrl', {
         availableAccounts: ['my-google-account'],
         application: { name: 'myApplication' },
         $uibModalInstance: { dismiss: angular.noop },
-        snapshotReader,
         $filter,
       });
-
-      this.snapshotReader = snapshotReader;
     }),
   );
 

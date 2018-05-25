@@ -6,6 +6,7 @@ import _ from 'lodash';
 import { AuthenticationService } from 'core/authentication';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
+import { AppNotificationsService } from 'core/notification/AppNotificationsService';
 
 import { STAGE_MANUAL_COMPONENTS } from './stageManualComponents.component';
 import { TRIGGER_TEMPLATE } from './triggerTemplate.component';
@@ -17,16 +18,8 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     TRIGGER_TEMPLATE,
     STAGE_MANUAL_COMPONENTS,
-    require('../../notification/notification.service').name,
   ])
-  .controller('ManualPipelineExecutionCtrl', function(
-    $scope,
-    $uibModalInstance,
-    pipeline,
-    application,
-    trigger,
-    notificationService,
-  ) {
+  .controller('ManualPipelineExecutionCtrl', function($scope, $uibModalInstance, pipeline, application, trigger) {
     let applicationNotifications = [];
     let pipelineNotifications = [];
 
@@ -34,7 +27,7 @@ module.exports = angular
 
     this.notificationTooltip = require('./notifications.tooltip.html');
 
-    notificationService.getNotificationsForApplication(application.name).then(notifications => {
+    AppNotificationsService.getNotificationsForApplication(application.name).then(notifications => {
       Object.keys(notifications)
         .sort()
         .filter(k => Array.isArray(notifications[k]))

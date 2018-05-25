@@ -5,6 +5,8 @@ const angular = require('angular');
 require('./notificationList.directive.html');
 require('./modal/editNotification.html');
 
+import { AppNotificationsService } from './AppNotificationsService';
+
 module.exports = angular
   .module('spinnaker.core.notifications.notificationList', [])
   .directive('notificationList', function() {
@@ -21,7 +23,7 @@ module.exports = angular
       controllerAs: 'notificationListCtrl',
     };
   })
-  .controller('NotificationListCtrl', function($scope, $uibModal, notificationService) {
+  .controller('NotificationListCtrl', function($scope, $uibModal) {
     var vm = this;
 
     vm.revertNotificationChanges = function() {
@@ -39,7 +41,7 @@ module.exports = angular
           is no longer needed
        */
 
-      notificationService.getNotificationsForApplication($scope.application).then(function(notifications) {
+      AppNotificationsService.getNotificationsForApplication($scope.application).then(function(notifications) {
         $scope.notifications = _.filter(
           _.flatten(
             _.map(['email', 'sms', 'hipchat', 'slack'], function(type) {
@@ -73,7 +75,7 @@ module.exports = angular
         toSaveNotifications[notification.type].push(notification);
       });
 
-      notificationService.saveNotificationsForApplication($scope.application, toSaveNotifications).then(function() {
+      AppNotificationsService.saveNotificationsForApplication($scope.application, toSaveNotifications).then(function() {
         vm.revertNotificationChanges();
       });
     };

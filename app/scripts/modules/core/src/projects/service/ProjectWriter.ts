@@ -1,12 +1,11 @@
-'use strict';
+import { IPromise } from 'angular';
 
+import { IProject, ITask } from 'core/domain';
 import { TaskExecutor } from 'core/task/taskExecutor';
 
-const angular = require('angular');
-
-module.exports = angular.module('spinnaker.core.projects.write.service', []).factory('projectWriter', function() {
-  function upsertProject(project) {
-    let descriptor = project.id ? 'Update' : 'Create';
+export class ProjectWriter {
+  public static upsertProject(project: IProject): IPromise<ITask> {
+    const descriptor = project.id ? 'Update' : 'Create';
     return TaskExecutor.executeTask({
       job: [
         {
@@ -15,11 +14,11 @@ module.exports = angular.module('spinnaker.core.projects.write.service', []).fac
         },
       ],
       project: project,
-      description: descriptor + ' project: ' + project.name,
+      description: `${descriptor} project: ${project.name}`,
     });
   }
 
-  function deleteProject(project) {
+  public static deleteProject(project: IProject): IPromise<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -33,9 +32,4 @@ module.exports = angular.module('spinnaker.core.projects.write.service', []).fac
       description: 'Delete project: ' + project.name,
     });
   }
-
-  return {
-    upsertProject: upsertProject,
-    deleteProject: deleteProject,
-  };
-});
+}

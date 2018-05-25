@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 import { AccountService } from 'core/account/AccountService';
-import { LIST_EXTRACTOR_SERVICE } from 'core/application/listExtractor/listExtractor.service';
+import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
 import { isNil, first } from 'lodash';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.preconditions.selector', [LIST_EXTRACTOR_SERVICE])
+  .module('spinnaker.core.pipeline.config.preconditions.selector', [])
   .directive('preconditionSelector', function() {
     return {
       restrict: 'E',
@@ -21,7 +21,7 @@ module.exports = angular
       controllerAs: 'preconditionCtrl',
     };
   })
-  .controller('PreconditionSelectorCtrl', function($scope, preconditionTypeService, appListExtractorService) {
+  .controller('PreconditionSelectorCtrl', function($scope, preconditionTypeService) {
     AccountService.listAccounts().then(accounts => {
       $scope.accounts = accounts;
       setClusterList();
@@ -45,8 +45,8 @@ module.exports = angular
     };
 
     this.clusterChanged = function(clusterName) {
-      let clusterFilter = appListExtractorService.monikerClusterNameFilter(clusterName);
-      let moniker = first(appListExtractorService.getMonikers([$scope.application], clusterFilter));
+      let clusterFilter = AppListExtractor.monikerClusterNameFilter(clusterName);
+      let moniker = first(AppListExtractor.getMonikers([$scope.application], clusterFilter));
       if (!isNil(moniker)) {
         //cluster monikers dont have sequences
         moniker.sequence = undefined;
@@ -55,11 +55,11 @@ module.exports = angular
     };
 
     let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(
+      let clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
         $scope.precondition.context.credentials,
         $scope.precondition.context.regions,
       );
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+      $scope.clusterList = AppListExtractor.getClusters([$scope.application], clusterFilter);
     };
 
     this.resetSelectedCluster = () => {
@@ -74,7 +74,7 @@ module.exports = angular
       }
 
       let accountFilter = cluster => (cluster ? cluster.account === $scope.precondition.context.credentials : true);
-      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
+      $scope.regions = AppListExtractor.getRegions([$scope.application], accountFilter);
 
       //Setting cloudProvider when account is updated
       let providerFilter = account => account.name === $scope.precondition.context.credentials;

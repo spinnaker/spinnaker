@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { compact, flatten, uniq } from 'lodash';
 import { IInstance, IServerGroup } from 'core/domain';
 import { Application } from '../application.model';
@@ -11,7 +10,7 @@ export type IInstanceFilter = (i: IInstance) => boolean;
 const defaultFilter = () => true;
 
 export class AppListExtractor {
-  public getMonikers(applications: Application[], filter: IServerGroupFilter = defaultFilter): IMoniker[] {
+  public static getMonikers(applications: Application[], filter: IServerGroupFilter = defaultFilter): IMoniker[] {
     const allMonikers: IMoniker[][] = applications.map(a =>
       a
         .getDataSource('serverGroups')
@@ -21,7 +20,7 @@ export class AppListExtractor {
     return compact(flatten(allMonikers));
   }
 
-  public getRegions(applications: Application[], filter: IServerGroupFilter = defaultFilter): string[] {
+  public static getRegions(applications: Application[], filter: IServerGroupFilter = defaultFilter): string[] {
     const allRegions: string[][] = applications.map(a =>
       a
         .getDataSource('serverGroups')
@@ -31,7 +30,7 @@ export class AppListExtractor {
     return uniq(compact(flatten(allRegions))).sort();
   }
 
-  public getStacks(applications: Application[], filter: IServerGroupFilter = defaultFilter): string[] {
+  public static getStacks(applications: Application[], filter: IServerGroupFilter = defaultFilter): string[] {
     const allStacks: string[][] = applications.map(a =>
       a
         .getDataSource('serverGroups')
@@ -41,7 +40,7 @@ export class AppListExtractor {
     return uniq(compact(flatten(allStacks))).sort();
   }
 
-  public getClusters(applications: Application[], filter: IServerGroupFilter = defaultFilter): string[] {
+  public static getClusters(applications: Application[], filter: IServerGroupFilter = defaultFilter): string[] {
     const allClusters: string[][] = applications.map(a =>
       a
         .getDataSource('serverGroups')
@@ -51,7 +50,7 @@ export class AppListExtractor {
     return uniq(compact(flatten(allClusters))).sort();
   }
 
-  public getAsgs(applications: Application[], clusterFilter: IServerGroupFilter = defaultFilter): string[] {
+  public static getAsgs(applications: Application[], clusterFilter: IServerGroupFilter = defaultFilter): string[] {
     const allNames: string[][] = applications.map(a =>
       a
         .getDataSource('serverGroups')
@@ -61,7 +60,7 @@ export class AppListExtractor {
     return uniq(compact(flatten(allNames))).sort();
   }
 
-  public getZones(
+  public static getZones(
     applications: Application[],
     clusterFilter: IServerGroupFilter = defaultFilter,
     regionFilter: IServerGroupFilter = defaultFilter,
@@ -81,7 +80,7 @@ export class AppListExtractor {
     return uniq(compact(instanceZones)).sort();
   }
 
-  public getInstances(
+  public static getInstances(
     applications: Application[],
     clusterFilter: IServerGroupFilter = defaultFilter,
     serverGroupFilter: IServerGroupFilter = defaultFilter,
@@ -100,31 +99,33 @@ export class AppListExtractor {
 
   // filter builders
 
-  public clusterFilterForCredentials(credentials: string): IServerGroupFilter {
+  public static clusterFilterForCredentials(credentials: string): IServerGroupFilter {
     return (serverGroup: IServerGroup) => {
       return credentials ? serverGroup.account === credentials : true;
     };
   }
 
-  public monikerClusterNameFilter(clusterName: string): IServerGroupFilter {
+  public static monikerClusterNameFilter(clusterName: string): IServerGroupFilter {
     return (serverGroup: IServerGroup) => {
       return serverGroup.moniker.cluster === clusterName;
     };
   }
 
-  public clusterFilterForCredentialsAndRegion(credentials: string, region: string | string[]): IServerGroupFilter {
+  public static clusterFilterForCredentialsAndRegion(
+    credentials: string,
+    region: string | string[],
+  ): IServerGroupFilter {
     return (serverGroup: IServerGroup) => {
       const accountMatches = credentials ? serverGroup.account === credentials : true;
 
       const regionMatches =
         serverGroup && Array.isArray(region) && region.length
           ? region.includes(serverGroup.region)
-          : region ? serverGroup.region === region : true;
+          : region
+            ? serverGroup.region === region
+            : true;
 
       return accountMatches && regionMatches;
     };
   }
 }
-
-export const LIST_EXTRACTOR_SERVICE = 'spinnaker.core.listExtractor.service';
-module(LIST_EXTRACTOR_SERVICE, []).service('appListExtractorService', AppListExtractor);

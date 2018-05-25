@@ -1,7 +1,7 @@
 import { IController, IComponentOptions, module } from 'angular';
 import { uniq } from 'lodash';
 
-import { Application, StageConstants } from '@spinnaker/core';
+import { Application, AppListExtractor, StageConstants } from '@spinnaker/core';
 
 import { IAppengineAllocationDescription } from 'appengine/loadBalancer/transformer';
 
@@ -63,13 +63,9 @@ class AppengineStageAllocationConfigurationRowCtrl implements IController {
   private region: string;
   private account: string;
 
-  constructor(private appListExtractorService: any) {
-    'ngInject';
-  }
-
   public $onInit() {
-    const clusterFilter = this.appListExtractorService.clusterFilterForCredentialsAndRegion(this.account, this.region);
-    this.clusterList = this.appListExtractorService.getClusters([this.application], clusterFilter);
+    const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(this.account, this.region);
+    this.clusterList = AppListExtractor.getClusters([this.application], clusterFilter);
   }
 
   public getServerGroupOptions(): string[] {

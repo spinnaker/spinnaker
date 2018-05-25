@@ -10,8 +10,8 @@ export interface IRequestBuilder {
   useCache?: (useCache: boolean) => IRequestBuilder;
   withParams?: (data: any) => IRequestBuilder;
   data?: (data: any) => IRequestBuilder;
-  get?: (data: any) => IPromise<any>;
-  getList?: (data: any) => IPromise<any>;
+  get?: (data?: any) => IPromise<any>;
+  getList?: (data?: any) => IPromise<any>;
   post?: (data: any) => IPromise<any>;
   remove?: (data: any) => IPromise<any>;
   put?: (data: any) => IPromise<any>;

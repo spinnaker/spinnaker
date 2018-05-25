@@ -1,13 +1,13 @@
 'use strict';
 
-import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
-
 const angular = require('angular');
+
+import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { SnapshotWriter } from 'core/snapshot/SnapshotWriter';
 
 module.exports = angular
   .module('spinnaker.core.application.config.serialize.component', [
     require('@uirouter/angularjs').default,
-    require('./../../snapshot/snapshot.write.service.js').name,
     CONFIRMATION_MODAL_SERVICE,
     require('core/snapshot/diff/viewSnapshotDiffButton.component.js').name,
   ])
@@ -16,14 +16,14 @@ module.exports = angular
     bindings: {
       application: '=',
     },
-    controller: function($state, snapshotWriter, confirmationModalService) {
+    controller: function($state, confirmationModalService) {
       if (this.application.notFound) {
         return;
       }
 
       this.takeSnapshot = () => {
         var submitMethod = () => {
-          return snapshotWriter.takeSnapshot(this.application.attributes);
+          return SnapshotWriter.takeSnapshot(this.application.attributes);
         };
 
         var taskMonitor = {

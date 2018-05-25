@@ -2,11 +2,11 @@ import { mock } from 'angular';
 import { IInstance, IServerGroup } from 'core/domain';
 import { Application } from '../application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../applicationModel.builder';
-import { AppListExtractor, LIST_EXTRACTOR_SERVICE } from './listExtractor.service';
+import { AppListExtractor } from './AppListExtractor';
 import { IMoniker } from 'core/naming/IMoniker';
 
-describe('appListExtractorService', function() {
-  let service: AppListExtractor, applicationModelBuilder: ApplicationModelBuilder;
+describe('AppListExtractor', function() {
+  let applicationModelBuilder: ApplicationModelBuilder;
 
   const buildApplication = (serverGroups: any[] = []): Application => {
     const application: Application = applicationModelBuilder.createApplication('app', {
@@ -22,11 +22,10 @@ describe('appListExtractorService', function() {
     return { id, availabilityZone };
   };
 
-  beforeEach(mock.module(LIST_EXTRACTOR_SERVICE, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    mock.inject((_appListExtractorService_: AppListExtractor, _applicationModelBuilder_: ApplicationModelBuilder) => {
-      service = _appListExtractorService_;
+    mock.inject((_applicationModelBuilder_: ApplicationModelBuilder) => {
       applicationModelBuilder = _applicationModelBuilder_;
     }),
   );
@@ -41,14 +40,14 @@ describe('appListExtractorService', function() {
       const applicationA: Application = buildApplication([{ moniker }]);
       const applicationB: Application = buildApplication();
 
-      const result = service.getMonikers([applicationA, applicationB], filterByCluster);
+      const result = AppListExtractor.getMonikers([applicationA, applicationB], filterByCluster);
       expect(result.length).toEqual(1);
       expect(result).toEqual([moniker]);
     });
 
     it('should get a empty list for one application w/ no monikers', function() {
       const application: Application = buildApplication([{ stack: 'prod' }, { stack: 'test' }]);
-      const result = service.getMonikers([application]);
+      const result = AppListExtractor.getMonikers([application]);
       expect(result.length).toEqual(0);
       expect(result).toEqual([]);
     });
@@ -59,7 +58,7 @@ describe('appListExtractorService', function() {
         app: 'test-application',
       };
       const application: Application = buildApplication([{ moniker }]);
-      const result = service.getMonikers([application]);
+      const result = AppListExtractor.getMonikers([application]);
       expect(result.length).toEqual(1);
       expect(result).toEqual([moniker]);
     });
@@ -71,7 +70,7 @@ describe('appListExtractorService', function() {
       };
       const applicationA: Application = buildApplication([{ moniker }]);
       const applicationB: Application = buildApplication();
-      const result = service.getMonikers([applicationA, applicationB]);
+      const result = AppListExtractor.getMonikers([applicationA, applicationB]);
       expect(result.length).toEqual(1);
       expect(result).toEqual([moniker]);
     });
@@ -81,21 +80,21 @@ describe('appListExtractorService', function() {
     it('should get a empty list for one application w/ no clusters', function() {
       const application: Application = buildApplication();
 
-      const result = service.getRegions([application]);
+      const result = AppListExtractor.getRegions([application]);
       expect(result.length).toEqual(0);
       expect(result).toEqual([]);
     });
 
     it('should get a list of 1 aws region for one application w/ one cluster with one server group in one region', function() {
       const application: Application = buildApplication([{ region: 'us-west-1' }]);
-      const result = service.getRegions([application]);
+      const result = AppListExtractor.getRegions([application]);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['us-west-1']);
     });
 
     it('should get a list of 2 aws region for one application w/ one cluster with two server groups in 2 region', function() {
       const application: Application = buildApplication([{ region: 'us-west-1' }, { region: 'us-west-2' }]);
-      const result = service.getRegions([application]);
+      const result = AppListExtractor.getRegions([application]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['us-west-1', 'us-west-2']);
     });
@@ -107,7 +106,7 @@ describe('appListExtractorService', function() {
         { region: 'us-west-1' },
       ]);
 
-      const result = service.getRegions([application]);
+      const result = AppListExtractor.getRegions([application]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['us-west-1', 'us-west-2']);
     });
@@ -117,7 +116,7 @@ describe('appListExtractorService', function() {
     it('should get a empty list for one application w/ no clusters', function() {
       const application: Application = buildApplication();
 
-      const result = service.getStacks([application]);
+      const result = AppListExtractor.getStacks([application]);
       expect(result.length).toEqual(0);
       expect(result).toEqual([]);
     });
@@ -125,7 +124,7 @@ describe('appListExtractorService', function() {
     it('should get a list of 1 stack for one application w/ one cluster with one server group in one stack', function() {
       const application: Application = buildApplication([{ stack: 'prod' }]);
 
-      const result = service.getStacks([application]);
+      const result = AppListExtractor.getStacks([application]);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['prod']);
     });
@@ -133,7 +132,7 @@ describe('appListExtractorService', function() {
     it('should get a list of 2 stacks for one application w/ multi cluster with one server group in one stack', function() {
       const application: Application = buildApplication([{ stack: 'prod' }, { stack: 'test' }]);
 
-      const result = service.getStacks([application]);
+      const result = AppListExtractor.getStacks([application]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['prod', 'test']);
     });
@@ -142,7 +141,7 @@ describe('appListExtractorService', function() {
       const applicationA: Application = buildApplication([{ stack: 'prod' }]);
       const applicationB: Application = buildApplication([{ stack: 'mceprod' }]);
 
-      const result = service.getStacks([applicationA, applicationB]);
+      const result = AppListExtractor.getStacks([applicationA, applicationB]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['mceprod', 'prod']);
     });
@@ -154,7 +153,7 @@ describe('appListExtractorService', function() {
       ]);
 
       const filterByBar = (serverGroup: IServerGroup) => serverGroup.name === 'bar';
-      const result = service.getStacks([application], filterByBar);
+      const result = AppListExtractor.getStacks([application], filterByBar);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['test']);
     });
@@ -164,7 +163,7 @@ describe('appListExtractorService', function() {
     it('should get a empty list for one application w/ no clusters', function() {
       const application: Application = buildApplication();
 
-      const result = service.getClusters([application]);
+      const result = AppListExtractor.getClusters([application]);
       expect(result.length).toEqual(0);
       expect(result).toEqual([]);
     });
@@ -172,7 +171,7 @@ describe('appListExtractorService', function() {
     it('should get a list of 1 cluster for one application w/ one cluster', function() {
       const application: Application = buildApplication([{ cluster: 'mahe-prod' }]);
 
-      const result = service.getClusters([application]);
+      const result = AppListExtractor.getClusters([application]);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['mahe-prod']);
     });
@@ -180,7 +179,7 @@ describe('appListExtractorService', function() {
     it('should get a list of 2 cluster names for one application w/ multi clusters', function() {
       const application: Application = buildApplication([{ cluster: 'mahe-prod' }, { cluster: 'mahe-prestaging' }]);
 
-      const result = service.getClusters([application]);
+      const result = AppListExtractor.getClusters([application]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['mahe-prestaging', 'mahe-prod']);
     });
@@ -189,7 +188,7 @@ describe('appListExtractorService', function() {
       const applicationA: Application = buildApplication([{ cluster: 'deck-main' }]);
       const applicationB: Application = buildApplication([{ cluster: 'gate-main' }]);
 
-      const result = service.getClusters([applicationA, applicationB]);
+      const result = AppListExtractor.getClusters([applicationA, applicationB]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['deck-main', 'gate-main']);
     });
@@ -198,7 +197,7 @@ describe('appListExtractorService', function() {
       const application: Application = buildApplication([{ cluster: 'deck-main' }, { cluster: 'gate-main' }]);
 
       const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
-      const result = service.getClusters([application], filterByGate);
+      const result = AppListExtractor.getClusters([application], filterByGate);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['gate-main']);
     });
@@ -207,21 +206,21 @@ describe('appListExtractorService', function() {
   describe('Get ASGs from a list of applications', function() {
     it('should get a empty list for one application w/ no clusters', function() {
       const application: Application = buildApplication();
-      const result = service.getAsgs([application]);
+      const result = AppListExtractor.getAsgs([application]);
       expect(result.length).toEqual(0);
       expect(result).toEqual([]);
     });
 
     it('should get a list of 1 ASG for one application w/ one cluster', function() {
       const application: Application = buildApplication([{ name: 'mahe-main-v000' }]);
-      const result = service.getAsgs([application]);
+      const result = AppListExtractor.getAsgs([application]);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['mahe-main-v000']);
     });
 
     it('should get a list of 2 ASG names for one application w/ multi clusters', function() {
       const application: Application = buildApplication([{ name: 'mahe-main-v000' }, { name: 'mahe-prestaging-v002' }]);
-      const result = service.getAsgs([application]);
+      const result = AppListExtractor.getAsgs([application]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['mahe-main-v000', 'mahe-prestaging-v002']);
     });
@@ -229,7 +228,7 @@ describe('appListExtractorService', function() {
     it('should get a list of 2 ASGs for two application w/ one cluster each', function() {
       const applicationA: Application = buildApplication([{ name: 'mahe-prestaging-v002' }]);
       const applicationB: Application = buildApplication([{ name: 'deck-main-v002' }]);
-      const result = service.getAsgs([applicationA, applicationB]);
+      const result = AppListExtractor.getAsgs([applicationA, applicationB]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['deck-main-v002', 'mahe-prestaging-v002']);
     });
@@ -240,7 +239,7 @@ describe('appListExtractorService', function() {
         { cluster: 'deck-main', name: 'deck-main-v002' },
       ]);
       const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
-      const result = service.getAsgs([application], filterByGate);
+      const result = AppListExtractor.getAsgs([application], filterByGate);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['gate-main-v000']);
     });
@@ -249,7 +248,7 @@ describe('appListExtractorService', function() {
   describe('Get Zones from a list of applications', function() {
     it('should get a empty list for one application w/ no clusters', function() {
       const application: Application = buildApplication();
-      const result = service.getZones([application]);
+      const result = AppListExtractor.getZones([application]);
       expect(result.length).toEqual(0);
       expect(result).toEqual([]);
     });
@@ -258,7 +257,7 @@ describe('appListExtractorService', function() {
       const application: Application = buildApplication([
         { name: 'mahe-main-v000', instances: [{ availabilityZone: 'us-west-2a' }] },
       ]);
-      const result = service.getZones([application]);
+      const result = AppListExtractor.getZones([application]);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['us-west-2a']);
     });
@@ -268,7 +267,7 @@ describe('appListExtractorService', function() {
         { instances: [{ availabilityZone: 'us-west-2a' }] },
         { instances: [{ availabilityZone: 'us-west-2d' }] },
       ]);
-      const result = service.getZones([application]);
+      const result = AppListExtractor.getZones([application]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['us-west-2a', 'us-west-2d']);
     });
@@ -276,7 +275,7 @@ describe('appListExtractorService', function() {
     it('should get a list of 2 Zones for two application w/ one cluster each', function() {
       const applicationA: Application = buildApplication([{ instances: [{ availabilityZone: 'us-west-2a' }] }]);
       const applicationB: Application = buildApplication([{ instances: [{ availabilityZone: 'us-west-2d' }] }]);
-      const result = service.getZones([applicationA, applicationB]);
+      const result = AppListExtractor.getZones([applicationA, applicationB]);
       expect(result.length).toEqual(2);
       expect(result).toEqual(['us-west-2a', 'us-west-2d']);
     });
@@ -289,7 +288,7 @@ describe('appListExtractorService', function() {
       ]);
       const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
       const filterByRegion = (serverGroup: IServerGroup) => serverGroup.region === 'us-east-1';
-      const result = service.getZones([application], filterByGate, filterByRegion);
+      const result = AppListExtractor.getZones([application], filterByGate, filterByRegion);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['us-east-1d']);
     });
@@ -325,7 +324,7 @@ describe('appListExtractorService', function() {
       const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
       const filterByRegion = (serverGroup: IServerGroup) => serverGroup.region === 'eu-west-1';
       const filterByServerGroupName = (serverGroup: IServerGroup) => serverGroup.name === 'gate-main-v004';
-      const result = service.getZones([application], filterByGate, filterByRegion, filterByServerGroupName);
+      const result = AppListExtractor.getZones([application], filterByGate, filterByRegion, filterByServerGroupName);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['eu-west-1b']);
     });
@@ -334,14 +333,14 @@ describe('appListExtractorService', function() {
   describe('Get Instances from a list of applications', function() {
     it('should get a empty list for one application w/ no clusters', function() {
       const application: Application = buildApplication();
-      const result = service.getInstances([application]);
+      const result = AppListExtractor.getInstances([application]);
       expect(result.length).toEqual(0);
       expect(result).toEqual([]);
     });
 
     it('should get a list of 1 instance for one application w/ one cluster with one instance', function() {
       const application: Application = buildApplication([{ instances: [{ id: 'i-1234' }] }]);
-      const result = service.getInstances([application]);
+      const result = AppListExtractor.getInstances([application]);
       expect(result.length).toEqual(1);
       expect(result[0].id).toEqual('i-1234');
     });
@@ -351,7 +350,7 @@ describe('appListExtractorService', function() {
         { instances: [{ availabilityZone: 'us-west-2a', id: 'i-1234' }] },
         { instances: [{ availabilityZone: 'us-west-2d', id: 'i-4321' }] },
       ]);
-      const result = service.getInstances([application]);
+      const result = AppListExtractor.getInstances([application]);
       expect(result.length).toEqual(2);
       expect(result.map(asResult)).toEqual([
         {
@@ -373,7 +372,7 @@ describe('appListExtractorService', function() {
         { instances: [{ availabilityZone: 'us-west-2d', id: 'i-1111' }] },
       ]);
 
-      const result = service.getInstances([applicationA, applicationB]);
+      const result = AppListExtractor.getInstances([applicationA, applicationB]);
       expect(result.length).toEqual(2);
       expect(result.map(asResult)).toEqual([
         {
@@ -396,7 +395,7 @@ describe('appListExtractorService', function() {
 
       const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
       const filterByRegion = (serverGroup: IServerGroup) => serverGroup.region === 'us-east-1';
-      const result = service.getInstances([application], filterByGate, filterByRegion);
+      const result = AppListExtractor.getInstances([application], filterByGate, filterByRegion);
       expect(result.length).toEqual(1);
       expect(result.map(asResult)).toEqual([
         {
@@ -417,7 +416,12 @@ describe('appListExtractorService', function() {
       const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
       const filterByRegion = (serverGroup: IServerGroup) => serverGroup.region === 'eu-west-1';
       const filterByAvailabilityZone = (instance: IInstance) => instance.availabilityZone === 'eu-west-1b';
-      const result = service.getInstances([application], filterByGate, filterByRegion, filterByAvailabilityZone);
+      const result = AppListExtractor.getInstances(
+        [application],
+        filterByGate,
+        filterByRegion,
+        filterByAvailabilityZone,
+      );
       expect(result.length).toEqual(1);
       expect(result.map(asResult)).toEqual([
         {

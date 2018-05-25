@@ -7,7 +7,7 @@ import {
   AccountService,
   AuthenticationService,
   CloudProviderRegistry,
-  LIST_EXTRACTOR_SERVICE,
+  AppListExtractor,
   NameUtils,
   Registry,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
@@ -19,7 +19,6 @@ import { CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT } from './canaryAnalysisNameSel
 
 module.exports = angular
   .module('spinnaker.canary.canaryStage', [
-    LIST_EXTRACTOR_SERVICE,
     SERVER_GROUP_COMMAND_BUILDER_SERVICE,
     CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT,
   ])
@@ -188,7 +187,6 @@ module.exports = angular
     providerSelectionService,
     serverGroupCommandBuilder,
     awsServerGroupTransformer,
-    appListExtractorService,
   ) {
     'ngInject';
 
@@ -366,7 +364,7 @@ module.exports = angular
     };
 
     let setClusterList = () => {
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+      $scope.clusterList = AppListExtractor.getClusters([$scope.application], clusterFilter);
     };
 
     $scope.resetSelectedCluster = () => {

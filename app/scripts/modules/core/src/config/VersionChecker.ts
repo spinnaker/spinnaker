@@ -1,0 +1,49 @@
+import { $http, $log } from 'ngimport';
+
+import { NotifierService } from 'core/widgets/notifier/notifier.service';
+import { SchedulerFactory, IScheduler } from 'core/scheduler/SchedulerFactory';
+import { timestamp } from 'core/utils/timeFormatters';
+
+export interface IDeckVersion {
+  version: string;
+  created: number;
+}
+
+export class VersionChecker {
+  private static currentVersion: IDeckVersion = require('root/version.json');
+  private static newVersionSeenCount = 0;
+  private static scheduler: IScheduler;
+
+  public static initialize(): void {
+    $log.debug('Deck version', this.currentVersion.version, 'created', timestamp(this.currentVersion.created));
+    this.scheduler = SchedulerFactory.createScheduler();
+    this.scheduler.subscribe(() => this.checkVersion());
+  }
+
+  private static checkVersion(): void {
+    const url = `/version.json?_=${Date.now()}`;
+    $http
+      .get(url)
+      .then(resp => this.versionRetrieved(resp))
+      .catch(() => {});
+  }
+
+  private static versionRetrieved(response: any): void {
+    const data: IDeckVersion = response.data;
+    if (data.version === this.currentVersion.version) {
+      this.newVersionSeenCount = 0;
+    } else {
+      this.newVersionSeenCount++;
+      if (this.newVersionSeenCount > 5) {
+        $log.debug('New Deck version:', data.version, 'created', timestamp(data.created));
+        NotifierService.publish({
+          key: 'newVersion',
+          action: 'create',
+          body: `A new version of Spinnaker is available
+              <a role="button" class="action" onclick="document.location.reload(true)">Refresh</a>`,
+        });
+        this.scheduler.unsubscribe();
+      }
+    }
+  }
+}

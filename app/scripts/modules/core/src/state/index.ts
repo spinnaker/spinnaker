@@ -1,5 +1,7 @@
 import { ClusterFilterModel } from 'core/cluster/filter/ClusterFilterModel';
 import { ClusterFilterService } from 'core/cluster/filter/ClusterFilterService';
+import { SETTINGS } from 'core/config/settings';
+import { VersionChecker } from 'core/config/VersionChecker';
 import { ExecutionFilterModel } from 'core/pipeline/filter/ExecutionFilterModel';
 import { LoadBalancerFilterModel } from 'core/loadBalancer/filter/LoadBalancerFilterModel';
 import { LoadBalancerFilterService } from 'core/loadBalancer/filter/LoadBalancerFilterService';
@@ -44,4 +46,7 @@ export function initialize(): void {
 
   SecurityGroupState.filterModel = new SecurityGroupFilterModel();
   SecurityGroupState.filterService = new SecurityGroupFilterService();
+  if (SETTINGS.checkForUpdates) {
+    VersionChecker.initialize();
+  }
 }

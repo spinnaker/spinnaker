@@ -5,10 +5,10 @@ import _ from 'lodash';
 const angular = require('angular');
 
 import { AccountService } from 'core/account/AccountService';
-import { LIST_EXTRACTOR_SERVICE } from 'core/application/listExtractor/listExtractor.service';
+import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
 
 module.exports = angular
-  .module('spinnaker.core.accountRegionClusterSelector.directive', [LIST_EXTRACTOR_SERVICE])
+  .module('spinnaker.core.accountRegionClusterSelector.directive', [])
   .directive('accountRegionClusterSelector', function() {
     return {
       restrict: 'E',
@@ -25,7 +25,7 @@ module.exports = angular
       },
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService) {
+      controller: function controller() {
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
@@ -37,18 +37,18 @@ module.exports = angular
 
         let setRegionList = () => {
           let accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
-          let regionList = appListExtractorService.getRegions([vm.application], accountFilter);
+          let regionList = AppListExtractor.getRegions([vm.application], accountFilter);
           vm.regions = showAllRegions ? regions : regionList.length ? regionList : regions;
           (vm.regions || []).sort();
         };
 
         let setClusterList = () => {
           let regionField = this.singleRegion ? vm.component.region : vm.component.regions;
-          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(
+          let clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
             vm.component.credentials,
             regionField,
           );
-          vm.clusterList = appListExtractorService.getClusters([vm.application], clusterFilter);
+          vm.clusterList = AppListExtractor.getClusters([vm.application], clusterFilter);
         };
 
         vm.regionChanged = () => {
@@ -74,8 +74,8 @@ module.exports = angular
         };
 
         vm.clusterChanged = clusterName => {
-          const filterByCluster = appListExtractorService.monikerClusterNameFilter(clusterName);
-          let clusterMoniker = _.first(_.uniq(appListExtractorService.getMonikers([vm.application], filterByCluster)));
+          const filterByCluster = AppListExtractor.monikerClusterNameFilter(clusterName);
+          let clusterMoniker = _.first(_.uniq(AppListExtractor.getMonikers([vm.application], filterByCluster)));
           if (_.isNil(clusterMoniker)) {
             //remove the moniker from the stage if one doesn't exist.
             vm.component.moniker = undefined;

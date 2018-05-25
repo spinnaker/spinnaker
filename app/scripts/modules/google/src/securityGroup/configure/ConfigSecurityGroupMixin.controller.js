@@ -7,7 +7,7 @@ import {
   FirewallLabels,
   NetworkReader,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
+  SecurityGroupWriter,
   TaskMonitor,
   ModalWizard,
 } from '@spinnaker/core';
@@ -20,7 +20,6 @@ module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    SECURITY_GROUP_WRITER,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
   ])
   .controller('gceConfigSecurityGroupMixin', function(
@@ -30,7 +29,6 @@ module.exports = angular
     application,
     securityGroup,
     securityGroupReader,
-    securityGroupWriter,
     cacheInitializer,
     gceSecurityGroupHelpTextService,
     mode,
@@ -160,7 +158,7 @@ module.exports = angular
 
     ctrl.upsert = function() {
       $scope.taskMonitor.submit(function() {
-        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
+        return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
       });
     };
 
@@ -178,7 +176,7 @@ module.exports = angular
           return rule;
         });
 
-        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, {
+        return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, {
           cloudProvider: 'gce',
           securityGroupName: $scope.securityGroup.name,
           sourceRanges: _.uniq(_.map($scope.securityGroup.sourceRanges, 'value')),

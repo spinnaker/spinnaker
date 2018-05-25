@@ -3,10 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, LIST_EXTRACTOR_SERVICE, NameUtils, Registry, StageConstants } from '@spinnaker/core';
+import { AccountService, AppListExtractor, NameUtils, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [LIST_EXTRACTOR_SERVICE])
+  .module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',
@@ -22,7 +22,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsCloneServerGroupStageCtrl', function($scope, appListExtractorService) {
+  .controller('awsCloneServerGroupStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -63,8 +63,8 @@ module.exports = angular
 
     this.targetClusterUpdated = () => {
       if (stage.targetCluster) {
-        const filterByCluster = appListExtractorService.monikerClusterNameFilter(stage.targetCluster);
-        let moniker = _.first(appListExtractorService.getMonikers([$scope.application], filterByCluster));
+        const filterByCluster = AppListExtractor.monikerClusterNameFilter(stage.targetCluster);
+        let moniker = _.first(AppListExtractor.getMonikers([$scope.application], filterByCluster));
         if (moniker) {
           stage.stack = moniker.stack;
           stage.freeFormDetails = moniker.detail;

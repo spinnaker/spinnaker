@@ -9,7 +9,7 @@ import {
   InfrastructureCaches,
   NameUtils,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
+  SecurityGroupWriter,
   FirewallLabels,
   TaskMonitor,
   ModalWizard,
@@ -22,7 +22,6 @@ module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    SECURITY_GROUP_WRITER,
   ])
   .controller('awsConfigSecurityGroupMixin', function(
     $scope,
@@ -31,7 +30,6 @@ module.exports = angular
     application,
     securityGroup,
     securityGroupReader,
-    securityGroupWriter,
     cacheInitializer,
   ) {
     var ctrl = this;
@@ -99,7 +97,7 @@ module.exports = angular
 
     ctrl.upsert = function() {
       $scope.taskMonitor.submit(function() {
-        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
+        return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
       });
     };
 
@@ -221,7 +219,7 @@ module.exports = angular
 
     ctrl.mixinUpsert = function(descriptor) {
       $scope.taskMonitor.submit(function() {
-        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
+        return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
       });
     };
 

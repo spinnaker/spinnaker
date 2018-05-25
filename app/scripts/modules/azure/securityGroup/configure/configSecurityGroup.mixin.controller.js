@@ -7,7 +7,7 @@ import {
   AccountService,
   FirewallLabels,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
+  SecurityGroupWriter,
   TaskMonitor,
 } from '@spinnaker/core';
 
@@ -15,7 +15,6 @@ module.exports = angular
   .module('spinnaker.azure.securityGroup.baseConfig.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    SECURITY_GROUP_WRITER,
   ])
   .controller('azureConfigSecurityGroupMixin', function(
     $scope,
@@ -24,7 +23,6 @@ module.exports = angular
     application,
     securityGroup,
     securityGroupReader,
-    securityGroupWriter,
     modalWizardService,
     cacheInitializer,
   ) {
@@ -82,7 +80,7 @@ module.exports = angular
 
     ctrl.upsert = function() {
       $scope.taskMonitor.submit(function() {
-        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
+        return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
       });
     };
 
@@ -156,7 +154,7 @@ module.exports = angular
 
     ctrl.mixinUpsert = function(descriptor) {
       $scope.taskMonitor.submit(function() {
-        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
+        return SecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
       });
     };
 

@@ -8,7 +8,7 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   RecentHistoryService,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
+  SecurityGroupWriter,
   FirewallLabels,
 } from '@spinnaker/core';
 
@@ -16,7 +16,6 @@ module.exports = angular
   .module('spinnaker.amazon.securityGroup.details.controller', [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    SECURITY_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     require('../clone/cloneSecurityGroup.controller.js').name,
   ])
@@ -26,7 +25,6 @@ module.exports = angular
     resolvedSecurityGroup,
     app,
     confirmationModalService,
-    securityGroupWriter,
     securityGroupReader,
     $uibModal,
   ) {
@@ -189,7 +187,7 @@ module.exports = angular
         if (isRetry) {
           Object.assign(params, retryParams);
         }
-        return securityGroupWriter.deleteSecurityGroup(securityGroup, application, params);
+        return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, params);
       };
 
       confirmationModalService.confirm({
