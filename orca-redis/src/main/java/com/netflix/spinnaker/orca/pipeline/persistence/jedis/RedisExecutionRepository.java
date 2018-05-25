@@ -26,10 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.BinaryClient;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.*;
 import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Func0;
@@ -574,18 +571,42 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
       ScanParams scanParams = new ScanParams().match(executionKeyPattern(type)).count(2000);
       String cursor = "0";
 
-      Map<String, Long> results = new HashMap<>();
+      List<String> apps = new ArrayList<>();
       while (true) {
         String finalCursor = cursor;
         ScanResult<String> chunk = mc.scan(finalCursor, scanParams);
 
-        redisClientDelegate.withCommandsClient(cc -> {
-          chunk.getResult().forEach(id -> {
-            String[] parts = id.split(":");
-            String app = parts[2];
-            results.put(app, cc.scard(id));
+        if (redisClientDelegate.supportsMultiKeyPipelines()) {
+          Map<String, Response<Long>> pipelineResults = new HashMap<>();
+          redisClientDelegate.withMultiKeyPipeline(p -> {
+            chunk.getResult().forEach(id -> {
+              String[] parts = id.split(":");
+              String app = parts[2];
+              pipelineResults.put(app, p.scard(id));
+            });
+            p.sync();
           });
-        });
+
+          apps.addAll(
+            pipelineResults
+              .entrySet()
+              .stream()
+              .filter(it -> it.getValue().get() >= minExecutions)
+              .map(Map.Entry::getKey)
+              .collect(Collectors.toList())
+          );
+        } else {
+          redisClientDelegate.withCommandsClient(cc -> {
+            chunk.getResult().forEach(id -> {
+              String[] parts = id.split(":");
+              String app = parts[2];
+              long cardinality = cc.scard(id);
+              if (cardinality >= minExecutions) {
+                apps.add(app);
+              }
+            });
+          });
+        }
 
         cursor = chunk.getStringCursor();
         if (cursor.equals("0")) {
@@ -593,10 +614,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         }
       }
 
-      return results.entrySet().stream()
-        .filter(it -> it.getValue() >= minExecutions)
-        .map(Map.Entry::getKey)
-        .collect(Collectors.toList());
+      return apps;
     });
   }
 
