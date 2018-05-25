@@ -135,7 +135,7 @@ public class DefaultProviderCache implements ProviderCache {
         for (String type : allTypes) {
             final Collection<String> previousSet;
             if (authoritativeTypes.contains(type)) {
-                previousSet = getExistingSourceIdentifiers(type, sourceAgentType);
+                previousSet = new HashSet<>(getExistingSourceIdentifiers(type, sourceAgentType));
             } else {
                 previousSet = new HashSet<>();
             }
