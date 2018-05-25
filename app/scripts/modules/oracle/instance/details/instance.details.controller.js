@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { INSTANCE_WRITE_SERVICE } from '@spinnaker/core';
+import { InstanceReader, INSTANCE_WRITE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.instance.details.controller', [
