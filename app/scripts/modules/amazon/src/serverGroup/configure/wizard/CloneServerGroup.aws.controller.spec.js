@@ -1,6 +1,7 @@
 'use strict';
 
 import { APPLICATION_MODEL_BUILDER, AccountService, ModalWizard, SearchService, SubnetReader } from '@spinnaker/core';
+import { KeyPairsReader } from 'amazon/keyPairs';
 
 /*
  This is more of an integration test between awsServerGroupConfigurationService and awsCloneServerGroupCtrl.
@@ -23,7 +24,6 @@ describe('Controller: awsCloneServerGroup', function() {
       securityGroupReader,
       awsServerGroupConfigurationService,
       $q,
-      keyPairsReader,
       loadBalancerReader,
       applicationModelBuilder,
     ) {
@@ -33,7 +33,6 @@ describe('Controller: awsCloneServerGroup', function() {
       this.awsInstanceTypeService = awsInstanceTypeService;
       this.securityGroupReader = securityGroupReader;
       this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
-      this.keyPairsReader = keyPairsReader;
       this.loadBalancerReader = loadBalancerReader;
       this.applicationModelBuilder = applicationModelBuilder;
       this.$q = $q;
@@ -123,7 +122,7 @@ describe('Controller: awsCloneServerGroup', function() {
         resolve(AccountServiceFixture.credentialsKeyedByAccount),
       );
       spyOn(SubnetReader, 'listSubnets').and.callFake(resolve([]));
-      spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(KeyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(
         resolve(securityGroupReaderFixture.allSecurityGroups),
       );
@@ -242,7 +241,7 @@ describe('Controller: awsCloneServerGroup', function() {
         resolve(AccountServiceFixture.credentialsKeyedByAccount),
       );
       spyOn(SubnetReader, 'listSubnets').and.callFake(resolve([]));
-      spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(KeyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(
         resolve(securityGroupReaderFixture.allSecurityGroups),
       );
@@ -422,7 +421,7 @@ describe('Controller: awsCloneServerGroup', function() {
         resolve(AccountServiceFixture.credentialsKeyedByAccount),
       );
       spyOn(SubnetReader, 'listSubnets').and.callFake(resolve([]));
-      spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
+      spyOn(KeyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(
         resolve(securityGroupReaderFixture.allSecurityGroups),
       );

@@ -1,27 +1,19 @@
-'use strict';
+import { IAmazonAsg } from 'amazon';
+import { IAmazonServerGroup } from 'amazon/domain';
+import { AutoScalingProcessService } from './AutoScalingProcessService';
 
-describe('Service: autoScalingProcess ', function() {
-  var service;
-
-  beforeEach(window.module(require('./autoScalingProcess.service').name));
-
-  beforeEach(
-    window.inject(function(autoScalingProcessService) {
-      service = autoScalingProcessService;
-    }),
-  );
-
-  describe('normalizeScalingProcesses', function() {
+describe('AutoScalingProcessService', () => {
+  describe('normalizeScalingProcesses', () => {
     it('returns an empty list if no asg or suspendedProcesses present on server group', function() {
-      expect(service.normalizeScalingProcesses({})).toEqual([]);
-      expect(service.normalizeScalingProcesses({ asg: {} })).toEqual([]);
+      expect(AutoScalingProcessService.normalizeScalingProcesses({} as IAmazonServerGroup)).toEqual([]);
+      expect(AutoScalingProcessService.normalizeScalingProcesses({ asg: {} } as IAmazonServerGroup)).toEqual([]);
     });
 
     it('returns all processes normalized if suspendedProcesses is empty', function() {
-      let asg = {
+      const asg = {
         suspendedProcesses: [],
-      };
-      let normalized = service.normalizeScalingProcesses({ asg: asg });
+      } as IAmazonAsg;
+      const normalized = AutoScalingProcessService.normalizeScalingProcesses({ asg: asg } as IAmazonServerGroup);
       expect(normalized.length).toBe(8);
       expect(normalized.filter(process => process.enabled).length).toBe(8);
       expect(normalized.map(process => process.name)).toEqual([
@@ -38,7 +30,7 @@ describe('Service: autoScalingProcess ', function() {
     });
 
     it('builds suspension date for suspended processes', function() {
-      let asg = {
+      const asg = {
         suspendedProcesses: [
           {
             processName: 'Launch',
@@ -46,7 +38,7 @@ describe('Service: autoScalingProcess ', function() {
           },
         ],
       };
-      let normalized = service.normalizeScalingProcesses({ asg: asg });
+      const normalized = AutoScalingProcessService.normalizeScalingProcesses({ asg: asg } as IAmazonServerGroup);
       expect(normalized.length).toBe(8);
       expect(normalized.filter(process => process.enabled).length).toBe(7);
       expect(normalized.map(process => process.name)).toEqual([
@@ -66,7 +58,7 @@ describe('Service: autoScalingProcess ', function() {
 
   describe('getDisabledDate', function() {
     it('returns null when server group is not disabled, regardless of suspended processes', function() {
-      let asg = {
+      const asg = {
         suspendedProcesses: [
           {
             processName: 'AddToLoadBalancer',
@@ -74,18 +66,20 @@ describe('Service: autoScalingProcess ', function() {
           },
         ],
       };
-      expect(service.getDisabledDate({ asg: asg })).toBeNull();
+      expect(AutoScalingProcessService.getDisabledDate({ asg: asg } as IAmazonServerGroup)).toBeNull();
     });
 
     it('returns null when server group is disabled but suspended process for AddToLoadBalancer not present', function() {
-      let asg = {
+      const asg = {
         suspendedProcesses: [],
-      };
-      expect(service.getDisabledDate({ isDisabled: true, asg: asg })).toBeNull();
+      } as IAmazonAsg;
+      expect(
+        AutoScalingProcessService.getDisabledDate({ isDisabled: true, asg: asg } as IAmazonServerGroup),
+      ).toBeNull();
     });
 
     it('returns suspension date when server group is disabled and AddToLoadBalancer suspended', function() {
-      let asg = {
+      const asg = {
         suspendedProcesses: [
           {
             processName: 'AddToLoadBalancer',
@@ -93,7 +87,9 @@ describe('Service: autoScalingProcess ', function() {
           },
         ],
       };
-      expect(service.getDisabledDate({ isDisabled: true, asg: asg })).toEqual(1452639586000);
+      expect(AutoScalingProcessService.getDisabledDate({ isDisabled: true, asg: asg } as IAmazonServerGroup)).toEqual(
+        1452639586000,
+      );
     });
   });
 });

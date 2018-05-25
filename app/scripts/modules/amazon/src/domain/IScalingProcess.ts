@@ -1,6 +1,11 @@
 export interface IScalingProcess {
   name: string;
-  enabled: boolean;
+  enabled?: boolean;
   description: string;
-  suspensionDate: number;
+  suspensionDate?: number;
+}
+
+export interface ISuspendedProcess {
+  processName: string;
+  suspensionReason: string;
 }

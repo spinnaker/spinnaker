@@ -33,7 +33,6 @@ export class UpsertTargetTrackingController implements IComponentController {
 
   constructor(
     private $uibModalInstance: IModalServiceInstance,
-    private scalingPolicyWriter: ScalingPolicyWriter,
     public policy: ITargetTrackingPolicy,
     public serverGroup: IServerGroup,
     public application: Application,
@@ -86,7 +85,7 @@ export class UpsertTargetTrackingController implements IComponentController {
       application: this.application,
       title: `${action} scaling policy for ${this.serverGroup.name}`,
       modalInstance: this.$uibModalInstance,
-      submitMethod: () => this.scalingPolicyWriter.upsertScalingPolicy(this.application, command),
+      submitMethod: () => ScalingPolicyWriter.upsertScalingPolicy(this.application, command),
     });
 
     this.taskMonitor.submit();

@@ -1,4 +1,5 @@
 import { IAccountDetails, IServerGroup, IAsg } from '@spinnaker/core';
+import { ISuspendedProcess } from 'amazon';
 
 import { IScalingPolicy } from './IScalingPolicy';
 import { IScalingPolicyView } from 'amazon/domain';
@@ -11,6 +12,7 @@ export interface IAmazonAsg extends IAsg {
   terminationPolicies: string[];
   enabledMetrics: Array<{ metric: string }>;
   vpczoneIdentifier?: string;
+  suspendedProcesses?: ISuspendedProcess[];
 }
 
 export interface IAmazonServerGroup extends IServerGroup {

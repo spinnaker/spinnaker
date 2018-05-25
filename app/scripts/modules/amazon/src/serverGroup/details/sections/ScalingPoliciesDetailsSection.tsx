@@ -3,7 +3,8 @@ import * as React from 'react';
 import { CollapsibleSection, Tooltip } from '@spinnaker/core';
 
 import { IScalingProcess } from 'amazon/domain';
-import { AwsReactInjector, AwsNgReact } from 'amazon/reactShims';
+import { AwsNgReact } from 'amazon/reactShims';
+import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { CreateScalingPolicyButton } from '../scalingPolicy/CreateScalingPolicyButton';
@@ -25,9 +26,7 @@ export class ScalingPoliciesDetailsSection extends React.Component<
   private getState(props: IAmazonServerGroupDetailsSectionProps): IScalingPoliciesDetailsSectionState {
     const { serverGroup } = props;
 
-    const autoScalingProcesses: IScalingProcess[] = AwsReactInjector.autoScalingProcessService.normalizeScalingProcesses(
-      serverGroup,
-    );
+    const autoScalingProcesses: IScalingProcess[] = AutoScalingProcessService.normalizeScalingProcesses(serverGroup);
     const scalingPoliciesDisabled =
       serverGroup.scalingPolicies.length > 0 &&
       autoScalingProcesses

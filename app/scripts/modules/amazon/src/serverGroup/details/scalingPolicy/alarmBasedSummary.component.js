@@ -5,13 +5,12 @@ const angular = require('angular');
 import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
 
 import { SCALING_POLICY_POPOVER } from './popover/scalingPolicyPopover.component';
-import { SCALING_POLICY_WRITE_SERVICE } from './scalingPolicy.write.service';
+import { ScalingPolicyWriter } from './ScalingPolicyWriter';
 
 import './scalingPolicySummary.component.less';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.alarmBasedSummary.component', [
-    SCALING_POLICY_WRITE_SERVICE,
     require('./upsert/upsertScalingPolicy.controller').name,
     SCALING_POLICY_POPOVER,
     CONFIRMATION_MODAL_SERVICE,
@@ -23,7 +22,7 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./alarmBasedSummary.component.html'),
-    controller: function($uibModal, scalingPolicyWriter, confirmationModalService) {
+    controller: function($uibModal, confirmationModalService) {
       this.popoverTemplate = require('./popover/scalingPolicyDetails.popover.html');
 
       this.editPolicy = () => {
@@ -47,7 +46,7 @@ module.exports = angular
         };
 
         var submitMethod = () =>
-          scalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy);
+          ScalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy);
 
         confirmationModalService.confirm({
           header: 'Really delete ' + this.policy.policyName + '?',

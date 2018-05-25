@@ -3,15 +3,12 @@
 const angular = require('angular');
 
 import { TaskMonitor } from '@spinnaker/core';
-import { SCALING_POLICY_WRITE_SERVICE } from '@spinnaker/amazon';
+import { ScalingPolicyWriter } from '@spinnaker/amazon';
 
 module.exports = angular
-  .module('spinnaker.titus.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
-    SCALING_POLICY_WRITE_SERVICE,
-  ])
+  .module('spinnaker.titus.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [])
   .controller('titusUpsertScalingPolicyCtrl', function(
     $uibModalInstance,
-    scalingPolicyWriter,
     alarmServerGroup,
     serverGroup,
     application,
@@ -154,7 +151,7 @@ module.exports = angular
 
     this.save = () => {
       const command = prepareCommandForSubmit();
-      const submitMethod = () => scalingPolicyWriter.upsertScalingPolicy(application, command);
+      const submitMethod = () => ScalingPolicyWriter.upsertScalingPolicy(application, command);
 
       this.taskMonitor.submit(submitMethod);
     };

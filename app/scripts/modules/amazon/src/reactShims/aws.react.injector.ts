@@ -7,7 +7,6 @@ import { AwsLoadBalancerTransformer } from '../loadBalancer/loadBalancer.transfo
 
 // prettier-ignore
 export class AwsReactInject extends ReactInject {
-  public get autoScalingProcessService() { return this.$injector.get('autoScalingProcessService') as any; }
   public get awsLoadBalancerTransformer() { return this.$injector.get('awsLoadBalancerTransformer') as AwsLoadBalancerTransformer; }
   public get awsServerGroupCommandBuilder() { return this.$injector.get('awsServerGroupCommandBuilder') as any; }
   public get awsServerGroupTransformer() { return this.$injector.get('awsServerGroupTransformer') as AwsServerGroupTransformer; }

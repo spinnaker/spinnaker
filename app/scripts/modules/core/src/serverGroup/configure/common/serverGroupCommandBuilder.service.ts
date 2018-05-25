@@ -8,6 +8,7 @@ import { IDeploymentStrategy } from 'core/deploymentStrategy';
 import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityGroupReader.service';
 import { IRegion, IAggregatedAccounts } from 'core/account/AccountService';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';
+import { IScalingProcess } from '../../../../../amazon/src/domain';
 
 export interface IServerGroupCommandBuilderOptions {
   account: string;
@@ -71,7 +72,7 @@ export interface IServerGroupCommandBackingData {
       [region: string]: string[];
     };
   };
-  scalingProcesses: string[];
+  scalingProcesses: IScalingProcess[];
   securityGroups: ISecurityGroupsByAccountSourceData;
 }
 

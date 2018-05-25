@@ -5,25 +5,18 @@ const angular = require('angular');
 import { TaskMonitor } from '@spinnaker/core';
 
 import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
-import { SCALING_POLICY_WRITE_SERVICE } from '../scalingPolicy.write.service';
+import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
 
 import './upsertScalingPolicy.modal.less';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
-    SCALING_POLICY_WRITE_SERVICE,
     require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js'),
     require('./simple/simplePolicyAction.component.js').name,
     STEP_POLICY_ACTION,
     require('./alarm/alarmConfigurer.component.js').name,
   ])
-  .controller('awsUpsertScalingPolicyCtrl', function(
-    $uibModalInstance,
-    scalingPolicyWriter,
-    serverGroup,
-    application,
-    policy,
-  ) {
+  .controller('awsUpsertScalingPolicyCtrl', function($uibModalInstance, serverGroup, application, policy) {
     this.serverGroup = serverGroup;
 
     this.viewState = {
@@ -202,7 +195,7 @@ module.exports = angular
 
     this.save = () => {
       let command = prepareCommandForSubmit();
-      var submitMethod = () => scalingPolicyWriter.upsertScalingPolicy(application, command);
+      var submitMethod = () => ScalingPolicyWriter.upsertScalingPolicy(application, command);
 
       this.taskMonitor.submit(submitMethod);
     };

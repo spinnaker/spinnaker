@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { AccountService, IServerGroupDetailsProps, ISubnet, ServerGroupReader, SubnetReader } from '@spinnaker/core';
 
 import { AwsReactInjector } from 'amazon/reactShims';
+import { AutoScalingProcessService } from './scalingProcesses/AutoScalingProcessService';
 import { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
 
 function extractServerGroupSummary(props: IServerGroupDetailsProps): IPromise<IAmazonServerGroup> {
@@ -70,7 +71,7 @@ export function amazonServerGroupDetailsGetter(
             });
           }
 
-          serverGroup.disabledDate = AwsReactInjector.autoScalingProcessService.getDisabledDate(serverGroup);
+          serverGroup.disabledDate = AutoScalingProcessService.getDisabledDate(serverGroup);
 
           observer.next(serverGroup);
         } else {

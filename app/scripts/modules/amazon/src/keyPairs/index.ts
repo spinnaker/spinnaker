@@ -1,1 +1,1 @@
-export * from './keyPairs.read.service';
+export * from './KeyPairsReader';

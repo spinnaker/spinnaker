@@ -5,7 +5,7 @@ import { Application, ConfirmationModalService, IServerGroup, ITaskMonitorConfig
 
 import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from 'amazon/domain/ITargetTrackingPolicy';
 import { UpsertTargetTrackingController } from './upsertTargetTracking.controller';
-import { ScalingPolicyWriter } from '../scalingPolicy.write.service';
+import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
 
 class TargetTrackingSummaryController implements IComponentController {
   public policy: ITargetTrackingPolicy;
@@ -14,11 +14,7 @@ class TargetTrackingSummaryController implements IComponentController {
   public config: ITargetTrackingConfiguration;
   public popoverTemplate = require('./targetTrackingPopover.html');
 
-  constructor(
-    private $uibModal: IModalService,
-    private scalingPolicyWriter: ScalingPolicyWriter,
-    private confirmationModalService: ConfirmationModalService,
-  ) {
+  constructor(private $uibModal: IModalService, private confirmationModalService: ConfirmationModalService) {
     'ngInject';
   }
 
@@ -52,7 +48,7 @@ class TargetTrackingSummaryController implements IComponentController {
       account: this.serverGroup.account,
       provider: 'aws',
       taskMonitorConfig: taskMonitor,
-      submitMethod: () => this.scalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy),
+      submitMethod: () => ScalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy),
     });
   }
 }

@@ -1,4 +1,4 @@
-import { IPromise, module } from 'angular';
+import { IPromise } from 'angular';
 
 import { Application, IJob, IMetricAlarmDimension, IServerGroup, ITask, TaskExecutor } from '@spinnaker/core';
 
@@ -60,7 +60,7 @@ export interface IUpsertAlarmDescription extends IConfigurableMetric {
 }
 
 export class ScalingPolicyWriter {
-  public upsertScalingPolicy(application: Application, command: IUpsertScalingPolicyCommand): IPromise<ITask> {
+  public static upsertScalingPolicy(application: Application, command: IUpsertScalingPolicyCommand): IPromise<ITask> {
     command.type = command.type || 'upsertScalingPolicy';
     return TaskExecutor.executeTask({
       application,
@@ -69,7 +69,7 @@ export class ScalingPolicyWriter {
     });
   }
 
-  public deleteScalingPolicy(
+  public static deleteScalingPolicy(
     application: Application,
     serverGroup: IServerGroup,
     scalingPolicy: IScalingPolicy,
@@ -90,6 +90,3 @@ export class ScalingPolicyWriter {
     });
   }
 }
-
-export const SCALING_POLICY_WRITE_SERVICE = 'spinnaker.amazon.serverGroup.details.scalingPolicy.write.service';
-module(SCALING_POLICY_WRITE_SERVICE, []).service('scalingPolicyWriter', ScalingPolicyWriter);
