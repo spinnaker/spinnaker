@@ -8,9 +8,11 @@ echo "repository=$(echo $repository | sed s/^.*@//g)"
 echo "package_type=$package_type"
 echo "packages=$packages"
 echo "upgrade=$upgrade"
-echo "artifacts="
-cat /tmp/artifacts.json
-echo
+if [[ -e /tmp/artifacts.json ]]; then
+  echo "artifacts="
+  cat /tmp/artifacts.json
+  echo
+fi
 uninstall_jq=false
 
 # Strip leading/trailing quotes if present.
