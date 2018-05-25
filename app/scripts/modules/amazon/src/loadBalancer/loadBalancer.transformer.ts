@@ -20,28 +20,29 @@ import {
 import { VpcReader } from 'amazon/vpc/VpcReader';
 
 export class AwsLoadBalancerTransformer {
-  private updateHealthCounts(serverGroup: IServerGroup | ITargetGroup | IAmazonLoadBalancer): void {
-    const instances = serverGroup.instances;
-    let serverGroups: IServerGroup[] = [serverGroup] as IServerGroup[];
-    if ((serverGroup as ITargetGroup | IAmazonLoadBalancer).serverGroups) {
-      const container = serverGroup as ITargetGroup;
-      serverGroups = container.serverGroups;
-    }
-    serverGroup.instanceCounts = {
+  private updateHealthCounts(container: IServerGroup | ITargetGroup | IAmazonLoadBalancer): void {
+    const instances = container.instances;
+
+    container.instanceCounts = {
       up: instances.filter(instance => instance.health[0].state === 'InService').length,
-      down: instances.filter(instance => instance.health[0].state === 'OutOfService').length,
-      outOfService: serverGroups.reduce((acc, sg): number => {
-        return (
-          sg.instances.filter((instance): boolean => {
-            return instance.healthState === 'OutOfService';
-          }).length + acc
-        );
-      }, 0),
+      down: instances.filter(instance => instance.healthState === 'Down').length,
+      outOfService: instances.filter(instance => instance.healthState === 'OutOfService').length,
       starting: undefined,
       succeeded: undefined,
       failed: undefined,
       unknown: undefined,
     };
+
+    if ((container as ITargetGroup | IAmazonLoadBalancer).serverGroups) {
+      const serverGroupInstances = flatten((container as ITargetGroup).serverGroups.map(sg => sg.instances));
+      container.instanceCounts.up = serverGroupInstances.filter(
+        instance => instance.health[0].state === 'InService',
+      ).length;
+      container.instanceCounts.down = serverGroupInstances.filter(instance => instance.healthState === 'Down').length;
+      container.instanceCounts.outOfService = serverGroupInstances.filter(
+        instance => instance.healthState === 'OutOfService',
+      ).length;
+    }
   }
 
   private transformInstance(instance: IInstance, provider: string, account: string, region: string): void {

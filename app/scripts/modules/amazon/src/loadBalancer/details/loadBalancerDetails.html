@@ -116,8 +116,11 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Status" expanded="true">
+    <collapsible-section heading="Status" expanded="true" ng-if="ctrl.loadBalancer.loadBalancerType === 'classic'">
       <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="false" ng-if="ctrl.loadBalancer.loadBalancerType !== 'classic'">
+      Select a target group to check the instance health status from the view of the target group.
     </collapsible-section>
     <collapsible-section ng-if="ctrl.loadBalancer.loadBalancerType === 'classic'" heading="Listeners">
       <dl>
