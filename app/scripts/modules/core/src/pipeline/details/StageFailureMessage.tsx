@@ -81,7 +81,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
           messages.map((m, i) => <Markdown key={i} message={m || 'No reason provided.'} className="break-word" />)
         );
 
-      if (message || messages.length) {
+      if (displayMessages) {
         return (
           <div className="row">
             <div className="col-md-12">
