@@ -40,7 +40,12 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-import { IKeyPair, IAmazonLoadBalancerSourceData, IApplicationLoadBalancerSourceData } from 'amazon/domain';
+import {
+  IKeyPair,
+  IAmazonLoadBalancerSourceData,
+  IApplicationLoadBalancerSourceData,
+  IScalingProcess,
+} from 'amazon/domain';
 import { KeyPairsReader } from 'amazon/keyPairs';
 import { AutoScalingProcessService } from '../details/scalingProcesses/AutoScalingProcessService';
 
@@ -64,6 +69,7 @@ export interface IAmazonServerGroupCommandBackingData extends IServerGroupComman
   filtered: IAmazonServerGroupCommandBackingDataFiltered;
   keyPairs: IKeyPair[];
   targetGroups: string[];
+  scalingProcesses: IScalingProcess[];
 }
 
 export interface IAmazonServerGroupCommand extends IServerGroupCommand {
