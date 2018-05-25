@@ -47,7 +47,7 @@ export class TrafficGuardConfigController {
       const unsupportedAccounts = allAccounts.filter(
         (details: IAccountDetails) => details.regions && details.namespaces,
       );
-      if (unsupportedAccounts) {
+      if (unsupportedAccounts.length) {
         this.$log.warn(
           'Account(s) ',
           unsupportedAccounts,
