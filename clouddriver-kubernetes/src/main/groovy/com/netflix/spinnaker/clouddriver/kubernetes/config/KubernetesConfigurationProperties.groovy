@@ -35,6 +35,7 @@ class KubernetesConfigurationProperties {
     List<String> oAuthScopes
     String user
     String kubeconfigFile
+    String kubeconfigContents
     String kubectlExecutable
     Boolean serviceAccount
     Boolean configureImagePullSecrets

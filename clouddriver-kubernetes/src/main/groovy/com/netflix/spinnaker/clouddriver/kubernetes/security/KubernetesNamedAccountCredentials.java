@@ -33,6 +33,10 @@ import com.netflix.spinnaker.moniker.Namer;
 import groovy.util.logging.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -179,6 +183,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     String user;
     String userAgent;
     String kubeconfigFile;
+    String kubeconfigContents;
     String kubectlExecutable;
     Boolean serviceAccount;
     Boolean configureImagePullSecrets;
@@ -251,6 +256,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
     Builder kubeconfigFile(String kubeconfigFile) {
       this.kubeconfigFile = kubeconfigFile;
+      return this;
+    }
+
+    Builder kubeconfigContents(String kubeconfigContents) {
+      this.kubeconfigContents = kubeconfigContents;
       return this;
     }
 
@@ -419,8 +429,20 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         providerVersion = v1;
       }
 
-      if (StringUtils.isEmpty(kubeconfigFile)) {
-        kubeconfigFile = System.getProperty("user.home") + "/.kube/config";
+      if (StringUtils.isEmpty(kubeconfigFile)){
+        if (StringUtils.isEmpty(kubeconfigContents)) {
+          kubeconfigFile = System.getProperty("user.home") + "/.kube/config";
+        } else {
+          try {
+            File temp = File.createTempFile("kube", "config");
+            BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
+            writer.write(kubeconfigContents);
+            writer.close();
+            kubeconfigFile = temp.getAbsolutePath();
+          } catch (IOException e) {
+            throw new RuntimeException("Unable to persist 'kubeconfigContents' parameter to disk: " + e.getMessage(), e);
+          }
+        }
       }
 
       if (requiredGroupMembership != null && !requiredGroupMembership.isEmpty()) {
