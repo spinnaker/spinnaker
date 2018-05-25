@@ -84,12 +84,12 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
             continue;
           }
           if (!agent.metricsSupport) {
-            hasOnDemandResults = false
             continue;
           }
           if (result.cacheResult) {
-            hasOnDemandResults = !(result.cacheResult.cacheResults ?: [:]).values().flatten().isEmpty() && !agentScheduler.atomic
-            if (hasOnDemandResults) {
+            boolean agentHasOnDemandResults = !(result.cacheResult.cacheResults ?: [:]).values().flatten().isEmpty() && !agentScheduler.atomic
+            if (agentHasOnDemandResults) {
+              hasOnDemandResults = true;
               result.cacheResult.cacheResults.each { k, v ->
                 if (v) {
                   cachedIdentifiersByType[k].addAll(v*.id)
