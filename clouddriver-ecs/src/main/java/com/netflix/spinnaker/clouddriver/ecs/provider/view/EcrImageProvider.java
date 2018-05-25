@@ -44,7 +44,7 @@ public class EcrImageProvider implements ImageRepositoryProvider {
   private static final Pattern REPOSITORY_NAME_PATTERN = Pattern.compile("\\/([a-z0-9._-]+)");
   private static final String IDENTIFIER_PATTERN = "(:([a-z0-9._-]+)|@(sha256:[0-9a-f]{64}))";
   private static final Pattern REGION_PATTERN = Pattern.compile("(\\w+-\\w+-\\d+)");
-  private static final Pattern REPOSITORY_URI_PATTERN = Pattern.compile(ACCOUNT_ID_PATTERN.toString() + "\\.dkr\\.ecr\\." +
+  static final Pattern ECR_REPOSITORY_URI_PATTERN = Pattern.compile(ACCOUNT_ID_PATTERN.toString() + "\\.dkr\\.ecr\\." +
     REGION_PATTERN.toString() + ".+" +
     REPOSITORY_NAME_PATTERN.toString() +
     IDENTIFIER_PATTERN);
@@ -144,7 +144,7 @@ public class EcrImageProvider implements ImageRepositoryProvider {
 
   private boolean isValidEcrUrl(String imageUrl) {
     imageUrl = imageUrl.replace("http://", "").replace("https://", "");
-    Matcher matcher = REPOSITORY_URI_PATTERN.matcher(imageUrl);
+    Matcher matcher = ECR_REPOSITORY_URI_PATTERN.matcher(imageUrl);
     return matcher.find();
   }
 
