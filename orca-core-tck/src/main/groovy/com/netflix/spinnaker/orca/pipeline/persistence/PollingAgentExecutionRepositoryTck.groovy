@@ -44,7 +44,7 @@ abstract class PollingAgentExecutionRepositoryTck<T extends PollingAgentExecutio
 
   abstract T createExecutionRepositoryPrevious()
 
-  def "can retrieve all application names in database"() {
+  def "can retrieve all application names in database, type: #executionType, min: #minExecutions"() {
     given:
     def execution1 = pipeline {
       application = "spindemo"

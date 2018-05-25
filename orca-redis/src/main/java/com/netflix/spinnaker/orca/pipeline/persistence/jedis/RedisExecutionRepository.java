@@ -26,7 +26,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.*;
+import redis.clients.jedis.BinaryClient;
+import redis.clients.jedis.Response;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Func0;
@@ -571,7 +574,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
       ScanParams scanParams = new ScanParams().match(executionKeyPattern(type)).count(2000);
       String cursor = "0";
 
-      List<String> apps = new ArrayList<>();
+      Map<String, Long> apps = new HashMap<>();
       while (true) {
         String finalCursor = cursor;
         ScanResult<String> chunk = mc.scan(finalCursor, scanParams);
@@ -587,23 +590,22 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
             p.sync();
           });
 
-          apps.addAll(
-            pipelineResults
-              .entrySet()
-              .stream()
-              .filter(it -> it.getValue().get() >= minExecutions)
-              .map(Map.Entry::getKey)
-              .collect(Collectors.toList())
-          );
+          pipelineResults
+            .entrySet()
+            .forEach(e -> apps.compute(
+              e.getKey(),
+              (app, numExecutions) -> Optional.ofNullable(numExecutions).orElse(0L) + e.getValue().get())
+            );
         } else {
           redisClientDelegate.withCommandsClient(cc -> {
             chunk.getResult().forEach(id -> {
               String[] parts = id.split(":");
               String app = parts[2];
               long cardinality = cc.scard(id);
-              if (cardinality >= minExecutions) {
-                apps.add(app);
-              }
+              apps.compute(
+                app,
+                (appKey, numExecutions) -> Optional.ofNullable(numExecutions).orElse(0L) + cardinality
+              );
             });
           });
         }
@@ -614,7 +616,11 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         }
       }
 
-      return apps;
+      return apps.entrySet()
+        .stream()
+        .filter(e -> e.getValue().intValue() >= minExecutions)
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toList());
     });
   }
 
