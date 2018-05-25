@@ -44,11 +44,13 @@ public class HelmTemplateUtils extends TemplateUtils {
     command.add(request.getOutputName());
 
     Map<String, Object> overrides = request.getOverrides();
-    if (overrides != null) {
-      for (Map.Entry<String, Object> entry : overrides.entrySet()) {
-        command.add("--set");
-        command.add("'" + entry.getKey() + "=" + entry.getValue().toString() + "'");
-      }
+    if (!overrides.isEmpty()) {
+        List<String> overrideList = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : overrides.entrySet()) {
+            overrideList.add(entry.getKey() + "=" + entry.getValue().toString());
+        }
+        command.add("--set-string");
+        command.add(overrideList.stream().collect(Collectors.joining(",")));
     }
 
     if (!valuePaths.isEmpty()) {
