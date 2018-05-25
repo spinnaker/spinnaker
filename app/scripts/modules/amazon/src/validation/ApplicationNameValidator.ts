@@ -1,11 +1,4 @@
-import { module } from 'angular';
-
-import {
-  APPLICATION_NAME_VALIDATOR,
-  FirewallLabels,
-  IApplicationNameValidator,
-  ApplicationNameValidator,
-} from '@spinnaker/core';
+import { ApplicationNameValidator, FirewallLabels, IApplicationNameValidator } from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
 
 class AmazonApplicationNameValidator implements IApplicationNameValidator {
@@ -20,8 +13,8 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
     const lockoutDate = AWSProviderSettings.classicLaunchLockout;
     if (lockoutDate && lockoutDate < new Date().getTime()) {
       warnings.push(
-        `New applications deployed to AWS are restricted to VPC; you cannot create server groups, ' +
-          'load balancers, or ${FirewallLabels.get('firewalls')} in EC2 Classic.`,
+        `New applications deployed to AWS are restricted to VPC; you cannot create server groups,
+          load balancers, or ${FirewallLabels.get('firewalls')} in EC2 Classic.`,
       );
     }
   }
@@ -86,11 +79,4 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
     };
   }
 }
-
-export const AMAZON_APPLICATION_NAME_VALIDATOR = 'spinnaker.amazon.validation.application.name';
-
-module(AMAZON_APPLICATION_NAME_VALIDATOR, [APPLICATION_NAME_VALIDATOR])
-  .service('awsApplicationNameValidator', AmazonApplicationNameValidator)
-  .run((applicationNameValidator: ApplicationNameValidator, awsApplicationNameValidator: IApplicationNameValidator) => {
-    applicationNameValidator.registerValidator('aws', awsApplicationNameValidator);
-  });
+ApplicationNameValidator.registerValidator('aws', new AmazonApplicationNameValidator());

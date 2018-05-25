@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
-  INSTANCE_READ_SERVICE,
+  InstanceReader,
   RecentHistoryService,
   SETTINGS,
 } from '@spinnaker/core';
@@ -15,7 +15,6 @@ module.exports = angular
   .module('spinnaker.ecs.instance.details.controller', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
   ])
   .controller('ecsInstanceDetailsCtrl', function(
@@ -23,7 +22,6 @@ module.exports = angular
     $state,
     $uibModal,
     confirmationModalService,
-    instanceReader,
     instanceWriter,
     instance,
     app,
@@ -172,7 +170,7 @@ module.exports = angular
         extraData.account = account;
         extraData.region = region;
         RecentHistoryService.addExtraDataToLatest('instances', extraData);
-        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
+        return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
           if ($scope.$$destroyed) {
             return;
           }

@@ -1,5 +1,5 @@
 import { IController, module } from 'angular';
-import { PageNavigationState, PAGE_NAVIGATION_STATE } from './pageNavigationState';
+import { PageNavigationState } from './PageNavigationState';
 import { throttle } from 'lodash';
 import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 import { PAGE_SECTION_COMPONENT } from './pageSection.component';
@@ -8,6 +8,7 @@ import './pageNavigation.less';
 
 class PageNavigatorController implements IController {
   public scrollableContainer: string;
+  public pageNavigationState: PageNavigationState = PageNavigationState;
   private container: JQuery;
   private navigator: JQuery;
   private id: string;
@@ -16,13 +17,13 @@ class PageNavigatorController implements IController {
     return `scroll.pageNavigation.${this.id}`;
   }
 
-  public constructor(private $element: JQuery, public pageNavigationState: PageNavigationState) {
+  public constructor(private $element: JQuery) {
     'ngInject';
   }
 
   public $onInit(): void {
     this.id = UUIDGenerator.generateUuid();
-    this.pageNavigationState.reset();
+    PageNavigationState.reset();
     this.container = this.$element.closest(this.scrollableContainer);
     this.container.bind(this.getEventKey(), throttle(() => this.handleScroll(), 20));
     this.navigator = this.$element.find('.page-navigation');
@@ -33,7 +34,7 @@ class PageNavigatorController implements IController {
   }
 
   public setCurrentSection(key: string): void {
-    this.pageNavigationState.setCurrentPage(key);
+    PageNavigationState.setCurrentPage(key);
     ScrollToService.scrollTo(`[data-page-id=${key}]`, this.scrollableContainer, this.container.offset().top);
     this.container.find('.highlighted').removeClass('highlighted');
     this.container.find(`[data-page-id=${key}]`).addClass('highlighted');
@@ -43,7 +44,7 @@ class PageNavigatorController implements IController {
     const navigatorRect = this.$element.get(0).getBoundingClientRect(),
       scrollableContainerTop = this.container.get(0).getBoundingClientRect().top;
 
-    const currentPage = this.pageNavigationState.pages.find(p => {
+    const currentPage = PageNavigationState.pages.find(p => {
       const content = this.container.find(`[data-page-content=${p.key}]`);
       if (content.length) {
         return content.get(0).getBoundingClientRect().bottom > scrollableContainerTop;
@@ -51,7 +52,7 @@ class PageNavigatorController implements IController {
       return false;
     });
     if (currentPage) {
-      this.pageNavigationState.setCurrentPage(currentPage.key);
+      PageNavigationState.setCurrentPage(currentPage.key);
       this.navigator.find('li').removeClass('current');
       this.navigator.find(`[data-page-navigation-link=${currentPage.key}]`).addClass('current');
     }
@@ -102,7 +103,4 @@ class PageNavigatorComponent implements ng.IComponentOptions {
 
 export const PAGE_NAVIGATOR_COMPONENT = 'spinnaker.core.presentation.navigation.pageNavigator';
 
-module(PAGE_NAVIGATOR_COMPONENT, [PAGE_NAVIGATION_STATE, PAGE_SECTION_COMPONENT]).component(
-  'pageNavigator',
-  new PageNavigatorComponent(),
-);
+module(PAGE_NAVIGATOR_COMPONENT, [PAGE_SECTION_COMPONENT]).component('pageNavigator', new PageNavigatorComponent());

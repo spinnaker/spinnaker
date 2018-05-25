@@ -6,7 +6,7 @@ import { AWS_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { AWS_REACT_MODULE } from './reactShims/aws.react.module';
 import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
 import { AWS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
-import { AMAZON_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
+import './validation/ApplicationNameValidator';
 import { VPC_MODULE } from './vpc/vpc.module';
 import { SUBNET_RENDERER } from './subnet/subnet.renderer';
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
@@ -49,7 +49,6 @@ templates.keys().forEach(function(key) {
 export const AMAZON_MODULE = 'spinnaker.amazon';
 module(AMAZON_MODULE, [
   AWS_REACT_MODULE,
-  AMAZON_APPLICATION_NAME_VALIDATOR,
   require('./pipeline/stages/bake/awsBakeStage').name,
   require('./pipeline/stages/cloneServerGroup/awsCloneServerGroupStage').name,
   require('./pipeline/stages/destroyAsg/awsDestroyAsgStage').name,

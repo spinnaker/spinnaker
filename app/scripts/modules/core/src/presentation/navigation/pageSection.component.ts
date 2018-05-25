@@ -1,10 +1,10 @@
-import { IController, module } from 'angular';
-import { PageNavigationState, INavigationPage } from './pageNavigationState';
+import { IChangesObject, IComponentOptions, IController, IOnChangesObject, module } from 'angular';
+import { PageNavigationState, INavigationPage } from './PageNavigationState';
 
-interface IPageSectionOnChanges extends ng.IOnChangesObject {
-  visible: ng.IChangesObject<boolean>;
-  label: ng.IChangesObject<string>;
-  badge: ng.IChangesObject<string>;
+interface IPageSectionOnChanges extends IOnChangesObject {
+  visible: IChangesObject<boolean>;
+  label: IChangesObject<string>;
+  badge: IChangesObject<string>;
 }
 
 class PageSectionController implements IController {
@@ -15,10 +15,6 @@ class PageSectionController implements IController {
   public noWrapper: boolean;
   private pageConfig: INavigationPage;
 
-  public constructor(private pageNavigationState: PageNavigationState) {
-    'ngInject';
-  }
-
   public $onInit(): void {
     this.visible = this.visible !== false;
     this.pageConfig = {
@@ -27,7 +23,7 @@ class PageSectionController implements IController {
       visible: this.visible,
       badge: this.badge,
     };
-    this.pageNavigationState.registerPage(this.pageConfig);
+    PageNavigationState.registerPage(this.pageConfig);
   }
 
   public $onChanges(changes: IPageSectionOnChanges): void {
@@ -43,7 +39,7 @@ class PageSectionController implements IController {
   }
 }
 
-class PageSectionComponent implements ng.IComponentOptions {
+class PageSectionComponent implements IComponentOptions {
   public bindings: any = {
     key: '@',
     label: '@',

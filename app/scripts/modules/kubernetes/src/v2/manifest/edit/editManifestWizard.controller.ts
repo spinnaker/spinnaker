@@ -23,7 +23,6 @@ class KubernetesEditManifestCtrl implements IController {
     sourceMoniker: IMoniker,
     private $uibModalInstance: IModalInstanceService,
     private application: Application,
-    private manifestWriter: ManifestWriter,
   ) {
     'ngInject';
     KubernetesManifestCommandBuilder.buildNewManifestCommand(application, sourceManifest, sourceMoniker).then(
@@ -45,7 +44,7 @@ class KubernetesEditManifestCtrl implements IController {
 
   public submit(): void {
     const command = KubernetesManifestCommandBuilder.copyAndCleanCommand(this.metadata, this.command);
-    const submitMethod = () => this.manifestWriter.deployManifest(command, this.application);
+    const submitMethod = () => ManifestWriter.deployManifest(command, this.application);
     this.taskMonitor.submit(submitMethod);
   }
 

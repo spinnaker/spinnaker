@@ -5,7 +5,6 @@ import {
   Application,
   CONFIRMATION_MODAL_SERVICE,
   ConfirmationModalService,
-  INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
   InstanceReader,
   InstanceWriter,
@@ -37,7 +36,6 @@ class AppengineInstanceDetailsController implements IController {
   constructor(
     private $q: IQService,
     private app: Application,
-    private instanceReader: InstanceReader,
     private instanceWriter: InstanceWriter,
     private confirmationModalService: ConfirmationModalService,
     instance: InstanceFromStateParams,
@@ -109,13 +107,15 @@ class AppengineInstanceDetailsController implements IController {
       }
       RecentHistoryService.addExtraDataToLatest('instances', recentHistoryExtraData);
 
-      return this.instanceReader
-        .getInstanceDetails(instanceManager.account, instanceManager.region, instance.instanceId)
-        .then((instanceDetails: IAppengineInstance) => {
-          instanceDetails.account = instanceManager.account;
-          instanceDetails.region = instanceManager.region;
-          return instanceDetails;
-        });
+      return InstanceReader.getInstanceDetails(
+        instanceManager.account,
+        instanceManager.region,
+        instance.instanceId,
+      ).then((instanceDetails: IAppengineInstance) => {
+        instanceDetails.account = instanceManager.account;
+        instanceDetails.region = instanceManager.region;
+        return instanceDetails;
+      });
     } else {
       return this.$q.reject();
     }
@@ -124,8 +124,7 @@ class AppengineInstanceDetailsController implements IController {
 
 export const APPENGINE_INSTANCE_DETAILS_CTRL = 'spinnaker.appengine.instanceDetails.controller';
 
-module(APPENGINE_INSTANCE_DETAILS_CTRL, [
-  INSTANCE_READ_SERVICE,
-  INSTANCE_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-]).controller('appengineInstanceDetailsCtrl', AppengineInstanceDetailsController);
+module(APPENGINE_INSTANCE_DETAILS_CTRL, [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE]).controller(
+  'appengineInstanceDetailsCtrl',
+  AppengineInstanceDetailsController,
+);

@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { APPLICATION_NAME_VALIDATOR, FirewallLabels } from '@spinnaker/core';
+import { ApplicationNameValidator, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
+  .module('spinnaker.openstack.validation.applicationName', [])
   .factory('openstackApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
       let pattern = /^[a-zA-Z_0-9.]*$/g;
@@ -53,6 +53,6 @@ module.exports = angular
       validate: validate,
     };
   })
-  .run(function(applicationNameValidator, openstackApplicationNameValidator) {
-    applicationNameValidator.registerValidator('openstack', openstackApplicationNameValidator);
+  .run(function(openstackApplicationNameValidator) {
+    ApplicationNameValidator.registerValidator('openstack', openstackApplicationNameValidator);
   });

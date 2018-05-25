@@ -1,7 +1,7 @@
 import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { Application, MANIFEST_WRITER, ManifestWriter, TaskMonitor } from '@spinnaker/core';
+import { Application, ManifestWriter, TaskMonitor } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 
 interface IPauseRolloutCommand {
@@ -21,7 +21,6 @@ class KubernetesManifestPauseRolloutController implements IController {
   constructor(
     coordinates: IManifestCoordinates,
     private $uibModalInstance: IModalServiceInstance,
-    private manifestWriter: ManifestWriter,
     private application: Application,
   ) {
     'ngInject';
@@ -53,14 +52,14 @@ class KubernetesManifestPauseRolloutController implements IController {
       const payload = copy(this.command) as any;
       payload.cloudProvider = 'kubernetes';
 
-      return this.manifestWriter.pauseRolloutManifest(payload, this.application);
+      return ManifestWriter.pauseRolloutManifest(payload, this.application);
     });
   }
 }
 
 export const KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL = 'spinnaker.kubernetes.v2.manifest.pauseRollout.controller';
 
-module(KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL, [MANIFEST_WRITER]).controller(
+module(KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL, []).controller(
   'kubernetesV2ManifestPauseRolloutCtrl',
   KubernetesManifestPauseRolloutController,
 );

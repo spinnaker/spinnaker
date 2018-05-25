@@ -6,13 +6,13 @@ import { HtmlRenderer, Parser } from 'commonmark';
 
 import { ViewStateCache } from 'core/cache';
 import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
-import { WHATS_NEW_READ_SERVICE } from './whatsNew.read.service';
+import { WhatsNewReader } from './WhatsNewReader';
 
 import './whatsNew.less';
 
 module.exports = angular
-  .module('spinnaker.core.whatsNew.directive', [WHATS_NEW_READ_SERVICE, TIME_FORMATTERS])
-  .directive('whatsNew', function(whatsNewReader) {
+  .module('spinnaker.core.whatsNew.directive', [TIME_FORMATTERS])
+  .directive('whatsNew', function() {
     return {
       restrict: 'E',
       replace: true,
@@ -30,7 +30,7 @@ module.exports = angular
           updateLastViewed: null,
         };
 
-        whatsNewReader.getWhatsNewContents().then(function(result) {
+        WhatsNewReader.getWhatsNewContents().then(function(result) {
           if (result) {
             $scope.fileContents = renderer.render(parser.parse(result.contents));
             $scope.fileLastUpdated = result.lastUpdated;

@@ -11,6 +11,7 @@ import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ExecutionBuildTitle } from 'core/pipeline/executionBuild/ExecutionBuildTitle';
 import { timestamp } from 'core/utils/timeFormatters';
 import { TetheredSelect } from 'core/presentation/TetheredSelect';
+import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
 
 export interface IPipelineTriggerTemplateState {
   executions: IExecution[];
@@ -91,7 +92,7 @@ export class PipelineTriggerTemplate extends React.Component<
     const trigger = this.props.command.trigger as IPipelineTrigger;
 
     if (executions.length) {
-      executions.forEach(execution => ReactInjector.executionsTransformer.addBuildInfo(execution));
+      executions.forEach(execution => ExecutionsTransformer.addBuildInfo(execution));
       // default to what is supplied by the trigger if possible; otherwise, use the latest
       const defaultSelection = executions.find(e => e.id === trigger.parentPipelineId) || executions[0];
       newState.selectedExecution = defaultSelection.id;

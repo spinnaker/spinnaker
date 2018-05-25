@@ -1,1 +1,1 @@
-export * from './storageAccount.service';
+export * from './StorageAccountReader';

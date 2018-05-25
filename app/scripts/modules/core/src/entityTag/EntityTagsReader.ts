@@ -1,4 +1,6 @@
-import { module, IQService, IPromise } from 'angular';
+import { IPromise } from 'angular';
+
+import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
 import { IEntityTags, IEntityTag, ICreationMetadataTag } from '../domain/IEntityTags';
@@ -7,18 +9,14 @@ import { IServerGroup, ILoadBalancer, ISecurityGroup } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
-  constructor(private $q: IQService) {
-    'ngInject';
-  }
-
-  public getAllEntityTagsForApplication(application: string): IPromise<IEntityTags[]> {
+  public static getAllEntityTagsForApplication(application: string): IPromise<IEntityTags[]> {
     return API.one('tags')
       .withParams({ application })
       .getList()
       .then((allTags: IEntityTags[]) => this.flattenTagsAndAddMetadata(allTags));
   }
 
-  public addTagsToServerGroups(application: Application): void {
+  public static addTagsToServerGroups(application: Application): void {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
@@ -41,7 +39,7 @@ export class EntityTagsReader {
     });
   }
 
-  public addTagsToLoadBalancers(application: Application): void {
+  public static addTagsToLoadBalancers(application: Application): void {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
@@ -57,7 +55,7 @@ export class EntityTagsReader {
     });
   }
 
-  public addTagsToSecurityGroups(application: Application): void {
+  public static addTagsToSecurityGroups(application: Application): void {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
@@ -73,9 +71,9 @@ export class EntityTagsReader {
     });
   }
 
-  public getEntityTagsForId(entityType: string, entityId: string): IPromise<IEntityTags[]> {
+  public static getEntityTagsForId(entityType: string, entityId: string): IPromise<IEntityTags[]> {
     if (!entityId) {
-      return this.$q.when([]);
+      return $q.when([]);
     }
     return API.one('tags')
       .withParams({
@@ -87,11 +85,11 @@ export class EntityTagsReader {
         return this.flattenTagsAndAddMetadata(entityTagGroups);
       })
       .catch(() => {
-        return this.$q.when([]);
+        return $q.when([]);
       });
   }
 
-  private flattenTagsAndAddMetadata(entityTags: IEntityTags[]): IEntityTags[] {
+  private static flattenTagsAndAddMetadata(entityTags: IEntityTags[]): IEntityTags[] {
     const allTags: IEntityTags[] = [];
     entityTags.forEach(entityTag => {
       entityTag.tags.forEach(tag => this.addTagMetadata(entityTag, tag));
@@ -103,7 +101,7 @@ export class EntityTagsReader {
     return allTags;
   }
 
-  private addTagMetadata(entityTag: IEntityTags, tag: IEntityTag): void {
+  private static addTagMetadata(entityTag: IEntityTags, tag: IEntityTag): void {
     const metadata = entityTag.tagsMetadata.find(m => m.name === tag.name);
     if (metadata) {
       tag.created = metadata.created;
@@ -113,6 +111,3 @@ export class EntityTagsReader {
     }
   }
 }
-
-export const ENTITY_TAGS_READ_SERVICE = 'spinnaker.core.entityTag.read.service';
-module(ENTITY_TAGS_READ_SERVICE, []).service('entityTagsReader', EntityTagsReader);

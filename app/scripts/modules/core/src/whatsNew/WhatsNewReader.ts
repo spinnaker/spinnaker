@@ -1,4 +1,7 @@
-import { module, IHttpService, ILogService, IPromise, IHttpPromiseCallbackArg, IQService } from 'angular';
+import { IPromise, IHttpPromiseCallbackArg } from 'angular';
+
+import { $http, $log, $q } from 'ngimport';
+
 import { SETTINGS } from 'core/config/settings';
 
 export interface IGistApiResponse {
@@ -28,23 +31,19 @@ export class WhatsNewReader {
     return data.files[fileName].content;
   }
 
-  constructor(private $http: IHttpService, private $log: ILogService, private $q: IQService) {
-    'ngInject';
-  }
-
-  public getWhatsNewContents(): IPromise<IWhatsNewContents> {
+  public static getWhatsNewContents(): IPromise<IWhatsNewContents> {
     let gistId: string, accessToken: string;
     gistId = SETTINGS.changelog ? SETTINGS.changelog.gistId : null;
     accessToken = SETTINGS.changelog ? SETTINGS.changelog.accessToken : null;
     if (!gistId) {
-      return this.$q.resolve(null);
+      return $q.resolve(null);
     }
 
     let url = `https://api.github.com/gists/${gistId}`;
     if (accessToken) {
       url += '?access_token=' + accessToken;
     }
-    return this.$http
+    return $http
       .get(url)
       .then((result: IHttpPromiseCallbackArg<IGistApiResponse>) => {
         return {
@@ -53,11 +52,8 @@ export class WhatsNewReader {
         };
       })
       .catch((failure: IHttpPromiseCallbackArg<any>) => {
-        this.$log.warn(`failed to retrieve gist for what's new dialog:`, failure);
+        $log.warn(`failed to retrieve gist for what's new dialog:`, failure);
         return null;
       });
   }
 }
-
-export const WHATS_NEW_READ_SERVICE = 'spinnaker.core.whatsNew.read.service';
-module(WHATS_NEW_READ_SERVICE, []).service('whatsNewReader', WhatsNewReader);

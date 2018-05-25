@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IPromise } from 'angular';
 import { API } from 'core/api/ApiService';
 import { IInstance } from 'core/domain';
 
@@ -7,7 +7,7 @@ export interface IInstanceConsoleOutput {
 }
 
 export class InstanceReader {
-  public getInstanceDetails(account: string, region: string, id: string): ng.IPromise<IInstance> {
+  public static getInstanceDetails(account: string, region: string, id: string): IPromise<IInstance> {
     return API.one('instances')
       .one(account)
       .one(region)
@@ -15,12 +15,12 @@ export class InstanceReader {
       .get();
   }
 
-  public getConsoleOutput(
+  public static getConsoleOutput(
     account: string,
     region: string,
     id: string,
     cloudProvider: string,
-  ): ng.IPromise<IInstanceConsoleOutput> {
+  ): IPromise<IInstanceConsoleOutput> {
     return API.one('instances')
       .all(account)
       .all(region)
@@ -29,6 +29,3 @@ export class InstanceReader {
       .get();
   }
 }
-
-export const INSTANCE_READ_SERVICE = 'spinnaker.core.instance.read.service';
-module(INSTANCE_READ_SERVICE, []).service('instanceReader', InstanceReader);

@@ -1,11 +1,11 @@
 'use strict';
 
-import { APPLICATION_NAME_VALIDATOR } from '@spinnaker/core';
+import { ApplicationNameValidator } from '@spinnaker/core';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.dcos.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
+  .module('spinnaker.dcos.validation.applicationName', [])
   .factory('dcosApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
       let pattern = /^[a-z0-9]+$/;
@@ -46,6 +46,6 @@ module.exports = angular
       validate: validate,
     };
   })
-  .run(function(applicationNameValidator, dcosApplicationNameValidator) {
-    applicationNameValidator.registerValidator('dcos', dcosApplicationNameValidator);
+  .run(function(dcosApplicationNameValidator) {
+    ApplicationNameValidator.registerValidator('dcos', dcosApplicationNameValidator);
   });

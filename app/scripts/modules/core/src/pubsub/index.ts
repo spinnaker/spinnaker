@@ -1,1 +1,1 @@
-export * from './pubsubSubscription.service';
+export * from './PubsubSubscriptionReader';

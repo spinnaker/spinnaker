@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConfig.component';
-import { TITUS_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
+import './validation/ApplicationNameValidator';
 import './help/titus.help';
 import { TITUS_REACT_MODULE } from './reactShims/titus.react.module';
 
@@ -27,7 +27,6 @@ module(TITUS_MODULE, [
   require('./serverGroup/configure/serverGroup.configure.titus.module.js').name,
   require('./serverGroup/serverGroup.transformer.js').name,
   require('./instance/details/instance.details.controller.js').name,
-  TITUS_APPLICATION_NAME_VALIDATOR,
   require('./pipeline/stages/findAmi/titusFindAmiStage.js').name,
   require('./pipeline/stages/runJob/titusRunJobStage.js').name,
   require('./pipeline/stages/enableAsg/titusEnableAsgStage.js').name,

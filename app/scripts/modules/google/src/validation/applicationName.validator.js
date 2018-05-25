@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { APPLICATION_NAME_VALIDATOR, FirewallLabels } from '@spinnaker/core';
+import { ApplicationNameValidator, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
+  .module('spinnaker.gce.validation.applicationName', [])
   .factory('gceApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
       let pattern = /^([a-zA-Z][a-zA-Z0-9]*)?$/;
@@ -105,6 +105,6 @@ module.exports = angular
       validate: validate,
     };
   })
-  .run(function(applicationNameValidator, gceApplicationNameValidator) {
-    applicationNameValidator.registerValidator('gce', gceApplicationNameValidator);
+  .run(function(gceApplicationNameValidator) {
+    ApplicationNameValidator.registerValidator('gce', gceApplicationNameValidator);
   });

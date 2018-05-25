@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { duration } from 'moment';
 import { find, findLast, flattenDeep, get, has, maxBy, uniq, sortBy } from 'lodash';
 
@@ -10,15 +8,15 @@ import { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem 
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { Registry } from 'core/registry';
 
-export class ExecutionsTransformerService {
-  private hiddenStageTypes = [
+export class ExecutionsTransformer {
+  private static hiddenStageTypes = [
     'initialization',
     'pipelineInitialization',
     'waitForRequisiteCompletion',
     'determineTargetServerGroup',
   ];
 
-  private addDeploymentTargets(execution: IExecution): void {
+  private static addDeploymentTargets(execution: IExecution): void {
     const targets: string[] = [];
     execution.stages.forEach(stage => {
       const stageConfig = Registry.pipeline.getStageConfig(stage);
@@ -29,7 +27,7 @@ export class ExecutionsTransformerService {
     execution.deploymentTargets = uniq(flattenDeep(targets)).sort();
   }
 
-  private siblingStageSorter(a: IOrchestratedItem, b: IOrchestratedItem): number {
+  private static siblingStageSorter(a: IOrchestratedItem, b: IOrchestratedItem): number {
     if (!a.startTime && !b.startTime) {
       return 0;
     }
@@ -42,7 +40,10 @@ export class ExecutionsTransformerService {
     return a.startTime - b.startTime;
   }
 
-  private flattenStages(stages: IExecutionStage[], stage: IExecutionStage | IExecutionStageSummary): IExecutionStage[] {
+  private static flattenStages(
+    stages: IExecutionStage[],
+    stage: IExecutionStage | IExecutionStageSummary,
+  ): IExecutionStage[] {
     const stageSummary = stage as IExecutionStageSummary;
     if (stageSummary.groupStages) {
       stageSummary.groupStages.forEach(s => this.flattenStages(stages, s));
@@ -64,13 +65,13 @@ export class ExecutionsTransformerService {
     return stages;
   }
 
-  private flattenAndFilter(stage: IExecutionStage | IExecutionStageSummary): IExecutionStage[] {
+  private static flattenAndFilter(stage: IExecutionStage | IExecutionStageSummary): IExecutionStage[] {
     return this.flattenStages([], stage).filter(
       s => s.isFailed || (!this.hiddenStageTypes.includes(s.type) && s.initializationStage !== true),
     );
   }
 
-  private getCurrentStages(execution: IExecution) {
+  private static getCurrentStages(execution: IExecution) {
     const currentStages = execution.stageSummaries.filter(stage => stage.isRunning);
     // if there are no running stages, find the first enqueued stage
     if (!currentStages.length) {
@@ -83,14 +84,14 @@ export class ExecutionsTransformerService {
   }
 
   // TODO: remove if we ever figure out why quickPatchAsgStage never has a startTime
-  private setMasterStageStartTime(stages: IExecutionStage[], stage: IExecutionStageSummary): void {
+  private static setMasterStageStartTime(stages: IExecutionStage[], stage: IExecutionStageSummary): void {
     const allStartTimes = stages.filter(child => child.startTime).map(child => child.startTime);
     if (allStartTimes.length) {
       stage.startTime = Math.min(...allStartTimes);
     }
   }
 
-  private getCurrentStage<T extends IOrchestratedItem>(stages: T[]) {
+  private static getCurrentStage<T extends IOrchestratedItem>(stages: T[]) {
     const lastStage = stages[stages.length - 1];
     const lastNotStartedStage = findLast<T>(stages, childStage => childStage.hasNotStarted);
     const lastFailedStage = findLast<T>(stages, childStage => childStage.isFailed);
@@ -102,7 +103,7 @@ export class ExecutionsTransformerService {
     );
   }
 
-  private cleanupLockStages(stages: IExecutionStage[]): IExecutionStage[] {
+  private static cleanupLockStages(stages: IExecutionStage[]): IExecutionStage[] {
     const retainFirstOfType = (type: string, toRetain: IExecutionStage[]) => {
       let foundType = false;
       return toRetain.filter(s => {
@@ -119,7 +120,7 @@ export class ExecutionsTransformerService {
     return retainFirstOfType('releaseLock', retainFirstOfType('acquireLock', stages).reverse()).reverse();
   }
 
-  private transformStage(stage: IExecutionStageSummary): void {
+  private static transformStage(stage: IExecutionStageSummary): void {
     const stages = this.cleanupLockStages(this.flattenAndFilter(stage));
     if (!stages.length) {
       return;
@@ -148,7 +149,7 @@ export class ExecutionsTransformerService {
     stage.stages = stages;
   }
 
-  private applyPhasesAndLink(execution: IExecution): void {
+  private static applyPhasesAndLink(execution: IExecution): void {
     const stages = execution.stages;
     let allPhasesResolved = true;
     // remove any invalid requisiteStageRefIds, set requisiteStageRefIds to empty for synthetic stages
@@ -188,11 +189,11 @@ export class ExecutionsTransformerService {
     }
   }
 
-  private addStageWidths(execution: IExecution): void {
+  private static addStageWidths(execution: IExecution): void {
     execution.stageWidth = 100 / execution.stageSummaries.length + '%';
   }
 
-  private styleStage(stage: IExecutionStageSummary, styleStage?: IExecutionStageSummary): void {
+  private static styleStage(stage: IExecutionStageSummary, styleStage?: IExecutionStageSummary): void {
     styleStage = styleStage || stage;
     const stageConfig = Registry.pipeline.getStageConfig(styleStage);
     if (stageConfig) {
@@ -203,7 +204,7 @@ export class ExecutionsTransformerService {
     }
   }
 
-  private findNearestBuildInfo(execution: IExecution): any {
+  private static findNearestBuildInfo(execution: IExecution): any {
     if (has(execution, 'trigger.buildInfo.number')) {
       return execution.trigger.buildInfo;
     }
@@ -213,7 +214,7 @@ export class ExecutionsTransformerService {
     return null;
   }
 
-  public addBuildInfo(execution: IExecution): void {
+  public static addBuildInfo(execution: IExecution): void {
     execution.buildInfo = this.findNearestBuildInfo(execution);
 
     if (has(execution, 'trigger.buildInfo.lastBuild.number')) {
@@ -232,7 +233,7 @@ export class ExecutionsTransformerService {
     }
   }
 
-  private transformStageSummary(summary: IExecutionStageSummary, index: number): void {
+  private static transformStageSummary(summary: IExecutionStageSummary, index: number): void {
     summary.index = index;
     summary.stages = this.flattenAndFilter(summary);
     summary.stages.forEach(stage => delete stage.stages);
@@ -251,20 +252,20 @@ export class ExecutionsTransformerService {
     }
   }
 
-  private filterStages(summary: IExecutionStageSummary): void {
+  private static filterStages(summary: IExecutionStageSummary): void {
     const stageConfig = Registry.pipeline.getStageConfig(summary.masterStage);
     if (stageConfig && stageConfig.stageFilter) {
       summary.stages = summary.stages.filter(s => stageConfig.stageFilter(s));
     }
   }
 
-  private setExecutionWindow(summary: IExecutionStageSummary): void {
+  private static setExecutionWindow(summary: IExecutionStageSummary): void {
     if (summary.stages.some(s => s.type === 'restrictExecutionDuringTimeWindow' && s.isSuspended)) {
       summary.inSuspendedExecutionWindow = true;
     }
   }
 
-  private setFirstActiveStage(summary: IExecutionStageSummary): void {
+  private static setFirstActiveStage(summary: IExecutionStageSummary): void {
     summary.firstActiveStage = 0;
     const steps = summary.stages || [];
     if (steps.find(s => s.isRunning)) {
@@ -275,7 +276,7 @@ export class ExecutionsTransformerService {
     }
   }
 
-  public transformExecution(application: Application, execution: IExecution): void {
+  public static transformExecution(application: Application, execution: IExecution): void {
     if (execution.trigger) {
       execution.isStrategy = execution.trigger.isPipeline === false && execution.trigger.type === 'pipeline';
     }
@@ -314,7 +315,7 @@ export class ExecutionsTransformerService {
     this.processStageSummaries(execution);
   }
 
-  private calculateRunningTime(stage: IExecutionStageSummary): () => number {
+  private static calculateRunningTime(stage: IExecutionStageSummary): () => number {
     return () => {
       // Find the earliest startTime and latest endTime
       stage.groupStages.forEach(subStage => {
@@ -334,7 +335,7 @@ export class ExecutionsTransformerService {
     };
   }
 
-  public processStageSummaries(execution: IExecution): void {
+  public static processStageSummaries(execution: IExecution): void {
     let stageSummaries: IExecutionStageSummary[] = [];
     execution.stages.forEach(stage => {
       if (!stage.syntheticStageOwner && !this.hiddenStageTypes.includes(stage.type)) {
@@ -470,6 +471,3 @@ export class ExecutionsTransformerService {
     this.addDeploymentTargets(execution);
   }
 }
-
-export const EXECUTIONS_TRANSFORMER_SERVICE = 'spinnaker.core.pipeline.executionTransformer.service';
-module(EXECUTIONS_TRANSFORMER_SERVICE, []).service('executionsTransformer', ExecutionsTransformerService);

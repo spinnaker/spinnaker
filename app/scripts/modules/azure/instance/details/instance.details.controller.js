@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
-  INSTANCE_READ_SERVICE,
+  InstanceReader,
   INSTANCE_WRITE_SERVICE,
   InstanceTemplates,
   RecentHistoryService,
@@ -17,7 +17,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     INSTANCE_WRITE_SERVICE,
-    INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
   ])
   .controller('azureInstanceDetailsCtrl', function(
@@ -26,7 +25,6 @@ module.exports = angular
     $uibModal,
     instanceWriter,
     confirmationModalService,
-    instanceReader,
     instance,
     app,
     $q,
@@ -128,7 +126,7 @@ module.exports = angular
         extraData.account = account;
         extraData.region = region;
         RecentHistoryService.addExtraDataToLatest('instances', extraData);
-        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(
+        return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(
           function(details) {
             $scope.state.loading = false;
             extractHealthMetrics(instanceSummary, details);

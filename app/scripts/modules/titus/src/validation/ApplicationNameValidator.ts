@@ -1,11 +1,4 @@
-import { module } from 'angular';
-
-import {
-  APPLICATION_NAME_VALIDATOR,
-  ApplicationNameValidator,
-  FirewallLabels,
-  IApplicationNameValidator,
-} from '@spinnaker/core';
+import { ApplicationNameValidator, FirewallLabels, IApplicationNameValidator } from '@spinnaker/core';
 
 class TitusApplicationNameValidator implements IApplicationNameValidator {
   private validateSpecialCharacters(name: string, errors: string[]): void {
@@ -46,12 +39,4 @@ class TitusApplicationNameValidator implements IApplicationNameValidator {
   }
 }
 
-export const TITUS_APPLICATION_NAME_VALIDATOR = 'spinnaker.titus.validation.applicationName';
-
-module(TITUS_APPLICATION_NAME_VALIDATOR, [APPLICATION_NAME_VALIDATOR])
-  .service('titusApplicationNameValidator', TitusApplicationNameValidator)
-  .run(
-    (applicationNameValidator: ApplicationNameValidator, titusApplicationNameValidator: IApplicationNameValidator) => {
-      applicationNameValidator.registerValidator('titus', titusApplicationNameValidator);
-    },
-  );
+ApplicationNameValidator.registerValidator('titus', new TitusApplicationNameValidator());

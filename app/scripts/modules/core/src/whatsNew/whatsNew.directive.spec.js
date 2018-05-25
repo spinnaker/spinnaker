@@ -1,6 +1,7 @@
 'use strict';
 
 import { ViewStateCache } from 'core/cache';
+import { WhatsNewReader } from './WhatsNewReader';
 
 describe('Directives: whatsNew', function() {
   require('./whatsNew.directive.html');
@@ -8,10 +9,9 @@ describe('Directives: whatsNew', function() {
   beforeEach(window.module(require('./whatsNew.directive').name, require('angular-ui-bootstrap')));
 
   beforeEach(
-    window.inject(function($rootScope, $compile, whatsNewReader, $q, $filter, $uibModal) {
+    window.inject(function($rootScope, $compile, $q, $filter, $uibModal) {
       this.scope = $rootScope.$new();
       this.compile = $compile;
-      this.whatsNewReader = whatsNewReader;
       this.$filter = $filter;
       this.$q = $q;
       this.$uibModal = $uibModal;
@@ -38,7 +38,7 @@ describe('Directives: whatsNew', function() {
       var lastUpdated = new Date().getTime();
       var expectedDate = this.$filter('timestamp')(lastUpdated);
 
-      spyOn(this.whatsNewReader, 'getWhatsNewContents').and.returnValue(
+      spyOn(WhatsNewReader, 'getWhatsNewContents').and.returnValue(
         this.$q.when({
           contents: 'stuff',
           lastUpdated: lastUpdated,
@@ -125,7 +125,7 @@ describe('Directives: whatsNew', function() {
     it('should not render the <ul>', function() {
       var domNode;
 
-      spyOn(this.whatsNewReader, 'getWhatsNewContents').and.returnValue(this.$q.when(null));
+      spyOn(WhatsNewReader, 'getWhatsNewContents').and.returnValue(this.$q.when(null));
 
       domNode = createWhatsNew(this.compile, this.scope);
 

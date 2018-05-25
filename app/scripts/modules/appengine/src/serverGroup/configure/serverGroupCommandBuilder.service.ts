@@ -2,8 +2,7 @@ import { IPromise, IQService, module } from 'angular';
 
 import {
   AccountService,
-  STORAGE_ACCOUNT_SERVICE,
-  StorageAccountService,
+  StorageAccountReader,
   Application,
   IBuildTrigger,
   IExpectedArtifact,
@@ -90,7 +89,7 @@ export class AppengineServerGroupCommandBuilder {
     return pipeline.expectedArtifacts || [];
   }
 
-  constructor(private $q: IQService, private storageAccountService: StorageAccountService) {
+  constructor(private $q: IQService) {
     'ngInject';
   }
 
@@ -101,7 +100,7 @@ export class AppengineServerGroupCommandBuilder {
   ): IPromise<IAppengineServerGroupCommand> {
     const dataToFetch = {
       accounts: AccountService.getAllAccountDetailsForProvider('appengine'),
-      storageAccounts: this.storageAccountService.getStorageAccounts(),
+      storageAccounts: StorageAccountReader.getStorageAccounts(),
     };
 
     const viewState: IViewState = {
@@ -207,7 +206,7 @@ export class AppengineServerGroupCommandBuilder {
 
 export const APPENGINE_SERVER_GROUP_COMMAND_BUILDER = 'spinnaker.appengine.serverGroupCommandBuilder.service';
 
-module(APPENGINE_SERVER_GROUP_COMMAND_BUILDER, [STORAGE_ACCOUNT_SERVICE]).service(
+module(APPENGINE_SERVER_GROUP_COMMAND_BUILDER, []).service(
   'appengineServerGroupCommandBuilder',
   AppengineServerGroupCommandBuilder,
 );

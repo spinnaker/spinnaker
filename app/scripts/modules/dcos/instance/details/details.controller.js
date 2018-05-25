@@ -5,7 +5,7 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
-  INSTANCE_READ_SERVICE,
+  InstanceReader,
   INSTANCE_WRITE_SERVICE,
   RecentHistoryService,
   ServerGroupTemplates,
@@ -14,18 +14,13 @@ import {
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.dcos.instance.details.controller', [
-    INSTANCE_WRITE_SERVICE,
-    INSTANCE_READ_SERVICE,
-    CONFIRMATION_MODAL_SERVICE,
-  ])
+  .module('spinnaker.dcos.instance.details.controller', [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE])
   .controller('dcosInstanceDetailsController', function(
     $scope,
     $state,
     $uibModal,
     instanceWriter,
     confirmationModalService,
-    instanceReader,
     instance,
     app,
     dcosProxyUiService,
@@ -78,7 +73,7 @@ module.exports = angular
         extraData.account = account;
         extraData.region = region;
         RecentHistoryService.addExtraDataToLatest('instances', extraData);
-        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
+        return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           $scope.state.loading = false;
           $scope.instance = _.defaults(details, instanceSummary);
           $scope.instance.account = account;

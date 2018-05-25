@@ -1,20 +1,10 @@
-import { mock } from 'angular';
 import { map } from 'lodash';
 
 import { Application } from '../../application';
-import { EXECUTIONS_TRANSFORMER_SERVICE, ExecutionsTransformerService } from './executions.transformer.service';
+import { ExecutionsTransformer } from './ExecutionsTransformer';
 import { IExecution } from '../../domain';
 
-describe('executionTransformerService', function() {
-  let transformer: ExecutionsTransformerService;
-  beforeEach(mock.module(EXECUTIONS_TRANSFORMER_SERVICE));
-
-  beforeEach(
-    mock.inject((executionsTransformer: ExecutionsTransformerService) => {
-      transformer = executionsTransformer;
-    }),
-  );
-
+describe('ExecutionTransformerService', function() {
   describe('transformExecution', () => {
     it('should flatten stages into summaries', () => {
       const execution = {
@@ -30,7 +20,7 @@ describe('executionTransformerService', function() {
         ],
       } as IExecution;
 
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(map(execution.stageSummaries[0].stages, 'id')).toEqual(['e', 'f', 'b', 'c', 'a', 'g', 'd', 'h']);
     });
 
@@ -48,7 +38,7 @@ describe('executionTransformerService', function() {
         ],
       } as IExecution;
 
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(map(execution.stageSummaries[0].stages, 'id')).toEqual(['c', 'f', 'e', 'b', 'a', 'g', 'd', 'h']);
     });
 
@@ -56,7 +46,7 @@ describe('executionTransformerService', function() {
       const execution = {
         stages: [{ id: '1', name: 'bake' }, { id: '2', name: 'deploy' }, { id: '3', name: 'wait' }],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
 
       expect(execution.stageSummaries.length).toBe(3);
       expect(map(execution.stageSummaries, 'name')).toEqual(['bake', 'deploy', 'wait']);
@@ -75,7 +65,7 @@ describe('executionTransformerService', function() {
           { id: '8', parentStageId: '3', syntheticStageOwner: 'STAGE_AFTER' },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
 
       expect(execution.stageSummaries.length).toBe(3);
       expect(map(execution.stageSummaries[0].stages, 'id')).toEqual(['5', '1']);
@@ -110,7 +100,7 @@ describe('executionTransformerService', function() {
           { id: '8', parentStageId: '3', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
 
       expect(execution.stageSummaries[0].status).toBe('SUCCEEDED');
       expect(execution.stageSummaries[0].startTime).toBe(5);
@@ -140,7 +130,7 @@ describe('executionTransformerService', function() {
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED', startTime: 6 },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].status).toBe('CANCELED');
     });
 
@@ -159,7 +149,7 @@ describe('executionTransformerService', function() {
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED', startTime: 6 },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].status).toBe('NOT_STARTED');
     });
 
@@ -178,7 +168,7 @@ describe('executionTransformerService', function() {
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'RUNNING', startTime: 6 },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].endTime).toBeUndefined();
     });
 
@@ -212,7 +202,7 @@ describe('executionTransformerService', function() {
           },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].endTime).toBe(11);
     });
 
@@ -240,7 +230,7 @@ describe('executionTransformerService', function() {
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
 
       const summary = execution.stageSummaries[0];
 
@@ -291,7 +281,7 @@ describe('executionTransformerService', function() {
           },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].startTime).toBe(4);
     });
   });
@@ -306,7 +296,7 @@ describe('executionTransformerService', function() {
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'RUNNING' },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(1);
     });
 
@@ -319,7 +309,7 @@ describe('executionTransformerService', function() {
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED' },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(0);
     });
 
@@ -332,7 +322,7 @@ describe('executionTransformerService', function() {
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'TERMINAL' },
         ],
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(2);
     });
   });
@@ -354,19 +344,19 @@ describe('executionTransformerService', function() {
 
     it('adds buildInfo from deployment details', () => {
       const execution = { stages: [deployStage] } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://jenkinshost/job/jobName/3' });
     });
 
     it('adds buildInfo from lastBuild if present', () => {
       const execution = { stages: [], trigger: { buildInfo: { lastBuild } } } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(4);
     });
 
     it('adds buildInfo from trigger', () => {
       const execution = { stages: [], trigger: { buildInfo: triggerBuild } } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(6);
     });
 
@@ -375,7 +365,7 @@ describe('executionTransformerService', function() {
         stages: [],
         trigger: { parentExecution: { trigger: { buildInfo: parentBuild } } },
       } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(5);
     });
 
@@ -383,7 +373,7 @@ describe('executionTransformerService', function() {
       const execution = { stages: [deployStage], trigger: { buildInfo: triggerBuild } } as IExecution;
       execution.trigger.buildInfo.lastBuild = lastBuild;
       execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://jenkinshost/job/jobName/3' });
     });
 
@@ -391,14 +381,14 @@ describe('executionTransformerService', function() {
       const execution = { stages: [], trigger: { buildInfo: triggerBuild } } as IExecution;
       execution.trigger.buildInfo.lastBuild = lastBuild;
       execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(4);
     });
 
     it('prefers trigger details to parent execution', () => {
       const execution = { stages: [], trigger: { buildInfo: triggerBuild } } as IExecution;
       execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(6);
     });
 
@@ -415,7 +405,7 @@ describe('executionTransformerService', function() {
         },
       };
       const execution = { stages: [deployStage] } as IExecution;
-      transformer.transformExecution({} as Application, execution);
+      ExecutionsTransformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://custom/url' });
     });
   });

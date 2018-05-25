@@ -1,19 +1,19 @@
 'use strict';
 
-import { INSTANCE_READ_SERVICE } from 'core/instance/instance.read.service';
+import { InstanceReader } from 'core/instance/InstanceReader';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.instance.details.console.controller', [INSTANCE_READ_SERVICE])
-  .controller('ConsoleOutputCtrl', function($scope, $uibModalInstance, instanceReader, instance) {
+  .module('spinnaker.core.instance.details.console.controller', [])
+  .controller('ConsoleOutputCtrl', function($scope, $uibModalInstance, instance) {
     const instanceId = instance.instanceId || instance.id;
     $scope.vm = {
       loading: true,
       instanceId: instanceId,
     };
 
-    instanceReader.getConsoleOutput(instance.account, instance.region, instanceId, instance.provider).then(
+    InstanceReader.getConsoleOutput(instance.account, instance.region, instanceId, instance.provider).then(
       function(response) {
         $scope.vm.consoleOutput = response.output;
         $scope.vm.loading = false;

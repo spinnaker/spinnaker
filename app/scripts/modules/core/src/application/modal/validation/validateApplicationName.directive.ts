@@ -1,9 +1,5 @@
 import { IAttributes, IController, IDeferred, INgModelController, IQService, IScope, module } from 'angular';
-import {
-  APPLICATION_NAME_VALIDATOR,
-  ApplicationNameValidator,
-  IApplicationNameValidationResult,
-} from 'core/application/modal/validation/applicationName.validator';
+import { ApplicationNameValidator, IApplicationNameValidationResult } from './ApplicationNameValidator';
 
 interface IValidateNameAttrs extends IAttributes {
   cloudProviders: string;
@@ -21,20 +17,18 @@ class ValidateApplicationNameController implements IController {
   public $attrs: IValidateNameAttrs;
   public $scope: IScope;
 
-  public constructor(private applicationNameValidator: ApplicationNameValidator, private $q: IQService) {}
+  constructor(private $q: IQService) {}
 
   public initialize() {
     this.model.$asyncValidators['validateApplicationName'] = (value: string) => {
       const deferred: IDeferred<boolean> = this.$q.defer();
-      this.applicationNameValidator
-        .validate(value, this.cloudProviders)
-        .then((result: IApplicationNameValidationResult) => {
-          if (result.errors.length) {
-            deferred.reject();
-          } else {
-            deferred.resolve();
-          }
-        });
+      ApplicationNameValidator.validate(value, this.cloudProviders).then((result: IApplicationNameValidationResult) => {
+        if (result.errors.length) {
+          deferred.reject();
+        } else {
+          deferred.resolve();
+        }
+      });
       return deferred.promise;
     };
     this.$scope.$watch(this.$attrs.cloudProviders, () => this.model.$validate());
@@ -43,7 +37,7 @@ class ValidateApplicationNameController implements IController {
 
 export const VALIDATE_APPLICATION_NAME = 'spinnaker.core.application.modal.validateApplicationName.component';
 
-module(VALIDATE_APPLICATION_NAME, [APPLICATION_NAME_VALIDATOR]).directive('validateApplicationName', function() {
+module(VALIDATE_APPLICATION_NAME, []).directive('validateApplicationName', function() {
   return {
     restrict: 'A',
     controller: ValidateApplicationNameController,

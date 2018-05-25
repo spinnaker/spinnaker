@@ -3,13 +3,13 @@ import { module, IQService } from 'angular';
 import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { Application } from 'core/application/application.model';
-import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
+import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { ILoadBalancer } from 'core/domain';
 import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
 
 export const LOAD_BALANCER_DATA_SOURCE = 'spinnaker.core.loadBalancer.dataSource';
-module(LOAD_BALANCER_DATA_SOURCE, [ENTITY_TAGS_READ_SERVICE, LOAD_BALANCER_READ_SERVICE]).run(
-  ($q: IQService, loadBalancerReader: LoadBalancerReader, entityTagsReader: EntityTagsReader) => {
+module(LOAD_BALANCER_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run(
+  ($q: IQService, loadBalancerReader: LoadBalancerReader) => {
     const loadLoadBalancers = (application: Application) => {
       return loadBalancerReader.loadLoadBalancers(application.name);
     };
@@ -19,7 +19,7 @@ module(LOAD_BALANCER_DATA_SOURCE, [ENTITY_TAGS_READ_SERVICE, LOAD_BALANCER_READ_
     };
 
     const addTags = (application: Application) => {
-      entityTagsReader.addTagsToLoadBalancers(application);
+      EntityTagsReader.addTagsToLoadBalancers(application);
     };
 
     ApplicationDataSourceRegistry.registerDataSource({

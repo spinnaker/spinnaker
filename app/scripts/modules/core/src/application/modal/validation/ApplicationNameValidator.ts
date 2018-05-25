@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { CloudProviderRegistry } from 'core/cloudProvider';
+import { IPromise } from 'angular';
 import { AccountService } from 'core/account/AccountService';
 
 export interface IApplicationNameValidationMessage {
@@ -26,20 +25,18 @@ export interface IApplicationNameValidator {
  * when creating a new application.
  */
 export class ApplicationNameValidator {
-  private providerMap: Map<string, IApplicationNameValidator[]> = new Map<string, IApplicationNameValidator[]>();
+  private static providerMap: Map<string, IApplicationNameValidator[]> = new Map<string, IApplicationNameValidator[]>();
 
   /**
    * Registers a validator for a cloud provider.
    * @param cloudProvider the key of the cloud provider, e.g. "aws", "gce"
    * @param validator the actual validator
    */
-  public registerValidator(cloudProvider: string, validator: IApplicationNameValidator) {
-    if (CloudProviderRegistry.getProvider(cloudProvider)) {
-      if (!this.providerMap.has(cloudProvider)) {
-        this.providerMap.set(cloudProvider, []);
-      }
-      this.providerMap.get(cloudProvider).push(validator);
+  public static registerValidator(cloudProvider: string, validator: IApplicationNameValidator) {
+    if (!this.providerMap.has(cloudProvider)) {
+      this.providerMap.set(cloudProvider, []);
     }
+    this.providerMap.get(cloudProvider).push(validator);
   }
 
   /**
@@ -49,13 +46,15 @@ export class ApplicationNameValidator {
    * @param providersToTest the configured cloud providers; if empty, validators for all providers will fire
    * @returns {{errors: Array, warnings: Array}}
    */
-  public validate(applicationName: string, providersToTest: string[]): ng.IPromise<IApplicationNameValidationResult> {
+  public static validate(
+    applicationName: string,
+    providersToTest: string[],
+  ): IPromise<IApplicationNameValidationResult> {
     return AccountService.listProviders().then((availableProviders: string[]) => {
       const toCheck = providersToTest && providersToTest.length ? providersToTest : availableProviders;
 
       const errors: IApplicationNameValidationMessage[] = [],
         warnings: IApplicationNameValidationMessage[] = [];
-
       toCheck.forEach((provider: string) => {
         if (this.providerMap.has(provider)) {
           this.providerMap.get(provider).forEach(validator => {
@@ -69,7 +68,3 @@ export class ApplicationNameValidator {
     });
   }
 }
-
-export const APPLICATION_NAME_VALIDATOR = 'spinnaker.core.application.name.validator';
-
-module(APPLICATION_NAME_VALIDATOR, []).service('applicationNameValidator', ApplicationNameValidator);

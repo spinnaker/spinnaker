@@ -5,7 +5,6 @@ import { flattenDeep } from 'lodash';
 import {
   Application,
   CONFIRMATION_MODAL_SERVICE,
-  INSTANCE_READ_SERVICE,
   InstanceReader,
   RecentHistoryService,
   IManifest,
@@ -37,7 +36,6 @@ class KubernetesInstanceDetailsController implements IController {
     private $q: IQService,
     private $scope: IScope,
     private app: Application,
-    private instanceReader: InstanceReader,
   ) {
     'ngInject';
 
@@ -120,18 +118,20 @@ class KubernetesInstanceDetailsController implements IController {
       }
 
       RecentHistoryService.addExtraDataToLatest('instances', recentHistoryExtraData);
-      return this.instanceReader
-        .getInstanceDetails(instanceManager.account, instanceManager.region, instance.instanceId)
-        .then((instanceDetails: IKubernetesInstance) => {
-          instanceDetails.account = instanceManager.account;
-          instanceDetails.namespace = instanceDetails.manifest.metadata.namespace;
-          instanceDetails.displayName = instanceDetails.manifest.metadata.name;
-          instanceDetails.kind = instanceDetails.manifest.kind;
-          instanceDetails.apiVersion = instanceDetails.manifest.apiVersion;
-          instanceDetails.id = instanceDetails.name;
-          instanceDetails.provider = 'kubernetes';
-          return instanceDetails;
-        });
+      return InstanceReader.getInstanceDetails(
+        instanceManager.account,
+        instanceManager.region,
+        instance.instanceId,
+      ).then((instanceDetails: IKubernetesInstance) => {
+        instanceDetails.account = instanceManager.account;
+        instanceDetails.namespace = instanceDetails.manifest.metadata.namespace;
+        instanceDetails.displayName = instanceDetails.manifest.metadata.name;
+        instanceDetails.kind = instanceDetails.manifest.kind;
+        instanceDetails.apiVersion = instanceDetails.manifest.apiVersion;
+        instanceDetails.id = instanceDetails.name;
+        instanceDetails.provider = 'kubernetes';
+        return instanceDetails;
+      });
     } else {
       return this.$q.reject();
     }
@@ -140,7 +140,7 @@ class KubernetesInstanceDetailsController implements IController {
 
 export const KUBERNETES_V2_INSTANCE_DETAILS_CTRL = 'spinnaker.kubernetes.v2.instanceDetails.controller';
 
-module(KUBERNETES_V2_INSTANCE_DETAILS_CTRL, [CONFIRMATION_MODAL_SERVICE, INSTANCE_READ_SERVICE]).controller(
+module(KUBERNETES_V2_INSTANCE_DETAILS_CTRL, [CONFIRMATION_MODAL_SERVICE]).controller(
   'kubernetesV2InstanceDetailsCtrl',
   KubernetesInstanceDetailsController,
 );

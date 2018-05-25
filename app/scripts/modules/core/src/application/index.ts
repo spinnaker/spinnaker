@@ -2,7 +2,7 @@ export * from './ApplicationIcon';
 export * from './application.model';
 export * from './applicationModel.builder';
 export * from './nav/defaultCategories';
-export * from './modal/validation/applicationName.validator';
+export * from './modal/validation/ApplicationNameValidator';
 export * from './listExtractor/listExtractor.service';
 export * from './service/ApplicationReader';
 export * from './service/ApplicationWriter';

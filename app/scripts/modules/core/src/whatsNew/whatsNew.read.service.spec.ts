@@ -1,16 +1,12 @@
 import { mock, IHttpBackendService } from 'angular';
 import { SETTINGS } from 'core/config/settings';
-import { WHATS_NEW_READ_SERVICE, WhatsNewReader, IGistApiResponse, IWhatsNewContents } from './whatsNew.read.service';
+import { WhatsNewReader, IGistApiResponse, IWhatsNewContents } from './WhatsNewReader';
 
 describe('Service: whatsNew reader ', () => {
-  let reader: WhatsNewReader;
   let $http: IHttpBackendService;
 
-  beforeEach(mock.module(WHATS_NEW_READ_SERVICE));
-
   beforeEach(
-    mock.inject((whatsNewReader: WhatsNewReader, $httpBackend: IHttpBackendService) => {
-      reader = whatsNewReader;
+    mock.inject(($httpBackend: IHttpBackendService) => {
       $http = $httpBackend;
     }),
   );
@@ -41,7 +37,7 @@ describe('Service: whatsNew reader ', () => {
 
       $http.expectGET(url).respond(200, response);
 
-      reader.getWhatsNewContents().then((data: IWhatsNewContents) => (result = data));
+      WhatsNewReader.getWhatsNewContents().then(data => (result = data));
       $http.flush();
 
       expect(result).not.toBeNull();
@@ -52,9 +48,7 @@ describe('Service: whatsNew reader ', () => {
     it('returns null when gist fetch fails', () => {
       let result: IWhatsNewContents = { contents: 'fail', lastUpdated: 'never' };
       $http.expectGET(url).respond(404, {});
-      reader.getWhatsNewContents().then(function(data) {
-        result = data;
-      });
+      WhatsNewReader.getWhatsNewContents().then(data => (result = data));
       $http.flush();
 
       expect(result).toBeNull();

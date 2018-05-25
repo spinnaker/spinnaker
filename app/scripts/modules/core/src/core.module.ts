@@ -45,7 +45,6 @@ import { HELP_MODULE } from './help/help.module';
 import { INSIGHT_NGMODULE } from './insight/insight.module';
 import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
 import { LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
-import { MANIFEST_MODULE } from 'core/manifest/manifestWriter.module';
 
 import { NETWORK_INTERCEPTOR } from './api/network.interceptor';
 
@@ -117,8 +116,6 @@ module(CORE_MODULE, [
   INTERCEPTOR_MODULE,
 
   LOAD_BALANCER_MODULE,
-
-  MANIFEST_MODULE,
 
   require('./modal/modal.module').name,
 

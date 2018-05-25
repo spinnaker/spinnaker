@@ -18,11 +18,7 @@ class KubernetesManifestWizardCtrl implements IController {
   public command: IKubernetesManifestCommand;
   public metadata: IKubernetesManifestCommandMetadata;
 
-  constructor(
-    private $uibModalInstance: IModalInstanceService,
-    private application: Application,
-    private manifestWriter: ManifestWriter,
-  ) {
+  constructor(private $uibModalInstance: IModalInstanceService, private application: Application) {
     'ngInject';
     KubernetesManifestCommandBuilder.buildNewManifestCommand(application).then(builtCommand => {
       const { command, metadata } = builtCommand;
@@ -40,7 +36,7 @@ class KubernetesManifestWizardCtrl implements IController {
 
   public submit(): void {
     const command = KubernetesManifestCommandBuilder.copyAndCleanCommand(this.metadata, this.command);
-    const submitMethod = () => this.manifestWriter.deployManifest(command, this.application);
+    const submitMethod = () => ManifestWriter.deployManifest(command, this.application);
     this.taskMonitor.submit(submitMethod);
   }
 

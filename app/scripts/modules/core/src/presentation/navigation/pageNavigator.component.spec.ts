@@ -2,7 +2,7 @@ import * as $ from 'jquery';
 import { mock } from 'angular';
 
 import { PAGE_NAVIGATOR_COMPONENT } from './pageNavigator.component';
-import { INavigationPage } from './pageNavigationState';
+import { INavigationPage } from './PageNavigationState';
 import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 
 describe('Component: Page Navigator', () => {

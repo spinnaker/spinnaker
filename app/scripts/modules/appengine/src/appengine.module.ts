@@ -16,7 +16,7 @@ import { APPENGINE_CLONE_SERVER_GROUP_CTRL } from './serverGroup/configure/wizar
 import { APPENGINE_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details/details.controller';
 import { APPENGINE_SERVER_GROUP_TRANSFORMER } from './serverGroup/transformer';
 import { APPENGINE_SERVER_GROUP_WRITER } from './serverGroup/writer/serverGroup.write.service';
-import { APPENGINE_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
+import './validation/ApplicationNameValidator';
 
 import './logo/appengine.logo.less';
 
@@ -28,7 +28,6 @@ templates.keys().forEach(function(key) {
 export const APPENGINE_MODULE = 'spinnaker.appengine';
 
 module(APPENGINE_MODULE, [
-  APPENGINE_APPLICATION_NAME_VALIDATOR,
   APPENGINE_CACHE_CONFIGURER,
   APPENGINE_CLONE_SERVER_GROUP_CTRL,
   APPENGINE_COMPONENT_URL_DETAILS,

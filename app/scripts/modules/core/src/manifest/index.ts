@@ -1,2 +1,2 @@
-export * from './manifestWriter.service';
-export * from './manifestReader.service';
+export * from './ManifestWriter';
+export * from './ManifestReader';

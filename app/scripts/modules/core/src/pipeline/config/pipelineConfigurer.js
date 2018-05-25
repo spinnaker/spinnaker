@@ -11,6 +11,7 @@ import { EditPipelineJsonModalCtrl } from './actions/json/editPipelineJsonModal.
 import { PipelineConfigValidator } from './validation/PipelineConfigValidator';
 import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.pipelineConfigurer', [OVERRIDE_REGISTRY, EXECUTION_BUILD_TITLE])
@@ -36,7 +37,6 @@ module.exports = angular
     $window,
     $q,
     executionService,
-    executionsTransformer,
     overrideRegistry,
     $location,
   ) {
@@ -425,7 +425,7 @@ module.exports = angular
           application: $scope.pipeline.application,
         })
         .then(executions => {
-          executions.forEach(execution => executionsTransformer.addBuildInfo(execution));
+          executions.forEach(execution => ExecutionsTransformer.addBuildInfo(execution));
           $scope.pipelineExecutions = executions;
           if ($scope.plan && $scope.plan.executionId) {
             $scope.currentExecution = _.find($scope.pipelineExecutions, { id: $scope.plan.executionId });

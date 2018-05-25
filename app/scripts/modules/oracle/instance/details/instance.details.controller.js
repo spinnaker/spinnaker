@@ -2,15 +2,14 @@
 
 const angular = require('angular');
 
-import { INSTANCE_READ_SERVICE, INSTANCE_WRITE_SERVICE } from '@spinnaker/core';
+import { INSTANCE_WRITE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.instance.details.controller', [
     require('@uirouter/angularjs').default,
     INSTANCE_WRITE_SERVICE,
-    INSTANCE_READ_SERVICE,
   ])
-  .controller('oraclebmcsInstanceDetailsCtrl', function($scope, $q, instanceWriter, instanceReader, app, instance) {
+  .controller('oraclebmcsInstanceDetailsCtrl', function($scope, $q, instanceWriter, app, instance) {
     $scope.application = app;
 
     let initialize = app.isStandalone ? retrieveInstance() : $q.all([app.serverGroups.ready()]).then(retrieveInstance);
@@ -41,7 +40,7 @@ module.exports = angular
       }
 
       $scope.instance = instanceSummary;
-      instanceReader.getInstanceDetails(account, region, instance.instanceId).then(instanceDetails => {
+      InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(instanceDetails => {
         Object.assign($scope.instance, instanceDetails);
       });
     }

@@ -1,30 +1,20 @@
-import { mock } from 'angular';
+import { ICompileService, IQService, IRootScopeService, mock } from 'angular';
 
-import {
-  EXAMPLE_APPLICATION_NAME_VALIDATOR,
-  ExampleApplicationNameValidator,
-  ExampleApplicationNameValidator2,
-} from './exampleApplicationName.validator';
+import { ExampleApplicationNameValidator, ExampleApplicationNameValidator2 } from './ExampleApplicationNameValidator';
 import { VALIDATE_APPLICATION_NAME } from './validateApplicationName.directive';
 import { AccountService } from 'core/account/AccountService';
 
 describe('Validator: validateApplicationName', function() {
-  let validator1: ExampleApplicationNameValidator, validator2: ExampleApplicationNameValidator2, $q: ng.IQService;
+  const validator1 = new ExampleApplicationNameValidator();
+  const validator2 = new ExampleApplicationNameValidator2();
+  let $q: IQService;
 
-  beforeEach(mock.module(EXAMPLE_APPLICATION_NAME_VALIDATOR, VALIDATE_APPLICATION_NAME));
+  beforeEach(mock.module(VALIDATE_APPLICATION_NAME));
 
   beforeEach(
-    mock.inject(function(
-      $rootScope: ng.IRootScopeService,
-      $compile: ng.ICompileService,
-      exampleApplicationNameValidator: ExampleApplicationNameValidator,
-      exampleApplicationNameValidator2: ExampleApplicationNameValidator2,
-      _$q_: ng.IQService,
-    ) {
+    mock.inject(function($rootScope: IRootScopeService, $compile: ICompileService, _$q_: IQService) {
       this.$rootScope = $rootScope;
       this.compile = $compile;
-      validator1 = exampleApplicationNameValidator;
-      validator2 = exampleApplicationNameValidator2;
       $q = _$q_;
     }),
   );

@@ -10,7 +10,7 @@ import {
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   SecurityGroupTransformerService,
 } from './securityGroupTransformer.service';
-import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
+import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { SETTINGS } from 'core/config/settings';
 import { SearchService, ISearchResults } from 'core/search/search.service';
 import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
@@ -278,7 +278,6 @@ export class SecurityGroupReader {
     private $q: IQService,
     private securityGroupTransformer: SecurityGroupTransformerService,
     private providerServiceDelegate: ProviderServiceDelegate,
-    private entityTagsReader: EntityTagsReader,
   ) {
     'ngInject';
   }
@@ -377,7 +376,7 @@ export class SecurityGroupReader {
           });
         }
         if (SETTINGS.feature.entityTags && application.isStandalone) {
-          return this.entityTagsReader.getEntityTagsForId('securitygroup', details.name).then(tags => {
+          return EntityTagsReader.getEntityTagsForId('securitygroup', details.name).then(tags => {
             details.entityTags = tags.find(
               t =>
                 t.entityRef.entityId === details.name &&
@@ -429,8 +428,7 @@ export class SecurityGroupReader {
 }
 
 export const SECURITY_GROUP_READER = 'spinnaker.core.securityGroup.read.service';
-module(SECURITY_GROUP_READER, [
-  SECURITY_GROUP_TRANSFORMER_SERVICE,
-  PROVIDER_SERVICE_DELEGATE,
-  ENTITY_TAGS_READ_SERVICE,
-]).service('securityGroupReader', SecurityGroupReader);
+module(SECURITY_GROUP_READER, [SECURITY_GROUP_TRANSFORMER_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
+  'securityGroupReader',
+  SecurityGroupReader,
+);

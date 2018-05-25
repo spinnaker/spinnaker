@@ -1,10 +1,4 @@
-import { module } from 'angular';
-import {
-  APPLICATION_NAME_VALIDATOR,
-  IApplicationNameValidator,
-  ApplicationNameValidator,
-  IValidationResult,
-} from './applicationName.validator';
+import { ApplicationNameValidator, IApplicationNameValidator, IValidationResult } from './ApplicationNameValidator';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
@@ -114,24 +108,11 @@ export class ExampleApplicationNameValidator2 implements IApplicationNameValidat
   }
 }
 
-export const EXAMPLE_APPLICATION_NAME_VALIDATOR = 'spinnaker.core.application.modal.validation.example.applicationName';
+ApplicationNameValidator.registerValidator('example', new ExampleApplicationNameValidator());
+ApplicationNameValidator.registerValidator('example2', new ExampleApplicationNameValidator2());
 
-module(EXAMPLE_APPLICATION_NAME_VALIDATOR, [APPLICATION_NAME_VALIDATOR])
-  .service('exampleApplicationNameValidator', ExampleApplicationNameValidator)
-  .service('exampleApplicationNameValidator2', ExampleApplicationNameValidator2)
-  .run(
-    (
-      applicationNameValidator: ApplicationNameValidator,
-      exampleApplicationNameValidator: ExampleApplicationNameValidator,
-      exampleApplicationNameValidator2: ExampleApplicationNameValidator2,
-    ) => {
-      applicationNameValidator.registerValidator('example', exampleApplicationNameValidator);
-      applicationNameValidator.registerValidator('example2', exampleApplicationNameValidator2);
-    },
-  )
-  .config(() => {
-    SETTINGS.providers.example = { defaults: { account: 'test' }, resetToOriginal: () => {} };
-    SETTINGS.providers.example2 = { defaults: { account: 'test' }, resetToOriginal: () => {} };
-    CloudProviderRegistry.registerProvider('example', { name: 'example' });
-    CloudProviderRegistry.registerProvider('example2', { name: 'example2' });
-  });
+CloudProviderRegistry.registerProvider('example', { name: 'example' });
+CloudProviderRegistry.registerProvider('example2', { name: 'example2' });
+
+SETTINGS.providers.example = { defaults: { account: 'test' }, resetToOriginal: () => {} };
+SETTINGS.providers.example2 = { defaults: { account: 'test' }, resetToOriginal: () => {} };

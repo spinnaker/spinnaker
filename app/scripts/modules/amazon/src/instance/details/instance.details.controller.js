@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
-  INSTANCE_READ_SERVICE,
+  InstanceReader,
   RecentHistoryService,
   SETTINGS,
   FirewallLabels,
@@ -19,7 +19,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     AMAZON_INSTANCE_WRITE_SERVICE,
-    INSTANCE_READ_SERVICE,
     require('../../vpc/vpcTag.directive.js').name,
     CONFIRMATION_MODAL_SERVICE,
   ])
@@ -29,7 +28,6 @@ module.exports = angular
     $uibModal,
     amazonInstanceWriter,
     confirmationModalService,
-    instanceReader,
     instance,
     app,
     moniker,
@@ -176,7 +174,7 @@ module.exports = angular
         extraData.account = account;
         extraData.region = region;
         RecentHistoryService.addExtraDataToLatest('instances', extraData);
-        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
+        return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
           if ($scope.$$destroyed) {
             return;
           }

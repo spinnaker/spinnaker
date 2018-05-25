@@ -1,7 +1,7 @@
 import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { Application, MANIFEST_WRITER, ManifestWriter, TaskMonitor } from '@spinnaker/core';
+import { Application, ManifestWriter, TaskMonitor } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 import { KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM } from './deleteOptionsForm.component';
 
@@ -28,7 +28,6 @@ class KubernetesManifestDeleteController implements IController {
   constructor(
     coordinates: IManifestCoordinates,
     private $uibModalInstance: IModalServiceInstance,
-    private manifestWriter: ManifestWriter,
     private application: Application,
     public manifestController: string,
   ) {
@@ -67,14 +66,14 @@ class KubernetesManifestDeleteController implements IController {
       payload.options.orphanDependants = !payload.options.cascading;
       delete payload.options.cascading;
 
-      return this.manifestWriter.deleteManifest(payload, this.application);
+      return ManifestWriter.deleteManifest(payload, this.application);
     });
   }
 }
 
 export const KUBERNETES_MANIFEST_DELETE_CTRL = 'spinnaker.kubernetes.v2.manifest.delete.controller';
 
-module(KUBERNETES_MANIFEST_DELETE_CTRL, [MANIFEST_WRITER, KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM]).controller(
+module(KUBERNETES_MANIFEST_DELETE_CTRL, [KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM]).controller(
   'kubernetesV2ManifestDeleteCtrl',
   KubernetesManifestDeleteController,
 );

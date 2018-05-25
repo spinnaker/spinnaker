@@ -1,11 +1,4 @@
-import { module } from 'angular';
-
-import {
-  APPLICATION_NAME_VALIDATOR,
-  ApplicationNameValidator,
-  IApplicationNameValidator,
-  IValidationResult,
-} from '@spinnaker/core';
+import { ApplicationNameValidator, IApplicationNameValidator, IValidationResult } from '@spinnaker/core';
 
 // See https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions#Version
 class AppengineApplicationNameValidator implements IApplicationNameValidator {
@@ -43,14 +36,4 @@ class AppengineApplicationNameValidator implements IApplicationNameValidator {
   }
 }
 
-export const APPENGINE_APPLICATION_NAME_VALIDATOR = 'spinnaker.appengine.applicationNameValidator.service';
-module(APPENGINE_APPLICATION_NAME_VALIDATOR, [APPLICATION_NAME_VALIDATOR])
-  .service('appengineApplicationNameValidator', AppengineApplicationNameValidator)
-  .run(
-    (
-      applicationNameValidator: ApplicationNameValidator,
-      appengineApplicationNameValidator: IApplicationNameValidator,
-    ) => {
-      applicationNameValidator.registerValidator('appengine', appengineApplicationNameValidator);
-    },
-  );
+ApplicationNameValidator.registerValidator('appengine', new AppengineApplicationNameValidator());
