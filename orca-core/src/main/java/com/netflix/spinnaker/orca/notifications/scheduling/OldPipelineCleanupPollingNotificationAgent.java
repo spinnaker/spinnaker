@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.orca.notifications.scheduling;
 
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.LongTaskTimer;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
@@ -81,24 +84,33 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
 
   private final Clock clock;
   private final PollingAgentExecutionRepository executionRepository;
+  private final Registry registry;
 
   private final long pollingIntervalMs;
   private final int thresholdDays;
   private final int minimumPipelineExecutions;
 
+  private final Id deletedId;
+  private final Id timerId;
+
   @Autowired
   public OldPipelineCleanupPollingNotificationAgent(NotificationClusterLock clusterLock,
                                                     PollingAgentExecutionRepository executionRepository,
                                                     Clock clock,
+                                                    Registry registry,
                                                     @Value("${pollers.oldPipelineCleanup.intervalMs:3600000}") long pollingIntervalMs,
                                                     @Value("${pollers.oldPipelineCleanup.thresholdDays:30}") int thresholdDays,
                                                     @Value("${pollers.oldPipelineCleanup.minimumPipelineExecutions:5}") int minimumPipelineExecutions) {
     super(clusterLock);
     this.executionRepository = executionRepository;
     this.clock = clock;
+    this.registry = registry;
     this.pollingIntervalMs = pollingIntervalMs;
     this.thresholdDays = thresholdDays;
     this.minimumPipelineExecutions = minimumPipelineExecutions;
+
+    deletedId = registry.createId("pollers.oldPipelineCleanup.deleted");
+    timerId = registry.createId("pollers.oldPipelineCleanup.timing");
   }
 
   @Override
@@ -120,6 +132,8 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
   }
 
   private void tick() {
+    LongTaskTimer timer = registry.longTaskTimer(timerId);
+    long timerId = timer.start();
     try {
       executionRepository.retrieveAllApplicationNames(PIPELINE).forEach(app -> {
         log.debug("Cleaning up " + app);
@@ -127,6 +141,8 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
       });
     } catch (Exception e) {
       log.error("Cleanup failed", e);
+    } finally {
+      timer.stop(timerId);
     }
   }
 
@@ -155,6 +171,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
       long days = ChronoUnit.DAYS.between(Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(clock.millis()));
       if (days > thresholdDays && !executionRepository.hasEntityTags(PIPELINE, p.id)) {
         log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
+        registry.counter(deletedId.withTag("application", p.application)).increment();
         executionRepository.delete(PIPELINE, p.id);
       }
     });

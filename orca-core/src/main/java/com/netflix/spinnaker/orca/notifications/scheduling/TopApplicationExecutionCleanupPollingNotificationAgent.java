@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.notifications.scheduling;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.LongTaskTimer;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -64,18 +67,27 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
   };
 
   private final PollingAgentExecutionRepository executionRepository;
+  private final Registry registry;
   private final long pollingIntervalMs;
   private final int threshold;
+
+  private final Id deleteCountId;
+  private final Id timerId;
 
   @Autowired
   public TopApplicationExecutionCleanupPollingNotificationAgent(NotificationClusterLock clusterLock,
                                                                 PollingAgentExecutionRepository executionRepository,
+                                                                Registry registry,
                                                                 @Value("${pollers.topApplicationExecutionCleanup.intervalMs:3600000}") long pollingIntervalMs,
                                                                 @Value("${pollers.topApplicationExecutionCleanup.threshold:2500}") int threshold) {
     super(clusterLock);
     this.executionRepository = executionRepository;
+    this.registry = registry;
     this.pollingIntervalMs = pollingIntervalMs;
     this.threshold = threshold;
+
+    deleteCountId = registry.createId("pollers.topApplicationExecutionCleanup.deleted");
+    timerId = registry.createId("pollers.topApplicationExecutionCleanup.timing");
   }
 
   @Override
@@ -97,6 +109,10 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
 
   @VisibleForTesting
   void tick() {
+    LongTaskTimer timer = registry.longTaskTimer(timerId);
+    long timerId = timer.start();
+
+    log.info("Starting cleanup");
     try {
       executionRepository.retrieveAllApplicationNames(ORCHESTRATION, threshold).forEach(app -> {
         log.info("Cleaning up orchestration executions (application: {}, threshold: {})", app, threshold);
@@ -107,6 +123,8 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
       });
     } catch (Exception e) {
       log.error("Cleanup failed", e);
+    } finally {
+      timer.stop(timerId);
     }
   }
 
@@ -119,6 +137,7 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
         log.info("Deleting {} execution {} (startTime: {}, application: {}, pipelineConfigId: {}, status: {})", type, it.get("id"), startTime != null ? Instant.ofEpochMilli(startTime) : null, application, it.get("pipelineConfigId"), it.get("status"));
         if (type.equals("orchestration")) {
           executionRepository.delete(ORCHESTRATION, (String) it.get("id"));
+          registry.counter(deleteCountId.withTag("application", application)).increment();
         } else {
           throw new IllegalArgumentException(format("Unsupported type '%s'", type));
         }

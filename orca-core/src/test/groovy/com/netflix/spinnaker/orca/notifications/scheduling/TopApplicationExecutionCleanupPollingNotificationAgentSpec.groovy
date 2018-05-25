@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.notifications.scheduling
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -36,6 +37,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def filter = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
       Mock(PollingAgentExecutionRepository),
+      new NoopRegistry(),
       5000,
       2500
     ).filter
@@ -65,6 +67,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
       Mock(PollingAgentExecutionRepository),
+      new NoopRegistry(),
       5000,
       2500
     ).mapper
@@ -91,6 +94,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
       executionRepository,
+      new NoopRegistry(),
       5000,
       2
     )
