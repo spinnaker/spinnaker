@@ -81,6 +81,9 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
 
   @Override
   protected S3PersistentStore editPersistentStore(S3PersistentStore persistentStore) {
+    if(isSet(bucket) && bucket.startsWith("s3://")){
+      bucket = bucket.substring(5); //Line to edit out the "s3://" part of the bucket string
+    }
     persistentStore.setBucket(isSet(bucket) ? bucket : persistentStore.getBucket());
     persistentStore.setRootFolder(isSet(rootFolder) ? rootFolder : persistentStore.getRootFolder());
     persistentStore.setRegion(isSet(region) ? region : persistentStore.getRegion());
