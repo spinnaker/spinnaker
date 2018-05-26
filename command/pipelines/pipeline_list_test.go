@@ -56,7 +56,7 @@ func TestPipelineList_malformed(t *testing.T) {
 }
 
 func TestPipelineList_fail(t *testing.T) {
-	ts := testGateServerFail()
+	ts := GateServerFail()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
