@@ -1,5 +1,7 @@
 # Spinnaker CLI
 
+__This is under active development, and not yet intended for production use.__
+
 Edit pipelines, applications & intents.
 
 # Development
