@@ -40,7 +40,6 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
   def orcaService = Mock(OrcaService)
   def pipelineInitiator = Mock(PipelineInitiator)
   def counterService = Stub(CounterService)
-  def gaugeService = Mock(GaugeService)
 
   def 'should trigger pipelines for all missed executions'() {
     given:
@@ -66,7 +65,8 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       triggerWindowFloor: getDateOffset(0),
       now: getDateOffset(50)
     )
-    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService, pipelineInitiator, counterService, gaugeService, 30000, 'America/Los_Angeles', true, dateContext)
+    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
+      pipelineInitiator, counterService, 30000, 'America/Los_Angeles', true, 900000, 20, dateContext)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
@@ -83,7 +83,6 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       ]
     }
     1 * pipelineInitiator.call((Pipeline) pipelines[0])
-    1 * gaugeService.submit(_, _)
     0 * _
   }
 
@@ -104,7 +103,8 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       triggerWindowFloor: getDateOffset(0),
       now: getDateOffset(0)
     )
-    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService, pipelineInitiator, counterService, gaugeService, 30000, 'America/Los_Angeles', true, dateContext)
+    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
+      pipelineInitiator, counterService, 30000, 'America/Los_Angeles', true, 900000, 20, dateContext)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
@@ -116,7 +116,6 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       ]
     }
     0 * pipelineInitiator.call(_)
-    1 * gaugeService.submit(_, _)
     0 * _
   }
 
@@ -150,7 +149,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     def expr = new CronExpression(cronExpression)
     expr.timeZone = TimeZone.getTimeZone(clock.zone)
 
-    def lastExecution = getDateOffset(lastExecutionMinutes)
+    def lastExecution = (lastExecutionMinutes != null) ? getDateOffset(lastExecutionMinutes) : null
     def windowFloor = getDateOffset(windowFloorMinutes)
     def now = getDateOffset(nowMinutes)
 
@@ -165,8 +164,11 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     // If we had a `now` of 40 and our `windowFloorMs = 1800000` (30m), `windowFloorMinutes` would be `10`.
     cronExpression     | lastExecutionMinutes | windowFloorMinutes | nowMinutes || missedExecution
     '* 0/30 * * * ? *' | 0                    | 0                  | 0          || false  // lastExecution was now and floor is now; no missed execution
-    '* 0/30 * * * ? *' | 0                    | 30                 | 90         || false  // lastExecution was 90 minutes ago, floor is at 30m mark; no missed execution
-    '* 0/30 * * * ? *' | 30                   | 9                  | 39         || false  // lastExecution was 9 minutes ago, floor is at 9m mark; no missed execution
+    '* 0/30 * * * ? *' | 0                    | 30                 | 90         || true   // lastExecution was 90 minutes ago, floor is at 30m mark; no missed execution
+    '* 0/30 * * * ? *' | null                 | 9                  | 39         || true   // trigger in window and no last execution; missed execution!
+    '* 0/30 * * * ? *' | 29                   | 9                  | 39         || true   // lastExecution was before trigger time in window; missed execution!
+    '* 0/30 * * * ? *' | 30                   | 9                  | 39         || false  // lastExecution lines up with trigger time in window; no missed execution
+    '* 0/30 * * * ? *' | 31                   | 9                  | 39         || false  // lastExecution was after trigger time in window; no missed execution
     '* 0/30 * * * ? *' | 60                   | 30                 | 60         || false  // lastExecution was now, floor 30m mark; no missed execution (maybe redundant case)
     '* 0/30 * * * ? *' | 30                   | 0                  | 70         || true   // lastExecution was 40 minutes ago, floor is at 0m mark; missed execution (60m)
   }
@@ -188,6 +190,22 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
     then:
     configIds == ['3']
+  }
+
+  def 'should be able to retrigger daily executions'() {
+    def expr = new CronExpression('0 0 10 ? * * *')
+    expr.timeZone = TimeZone.getTimeZone('America/Los_Angeles')
+
+    def lastExecutionTs = 1527008402073
+    def lastExecution = new Date(lastExecutionTs) // day 1 at 10:00:02
+    def now = new Date(lastExecutionTs + TimeUnit.HOURS.toMillis(24) + TimeUnit.MINUTES.toMillis(5)) // day 2 at 10:05:02
+    def windowFloor = new Date(now.getTime() - TimeUnit.MINUTES.toMillis(30))   // now - 30m
+
+    when:
+    def missedExecution = MissedPipelineTriggerCompensationJob.missedExecution(expr, lastExecution, windowFloor, now)
+
+    then:
+    missedExecution == true
   }
 
   Pipeline.PipelineBuilder pipelineBuilder(String id) {

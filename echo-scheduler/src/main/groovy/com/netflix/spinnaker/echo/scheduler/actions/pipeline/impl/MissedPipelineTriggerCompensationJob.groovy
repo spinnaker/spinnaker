@@ -28,7 +28,6 @@ import org.quartz.CronExpression
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.metrics.CounterService
-import org.springframework.boot.actuate.metrics.GaugeService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -51,7 +50,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv
  * This job will wait until the {@link com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache} has run prior to
  * finding any missed triggers.
  *
- * If enabled (`scheduler.compensationJob.enableRecurring`, default on), after the initial startup compesation job
+ * If enabled (`scheduler.compensationJob.enableRecurring`, default on), after the initial startup compensation job
  * has been performed, a recurring job will be started at a less aggressive poll cycle to ensure lost triggers are
  * re-scheduled.
  */
@@ -61,15 +60,15 @@ import static net.logstash.logback.argument.StructuredArguments.kv
 class MissedPipelineTriggerCompensationJob implements ApplicationListener<ContextRefreshedEvent> {
 
   final static Duration STARTUP_POLL_INTERVAL = Duration.ofSeconds(5)
-  final static Duration RECURRING_POLL_INTERVAL = Duration.ofMinutes(15)
 
   final Scheduler scheduler
   final PipelineCache pipelineCache
   final OrcaService orcaService
   final CounterService counter
-  final GaugeService gauge
   final PipelineInitiator pipelineInitiator
   final boolean enableRecurring
+  final Duration recurringPollInterval
+  final int pipelineFetchSize
   final DateContext dateContext
 
   Subscription startupSubscription
@@ -81,11 +80,14 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
                                        CounterService counter,
-                                       GaugeService gauge,
-                                       @Value('${scheduler.compensationJob.windowMs:1800000}') long compensationWindowMs,
+                                       @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
-                                       @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring) {
-    this(scheduler, pipelineCache, orcaService, pipelineInitiator, counter, gauge, compensationWindowMs, timeZoneId, enableRecurring, null)
+                                       @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
+                                       @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
+                                       @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize) {
+
+    this(scheduler, pipelineCache, orcaService, pipelineInitiator, counter, compensationWindowMs, timeZoneId,
+      enableRecurring, recurringPollIntervalMs, pipelineFetchSize, null)
   }
 
   MissedPipelineTriggerCompensationJob(Scheduler scheduler,
@@ -93,18 +95,20 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
                                        CounterService counter,
-                                       GaugeService gauge,
-                                       @Value('${scheduler.compensationJob.windowMs:1800000}') long compensationWindowMs,
+                                       @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
                                        @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
+                                       @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
+                                       @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize,
                                        DateContext dateContext) {
     this.scheduler = scheduler
     this.pipelineCache = pipelineCache
     this.orcaService = orcaService
     this.pipelineInitiator = pipelineInitiator
     this.counter = counter
-    this.gauge = gauge
     this.enableRecurring = enableRecurring
+    this.recurringPollInterval = Duration.ofMillis(recurringPollIntervalMs)
+    this.pipelineFetchSize = pipelineFetchSize
     this.dateContext = dateContext ?: DateContext.fromCompensationWindow(timeZoneId, compensationWindowMs)
   }
 
@@ -130,7 +134,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
   void scheduleRecurringCompensation() {
     if (enableRecurring && recurringSubscription == null) {
-      recurringSubscription = Observable.interval(RECURRING_POLL_INTERVAL.toMinutes(), TimeUnit.MINUTES, scheduler)
+      recurringSubscription = Observable.interval(recurringPollInterval.toMinutes(), TimeUnit.MINUTES, scheduler)
         .doOnNext { onPipelineCacheAwait(it) }
         .flatMap { tick -> Observable.just(pipelineCache.pipelines) }
         .doOnError { onPipelineCacheError(it) }
@@ -153,28 +157,31 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   }
 
   void triggerMissedExecutions(List<Pipeline> pipelines) {
-    log.info('Looking for missed pipeline executions from cron triggers')
-
     pipelines = pipelines.findAll { !it.disabled }
     List<Trigger> triggers = getEnabledCronTriggers(pipelines)
-
     List<String> ids = getPipelineConfigIds(pipelines, triggers)
 
+    log.info("Checking ${ids.size()} pipelines with cron triggers (out of ${pipelines.size()})")
     long startTime = System.currentTimeMillis()
-
-    log.info("Checking ${ids.size()} pipelines with cron triggers")
-    Lists.partition(ids, 10).forEach { idsPartition ->
+    Lists.partition(ids, pipelineFetchSize).forEach { idsPartition ->
       try {
         onOrcaResponse(orcaService.getLatestPipelineExecutions(idsPartition, 1), pipelines, triggers)
       } catch (Exception e) {
         onOrcaError(e)
       }
     }
-    log.info("Done searching for cron trigger misfires in ${System.currentTimeMillis() - startTime}")
+    log.info("Done searching for cron trigger misfires in ${(System.currentTimeMillis() - startTime)/1000}s")
+  }
+
+  private Date getLastExecutionOrNull(List<Date> executions) {
+    if (executions.isEmpty()) {
+      return null
+    }
+
+    return executions.first()
   }
 
   void onOrcaResponse(Collection<PipelineResponse> response, List<Pipeline> pipelines, List<Trigger> triggers) {
-    int misses = 0
     triggers.each { trigger ->
       Pipeline pipeline = pipelines.find { it.triggers && it.triggers*.id.contains(trigger.id) }
       List<Date> executions = response.findAll { it.pipelineConfigId == pipeline.id }.collect {
@@ -182,25 +189,22 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
         it.startTime != null ? new Date(it.startTime) : null
       }
 
-      if (executions.isEmpty()) {
-        return
-      }
-
-      def lastExecution = executions.first()
+      def lastExecution = getLastExecutionOrNull(executions)
       if (lastExecution == null) {
+        // a pipeline that has no executions could technically get retriggered (e.g. it missed its very first trigger)
+        // but this should be a very rare occurrence, so as a safety measure let's bail
+        // for instance, if orca returns no executions, we don't want to cause a retrigger storm!
         return
       }
 
       def expr = new CronExpression(trigger.cronExpression)
       expr.timeZone = dateContext.timeZone
 
-      if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now)) {
-        log.info('Triggering missed execution on pipeline {} {}', kv('application', pipeline.application), kv('pipelineConfigId', pipeline.id))
+      if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now, pipeline)) {
         pipelineInitiator.call(pipeline)
-        misses++
+        counter.increment("triggers.cronMisfires")
       }
     }
-    gauge.submit("triggers.cronMisfires", misses)
   }
 
   void onOrcaError(Throwable error) {
@@ -215,28 +219,47 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       .findAll { Trigger it -> it && it.enabled && it.type == CRON.toString() }
   }
 
-  /**
-   * Missed executions are calculated by any `lastExecution` being between `now` and `now - windowFloor`.
-   */
-  static boolean missedExecution(CronExpression expr, Date lastExecution, Date windowFloor, Date now) {
-    // Quartz works at the minute-level, so given 12:00:00, the next "valid" time will be 12:00:01. Without
-    // bumping the lastExecution to the next invalid time, we would double-trigger timely cron executions.
-    lastExecution = expr.getNextInvalidTimeAfter(lastExecution)
+  private static Date getLastValidTimeInWindow(CronExpression expr, Date from, Date to) {
+    Date valid = expr.getNextValidTimeAfter(from)
+    if (valid.after(to)) {
+      return null
+    }
 
-    if (lastExecution.before(windowFloor)) {
-      // The last execution is past the point of no return, as far as the compensation job is concerned.
+    while (true) {
+      def truncatedAtMinute = valid.toInstant().truncatedTo(ChronoUnit.MINUTES).plusSeconds(60)
+      Date candidate = expr.getNextValidTimeAfter(Date.from(truncatedAtMinute))
+      if (candidate.after(to)) {
+        return valid
+      }
+
+      valid = candidate
+    }
+  }
+
+  /**
+   * We have a missed execution if there is a valid date D in [windowFloor..now] such that:
+   *   D satisfies the cron expression expr
+   *   there is no execution E in lastExecutions such that E is in [D..now]
+   */
+  static boolean missedExecution(CronExpression expr, Date lastExecution, Date windowFloor, Date now,
+                                 Pipeline pipeline = null) {
+    def validTriggerDate = getLastValidTimeInWindow(expr, windowFloor, now)
+
+    // there is no date in [windowFloor..now] that satisfies the cron expression, so no trigger
+    if (validTriggerDate == null) {
       return false
     }
 
-    def nextExecution = expr.getNextValidTimeAfter(lastExecution)
-    while (true) {
-      if (nextExecution.after(windowFloor)) {
-        break
-      }
-      nextExecution = expr.getNextValidTimeAfter(nextExecution)
+    // we have a valid trigger date, and no execution after it: trigger!
+    def missed = lastExecution == null || lastExecution.before(validTriggerDate)
+    if (missed) {
+      log.info('Triggering missed execution on pipeline {} {} {} {} {}',
+        kv('application', pipeline?.application), kv('pipelineName', pipeline?.name),
+        kv('pipelineConfigId', pipeline?.id), kv('lastExecution', lastExecution),
+        kv('validTriggerDate', validTriggerDate))
     }
 
-    return nextExecution.before(now)
+    return missed
   }
 
   static List<String> getPipelineConfigIds(List<Pipeline> pipelines, List<Trigger> cronTriggers) {
