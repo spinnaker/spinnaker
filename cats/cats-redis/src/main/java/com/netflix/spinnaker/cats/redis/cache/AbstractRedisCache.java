@@ -37,7 +37,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
 
   protected static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
   };
-  protected static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {
+  protected static final TypeReference<Set<String>> RELATIONSHIPS = new TypeReference<Set<String>>() {
   };
 
   private final Logger log = LoggerFactory.getLogger(getClass());
