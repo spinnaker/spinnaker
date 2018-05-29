@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-gsutil cp manifests/staging/values.yaml gs://spinnaker-playground/manifests/demo/staging/values.yaml
+gsutil cp manifests/staging/env.yaml gs://spinnaker-playground/manifests/demo/staging/env.yaml

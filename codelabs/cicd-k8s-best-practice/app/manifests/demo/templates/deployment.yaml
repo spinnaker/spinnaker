@@ -10,6 +10,7 @@ metadata:
     env: {{ .Values.environment }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
       app: demo
@@ -33,8 +34,13 @@ spec:
             port: http
         volumeMounts:
         - name: config
-          mountPath: /opt/demo/
+          mountPath: /opt/demo/config
+        - name: env-config
+          mountPath: /opt/demo/env
       volumes:
       - name: config
         configMap:
           name: demo-config
+      - name: env-config
+        configMap:
+          name: demo-env-config
