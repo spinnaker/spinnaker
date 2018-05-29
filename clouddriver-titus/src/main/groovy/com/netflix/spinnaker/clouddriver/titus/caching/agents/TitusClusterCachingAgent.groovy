@@ -169,7 +169,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
    * A change will not be visible until a caching cycle has completed.
    */
   private OnDemandResult onDemand(ProviderCache providerCache, Job job, Map<String, ?> data) {
-    def serverGroupKey = Keys.getServerGroupKey(job.name, account.name, region)
+    def serverGroupKey = Keys.getServerGroupKey(data.serverGroupName as String, account.name, region)
     def cacheResults = [:]
 
     if (!job) {
