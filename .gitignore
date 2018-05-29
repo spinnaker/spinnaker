@@ -10,3 +10,4 @@ out/
 .classpath
 .project
 .settings
+swagger/swagger.json

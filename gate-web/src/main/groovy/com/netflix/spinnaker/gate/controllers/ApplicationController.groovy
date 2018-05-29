@@ -58,9 +58,9 @@ class ApplicationController {
   @Autowired
   Environment environment
 
-  @ApiOperation(value = "Retrieve a list of applications", response = HashMap.class, responseContainer = "List")
+  @ApiOperation(value = "Retrieve a list of applications", response = List.class)
   @RequestMapping(method = RequestMethod.GET)
-  List<Map> getAllApplications(
+  List<HashMap<String, Object>> getAllApplications(
     @ApiParam(name = "account", required = false, value = "filters results to only include applications deployed in the specified account")
     @RequestParam(value = "account", required = false) String account,
     @ApiParam(name = "owner", required = false, value = "filteres results to only include applications owned by the specified email")
