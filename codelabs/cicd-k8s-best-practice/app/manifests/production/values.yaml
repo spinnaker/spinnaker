@@ -1,0 +1,11 @@
+replicaCount: 1
+
+environment: production
+
+image: gcr.io/spinnaker-playground/demo
+
+service:
+  type: LoadBalancer
+  port: 80
+
+logging: INFO

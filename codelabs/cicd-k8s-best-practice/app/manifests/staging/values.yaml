@@ -1,0 +1,11 @@
+replicaCount: 1
+
+environment: staging
+
+image: gcr.io/spinnaker-playground/demo
+
+service:
+  type: ClusterIP
+  port: 80
+
+logging: DEBUG
