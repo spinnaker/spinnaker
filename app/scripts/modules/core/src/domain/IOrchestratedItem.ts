@@ -17,6 +17,7 @@ export interface IOrchestratedItem extends ITimedItem {
   originalStatus: string;
   status: string;
   failureMessage: string;
+  isBuffered: boolean;
   isCompleted: boolean;
   isRunning: boolean;
   isFailed: boolean;

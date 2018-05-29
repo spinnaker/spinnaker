@@ -64,7 +64,10 @@ export class OrchestratedItemTransformer {
         get: (): boolean => ['RUNNING', 'SUSPENDED', 'NOT_STARTED', 'PAUSED'].includes(item.status),
       },
       hasNotStarted: {
-        get: (): boolean => item.status === 'NOT_STARTED',
+        get: (): boolean => ['NOT_STARTED', 'BUFFERED'].includes(item.status),
+      },
+      isBuffered: {
+        get: (): boolean => item.status === 'BUFFERED',
       },
       isCanceled: {
         get: (): boolean => item.status === 'CANCELED',
@@ -205,6 +208,8 @@ export class OrchestratedItemTransformer {
         return 'PAUSED';
       case 'FAILED_CONTINUE':
         return 'FAILED_CONTINUE';
+      case 'BUFFERED':
+        return 'BUFFERED';
       default:
         if (item.originalStatus) {
           $log.warn('Unrecognized status:', item.originalStatus);

@@ -347,6 +347,15 @@ export class ExecutionFilterService {
     if (b.isActive) {
       return 1;
     }
+    if (!a.endTime && !b.endTime) {
+      return b.buildTime - a.buildTime;
+    }
+    if (!a.endTime) {
+      return -1;
+    }
+    if (!b.endTime) {
+      return 1;
+    }
     return b.endTime - a.endTime;
   }
 
