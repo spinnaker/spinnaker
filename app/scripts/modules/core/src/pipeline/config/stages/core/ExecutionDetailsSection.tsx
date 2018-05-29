@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Application } from 'core/application/application.model';
 import { IExecution } from 'core/domain/IExecution';
 import { IExecutionStage } from 'core/domain/IExecutionStage';
-import { IExecutionDetailsSection } from 'core/domain/IStageTypeConfig';
+import { IStageTypeConfig, IExecutionDetailsSection } from 'core/domain/IStageTypeConfig';
 
 export interface IExecutionDetailsSectionProps extends IExecutionDetailsSectionWrapperProps {
   // NOTE: these are the fields from IExecutionDetailsComponentProps, but TS is not behaving in the library build,
@@ -14,6 +14,7 @@ export interface IExecutionDetailsSectionProps extends IExecutionDetailsSectionW
   execution: IExecution;
   provider: string;
   stage: IExecutionStage;
+  config: IStageTypeConfig;
 }
 
 export interface IExecutionDetailsSectionWrapperProps {

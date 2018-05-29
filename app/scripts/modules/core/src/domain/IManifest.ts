@@ -8,12 +8,24 @@ export interface IManifest {
   cloudProvider: string;
   location: string;
   manifest: any;
-  status: IManifestStatus;
+  status: { [key: string]: IManifestStatus };
   artifacts: IArtifact[];
-  events: any[];
+  events: IManifestEvent[];
 }
 
 export interface IManifestStatus {
   message?: string;
+  state?: string;
   stable: boolean;
+}
+
+export interface IManifestEvent {
+  apiVersion: string;
+  count: number;
+  firstTimestamp?: string;
+  kind: string;
+  lastTimestamp?: string;
+  message?: string;
+  reason: string;
+  type: string;
 }

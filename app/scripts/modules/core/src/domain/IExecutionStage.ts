@@ -1,7 +1,7 @@
 import { Application } from 'core/application/application.model';
 
 import { IExecution } from './IExecution';
-import { IExecutionDetailsSection } from './IStageTypeConfig';
+import { IStageTypeConfig, IExecutionDetailsSection } from './IStageTypeConfig';
 import { IOrchestratedItem } from './IOrchestratedItem';
 import { IStage } from './IStage';
 import { ITaskStep } from './ITaskStep';
@@ -41,6 +41,7 @@ export interface IExecutionDetailsComponentProps {
   execution: IExecution;
   provider: string;
   stage: IExecutionStage;
+  config: IStageTypeConfig;
 }
 
 export interface IExecutionDetailsComponentState {
