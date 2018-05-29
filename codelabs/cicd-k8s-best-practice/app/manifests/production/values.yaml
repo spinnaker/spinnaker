@@ -1,4 +1,6 @@
-replicaCount: 1
+replicaCount: 5
+
+revisionHistoryLimit: 5
 
 environment: production
 
