@@ -24,14 +24,18 @@ export interface IPipelineValidationResults {
   preventSave?: boolean;
 }
 
-export interface IValidatorConfig {
+export interface IValidatorField {
+  fieldName?: string;
+  fieldLabel?: string;
+}
+
+export interface IValidatorConfig extends IValidatorField {
   type: string;
   message?: string;
   skipValidation?: (pipeline: IPipeline, stage: IStage) => boolean;
   preventSave?: boolean;
-  fieldName?: string;
-  fieldLabel?: string;
   checkParentTriggers?: boolean;
+  fields?: IValidatorField[];
 }
 
 export interface IStageOrTriggerValidator {

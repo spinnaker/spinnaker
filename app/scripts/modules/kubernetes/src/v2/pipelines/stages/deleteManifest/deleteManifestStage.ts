@@ -22,7 +22,19 @@ module(KUBERNETES_DELETE_MANIFEST_STAGE, [KUBERNETES_DELETE_MANIFEST_OPTIONS_FOR
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
           { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
-          { type: 'requiredField', fieldName: 'kinds', fieldLabel: 'Kinds' },
+          {
+            type: 'anyFieldRequired',
+            fields: [
+              {
+                fieldName: 'kinds',
+                fieldLabel: 'Kinds',
+              },
+              {
+                fieldName: 'manifestName',
+                fieldLabel: 'Name',
+              },
+            ],
+          },
         ],
       });
     }
