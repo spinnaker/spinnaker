@@ -112,19 +112,29 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       return Optional.empty()
     }
 
-    def status = RUNNING
+    boolean allUpdatesApplied = false
     refreshableServerGroups.each { Map<String, String> model ->
       try {
         def response = cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
         if (response.status == HttpURLConnection.HTTP_OK) {
           // cache update was applied immediately, no need to poll for completion
-          status = SUCCEEDED
+          allUpdatesApplied = true
         }
 
         stageData.refreshedServerGroups << model
       } catch (e) {
         stageData.errors << e.message
       }
+    }
+
+    def status = RUNNING
+    // If all server groups had their cache updates applied immediately, we don't need to do any
+    // polling for completion and can return SUCCEEDED right away.
+    // In that case, we also reset stageData so that a subsequent ServerGroupCacheForceRefresh in
+    // this stage starts fresh
+    if (allUpdatesApplied) {
+      status = SUCCEEDED
+      stageData.reset()
     }
 
     return Optional.of(new TaskResult(status, convertAndStripNullValues(stageData)))

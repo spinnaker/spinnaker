@@ -112,7 +112,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
     where:
     deployedServerGroups | refreshedServerGroups || executionStatus || forceCacheUpdatedServerGroups || expectedRefreshedServerGroups
-    ["s-v001"]           | []                    || SUCCEEDED       || ["s-v001"]                    || ["s-v001"]
+    ["s-v001"]           | []                    || SUCCEEDED       || ["s-v001"]                    || []
     ["s-v001"]           | []                    || RUNNING         || ["s-v001"]                    || ["s-v001"]
     ["s-v001", "s-v002"] | []                    || RUNNING         || ["s-v001", "s-v002"]          || ["s-v001", "s-v002"]
     ["s-v001", "s-v002"] | ["s-v001"]            || RUNNING         || ["s-v002"]                    || ["s-v001", "s-v002"]
