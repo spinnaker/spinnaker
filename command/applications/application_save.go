@@ -27,6 +27,7 @@ func (f *flagStringArray) Set(value string) error {
 type ApplicationSaveCommand struct {
 	ApiMeta command.ApiMeta
 
+	// TODO(jacobkiefer): Add accounts.
 	applicationName string
 	ownerEmail      string
 	cloudProviders  flagStringArray

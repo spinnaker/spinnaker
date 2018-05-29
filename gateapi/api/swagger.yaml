@@ -54,45 +54,184 @@ tags:
   description: "Bake Controller"
 - name: "cluster-controller"
   description: "Cluster Controller"
+- name: "firewall-controller"
+  description: "Firewall Controller"
 - name: "job-controller"
   description: "Job Controller"
 paths:
-  /images/{account}/{region}/{imageId}:
-    get:
+  /pipelines/move:
+    post:
       tags:
-      - "image-controller"
-      summary: "Get image details"
-      operationId: "getImageDetailsUsingGET"
+      - "pipeline-controller"
+      summary: "Rename a pipeline definition"
+      operationId: "renamePipelineUsingPOST"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "account"
+      - in: "body"
+        name: "renameCommand"
+        description: "renameCommand"
+        required: true
+        schema:
+          type: "object"
+        x-exportParamName: "RenameCommand"
+      responses:
+        200:
+          description: "OK"
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /pipelines/{id}/stages/{stageId}/restart:
+    put:
+      tags:
+      - "pipeline-controller"
+      summary: "Restart a stage execution"
+      operationId: "restartStageUsingPUT"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
         in: "path"
-        description: "account"
+        description: "id"
         required: true
         type: "string"
-        x-exportParamName: "Account"
-      - name: "region"
+        x-exportParamName: "Id"
+      - name: "stageId"
         in: "path"
-        description: "region"
+        description: "stageId"
         required: true
         type: "string"
-        x-exportParamName: "Region"
-      - name: "imageId"
+        x-exportParamName: "StageId"
+      - in: "body"
+        name: "context"
+        description: "context"
+        required: true
+        schema:
+          type: "object"
+        x-exportParamName: "Context"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /v2/builds/{buildMaster}/build/{number}/**:
+    get:
+      tags:
+      - "build-controller"
+      summary: "Get build for build master"
+      operationId: "getBuildUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "buildMaster"
         in: "path"
-        description: "imageId"
+        description: "buildMaster"
         required: true
         type: "string"
-        x-exportParamName: "ImageId"
-      - name: "provider"
+        x-exportParamName: "BuildMaster"
+      - name: "number"
+        in: "path"
+        description: "number"
+        required: true
+        type: "string"
+        x-exportParamName: "Number"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{applicationName}/jobs:
+    get:
+      tags:
+      - "job-controller"
+      summary: "Get jobs"
+      operationId: "getJobsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "applicationName"
+        in: "path"
+        description: "applicationName"
+        required: true
+        type: "string"
+        x-exportParamName: "ApplicationName"
+      - name: "expand"
         in: "query"
-        description: "provider"
+        description: "expand"
         required: false
         type: "string"
-        default: "aws"
-        x-exportParamName: "Provider"
+        default: "false"
+        x-exportParamName: "Expand"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/loadBalancers:
+    get:
+      tags:
+      - "load-balancer-controller"
+      summary: "Retrieve a list of load balancers for a given application"
+      operationId: "getApplicationLoadBalancersUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
       - name: "X-RateLimit-App"
         in: "header"
         description: "X-RateLimit-App"
@@ -112,12 +251,12 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /pipelines/{id}/resume:
+  /pipelines/{id}/pause:
     put:
       tags:
       - "pipeline-controller"
-      summary: "Resume a pipeline execution"
-      operationId: "resumePipelineUsingPUT"
+      summary: "Pause a pipeline execution"
+      operationId: "pausePipelineUsingPUT"
       consumes:
       - "application/json"
       produces:
@@ -145,12 +284,369 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /applications/{application}/snapshots/{account}:
+  /bakery/options:
     get:
       tags:
-      - "snapshot-controller"
-      summary: "Get current snapshot"
-      operationId: "getCurrentSnapshotUsingGET"
+      - "bake-controller"
+      summary: "Retrieve a list of available bakery base images, grouped by cloud\
+        \ provider"
+      operationId: "bakeOptionsUsingGET_1"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /bakery/options/{cloudProvider}:
+    get:
+      tags:
+      - "bake-controller"
+      summary: "Retrieve a list of available bakery base images for a given cloud\
+        \ provider"
+      operationId: "bakeOptionsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "cloudProvider"
+        in: "path"
+        description: "cloudProvider"
+        required: true
+        type: "string"
+        x-exportParamName: "CloudProvider"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /loadBalancers:
+    get:
+      tags:
+      - "load-balancer-controller"
+      summary: "Retrieve a list of load balancers for a given cloud provider"
+      operationId: "getAllUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "provider"
+        in: "query"
+        description: "provider"
+        required: false
+        type: "string"
+        default: "aws"
+        x-exportParamName: "Provider"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /loadBalancers/{account}/{region}/{name}:
+    get:
+      tags:
+      - "load-balancer-controller"
+      summary: "Retrieve a load balancer's details as a single element list for a\
+        \ given account, region, cloud provider and load balancer name"
+      operationId: "getLoadBalancerDetailsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "region"
+        in: "path"
+        description: "region"
+        required: true
+        type: "string"
+        x-exportParamName: "Region"
+      - name: "name"
+        in: "path"
+        description: "name"
+        required: true
+        type: "string"
+        x-exportParamName: "Name"
+      - name: "provider"
+        in: "query"
+        description: "provider"
+        required: false
+        type: "string"
+        default: "aws"
+        x-exportParamName: "Provider"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /webhooks/{type}/{source}:
+    post:
+      tags:
+      - "webhook-controller"
+      summary: "Endpoint for posting webhooks to Spinnaker's webhook service"
+      operationId: "webhooksUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "type"
+        in: "path"
+        description: "type"
+        required: true
+        type: "string"
+        x-exportParamName: "Type_"
+      - name: "source"
+        in: "path"
+        description: "source"
+        required: true
+        type: "string"
+        x-exportParamName: "Source"
+      - in: "body"
+        name: "event"
+        description: "event"
+        required: true
+        schema:
+          type: "object"
+        x-exportParamName: "Event"
+      - name: "X-Hub-Signature"
+        in: "header"
+        description: "X-Hub-Signature"
+        required: false
+        type: "string"
+        x-exportParamName: "XHubSignature"
+      - name: "X-Event-Key"
+        in: "header"
+        description: "X-Event-Key"
+        required: false
+        type: "string"
+        x-exportParamName: "XEventKey"
+      responses:
+        200:
+          description: "OK"
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /auth/user/serviceAccounts:
+    get:
+      tags:
+      - "auth-controller"
+      summary: "Get service accounts"
+      operationId: "getServiceAccountsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/tasks/{id}:
+    get:
+      tags:
+      - "application-controller"
+      summary: "Get task"
+      operationId: "getTaskUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      deprecated: true
+  /pipelines/{id}/logs:
+    get:
+      tags:
+      - "pipeline-controller"
+      summary: "Retrieve pipeline execution logs"
+      operationId: "getPipelineLogsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/strategyConfigs:
+    get:
+      tags:
+      - "application-controller"
+      summary: "Retrieve a list of an application's pipeline strategy configurations"
+      operationId: "getStrategyConfigsForApplicationUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /networks/{cloudProvider}:
+    get:
+      tags:
+      - "network-controller"
+      summary: "Retrieve a list of networks for a given cloud provider"
+      operationId: "allByCloudProviderUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "cloudProvider"
+        in: "path"
+        description: "cloudProvider"
+        required: true
+        type: "string"
+        x-exportParamName: "CloudProvider"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/clusters/{account}/{clusterName}/{cloudProvider}/{scope}/serverGroups/target/{target}:
+    get:
+      tags:
+      - "cluster-controller"
+      summary: "Retrieve a server group that matches a target coordinate (e.g., newest,\
+        \ ancestor) relative to a cluster"
+      description: "`scope` is either a zone or a region"
+      operationId: "getTargetServerGroupUsingGET"
       consumes:
       - "application/json"
       produces:
@@ -168,6 +664,48 @@ paths:
         required: true
         type: "string"
         x-exportParamName: "Account"
+      - name: "clusterName"
+        in: "path"
+        description: "clusterName"
+        required: true
+        type: "string"
+        x-exportParamName: "ClusterName"
+      - name: "cloudProvider"
+        in: "path"
+        description: "cloudProvider"
+        required: true
+        type: "string"
+        x-exportParamName: "CloudProvider"
+      - name: "scope"
+        in: "path"
+        description: "scope"
+        required: true
+        type: "string"
+        x-exportParamName: "Scope"
+      - name: "target"
+        in: "path"
+        description: "target"
+        required: true
+        type: "string"
+        x-exportParamName: "Target"
+      - name: "onlyEnabled"
+        in: "query"
+        description: "onlyEnabled"
+        required: false
+        type: "boolean"
+        x-exportParamName: "OnlyEnabled"
+      - name: "validateOldest"
+        in: "query"
+        description: "validateOldest"
+        required: false
+        type: "boolean"
+        x-exportParamName: "ValidateOldest"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
       responses:
         200:
           description: "OK"
@@ -176,6 +714,367 @@ paths:
             additionalProperties:
               type: "object"
               properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /instanceTypes:
+    get:
+      tags:
+      - "amazon-infrastructure-controller"
+      summary: "Get instance types"
+      operationId: "instanceTypesUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /subnets/{cloudProvider}:
+    get:
+      tags:
+      - "subnet-controller"
+      summary: "Retrieve a list of subnets for a given cloud provider"
+      operationId: "allByCloudProviderUsingGET_1"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "cloudProvider"
+        in: "path"
+        description: "cloudProvider"
+        required: true
+        type: "string"
+        x-exportParamName: "CloudProvider"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /v2/builds/{buildMaster}/builds/**:
+    get:
+      tags:
+      - "build-controller"
+      summary: "Get builds for build master"
+      operationId: "getBuildsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "buildMaster"
+        in: "path"
+        description: "buildMaster"
+        required: true
+        type: "string"
+        x-exportParamName: "BuildMaster"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/snapshots/{account}/history:
+    get:
+      tags:
+      - "snapshot-controller"
+      summary: "Get snapshot history"
+      operationId: "getSnapshotHistoryUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "limit"
+        in: "query"
+        description: "limit"
+        required: false
+        type: "integer"
+        default: 20
+        format: "int32"
+        x-exportParamName: "Limit"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /pipelines/{id}/stages/{stageId}:
+    patch:
+      tags:
+      - "pipeline-controller"
+      summary: "Update a stage execution"
+      operationId: "updateStageUsingPATCH"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      - name: "stageId"
+        in: "path"
+        description: "stageId"
+        required: true
+        type: "string"
+        x-exportParamName: "StageId"
+      - in: "body"
+        name: "context"
+        description: "context"
+        required: true
+        schema:
+          type: "object"
+        x-exportParamName: "Context"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        204:
+          description: "No Content"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+  /applications/{application}/tasks/{id}/cancel:
+    put:
+      tags:
+      - "application-controller"
+      summary: "Cancel task"
+      operationId: "cancelTaskUsingPUT"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      deprecated: true
+  /v2/builds:
+    get:
+      tags:
+      - "build-controller"
+      summary: "Get build masters"
+      operationId: "getBuildMastersUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /pipelines/{application}/{pipelineNameOrId}:
+    post:
+      tags:
+      - "pipeline-controller"
+      summary: "Trigger a pipeline execution"
+      operationId: "invokePipelineConfigUsingPOST_1"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      - name: "pipelineNameOrId"
+        in: "path"
+        description: "pipelineNameOrId"
+        required: true
+        type: "string"
+        x-exportParamName: "PipelineNameOrId"
+      - in: "body"
+        name: "trigger"
+        description: "trigger"
+        required: false
+        schema:
+          type: "object"
+        x-exportParamName: "Trigger"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/HttpEntity"
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/pipelines:
+    get:
+      tags:
+      - "application-controller"
+      summary: "Retrieve a list of an application's pipeline executions"
+      operationId: "getPipelinesUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      - name: "limit"
+        in: "query"
+        description: "limit"
+        required: false
+        type: "integer"
+        format: "int32"
+        x-exportParamName: "Limit"
+      - name: "statuses"
+        in: "query"
+        description: "statuses"
+        required: false
+        type: "string"
+        x-exportParamName: "Statuses"
+      - name: "expand"
+        in: "query"
+        description: "expand"
+        required: false
+        type: "boolean"
+        x-exportParamName: "Expand"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /artifacts/credentials:
+    get:
+      tags:
+      - "artifact-controller"
+      summary: "Retrieve the list of artifact accounts configured in Clouddriver."
+      operationId: "allUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
         401:
           description: "Unauthorized"
         403:
@@ -244,29 +1143,107 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /v2/builds/{buildMaster}/builds/**:
+  /applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName}:
     get:
       tags:
-      - "build-controller"
-      summary: "Get builds for build master"
-      operationId: "getBuildsUsingGET"
+      - "server-group-controller"
+      summary: "Retrieve a server group's details"
+      operationId: "getServerGroupDetailsUsingGET"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "buildMaster"
+      - name: "applicationName"
         in: "path"
-        description: "buildMaster"
+        description: "applicationName"
         required: true
         type: "string"
-        x-exportParamName: "BuildMaster"
+        x-exportParamName: "ApplicationName"
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "region"
+        in: "path"
+        description: "region"
+        required: true
+        type: "string"
+        x-exportParamName: "Region"
+      - name: "serverGroupName"
+        in: "path"
+        description: "serverGroupName"
+        required: true
+        type: "string"
+        x-exportParamName: "ServerGroupName"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      - name: "includeDetails"
+        in: "query"
+        description: "includeDetails"
+        required: false
+        type: "string"
+        default: "true"
+        x-exportParamName: "IncludeDetails"
       responses:
         200:
           description: "OK"
           schema:
-            type: "array"
-            items:
+            type: "object"
+            properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/clusters/{account}/{clusterName}:
+    get:
+      tags:
+      - "cluster-controller"
+      summary: "Retrieve a cluster's details"
+      operationId: "getClustersUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "clusterName"
+        in: "path"
+        description: "clusterName"
+        required: true
+        type: "string"
+        x-exportParamName: "ClusterName"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
               type: "object"
               properties: {}
         401:
@@ -275,51 +1252,31 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /webhooks/{type}/{source}:
-    post:
+  /tasks/{id}/cancel:
+    put:
       tags:
-      - "webhook-controller"
-      summary: "Endpoint for posting webhooks to Spinnaker's webhook service"
-      operationId: "webhooksUsingPOST"
+      - "task-controller"
+      summary: "Cancel task"
+      operationId: "cancelTaskUsingPUT_1"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "type"
+      - name: "id"
         in: "path"
-        description: "type"
+        description: "id"
         required: true
         type: "string"
-        x-exportParamName: "Type_"
-      - name: "source"
-        in: "path"
-        description: "source"
-        required: true
-        type: "string"
-        x-exportParamName: "Source"
-      - in: "body"
-        name: "event"
-        description: "event"
-        required: true
-        schema:
-          type: "object"
-        x-exportParamName: "Event"
-      - name: "X-Hub-Signature"
-        in: "header"
-        description: "X-Hub-Signature"
-        required: false
-        type: "string"
-        x-exportParamName: "XHubSignature"
-      - name: "X-Event-Key"
-        in: "header"
-        description: "X-Event-Key"
-        required: false
-        type: "string"
-        x-exportParamName: "XEventKey"
+        x-exportParamName: "Id"
       responses:
         200:
           description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
         201:
           description: "Created"
         401:
@@ -328,6 +1285,395 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
+  /vpcs:
+    get:
+      tags:
+      - "amazon-infrastructure-controller"
+      summary: "Get VPCs"
+      operationId: "vpcsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      deprecated: true
+  /auth/user:
+    get:
+      tags:
+      - "auth-controller"
+      summary: "Get user"
+      operationId: "userUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/User"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /securityGroups/{account}/{region}/{name}:
+    get:
+      tags:
+      - "security-group-controller"
+      summary: "Retrieve a security group's details"
+      operationId: "getSecurityGroupUsingGET_1"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "region"
+        in: "path"
+        description: "region"
+        required: true
+        type: "string"
+        x-exportParamName: "Region"
+      - name: "name"
+        in: "path"
+        description: "name"
+        required: true
+        type: "string"
+        x-exportParamName: "Name"
+      - name: "provider"
+        in: "query"
+        description: "provider"
+        required: false
+        type: "string"
+        default: "aws"
+        x-exportParamName: "Provider"
+      - name: "vpcId"
+        in: "query"
+        description: "vpcId"
+        required: false
+        type: "string"
+        x-exportParamName: "VpcId"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /bakery/logs/{region}/{statusId}:
+    get:
+      tags:
+      - "bake-controller"
+      summary: "Retrieve the logs for a given bake"
+      operationId: "lookupLogsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "region"
+        in: "path"
+        description: "region"
+        required: true
+        type: "string"
+        x-exportParamName: "Region"
+      - name: "statusId"
+        in: "path"
+        description: "statusId"
+        required: true
+        type: "string"
+        x-exportParamName: "StatusId"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /instances/{account}/{region}/{instanceId}:
+    get:
+      tags:
+      - "instance-controller"
+      summary: "Retrieve an instance's details"
+      operationId: "getInstanceDetailsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "region"
+        in: "path"
+        description: "region"
+        required: true
+        type: "string"
+        x-exportParamName: "Region"
+      - name: "instanceId"
+        in: "path"
+        description: "instanceId"
+        required: true
+        type: "string"
+        x-exportParamName: "InstanceId"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/pipelineConfigs/{pipelineName}:
+    get:
+      tags:
+      - "application-controller"
+      summary: "Retrieve a pipeline configuration"
+      operationId: "getPipelineConfigUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      - name: "pipelineName"
+        in: "path"
+        description: "pipelineName"
+        required: true
+        type: "string"
+        x-exportParamName: "PipelineName"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+    post:
+      tags:
+      - "application-controller"
+      summary: "Invoke pipeline config"
+      operationId: "invokePipelineConfigUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      - name: "pipelineName"
+        in: "path"
+        description: "pipelineName"
+        required: true
+        type: "string"
+        x-exportParamName: "PipelineName"
+      - in: "body"
+        name: "trigger"
+        description: "trigger"
+        required: false
+        schema:
+          type: "object"
+        x-exportParamName: "Trigger"
+      - name: "user"
+        in: "query"
+        description: "user"
+        required: false
+        type: "string"
+        x-exportParamName: "User"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/HttpEntity"
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      deprecated: true
+  /credentials/{account}:
+    get:
+      tags:
+      - "credentials-controller"
+      summary: "Retrieve an account's details"
+      operationId: "getAccountUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "roles"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+        x-exportParamName: "Roles"
+      - name: "allowedAccounts"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+        x-exportParamName: "AllowedAccounts"
+      - name: "email"
+        in: "query"
+        required: false
+        type: "string"
+        x-exportParamName: "Email"
+      - name: "username"
+        in: "query"
+        required: false
+        type: "string"
+        x-exportParamName: "Username"
+      - name: "firstName"
+        in: "query"
+        required: false
+        type: "string"
+        x-exportParamName: "FirstName"
+      - name: "lastName"
+        in: "query"
+        required: false
+        type: "string"
+        x-exportParamName: "LastName"
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/AccountDetails"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/tasks/{id}/details/{taskDetailsId}:
+    get:
+      tags:
+      - "application-controller"
+      summary: "Get task details"
+      operationId: "getTaskDetailsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      - name: "taskDetailsId"
+        in: "path"
+        description: "taskDetailsId"
+        required: true
+        type: "string"
+        x-exportParamName: "TaskDetailsId"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      deprecated: true
   /applications/{application}/clusters/{account}:
     get:
       tags:
@@ -370,155 +1716,99 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /search:
-    get:
+  /tasks/cancel:
+    put:
       tags:
-      - "search-controller"
-      summary: "Search infrastructure"
-      operationId: "searchUsingGET"
+      - "task-controller"
+      summary: "Cancel tasks"
+      operationId: "cancelTasksUsingPUT"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "q"
+      - name: "ids"
         in: "query"
-        description: "q"
-        required: false
-        type: "string"
-        x-exportParamName: "Q"
-      - name: "type"
-        in: "query"
-        description: "type"
+        description: "ids"
         required: true
-        type: "string"
-        x-exportParamName: "Type_"
-      - name: "platform"
-        in: "query"
-        description: "platform"
-        required: false
-        type: "string"
-        x-exportParamName: "Platform"
-      - name: "pageSize"
-        in: "query"
-        description: "pageSize"
-        required: false
-        type: "integer"
-        default: 10000
-        format: "int32"
-        x-exportParamName: "PageSize"
-      - name: "page"
-        in: "query"
-        description: "page"
-        required: false
-        type: "integer"
-        default: 1
-        format: "int32"
-        x-exportParamName: "Page"
-      - name: "allowShortQuery"
-        in: "query"
-        description: "allowShortQuery"
-        required: false
-        type: "boolean"
-        default: false
-        x-exportParamName: "AllowShortQuery"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+        x-exportParamName: "Ids"
       responses:
         200:
           description: "OK"
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/clusters/{account}/{clusterName}/{type}/loadBalancers:
-    get:
-      tags:
-      - "cluster-controller"
-      summary: "Retrieve a cluster's loadbalancers"
-      operationId: "getClusterLoadBalancersUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "applicationName"
-        in: "path"
-        description: "applicationName"
-        required: true
-        type: "string"
-        x-exportParamName: "ApplicationName"
-      - name: "account"
-        in: "path"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "clusterName"
-        in: "path"
-        description: "clusterName"
-        required: true
-        type: "string"
-        x-exportParamName: "ClusterName"
-      - name: "type"
-        in: "path"
-        description: "type"
-        required: true
-        type: "string"
-        x-exportParamName: "Type_"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
+            type: "object"
+            additionalProperties:
               type: "object"
               properties: {}
+        201:
+          description: "Created"
         401:
           description: "Unauthorized"
         403:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /networks/{cloudProvider}:
+  /auth/redirect:
     get:
       tags:
-      - "network-controller"
-      summary: "Retrieve a list of networks for a given cloud provider"
-      operationId: "allByCloudProviderUsingGET"
+      - "auth-controller"
+      summary: "Redirect to Deck"
+      operationId: "redirectUsingGET"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "cloudProvider"
-        in: "path"
-        description: "cloudProvider"
+      - name: "to"
+        in: "query"
+        description: "to"
         required: true
         type: "string"
-        x-exportParamName: "CloudProvider"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
+        x-exportParamName: "To"
+      responses:
+        200:
+          description: "OK"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /projects/{id}/pipelines:
+    get:
+      tags:
+      - "project-controller"
+      summary: "Get all pipelines for project"
+      operationId: "allPipelinesForProjectUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      - name: "limit"
+        in: "query"
+        description: "limit"
+        required: false
+        type: "integer"
+        default: 5
+        format: "int32"
+        x-exportParamName: "Limit"
+      - name: "statuses"
+        in: "query"
+        description: "statuses"
         required: false
         type: "string"
-        x-exportParamName: "XRateLimitApp"
+        x-exportParamName: "Statuses"
       responses:
         200:
           description: "OK"
@@ -532,12 +1822,12 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /pipelines/{id}/pause:
+  /pipelines/{id}/resume:
     put:
       tags:
       - "pipeline-controller"
-      summary: "Pause a pipeline execution"
-      operationId: "pausePipelineUsingPUT"
+      summary: "Resume a pipeline execution"
+      operationId: "resumePipelineUsingPUT"
       consumes:
       - "application/json"
       produces:
@@ -559,6 +1849,180 @@ paths:
               properties: {}
         201:
           description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /pipelines/start:
+    post:
+      tags:
+      - "pipeline-controller"
+      summary: "Initiate a pipeline execution"
+      operationId: "startUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - in: "body"
+        name: "map"
+        description: "map"
+        required: true
+        schema:
+          type: "object"
+        x-exportParamName: "Map_"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ResponseEntity"
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /images/find:
+    get:
+      tags:
+      - "image-controller"
+      summary: "Retrieve a list of images, filtered by cloud provider, region, and\
+        \ account"
+      description: "The query parameter `q` filters the list of images by image name"
+      operationId: "findImagesUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "provider"
+        in: "query"
+        description: "provider"
+        required: false
+        type: "string"
+        default: "aws"
+        x-exportParamName: "Provider"
+      - name: "q"
+        in: "query"
+        description: "q"
+        required: false
+        type: "string"
+        x-exportParamName: "Q"
+      - name: "region"
+        in: "query"
+        description: "region"
+        required: false
+        type: "string"
+        x-exportParamName: "Region"
+      - name: "account"
+        in: "query"
+        description: "account"
+        required: false
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "count"
+        in: "query"
+        description: "count"
+        required: false
+        type: "integer"
+        format: "int32"
+        x-exportParamName: "Count"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /v2/builds/{buildMaster}/jobs/**:
+    get:
+      tags:
+      - "build-controller"
+      summary: "Get job config"
+      operationId: "getJobConfigUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "buildMaster"
+        in: "path"
+        description: "buildMaster"
+        required: true
+        type: "string"
+        x-exportParamName: "BuildMaster"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /instances/{account}/{region}/{instanceId}/console:
+    get:
+      tags:
+      - "instance-controller"
+      summary: "Retrieve an instance's console output"
+      operationId: "getConsoleOutputUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "region"
+        in: "path"
+        description: "region"
+        required: true
+        type: "string"
+        x-exportParamName: "Region"
+      - name: "instanceId"
+        in: "path"
+        description: "instanceId"
+        required: true
+        type: "string"
+        x-exportParamName: "InstanceId"
+      - name: "provider"
+        in: "query"
+        description: "provider"
+        required: false
+        type: "string"
+        default: "aws"
+        x-exportParamName: "Provider"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties: {}
         401:
           description: "Unauthorized"
         403:
@@ -642,7 +2106,7 @@ paths:
       tags:
       - "pipeline-controller"
       summary: "Evaluate a pipeline expression using the provided execution as context"
-      operationId: "evaluateExpressionForExecutionUsingPOST"
+      operationId: "evaluateExpressionForExecutionViaPOSTUsingPOST"
       consumes:
       - "application/json"
       produces:
@@ -654,12 +2118,13 @@ paths:
         required: true
         type: "string"
         x-exportParamName: "Id"
-      - name: "expression"
-        in: "query"
-        description: "expression"
+      - in: "body"
+        name: "pipelineExpression"
+        description: "pipelineExpression"
         required: true
-        type: "string"
-        x-exportParamName: "Expression"
+        schema:
+          type: "object"
+        x-exportParamName: "PipelineExpression"
       responses:
         200:
           description: "OK"
@@ -839,6 +2304,13 @@ paths:
         required: true
         type: "string"
         x-exportParamName: "Application"
+      - name: "page"
+        in: "query"
+        description: "page"
+        required: false
+        type: "integer"
+        format: "int32"
+        x-exportParamName: "Page"
       - name: "limit"
         in: "query"
         description: "limit"
@@ -906,115 +2378,103 @@ paths:
         404:
           description: "Not Found"
       deprecated: true
-  /applications/{application}/pipelineConfigs/{pipelineName}:
+  /credentials:
     get:
       tags:
-      - "application-controller"
-      summary: "Retrieve a pipeline configuration"
-      operationId: "getPipelineConfigUsingGET"
+      - "credentials-controller"
+      summary: "Retrieve a list of accounts"
+      operationId: "getAccountsUsingGET"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "pipelineName"
-        in: "path"
-        description: "pipelineName"
-        required: true
-        type: "string"
-        x-exportParamName: "PipelineName"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-    post:
-      tags:
-      - "application-controller"
-      summary: "Invoke pipeline config"
-      operationId: "invokePipelineConfigUsingPOST"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "pipelineName"
-        in: "path"
-        description: "pipelineName"
-        required: true
-        type: "string"
-        x-exportParamName: "PipelineName"
-      - in: "body"
-        name: "trigger"
-        description: "trigger"
-        required: false
-        schema:
-          type: "object"
-        x-exportParamName: "Trigger"
-      - name: "user"
+      - name: "roles"
         in: "query"
-        description: "user"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+        x-exportParamName: "Roles"
+      - name: "allowedAccounts"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+        x-exportParamName: "AllowedAccounts"
+      - name: "email"
+        in: "query"
         required: false
         type: "string"
-        x-exportParamName: "User"
+        x-exportParamName: "Email"
+      - name: "username"
+        in: "query"
+        required: false
+        type: "string"
+        x-exportParamName: "Username"
+      - name: "firstName"
+        in: "query"
+        required: false
+        type: "string"
+        x-exportParamName: "FirstName"
+      - name: "lastName"
+        in: "query"
+        required: false
+        type: "string"
+        x-exportParamName: "LastName"
+      - name: "expand"
+        in: "query"
+        description: "expand"
+        required: false
+        type: "boolean"
+        x-exportParamName: "Expand"
       responses:
         200:
           description: "OK"
           schema:
-            $ref: "#/definitions/HttpEntity"
-        201:
-          description: "Created"
+            type: "array"
+            items:
+              $ref: "#/definitions/Account"
         401:
           description: "Unauthorized"
         403:
           description: "Forbidden"
         404:
           description: "Not Found"
-      deprecated: true
-  /bakery/logs/{region}/{statusId}:
+  /auditevents:
     get:
       tags:
-      - "bake-controller"
-      summary: "Retrieve the logs for a given bake"
-      operationId: "lookupLogsUsingGET"
+      - "audit-events-mvc-endpoint"
+      summary: "findByPrincipalAndAfterAndType"
+      operationId: "findByPrincipalAndAfterAndTypeUsingGET"
       consumes:
       - "application/json"
       produces:
-      - "*/*"
+      - "application/vnd.spring-boot.actuator.v1+json"
+      - "application/json"
       parameters:
-      - name: "region"
-        in: "path"
-        description: "region"
-        required: true
+      - name: "principal"
+        in: "query"
+        description: "principal"
+        required: false
         type: "string"
-        x-exportParamName: "Region"
-      - name: "statusId"
-        in: "path"
-        description: "statusId"
-        required: true
+        x-exportParamName: "Principal"
+      - name: "after"
+        in: "query"
+        description: "after"
+        required: false
         type: "string"
-        x-exportParamName: "StatusId"
+        format: "date-time"
+        x-exportParamName: "After"
+      - name: "type"
+        in: "query"
+        description: "type"
+        required: false
+        type: "string"
+        x-exportParamName: "Type_"
       responses:
         200:
           description: "OK"
@@ -1027,81 +2487,17 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /pipelines/{id}/stages/{stageId}/restart:
-    put:
-      tags:
-      - "pipeline-controller"
-      summary: "Restart a stage execution"
-      operationId: "restartStageUsingPUT"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      - name: "stageId"
-        in: "path"
-        description: "stageId"
-        required: true
-        type: "string"
-        x-exportParamName: "StageId"
-      - in: "body"
-        name: "context"
-        description: "context"
-        required: true
-        schema:
-          type: "object"
-        x-exportParamName: "Context"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /securityGroups/{account}/{region}/{name}:
+  /images/tags:
     get:
       tags:
-      - "security-group-controller"
-      summary: "Retrieve a security group's details"
-      operationId: "getSecurityGroupUsingGET"
+      - "image-controller"
+      summary: "Find tags"
+      operationId: "findTagsUsingGET"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "account"
-        in: "path"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "region"
-        in: "path"
-        description: "region"
-        required: true
-        type: "string"
-        x-exportParamName: "Region"
-      - name: "name"
-        in: "path"
-        description: "name"
-        required: true
-        type: "string"
-        x-exportParamName: "Name"
       - name: "provider"
         in: "query"
         description: "provider"
@@ -1109,12 +2505,55 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
-      - name: "vpcId"
+      - name: "account"
         in: "query"
-        description: "vpcId"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "repository"
+        in: "query"
+        description: "repository"
+        required: true
+        type: "string"
+        x-exportParamName: "Repository"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
         required: false
         type: "string"
-        x-exportParamName: "VpcId"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/clusters:
+    get:
+      tags:
+      - "cluster-controller"
+      summary: "Retrieve a list of cluster names for an application, grouped by account"
+      operationId: "getClustersUsingGET_2"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
       - name: "X-RateLimit-App"
         in: "header"
         description: "X-RateLimit-App"
@@ -1126,84 +2565,32 @@ paths:
           description: "OK"
           schema:
             type: "object"
-            properties: {}
+            additionalProperties:
+              type: "object"
+              properties: {}
         401:
           description: "Unauthorized"
         403:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /auth/redirect:
+  /applications/{application}/serverGroupManagers:
     get:
       tags:
-      - "auth-controller"
-      summary: "Redirect to Deck"
-      operationId: "redirectUsingGET"
+      - "server-group-manager-controller"
+      summary: "Retrieve a list of server group managers for an application"
+      operationId: "getServerGroupManagersForApplicationUsingGET"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "to"
-        in: "query"
-        description: "to"
-        required: true
-        type: "string"
-        x-exportParamName: "To"
-      responses:
-        200:
-          description: "OK"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /auth/loggedOut:
-    get:
-      tags:
-      - "auth-controller"
-      summary: "Get logged out message"
-      operationId: "loggedOutUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "string"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /subnets/{cloudProvider}:
-    get:
-      tags:
-      - "subnet-controller"
-      summary: "Retrieve a list of subnets for a given cloud provider"
-      operationId: "allByCloudProviderUsingGET_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "cloudProvider"
+      - name: "application"
         in: "path"
-        description: "cloudProvider"
+        description: "application"
         required: true
         type: "string"
-        x-exportParamName: "CloudProvider"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
+        x-exportParamName: "Application"
       responses:
         200:
           description: "OK"
@@ -1217,43 +2604,12 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /pipelines/start:
+  /auth/roles/sync:
     post:
       tags:
-      - "pipeline-controller"
-      summary: "Initiate a pipeline execution"
-      operationId: "startUsingPOST"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - in: "body"
-        name: "map"
-        description: "map"
-        required: true
-        schema:
-          type: "object"
-        x-exportParamName: "Map_"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            $ref: "#/definitions/ResponseEntity"
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /webhooks/preconfigured:
-    get:
-      tags:
-      - "webhook-controller"
-      summary: "Retrieve a list of preconfigured webhooks in Orca"
-      operationId: "preconfiguredWebhooksUsingGET"
+      - "auth-controller"
+      summary: "Sync user roles"
+      operationId: "syncUsingPOST"
       consumes:
       - "application/json"
       produces:
@@ -1262,11 +2618,75 @@ paths:
       responses:
         200:
           description: "OK"
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /v2/builds/{buildMaster}/jobs:
+    get:
+      tags:
+      - "build-controller"
+      summary: "Get jobs for build master"
+      operationId: "getJobsForBuildMasterUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "buildMaster"
+        in: "path"
+        description: "buildMaster"
+        required: true
+        type: "string"
+        x-exportParamName: "BuildMaster"
+      responses:
+        200:
+          description: "OK"
           schema:
             type: "array"
             items:
               type: "object"
               properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /securityGroups:
+    get:
+      tags:
+      - "security-group-controller"
+      summary: "Retrieve a list of security groups, grouped by account, cloud provider,\
+        \ and region"
+      operationId: "allUsingGET_3"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "query"
+        description: "id"
+        required: false
+        type: "string"
+        x-exportParamName: "Id"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties: {}
         401:
           description: "Unauthorized"
         403:
@@ -1311,380 +2731,41 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /applications/{applicationName}/jobs:
+  /applications/{application}/clusters/{account}/{clusterName}/serverGroups:
     get:
       tags:
-      - "job-controller"
-      summary: "Get jobs"
-      operationId: "getJobsUsingGET"
+      - "cluster-controller"
+      summary: "Retrieve a list of server groups for a cluster"
+      operationId: "getServerGroupsUsingGET_1"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "applicationName"
+      - name: "application"
         in: "path"
-        description: "applicationName"
+        description: "application"
         required: true
         type: "string"
-        x-exportParamName: "ApplicationName"
-      - name: "expand"
-        in: "query"
-        description: "expand"
-        required: false
-        type: "string"
-        default: "false"
-        x-exportParamName: "Expand"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /credentials/{account}:
-    get:
-      tags:
-      - "credentials-controller"
-      summary: "Retrieve an account's details"
-      operationId: "getAccountUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "roles"
-        in: "query"
-        required: false
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-        x-exportParamName: "Roles"
-      - name: "allowedAccounts"
-        in: "query"
-        required: false
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-        x-exportParamName: "AllowedAccounts"
-      - name: "email"
-        in: "query"
-        required: false
-        type: "string"
-        x-exportParamName: "Email"
-      - name: "username"
-        in: "query"
-        required: false
-        type: "string"
-        x-exportParamName: "Username"
-      - name: "firstName"
-        in: "query"
-        required: false
-        type: "string"
-        x-exportParamName: "FirstName"
-      - name: "lastName"
-        in: "query"
-        required: false
-        type: "string"
-        x-exportParamName: "LastName"
+        x-exportParamName: "Application"
       - name: "account"
         in: "path"
         description: "account"
         required: true
         type: "string"
         x-exportParamName: "Account"
+      - name: "clusterName"
+        in: "path"
+        description: "clusterName"
+        required: true
+        type: "string"
+        x-exportParamName: "ClusterName"
       - name: "X-RateLimit-App"
         in: "header"
         description: "X-RateLimit-App"
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            $ref: "#/definitions/AccountDetails"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}:
-    get:
-      tags:
-      - "application-controller"
-      summary: "Retrieve an application's details"
-      operationId: "getApplicationUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "expand"
-        in: "query"
-        description: "expand"
-        required: false
-        type: "boolean"
-        default: true
-        x-exportParamName: "Expand"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /pipelines/{id}/cancel:
-    put:
-      tags:
-      - "pipeline-controller"
-      summary: "Cancel a pipeline execution"
-      operationId: "cancelPipelineUsingPUT_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      - name: "reason"
-        in: "query"
-        description: "reason"
-        required: false
-        type: "string"
-        x-exportParamName: "Reason"
-      - name: "force"
-        in: "query"
-        description: "force"
-        required: false
-        type: "boolean"
-        default: false
-        x-exportParamName: "Force"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /pipelines/{application}/{pipelineName}:
-    delete:
-      tags:
-      - "pipeline-controller"
-      summary: "Delete a pipeline definition"
-      operationId: "deletePipelineUsingDELETE"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "pipelineName"
-        in: "path"
-        description: "pipelineName"
-        required: true
-        type: "string"
-        x-exportParamName: "PipelineName"
-      responses:
-        200:
-          description: "OK"
-        204:
-          description: "No Content"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-  /applications/{application}/pipelines:
-    get:
-      tags:
-      - "application-controller"
-      summary: "Retrieve a list of an application's pipeline executions"
-      operationId: "getPipelinesUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "limit"
-        in: "query"
-        description: "limit"
-        required: false
-        type: "integer"
-        format: "int32"
-        x-exportParamName: "Limit"
-      - name: "statuses"
-        in: "query"
-        description: "statuses"
-        required: false
-        type: "string"
-        x-exportParamName: "Statuses"
-      - name: "expand"
-        in: "query"
-        description: "expand"
-        required: false
-        type: "boolean"
-        x-exportParamName: "Expand"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /tasks/cancel:
-    put:
-      tags:
-      - "task-controller"
-      summary: "Cancel tasks"
-      operationId: "cancelTasksUsingPUT"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "ids"
-        in: "query"
-        description: "ids"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-        x-exportParamName: "Ids"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /instances/{account}/{region}/{instanceId}:
-    get:
-      tags:
-      - "instance-controller"
-      summary: "Retrieve an instance's details"
-      operationId: "getInstanceDetailsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "account"
-        in: "path"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "region"
-        in: "path"
-        description: "region"
-        required: true
-        type: "string"
-        x-exportParamName: "Region"
-      - name: "instanceId"
-        in: "path"
-        description: "instanceId"
-        required: true
-        type: "string"
-        x-exportParamName: "InstanceId"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /instanceTypes:
-    get:
-      tags:
-      - "amazon-infrastructure-controller"
-      summary: "Get instance types"
-      operationId: "instanceTypesUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
       responses:
         200:
           description: "OK"
@@ -1692,69 +2773,6 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /loadBalancers:
-    get:
-      tags:
-      - "load-balancer-controller"
-      summary: "Retrieve a list of load balancers for a given cloud provider"
-      operationId: "getAllUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "provider"
-        in: "query"
-        description: "provider"
-        required: false
-        type: "string"
-        default: "aws"
-        x-exportParamName: "Provider"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /v2/builds:
-    get:
-      tags:
-      - "build-controller"
-      summary: "Get build masters"
-      operationId: "getBuildMastersUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
         401:
           description: "Unauthorized"
         403:
@@ -1828,35 +2846,30 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /tasks/{id}/details/{taskDetailsId}:
+  /applications/{application}:
     get:
       tags:
-      - "task-controller"
-      summary: "Get task details"
-      operationId: "getTaskDetailsUsingGET_1"
+      - "application-controller"
+      summary: "Retrieve an application's details"
+      operationId: "getApplicationUsingGET"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "id"
+      - name: "application"
         in: "path"
-        description: "id"
+        description: "application"
         required: true
         type: "string"
-        x-exportParamName: "Id"
-      - name: "taskDetailsId"
-        in: "path"
-        description: "taskDetailsId"
-        required: true
-        type: "string"
-        x-exportParamName: "TaskDetailsId"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
+        x-exportParamName: "Application"
+      - name: "expand"
+        in: "query"
+        description: "expand"
         required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
+        type: "boolean"
+        default: true
+        x-exportParamName: "Expand"
       responses:
         200:
           description: "OK"
@@ -1871,37 +2884,30 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /auditevents.json:
+  /firewalls:
     get:
       tags:
-      - "audit-events-mvc-endpoint"
-      summary: "findByPrincipalAndAfterAndType"
-      operationId: "findByPrincipalAndAfterAndTypeUsingGET_1"
+      - "firewall-controller"
+      summary: "Retrieve a list of firewalls, grouped by account, cloud provider,\
+        \ and region"
+      operationId: "allUsingGET_1"
       consumes:
       - "application/json"
       produces:
-      - "application/vnd.spring-boot.actuator.v1+json"
-      - "application/json"
+      - "*/*"
       parameters:
-      - name: "principal"
+      - name: "id"
         in: "query"
-        description: "principal"
+        description: "id"
         required: false
         type: "string"
-        x-exportParamName: "Principal"
-      - name: "after"
-        in: "query"
-        description: "after"
+        x-exportParamName: "Id"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
         required: false
         type: "string"
-        format: "date-time"
-        x-exportParamName: "After"
-      - name: "type"
-        in: "query"
-        description: "type"
-        required: false
-        type: "string"
-        x-exportParamName: "Type_"
+        x-exportParamName: "XRateLimitApp"
       responses:
         200:
           description: "OK"
@@ -1914,23 +2920,30 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /applications/{application}/loadBalancers:
+  /loadBalancers/{name}:
     get:
       tags:
       - "load-balancer-controller"
-      summary: "Retrieve a list of load balancers for a given application"
-      operationId: "getApplicationLoadBalancersUsingGET"
+      summary: "Retrieve a load balancer for a given cloud provider"
+      operationId: "getLoadBalancerUsingGET"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "application"
+      - name: "name"
         in: "path"
-        description: "application"
+        description: "name"
         required: true
         type: "string"
-        x-exportParamName: "Application"
+        x-exportParamName: "Name"
+      - name: "provider"
+        in: "query"
+        description: "provider"
+        required: false
+        type: "string"
+        default: "aws"
+        x-exportParamName: "Provider"
       - name: "X-RateLimit-App"
         in: "header"
         description: "X-RateLimit-App"
@@ -1941,114 +2954,47 @@ paths:
         200:
           description: "OK"
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
         401:
           description: "Unauthorized"
         403:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /applications:
+  /securityGroups/{account}:
     get:
       tags:
-      - "application-controller"
-      summary: "Retrieve a list of applications"
-      operationId: "getAllApplicationsUsingGET"
+      - "security-group-controller"
+      summary: "Retrieve a list of security groups for a given account, grouped by\
+        \ region"
+      operationId: "allByAccountUsingGET_1"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "account"
-        in: "query"
-        description: "filters results to only include applications deployed in the\
-          \ specified account"
-        required: false
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "owner"
-        in: "query"
-        description: "filteres results to only include applications owned by the specified\
-          \ email"
-        required: false
-        type: "string"
-        x-exportParamName: "Owner"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/clusters/{account}/{clusterName}/{cloudProvider}/{scope}/serverGroups/target/{target}:
-    get:
-      tags:
-      - "cluster-controller"
-      summary: "Retrieve a server group that matches a target coordinate (e.g., newest,\
-        \ ancestor) relative to a cluster"
-      description: "`scope` is either a zone or a region"
-      operationId: "getTargetServerGroupUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
       - name: "account"
         in: "path"
         description: "account"
         required: true
         type: "string"
         x-exportParamName: "Account"
-      - name: "clusterName"
-        in: "path"
-        description: "clusterName"
-        required: true
-        type: "string"
-        x-exportParamName: "ClusterName"
-      - name: "cloudProvider"
-        in: "path"
-        description: "cloudProvider"
-        required: true
-        type: "string"
-        x-exportParamName: "CloudProvider"
-      - name: "scope"
-        in: "path"
-        description: "scope"
-        required: true
-        type: "string"
-        x-exportParamName: "Scope"
-      - name: "target"
-        in: "path"
-        description: "target"
-        required: true
-        type: "string"
-        x-exportParamName: "Target"
-      - name: "onlyEnabled"
+      - name: "provider"
         in: "query"
-        description: "onlyEnabled"
+        description: "provider"
         required: false
-        type: "boolean"
-        x-exportParamName: "OnlyEnabled"
-      - name: "validateOldest"
+        type: "string"
+        default: "aws"
+        x-exportParamName: "Provider"
+      - name: "region"
         in: "query"
-        description: "validateOldest"
+        description: "region"
         required: false
-        type: "boolean"
-        x-exportParamName: "ValidateOldest"
+        type: "string"
+        x-exportParamName: "Region"
       - name: "X-RateLimit-App"
         in: "header"
         description: "X-RateLimit-App"
@@ -2060,444 +3006,7 @@ paths:
           description: "OK"
           schema:
             type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /vpcs:
-    get:
-      tags:
-      - "amazon-infrastructure-controller"
-      summary: "Get VPCs"
-      operationId: "vpcsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-      deprecated: true
-  /projects/{id}/pipelines:
-    get:
-      tags:
-      - "project-controller"
-      summary: "Get all pipelines for project"
-      operationId: "allPipelinesForProjectUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      - name: "limit"
-        in: "query"
-        description: "limit"
-        required: false
-        type: "integer"
-        default: 5
-        format: "int32"
-        x-exportParamName: "Limit"
-      - name: "statuses"
-        in: "query"
-        description: "statuses"
-        required: false
-        type: "string"
-        x-exportParamName: "Statuses"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /networks:
-    get:
-      tags:
-      - "network-controller"
-      summary: "Retrieve a list of networks, grouped by cloud provider"
-      operationId: "allUsingGET_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /tasks:
-    post:
-      tags:
-      - "task-controller"
-      summary: "Create task"
-      operationId: "taskUsingPOST_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - in: "body"
-        name: "map"
-        description: "map"
-        required: true
-        schema:
-          type: "object"
-        x-exportParamName: "Map_"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/pipelines/{id}/cancel:
-    put:
-      tags:
-      - "application-controller"
-      summary: "Cancel pipeline"
-      operationId: "cancelPipelineUsingPUT"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      - name: "reason"
-        in: "query"
-        description: "reason"
-        required: false
-        type: "string"
-        x-exportParamName: "Reason"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-      deprecated: true
-  /applications/{application}/snapshots/{account}/history:
-    get:
-      tags:
-      - "snapshot-controller"
-      summary: "Get snapshot history"
-      operationId: "getSnapshotHistoryUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "account"
-        in: "path"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "limit"
-        in: "query"
-        description: "limit"
-        required: false
-        type: "integer"
-        default: 20
-        format: "int32"
-        x-exportParamName: "Limit"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /pipelines/{id}/stages/{stageId}:
-    patch:
-      tags:
-      - "pipeline-controller"
-      summary: "Update a stage execution"
-      operationId: "updateStageUsingPATCH"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      - name: "stageId"
-        in: "path"
-        description: "stageId"
-        required: true
-        type: "string"
-        x-exportParamName: "StageId"
-      - in: "body"
-        name: "context"
-        description: "context"
-        required: true
-        schema:
-          type: "object"
-        x-exportParamName: "Context"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        204:
-          description: "No Content"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-  /applications/{application}/pipelineConfigs:
-    get:
-      tags:
-      - "application-controller"
-      summary: "Retrieve a list of an application's pipeline configurations"
-      operationId: "getPipelineConfigsForApplicationUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/clusters:
-    get:
-      tags:
-      - "cluster-controller"
-      summary: "Retrieve a list of cluster names for an application, grouped by account"
-      operationId: "getClustersUsingGET_2"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/strategyConfigs:
-    get:
-      tags:
-      - "application-controller"
-      summary: "Retrieve a list of an application's pipeline strategy configurations"
-      operationId: "getStrategyConfigsForApplicationUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/tasks/{id}/details/{taskDetailsId}:
-    get:
-      tags:
-      - "application-controller"
-      summary: "Get task details"
-      operationId: "getTaskDetailsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      - name: "taskDetailsId"
-        in: "path"
-        description: "taskDetailsId"
-        required: true
-        type: "string"
-        x-exportParamName: "TaskDetailsId"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-      deprecated: true
-  /applications/{application}/serverGroupManagers:
-    get:
-      tags:
-      - "server-group-manager-controller"
-      summary: "Retrieve a list of server group managers for an application"
-      operationId: "getServerGroupManagersForApplicationUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
+            properties: {}
         401:
           description: "Unauthorized"
         403:
@@ -2560,12 +3069,308 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /applications/{application}/clusters/{account}/{clusterName}:
+  /applications/{application}/clusters/{account}/{clusterName}/{type}/loadBalancers:
     get:
       tags:
       - "cluster-controller"
-      summary: "Retrieve a cluster's details"
-      operationId: "getClustersUsingGET"
+      summary: "Retrieve a cluster's loadbalancers"
+      operationId: "getClusterLoadBalancersUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "applicationName"
+        in: "path"
+        description: "applicationName"
+        required: true
+        type: "string"
+        x-exportParamName: "ApplicationName"
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "clusterName"
+        in: "path"
+        description: "clusterName"
+        required: true
+        type: "string"
+        x-exportParamName: "ClusterName"
+      - name: "type"
+        in: "path"
+        description: "type"
+        required: true
+        type: "string"
+        x-exportParamName: "Type_"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /search:
+    get:
+      tags:
+      - "search-controller"
+      summary: "Search infrastructure"
+      operationId: "searchUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "q"
+        in: "query"
+        description: "q"
+        required: false
+        type: "string"
+        x-exportParamName: "Q"
+      - name: "type"
+        in: "query"
+        description: "type"
+        required: true
+        type: "string"
+        x-exportParamName: "Type_"
+      - name: "platform"
+        in: "query"
+        description: "platform"
+        required: false
+        type: "string"
+        x-exportParamName: "Platform"
+      - name: "pageSize"
+        in: "query"
+        description: "pageSize"
+        required: false
+        type: "integer"
+        default: 10000
+        format: "int32"
+        x-exportParamName: "PageSize"
+      - name: "page"
+        in: "query"
+        description: "page"
+        required: false
+        type: "integer"
+        default: 1
+        format: "int32"
+        x-exportParamName: "Page"
+      - name: "allowShortQuery"
+        in: "query"
+        description: "allowShortQuery"
+        required: false
+        type: "boolean"
+        default: false
+        x-exportParamName: "AllowShortQuery"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/pipelineConfigs:
+    get:
+      tags:
+      - "application-controller"
+      summary: "Retrieve a list of an application's pipeline configurations"
+      operationId: "getPipelineConfigsForApplicationUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications:
+    get:
+      tags:
+      - "application-controller"
+      summary: "Retrieve a list of applications"
+      operationId: "getAllApplicationsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "account"
+        in: "query"
+        description: "filters results to only include applications deployed in the\
+          \ specified account"
+        required: false
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "owner"
+        in: "query"
+        description: "filteres results to only include applications owned by the specified\
+          \ email"
+        required: false
+        type: "string"
+        x-exportParamName: "Owner"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /executions:
+    get:
+      tags:
+      - "executions-controller"
+      summary: "Retrieve a list of the most recent pipeline executions for the provided\
+        \ `pipelineConfigIds` that match the provided `statuses` query parameter"
+      operationId: "getLatestExecutionsByConfigIdsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "pipelineConfigIds"
+        in: "query"
+        description: "pipelineConfigIds"
+        required: true
+        type: "string"
+        x-exportParamName: "PipelineConfigIds"
+      - name: "limit"
+        in: "query"
+        description: "limit"
+        required: false
+        type: "integer"
+        format: "int32"
+        x-exportParamName: "Limit"
+      - name: "statuses"
+        in: "query"
+        description: "statuses"
+        required: false
+        type: "string"
+        x-exportParamName: "Statuses"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /images/{account}/{region}/{imageId}:
+    get:
+      tags:
+      - "image-controller"
+      summary: "Get image details"
+      operationId: "getImageDetailsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
+      - name: "region"
+        in: "path"
+        description: "region"
+        required: true
+        type: "string"
+        x-exportParamName: "Region"
+      - name: "imageId"
+        in: "path"
+        description: "imageId"
+        required: true
+        type: "string"
+        x-exportParamName: "ImageId"
+      - name: "provider"
+        in: "query"
+        description: "provider"
+        required: false
+        type: "string"
+        default: "aws"
+        x-exportParamName: "Provider"
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
+        type: "string"
+        x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/clusters/{account}/{clusterName}/serverGroups/{serverGroupName}:
+    get:
+      tags:
+      - "cluster-controller"
+      summary: "Retrieve a server group's details"
+      operationId: "getServerGroupsUsingGET"
       consumes:
       - "application/json"
       produces:
@@ -2589,86 +3394,18 @@ paths:
         required: true
         type: "string"
         x-exportParamName: "ClusterName"
+      - name: "serverGroupName"
+        in: "path"
+        description: "serverGroupName"
+        required: true
+        type: "string"
+        x-exportParamName: "ServerGroupName"
       - name: "X-RateLimit-App"
         in: "header"
         description: "X-RateLimit-App"
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /pipelines/{application}/{pipelineNameOrId}:
-    post:
-      tags:
-      - "pipeline-controller"
-      summary: "Trigger a pipeline execution"
-      operationId: "invokePipelineConfigUsingPOST_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "pipelineNameOrId"
-        in: "path"
-        description: "pipelineNameOrId"
-        required: true
-        type: "string"
-        x-exportParamName: "PipelineNameOrId"
-      - in: "body"
-        name: "trigger"
-        description: "trigger"
-        required: false
-        schema:
-          type: "object"
-        x-exportParamName: "Trigger"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            $ref: "#/definitions/HttpEntity"
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /pipelines/{id}/logs:
-    get:
-      tags:
-      - "pipeline-controller"
-      summary: "Retrieve pipeline execution logs"
-      operationId: "getPipelineLogsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
       responses:
         200:
           description: "OK"
@@ -2682,30 +3419,200 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /securityGroups:
+  /tasks/{id}:
     get:
       tags:
-      - "security-group-controller"
-      summary: "Retrieve a list of security groups, grouped by account, cloud provider,\
-        \ and region"
-      operationId: "allUsingGET_2"
+      - "task-controller"
+      summary: "Get task"
+      operationId: "getTaskUsingGET_1"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
       - name: "id"
-        in: "query"
+        in: "path"
         description: "id"
-        required: false
+        required: true
         type: "string"
         x-exportParamName: "Id"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+    delete:
+      tags:
+      - "task-controller"
+      summary: "Delete task"
+      operationId: "deleteTaskUsingDELETE"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        204:
+          description: "No Content"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+  /tasks/{id}/details/{taskDetailsId}:
+    get:
+      tags:
+      - "task-controller"
+      summary: "Get task details"
+      operationId: "getTaskDetailsUsingGET_1"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      - name: "taskDetailsId"
+        in: "path"
+        description: "taskDetailsId"
+        required: true
+        type: "string"
+        x-exportParamName: "TaskDetailsId"
       - name: "X-RateLimit-App"
         in: "header"
         description: "X-RateLimit-App"
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /auth/loggedOut:
+    get:
+      tags:
+      - "auth-controller"
+      summary: "Get logged out message"
+      operationId: "loggedOutUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "string"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/strategyConfigs/{strategyName}:
+    get:
+      tags:
+      - "application-controller"
+      summary: "Retrieve a pipeline strategy configuration"
+      operationId: "getStrategyConfigUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      - name: "strategyName"
+        in: "path"
+        description: "strategyName"
+        required: true
+        type: "string"
+        x-exportParamName: "StrategyName"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /auditevents.json:
+    get:
+      tags:
+      - "audit-events-mvc-endpoint"
+      summary: "findByPrincipalAndAfterAndType"
+      operationId: "findByPrincipalAndAfterAndTypeUsingGET_1"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/vnd.spring-boot.actuator.v1+json"
+      - "application/json"
+      parameters:
+      - name: "principal"
+        in: "query"
+        description: "principal"
+        required: false
+        type: "string"
+        x-exportParamName: "Principal"
+      - name: "after"
+        in: "query"
+        description: "after"
+        required: false
+        type: "string"
+        format: "date-time"
+        x-exportParamName: "After"
+      - name: "type"
+        in: "query"
+        description: "type"
+        required: false
+        type: "string"
+        x-exportParamName: "Type_"
       responses:
         200:
           description: "OK"
@@ -2718,23 +3625,23 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /v2/builds/{buildMaster}/jobs/**:
+  /networks:
     get:
       tags:
-      - "build-controller"
-      summary: "Get job config"
-      operationId: "getJobConfigUsingGET"
+      - "network-controller"
+      summary: "Retrieve a list of networks, grouped by cloud provider"
+      operationId: "allUsingGET_2"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "buildMaster"
-        in: "path"
-        description: "buildMaster"
-        required: true
+      - name: "X-RateLimit-App"
+        in: "header"
+        description: "X-RateLimit-App"
+        required: false
         type: "string"
-        x-exportParamName: "BuildMaster"
+        x-exportParamName: "XRateLimitApp"
       responses:
         200:
           description: "OK"
@@ -2743,6 +3650,116 @@ paths:
             additionalProperties:
               type: "object"
               properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /pipelines:
+    post:
+      tags:
+      - "pipeline-controller"
+      summary: "Save a pipeline definition"
+      operationId: "savePipelineUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - in: "body"
+        name: "pipeline"
+        description: "pipeline"
+        required: true
+        schema:
+          type: "object"
+        x-exportParamName: "Pipeline"
+      responses:
+        200:
+          description: "OK"
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /pipelines/{application}/{pipelineName}:
+    delete:
+      tags:
+      - "pipeline-controller"
+      summary: "Delete a pipeline definition"
+      operationId: "deletePipelineUsingDELETE"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
+        type: "string"
+        x-exportParamName: "Application"
+      - name: "pipelineName"
+        in: "path"
+        description: "pipelineName"
+        required: true
+        type: "string"
+        x-exportParamName: "PipelineName"
+      responses:
+        200:
+          description: "OK"
+        204:
+          description: "No Content"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+  /webhooks/preconfigured:
+    get:
+      tags:
+      - "webhook-controller"
+      summary: "Retrieve a list of preconfigured webhooks in Orca"
+      operationId: "preconfiguredWebhooksUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties: {}
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /subnets:
+    get:
+      tags:
+      - "amazon-infrastructure-controller"
+      summary: "Get subnets"
+      operationId: "subnetsUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/HashMap"
         401:
           description: "Unauthorized"
         403:
@@ -2847,510 +3864,12 @@ paths:
           description: "Unauthorized"
         403:
           description: "Forbidden"
-  /tasks/{id}:
+  /firewalls/{account}/{region}/{name}:
     get:
       tags:
-      - "task-controller"
-      summary: "Get task"
-      operationId: "getTaskUsingGET_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-    delete:
-      tags:
-      - "task-controller"
-      summary: "Delete task"
-      operationId: "deleteTaskUsingDELETE"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        204:
-          description: "No Content"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-  /pipelines/move:
-    post:
-      tags:
-      - "pipeline-controller"
-      summary: "Rename a pipeline definition"
-      operationId: "renamePipelineUsingPOST"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - in: "body"
-        name: "renameCommand"
-        description: "renameCommand"
-        required: true
-        schema:
-          type: "object"
-        x-exportParamName: "RenameCommand"
-      responses:
-        200:
-          description: "OK"
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/clusters/{account}/{clusterName}/serverGroups/{serverGroupName}:
-    get:
-      tags:
-      - "cluster-controller"
-      summary: "Retrieve a server group's details"
-      operationId: "getServerGroupsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "account"
-        in: "path"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "clusterName"
-        in: "path"
-        description: "clusterName"
-        required: true
-        type: "string"
-        x-exportParamName: "ClusterName"
-      - name: "serverGroupName"
-        in: "path"
-        description: "serverGroupName"
-        required: true
-        type: "string"
-        x-exportParamName: "ServerGroupName"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /images/tags:
-    get:
-      tags:
-      - "image-controller"
-      summary: "Find tags"
-      operationId: "findTagsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "provider"
-        in: "query"
-        description: "provider"
-        required: false
-        type: "string"
-        default: "aws"
-        x-exportParamName: "Provider"
-      - name: "account"
-        in: "query"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "repository"
-        in: "query"
-        description: "repository"
-        required: true
-        type: "string"
-        x-exportParamName: "Repository"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /subnets:
-    get:
-      tags:
-      - "amazon-infrastructure-controller"
-      summary: "Get subnets"
-      operationId: "subnetsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/clusters/{account}/{clusterName}/serverGroups:
-    get:
-      tags:
-      - "cluster-controller"
-      summary: "Retrieve a list of server groups for a cluster"
-      operationId: "getServerGroupsUsingGET_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "account"
-        in: "path"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "clusterName"
-        in: "path"
-        description: "clusterName"
-        required: true
-        type: "string"
-        x-exportParamName: "ClusterName"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/strategyConfigs/{strategyName}:
-    get:
-      tags:
-      - "application-controller"
-      summary: "Retrieve a pipeline strategy configuration"
-      operationId: "getStrategyConfigUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "application"
-        in: "path"
-        description: "application"
-        required: true
-        type: "string"
-        x-exportParamName: "Application"
-      - name: "strategyName"
-        in: "path"
-        description: "strategyName"
-        required: true
-        type: "string"
-        x-exportParamName: "StrategyName"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /artifacts/credentials:
-    get:
-      tags:
-      - "artifact-controller"
-      summary: "Retrieve the list of artifact accounts configured in Clouddriver."
-      operationId: "allUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /auth/user:
-    get:
-      tags:
-      - "auth-controller"
-      summary: "Get user"
-      operationId: "userUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
-      responses:
-        200:
-          description: "OK"
-          schema:
-            $ref: "#/definitions/User"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /pipelines:
-    post:
-      tags:
-      - "pipeline-controller"
-      summary: "Save a pipeline definition"
-      operationId: "savePipelineUsingPOST"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - in: "body"
-        name: "pipeline"
-        description: "pipeline"
-        required: true
-        schema:
-          type: "object"
-        x-exportParamName: "Pipeline"
-      responses:
-        200:
-          description: "OK"
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /tasks/{id}/cancel:
-    put:
-      tags:
-      - "task-controller"
-      summary: "Cancel task"
-      operationId: "cancelTaskUsingPUT_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /auth/roles/sync:
-    post:
-      tags:
-      - "auth-controller"
-      summary: "Sync user roles"
-      operationId: "syncUsingPOST"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
-      responses:
-        200:
-          description: "OK"
-        201:
-          description: "Created"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /images/find:
-    get:
-      tags:
-      - "image-controller"
-      summary: "Retrieve a list of images, filtered by cloud provider, region, and\
-        \ account"
-      description: "The query parameter `q` filters the list of images by image name"
-      operationId: "findImagesUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "provider"
-        in: "query"
-        description: "provider"
-        required: false
-        type: "string"
-        default: "aws"
-        x-exportParamName: "Provider"
-      - name: "q"
-        in: "query"
-        description: "q"
-        required: false
-        type: "string"
-        x-exportParamName: "Q"
-      - name: "region"
-        in: "query"
-        description: "region"
-        required: false
-        type: "string"
-        x-exportParamName: "Region"
-      - name: "account"
-        in: "query"
-        description: "account"
-        required: false
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "count"
-        in: "query"
-        description: "count"
-        required: false
-        type: "integer"
-        format: "int32"
-        x-exportParamName: "Count"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /loadBalancers/{account}/{region}/{name}:
-    get:
-      tags:
-      - "load-balancer-controller"
-      summary: "Retrieve a load balancer's details as a single element list for a\
-        \ given account, region, cloud provider and load balancer name"
-      operationId: "getLoadBalancerDetailsUsingGET"
+      - "firewall-controller"
+      summary: "Retrieve a firewall's details"
+      operationId: "getSecurityGroupUsingGET"
       consumes:
       - "application/json"
       produces:
@@ -3381,56 +3900,18 @@ paths:
         type: "string"
         default: "aws"
         x-exportParamName: "Provider"
+      - name: "vpcId"
+        in: "query"
+        description: "vpcId"
+        required: false
+        type: "string"
+        x-exportParamName: "VpcId"
       - name: "X-RateLimit-App"
         in: "header"
         description: "X-RateLimit-App"
         required: false
         type: "string"
         x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/HashMap"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /auditevents:
-    get:
-      tags:
-      - "audit-events-mvc-endpoint"
-      summary: "findByPrincipalAndAfterAndType"
-      operationId: "findByPrincipalAndAfterAndTypeUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/vnd.spring-boot.actuator.v1+json"
-      - "application/json"
-      parameters:
-      - name: "principal"
-        in: "query"
-        description: "principal"
-        required: false
-        type: "string"
-        x-exportParamName: "Principal"
-      - name: "after"
-        in: "query"
-        description: "after"
-        required: false
-        type: "string"
-        format: "date-time"
-        x-exportParamName: "After"
-      - name: "type"
-        in: "query"
-        description: "type"
-        required: false
-        type: "string"
-        x-exportParamName: "Type_"
       responses:
         200:
           description: "OK"
@@ -3443,36 +3924,103 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /loadBalancers/{name}:
-    get:
+  /tasks:
+    post:
       tags:
-      - "load-balancer-controller"
-      summary: "Retrieve a load balancer for a given cloud provider"
-      operationId: "getLoadBalancerUsingGET"
+      - "task-controller"
+      summary: "Create task"
+      operationId: "taskUsingPOST_1"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "name"
+      - in: "body"
+        name: "map"
+        description: "map"
+        required: true
+        schema:
+          type: "object"
+        x-exportParamName: "Map_"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /applications/{application}/pipelines/{id}/cancel:
+    put:
+      tags:
+      - "application-controller"
+      summary: "Cancel pipeline"
+      operationId: "cancelPipelineUsingPUT"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "id"
         in: "path"
-        description: "name"
+        description: "id"
         required: true
         type: "string"
-        x-exportParamName: "Name"
-      - name: "provider"
+        x-exportParamName: "Id"
+      - name: "reason"
         in: "query"
-        description: "provider"
+        description: "reason"
         required: false
         type: "string"
-        default: "aws"
-        x-exportParamName: "Provider"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
+        x-exportParamName: "Reason"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            additionalProperties:
+              type: "object"
+              properties: {}
+        201:
+          description: "Created"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      deprecated: true
+  /applications/{application}/snapshots/{account}:
+    get:
+      tags:
+      - "snapshot-controller"
+      summary: "Get current snapshot"
+      operationId: "getCurrentSnapshotUsingGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "*/*"
+      parameters:
+      - name: "application"
+        in: "path"
+        description: "application"
+        required: true
         type: "string"
-        x-exportParamName: "XRateLimitApp"
+        x-exportParamName: "Application"
+      - name: "account"
+        in: "path"
+        description: "account"
+        required: true
+        type: "string"
+        x-exportParamName: "Account"
       responses:
         200:
           description: "OK"
@@ -3487,134 +4035,36 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /credentials:
-    get:
+  /pipelines/{id}/cancel:
+    put:
       tags:
-      - "credentials-controller"
-      summary: "Retrieve a list of accounts"
-      operationId: "getAccountsUsingGET"
+      - "pipeline-controller"
+      summary: "Cancel a pipeline execution"
+      operationId: "cancelPipelineUsingPUT_1"
       consumes:
       - "application/json"
       produces:
       - "*/*"
       parameters:
-      - name: "roles"
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        x-exportParamName: "Id"
+      - name: "reason"
         in: "query"
-        required: false
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-        x-exportParamName: "Roles"
-      - name: "allowedAccounts"
-        in: "query"
-        required: false
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-        x-exportParamName: "AllowedAccounts"
-      - name: "email"
-        in: "query"
+        description: "reason"
         required: false
         type: "string"
-        x-exportParamName: "Email"
-      - name: "username"
+        x-exportParamName: "Reason"
+      - name: "force"
         in: "query"
-        required: false
-        type: "string"
-        x-exportParamName: "Username"
-      - name: "firstName"
-        in: "query"
-        required: false
-        type: "string"
-        x-exportParamName: "FirstName"
-      - name: "lastName"
-        in: "query"
-        required: false
-        type: "string"
-        x-exportParamName: "LastName"
-      - name: "expand"
-        in: "query"
-        description: "expand"
+        description: "force"
         required: false
         type: "boolean"
-        x-exportParamName: "Expand"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Account"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /executions:
-    get:
-      tags:
-      - "executions-controller"
-      summary: "Retrieve a list of the most recent pipeline executions for the provided\
-        \ `pipelineConfigIds` that match the provided `statuses` query parameter"
-      operationId: "getLatestExecutionsByConfigIdsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "pipelineConfigIds"
-        in: "query"
-        description: "pipelineConfigIds"
-        required: true
-        type: "string"
-        x-exportParamName: "PipelineConfigIds"
-      - name: "limit"
-        in: "query"
-        description: "limit"
-        required: false
-        type: "integer"
-        format: "int32"
-        x-exportParamName: "Limit"
-      - name: "statuses"
-        in: "query"
-        description: "statuses"
-        required: false
-        type: "string"
-        x-exportParamName: "Statuses"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/tasks/{id}/cancel:
-    put:
-      tags:
-      - "application-controller"
-      summary: "Cancel task"
-      operationId: "cancelTaskUsingPUT"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
+        default: false
+        x-exportParamName: "Force"
       responses:
         200:
           description: "OK"
@@ -3631,245 +4081,11 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-      deprecated: true
-  /bakery/options:
+  /firewalls/{account}:
     get:
       tags:
-      - "bake-controller"
-      summary: "Retrieve a list of available bakery base images, grouped by cloud\
-        \ provider"
-      operationId: "bakeOptionsUsingGET_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName}:
-    get:
-      tags:
-      - "server-group-controller"
-      summary: "Retrieve a server group's details"
-      operationId: "getServerGroupDetailsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "applicationName"
-        in: "path"
-        description: "applicationName"
-        required: true
-        type: "string"
-        x-exportParamName: "ApplicationName"
-      - name: "account"
-        in: "path"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "region"
-        in: "path"
-        description: "region"
-        required: true
-        type: "string"
-        x-exportParamName: "Region"
-      - name: "serverGroupName"
-        in: "path"
-        description: "serverGroupName"
-        required: true
-        type: "string"
-        x-exportParamName: "ServerGroupName"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      - name: "includeDetails"
-        in: "query"
-        description: "includeDetails"
-        required: false
-        type: "string"
-        default: "true"
-        x-exportParamName: "IncludeDetails"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /v2/builds/{buildMaster}/build/{number}/**:
-    get:
-      tags:
-      - "build-controller"
-      summary: "Get build for build master"
-      operationId: "getBuildUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "buildMaster"
-        in: "path"
-        description: "buildMaster"
-        required: true
-        type: "string"
-        x-exportParamName: "BuildMaster"
-      - name: "number"
-        in: "path"
-        description: "number"
-        required: true
-        type: "string"
-        x-exportParamName: "Number"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /instances/{account}/{region}/{instanceId}/console:
-    get:
-      tags:
-      - "instance-controller"
-      summary: "Retrieve an instance's console output"
-      operationId: "getConsoleOutputUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "account"
-        in: "path"
-        description: "account"
-        required: true
-        type: "string"
-        x-exportParamName: "Account"
-      - name: "region"
-        in: "path"
-        description: "region"
-        required: true
-        type: "string"
-        x-exportParamName: "Region"
-      - name: "instanceId"
-        in: "path"
-        description: "instanceId"
-        required: true
-        type: "string"
-        x-exportParamName: "InstanceId"
-      - name: "provider"
-        in: "query"
-        description: "provider"
-        required: false
-        type: "string"
-        default: "aws"
-        x-exportParamName: "Provider"
-      - name: "X-RateLimit-App"
-        in: "header"
-        description: "X-RateLimit-App"
-        required: false
-        type: "string"
-        x-exportParamName: "XRateLimitApp"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /applications/{application}/tasks/{id}:
-    get:
-      tags:
-      - "application-controller"
-      summary: "Get task"
-      operationId: "getTaskUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "id"
-        required: true
-        type: "string"
-        x-exportParamName: "Id"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-      deprecated: true
-  /auth/user/serviceAccounts:
-    get:
-      tags:
-      - "auth-controller"
-      summary: "Get service accounts"
-      operationId: "getServiceAccountsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters: []
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /securityGroups/{account}:
-    get:
-      tags:
-      - "security-group-controller"
-      summary: "Retrieve a list of security groups for a given account, grouped by\
-        \ region"
+      - "firewall-controller"
+      summary: "Retrieve a list of firewalls for a given account, grouped by region"
       operationId: "allByAccountUsingGET"
       consumes:
       - "application/json"
@@ -3913,130 +4129,13 @@ paths:
           description: "Forbidden"
         404:
           description: "Not Found"
-  /v2/builds/{buildMaster}/jobs:
-    get:
-      tags:
-      - "build-controller"
-      summary: "Get jobs for build master"
-      operationId: "getJobsForBuildMasterUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "buildMaster"
-        in: "path"
-        description: "buildMaster"
-        required: true
-        type: "string"
-        x-exportParamName: "BuildMaster"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              type: "object"
-              properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-  /bakery/options/{cloudProvider}:
-    get:
-      tags:
-      - "bake-controller"
-      summary: "Retrieve a list of available bakery base images for a given cloud\
-        \ provider"
-      operationId: "bakeOptionsUsingGET"
-      consumes:
-      - "application/json"
-      produces:
-      - "*/*"
-      parameters:
-      - name: "cloudProvider"
-        in: "path"
-        description: "cloudProvider"
-        required: true
-        type: "string"
-        x-exportParamName: "CloudProvider"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            type: "object"
-            properties: {}
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
 definitions:
-  HashMap:
-    type: "object"
-    additionalProperties:
-      type: "object"
-      properties: {}
-  Account:
-    type: "object"
-    properties:
-      name:
-        type: "string"
-      requiredGroupMembership:
-        type: "array"
-        items:
-          type: "string"
-      type:
-        type: "string"
-      providerVersion:
-        type: "string"
-      accountId:
-        type: "string"
-      permissions:
-        type: "object"
-        additionalProperties:
-          type: "array"
-          items:
-            type: "string"
-      skin:
-        type: "string"
-  User:
-    type: "object"
-    properties:
-      roles:
-        type: "array"
-        items:
-          type: "string"
-      email:
-        type: "string"
-      firstName:
-        type: "string"
-      allowedAccounts:
-        type: "array"
-        items:
-          type: "string"
-      credentialsNonExpired:
-        type: "boolean"
-      authorities:
-        type: "array"
-        items:
-          $ref: "#/definitions/GrantedAuthority"
-      accountNonExpired:
-        type: "boolean"
-      lastName:
-        type: "string"
-      enabled:
-        type: "boolean"
-      username:
-        type: "string"
-      accountNonLocked:
-        type: "boolean"
   ResponseEntity:
     type: "object"
     properties:
+      body:
+        type: "object"
+        properties: {}
       statusCode:
         type: "string"
         enum:
@@ -4107,6 +4206,52 @@ definitions:
       statusCodeValue:
         type: "integer"
         format: "int32"
+  HashMap:
+    type: "object"
+    additionalProperties:
+      type: "object"
+      properties: {}
+  HashMap«string,object»:
+    type: "object"
+    additionalProperties:
+      type: "object"
+      properties: {}
+  AccountDetails:
+    type: "object"
+    properties:
+      cloudProvider:
+        type: "string"
+      requiredGroupMembership:
+        type: "array"
+        items:
+          type: "string"
+      name:
+        type: "string"
+      accountType:
+        type: "string"
+      environment:
+        type: "string"
+      skin:
+        type: "string"
+      providerVersion:
+        type: "string"
+      accountId:
+        type: "string"
+      permissions:
+        type: "object"
+        additionalProperties:
+          type: "array"
+          items:
+            type: "string"
+      primaryAccount:
+        type: "boolean"
+      challengeDestructiveActions:
+        type: "boolean"
+      type:
+        type: "string"
+  HttpEntity:
+    type: "object"
+    properties:
       body:
         type: "object"
         properties: {}
@@ -4115,42 +4260,57 @@ definitions:
     properties:
       authority:
         type: "string"
-  AccountDetails:
+  Account:
     type: "object"
     properties:
-      type:
-        type: "string"
-      name:
-        type: "string"
-      requiredGroupMembership:
-        type: "array"
-        items:
-          type: "string"
-      cloudProvider:
-        type: "string"
-      skin:
-        type: "string"
-      primaryAccount:
-        type: "boolean"
-      environment:
-        type: "string"
-      accountId:
-        type: "string"
-      accountType:
-        type: "string"
-      providerVersion:
-        type: "string"
-      challengeDestructiveActions:
-        type: "boolean"
       permissions:
         type: "object"
         additionalProperties:
           type: "array"
           items:
             type: "string"
-  HttpEntity:
+      name:
+        type: "string"
+      type:
+        type: "string"
+      accountId:
+        type: "string"
+      skin:
+        type: "string"
+      providerVersion:
+        type: "string"
+      requiredGroupMembership:
+        type: "array"
+        items:
+          type: "string"
+  User:
     type: "object"
     properties:
-      body:
-        type: "object"
-        properties: {}
+      username:
+        type: "string"
+      allowedAccounts:
+        type: "array"
+        items:
+          type: "string"
+      accountNonExpired:
+        type: "boolean"
+      firstName:
+        type: "string"
+      credentialsNonExpired:
+        type: "boolean"
+      accountNonLocked:
+        type: "boolean"
+      authorities:
+        type: "array"
+        items:
+          $ref: "#/definitions/GrantedAuthority"
+      enabled:
+        type: "boolean"
+      roles:
+        type: "array"
+        items:
+          type: "string"
+      email:
+        type: "string"
+      lastName:
+        type: "string"

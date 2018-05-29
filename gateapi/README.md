@@ -66,6 +66,9 @@ Class | Method | HTTP request | Description
 *CredentialsControllerApi* | [**GetAccountUsingGET**](docs/CredentialsControllerApi.md#getaccountusingget) | **Get** /credentials/{account} | Retrieve an account&#39;s details
 *CredentialsControllerApi* | [**GetAccountsUsingGET**](docs/CredentialsControllerApi.md#getaccountsusingget) | **Get** /credentials | Retrieve a list of accounts
 *ExecutionsControllerApi* | [**GetLatestExecutionsByConfigIdsUsingGET**](docs/ExecutionsControllerApi.md#getlatestexecutionsbyconfigidsusingget) | **Get** /executions | Retrieve a list of the most recent pipeline executions for the provided &#x60;pipelineConfigIds&#x60; that match the provided &#x60;statuses&#x60; query parameter
+*FirewallControllerApi* | [**AllByAccountUsingGET**](docs/FirewallControllerApi.md#allbyaccountusingget) | **Get** /firewalls/{account} | Retrieve a list of firewalls for a given account, grouped by region
+*FirewallControllerApi* | [**AllUsingGET1**](docs/FirewallControllerApi.md#allusingget1) | **Get** /firewalls | Retrieve a list of firewalls, grouped by account, cloud provider, and region
+*FirewallControllerApi* | [**GetSecurityGroupUsingGET**](docs/FirewallControllerApi.md#getsecuritygroupusingget) | **Get** /firewalls/{account}/{region}/{name} | Retrieve a firewall&#39;s details
 *ImageControllerApi* | [**FindImagesUsingGET**](docs/ImageControllerApi.md#findimagesusingget) | **Get** /images/find | Retrieve a list of images, filtered by cloud provider, region, and account
 *ImageControllerApi* | [**FindTagsUsingGET**](docs/ImageControllerApi.md#findtagsusingget) | **Get** /images/tags | Find tags
 *ImageControllerApi* | [**GetImageDetailsUsingGET**](docs/ImageControllerApi.md#getimagedetailsusingget) | **Get** /images/{account}/{region}/{imageId} | Get image details
@@ -78,7 +81,7 @@ Class | Method | HTTP request | Description
 *LoadBalancerControllerApi* | [**GetLoadBalancerDetailsUsingGET**](docs/LoadBalancerControllerApi.md#getloadbalancerdetailsusingget) | **Get** /loadBalancers/{account}/{region}/{name} | Retrieve a load balancer&#39;s details as a single element list for a given account, region, cloud provider and load balancer name
 *LoadBalancerControllerApi* | [**GetLoadBalancerUsingGET**](docs/LoadBalancerControllerApi.md#getloadbalancerusingget) | **Get** /loadBalancers/{name} | Retrieve a load balancer for a given cloud provider
 *NetworkControllerApi* | [**AllByCloudProviderUsingGET**](docs/NetworkControllerApi.md#allbycloudproviderusingget) | **Get** /networks/{cloudProvider} | Retrieve a list of networks for a given cloud provider
-*NetworkControllerApi* | [**AllUsingGET1**](docs/NetworkControllerApi.md#allusingget1) | **Get** /networks | Retrieve a list of networks, grouped by cloud provider
+*NetworkControllerApi* | [**AllUsingGET2**](docs/NetworkControllerApi.md#allusingget2) | **Get** /networks | Retrieve a list of networks, grouped by cloud provider
 *PipelineControllerApi* | [**CancelPipelineUsingPUT1**](docs/PipelineControllerApi.md#cancelpipelineusingput1) | **Put** /pipelines/{id}/cancel | Cancel a pipeline execution
 *PipelineControllerApi* | [**DeletePipelineUsingDELETE**](docs/PipelineControllerApi.md#deletepipelineusingdelete) | **Delete** /pipelines/{application}/{pipelineName} | Delete a pipeline definition
 *PipelineControllerApi* | [**DeletePipelineUsingDELETE1**](docs/PipelineControllerApi.md#deletepipelineusingdelete1) | **Delete** /pipelines/{id} | Delete a pipeline execution
@@ -87,8 +90,8 @@ Class | Method | HTTP request | Description
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingHEAD**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusinghead) | **Head** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingOPTIONS**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusingoptions) | **Options** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingPATCH**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusingpatch) | **Patch** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-*PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingPOST**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusingpost) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingPUT**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusingput) | **Put** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
+*PipelineControllerApi* | [**EvaluateExpressionForExecutionViaPOSTUsingPOST**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionviapostusingpost) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 *PipelineControllerApi* | [**GetPipelineLogsUsingGET**](docs/PipelineControllerApi.md#getpipelinelogsusingget) | **Get** /pipelines/{id}/logs | Retrieve pipeline execution logs
 *PipelineControllerApi* | [**GetPipelineUsingGET**](docs/PipelineControllerApi.md#getpipelineusingget) | **Get** /pipelines/{id} | Retrieve a pipeline execution
 *PipelineControllerApi* | [**InvokePipelineConfigUsingPOST1**](docs/PipelineControllerApi.md#invokepipelineconfigusingpost1) | **Post** /pipelines/{application}/{pipelineNameOrId} | Trigger a pipeline execution
@@ -102,9 +105,9 @@ Class | Method | HTTP request | Description
 *PipelineControllerApi* | [**UpdateStageUsingPATCH**](docs/PipelineControllerApi.md#updatestageusingpatch) | **Patch** /pipelines/{id}/stages/{stageId} | Update a stage execution
 *ProjectControllerApi* | [**AllPipelinesForProjectUsingGET**](docs/ProjectControllerApi.md#allpipelinesforprojectusingget) | **Get** /projects/{id}/pipelines | Get all pipelines for project
 *SearchControllerApi* | [**SearchUsingGET**](docs/SearchControllerApi.md#searchusingget) | **Get** /search | Search infrastructure
-*SecurityGroupControllerApi* | [**AllByAccountUsingGET**](docs/SecurityGroupControllerApi.md#allbyaccountusingget) | **Get** /securityGroups/{account} | Retrieve a list of security groups for a given account, grouped by region
-*SecurityGroupControllerApi* | [**AllUsingGET2**](docs/SecurityGroupControllerApi.md#allusingget2) | **Get** /securityGroups | Retrieve a list of security groups, grouped by account, cloud provider, and region
-*SecurityGroupControllerApi* | [**GetSecurityGroupUsingGET**](docs/SecurityGroupControllerApi.md#getsecuritygroupusingget) | **Get** /securityGroups/{account}/{region}/{name} | Retrieve a security group&#39;s details
+*SecurityGroupControllerApi* | [**AllByAccountUsingGET1**](docs/SecurityGroupControllerApi.md#allbyaccountusingget1) | **Get** /securityGroups/{account} | Retrieve a list of security groups for a given account, grouped by region
+*SecurityGroupControllerApi* | [**AllUsingGET3**](docs/SecurityGroupControllerApi.md#allusingget3) | **Get** /securityGroups | Retrieve a list of security groups, grouped by account, cloud provider, and region
+*SecurityGroupControllerApi* | [**GetSecurityGroupUsingGET1**](docs/SecurityGroupControllerApi.md#getsecuritygroupusingget1) | **Get** /securityGroups/{account}/{region}/{name} | Retrieve a security group&#39;s details
 *ServerGroupControllerApi* | [**GetServerGroupDetailsUsingGET**](docs/ServerGroupControllerApi.md#getservergroupdetailsusingget) | **Get** /applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName} | Retrieve a server group&#39;s details
 *ServerGroupControllerApi* | [**GetServerGroupsForApplicationUsingGET**](docs/ServerGroupControllerApi.md#getservergroupsforapplicationusingget) | **Get** /applications/{applicationName}/serverGroups | Retrieve a list of server groups for a given application
 *ServerGroupManagerControllerApi* | [**GetServerGroupManagersForApplicationUsingGET**](docs/ServerGroupManagerControllerApi.md#getservergroupmanagersforapplicationusingget) | **Get** /applications/{application}/serverGroupManagers | Retrieve a list of server group managers for an application
@@ -127,6 +130,7 @@ Class | Method | HTTP request | Description
  - [AccountDetails](docs/AccountDetails.md)
  - [GrantedAuthority](docs/GrantedAuthority.md)
  - [HashMap](docs/HashMap.md)
+ - [HashMapstringobject](docs/HashMapstringobject.md)
  - [HttpEntity](docs/HttpEntity.md)
  - [ResponseEntity](docs/ResponseEntity.md)
  - [User](docs/User.md)

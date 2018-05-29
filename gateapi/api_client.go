@@ -53,6 +53,7 @@ type APIClient struct {
 	ClusterControllerApi	*ClusterControllerApiService
 	CredentialsControllerApi	*CredentialsControllerApiService
 	ExecutionsControllerApi	*ExecutionsControllerApiService
+	FirewallControllerApi	*FirewallControllerApiService
 	ImageControllerApi	*ImageControllerApiService
 	InstanceControllerApi	*InstanceControllerApiService
 	JobControllerApi	*JobControllerApiService
@@ -96,6 +97,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.ClusterControllerApi = (*ClusterControllerApiService)(&c.common)
 	c.CredentialsControllerApi = (*CredentialsControllerApiService)(&c.common)
 	c.ExecutionsControllerApi = (*ExecutionsControllerApiService)(&c.common)
+	c.FirewallControllerApi = (*FirewallControllerApiService)(&c.common)
 	c.ImageControllerApi = (*ImageControllerApiService)(&c.common)
 	c.InstanceControllerApi = (*InstanceControllerApiService)(&c.common)
 	c.JobControllerApi = (*JobControllerApiService)(&c.common)

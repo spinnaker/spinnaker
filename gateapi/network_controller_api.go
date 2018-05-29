@@ -104,7 +104,7 @@ func (a *NetworkControllerApiService) AllByCloudProviderUsingGET(ctx context.Con
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
  @return map[string]interface{}*/
-func (a *NetworkControllerApiService) AllUsingGET1(ctx context.Context, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
+func (a *NetworkControllerApiService) AllUsingGET2(ctx context.Context, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}

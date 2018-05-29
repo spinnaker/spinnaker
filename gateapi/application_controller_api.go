@@ -168,14 +168,14 @@ func (a *ApplicationControllerApiService) CancelTaskUsingPUT(ctx context.Context
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "account" (string) filters results to only include applications deployed in the specified account
      @param "owner" (string) filteres results to only include applications owned by the specified email
- @return []HashMap*/
-func (a *ApplicationControllerApiService) GetAllApplicationsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+ @return []interface{}*/
+func (a *ApplicationControllerApiService) GetAllApplicationsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []HashMap
+	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
@@ -872,6 +872,7 @@ func (a *ApplicationControllerApiService) GetTaskUsingGET(ctx context.Context, i
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param application application
  @param optional (nil or map[string]interface{}) with one or more of:
+     @param "page" (int32) page
      @param "limit" (int32) limit
      @param "statuses" (string) statuses
  @return []interface{}*/
@@ -892,6 +893,9 @@ func (a *ApplicationControllerApiService) GetTasksUsingGET(ctx context.Context, 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["page"], "int32", "page"); err != nil {
+		return successPayload, nil, err
+	}
 	if err := typeCheckParameter(localVarOptionals["limit"], "int32", "limit"); err != nil {
 		return successPayload, nil, err
 	}
@@ -899,6 +903,9 @@ func (a *ApplicationControllerApiService) GetTasksUsingGET(ctx context.Context, 
 		return successPayload, nil, err
 	}
 
+	if localVarTempParam, localVarOk := localVarOptionals["page"].(int32); localVarOk {
+		localVarQueryParams.Add("page", parameterToString(localVarTempParam, ""))
+	}
 	if localVarTempParam, localVarOk := localVarOptionals["limit"].(int32); localVarOk {
 		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
 	}

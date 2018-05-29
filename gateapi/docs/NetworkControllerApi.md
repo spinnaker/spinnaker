@@ -5,7 +5,7 @@ All URIs are relative to *https://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**AllByCloudProviderUsingGET**](NetworkControllerApi.md#AllByCloudProviderUsingGET) | **Get** /networks/{cloudProvider} | Retrieve a list of networks for a given cloud provider
-[**AllUsingGET1**](NetworkControllerApi.md#AllUsingGET1) | **Get** /networks | Retrieve a list of networks, grouped by cloud provider
+[**AllUsingGET2**](NetworkControllerApi.md#AllUsingGET2) | **Get** /networks | Retrieve a list of networks, grouped by cloud provider
 
 
 # **AllByCloudProviderUsingGET**
@@ -43,8 +43,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **AllUsingGET1**
-> map[string]interface{} AllUsingGET1(ctx, optional)
+# **AllUsingGET2**
+> map[string]interface{} AllUsingGET2(ctx, optional)
 Retrieve a list of networks, grouped by cloud provider
 
 ### Required Parameters

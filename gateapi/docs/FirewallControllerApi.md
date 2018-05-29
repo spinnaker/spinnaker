@@ -1,17 +1,17 @@
-# \SecurityGroupControllerApi
+# \FirewallControllerApi
 
 All URIs are relative to *https://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**AllByAccountUsingGET1**](SecurityGroupControllerApi.md#AllByAccountUsingGET1) | **Get** /securityGroups/{account} | Retrieve a list of security groups for a given account, grouped by region
-[**AllUsingGET3**](SecurityGroupControllerApi.md#AllUsingGET3) | **Get** /securityGroups | Retrieve a list of security groups, grouped by account, cloud provider, and region
-[**GetSecurityGroupUsingGET1**](SecurityGroupControllerApi.md#GetSecurityGroupUsingGET1) | **Get** /securityGroups/{account}/{region}/{name} | Retrieve a security group&#39;s details
+[**AllByAccountUsingGET**](FirewallControllerApi.md#AllByAccountUsingGET) | **Get** /firewalls/{account} | Retrieve a list of firewalls for a given account, grouped by region
+[**AllUsingGET1**](FirewallControllerApi.md#AllUsingGET1) | **Get** /firewalls | Retrieve a list of firewalls, grouped by account, cloud provider, and region
+[**GetSecurityGroupUsingGET**](FirewallControllerApi.md#GetSecurityGroupUsingGET) | **Get** /firewalls/{account}/{region}/{name} | Retrieve a firewall&#39;s details
 
 
-# **AllByAccountUsingGET1**
-> interface{} AllByAccountUsingGET1(ctx, account, optional)
-Retrieve a list of security groups for a given account, grouped by region
+# **AllByAccountUsingGET**
+> interface{} AllByAccountUsingGET(ctx, account, optional)
+Retrieve a list of firewalls for a given account, grouped by region
 
 ### Required Parameters
 
@@ -46,9 +46,9 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **AllUsingGET3**
-> interface{} AllUsingGET3(ctx, optional)
-Retrieve a list of security groups, grouped by account, cloud provider, and region
+# **AllUsingGET1**
+> interface{} AllUsingGET1(ctx, optional)
+Retrieve a list of firewalls, grouped by account, cloud provider, and region
 
 ### Required Parameters
 
@@ -80,9 +80,9 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **GetSecurityGroupUsingGET1**
-> interface{} GetSecurityGroupUsingGET1(ctx, account, region, name, optional)
-Retrieve a security group's details
+# **GetSecurityGroupUsingGET**
+> interface{} GetSecurityGroupUsingGET(ctx, account, region, name, optional)
+Retrieve a firewall's details
 
 ### Required Parameters
 

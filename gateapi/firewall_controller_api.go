@@ -24,10 +24,10 @@ var (
 	_ context.Context
 )
 
-type SecurityGroupControllerApiService service
+type FirewallControllerApiService service
 
 
-/* SecurityGroupControllerApiService Retrieve a list of security groups for a given account, grouped by region
+/* FirewallControllerApiService Retrieve a list of firewalls for a given account, grouped by region
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
  @param optional (nil or map[string]interface{}) with one or more of:
@@ -35,7 +35,7 @@ type SecurityGroupControllerApiService service
      @param "region" (string) region
      @param "xRateLimitApp" (string) X-RateLimit-App
  @return interface{}*/
-func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Context, account string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *FirewallControllerApiService) AllByAccountUsingGET(ctx context.Context, account string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -45,7 +45,7 @@ func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Co
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/securityGroups/{account}"
+	localVarPath := a.client.cfg.BasePath + "/firewalls/{account}"
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -113,13 +113,13 @@ func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Co
 	return successPayload, localVarHttpResponse, err
 }
 
-/* SecurityGroupControllerApiService Retrieve a list of security groups, grouped by account, cloud provider, and region
+/* FirewallControllerApiService Retrieve a list of firewalls, grouped by account, cloud provider, and region
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "id" (string) id
      @param "xRateLimitApp" (string) X-RateLimit-App
  @return interface{}*/
-func (a *SecurityGroupControllerApiService) AllUsingGET3(ctx context.Context, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *FirewallControllerApiService) AllUsingGET1(ctx context.Context, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -129,7 +129,7 @@ func (a *SecurityGroupControllerApiService) AllUsingGET3(ctx context.Context, lo
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/securityGroups"
+	localVarPath := a.client.cfg.BasePath + "/firewalls"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -190,7 +190,7 @@ func (a *SecurityGroupControllerApiService) AllUsingGET3(ctx context.Context, lo
 	return successPayload, localVarHttpResponse, err
 }
 
-/* SecurityGroupControllerApiService Retrieve a security group&#39;s details
+/* FirewallControllerApiService Retrieve a firewall&#39;s details
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
  @param region region
@@ -200,7 +200,7 @@ func (a *SecurityGroupControllerApiService) AllUsingGET3(ctx context.Context, lo
      @param "vpcId" (string) vpcId
      @param "xRateLimitApp" (string) X-RateLimit-App
  @return interface{}*/
-func (a *SecurityGroupControllerApiService) GetSecurityGroupUsingGET1(ctx context.Context, account string, region string, name string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *FirewallControllerApiService) GetSecurityGroupUsingGET(ctx context.Context, account string, region string, name string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -210,7 +210,7 @@ func (a *SecurityGroupControllerApiService) GetSecurityGroupUsingGET1(ctx contex
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/securityGroups/{account}/{region}/{name}"
+	localVarPath := a.client.cfg.BasePath + "/firewalls/{account}/{region}/{name}"
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", fmt.Sprintf("%v", name), -1)

@@ -12,8 +12,8 @@ Method | HTTP request | Description
 [**EvaluateExpressionForExecutionUsingHEAD**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingHEAD) | **Head** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingOPTIONS**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingOPTIONS) | **Options** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingPATCH**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingPATCH) | **Patch** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-[**EvaluateExpressionForExecutionUsingPOST**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingPOST) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingPUT**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingPUT) | **Put** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
+[**EvaluateExpressionForExecutionViaPOSTUsingPOST**](PipelineControllerApi.md#EvaluateExpressionForExecutionViaPOSTUsingPOST) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**GetPipelineLogsUsingGET**](PipelineControllerApi.md#GetPipelineLogsUsingGET) | **Get** /pipelines/{id}/logs | Retrieve pipeline execution logs
 [**GetPipelineUsingGET**](PipelineControllerApi.md#GetPipelineUsingGET) | **Get** /pipelines/{id} | Retrieve a pipeline execution
 [**InvokePipelineConfigUsingPOST1**](PipelineControllerApi.md#InvokePipelineConfigUsingPOST1) | **Post** /pipelines/{application}/{pipelineNameOrId} | Trigger a pipeline execution
@@ -251,8 +251,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **EvaluateExpressionForExecutionUsingPOST**
-> map[string]interface{} EvaluateExpressionForExecutionUsingPOST(ctx, id, expression)
+# **EvaluateExpressionForExecutionUsingPUT**
+> map[string]interface{} EvaluateExpressionForExecutionUsingPUT(ctx, id, expression)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -278,8 +278,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **EvaluateExpressionForExecutionUsingPUT**
-> map[string]interface{} EvaluateExpressionForExecutionUsingPUT(ctx, id, expression)
+# **EvaluateExpressionForExecutionViaPOSTUsingPOST**
+> map[string]interface{} EvaluateExpressionForExecutionViaPOSTUsingPOST(ctx, id, pipelineExpression)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -288,7 +288,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **id** | **string**| id | 
-  **expression** | **string**| expression | 
+  **pipelineExpression** | [**interface{}**](interface{}.md)| pipelineExpression | 
 
 ### Return type
 

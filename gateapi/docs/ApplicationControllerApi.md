@@ -83,7 +83,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetAllApplicationsUsingGET**
-> []HashMap GetAllApplicationsUsingGET(ctx, optional)
+> []interface{} GetAllApplicationsUsingGET(ctx, optional)
 Retrieve a list of applications
 
 ### Required Parameters
@@ -103,7 +103,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]HashMap**](HashMap.md)
+[**[]interface{}**](interface{}.md)
 
 ### Authorization
 
@@ -410,6 +410,7 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **application** | **string**| application | 
+ **page** | **int32**| page | 
  **limit** | **int32**| limit | 
  **statuses** | **string**| statuses | 
 
