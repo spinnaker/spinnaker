@@ -74,7 +74,9 @@ class JedisCacheConfig {
         new DefaultNodeIdentity(redisHost, redisPort),
         agentIntervalProvider,
         nodeStatusProvider,
-        redisConfigurationProperties.agent.enabledPattern
+        redisConfigurationProperties.agent.enabledPattern,
+        redisConfigurationProperties.agent.maxConcurrentAgents,
+        redisConfigurationProperties.agent.agentLockAcquisitionIntervalSeconds
       );
     } else if (redisConfigurationProperties.scheduler.equalsIgnoreCase("sort")) {
       new ClusteredSortAgentScheduler(jedisPool, nodeStatusProvider, agentIntervalProvider, redisConfigurationProperties.parallelism ?: -1);

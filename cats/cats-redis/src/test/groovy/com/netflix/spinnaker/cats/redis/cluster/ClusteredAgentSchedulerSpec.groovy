@@ -55,7 +55,9 @@ class ClusteredAgentSchedulerSpec extends Specification {
           new DefaultNodeStatusProvider(),
           lockPollingScheduler,
           agentExecutionScheduler,
-          ".*"
+          ".*",
+          null,
+          null
         )
     }
 

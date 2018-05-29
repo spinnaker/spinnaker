@@ -29,11 +29,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,240 +39,260 @@ import java.util.regex.Pattern;
 
 @SuppressFBWarnings
 public class ClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock>, Runnable {
-    private static enum Status {
-        SUCCESS,
-        FAILURE
+  private static enum Status {
+    SUCCESS,
+    FAILURE
+  }
+
+  private static final Logger logger = LoggerFactory.getLogger(ClusteredAgentScheduler.class);
+
+  private final RedisClientDelegate redisClientDelegate;
+  private final NodeIdentity nodeIdentity;
+  private final AgentIntervalProvider intervalProvider;
+  private final ExecutorService agentExecutionPool;
+  private final Pattern enabledAgentPattern;
+
+  private final Map<String, AgentExecutionAction> agents = new ConcurrentHashMap<>();
+  private final Map<String, NextAttempt> activeAgents = new ConcurrentHashMap<>();
+  private final NodeStatusProvider nodeStatusProvider;
+  private final Integer maxConcurrentAgents;
+
+  public ClusteredAgentScheduler(RedisClientDelegate redisClientDelegate,
+                                 NodeIdentity nodeIdentity,
+                                 AgentIntervalProvider intervalProvider,
+                                 NodeStatusProvider nodeStatusProvider,
+                                 String enabledAgentPattern,
+                                 Integer maxConcurrentAgents,
+                                 Integer agentLockAcquisitionIntervalSeconds) {
+    this(
+      redisClientDelegate,
+      nodeIdentity,
+      intervalProvider,
+      nodeStatusProvider,
+      Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(ClusteredAgentScheduler.class.getSimpleName())),
+      Executors.newCachedThreadPool(new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())),
+      enabledAgentPattern,
+      maxConcurrentAgents,
+      agentLockAcquisitionIntervalSeconds
+    );
+  }
+
+  public ClusteredAgentScheduler(RedisClientDelegate redisClientDelegate,
+                                 NodeIdentity nodeIdentity,
+                                 AgentIntervalProvider intervalProvider,
+                                 NodeStatusProvider nodeStatusProvider,
+                                 ScheduledExecutorService lockPollingScheduler,
+                                 ExecutorService agentExecutionPool,
+                                 String enabledAgentPattern,
+                                 Integer maxConcurrentAgents,
+                                 Integer agentLockAcquisitionIntervalSeconds) {
+    this.redisClientDelegate = redisClientDelegate;
+    this.nodeIdentity = nodeIdentity;
+    this.intervalProvider = intervalProvider;
+    this.nodeStatusProvider = nodeStatusProvider;
+    this.agentExecutionPool = agentExecutionPool;
+    this.enabledAgentPattern = Pattern.compile(enabledAgentPattern);
+    this.maxConcurrentAgents = maxConcurrentAgents == null ? 1000 : maxConcurrentAgents;
+    Integer lockInterval = agentLockAcquisitionIntervalSeconds == null ? 1 : agentLockAcquisitionIntervalSeconds;
+
+    lockPollingScheduler.scheduleAtFixedRate(this, 0, lockInterval, TimeUnit.SECONDS);
+  }
+
+  private Map<String, NextAttempt> acquire() {
+    Set<String> skip = new HashSet<>(activeAgents.keySet());
+    Integer availableAgents = maxConcurrentAgents - skip.size();
+    if (availableAgents <= 0) {
+      logger.debug("Not acquiring more locks (activeAgents: " + skip.size() + " >= maxConcurrentAgents " + maxConcurrentAgents + ")");
+      return Collections.emptyMap();
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(ClusteredAgentScheduler.class);
-
-    private final RedisClientDelegate redisClientDelegate;
-    private final NodeIdentity nodeIdentity;
-    private final AgentIntervalProvider intervalProvider;
-    private final ExecutorService agentExecutionPool;
-    private final Pattern enabledAgentPattern;
-
-    private final Map<String, AgentExecutionAction> agents = new ConcurrentHashMap<>();
-    private final Map<String, NextAttempt> activeAgents = new ConcurrentHashMap<>();
-    private final NodeStatusProvider nodeStatusProvider;
-
-    public ClusteredAgentScheduler(RedisClientDelegate redisClientDelegate,
-                                   NodeIdentity nodeIdentity,
-                                   AgentIntervalProvider intervalProvider,
-                                   NodeStatusProvider nodeStatusProvider,
-                                   String enabledAgentPattern) {
-        this(
-          redisClientDelegate,
-          nodeIdentity,
-          intervalProvider,
-          nodeStatusProvider,
-          Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(ClusteredAgentScheduler.class.getSimpleName())),
-          Executors.newCachedThreadPool(new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())),
-          enabledAgentPattern
-        );
-    }
-
-    public ClusteredAgentScheduler(RedisClientDelegate redisClientDelegate,
-                                   NodeIdentity nodeIdentity,
-                                   AgentIntervalProvider intervalProvider,
-                                   NodeStatusProvider nodeStatusProvider,
-                                   ScheduledExecutorService lockPollingScheduler,
-                                   ExecutorService agentExecutionPool,
-                                   String enabledAgentPattern) {
-        this.redisClientDelegate = redisClientDelegate;
-        this.nodeIdentity = nodeIdentity;
-        this.intervalProvider = intervalProvider;
-        this.nodeStatusProvider = nodeStatusProvider;
-        this.agentExecutionPool = agentExecutionPool;
-        this.enabledAgentPattern = Pattern.compile(enabledAgentPattern);
-
-        lockPollingScheduler.scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
-    }
-
-    private Map<String, NextAttempt> acquire() {
-        Map<String, NextAttempt> acquired = new HashMap<>(agents.size());
-        Set<String> skip = new HashSet<>(activeAgents.keySet());
-        for (Map.Entry<String, AgentExecutionAction> agent : agents.entrySet()) {
-            if (!skip.contains(agent.getKey())) {
-                final String agentType = agent.getKey();
-                AgentIntervalProvider.Interval interval = intervalProvider.getInterval(agent.getValue().getAgent());
-                if (acquireRunKey(agentType, interval.getTimeout())) {
-                    acquired.put(agentType, new NextAttempt(System.currentTimeMillis(), interval.getInterval(), interval.getErrorInterval()));
-                }
-            }
+    Map<String, NextAttempt> acquired = new HashMap<>(agents.size());
+    // Shuffle the list before grabbing so that we don't favor some agents accidentally
+    List<Map.Entry<String, AgentExecutionAction>> agentsEntrySet = new ArrayList<>(agents.entrySet());
+    Collections.shuffle(agentsEntrySet);
+    for (Map.Entry<String, AgentExecutionAction> agent : agentsEntrySet) {
+      if (!skip.contains(agent.getKey())) {
+        final String agentType = agent.getKey();
+        AgentIntervalProvider.Interval interval = intervalProvider.getInterval(agent.getValue().getAgent());
+        if (acquireRunKey(agentType, interval.getTimeout())) {
+          acquired.put(agentType, new NextAttempt(System.currentTimeMillis(), interval.getInterval(), interval.getErrorInterval()));
         }
+      }
+      if (acquired.size() >= availableAgents) {
         return acquired;
+      }
+    }
+    return acquired;
+  }
+
+  @Override
+  public void run() {
+    if (!nodeStatusProvider.isNodeEnabled()) {
+      return;
+    }
+    try {
+      runAgents();
+    } catch (Throwable t) {
+      logger.error("Unable to run agents", t);
+    }
+  }
+
+  private void runAgents() {
+    Map<String, NextAttempt> thisRun = acquire();
+    activeAgents.putAll(thisRun);
+    for (final Map.Entry<String, NextAttempt> toRun : thisRun.entrySet()) {
+      final AgentExecutionAction exec = agents.get(toRun.getKey());
+      agentExecutionPool.submit(new AgentJob(toRun.getValue(), exec, this));
+    }
+  }
+
+  private static final long MIN_TTL_THRESHOLD = 500L;
+  private static final String SET_IF_NOT_EXIST = "NX";
+  private static final String SET_EXPIRE_TIME_MILLIS = "PX";
+  private static final String SUCCESS_RESPONSE = "OK";
+  private static final Integer DEL_SUCCESS = 1;
+
+  private static final String DELETE_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+  private static final String TTL_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('set', KEYS[1], ARGV[1], 'PX', ARGV[2], 'XX') else return nil end";
+
+  private boolean acquireRunKey(String agentType, long timeout) {
+    return redisClientDelegate.withCommandsClient(client -> {
+      String response = client.set(agentType, nodeIdentity.getNodeIdentity(), SET_IF_NOT_EXIST, SET_EXPIRE_TIME_MILLIS, timeout);
+      return SUCCESS_RESPONSE.equals(response);
+    });
+  }
+
+  private boolean deleteLock(String agentType) {
+    return redisClientDelegate.withScriptingClient(client -> {
+      Object response = client.eval(DELETE_LOCK_KEY, Arrays.asList(agentType), Arrays.asList(nodeIdentity.getNodeIdentity()));
+      return DEL_SUCCESS.equals(response);
+    });
+  }
+
+  private boolean ttlLock(String agentType, long newTtl) {
+    return redisClientDelegate.withScriptingClient(client -> {
+      Object response = client.eval(TTL_LOCK_KEY, Arrays.asList(agentType), Arrays.asList(nodeIdentity.getNodeIdentity(), Long.toString(newTtl)));
+      return SUCCESS_RESPONSE.equals(response);
+    });
+  }
+
+  private void releaseRunKey(String agentType, long when) {
+    final long newTtl = when - System.currentTimeMillis();
+    final boolean delete = newTtl < MIN_TTL_THRESHOLD;
+
+    if (delete) {
+      deleteLock(agentType);
+    } else {
+      ttlLock(agentType, newTtl);
+    }
+  }
+
+  private void agentCompleted(String agentType, long nextExecutionTime) {
+    try {
+      releaseRunKey(agentType, nextExecutionTime);
+    } finally {
+      activeAgents.remove(agentType);
+    }
+  }
+
+  @Override
+  public void schedule(Agent agent,
+                       AgentExecution agentExecution,
+                       ExecutionInstrumentation executionInstrumentation) {
+    if (!enabledAgentPattern.matcher(agent.getClass().getSimpleName().toLowerCase()).matches()) {
+      logger.debug(
+        "Agent is not enabled (agent: {}, agentType: {}, pattern: {})",
+        agent.getClass().getSimpleName(),
+        agent.getAgentType(),
+        enabledAgentPattern.pattern()
+      );
+      return;
+    }
+
+    if (agent instanceof AgentSchedulerAware) {
+      ((AgentSchedulerAware)agent).setAgentScheduler(this);
+    }
+
+    AgentExecutionAction agentExecutionAction = new AgentExecutionAction(
+      agent, agentExecution, executionInstrumentation
+    );
+    agents.put(agent.getAgentType(), agentExecutionAction);
+  }
+
+  @Override
+  public void unschedule(Agent agent) {
+    releaseRunKey(agent.getAgentType(), 0); // Delete lock key now.
+    agents.remove(agent.getAgentType());
+  }
+
+  private static class NextAttempt {
+    private final long currentTime;
+    private final long successInterval;
+    private final long errorInterval;
+
+    public NextAttempt(long currentTime, long successInterval, long errorInterval) {
+      this.currentTime = currentTime;
+      this.successInterval = successInterval;
+      this.errorInterval = errorInterval;
+    }
+
+    public long getNextTime(Status status) {
+      if (status == Status.SUCCESS) {
+        return currentTime + successInterval;
+      }
+
+      return currentTime + errorInterval;
+    }
+  }
+
+  private static class AgentJob implements Runnable {
+    private final NextAttempt lockReleaseTime;
+    private final AgentExecutionAction action;
+    private final ClusteredAgentScheduler scheduler;
+
+    public AgentJob(NextAttempt times, AgentExecutionAction action, ClusteredAgentScheduler scheduler) {
+      this.lockReleaseTime = times;
+      this.action = action;
+      this.scheduler = scheduler;
     }
 
     @Override
     public void run() {
-        if (!nodeStatusProvider.isNodeEnabled()) {
-            return;
-        }
-        try {
-            runAgents();
-        } catch (Throwable t) {
-            logger.error("Unable to run agents", t);
-        }
+      Status status = Status.FAILURE;
+      try {
+        status = action.execute();
+      } finally {
+        scheduler.agentCompleted(action.getAgent().getAgentType(), lockReleaseTime.getNextTime(status));
+      }
+    }
+  }
+
+  private static class AgentExecutionAction {
+    private final Agent agent;
+    private final AgentExecution agentExecution;
+    private final ExecutionInstrumentation executionInstrumentation;
+
+    public AgentExecutionAction(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+      this.agent = agent;
+      this.agentExecution = agentExecution;
+      this.executionInstrumentation = executionInstrumentation;
     }
 
-    private void runAgents() {
-        Map<String, NextAttempt> thisRun = acquire();
-        activeAgents.putAll(thisRun);
-        for (final Map.Entry<String, NextAttempt> toRun : thisRun.entrySet()) {
-            final AgentExecutionAction exec = agents.get(toRun.getKey());
-            agentExecutionPool.submit(new AgentJob(toRun.getValue(), exec, this));
-        }
+    public Agent getAgent() {
+      return agent;
     }
 
-    private static final long MIN_TTL_THRESHOLD = 500L;
-    private static final String SET_IF_NOT_EXIST = "NX";
-    private static final String SET_EXPIRE_TIME_MILLIS = "PX";
-    private static final String SUCCESS_RESPONSE = "OK";
-    private static final Integer DEL_SUCCESS = 1;
-
-    private static final String DELETE_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-    private static final String TTL_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('set', KEYS[1], ARGV[1], 'PX', ARGV[2], 'XX') else return nil end";
-
-    private boolean acquireRunKey(String agentType, long timeout) {
-        return redisClientDelegate.withCommandsClient(client -> {
-            String response = client.set(agentType, nodeIdentity.getNodeIdentity(), SET_IF_NOT_EXIST, SET_EXPIRE_TIME_MILLIS, timeout);
-            return SUCCESS_RESPONSE.equals(response);
-        });
+    Status execute() {
+      try {
+        executionInstrumentation.executionStarted(agent);
+        long startTime = System.nanoTime();
+        agentExecution.executeAgent(agent);
+        executionInstrumentation.executionCompleted(agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+        return Status.SUCCESS;
+      } catch (Throwable cause) {
+        executionInstrumentation.executionFailed(agent, cause);
+        return Status.FAILURE;
+      }
     }
 
-    private boolean deleteLock(String agentType) {
-        return redisClientDelegate.withScriptingClient(client -> {
-            Object response = client.eval(DELETE_LOCK_KEY, Arrays.asList(agentType), Arrays.asList(nodeIdentity.getNodeIdentity()));
-            return DEL_SUCCESS.equals(response);
-        });
-    }
-
-    private boolean ttlLock(String agentType, long newTtl) {
-        return redisClientDelegate.withScriptingClient(client -> {
-            Object response = client.eval(TTL_LOCK_KEY, Arrays.asList(agentType), Arrays.asList(nodeIdentity.getNodeIdentity(), Long.toString(newTtl)));
-            return SUCCESS_RESPONSE.equals(response);
-        });
-    }
-
-    private void releaseRunKey(String agentType, long when) {
-        final long newTtl = when - System.currentTimeMillis();
-        final boolean delete = newTtl < MIN_TTL_THRESHOLD;
-
-        if (delete) {
-            deleteLock(agentType);
-        } else {
-            ttlLock(agentType, newTtl);
-        }
-    }
-
-    private void agentCompleted(String agentType, long nextExecutionTime) {
-        try {
-            releaseRunKey(agentType, nextExecutionTime);
-        } finally {
-            activeAgents.remove(agentType);
-        }
-    }
-
-    @Override
-    public void schedule(Agent agent,
-                         AgentExecution agentExecution,
-                         ExecutionInstrumentation executionInstrumentation) {
-        if (!enabledAgentPattern.matcher(agent.getClass().getSimpleName().toLowerCase()).matches()) {
-          logger.debug(
-            "Agent is not enabled (agent: {}, agentType: {}, pattern: {})",
-            agent.getClass().getSimpleName(),
-            agent.getAgentType(),
-            enabledAgentPattern.pattern()
-          );
-          return;
-        }
-
-        if (agent instanceof AgentSchedulerAware) {
-          ((AgentSchedulerAware)agent).setAgentScheduler(this);
-        }
-
-        AgentExecutionAction agentExecutionAction = new AgentExecutionAction(
-          agent, agentExecution, executionInstrumentation
-        );
-        agents.put(agent.getAgentType(), agentExecutionAction);
-    }
-
-    @Override
-    public void unschedule(Agent agent) {
-        releaseRunKey(agent.getAgentType(), 0); // Delete lock key now.
-        agents.remove(agent.getAgentType());
-    }
-
-    private static class NextAttempt {
-        private final long currentTime;
-        private final long successInterval;
-        private final long errorInterval;
-
-        public NextAttempt(long currentTime, long successInterval, long errorInterval) {
-            this.currentTime = currentTime;
-            this.successInterval = successInterval;
-            this.errorInterval = errorInterval;
-        }
-
-        public long getNextTime(Status status) {
-            if (status == Status.SUCCESS) {
-                return currentTime + successInterval;
-            }
-
-            return currentTime + errorInterval;
-        }
-    }
-
-    private static class AgentJob implements Runnable {
-        private final NextAttempt lockReleaseTime;
-        private final AgentExecutionAction action;
-        private final ClusteredAgentScheduler scheduler;
-
-        public AgentJob(NextAttempt times, AgentExecutionAction action, ClusteredAgentScheduler scheduler) {
-            this.lockReleaseTime = times;
-            this.action = action;
-            this.scheduler = scheduler;
-        }
-
-        @Override
-        public void run() {
-            Status status = Status.FAILURE;
-            try {
-                status = action.execute();
-            } finally {
-                scheduler.agentCompleted(action.getAgent().getAgentType(), lockReleaseTime.getNextTime(status));
-            }
-        }
-    }
-
-    private static class AgentExecutionAction {
-        private final Agent agent;
-        private final AgentExecution agentExecution;
-        private final ExecutionInstrumentation executionInstrumentation;
-
-        public AgentExecutionAction(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
-            this.agent = agent;
-            this.agentExecution = agentExecution;
-            this.executionInstrumentation = executionInstrumentation;
-        }
-
-        public Agent getAgent() {
-            return agent;
-        }
-
-        Status execute() {
-            try {
-                executionInstrumentation.executionStarted(agent);
-                long startTime = System.nanoTime();
-                agentExecution.executeAgent(agent);
-                executionInstrumentation.executionCompleted(agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
-                return Status.SUCCESS;
-            } catch (Throwable cause) {
-                executionInstrumentation.executionFailed(agent, cause);
-                return Status.FAILURE;
-            }
-        }
-
-    }
+  }
 }
