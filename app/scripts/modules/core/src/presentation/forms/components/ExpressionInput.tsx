@@ -21,8 +21,6 @@ export interface IExpressionInputProps {
 
 export interface IExpressionInputState {
   showContextModal: boolean;
-  spelPreview: string;
-  spelError: ISpelError;
   value: string;
 }
 
@@ -39,24 +37,18 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
     super(props);
     this.state = {
       showContextModal: false,
-      spelPreview: null,
-      spelError: null,
       value: props.value || '',
     };
   }
 
-  public componentWillReceiveProps(nextProps: IExpressionInputProps): void {
-    if (this.props.value !== nextProps.value) {
-      this.validate(nextProps.value);
-    }
-  }
-
-  private validate(value: string): void {
+  private evaluateExpression(
+    context: object,
+    locals: object,
+    value: string,
+  ): { spelError: ISpelError; spelPreview: string } {
     if (!value) {
-      return;
+      return { spelError: null, spelPreview: '' };
     }
-
-    const { context, locals, onChange } = this.props;
 
     const stringify = (obj: any): string => {
       return obj === null ? 'null' : obj === undefined ? 'undefined' : JSON.stringify(obj, null, 2);
@@ -65,9 +57,7 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
     try {
       const exprs = parseSpelExpressions(value);
       const results = exprs.map(expr => expr.eval(context, locals));
-      this.setState({ spelError: null, spelPreview: results.join(''), value });
-
-      onChange({ target: { value } } as React.ChangeEvent<any>);
+      return { spelError: null, spelPreview: results.join('') };
     } catch (err) {
       const spelError: ISpelError = {
         message: null,
@@ -89,12 +79,11 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
         }
       }
 
-      this.setState({ spelError, spelPreview: null, value });
-      onChange({ target: { value: '' } } as React.ChangeEvent<any>);
+      return { spelError, spelPreview: null };
     }
   }
 
-  public getErrorMessage(spelError: ISpelError): string {
+  private getErrorMessage(spelError: ISpelError): string {
     if (spelError) {
       return spelError.message + (spelError.contextTruncated ? ' -- ' + spelError.contextTruncated : '');
     }
@@ -109,20 +98,18 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
     this.setState({ showContextModal: true });
   };
 
-  private renderError(): JSX.Element {
-    const { spelError } = this.state;
-
+  private renderError(spelError: ISpelError): JSX.Element {
     return (
       <div>
         {spelError &&
           spelError.message && (
             <Modal show={this.state.showContextModal} onHide={this.hideContextModal}>
               <Modal.Header>
-                <h3>{this.state.spelError.message}</h3>
+                <h3>{spelError.message}</h3>
               </Modal.Header>
 
               <Modal.Body>
-                <pre>{this.state.spelError.context}</pre>
+                <pre>{spelError.context}</pre>
               </Modal.Body>
 
               <Modal.Footer>
@@ -144,13 +131,13 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
   }
 
   private handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { value } = event.target;
-    this.validate(value);
+    this.setState({ value: event.target.value });
   };
 
   public render(): JSX.Element {
-    const { Help, label, markdown, placeholder, required } = this.props;
-    const { spelError, spelPreview, value } = this.state;
+    const { Help, label, markdown, placeholder, required, context, locals } = this.props;
+    const { value } = this.state;
+    const { spelError, spelPreview } = this.evaluateExpression(context, locals, value);
 
     const error = spelError ? <span className="error-message">{this.getErrorMessage(spelError)}</span> : null;
 
@@ -178,7 +165,7 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
             )}
           </div>
           {error}
-          {spelError && this.renderError()}
+          {spelError && this.renderError(spelError)}
         </div>
       </div>
     );
