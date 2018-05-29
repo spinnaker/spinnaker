@@ -133,7 +133,7 @@ public class DefaultProviderCache implements ProviderCache {
         Map<String, Collection<String>> evictions = new HashMap<>();
 
         for (String type : allTypes) {
-            final Set<String> previousSet;
+            final Collection<String> previousSet;
             if (authoritativeTypes.contains(type)) {
                 previousSet = getExistingSourceIdentifiers(type, sourceAgentType);
             } else {
@@ -193,7 +193,7 @@ public class DefaultProviderCache implements ProviderCache {
         return Collections.unmodifiableCollection(response);
     }
 
-    private Set<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
+    private Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
         CacheData all = backingStore.get(type, ALL_ID);
         if (all == null) {
             return new HashSet<>();
@@ -202,7 +202,7 @@ public class DefaultProviderCache implements ProviderCache {
         if (relationship == null) {
             return new HashSet<>();
         }
-        return relationship instanceof Set ? (Set<String>) relationship : new HashSet<>(relationship);
+        return relationship;
     }
 
     private void cacheDataType(String type, String sourceAgentType, Collection<CacheData> items) {
