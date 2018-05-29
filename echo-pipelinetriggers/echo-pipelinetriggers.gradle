@@ -29,6 +29,7 @@ dependencies {
   compile spinnaker.dependency("eurekaClient")
   compile spinnaker.dependency("kork")
   compile spinnaker.dependency("korkSecurity")
+  compile spinnaker.dependency("spectatorApi")
 
   compile group: 'org.codehaus.groovy', name: 'groovy', version: "2.4.5"
   compile group: 'commons-codec', name: 'commons-codec', version: '1.10'

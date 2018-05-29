@@ -20,4 +20,5 @@ dependencies {
   compile spinnaker.dependency("cglib")
   compile spinnaker.dependency("aws")
   compile spinnaker.dependency("korkAws")
+  compile spinnaker.dependency("spectatorApi")
 }

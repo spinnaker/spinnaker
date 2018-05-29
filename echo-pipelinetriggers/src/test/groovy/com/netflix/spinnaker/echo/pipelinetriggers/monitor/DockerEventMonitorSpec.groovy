@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
@@ -35,11 +33,7 @@ class DockerEventMonitorSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
   def pipelineCache = Mock(PipelineCache)
   def subscriber = Mock(Action1)
-  def registry = Stub(Registry) {
-    createId(*_) >> Stub(Id)
-    counter(*_) >> Stub(Counter)
-    gauge(*_) >> Integer.valueOf(1)
-  }
+  def registry = new NoopRegistry()
 
   @Subject
   def monitor = new DockerEventMonitor(pipelineCache, subscriber, registry)

@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 import retrofit.RetrofitError.Kind;
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class PipelineInitiator implements Action1<Pipeline> {
 
-  private final CounterService counter;
+  private final Registry registry;
   private final OrcaService orca;
   private final boolean enabled;
   private final boolean fiatEnabled;
@@ -31,13 +31,13 @@ public class PipelineInitiator implements Action1<Pipeline> {
   private final long retryDelayMillis;
 
   @Autowired
-  public PipelineInitiator(CounterService counter,
+  public PipelineInitiator(Registry registry,
                            OrcaService orca,
                            @Value("${orca.enabled:true}") boolean enabled,
                            @Value("${services.fiat.enabled:false}") boolean fiatEnabled,
                            @Value("${orca.pipelineInitiatorRetryCount:5}") int retryCount,
                            @Value("${orca.pipelineInitiatorRetryDelayMillis:5000}") long retryDelayMillis) {
-    this.counter = counter;
+    this.registry = registry;
     this.orca = orca;
     this.enabled = enabled;
     this.fiatEnabled = fiatEnabled;
@@ -55,8 +55,8 @@ public class PipelineInitiator implements Action1<Pipeline> {
   @Override
   public void call(Pipeline pipeline) {
     if (enabled) {
-      log.warn("Triggering {} due to {}", pipeline, pipeline.getTrigger());
-      counter.increment("orca.requests");
+      log.info("Triggering {} due to {}", pipeline, pipeline.getTrigger());
+      registry.counter("orca.requests").increment();
 
       createTriggerObservable(pipeline)
         .retryWhen(new RetryWithDelay(retryCount, retryDelayMillis))
@@ -82,7 +82,7 @@ public class PipelineInitiator implements Action1<Pipeline> {
   }
 
   private void onOrcaError(Pipeline pipeline, Throwable error) {
-    counter.increment("orca.errors");
+    registry.counter("orca.errors", "exception", error.getClass().getName()).increment();
     log.error("Error triggering pipeline: {}", pipeline, error);
   }
 

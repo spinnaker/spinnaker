@@ -42,6 +42,7 @@ dependencies {
     compile spinnaker.dependency('bootActuator')
     compile spinnaker.dependency('bootWeb')
     compile spinnaker.dependency('jacksonDatabind')
+    compile spinnaker.dependency('spectatorApi')
     testCompile spinnaker.dependency('spockSpring')
     testCompile spinnaker.dependency('springTest')
 }

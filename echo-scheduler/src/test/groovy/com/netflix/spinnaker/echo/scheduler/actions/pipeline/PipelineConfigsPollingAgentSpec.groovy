@@ -15,24 +15,25 @@
  */
 
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline
+
 import com.netflix.scheduledactions.ActionInstance
 import com.netflix.scheduledactions.ActionsOperator
 import com.netflix.scheduledactions.triggers.CronTrigger
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineConfigsPollingAgent
-import org.springframework.boot.actuate.metrics.CounterService
-import org.springframework.boot.actuate.metrics.GaugeService
 import spock.lang.Specification
 import spock.lang.Subject
+
 class PipelineConfigsPollingAgentSpec extends Specification {
 
-    def counterService = Stub(CounterService)
-    def gaugeService = Stub(GaugeService)
+    Registry registry = new NoopRegistry()
     def actionsOperator = Mock(ActionsOperator)
     def pipelineCache = Mock(PipelineCache)
-    @Subject pollingAgent = new PipelineConfigsPollingAgent(counterService, gaugeService, pipelineCache, actionsOperator, 1000000, 'America/Los_Angeles')
+    @Subject pollingAgent = new PipelineConfigsPollingAgent(registry, pipelineCache, actionsOperator, 1000000, 'America/Los_Angeles')
 
     void 'when a new pipeline trigger is added, a scheduled action instance is registered with an id same as the trigger id'() {
         given:

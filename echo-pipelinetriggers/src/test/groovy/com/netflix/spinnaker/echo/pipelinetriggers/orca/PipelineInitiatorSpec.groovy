@@ -1,43 +1,33 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.orca
 
-
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.echo.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
-import com.netflix.spinnaker.echo.model.Pipeline
-import org.springframework.boot.actuate.metrics.CounterService
+import spock.lang.Unroll
+
 import static rx.Observable.empty
 
 class PipelineInitiatorSpec extends Specification {
 
-  def counter = Stub(CounterService)
+  def registry = new NoopRegistry()
   def orca = Mock(OrcaService)
 
-  def "calls Orca if enabled"() {
+  @Unroll
+  def "calls orca #orcaCalls times when enabled=#enabled flag"() {
     given:
-    @Subject pipelineInitiator = new PipelineInitiator(counter, orca, true, false, 5, 5000)
+    @Subject pipelineInitiator = new PipelineInitiator(registry, orca, enabled, false, 5, 5000)
+    def pipeline = Pipeline.builder().application("application").name("name").id("id").build()
 
     when:
     pipelineInitiator.call(pipeline)
 
     then:
-    1 * orca.trigger(pipeline) >> empty()
+    orcaCalls * orca.trigger(pipeline) >> empty()
 
     where:
-    pipeline = Pipeline.builder().application("application").name("name").id("id").build()
+    enabled || orcaCalls
+    true    || 1
+    false   || 0
   }
-
-  def "does not call Orca if disabled"() {
-    given:
-    @Subject pipelineInitiator = new PipelineInitiator(counter, orca, false, false, 5, 5000)
-
-    when:
-    pipelineInitiator.call(pipeline)
-
-    then:
-    0 * _
-
-    where:
-    pipeline = Pipeline.builder().application("application").name("name").id("id").build()
-  }
-
 }

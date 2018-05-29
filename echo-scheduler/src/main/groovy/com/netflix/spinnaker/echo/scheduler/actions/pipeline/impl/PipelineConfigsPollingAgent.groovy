@@ -18,16 +18,17 @@ package com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl
 
 import com.netflix.scheduledactions.ActionInstance
 import com.netflix.scheduledactions.ActionsOperator
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.actuate.metrics.CounterService
-import org.springframework.boot.actuate.metrics.GaugeService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.TimeUnit
 
 import static net.logstash.logback.argument.StructuredArguments.*
 
@@ -41,23 +42,20 @@ import static net.logstash.logback.argument.StructuredArguments.*
 class PipelineConfigsPollingAgent extends AbstractPollingAgent {
   public static final String TRIGGER_TYPE = "cron";
 
-  private final CounterService counterService
-  private final GaugeService gaugeService
+  private final Registry registry
   private final PipelineCache pipelineCache
   private final long intervalMs
   private final ActionsOperator actionsOperator
   private final String timeZoneId
 
   @Autowired
-  PipelineConfigsPollingAgent(CounterService counterService,
-                              GaugeService gaugeService,
+  PipelineConfigsPollingAgent(Registry registry,
                               PipelineCache pipelineCache,
                               ActionsOperator actionsOperator,
                               @Value('${scheduler.pipelineConfigsPoller.pollingIntervalMs:30000}') long intervalMs,
                               @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId) {
     super()
-    this.counterService = counterService
-    this.gaugeService = gaugeService
+    this.registry = registry
     this.pipelineCache = pipelineCache
     this.actionsOperator = actionsOperator
     this.intervalMs = intervalMs
@@ -95,13 +93,15 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
         updateChangedTriggers(pipelines, actionInstances)
         registerNewTriggers(pipelines, actionInstances)
       } catch (Exception e) {
-        counterService.increment("actionsOperator.list.errors")
+        registry.counter("actionsOperator.list.errors").increment()
         throw new Exception("Exception occurred while fetching all registered action instances", e)
       }
     } catch (Exception e) {
       log.error("Exception occurred in the execute() method of PipelineConfigsPollingAgent", e)
     } finally {
-      gaugeService.submit("pipelineConfigsPollingAgent.executionTimeMillis", (double) System.currentTimeMillis() - start)
+      long elapsedMillis = System.currentTimeMillis() - start
+      log.info("Done polling for pipeline configs in ${elapsedMillis/1000}s")
+      registry.timer("pipelineConfigsPollingAgent.executionTimeMillis").record(elapsedMillis, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -118,8 +118,8 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
        * ActionInstance have the same 'id'
        */
       if (actionInstances) {
-        log.info("Found '${actionInstances?.size()}' existing scheduled action(s)...")
-        log.info("Iterating through each scheduled action and checking if the corresponding trigger has been changed...")
+        log.info("Found '${actionInstances?.size()}' existing scheduled action(s). " +
+          "Iterating through each scheduled action and checking if the corresponding trigger has been changed...")
       }
 
       actionInstances.each { actionInstance ->
@@ -164,7 +164,7 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
             log.info("Removed scheduled action '${actionInstance.id}' as the corresponding trigger has been removed")
           }
         } catch (Exception e) {
-          counterService.increment("updateTriggers.errors")
+          registry.counter("updateTriggers.errors", "exception", e.getClass().getName()).increment()
           log.error("Exception occurred while updating ${trigger}", e)
         }
       }
@@ -206,10 +206,9 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
             ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, timeZoneId)
             actionsOperator.registerActionInstance(actionInstance)
             log.info('Registered scheduled trigger {} {} {}', kv('id', actionInstance.id), kv('trigger', trigger), kv('pipeline', pipeline))
-            counterService.increment("newTriggers.count")
-
+            registry.counter("newTriggers.count").increment()
           } catch (Exception e) {
-            counterService.increment("newTriggers.errors")
+            registry.counter("newTriggers.errors", "exception", e.getClass().getName()).increment()
             log.error("Exception occurred while creating new ${trigger}", e)
           }
         }
@@ -218,5 +217,4 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
       log.error("Exception occurred while creating new triggers", e)
     }
   }
-
 }

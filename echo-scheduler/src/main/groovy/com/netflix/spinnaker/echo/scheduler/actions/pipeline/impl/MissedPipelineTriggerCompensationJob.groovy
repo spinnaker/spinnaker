@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl
 
 import com.google.common.collect.Lists
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
@@ -27,7 +28,6 @@ import groovy.util.logging.Slf4j
 import org.quartz.CronExpression
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.actuate.metrics.CounterService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -64,8 +64,8 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   final Scheduler scheduler
   final PipelineCache pipelineCache
   final OrcaService orcaService
-  final CounterService counter
   final PipelineInitiator pipelineInitiator
+  final Registry registry
   final boolean enableRecurring
   final Duration recurringPollInterval
   final int pipelineFetchSize
@@ -79,14 +79,14 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        PipelineCache pipelineCache,
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
-                                       CounterService counter,
+                                       Registry registry,
                                        @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
                                        @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
                                        @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
                                        @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize) {
 
-    this(scheduler, pipelineCache, orcaService, pipelineInitiator, counter, compensationWindowMs, timeZoneId,
+    this(scheduler, pipelineCache, orcaService, pipelineInitiator, registry, compensationWindowMs, timeZoneId,
       enableRecurring, recurringPollIntervalMs, pipelineFetchSize, null)
   }
 
@@ -94,7 +94,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        PipelineCache pipelineCache,
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
-                                       CounterService counter,
+                                       Registry registry,
                                        @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
                                        @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
@@ -105,7 +105,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     this.pipelineCache = pipelineCache
     this.orcaService = orcaService
     this.pipelineInitiator = pipelineInitiator
-    this.counter = counter
+    this.registry = registry
     this.enableRecurring = enableRecurring
     this.recurringPollInterval = Duration.ofMillis(recurringPollIntervalMs)
     this.pipelineFetchSize = pipelineFetchSize
@@ -202,14 +202,13 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
       if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now, pipeline)) {
         pipelineInitiator.call(pipeline)
-        counter.increment("triggers.cronMisfires")
       }
     }
   }
 
   void onOrcaError(Throwable error) {
     log.error("Error retrieving latest pipeline executions", error)
-    counter.increment('orca.errors')
+    registry.counter('orca.errors', "exception", error.getClass().getName()).increment()
   }
 
   static List<Trigger> getEnabledCronTriggers(List<Pipeline> pipelines) {
@@ -241,7 +240,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
    *   D satisfies the cron expression expr
    *   there is no execution E in lastExecutions such that E is in [D..now]
    */
-  static boolean missedExecution(CronExpression expr, Date lastExecution, Date windowFloor, Date now,
+  boolean missedExecution(CronExpression expr, Date lastExecution, Date windowFloor, Date now,
                                  Pipeline pipeline = null) {
     def validTriggerDate = getLastValidTimeInWindow(expr, windowFloor, now)
 
@@ -253,10 +252,14 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     // we have a valid trigger date, and no execution after it: trigger!
     def missed = lastExecution == null || lastExecution.before(validTriggerDate)
     if (missed) {
-      log.info('Triggering missed execution on pipeline {} {} {} {} {}',
+      log.info('Triggering missed cron trigger on pipeline {} {} {} {} {}',
         kv('application', pipeline?.application), kv('pipelineName', pipeline?.name),
         kv('pipelineConfigId', pipeline?.id), kv('lastExecution', lastExecution),
         kv('validTriggerDate', validTriggerDate))
+
+      def delayMillis = now.getTime() - validTriggerDate.getTime()
+      registry.timer("triggers.cronMisfires").record(delayMillis, TimeUnit.MILLISECONDS)
+
     }
 
     return missed
