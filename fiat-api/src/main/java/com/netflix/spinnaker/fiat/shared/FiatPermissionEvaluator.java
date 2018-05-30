@@ -123,6 +123,10 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return username;
   }
 
+  public void invalidatePermission(String username) {
+    permissionsCache.invalidate(username);
+  }
+
   public UserPermission.View getPermission(String username) {
     UserPermission.View view = null;
     if (StringUtils.isEmpty(username)) {

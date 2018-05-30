@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.shared;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.OkHttpClientConfiguration;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
+import retrofit.client.Client;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
@@ -54,14 +56,11 @@ public class FiatAuthenticationConfig {
   @Setter
   private RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC;
 
-  @Autowired
-  SpinnakerRequestInterceptor spinnakerRequestInterceptor;
-
   @Bean
   @ConditionalOnMissingBean(FiatService.class) // Allows for override
   public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties,
                                  SpinnakerRequestInterceptor interceptor,
-                                 OkClient okClient) {
+                                 OkHttpClientConfiguration okHttpClientConfiguration) {
     // New role providers break deserialization if this is not enabled.
     val objectMapper = new ObjectMapper();
     objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
@@ -69,7 +68,7 @@ public class FiatAuthenticationConfig {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
         .setRequestInterceptor(interceptor)
-        .setClient(okClient)
+        .setClient(new OkClient(okHttpClientConfiguration.create()))
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(FiatService.class))
