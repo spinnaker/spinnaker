@@ -513,7 +513,8 @@ export class AwsServerGroupConfigurationService {
         .value();
     }
 
-    return command.backingData.appLoadBalancers || [];
+    const appLoadBalancers = command.backingData.appLoadBalancers || [];
+    return appLoadBalancers.filter(lb => lb.region === command.region && lb.account === command.credentials);
   }
 
   public getLoadBalancerNames(command: IAmazonServerGroupCommand): string[] {

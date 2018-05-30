@@ -52,6 +52,9 @@
       <help-field key="aws.loadBalancer.loadBalancers"></help-field>
     </div>
     <div class="col-md-8">
+      <div class="form-control-static" ng-if="!$ctrl.command.backingData.filtered.loadBalancers.length">
+        No classic load balancers found in the selected account/region/VPC
+      </div>
       <ui-select ng-if="$ctrl.command.backingData.filtered.loadBalancers.length"
                  multiple
                  ng-model="$ctrl.command.loadBalancers"
