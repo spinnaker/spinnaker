@@ -65,7 +65,11 @@ class KubernetesLoadBalancerDetailsController implements IController {
 
   private extractLoadBalancer(): void {
     const rawLoadBalancer = this.app.getDataSource('loadBalancers').data.find((test: ILoadBalancer) => {
-      return test.name === this.loadBalancerFromParams.name && test.account === this.loadBalancerFromParams.accountId;
+      return (
+        test.name === this.loadBalancerFromParams.name &&
+        test.account === this.loadBalancerFromParams.accountId &&
+        test.region === this.loadBalancerFromParams.region
+      );
     });
 
     if (rawLoadBalancer) {
