@@ -7,30 +7,15 @@ import (
 	"strings"
 
 	"github.com/spinnaker/spin/command"
+	"github.com/spinnaker/spin/util"
 )
-
-// TODO(jacobkiefer): Consider generalizing if we need to reuse anywhere else.
-
-// flagStringArray implements an array of strings to be used in flags.
-// Flags of this type should have comma-delimited strings as the value.
-type flagStringArray []string
-
-func (f *flagStringArray) String() string {
-	return strings.Join(*f, ",")
-}
-
-func (f *flagStringArray) Set(value string) error {
-	*f = strings.Split(value, ",")
-	return nil
-}
 
 type ApplicationSaveCommand struct {
 	ApiMeta command.ApiMeta
 
-	// TODO(jacobkiefer): Add accounts.
 	applicationName string
 	ownerEmail      string
-	cloudProviders  flagStringArray
+	cloudProviders  util.FlagStringArray
 }
 
 // flagSet adds all options for this command to the flagset and returns the
