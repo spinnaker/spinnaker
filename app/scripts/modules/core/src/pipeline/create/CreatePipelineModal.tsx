@@ -6,6 +6,7 @@ import { $log } from 'ngimport';
 import { IHttpPromiseCallbackArg } from 'angular';
 import { cloneDeep, get, uniqBy } from 'lodash';
 
+import { Overridable } from 'core/overrideRegistry';
 import { Application } from 'core/application/application.model';
 import { IPipeline } from 'core/domain/IPipeline';
 import { SubmitButton } from 'core/modal/buttons/SubmitButton';
@@ -59,6 +60,7 @@ export interface ICreatePipelineModalProps {
   pipelineSavedCallback: (pipelineId: string) => void;
 }
 
+@Overridable('core.pipeline.CreatePipelineModal')
 export class CreatePipelineModal extends React.Component<ICreatePipelineModalProps, ICreatePipelineModalState> {
   constructor(props: ICreatePipelineModalProps) {
     super(props);

@@ -48,7 +48,8 @@ describe('CreatePipelineModal', () => {
           pipelineSavedCallback: (): void => null,
         };
 
-        component = shallow(<CreatePipelineModal {...props} />).instance() as CreatePipelineModal;
+        const RealCreatePipelineModal = (CreatePipelineModal as any).OriginalComponent as React.ComponentType<any>;
+        component = shallow(<RealCreatePipelineModal {...props} />).instance() as CreatePipelineModal;
       };
     }),
   );
