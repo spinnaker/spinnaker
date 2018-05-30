@@ -44,7 +44,7 @@ class TitusCachingProviderConfig {
   Long pollIntervalMillis
 
   @Value('${titus.timeoutMillis:300000}')
-  Long timeOutMilis
+  Long timeoutMillis
 
   @Bean
   @DependsOn('netflixTitusCredentials')
@@ -71,7 +71,7 @@ class TitusCachingProviderConfig {
             registry,
             awsLookupUtilProvider,
             pollIntervalMillis,
-            timeOutMilis
+            timeoutMillis
           )
         } else { //use new split caching for this whole account
           agents << new TitusInstanceCachingAgent(
@@ -83,7 +83,6 @@ class TitusCachingProviderConfig {
             awsLookupUtilProvider
           )
           agents << new TitusV2ClusterCachingAgent(
-            titusCloudProvider,
             titusClientProvider,
             account,
             region,
@@ -91,7 +90,7 @@ class TitusCachingProviderConfig {
             registry,
             awsLookupUtilProvider,
             pollIntervalMillis,
-            timeOutMilis
+            timeoutMillis
           )
         }
       }
