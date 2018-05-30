@@ -82,6 +82,20 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
     return manifests.filter(m => !!m);
   }
 
+  private stageManifestToIManifest(manifest: IStageManifest, account: string): IManifest {
+    return {
+      name: get(manifest, 'metadata.name', ''),
+      moniker: null,
+      account,
+      cloudProvider: 'kubernetes',
+      location: get(manifest, 'metadata.namespace', ''),
+      manifest: manifest,
+      status: {},
+      artifacts: [],
+      events: [],
+    };
+  }
+
   private subscribeToManifest(manifest: IStageManifest): IManifestSubscription {
     const { application, stage } = this.props;
     const { account } = stage.context;
@@ -95,7 +109,11 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
     const unsubscribe = KubernetesManifestService.subscribe(application, params, (updatedManifest: IManifest) => {
       this.saveManifestSubscription({ id, unsubscribe, manifest: updatedManifest });
     });
-    return { id, unsubscribe, manifest: null };
+    return {
+      id,
+      unsubscribe,
+      manifest: this.stageManifestToIManifest(manifest, account),
+    };
   }
 
   private saveManifestSubscription(subscription: IManifestSubscription) {
