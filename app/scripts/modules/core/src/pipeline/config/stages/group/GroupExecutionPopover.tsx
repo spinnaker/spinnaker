@@ -7,6 +7,7 @@ import './groupStage.less';
 
 export interface IGroupExecutionPopoverProps {
   stage: IExecutionStageSummary;
+  width: number;
   subStageClicked?: (groupStage: IExecutionStageSummary, stage: IExecutionStageSummary) => void;
 }
 
@@ -54,10 +55,10 @@ export class GroupExecutionPopover extends React.Component<IGroupExecutionPopove
   };
 
   public render() {
-    const { stage } = this.props;
+    const { stage, width } = this.props;
 
     const template = (
-      <div>
+      <div style={{ minWidth: width - 30 + 'px' }}>
         <div className="group-name">{stage.name.toUpperCase()}</div>
         <ul className="group-execution-label-list">
           {stage.groupStages.map(s => (

@@ -14,6 +14,7 @@ export interface IGroupExecutionLabelProps {
   execution: IExecution;
   application: Application;
   executionMarker: boolean;
+  width?: number;
 }
 
 export class GroupExecutionLabel extends React.Component<IGroupExecutionLabelProps> {
@@ -23,14 +24,14 @@ export class GroupExecutionLabel extends React.Component<IGroupExecutionLabelPro
   };
 
   public render() {
-    const { stage } = this.props;
+    const { stage, width } = this.props;
 
     if (!this.props.executionMarker) {
       return <ExecutionBarLabel {...this.props} />;
     }
 
     return (
-      <GroupExecutionPopover stage={stage} subStageClicked={this.subStageClicked}>
+      <GroupExecutionPopover stage={stage} subStageClicked={this.subStageClicked} width={width}>
         {this.props.children}
       </GroupExecutionPopover>
     );

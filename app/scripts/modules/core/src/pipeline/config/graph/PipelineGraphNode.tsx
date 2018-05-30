@@ -92,7 +92,6 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
             r={nodeRadius}
             className={circleClassName}
             fillOpacity={!node.isActive && node.executionStage ? 0.4 : 1}
-            onClick={this.handleClick}
           />
         )}
 
@@ -106,7 +105,6 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
               className={circleClassName}
               height={nodeRadius * 2}
               width={nodeRadius}
-              onClick={this.handleClick}
             />
           )}
       </g>
@@ -121,40 +119,20 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
       );
     }
 
-    // Add the group popover to the circle if the node is representative of a group
-    // Only executions have a 'stage' property
-    if (node.stage && node.stage.type === 'group') {
-      GraphNode = (
-        <GroupExecutionPopover stage={node.stage} subStageClicked={this.subStageClicked}>
-          {GraphNode}
-        </GroupExecutionPopover>
-      );
-    }
-
     // Render the label differently if there is a custom label component
     let GraphLabel = node.labelComponent ? (
       <div
         className={`execution-stage-label ${!isGroup ? 'clickable' : 'stage-group'} ${(
           node.status || ''
         ).toLowerCase()}`}
-        onClick={this.handleClick}
       >
         <LabelComponent stage={node.stage} />
       </div>
     ) : (
-      <div className={`label-body node ${!isGroup ? 'clickable' : ''}`} onClick={this.handleClick}>
+      <div className={`label-body node ${!isGroup ? 'clickable' : ''}`}>
         <a>{node.name}</a>
       </div>
     );
-
-    // Add the group popover to the label if the node is representative of a group
-    if (node.stage && node.stage.type === 'group') {
-      GraphLabel = (
-        <GroupExecutionPopover stage={node.stage} subStageClicked={this.subStageClicked}>
-          {GraphLabel}
-        </GroupExecutionPopover>
-      );
-    }
 
     // Wrap all the label html in a foreignObject to make SVG happy
     GraphLabel = (
@@ -167,10 +145,29 @@ export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> 
       </foreignObject>
     );
 
-    return (
-      <g onMouseEnter={this.highlight} onMouseLeave={this.removeHighlight} style={{ pointerEvents: 'all' }}>
+    let NodeContents = (
+      <>
         {GraphNode}
         {GraphLabel}
+      </>
+    );
+
+    if (node.stage && node.stage.type === 'group') {
+      NodeContents = (
+        <GroupExecutionPopover stage={node.stage} subStageClicked={this.subStageClicked} width={maxLabelWidth}>
+          {NodeContents}
+        </GroupExecutionPopover>
+      );
+    }
+
+    return (
+      <g
+        onMouseEnter={this.highlight}
+        onMouseLeave={this.removeHighlight}
+        onClick={this.handleClick}
+        style={{ cursor: 'pointer', pointerEvents: 'all' }}
+      >
+        {NodeContents}
       </g>
     );
   }
