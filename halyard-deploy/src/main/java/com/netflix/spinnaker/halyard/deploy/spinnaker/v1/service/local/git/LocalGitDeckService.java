@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
@@ -57,15 +58,24 @@ public class LocalGitDeckService extends DeckService implements LocalGitService<
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    boolean authEnabled = deploymentConfiguration.getSecurity().getAuthn().isEnabled();
-    UiSecurity uiSecurity = deploymentConfiguration.getSecurity().getUiSecurity();
-    if (uiSecurity.getSsl().isEnabled()) {
-      setStartCommand(String.join("\n","export DECK_HTTPS=true", getStartCommand()));
+    Security security = deploymentConfiguration.getSecurity();
+    if (security.getUiSecurity().getSsl().isEnabled()) {
+      setEnvTrue("DECK_HTTPS");
     }
-    return new Settings(uiSecurity)
+    if (security.getAuthn().isEnabled()) {
+      setEnvTrue("AUTH_ENABLED");
+    }
+    if (security.getAuthz().isEnabled()) {
+      setEnvTrue("FIAT_ENABLED");
+    }
+    return new Settings(security.getUiSecurity())
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setHost(authEnabled ? "0.0.0.0" : getDefaultHost())
+        .setHost(security.getAuthn().isEnabled() ? "0.0.0.0" : getDefaultHost())
         .setEnabled(true);
+  }
+
+  private void setEnvTrue(String var) {
+    setStartCommand(String.join("\n", "export " + var + "=true", getStartCommand()));
   }
 
   public String getArtifactId(String deploymentName) {

@@ -51,16 +51,18 @@ public class DeckDockerProfileFactory extends DeckProfileFactory {
     ServiceSettings deckSettings = endpoints.getServices().getDeck();
     ServiceSettings gateSettings = endpoints.getServices().getGate();
     ApacheSsl apacheSsl= deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
+    Map<String, String> env = profile.getEnv();
 
     if (apacheSsl.isEnabled()) {
-      Map<String, String> env = profile.getEnv();
       env.put("DECK_HOST", deckSettings.getHost());
       env.put("DECK_PORT", deckSettings.getPort() + "");
       env.put("API_HOST", gateSettings.getBaseUrl());
-      env.put("AUTH_ENABLED", Boolean.toString(deploymentConfiguration.getSecurity().getAuthn().isEnabled()));
       env.put("DECK_CERT", apacheSsl.getSslCertificateFile());
       env.put("DECK_KEY", apacheSsl.getSslCertificateKeyFile());
       env.put("PASSPHRASE", apacheSsl.getSslCertificatePassphrase());
     }
+
+    env.put("AUTH_ENABLED", Boolean.toString(deploymentConfiguration.getSecurity().getAuthn().isEnabled()));
+    env.put("FIAT_ENABLED", Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
   }
 }
