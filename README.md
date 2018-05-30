@@ -30,3 +30,13 @@ It does so via two modules:
 ## Running Echo
 This can be done locally via `./gradlew bootRun`, which will start with an embedded cassandra instance. Or by following the instructions using the [Spinnaker installation scripts](http://www.github.com/spinnaker/spinnaker).
  
+### Debugging
+
+To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+```
+./gradlew -DDEBUG=true
+```
+
+The JVM will then listen for a debugger to be attached on port 8189.  The JVM will _not_ wait for
+the debugger to be attached before starting Echo; the relevant JVM arguments can be seen and
+modified as needed in `build.gradle`.
