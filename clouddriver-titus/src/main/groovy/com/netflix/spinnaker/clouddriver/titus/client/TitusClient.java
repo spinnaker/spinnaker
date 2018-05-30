@@ -99,6 +99,22 @@ public interface TitusClient {
   /**
    * @return
    */
-  public List<Job> getAllJobs();
+  public List<Job> getAllJobsWithTasks();
+
+  /**
+   * For use in TitusV2ClusterCachingAgent
+   * @return all jobs w/o task detail that are managed by Spinnaker
+   */
+  public List<Job> getAllJobsWithoutTasks();
+
+  /**
+   * For use in TitusInstanceCachingAgent
+   * @return all tasks managed by Spinnaker
+   */
+  public List<Task> getAllTasks();
+
+  public Map<String, String> getAllJobNames();
+
+  public Map<String, List<String>> getTaskIdsForJobIds();
 
 }

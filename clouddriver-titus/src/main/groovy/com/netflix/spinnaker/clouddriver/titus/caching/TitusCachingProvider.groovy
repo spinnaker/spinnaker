@@ -18,12 +18,15 @@ package com.netflix.spinnaker.clouddriver.titus.caching
 
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.CachingSchema
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.CachingSchemaUtil
+
+import javax.inject.Provider
 
 class TitusCachingProvider implements SearchableProvider, EurekaAwareProvider {
 
@@ -32,8 +35,11 @@ class TitusCachingProvider implements SearchableProvider, EurekaAwareProvider {
   private final Collection<CachingAgent> agents
   private final KeyParser keyParser = new Keys()
 
-  TitusCachingProvider(Collection<CachingAgent> agents) {
+  private Provider<CachingSchemaUtil> cachingSchemaUtil
+
+  TitusCachingProvider(Collection<CachingAgent> agents, Provider<CachingSchemaUtil> cachingSchemaUtil) {
     this.agents = Collections.unmodifiableCollection(agents)
+    this.cachingSchemaUtil = cachingSchemaUtil
   }
 
   @Override
@@ -53,7 +59,12 @@ class TitusCachingProvider implements SearchableProvider, EurekaAwareProvider {
 
   @Override
   String getInstanceKey(Map<String, Object> attributes, String region) {
-    Keys.getInstanceKey(attributes.titusTaskId, attributes.accountId, attributes.titusStack, region)
+    CachingSchema schema = cachingSchemaUtil.get().getCachingSchemaForAccount(attributes.accountId)
+    if (schema == CachingSchema.V2) {
+      Keys.getInstanceV2Key(attributes.titusTaskId, attributes.accountId, region)
+    } else {
+      Keys.getInstanceKey(attributes.titusTaskId, attributes.accountId, attributes.titusStack, region)
+    }
   }
 
   @Override

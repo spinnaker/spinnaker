@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
@@ -114,28 +113,32 @@ class CatsSearchProvider implements SearchProvider, Runnable {
    */
   @Override
   void run() {
-    log.info("Refreshing Cached Identifiers (instances)")
-    def instanceIdentifiers = providers.findAll { provider ->
-      provider.supportsSearch('instances', Collections.emptyMap())
-    }.collect { provider ->
-      def cache = providerRegistry.getProviderCache(provider.getProviderName())
-      return cache.getIdentifiers("instances").findResults { key ->
-        def v = provider.parseKey(key)
-        if (v) {
-          v["_id"] = key
-        }
+    try {
+      log.info("Refreshing Cached Identifiers (instances)")
+      def instanceIdentifiers = providers.findAll { provider ->
+        provider.supportsSearch('instances', Collections.emptyMap())
+      }.collect { provider ->
+        def cache = providerRegistry.getProviderCache(provider.getProviderName())
+        return cache.getIdentifiers("instances").findResults { key ->
+          def v = provider.parseKey(key)
+          if (v) {
+            v["_id"] = key
+          }
 
-        return v?.collectEntries {
-          [it.key, it.value.toLowerCase()]
+          return v?.collectEntries {
+            [it.key, it.value.toLowerCase()]
+          }
         }
+      }.flatten()
+
+      if (instanceIdentifiers) {
+        cachedIdentifiersByType.set(["instances": instanceIdentifiers])
       }
-    }.flatten()
 
-    if (instanceIdentifiers) {
-      cachedIdentifiersByType.set(["instances": instanceIdentifiers])
+      log.info("Refreshed Cached Identifiers (found ${instanceIdentifiers.size()} instances)")
+    } catch (Exception e) {
+      log.error("Unable to refresh cached identifiers (instances)", e)
     }
-
-    log.info("Refreshed Cached Identifiers (found ${instanceIdentifiers.size()} instances)")
   }
 
   @Override

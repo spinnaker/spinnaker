@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Timer
 
 import java.util.concurrent.TimeUnit
-import com.netflix.spectator.api.Timer
 import java.util.function.Supplier
 
 class OnDemandMetricsSupport {

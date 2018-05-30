@@ -103,7 +103,7 @@ class RegionScopedTitusClientSpec extends Specification {
     job != null
 
     logger.info("Jobs request: {}", new Date());
-    List<Job> jobs = titusClient.getAllJobs();
+    List<Job> jobs = titusClient.getAllJobsWithTasks();
     logger.info("Jobs response: {}", new Date());
     logger.info("Jobs");
     logger.info("-----------------------------------------------------------------------------------------------");
@@ -114,7 +114,7 @@ class RegionScopedTitusClientSpec extends Specification {
     int i = 7;
     boolean found = false;
     while (--i > 0) {
-      Job queriedJob = titusClient.getAllJobs().find { it.id == jobId }
+      Job queriedJob = titusClient.getAllJobsWithTasks().find { it.id == jobId }
       if (queriedJob) {
         found = true;
         break;
@@ -166,7 +166,7 @@ class RegionScopedTitusClientSpec extends Specification {
     Job terminatedJob = null;
     while (--j > 0) {
       terminatedJob = titusClient.getJobAndAllRunningAndCompletedTasks(jobId);
-      Job.TaskSummary task = terminatedJob.getTasks().get(0);
+      Task task = terminatedJob.getTasks().get(0);
       if (task.getState() == TaskState.DEAD ||
         task.getState() == TaskState.STOPPED ||
         task.getState() == TaskState.FAILED ||
@@ -186,7 +186,7 @@ class RegionScopedTitusClientSpec extends Specification {
     int k = 14;
     boolean foundAfterTermination = true;
     while (--k > 0) {
-      List<Job> queriedJobs = titusClient.getAllJobs();
+      List<Job> queriedJobs = titusClient.getAllJobsWithTasks();
       if (!queriedJobs.contains(job)) {
         foundAfterTermination = false;
         logger.info("Did NOT find job {} in the list of jobs. Terminate successful.", jobId);

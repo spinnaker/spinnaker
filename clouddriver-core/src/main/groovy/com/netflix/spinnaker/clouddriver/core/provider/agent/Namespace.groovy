@@ -38,7 +38,7 @@ enum Namespace {
   RESERVATION_REPORTS,
   RESERVED_INSTANCES
 
-  final String ns
+  public final String ns
   final Set<String> fields
 
   private Namespace(List<String> keyFields = []) {
@@ -48,5 +48,9 @@ enum Namespace {
 
   String toString() {
     ns
+  }
+
+  String getNs() {
+    return ns
   }
 }

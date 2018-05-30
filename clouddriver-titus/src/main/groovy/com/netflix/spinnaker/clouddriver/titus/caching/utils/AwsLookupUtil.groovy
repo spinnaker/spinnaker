@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.caching.utils
 
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonVpc
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonLoadBalancerProvider
@@ -30,20 +29,19 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
-import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 
-import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 
 @Component
 class AwsLookupUtil {
 
   private Set<AmazonVpc> amazonVpcs
-  private List awsAccountLookup;
+  private List awsAccountLookup
+
 
   @Autowired
   AmazonSecurityGroupProvider awsSecurityGroupProvider
@@ -159,8 +157,18 @@ class AwsLookupUtil {
       it.titusAccount == account && it.region == region
     }
 
-    if (!awsDetails || !awsDetails.vpcId) {
+    if (!awsDetails) {
       return null
+    }
+
+    if (!awsDetails.vpcId) { // locally we sometimes fail to resolve the vpcId on init. Try again before failing here.
+      refreshAwsAccounts()
+      awsDetails = awsAccountLookup.find {
+        it.titusAccount == account && it.region == region
+      }
+      if (!awsDetails.vpcId) {
+        return null
+      }
     }
 
     [name      : awsSecurityGroupProvider.getById(awsDetails.awsAccount,
@@ -174,20 +182,24 @@ class AwsLookupUtil {
 
   }
 
+  private void refreshAwsAccounts() {
+    awsAccountLookup = []
+    accountCredentialsProvider.all.findAll {
+      it instanceof NetflixTitusCredentials
+    }.each { NetflixTitusCredentials credential ->
+      credential.regions.each { region ->
+        awsAccountLookup << [titusAccount: credential.name,
+                             awsAccount  : credential.awsAccount,
+                             region      : region.name,
+                             vpcId       : convertVpcNameToId(credential.awsAccount, region.name, credential.awsVpc)]
+      }
+    }
+  }
+
   @PostConstruct
   private void init() {
     if (!awsAccountLookup) {
-      awsAccountLookup = []
-      accountCredentialsProvider.all.findAll {
-        it instanceof NetflixTitusCredentials
-      }.each { NetflixTitusCredentials credential ->
-        credential.regions.each { region ->
-          awsAccountLookup << [titusAccount: credential.name,
-                               awsAccount  : credential.awsAccount,
-                               region      : region.name,
-                               vpcId       : convertVpcNameToId(credential.awsAccount, region.name, credential.awsVpc)]
-        }
-      }
+      refreshAwsAccounts()
     }
   }
 

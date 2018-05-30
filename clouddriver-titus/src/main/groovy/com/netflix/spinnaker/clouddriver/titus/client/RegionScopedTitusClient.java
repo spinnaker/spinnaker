@@ -34,6 +34,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 @Slf4j
 public class RegionScopedTitusClient implements TitusClient {
 
@@ -247,7 +250,7 @@ public class RegionScopedTitusClient implements TitusClient {
   }
 
   @Override
-  public List<Job> getAllJobs() {
+  public List<Job> getAllJobsWithTasks() {
     JobQuery.Builder jobQuery = JobQuery.newBuilder()
       .putFilteringCriteria("jobType", "SERVICE")
       .putFilteringCriteria("attributes", "source:spinnaker");
@@ -259,29 +262,13 @@ public class RegionScopedTitusClient implements TitusClient {
   }
 
   private List<Job> getJobs(JobQuery.Builder jobQuery, boolean includeTasks) {
-    List<Job> jobs = new ArrayList<>();
-    List<com.netflix.titus.grpc.protogen.Job> grpcJobs = new ArrayList<>();
-    String cursor = "";
-    boolean hasMore;
-    do {
-      Page.Builder jobPage = Page.newBuilder().setPageSize(1000);
-      if (!cursor.isEmpty()) {
-        jobPage.setCursor(cursor);
-      }
-      jobQuery.setPage(jobPage);
-      JobQuery criteria = jobQuery.build();
-      JobQueryResult resultPage = TitusClientCompressionUtil.attachCaller(grpcBlockingStub).findJobs(criteria);
-      grpcJobs.addAll(resultPage.getItemsList());
-      cursor = resultPage.getPagination().getCursor();
-      hasMore = resultPage.getPagination().getHasMore();
-    } while (hasMore);
-
+    List<com.netflix.titus.grpc.protogen.Job> grpcJobs = getJobsWithFilter(jobQuery);
     final Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks;
 
     if (includeTasks) {
       List<String> jobIds = Collections.emptyList();
       if (!titusRegion.getFeatureFlags().contains("jobIds")) {
-        jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
+        jobIds = grpcJobs.stream().map(com.netflix.titus.grpc.protogen.Job::getId).collect(
           Collectors.toList()
         );
       }
@@ -289,41 +276,127 @@ public class RegionScopedTitusClient implements TitusClient {
     } else {
       tasks = Collections.emptyMap();
     }
-
     return grpcJobs.stream().map(grpcJob -> new Job(grpcJob, tasks.get(grpcJob.getId()))).collect(Collectors.toList());
   }
 
+  @Override
+  public List<Job> getAllJobsWithoutTasks() {
+    JobQuery.Builder jobQuery = JobQuery.newBuilder()
+      .putFilteringCriteria("jobType", "SERVICE")
+      .putFilteringCriteria("attributes", "source:spinnaker");
+
+    return getJobs(jobQuery, false);
+  }
+
+  @Override
+  public Map<String, String> getAllJobNames() {
+    JobQuery.Builder jobQuery = JobQuery.newBuilder()
+      .putFilteringCriteria("jobType", "SERVICE")
+      .putFilteringCriteria("attributes", "source:spinnaker")
+      .addFields("id")
+      .addFields("jobDescriptor.attributes.name");
+
+    List<com.netflix.titus.grpc.protogen.Job> grpcJobs = getJobsWithFilter(jobQuery, 10000);
+
+    return grpcJobs.stream()
+      .collect(Collectors.toMap(
+        com.netflix.titus.grpc.protogen.Job::getId,
+        it -> it.getJobDescriptor().getAttributesOrDefault("name", "")
+      ));
+  }
+
+  @Override
+  public Map<String, List<String>> getTaskIdsForJobIds() {
+    String filterByStates = "Accepted,Launched,StartInitiated,Started";
+
+    TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
+    taskQueryBuilder
+      .putFilteringCriteria("attributes", "source:spinnaker")
+      .putFilteringCriteria("taskStates", filterByStates)
+      .addFields("id")
+      .addFields("jobId");
+
+    List<com.netflix.titus.grpc.protogen.Task> grpcTasks = getTasksWithFilter(taskQueryBuilder, 10000);
+    return grpcTasks.stream().collect(Collectors.groupingBy(com.netflix.titus.grpc.protogen.Task::getJobId, mapping(com.netflix.titus.grpc.protogen.Task::getId, toList())));
+  }
+
   private Map<String, List<com.netflix.titus.grpc.protogen.Task>> getTasks(List<String> jobIds, boolean includeDoneJobs) {
-    List<com.netflix.titus.grpc.protogen.Task> tasks = new ArrayList<>();
-    TaskQueryResult taskResults;
+    TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
+    if (!jobIds.isEmpty()) {
+      taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
+    }
+    if (titusRegion.getFeatureFlags().contains("jobIds")) {
+      taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
+    }
+    String filterByStates = "Accepted,Launched,StartInitiated,Started";
+    if (includeDoneJobs) {
+      filterByStates = filterByStates + ",KillInitiated,Finished";
+    }
+    taskQueryBuilder.putFilteringCriteria("taskStates", filterByStates);
+
+    List<com.netflix.titus.grpc.protogen.Task> tasks = getTasksWithFilter(taskQueryBuilder);
+    return tasks.stream().collect(Collectors.groupingBy(com.netflix.titus.grpc.protogen.Task::getJobId));
+  }
+
+  @Override
+  public List<Task> getAllTasks() {
+    TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
+    taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
+    String filterByStates = "Accepted,Launched,StartInitiated,Started";
+    taskQueryBuilder.putFilteringCriteria("taskStates", filterByStates);
+
+    List<com.netflix.titus.grpc.protogen.Task> tasks = getTasksWithFilter(taskQueryBuilder);
+    return tasks.stream().map(Task::new).collect(toList());
+  }
+
+  private List<com.netflix.titus.grpc.protogen.Job> getJobsWithFilter(JobQuery.Builder jobQueryBuilder) {
+    return getJobsWithFilter(jobQueryBuilder, 1000);
+  }
+
+  private List<com.netflix.titus.grpc.protogen.Job> getJobsWithFilter(JobQuery.Builder jobQueryBuilder, Integer pageSize) {
+    List<com.netflix.titus.grpc.protogen.Job> grpcJobs = new ArrayList<>();
     String cursor = "";
     boolean hasMore;
     do {
-      Page.Builder taskPage = Page.newBuilder().setPageSize(titusRegion.getFeatureFlags().contains("largePages") ? 2000 : 1000);
-      if (!cursor.isEmpty()) {
-        taskPage.setCursor(cursor);
+      if (cursor.isEmpty()) {
+        jobQueryBuilder.setPage(Page.newBuilder().setPageSize(pageSize));
+      } else {
+        jobQueryBuilder.setPage(Page.newBuilder().setCursor(cursor).setPageSize(pageSize));
       }
-      TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
-      taskQueryBuilder.setPage(taskPage);
-      if (!jobIds.isEmpty()) {
-        taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
+
+      JobQuery criteria = jobQueryBuilder.build();
+      JobQueryResult resultPage = TitusClientCompressionUtil.attachCaller(grpcBlockingStub).findJobs(criteria);
+      grpcJobs.addAll(resultPage.getItemsList());
+      cursor = resultPage.getPagination().getCursor();
+      hasMore = resultPage.getPagination().getHasMore();
+    } while (hasMore);
+    return grpcJobs;
+  }
+
+  private List<com.netflix.titus.grpc.protogen.Task> getTasksWithFilter(TaskQuery.Builder taskQueryBuilder) {
+    return getTasksWithFilter(taskQueryBuilder, titusRegion.getFeatureFlags().contains("largePages") ? 2000 : 1000);
+  }
+
+  private List<com.netflix.titus.grpc.protogen.Task> getTasksWithFilter(TaskQuery.Builder taskQueryBuilder, Integer pageSize) {
+    List<com.netflix.titus.grpc.protogen.Task> grpcTasks = new ArrayList<>();
+
+    TaskQueryResult taskResults;
+    String cursor = "";
+    boolean hasMore;
+
+    do {
+      if (cursor.isEmpty()) {
+        taskQueryBuilder.setPage(Page.newBuilder().setPageSize(pageSize));
+      } else {
+        taskQueryBuilder.setPage(Page.newBuilder().setCursor(cursor).setPageSize(pageSize));
       }
-      if (titusRegion.getFeatureFlags().contains("jobIds")) {
-        taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
-      }
-      String filterByStates = "Accepted,Launched,StartInitiated,Started";
-      if (includeDoneJobs) {
-        filterByStates = filterByStates + ",KillInitiated,Finished";
-      }
-      taskQueryBuilder.putFilteringCriteria("taskStates", filterByStates);
       taskResults = TitusClientCompressionUtil.attachCaller(grpcBlockingStub).findTasks(
         taskQueryBuilder.build()
       );
-      tasks.addAll(taskResults.getItemsList());
+      grpcTasks.addAll(taskResults.getItemsList());
       cursor = taskResults.getPagination().getCursor();
       hasMore = taskResults.getPagination().getHasMore();
     } while (hasMore);
-    return tasks.stream().collect(Collectors.groupingBy(task -> task.getJobId()));
+    return grpcTasks;
   }
-
 }

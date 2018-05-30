@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.model
 
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
+import com.netflix.spinnaker.clouddriver.titus.client.model.Task
 import spock.lang.Specification
 
 class TitusServerGroupSpec extends Specification {
@@ -38,7 +39,7 @@ class TitusServerGroupSpec extends Specification {
     instancesDesired: 5,
     environment: [account: 'test'],
     submittedAt: launchDate,
-    tasks: [new Job.TaskSummary(
+    tasks: [new Task(
       id: '5678',
       region: 'us-east-1',
       state: TaskState.RUNNING,

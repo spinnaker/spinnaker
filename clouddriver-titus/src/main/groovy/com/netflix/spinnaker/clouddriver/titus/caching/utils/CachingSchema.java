@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.titus.client;
+package com.netflix.spinnaker.clouddriver.titus.caching.utils;
 
+public enum CachingSchema {
+  V1,
+  V2;
 
-import com.netflix.titus.grpc.protogen.LoadBalancerId;
-
-import java.util.List;
-import java.util.Map;
-
-public interface TitusLoadBalancerClient {
-
-  List<LoadBalancerId> getJobLoadBalancers(String jobId);
-
-  void addLoadBalancer(String jobId, String loadBalancerId);
-
-  void removeLoadBalancer(String jobId, String loadBalancerId);
-
-  /**
-   * @return a map of jobId to list of loadbalancerIds
-   */
-  Map<String, List<String>> getAllLoadBalancers();
-
+  String toLowerCase() {
+    return name().toLowerCase();
+  }
 }

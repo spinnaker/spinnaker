@@ -26,7 +26,7 @@ import java.lang.annotation.Annotation
  */
 @Component
 class TitusCloudProvider implements CloudProvider {
-  static final String ID = 'titus'
+  public static final String ID = 'titus'
   final String id = ID
   final String displayName = "Titus"
   final Class<Annotation> operationAnnotationType = TitusOperation

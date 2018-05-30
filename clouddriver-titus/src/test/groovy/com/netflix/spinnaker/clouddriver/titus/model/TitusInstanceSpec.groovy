@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.titus.model
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
+import com.netflix.spinnaker.clouddriver.titus.client.model.Task
 import spock.lang.Specification
 
 class TitusInstanceSpec extends Specification {
@@ -35,7 +36,7 @@ class TitusInstanceSpec extends Specification {
     ports: [7150] as int[],
     environment: [account: 'test', region: 'us-east-1'],
   )
-  Job.TaskSummary task = new Job.TaskSummary(
+  Task task = new Task(
     id: '5678',
     state: TaskState.RUNNING,
     submittedAt: launchDate,

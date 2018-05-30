@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
+import com.netflix.spinnaker.clouddriver.titus.client.model.Task
 
 class TitusInstance implements Instance {
 
@@ -49,7 +50,7 @@ class TitusInstance implements Instance {
 
   TitusInstance() {}
 
-  TitusInstance(Job job, Job.TaskSummary task) {
+  TitusInstance(Job job, Task task) {
     id = task.id
     instanceId = task.instanceId
     securityGroups = job.securityGroups?.collect { it -> new TitusSecurityGroup(groupId: it, groupName: "n/a") }
@@ -113,7 +114,7 @@ class TitusInstance implements Instance {
   }
 
   @Override
-  List<Map<String, Object>> getHealth() {
+  List<Map<String, String>> getHealth() {
     health
   }
 

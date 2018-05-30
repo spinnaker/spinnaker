@@ -49,6 +49,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
+import com.netflix.spinnaker.clouddriver.titus.client.model.Task
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import com.netflix.titus.grpc.protogen.ScalingPolicy
@@ -73,9 +74,9 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(APPLICATIONS.ns),
+    AUTHORITATIVE.forType(INSTANCES.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
-    INFORMATIVE.forType(TARGET_GROUPS.ns),
-    AUTHORITATIVE.forType(INSTANCES.ns)
+    INFORMATIVE.forType(TARGET_GROUPS.ns)
   ] as Set)
 
   private final TitusCloudProvider titusCloudProvider
@@ -260,7 +261,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     Long start = System.currentTimeMillis()
-    List<Job> jobs = titusClient.getAllJobs()
+    List<Job> jobs = titusClient.getAllJobsWithTasks()
 
     List<CacheData> evictFromOnDemand = []
     List<CacheData> keepInOnDemand = []
@@ -401,7 +402,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
           relationships[CLUSTERS.ns].add(data.cluster)
           relationships[INSTANCES.ns].addAll(data.instanceIds)
           relationships[TARGET_GROUPS.ns].addAll(data.targetGroupKeys)
-          for (Job.TaskSummary task : jobTasks) {
+          for (Task task : jobTasks) {
             def instanceData = new InstanceData(job, task, account.name, region, account.stack)
             cacheInstance(instanceData, instances)
           }
@@ -414,7 +415,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
 
   private void cacheInstance(InstanceData data, Map<String, CacheData> instances) {
     instances[data.instanceId].with {
-      Job.TaskSummary task = objectMapper.convertValue(data.task, Job.TaskSummary)
+      Task task = objectMapper.convertValue(data.task, Task)
       attributes.task = task
       Map<String, Object> job = objectMapper.convertValue(data.job, Map)
       job.remove('tasks')
@@ -498,12 +499,12 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
 
   private class InstanceData {
     private final Job job
-    private final Job.TaskSummary task
+    private final Task task
     private final String instanceId
     private final String serverGroup
     private final String imageId
 
-    public InstanceData(Job job, Job.TaskSummary task, String account, String region, String stack) {
+    public InstanceData(Job job, Task task, String account, String region, String stack) {
       this.job = job
       this.task = task
       this.instanceId = Keys.getInstanceKey(task.id, getAwsAccountId(account, region), stack, region)
@@ -512,7 +513,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     }
   }
 
-  private Map<String, String> getTitusHealth(Job.TaskSummary task) {
+  private Map<String, String> getTitusHealth(Task task) {
     TaskState taskState = task.state
     HealthState healthState = HealthState.Unknown
     if (taskState in [TaskState.STOPPED, TaskState.FAILED, TaskState.CRASHED, TaskState.FINISHED, TaskState.DEAD, TaskState.TERMINATING]) {

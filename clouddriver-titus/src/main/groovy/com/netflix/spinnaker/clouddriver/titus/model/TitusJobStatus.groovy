@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.JobState
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
-import com.netflix.spinnaker.clouddriver.titus.client.model.Job.TaskSummary
+import com.netflix.spinnaker.clouddriver.titus.client.model.Task
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 
 /**
@@ -55,12 +55,12 @@ class TitusJobStatus implements com.netflix.spinnaker.clouddriver.model.JobStatu
     name = job.name
     createdTime = job.submittedAt ? job.submittedAt.time : null
     application = Names.parseName(job.name).app
-    TaskSummary task = job.tasks.sort { it.startedAt }.last()
+    Task task = job.tasks.sort { it.startedAt }.last()
     jobState = convertTaskStateToJobState(job, task)
     completionDetails = convertCompletionDetails(task)
   }
 
-  Map<String, String> convertCompletionDetails(TaskSummary task) {
+  Map<String, String> convertCompletionDetails(Task task) {
     [
       message   : task.message,
       taskId    : task.id,
@@ -68,7 +68,7 @@ class TitusJobStatus implements com.netflix.spinnaker.clouddriver.model.JobStatu
     ]
   }
 
-  JobState convertTaskStateToJobState(Job job, TaskSummary task) {
+  JobState convertTaskStateToJobState(Job job, Task task) {
 
     if (job.getJobState() in ["Accepted", "KillInitiated"]) {
       return JobState.Running
