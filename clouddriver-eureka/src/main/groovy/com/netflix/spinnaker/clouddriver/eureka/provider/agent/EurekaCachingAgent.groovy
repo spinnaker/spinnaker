@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.eureka.provider.agent
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -82,9 +83,16 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
     Collection<CacheData> instanceCacheData = new LinkedList<CacheData>()
 
     for (EurekaApplication application : disco.applications) {
+      Map<String, Map<String, Object>> convertedInstancesById = ((List<Map>) objectMapper.convertValue(
+        application.instances.findAll { it.instanceId },
+        new TypeReference<List<Map<String, Object>>>() {}
+      )).collectEntries {
+        [it.instanceId, it]
+      }
+
       for (EurekaInstance instance : application.instances) {
         if (instance.instanceId) {
-          Map<String, Object> attributes = objectMapper.convertValue(instance, ATTRIBUTES)
+          Map<String, Object> attributes = convertedInstancesById[instance.instanceId]
           attributes.eurekaAccountName = eurekaAccountName
           attributes.allowMultipleEurekaPerAccount = allowMultipleEurekaPerAccount
           eurekaAwareProviderList.each { provider ->

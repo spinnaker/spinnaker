@@ -24,6 +24,7 @@ import com.amazonaws.services.ec2.model.StateReason
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.google.common.collect.Lists
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -133,17 +134,26 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
 
     List<String> skipIds =  []
 
-    for (Instance instance : awsInstances) {
-      def data = new InstanceData(instance, account.name, region)
-      if (instances.containsKey(data.instanceId)) {
-        log.warn("Duplicate instance for ${data.instanceId}")
+    Lists.partition(awsInstances, 1000).each { List<Instance> partition ->
+      Map<String, Map<String, Object>> convertedInstancesById = ((List<Map>) objectMapper.convertValue(
+        partition,
+        new TypeReference<List<Map<String, Object>>>() {}
+      )).collectEntries {
+        [it.instanceId, it]
       }
-      if (data.cache) {
-        cacheImage(data, images)
-        cacheServerGroup(data, serverGroups)
-        cacheInstance(data, instances)
-      } else {
-        skipIds.add(data.instance.instanceId)
+
+      partition.each { Instance instance ->
+        def data = new InstanceData(instance, account.name, region)
+        if (instances.containsKey(data.instanceId)) {
+          log.warn("Duplicate instance for ${data.instanceId}")
+        }
+        if (data.cache) {
+          cacheImage(data, images)
+          cacheServerGroup(data, serverGroups)
+          cacheInstance(data, convertedInstancesById.get(data.instance.instanceId), instances)
+        } else {
+          skipIds.add(data.instance.instanceId)
+        }
       }
     }
 
@@ -179,9 +189,9 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
     }
   }
 
-  private void cacheInstance(InstanceData data, Map<String, CacheData> instances) {
+  private void cacheInstance(InstanceData data, Map<String, Object> instanceAttributes, Map<String, CacheData> instances) {
     instances[data.instanceId].with {
-      attributes.putAll(objectMapper.convertValue(data.instance, ATTRIBUTES))
+      attributes.putAll(instanceAttributes)
       attributes.put(HEALTH.ns, [getAmazonHealth(data.instance)])
       relationships[IMAGES.ns].add(data.imageId)
       if (data.serverGroup) {
@@ -190,7 +200,6 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
         relationships[SERVER_GROUPS.ns].clear()
       }
     }
-
   }
 
   private Map<String, String>  getAmazonHealth(Instance instance) {
