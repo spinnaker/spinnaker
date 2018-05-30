@@ -32,7 +32,10 @@
       "google": ["google/src"],
       "@spinnaker/appengine": ["appengine/src"],
       "appengine/*": ["appengine/src/*"],
-      "appengine/": ["appengine/src"]
+      "appengine/": ["appengine/src"],
+      "@spinnaker/kubernetes": ["kubernetes/src"],
+      "kubernetes/*": ["kubernetes/src/*"],
+      "kubernetes/": ["kubernetes/src"]
     },
     "pretty": true,
     "removeComments": true,

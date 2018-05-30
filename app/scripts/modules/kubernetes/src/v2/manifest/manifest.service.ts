@@ -10,7 +10,7 @@ export interface IManifestParams {
   name: string;
 }
 
-type Callback = (manifest: IManifest) => void;
+export type IManifestCallback = (manifest: IManifest) => void;
 
 export class KubernetesManifestService {
   public static makeManifestRefresher(
@@ -24,12 +24,12 @@ export class KubernetesManifestService {
     return KubernetesManifestService.subscribe(app, params, onUpdate);
   }
 
-  public static subscribe(app: Application, params: IManifestParams, fn: Callback): () => void {
+  public static subscribe(app: Application, params: IManifestParams, fn: IManifestCallback): () => void {
     KubernetesManifestService.updateManifest(params, fn);
     return app.onRefresh(null, () => KubernetesManifestService.updateManifest(params, fn));
   }
 
-  private static updateManifest(params: IManifestParams, fn: Callback) {
+  private static updateManifest(params: IManifestParams, fn: IManifestCallback) {
     ManifestReader.getManifest(params.account, params.location, params.name).then(manifest => fn(manifest));
   }
 }

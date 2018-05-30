@@ -7,7 +7,7 @@ import { ManifestEvents } from './ManifestEvents';
 
 import './ManifestStatus.less';
 
-interface IManifestStatusProps {
+export interface IManifestStatusProps {
   manifest: IManifest;
   application: Application;
   stage: any;

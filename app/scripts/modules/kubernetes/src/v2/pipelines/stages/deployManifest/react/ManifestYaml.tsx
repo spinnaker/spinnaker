@@ -4,12 +4,12 @@ import { dump } from 'js-yaml';
 import { cloneDeep } from 'lodash';
 import { IManifest } from '@spinnaker/core';
 
-interface IManifestYamlProps {
+export interface IManifestYamlProps {
   manifest: IManifest;
   linkName: string;
 }
 
-interface IManifestYamlState {
+export interface IManifestYamlState {
   modalVisible: boolean;
   manifestText: string;
 }

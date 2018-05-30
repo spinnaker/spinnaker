@@ -2,7 +2,7 @@ import * as React from 'react';
 import { IManifest, Application, ReactInjector } from '@spinnaker/core';
 import { trim } from 'lodash';
 
-interface IManifestDetailsProps {
+export interface IManifestDetailsProps {
   manifest: IManifest;
   linkName: string;
   application: Application;

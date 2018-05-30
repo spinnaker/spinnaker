@@ -6,10 +6,10 @@ import {
   StageFailureMessage,
   IManifest,
 } from '@spinnaker/core';
-import { KubernetesManifestService } from '../../../../manifest/manifest.service';
+import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
 import { ManifestStatus } from './ManifestStatus';
 
-interface IManifestSubscription {
+export interface IManifestSubscription {
   id: string;
   unsubscribe: () => void;
   manifest: IManifest;
@@ -23,7 +23,7 @@ interface IStageManifest {
   };
 }
 
-interface IDeployStatusState {
+export interface IDeployStatusState {
   subscriptions: IManifestSubscription[];
 }
 

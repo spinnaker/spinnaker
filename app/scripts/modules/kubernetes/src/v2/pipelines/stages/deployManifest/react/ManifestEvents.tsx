@@ -3,7 +3,7 @@ import { get } from 'lodash';
 import * as moment from 'moment';
 import { IManifest, IManifestEvent, relativeTime } from '@spinnaker/core';
 
-interface IManifestEventsProps {
+export interface IManifestEventsProps {
   manifest: IManifest;
 }
 

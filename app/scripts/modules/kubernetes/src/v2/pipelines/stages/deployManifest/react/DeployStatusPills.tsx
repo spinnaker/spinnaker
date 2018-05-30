@@ -12,7 +12,7 @@ const STATUS_PILLS: IStatusClasses = {
   failed: 'danger',
 };
 
-interface IDeployManifestStatusProps {
+export interface IDeployManifestStatusProps {
   manifest: IManifest;
 }
 
