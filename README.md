@@ -16,7 +16,7 @@ A tool for configuring, installing, and updating Spinnaker.
 > [slack](http://join.spinnaker.io).
 
 ```
-$ curl -O https://raw.githubusercontent.com/spinnaker/halyard/master/install/stable/InstallHalyard.sh
+$ curl -O https://raw.githubusercontent.com/spinnaker/halyard/master/install/debian/InstallHalyard.sh
 $ sudo bash InstallHalyard.sh
 ```
 
