@@ -71,6 +71,7 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
 
   public InputStream download(Artifact artifact) throws IOException {
     String reference = artifact.getReference();
+    Long generation = null;
     if (reference.startsWith("gs://")) {
       reference = reference.substring("gs://".length());
     }
@@ -82,7 +83,17 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
 
     String bucketName = reference.substring(0, slash);
     String path = reference.substring(slash + 1);
-    Storage.Objects.Get get = storage.objects().get(bucketName, path);
+
+    int pound = reference.lastIndexOf("#");
+    if (pound >= 0) {
+      generation = Long.valueOf(path.substring(pound + 1));
+      path = path.substring(0, pound);
+    }
+
+    Storage.Objects.Get get = storage.objects()
+        .get(bucketName, path)
+        .setGeneration(generation);
+
     return get.executeMediaAsInputStream();
   }
 
