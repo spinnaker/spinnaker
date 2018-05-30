@@ -61,7 +61,7 @@ describe('pipelineConfigValidator', () => {
     };
   }
 
-  beforeEach(() => Registry.initialize());
+  beforeEach(() => Registry.reinitialize());
 
   beforeEach(mock.module(require('../pipelineConfig.module.js').name));
 

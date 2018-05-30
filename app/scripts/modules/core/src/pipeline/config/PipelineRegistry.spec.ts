@@ -40,7 +40,7 @@ const gcpProviderAccount = {
 };
 
 describe('PipelineRegistry: API', function() {
-  beforeEach(() => Registry.initialize());
+  beforeEach(() => Registry.reinitialize());
 
   describe('registration', function() {
     it(

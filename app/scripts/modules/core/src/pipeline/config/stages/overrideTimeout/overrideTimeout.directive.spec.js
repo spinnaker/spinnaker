@@ -17,7 +17,7 @@ describe('Directives: overrideTimeout', function() {
       this.$controller = $controller;
 
       stageConfig = { defaultTimeoutMs: 90 * 60 * 1000 };
-      Registry.initialize();
+      Registry.reinitialize();
     });
   });
 

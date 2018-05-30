@@ -1,6 +1,8 @@
 'use strict';
 
 const angular = require('angular');
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 
 import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
@@ -28,6 +30,7 @@ module.exports = angular
         viewState: '=',
         application: '=',
         pipeline: '=',
+        stageFieldUpdated: '<',
       },
       controller: 'StageConfigCtrl as stageConfigCtrl',
       templateUrl: require('./stage.html'),
@@ -37,7 +40,7 @@ module.exports = angular
     };
   })
   .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache, $uibModal) {
-    var lastStageScope;
+    var lastStageScope, reactComponentMounted;
 
     $scope.options = {
       stageTypes: [],
@@ -127,6 +130,7 @@ module.exports = angular
     };
 
     this.selectStage = function(newVal, oldVal) {
+      const stageDetailsNode = $element.find('.stage-details').get(0);
       if ($scope.viewState.stageIndex >= $scope.pipeline.stages.length) {
         $scope.viewState.stageIndex = $scope.pipeline.stages.length - 1;
       }
@@ -147,7 +151,13 @@ module.exports = angular
         stageScope = $scope.$new();
 
       // clear existing contents
-      $element.find('.stage-details').html('');
+      if (reactComponentMounted) {
+        ReactDOM.unmountComponentAtNode(stageDetailsNode);
+        reactComponentMounted = false;
+      } else {
+        $element.find('.stage-details').html('');
+      }
+
       $scope.description = '';
       if (lastStageScope) {
         lastStageScope.$destroy();
@@ -158,7 +168,7 @@ module.exports = angular
         stageScope.$destroy();
       });
 
-      if (type) {
+      if (type && stageDetailsNode) {
         let config = getConfig($scope.stage);
         if (config) {
           $scope.canConfigureNotifications = !$scope.pipeline.strategy && !config.disableNotifications;
@@ -172,9 +182,16 @@ module.exports = angular
           updateStageName(config, oldVal);
           applyConfigController(config, stageScope);
 
-          let template = $templateCache.get(config.templateUrl);
-          let templateBody = $compile(template)(stageScope);
-          $element.find('.stage-details').html(templateBody);
+          if (config.component) {
+            const StageConfig = config.component;
+            const props = { stageFieldUpdated: $scope.stageFieldUpdated, stage: $scope.stage };
+            ReactDOM.render(React.createElement(StageConfig, props), stageDetailsNode);
+          } else {
+            const template = $templateCache.get(config.templateUrl);
+            const templateBody = $compile(template)(stageScope);
+            $element.find('.stage-details').html(templateBody);
+          }
+          reactComponentMounted = !!config.component;
         }
       } else {
         $scope.label = null;
@@ -215,7 +232,7 @@ module.exports = angular
     $scope.$watch('viewState.stageIndex', this.selectStage);
     $scope.$watch('stage.refId', this.selectStage);
   })
-  .controller('RestartStageCtrl', function($scope, $stateParams, $http, confirmationModalService) {
+  .controller('RestartStageCtrl', function($scope, $stateParams, confirmationModalService) {
     var restartStage = function() {
       return API.one('pipelines')
         .one($stateParams.executionId)

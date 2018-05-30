@@ -23,7 +23,7 @@ import { SHRINK_CLUSTER_STAGE } from './config/stages/shrinkCluster/shrinkCluste
 import { STAGE_CORE_MODULE } from './config/stages/core/stage.core.module';
 import { TRAVIS_STAGE_MODULE } from './config/stages/travis/travisStage.module';
 import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
-import { WAIT_STAGE } from './config/stages/wait/waitStage';
+import './config/stages/wait/waitStage';
 import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
 import { PIPELINE_STATES } from './pipeline.states';
 import { BUILD_DISPLAY_NAME_FILTER } from './executionBuild/buildDisplayName.filter';
@@ -83,7 +83,6 @@ module(PIPELINE_MODULE, [
   SCALE_DOWN_CLUSTER_STAGE,
   SCRIPT_STAGE,
   SHRINK_CLUSTER_STAGE,
-  WAIT_STAGE,
   require('./config/stages/waitForParentTasks/waitForParentTasks').name,
   CREATE_LOAD_BALANCER_STAGE,
   APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE,

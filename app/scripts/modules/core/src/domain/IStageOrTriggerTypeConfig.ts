@@ -11,5 +11,6 @@ export interface IStageOrTriggerTypeConfig {
   templateUrl?: string;
   controller?: string;
   controllerAs?: string;
+  component?: React.ComponentType;
   validators?: IValidatorConfig[];
 }

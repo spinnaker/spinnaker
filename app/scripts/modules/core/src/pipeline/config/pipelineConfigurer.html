@@ -93,7 +93,11 @@
   </div>
   <div class="pipeline-contents">
 
-    <pipeline-config-view application="application" pipeline="renderablePipeline" pipeline-config="pipeline" view-state="viewState"></pipeline-config-view>
+    <pipeline-config-view application="application"
+                          pipeline="renderablePipeline"
+                          pipeline-config="pipeline"
+                          stage-field-updated="pipelineConfigurerCtrl.stageFieldUpdated"
+                          view-state="viewState"></pipeline-config-view>
 
     <div class="row main-footer fixed-footer">
       <div class="col-md-3">

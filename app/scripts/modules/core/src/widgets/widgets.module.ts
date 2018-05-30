@@ -11,7 +11,6 @@ module(WIDGETS_MODULE, [
   NOTIFIER_COMPONENT,
   require('./spelText/spelText.decorator').name,
   require('./spelText/spelSelect.component').name,
-  require('./spelText/numberInput.component').name,
   require('./actionIcons/actionIcons.component').name,
   SPINNER_WRAPPER,
 ]);
