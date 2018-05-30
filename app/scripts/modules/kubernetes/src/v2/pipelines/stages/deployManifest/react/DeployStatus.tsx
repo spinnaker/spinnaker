@@ -63,7 +63,8 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
 
   private manifestIdentifier(manifest: IStageManifest) {
     const kind = manifest.kind.toLowerCase();
-    const namespace = manifest.metadata.namespace.toLowerCase();
+    // manifest.metadata.namespace doesn't exist if it's a namespace being deployed
+    const namespace = (manifest.metadata.namespace || '').toLowerCase();
     const name = manifest.metadata.name.toLowerCase();
     return `${namespace} ${kind} ${name}`;
   }
