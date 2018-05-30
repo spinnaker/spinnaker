@@ -33,8 +33,6 @@ import { KUBERNETES_MANIFEST_LABELS } from './manifest/manifestLabels.component'
 import { KUBERNETES_MANIFEST_ANNOTATIONS } from './manifest/manifestAnnotations.component';
 import { KUBERNETES_MANIFEST_EVENTS } from './manifest/manifestEvents.component';
 import { KUBERNETES_MULTI_MANIFEST_SELECTOR } from './manifest/selector/multiSelector.component';
-import { KUBERNETES_SHOW_MANIFEST_YAML } from './manifest/showManifestYaml.component';
-import { KUBERNETES_SHOW_MANIFEST_DETAILS } from './manifest/showManifestDetails.component';
 import { KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transformer';
 import { KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transformer';
 import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
@@ -82,8 +80,6 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_LABELS,
   KUBERNETES_MANIFEST_ANNOTATIONS,
   KUBERNETES_MANIFEST_EVENTS,
-  KUBERNETES_SHOW_MANIFEST_YAML,
-  KUBERNETES_SHOW_MANIFEST_DETAILS,
   KUBERNETES_ANNOTATION_CUSTOM_SECTIONS,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {

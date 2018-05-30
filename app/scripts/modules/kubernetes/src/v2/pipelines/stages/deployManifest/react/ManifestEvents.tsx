@@ -19,6 +19,9 @@ export class ManifestEvents extends React.Component<IManifestEventsProps> {
   }
 
   public render() {
+    if (!this.props.manifest) {
+      return null;
+    }
     if (this.props.manifest && !this.props.manifest.events) {
       return <div>No events found - Kubernetes does not store events for long.</div>;
     }
