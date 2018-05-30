@@ -95,11 +95,27 @@ public class EcsImageFinder implements ImageFinder {
     String region;
 
     ImageDetails toImageDetails() {
-      String imageId = amis.get(region).get(0);
+      String imageId;
+
+      if (getEcrRepositoryResult() != null) {
+        imageId = getEcrImageId();
+      } else {
+        imageId = imageName;
+      }
+
+
 
       return new EcsImageDetails(
         imageId, imageName, region, new JenkinsDetails("host", "name", "1337001")
       );
+    }
+
+    private List<String> getEcrRepositoryResult() {
+      return amis.get(region);
+    }
+
+    private String getEcrImageId() {
+      return getEcrRepositoryResult().get(0);
     }
 
     @Override
