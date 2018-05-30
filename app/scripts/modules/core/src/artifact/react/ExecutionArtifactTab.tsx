@@ -48,13 +48,13 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
     return (
       <ExecutionDetailsSection name={this.props.name} current={this.props.current}>
         <div className="row execution-artifacts">
-          <div className="col-md-6 artifact-list-container">
+          <div className="col-sm-6 artifact-list-container">
             <h5>Consumed Artifacts</h5>
             <div>
               <ArtifactIconList artifacts={consumedArtifacts} />
             </div>
           </div>
-          <div className="col-md-6 artifact-list-container">
+          <div className="col-sm-6 artifact-list-container">
             <h5>Produced Artifacts</h5>
             <div>
               <ArtifactIconList artifacts={producedArtifacts} />
