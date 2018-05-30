@@ -35,10 +35,14 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractRedisCache implements WriteableCache {
 
+  private static final TypeReference<List<String>> RELATIONSHIPS_LIST = new TypeReference<List<String>>() {
+  };
+  private static final TypeReference<Set<String>> RELATIONSHIPS_SET = new TypeReference<Set<String>>() {
+  };
+
   protected static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
   };
-  protected static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {
-  };
+
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -47,7 +51,10 @@ public abstract class AbstractRedisCache implements WriteableCache {
   protected final ObjectMapper objectMapper;
   protected final RedisCacheOptions options;
 
-  protected AbstractRedisCache(String prefix, RedisClientDelegate redisClientDelegate, ObjectMapper objectMapper, RedisCacheOptions options) {
+  protected AbstractRedisCache(String prefix,
+                               RedisClientDelegate redisClientDelegate,
+                               ObjectMapper objectMapper,
+                               RedisCacheOptions options) {
     this.prefix = prefix;
     this.redisClientDelegate = redisClientDelegate;
     this.objectMapper = objectMapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
@@ -227,5 +234,9 @@ public abstract class AbstractRedisCache implements WriteableCache {
 
   protected String allOfTypeReindex(String type) {
     return String.format("%s:%s:members.2", prefix, type);
+  }
+
+  protected TypeReference getRelationshipsTypeReference() {
+    return options.isTreatRelationshipsAsSet() ? RELATIONSHIPS_SET : RELATIONSHIPS_LIST;
   }
 }

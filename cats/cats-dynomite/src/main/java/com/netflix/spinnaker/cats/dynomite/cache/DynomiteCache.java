@@ -299,7 +299,10 @@ public class DynomiteCache extends AbstractRedisCache {
 
         Collection<String> deserializedRel;
         try {
-          deserializedRel = objectMapper.readValue(compressionStrategy.decompress(value.getValue()), RELATIONSHIPS);
+          deserializedRel = objectMapper.readValue(
+            compressionStrategy.decompress(value.getValue()),
+            getRelationshipsTypeReference()
+          );
         } catch (JsonProcessingException e) {
           log.warn("Failed processing property '{}' on item '{}'", value.getKey(), itemId(type, id));
           continue;

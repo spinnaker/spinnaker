@@ -34,6 +34,7 @@ public class RedisCacheOptions {
     private final int maxEvictBatchSize;
     private final int maxGetBatchSize;
     private final boolean hashingEnabled;
+    private final boolean treatRelationshipsAsSet;
 
     private static int posInt(String name, int value) {
         Preconditions.checkArgument(value > 0, "%s must be a positive integer (%s)", name, value);
@@ -45,7 +46,19 @@ public class RedisCacheOptions {
         return value;
     }
 
-    public RedisCacheOptions(int maxMsetSize, int maxMgetSize, int maxHmgetSize, int maxHmsetSize, int maxSaddSize, int maxDelSize, int maxPipelineSize, int scanSize, int maxMergeBatchSize, int maxEvictBatchSize, int maxGetBatchSize, boolean hashingEnabled) {
+    public RedisCacheOptions(int maxMsetSize,
+                             int maxMgetSize,
+                             int maxHmgetSize,
+                             int maxHmsetSize,
+                             int maxSaddSize,
+                             int maxDelSize,
+                             int maxPipelineSize,
+                             int scanSize,
+                             int maxMergeBatchSize,
+                             int maxEvictBatchSize,
+                             int maxGetBatchSize,
+                             boolean hashingEnabled,
+                             boolean treatRelationshipsAsSet) {
         this.maxMsetSize = posEven("maxMsetSize", maxMsetSize);
         this.maxMgetSize = posInt("maxMgetSize", maxMgetSize);
         this.maxHmgetSize = posInt("maxHmgetSize", maxHmgetSize);
@@ -58,6 +71,7 @@ public class RedisCacheOptions {
         this.maxEvictBatchSize = posInt("maxEvictBatchSize", maxEvictBatchSize);
         this.maxGetBatchSize = posInt("maxGetBatchSize", maxGetBatchSize);
         this.hashingEnabled = hashingEnabled;
+        this.treatRelationshipsAsSet = treatRelationshipsAsSet;
     }
 
     public int getMaxMsetSize() {
@@ -108,12 +122,17 @@ public class RedisCacheOptions {
         return hashingEnabled;
     }
 
+    public boolean isTreatRelationshipsAsSet() {
+        return treatRelationshipsAsSet;
+    }
+
   public static class Builder {
         public static final int DEFAULT_MULTI_OP_SIZE = 10000;
         public static final int DEFAULT_BATCH_SIZE = 5000;
         public static final int DEFAULT_SCAN_SIZE = 25000;
         public static final int DEFAULT_MAX_PIPELINE_SIZE = 5000;
         public static final boolean DEFAULT_HASHING_ENABLED = true;
+        public static final boolean DEFAULT_TREAT_RELATIONSHIPS_AS_SET_DISABLED = false;
 
         int maxMsetSize;
         int maxMgetSize;
@@ -127,6 +146,7 @@ public class RedisCacheOptions {
         int maxEvictBatchSize;
         int maxGetBatchSize;
         boolean hashingEnabled;
+        boolean treatRelationshipsAsSet;
 
         public Builder() {
             batchSize(DEFAULT_BATCH_SIZE);
@@ -134,6 +154,7 @@ public class RedisCacheOptions {
             multiOp(DEFAULT_MULTI_OP_SIZE);
             maxPipeline(DEFAULT_MAX_PIPELINE_SIZE);
             hashing(DEFAULT_HASHING_ENABLED);
+            treatRelationshipsAsSet(DEFAULT_TREAT_RELATIONSHIPS_AS_SET_DISABLED);
         }
 
         public Builder maxMergeBatch(int maxMergeBatch) {
@@ -212,8 +233,26 @@ public class RedisCacheOptions {
             return this;
         }
 
+        public Builder treatRelationshipsAsSet(boolean treatRelationshipsAsSet) {
+            this.treatRelationshipsAsSet = treatRelationshipsAsSet;
+            return this;
+        }
+
         public RedisCacheOptions build() {
-            return new RedisCacheOptions(maxMsetSize, maxMgetSize, maxHmgetSize, maxHmsetSize, maxSaddSize, maxDelSize, maxPipelineSize, scanSize, maxMergeBatchSize, maxEvictBatchSize, maxGetBatchSize, hashingEnabled);
+            return new RedisCacheOptions(
+              maxMsetSize,
+              maxMgetSize,
+              maxHmgetSize,
+              maxHmsetSize,
+              maxSaddSize,
+              maxDelSize,
+              maxPipelineSize,
+              scanSize,
+              maxMergeBatchSize,
+              maxEvictBatchSize,
+              maxGetBatchSize,
+              hashingEnabled,
+              treatRelationshipsAsSet);
         }
 
         public void setBatchSize(int batchSize) {
@@ -318,6 +357,14 @@ public class RedisCacheOptions {
 
         public void setHashingEnabled(boolean hashingEnabled) {
             this.hashingEnabled = hashingEnabled;
+        }
+
+        public boolean isTreatRelationshipsAsSet() {
+            return treatRelationshipsAsSet;
+        }
+
+        public void setTreatRelationshipsAsSet(boolean treatRelationshipsAsSet) {
+            this.treatRelationshipsAsSet = treatRelationshipsAsSet;
         }
   }
 }

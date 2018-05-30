@@ -31,7 +31,7 @@ class CleanupPendingOnDemandCachesAgentSpec extends Specification {
   @AutoCleanup("destroy")
   EmbeddedRedis embeddedRedis = EmbeddedRedis.embed()
 
-  def redisCacheOptions = new RedisCacheOptions(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, true)
+  def redisCacheOptions = new RedisCacheOptions(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, true, true)
   def redisClientDelegate = new JedisClientDelegate(embeddedRedis.pool as JedisPool)
 
   def "should cleanup onDemand:members set for a provider"() {

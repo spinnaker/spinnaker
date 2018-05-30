@@ -285,7 +285,10 @@ public class RedisCache extends AbstractRedisCache {
         String rel = keyResult.get(relIdx);
         if (rel != null) {
           String relType = knownRels.get(relIdx - 1);
-          Collection<String> deserializedRel = objectMapper.readValue(rel, RELATIONSHIPS);
+          Collection<String> deserializedRel = objectMapper.readValue(
+            rel,
+            getRelationshipsTypeReference()
+          );
           relationships.put(relType, deserializedRel);
         }
       }
