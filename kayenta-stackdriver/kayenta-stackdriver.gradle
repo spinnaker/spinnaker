@@ -2,20 +2,12 @@ dependencies {
   compile project(":kayenta-core")
   compile project(":kayenta-google")
 
-  // compile spinnaker.dependency('bootWeb')
-  compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-
-  // compile spinnaker.dependency("korkSwagger")
-  compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
-
-  // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:$lombokVersion"
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency("korkSwagger")
+  compile spinnaker.dependency('lombok')
 
   compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
 
-  // spinnaker.group('google')
-  compile "com.google.http-client:google-http-client-jackson2:1.20.0"
-  compile "com.google.apis:google-api-services-storage:v1-rev86-1.22.0"
-
-  compile 'com.google.apis:google-api-services-monitoring:v3-rev35-1.22.0'
+  spinnaker.group('google')
+  compile spinnaker.dependency('googleMonitoring')
 }

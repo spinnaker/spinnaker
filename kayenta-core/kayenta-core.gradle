@@ -1,51 +1,24 @@
 dependencies {
-  //compile spinnaker.dependency('jedis')
-  compile "redis.clients:jedis:2.8.1"
-
-  // compile spinnaker.dependency('kork')
-  compile "com.netflix.spinnaker.kork:kork-core:$korkVersion"
-
-  // compile spinnaker.dependency('korkJedisTest')
-  compile "com.netflix.spinnaker.kork:kork-jedis-test:$korkVersion"
-
-  // compile spinnaker.dependency("korkSwagger")
-  compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
-
-  // this was magically pulled in before, not sure how...
-  compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
-
-  // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:$lombokVersion"
-
-  // compile spinnaker.dependency('spectatorApi')
-  compile "com.netflix.spectator:spectator-api:$spectatorVersion"
+  compile spinnaker.dependency('jedis')
+  compile spinnaker.dependency('kork')
+  compile spinnaker.dependency('korkJedisTest')
+  compile spinnaker.dependency("korkSwagger")
+  compile spinnaker.dependency('lombok')
+  compile spinnaker.dependency('spectatorApi')
 
   compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
   compile "com.netflix.spinnaker.orca:orca-retrofit:$orcaVersion"
   compile "net.lariverosc:jesque-spring:1.0.1"
   compile "net.greghaines:jesque:1.3.1"
 
-  // spinnaker.group('bootWeb')
-  compile "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
-  compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-  compile "org.springframework.boot:spring-boot-starter-data-rest:$springBootVersion"
+  spinnaker.group('bootWeb')
+  compile spinnaker.dependency('bootFreemarker')
 
-  compile "org.springframework.boot:spring-boot-starter-freemarker:$springBootVersion"
+  spinnaker.group('jackson')
+  compile spinnaker.dependency('jacksonJdk8')
+  compile spinnaker.dependency('jacksonJsr310')
 
-  compile "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
-  compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-  compile "com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+  spinnaker.group('retrofitDefault')
 
-  // spinnaker.group('retrofitDefault')
-  compile "com.squareup.retrofit:retrofit:1.9.0"
-  compile "com.squareup.okhttp:okhttp:2.7.0"
-  compile "com.squareup.okhttp:okhttp-urlconnection:2.7.0"
-  compile "com.squareup.okhttp:okhttp-apache:2.7.0"
-  compile "com.squareup.retrofit:converter-jackson:1.9.0"
-  testCompile "com.squareup.retrofit:retrofit-mock:1.9.0"
-
-  // testCompile spinnaker.dependency('groovy')
-  testCompile "org.codehaus.groovy:groovy-all:2.4.7"
+  testCompile spinnaker.dependency('groovy')
 }

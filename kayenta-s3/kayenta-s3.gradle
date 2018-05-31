@@ -2,12 +2,8 @@ dependencies {
   compile project(":kayenta-core")
   compile project(":kayenta-aws")
 
-  // compile spinnaker.dependency('bootWeb')
-  compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('lombok')
 
-  // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:$lombokVersion"
-
-  compile "com.amazonaws:aws-java-sdk-s3:$awsVersion"
-  compile "com.netflix.awsobjectmapper:awsobjectmapper:$awsVersion"
+  spinnaker.group('amazon')
 }

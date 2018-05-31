@@ -30,17 +30,10 @@ dependencies {
   compile project(':kayenta-s3')
   compile project(':kayenta-stackdriver')
 
-  // compile spinnaker.dependency('bootActuator')
-  compile "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
-
-  //compile spinnaker.dependency('bootWeb')
-  compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-
-  //compile spinnaker.dependency("korkSwagger")
-  compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
-
-  //compile spinnaker.dependency("korkWeb")
-  compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency("korkSwagger")
+  compile spinnaker.dependency("korkWeb")
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
