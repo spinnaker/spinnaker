@@ -38,6 +38,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
@@ -304,7 +305,8 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
           def cacheView = getCacheView()
           def reservedInstances = cacheView.getAll(
             RESERVED_INSTANCES.ns,
-            cacheView.filterIdentifiers(RESERVED_INSTANCES.ns, Keys.getReservedInstancesKey('*', credentials.name, region.name))
+            cacheView.filterIdentifiers(RESERVED_INSTANCES.ns, Keys.getReservedInstancesKey('*', credentials.name, region.name)),
+            RelationshipCacheFilter.none()
           ).collect {
             objectMapper.convertValue(it.attributes, ReservedInstanceDetails)
           }
