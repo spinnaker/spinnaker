@@ -45,6 +45,7 @@ class ExecutionBufferActuator(
 
   private val orderedPolicies = policies.sortedByDescending { it.order }.toList()
 
+  private val bufferingId = registry.createId("qos.buffering")
   private val bufferedId = registry.createId("qos.executionsBuffered")
   private val enqueuedId = registry.createId("qos.executionsEnqueued")
   private val elapsedTimeId = registry.createId("qos.actuator.elapsedTime")
@@ -60,6 +61,8 @@ class ExecutionBufferActuator(
 
     val supplierName = bufferStateSupplier.javaClass.simpleName
     if (bufferStateSupplier.get() == ACTIVE) {
+      registry.gauge(bufferingId).set(1.0)
+
       val execution = event.execution
       withActionDecision(execution) {
         when (it.action) {
@@ -79,6 +82,8 @@ class ExecutionBufferActuator(
           }
         }
       }
+    } else {
+      registry.gauge(bufferingId).set(0.0)
     }
   }
 

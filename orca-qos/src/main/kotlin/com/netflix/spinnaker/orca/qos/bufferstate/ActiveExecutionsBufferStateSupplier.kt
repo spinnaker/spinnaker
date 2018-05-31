@@ -42,8 +42,6 @@ class ActiveExecutionsBufferStateSupplier(
 
   private var state: BufferState = INACTIVE
 
-  private val bufferingId = registry.createId("qos.buffering")
-
   @Scheduled(fixedDelayString = "\${pollers.qos.updateStateIntervalMs:5000}")
   private fun updateCurrentState() {
     if (!enabled()) {
@@ -61,13 +59,11 @@ class ActiveExecutionsBufferStateSupplier(
     state = if (activeExecutions > threshold) {
       if (state == INACTIVE) {
         log.warn("Enabling buffering: System active executions over threshold ($activeExecutions/$threshold)")
-        registry.gauge(bufferingId).set(1.0)
       }
       ACTIVE
     } else {
       if (state == ACTIVE) {
         log.warn("Disabling buffering: System active executions below threshold ($activeExecutions/$threshold)")
-        registry.gauge(bufferingId).set(0.0)
       }
       INACTIVE
     }
