@@ -45,7 +45,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
         // instances have a fixed width (unless the details are shown), so use that to optimize row height measurement
         const group = this.state.groups[rowIndex];
         const instanceCountKeys: string[] = [];
-        const countInstances = !this.clusterFilterModel.asFilterModel.sortFilter.showAllInstances;
+        const countInstances = this.clusterFilterModel.asFilterModel.sortFilter.showAllInstances;
         group.subgroups.forEach(subGroup => {
           const subKeys: number[] = [];
           subGroup.serverGroups.forEach(serverGroup => {
