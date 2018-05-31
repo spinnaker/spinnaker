@@ -13,14 +13,14 @@ export class ManualExecutionBake extends React.Component<ITriggerTemplateCompone
   };
 
   public render() {
-    const force = Boolean(get(this.props.command, 'trigger.rebake', false)) ? 'true' : 'false';
+    const force = get(this.props.command, 'trigger.rebake', false);
 
     return (
       <div className="form-group">
         <label className="col-md-4 sm-label-right">Rebake</label>
         <div className="checkbox col-md-6">
           <label>
-            <input type="checkbox" value={force} onChange={this.handleChange} />
+            <input type="checkbox" checked={force} onChange={this.handleChange} />
             Force Rebake
           </label>{' '}
           <HelpField id="execution.forceRebake" />
