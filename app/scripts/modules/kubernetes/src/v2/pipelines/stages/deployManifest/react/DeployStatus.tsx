@@ -64,7 +64,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
   private manifestIdentifier(manifest: IStageManifest) {
     const kind = manifest.kind.toLowerCase();
     // manifest.metadata.namespace doesn't exist if it's a namespace being deployed
-    const namespace = (manifest.metadata.namespace || '').toLowerCase();
+    const namespace = (manifest.metadata.namespace || '_').toLowerCase();
     const name = manifest.metadata.name.toLowerCase();
     return `${namespace} ${kind} ${name}`;
   }
@@ -103,6 +103,9 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
     const name = this.manifestFullName(manifest);
     const params = { account, location, name };
     const id = this.manifestIdentifier(manifest);
+    if (location == null) {
+      params.location = '_';
+    }
     if (this.findSubscriptionIndex({ id }) !== -1) {
       return null;
     }
