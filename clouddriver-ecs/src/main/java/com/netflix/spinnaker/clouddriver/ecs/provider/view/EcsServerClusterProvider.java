@@ -174,7 +174,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     Long launchTime = task.getStartedAt();
 
     String address = containerInformationService.getTaskPrivateAddress(account, region, task);
-    List<Map<String, String>> healthStatus = containerInformationService.getHealthStatus(taskId, serviceName, account, region);
+    List<Map<String, Object>> healthStatus = containerInformationService.getHealthStatus(taskId, serviceName, account, region);
 
     com.amazonaws.services.ec2.model.Instance ec2Instance = containerInformationService.getEc2Instance(account, region, task);
     String availabilityZone = ec2Instance.getPlacement().getAvailabilityZone();

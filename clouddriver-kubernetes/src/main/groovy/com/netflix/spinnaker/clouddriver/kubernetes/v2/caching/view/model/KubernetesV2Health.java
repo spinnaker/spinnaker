@@ -60,8 +60,8 @@ public class KubernetesV2Health implements Health {
     }
   }
 
-  public Map<String, String> toMap() {
-    return new ImmutableMap.Builder<String, String>()
+  public Map<String, Object> toMap() {
+    return new ImmutableMap.Builder<String, Object>()
         .put("state", state.toString())
         .put("source", source)
         .put("type", type)

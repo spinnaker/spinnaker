@@ -56,7 +56,7 @@ interface Instance {
    * @return A list of health metrics, which will always include keys for type and status,
    * and may include others, depending on the health metric
    */
-  List<Map<String, String>> getHealth()
+  List<Map<String, Object>> getHealth()
 
   /**
    * @deprecated use #getCloudProvider

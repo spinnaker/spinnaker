@@ -63,7 +63,7 @@ public class ContainerInformationService {
     this.containerInstanceCacheClient = containerInstanceCacheClient;
   }
 
-  public List<Map<String, String>> getHealthStatus(String taskId, String serviceName, String accountName, String region) {
+  public List<Map<String, Object>> getHealthStatus(String taskId, String serviceName, String accountName, String region) {
     String serviceCacheKey = Keys.getServiceKey(accountName, region, serviceName);
     Service service = serviceCacheClient.get(serviceCacheKey);
 
@@ -71,9 +71,9 @@ public class ContainerInformationService {
     TaskHealth taskHealth = taskHealthCacheClient.get(healthKey);
 
     if (service == null || taskHealth == null) {
-      List<Map<String, String>> healthMetrics = new ArrayList<>();
+      List<Map<String, Object>> healthMetrics = new ArrayList<>();
 
-      Map<String, String> loadBalancerHealth = new HashMap<>();
+      Map<String, Object> loadBalancerHealth = new HashMap<>();
       loadBalancerHealth.put("instanceId", taskId);
       loadBalancerHealth.put("state", "Unknown");
       loadBalancerHealth.put("type", "loadBalancer");
@@ -86,8 +86,8 @@ public class ContainerInformationService {
     //There should only be 1 based on AWS documentation.
     if (loadBalancers.size() == 1) {
 
-      List<Map<String, String>> healthMetrics = new ArrayList<>();
-      Map<String, String> loadBalancerHealth = new HashMap<>();
+      List<Map<String, Object>> healthMetrics = new ArrayList<>();
+      Map<String, Object> loadBalancerHealth = new HashMap<>();
       loadBalancerHealth.put("instanceId", taskId);
       loadBalancerHealth.put("state", taskHealth.getState());
       loadBalancerHealth.put("type", taskHealth.getType());

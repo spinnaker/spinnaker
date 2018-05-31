@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class KubernetesV2Instance extends ManifestBasedModel implements Instance {
   Long launchTime;
-  List<Map<String, String>> health = new ArrayList<>();
+  List<Map<String, Object>> health = new ArrayList<>();
   KubernetesManifest manifest;
   Keys.InfrastructureCacheKey key;
 
@@ -85,7 +85,7 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
   public LoadBalancerInstance toLoadBalancerInstance() {
     return LoadBalancerInstance.builder()
         .health(health.stream().reduce(new HashMap<>(), (a, b) -> {
-          Map<String, String> result = new HashMap<>();
+          Map<String, Object> result = new HashMap<>();
           result.putAll(a);
           result.putAll(b);
           return result;

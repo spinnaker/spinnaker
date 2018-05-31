@@ -58,13 +58,13 @@ class AppengineLoadBalancer implements LoadBalancer, Serializable {
     this.httpUrl = AppengineModelUtil.getHttpUrl(service.getName())
     this.httpsUrl = AppengineModelUtil.getHttpsUrl(service.getName())
     // Self link has the form apps/{project}/services/{service}.
-    this.project = this.selfLink.split('/').getAt(1)
+    this.project = this.selfLink.split('/')[1]
   }
 
   Void setLoadBalancerServerGroups(Set<AppengineServerGroup> serverGroups) {
     this.serverGroups = serverGroups?.collect { serverGroup ->
       def instances = serverGroup.isDisabled() ? [] : serverGroup.instances?.collect { instance ->
-          new LoadBalancerInstance(id: instance.name, health: [state: instance.healthState.toString()])
+          new LoadBalancerInstance(id: instance.name, health: [state: instance.healthState.toString() as Object])
         } ?: []
 
       def detachedInstances = serverGroup.isDisabled() ? serverGroup.instances?.collect { it.name } ?: [] : []
@@ -77,7 +77,7 @@ class AppengineLoadBalancer implements LoadBalancer, Serializable {
         instances: instances as Set,
         detachedInstances: detachedInstances as Set
       )
-    } as Set
+    } as Set<LoadBalancerServerGroup>
     null
   }
 

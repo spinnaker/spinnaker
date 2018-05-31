@@ -315,11 +315,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
     healths.each { healthEntry ->
       def instanceId = healthKeysToInstance.get(healthEntry.id)
       healthEntry.attributes.remove('lastUpdatedTimestamp')
-      def health = healthEntry.attributes.collectEntries { key, value ->
-        // groovy + java means that everything must be explicitly a string
-        [(key): value.toString()]
-      }
-      instances[instanceId].health << health
+      instances[instanceId].health << healthEntry.attributes
     }
     return instances
   }

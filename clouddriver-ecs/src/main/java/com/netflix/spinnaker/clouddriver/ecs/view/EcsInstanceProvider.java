@@ -73,7 +73,7 @@ public class EcsInstanceProvider implements InstanceProvider<EcsTask> {
       String serviceName = StringUtils.substringAfter(task.getGroup(), "service:");
       Long launchTime = task.getStartedAt();
 
-      List<Map<String, String>> healthStatus = containerInformationService.getHealthStatus(id, serviceName, account, region);
+      List<Map<String, Object>> healthStatus = containerInformationService.getHealthStatus(id, serviceName, account, region);
       String address = containerInformationService.getTaskPrivateAddress(account, region, task);
 
       ecsInstance = new EcsTask(id, launchTime, task.getLastStatus(), task.getDesiredStatus(), containerInstance.getAvailabilityZone(), healthStatus, address);

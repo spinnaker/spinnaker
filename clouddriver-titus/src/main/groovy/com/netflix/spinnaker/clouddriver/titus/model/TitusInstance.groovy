@@ -114,7 +114,7 @@ class TitusInstance implements Instance {
   }
 
   @Override
-  List<Map<String, String>> getHealth() {
+  List<Map<String, Object>> getHealth() {
     health
   }
 

@@ -31,12 +31,12 @@ public class EcsTask implements Instance, Serializable {
   private HealthState healthState;
   private Long launchTime;
   private String zone;
-  private List<Map<String, String>> health;
+  private List<Map<String, Object>> health;
   private String providerType;
   private String cloudProvider;
   private String privateAddress;
 
-  public EcsTask(String name, Long launchTime, String lastStatus, String desiredStatus, String availabilityZone, List<Map<String, String>> health, String privateAddress) {
+  public EcsTask(String name, Long launchTime, String lastStatus, String desiredStatus, String availabilityZone, List<Map<String, Object>> health, String privateAddress) {
     this.name = name;
     providerType = cloudProvider = EcsCloudProvider.ID;
     this.launchTime = launchTime;

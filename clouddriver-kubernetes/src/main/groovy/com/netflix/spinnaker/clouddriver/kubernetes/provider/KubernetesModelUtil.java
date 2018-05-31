@@ -38,7 +38,7 @@ public class KubernetesModelUtil {
     }
   }
 
-  public static HealthState getHealthState(List<Map<String, String>> health) {
+  public static HealthState getHealthState(List<Map<String, Object>> health) {
     return someUpRemainingUnknown(health) ? HealthState.Up :
         someSucceededRemainingUnknown(health) ? HealthState.Succeeded :
             anyStarting(health) ? HealthState.Starting :
@@ -48,40 +48,40 @@ public class KubernetesModelUtil {
                             HealthState.Unknown;
   }
 
-  private static boolean stateEquals(Map<String, String> health, HealthState state) {
-    String healthState = health.get("state");
+  private static boolean stateEquals(Map<String, Object> health, HealthState state) {
+    Object healthState = health.get("state");
     return healthState != null && healthState.equals(state.name());
   }
 
-  private static boolean someUpRemainingUnknown(List<Map<String, String>> healthsList) {
-    List<Map<String, String>> knownHealthList = healthsList.stream()
+  private static boolean someUpRemainingUnknown(List<Map<String, Object>> healthsList) {
+    List<Map<String, Object>> knownHealthList = healthsList.stream()
         .filter(h -> !stateEquals(h, HealthState.Unknown))
         .collect(Collectors.toList());
 
     return !knownHealthList.isEmpty() && knownHealthList.stream().allMatch(h -> stateEquals(h, HealthState.Up));
   }
 
-  private static boolean someSucceededRemainingUnknown(List<Map<String, String>> healthsList) {
-    List<Map<String, String>> knownHealthList = healthsList.stream()
+  private static boolean someSucceededRemainingUnknown(List<Map<String, Object>> healthsList) {
+    List<Map<String, Object>> knownHealthList = healthsList.stream()
         .filter(h -> !stateEquals(h, HealthState.Unknown))
         .collect(Collectors.toList());
 
     return !knownHealthList.isEmpty() && knownHealthList.stream().allMatch(h -> stateEquals(h, HealthState.Succeeded));
   }
 
-  private static boolean anyDown(List<Map<String, String>> healthsList) {
+  private static boolean anyDown(List<Map<String, Object>> healthsList) {
     return healthsList.stream().anyMatch(h -> stateEquals(h, HealthState.Down));
   }
 
-  private static boolean anyStarting(List<Map<String, String>> healthsList) {
+  private static boolean anyStarting(List<Map<String, Object>> healthsList) {
     return healthsList.stream().anyMatch(h -> stateEquals(h, HealthState.Starting));
   }
 
-  private static boolean anyFailed(List<Map<String, String>> healthsList) {
+  private static boolean anyFailed(List<Map<String, Object>> healthsList) {
     return healthsList.stream().anyMatch(h -> stateEquals(h, HealthState.Failed));
   }
 
-  private static boolean anyOutOfService(List<Map<String, String>> healthsList) {
+  private static boolean anyOutOfService(List<Map<String, Object>> healthsList) {
     return healthsList.stream().anyMatch(h -> stateEquals(h, HealthState.OutOfService));
   }
 }

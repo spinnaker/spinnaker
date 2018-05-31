@@ -16,7 +16,7 @@ class OracleBMCSInstance implements Instance {
   HealthState healthState
   Long launchTime
   String zone
-  List<Map<String, String>> health
+  List<Map<String, Object>> health
   String providerType
   String cloudProvider
   String account

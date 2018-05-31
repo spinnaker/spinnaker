@@ -30,5 +30,5 @@ import java.util.Map;
 public class LoadBalancerInstance {
   String id;
   String zone;
-  Map<String, String> health;
+  Map<String, Object> health;
 }

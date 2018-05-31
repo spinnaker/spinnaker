@@ -42,7 +42,7 @@ class AppengineInstance implements Instance, Serializable {
   String memoryUsage
   String vmStatus
   String vmDebugEnabled
-  List<Map<String, String>> health
+  List<Map<String, Object>> health
 
   AppengineInstance() {}
 

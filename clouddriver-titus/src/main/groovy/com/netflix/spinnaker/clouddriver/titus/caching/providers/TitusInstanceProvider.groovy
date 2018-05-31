@@ -131,11 +131,9 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
       healthKeys.unique().each { key ->
         def externalHealth = cacheView.getAll(HEALTH.ns, key)
         if (externalHealth) {
-          List<Map<String, Object>> health = externalHealth*.attributes
+          def health = externalHealth*.attributes
           health.each {
             it.remove('lastUpdatedTimestamp')
-            // groovy + java means that everything must be explicitly a string
-            it.allowMultipleEurekaPerAccount = it.allowMultipleEurekaPerAccount.toString()
           }
           instance.health.addAll(health)
         }
