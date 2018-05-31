@@ -19,6 +19,9 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.fiat.model.Authorization;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.fiat.model.resources.Permissions.Builder;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -40,24 +43,65 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
 
+  @Deprecated
   @Parameter(
       names = "--add-required-group-membership",
       description = "Add this group to the list of required group memberships."
   )
   private String addRequiredGroupMembership;
 
+  @Deprecated
   @Parameter(
       names = "--remove-required-group-membership",
       description = "Remove this group from the list of required group memberships."
   )
   private String removeRequiredGroupMembership;
 
+  @Deprecated
   @Parameter(
       variableArity = true,
       names = "--required-group-membership",
       description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION
   )
   List<String> requiredGroupMembership;
+
+  @Parameter(
+      names = "--add-read-permission",
+      description = "Add this permission to the list of read permissions."
+  )
+  private String addReadPermission;
+
+  @Parameter(
+      names = "--remove-read-permission",
+      description = "Remove this permission from the list of read permissions."
+  )
+  private String removeReadPermission;
+
+  @Parameter(
+      variableArity = true,
+      names = "--read-permissions",
+      description = AccountCommandProperties.READ_PERMISSION_DESCRIPTION
+  )
+  private List<String> readPermissions;
+
+  @Parameter(
+      names = "--add-write-permission",
+      description = "Add this permission to the list of write permissions."
+  )
+  private String addWritePermission;
+
+  @Parameter(
+      names = "--remove-write-permission",
+      description = "Remove this permission to from list of write permissions."
+  )
+  private String removeWritePermission;
+
+  @Parameter(
+      variableArity = true,
+      names = "--write-permissions",
+      description = AccountCommandProperties.WRITE_PERMISSION_DESCRIPTION
+  )
+  private List<String> writePermissions;
 
   @Parameter(
       names = "--provider-version",
@@ -100,6 +144,17 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
 
     account.setRequiredGroupMembership(
         updateStringList(account.getRequiredGroupMembership(), requiredGroupMembership, addRequiredGroupMembership, removeRequiredGroupMembership));
+
+    Permissions.Builder permissions = account.getPermissions();
+
+    List<String> resolvedReadPermissions = updateStringList(
+        permissions.get(Authorization.READ), readPermissions, addReadPermission, removeReadPermission);
+    List<String> resolvedWritePermissions = updateStringList(
+        permissions.get(Authorization.WRITE), writePermissions, addWritePermission, removeWritePermission);
+
+    permissions.clear();
+    permissions.add(Authorization.READ, resolvedReadPermissions);
+    permissions.add(Authorization.WRITE, resolvedWritePermissions);
 
     account.setProviderVersion(isSet(providerVersion) ? providerVersion : account.getProviderVersion());
 

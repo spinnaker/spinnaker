@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -40,12 +41,27 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "add";
 
+  @Deprecated
   @Parameter(
       variableArity = true,
       names = "--required-group-membership",
       description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION
   )
   List<String> requiredGroupMembership = new ArrayList<>();
+
+  @Parameter(
+      variableArity = true,
+      names = "--read-permissions",
+      description = AccountCommandProperties.READ_PERMISSION_DESCRIPTION
+  )
+  private List<String> readPermissions = new ArrayList<>();
+
+  @Parameter(
+      variableArity = true,
+      names = "--write-permissions",
+      description = AccountCommandProperties.WRITE_PERMISSION_DESCRIPTION
+  )
+  private List<String> writePermissions = new ArrayList<>();
 
   @Parameter(
       names = "--provider-version",
@@ -79,6 +95,8 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
     String accountName = getAccountName();
     Account account = buildAccount(accountName);
     account.setRequiredGroupMembership(requiredGroupMembership);
+    account.getPermissions().add(Authorization.READ, readPermissions);
+    account.getPermissions().add(Authorization.WRITE, writePermissions);
     account.setProviderVersion(providerVersion);
     String providerName = getProviderName();
 

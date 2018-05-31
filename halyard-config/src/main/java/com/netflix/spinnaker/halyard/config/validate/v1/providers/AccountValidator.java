@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.providers;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,11 @@ public class AccountValidator extends Validator<Account> {
     } else if (!Pattern.matches(namePattern, n.getName())) {
       p.addProblem(Severity.ERROR, "Account name must match pattern " + namePattern)
         .setRemediation("It must start and end with a lower-case character or number, and only contain lower-case characters, numbers, dashes, or underscores");
+    }
+    if (n.getRequiredGroupMembership() != null && !n.getRequiredGroupMembership().isEmpty()) {
+      p.addProblem(Problem.Severity.WARNING, "requiredGroupMembership has been "
+          + "deprecated. Please consider moving to using permissions with the flags --read-permissions "
+          + "and --write-permissions instead. Read more at https://www.spinnaker.io/setup/security/authorization." );
     }
   }
 }
