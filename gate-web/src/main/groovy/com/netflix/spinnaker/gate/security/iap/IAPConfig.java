@@ -42,7 +42,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
-@ConditionalOnExpression("${security.iap.enabled:false}")
+@ConditionalOnExpression("${google.iap.enabled:false}")
 @EnableConfigurationProperties(IAPSecurityConfigProperties.class)
 public class IAPConfig extends WebSecurityConfigurerAdapter {
 
@@ -58,7 +58,7 @@ public class IAPConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   IAPSecurityConfigProperties configProperties;
 
-  @ConfigurationProperties("security.iap")
+  @ConfigurationProperties("google.iap")
   @Data
   public static class IAPSecurityConfigProperties {
 
