@@ -33,6 +33,8 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
 
   private cellCache: CellMeasurerCache;
 
+  private listRef: List;
+
   constructor(props: IAllClustersGroupingsProps) {
     super(props);
     this.cellCache = new CellMeasurerCache({
@@ -43,10 +45,11 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
         // instances have a fixed width (unless the details are shown), so use that to optimize row height measurement
         const group = this.state.groups[rowIndex];
         const instanceCountKeys: string[] = [];
+        const countInstances = !this.clusterFilterModel.asFilterModel.sortFilter.showAllInstances;
         group.subgroups.forEach(subGroup => {
           const subKeys: number[] = [];
           subGroup.serverGroups.forEach(serverGroup => {
-            subKeys.push(serverGroup.instances.length);
+            subKeys.push(countInstances ? serverGroup.instances.length : 0);
           });
           instanceCountKeys.push(subKeys.sort().join(','));
         });
@@ -69,7 +72,10 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
 
   public componentDidMount() {
     const onGroupsChanged = (groups: IClusterGroup[]) => {
-      this.setState({ groups: groups.reduce((a, b) => a.concat(b.subgroups), []) });
+      this.setState(
+        { groups: groups.reduce((a, b) => a.concat(b.subgroups), []) },
+        () => this.listRef && this.listRef.recomputeRowHeights(0),
+      );
     };
     this.groupsSubscription = this.clusterFilterService.groupsUpdatedStream.subscribe(onGroupsChanged);
 
@@ -138,6 +144,10 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     return <h4 className="text-center">No server groups match the filters you've selected</h4>;
   };
 
+  private setListRef = (listRef: List) => {
+    this.listRef = listRef;
+  };
+
   public render() {
     const { initialized } = this.props;
     const { groups = [] } = this.state;
@@ -150,6 +160,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
       <AutoSizer>
         {({ width, height }) => (
           <List
+            ref={this.setListRef}
             className={'rollup'}
             height={height}
             width={width}

@@ -67,7 +67,11 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
   public render() {
     const { accountId, moniker, environment, loading } = this.state;
     if (loading) {
-      return <Spinner />;
+      return (
+        <div className="full-width text-center">
+          <Spinner size="medium" message=" " />
+        </div>
+      );
     }
 
     return <InstanceDetailsCmp {...this.props} accountId={accountId} moniker={moniker} environment={environment} />;
