@@ -52,10 +52,6 @@ func (c *ApplicationListCommand) Run(args []string) int {
 	}
 
 	appList, resp, err := c.listApplications()
-	fmt.Println(appList)
-	fmt.Println(resp)
-	fmt.Println(err)
-
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
@@ -67,7 +63,7 @@ func (c *ApplicationListCommand) Run(args []string) int {
 	}
 	prettyString, err := json.MarshalIndent(appList, "", "  ")
 	if err != nil {
-		c.ApiMeta.Ui.Error(fmt.Sprintf("Failed to marshal pipeline list payload: %d.\n", appList))
+		c.ApiMeta.Ui.Error(fmt.Sprintf("Failed to marshal application list payload: %d.\n", appList))
 		return 1
 	}
 	c.ApiMeta.Ui.Output(fmt.Sprintf("%s\n", prettyString))

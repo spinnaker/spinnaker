@@ -13,6 +13,11 @@ func init() {
 	meta := command.ApiMeta{}
 
 	Commands = map[string]cli.CommandFactory{
+		"application get": func() (cli.Command, error) {
+			return &applications.ApplicationGetCommand{
+				ApiMeta: meta,
+			}, nil
+		},
 		"application list": func() (cli.Command, error) {
 			return &applications.ApplicationListCommand{
 				ApiMeta: meta,
