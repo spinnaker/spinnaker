@@ -1,8 +1,10 @@
 dependencies {
-  compile spinnaker.dependency('bootActuator')
+  compile project(":kork-core")
   compile spinnaker.dependency('spectatorApi')
+  compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('jedis')
 
   testCompile spinnaker.dependency('groovy')
+  testCompile project(":kork-jedis-test")
   spinnaker.group('spockBase')
 }
