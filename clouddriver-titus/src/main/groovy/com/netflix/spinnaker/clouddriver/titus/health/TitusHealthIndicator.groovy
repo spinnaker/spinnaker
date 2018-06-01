@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.HealthStatus
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
+import groovy.util.logging.Slf4j
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.actuate.health.Status
@@ -28,6 +29,7 @@ import org.springframework.scheduling.annotation.Scheduled
 
 import java.util.concurrent.atomic.AtomicReference
 
+@Slf4j
 class TitusHealthIndicator implements HealthIndicator {
 
   private final AccountCredentialsProvider accountCredentialsProvider
@@ -59,14 +61,20 @@ class TitusHealthIndicator implements HealthIndicator {
           HealthStatus health = titusClientProvider.getTitusClient(account, region.name).getHealth().healthStatus
           regionStatus = health == HealthStatus.UNHEALTHY ? Status.OUT_OF_SERVICE : Status.UP
         } catch (e) {
+          log.error(
+            "Failed to verify Titus health (account: {}, region: {})",
+            account.name,
+            region.name,
+            e
+          )
           regionStatus = Status.OUT_OF_SERVICE
-          regionDetails << [reason: e]
+          regionDetails << [reason: e.toString()]
         }
         regionDetails << [status: regionStatus]
         if (regionStatus == Status.OUT_OF_SERVICE) {
           status = Status.OUT_OF_SERVICE
         }
-        details << [("${account.name}:${region.name}"): regionDetails]
+        details << [("${account.name}:${region.name}".toString()): regionDetails]
       }
     }
     health.set(new Health.Builder(status, details).build())
