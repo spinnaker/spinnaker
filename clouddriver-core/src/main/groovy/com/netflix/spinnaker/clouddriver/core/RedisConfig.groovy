@@ -63,7 +63,21 @@ class RedisConfig {
   JedisPool jedisPool(Registry registry,
                       RedisConfigurationProperties redisConfigurationProperties,
                       GenericObjectPoolConfig redisPoolConfig) {
-    return createPool(registry, redisPoolConfig, redisConfigurationProperties.connection, redisConfigurationProperties.timeout, "primaryDefault")
+    def jedisPool = createPool(
+      registry,
+      redisPoolConfig,
+      redisConfigurationProperties.connection,
+      redisConfigurationProperties.timeout,
+      "primaryDefault"
+    )
+
+    registry.gauge("jedis.pool.maxIdle", jedisPool, { JedisPool p -> return p.internalPool.maxIdle as Double })
+    registry.gauge("jedis.pool.minIdle", jedisPool, { JedisPool p -> return p.internalPool.minIdle as Double })
+    registry.gauge("jedis.pool.numActive", jedisPool, { JedisPool p -> return p.internalPool.numActive as Double })
+    registry.gauge("jedis.pool.numIdle", jedisPool, { JedisPool p -> return p.internalPool.numIdle as Double })
+    registry.gauge("jedis.pool.numWaiters", jedisPool, { JedisPool p -> return p.internalPool.numWaiters as Double })
+
+    return jedisPool
   }
 
   private static JedisPool createPool(Registry registry,

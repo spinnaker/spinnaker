@@ -209,7 +209,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
   public void schedule(Agent agent,
                        AgentExecution agentExecution,
                        ExecutionInstrumentation executionInstrumentation) {
-    if (!enabledAgentPattern.matcher(agent.getClass().getSimpleName().toLowerCase()).matches()) {
+    if (!enabledAgentPattern.matcher(agent.getAgentType().toLowerCase()).matches()) {
       logger.debug(
         "Agent is not enabled (agent: {}, agentType: {}, pattern: {})",
         agent.getClass().getSimpleName(),
