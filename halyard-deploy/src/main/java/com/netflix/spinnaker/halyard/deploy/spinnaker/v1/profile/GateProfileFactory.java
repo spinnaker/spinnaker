@@ -61,6 +61,7 @@ public abstract class GateProfileFactory extends SpringProfileFactory {
     SamlConfig saml;
     LdapConfig ldap;
     X509Config x509;
+    GoogleConfig google = new GoogleConfig();
 
     GateConfig(ServiceSettings gate, Security security) {
       super(gate);
@@ -77,6 +78,11 @@ public abstract class GateProfileFactory extends SpringProfileFactory {
           allowedOriginsPattern = corsAccessPattern;
         }
       }
+    }
+
+    @Data
+    static class GoogleConfig {
+      IAPConfig iap;
     }
   }
 }

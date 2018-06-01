@@ -65,7 +65,8 @@ abstract public class AuthnMethod extends Node {
     OAuth2("oauth2"),
     SAML("saml"),
     LDAP("ldap"),
-    X509("x509");
+    X509("x509"),
+    IAP("iap");
 
     public final String id;
 

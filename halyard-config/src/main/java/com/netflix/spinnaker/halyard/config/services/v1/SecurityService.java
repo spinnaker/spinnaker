@@ -213,6 +213,9 @@ public class SecurityService {
       case X509:
         authn.setX509((X509) method);
         break;
+      case IAP:
+        authn.setIap((IAP) method);
+        break;
       default:
         throw new RuntimeException("Unknown Authn method " + method.getMethod());
     }

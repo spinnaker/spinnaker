@@ -277,6 +277,10 @@
  * [**hal config security api ssl edit**](#hal-config-security-api-ssl-edit)
  * [**hal config security api ssl enable**](#hal-config-security-api-ssl-enable)
  * [**hal config security authn**](#hal-config-security-authn)
+ * [**hal config security authn_iap**](#hal-config-security-authn-iap)
+ * [**hal config security authn_iap_disable**](#hal-config-security-authn-iap-disable)
+ * [**hal config security authn_iap_edit**](#hal-config-security-authn-iap-edit)
+ * [**hal config security authn_iap_enable**](#hal-config-security-authn-iap-enable)
  * [**hal config security authn ldap**](#hal-config-security-authn-ldap)
  * [**hal config security authn ldap disable**](#hal-config-security-authn-ldap-disable)
  * [**hal config security authn ldap edit**](#hal-config-security-authn-ldap-edit)
@@ -5467,6 +5471,78 @@ hal config security authn [parameters] [subcommands]
  * `oauth2`: Configure the oauth2 method for authenticating.
  * `saml`: Configure the saml method for authenticating.
  * `x509`: Configure the x509 method for authenticating.
+
+---
+## hal config security authn iap
+
+Configure the iap method for authenticating.
+
+#### Usage
+```
+hal config security authn iap [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set the iap method as disabled
+ * `edit`: Configure authentication using Google Cloud Identity-Aware Proxy.
+ * `enable`: Set the iap method as enabled
+
+---
+## hal config security authn iap disable
+
+Set the iap method as disabled
+
+#### Usage
+```
+hal config security authn iap disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config security authn iap edit
+
+Google Cloud Identity-Aware Proxy (IAP) is an authentication model that utilizes
+Google OAuth2.0 and an authorization service to provide access control for users
+of GCP. After a user has been authenticated and authorized by IAP's service, a
+JWT token is passed along which Spinnaker uses to check for authenticity and to
+get the user email from the payload and sign the user in.
+
+#### Usage
+```
+hal config security authn iap edit [parameters]
+```
+
+#### Parameters
+ * `--audience`:The Audience from the ID token payload. You can retrieve this field from the IAP
+console: https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--iap-verify-key-url`: The URL containing the Cloud IAP public keys in JWK format.
+ * `--issuer-id`: The Issuer from the ID token payload.
+ * `--jwt-header`: The HTTP request header that contains the JWT token.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config security authn iap enable
+
+Set the iap method as enabled
+
+#### Usage
+```
+hal config security authn iap enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
 ## hal config security authn ldap

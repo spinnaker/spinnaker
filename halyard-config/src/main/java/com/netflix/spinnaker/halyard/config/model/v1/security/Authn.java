@@ -46,10 +46,12 @@ public class Authn extends Node {
   private Saml saml = new Saml();
   private Ldap ldap = new Ldap();
   private X509 x509 = new X509();
+  private IAP iap = new IAP();
   private boolean enabled;
 
   public boolean isEnabled() {
-    return getOauth2().isEnabled() || getSaml().isEnabled() || getLdap().isEnabled() || x509.isEnabled();
+    return getOauth2().isEnabled() || getSaml().isEnabled() || getLdap().isEnabled()
+        || getX509().isEnabled() || getIap().isEnabled();
   }
 
   public void setEnabled(boolean _ignored) {}

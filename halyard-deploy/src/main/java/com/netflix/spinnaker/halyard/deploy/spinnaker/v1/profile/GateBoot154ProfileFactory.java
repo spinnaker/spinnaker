@@ -33,6 +33,8 @@ public class GateBoot154ProfileFactory extends GateProfileFactory {
       config.saml = new SamlConfig(security);
     } else if (security.getAuthn().getLdap().isEnabled()) {
       config.ldap = new LdapConfig(security);
+    } else if (security.getAuthn().getIap().isEnabled()) {
+      config.google.iap = new IAPConfig(security);
     }
 
     if (security.getAuthn().getX509().isEnabled()) {
