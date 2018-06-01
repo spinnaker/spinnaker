@@ -135,6 +135,14 @@ class AwsLookupUtil {
     }?.accountId
   }
 
+  String awsAccountName(account, region) {
+    Map awsDetails = lookupAccount(account, region)
+    if (!awsDetails) {
+      return null
+    }
+    return awsDetails.awsAccount
+  }
+
   String awsVpcId(account, region) {
     lookupAccount(account, region)?.vpcId
   }

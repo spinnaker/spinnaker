@@ -335,6 +335,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     serverGroupDatas.each { data ->
       cacheApplication(data, applications)
       cacheCluster(data, clusters)
+      cacheTargetGroups(data, targetGroups)
     }
 
     // caching _all_ jobs at once allows us to optimize the security group lookups
@@ -358,6 +359,15 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       relationships[TARGET_GROUPS.ns].addAll(data.targetGroupKeys)
+    }
+  }
+
+  private void cacheTargetGroups(ServerGroupData data, Map<String, CacheData> targetGroups) {
+    for (String targetGroupKey : data.targetGroupKeys) {
+      targetGroups[targetGroupKey].with {
+        relationships[APPLICATIONS.ns].add(data.appName)
+        relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+      }
     }
   }
 
@@ -483,7 +493,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       } as Set).asImmutable()
 
       targetGroupKeys = (targetGroupNames.collect {
-        AwsKeys.getTargetGroupKey(it, getAwsAccountId(account, region), region, TargetTypeEnum.Ip.toString(), getAwsVpcId(account, region))
+        AwsKeys.getTargetGroupKey(it, getAwsAccountName(account, region), region, TargetTypeEnum.Ip.toString(), getAwsVpcId(account, region))
       } as Set).asImmutable()
 
     }
@@ -491,6 +501,10 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
 
   private String getAwsAccountId(String account, String region) {
     awsLookupUtil.get().awsAccountId(account, region)
+  }
+
+  private String getAwsAccountName(String account, String region) {
+    awsLookupUtil.get().awsAccountName(account, region)
   }
 
   private String getAwsVpcId(String account, String region) {

@@ -22,8 +22,8 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
-import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonTargetGroup
+import com.netflix.spinnaker.clouddriver.aws.model.TargetGroupServerGroupProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonInstance
@@ -44,6 +44,9 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
 
   private final Cache cacheView
   private final AwsProvider awsProvider
+
+  @Autowired
+  List<TargetGroupServerGroupProvider> targetGroupServerGroupProviders
 
   @Autowired
   public AmazonLoadBalancerProvider(Cache cacheView, AwsProvider awsProvider) {
@@ -126,6 +129,11 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     Map<String, AmazonInstance> targetGroupInstances = translateInstances(allTargetGroupInstances)
     Map<String, AmazonServerGroup> targetGroupServerGroups = translateServerGroups(allTargetGroupServerGroups, targetGroupInstances)
     Map<String, AmazonTargetGroup> allTargetGroups = translateTargetGroups(targetGroupData, targetGroupServerGroups)
+
+    // resolve additional target group details
+    targetGroupServerGroupProviders.each{
+      it.getServerGroups(applicationName, allTargetGroups, targetGroupData)
+    }
 
     // Combine the groups of server groups since it's just a lookup
     Map<String, AmazonServerGroup> allServerGroups = loadBalancerServerGroups + targetGroupServerGroups
