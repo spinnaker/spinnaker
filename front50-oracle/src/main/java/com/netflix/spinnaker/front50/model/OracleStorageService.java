@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018 Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9,7 +9,7 @@
 package com.netflix.spinnaker.front50.model;
 
 import com.google.common.base.Supplier;
-import com.netflix.spinnaker.front50.config.OracleBMCSProperties;
+import com.netflix.spinnaker.front50.config.OracleProperties;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-public class OracleBMCSStorageService implements StorageService {
+public class OracleStorageService implements StorageService {
 
   private final Client client;
   private final String endpoint = "https://objectstorage.{arg0}.oraclecloud.com";
@@ -68,25 +68,25 @@ public class OracleBMCSStorageService implements StorageService {
     }
   }
 
-  public OracleBMCSStorageService(OracleBMCSProperties oracleBMCSProperties) throws IOException {
-    this.region = oracleBMCSProperties.getRegion();
-    this.bucketName = oracleBMCSProperties.getBucketName();
-    this.namespace = oracleBMCSProperties.getNamespace();
-    this.compartmentId = oracleBMCSProperties.getCompartmentId();
+  public OracleStorageService(OracleProperties oracleProperties) throws IOException {
+    this.region = oracleProperties.getRegion();
+    this.bucketName = oracleProperties.getBucketName();
+    this.namespace = oracleProperties.getNamespace();
+    this.compartmentId = oracleProperties.getCompartmentId();
 
-    Supplier<InputStream> privateKeySupplier = new SimplePrivateKeySupplier(oracleBMCSProperties.getSshPrivateKeyFilePath());
+    Supplier<InputStream> privateKeySupplier = new SimplePrivateKeySupplier(oracleProperties.getSshPrivateKeyFilePath());
     AuthenticationDetailsProvider provider = SimpleAuthenticationDetailsProvider.builder()
-            .userId(oracleBMCSProperties.getUserId())
-            .fingerprint(oracleBMCSProperties.getFingerprint())
+            .userId(oracleProperties.getUserId())
+            .fingerprint(oracleProperties.getFingerprint())
             .privateKeySupplier(privateKeySupplier)
-            .tenantId(oracleBMCSProperties.getTenancyId())
+            .tenantId(oracleProperties.getTenancyId())
             .build();
 
     RequestSigner requestSigner = DefaultRequestSigner.createRequestSigner(provider);
 
     ClientConfig clientConfig = new DefaultClientConfig();
     client = new Client(new URLConnectionClientHandler(), clientConfig);
-    client.addFilter(new OracleBMCSStorageService.RequestSigningFilter(requestSigner));
+    client.addFilter(new OracleStorageService.RequestSigningFilter(requestSigner));
   }
 
   @Override
@@ -176,7 +176,7 @@ public class OracleBMCSStorageService implements StorageService {
 
   @Override
   public <T extends Timestamped> Collection<T> listObjectVersions(ObjectType objectType, String objectKey, int maxResults) throws NotFoundException {
-    throw new RuntimeException("OracleBMCS Storage Service does not support versioning");
+    throw new RuntimeException("Oracle Object Store does not support versioning");
   }
 
   @Override

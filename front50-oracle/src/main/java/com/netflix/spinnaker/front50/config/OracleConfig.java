@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018 Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8,7 +8,7 @@
  */
 package com.netflix.spinnaker.front50.config;
 
-import com.netflix.spinnaker.front50.model.OracleBMCSStorageService;
+import com.netflix.spinnaker.front50.model.OracleStorageService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -19,15 +19,15 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 
 @Configuration
-@ConditionalOnExpression("${spinnaker.oraclebmcs.enabled:false}")
-@EnableConfigurationProperties(OracleBMCSProperties.class)
-public class OracleBMCSConfig extends CommonStorageServiceDAOConfig {
+@ConditionalOnExpression("${spinnaker.oracle.enabled:false}")
+@EnableConfigurationProperties(OracleProperties.class)
+public class OracleConfig extends CommonStorageServiceDAOConfig {
 
   @Bean
-  public OracleBMCSStorageService oracleBMCSStorageService(OracleBMCSProperties oracleBMCSProperties) throws IOException {
-    OracleBMCSStorageService oracleBMCSStorageService = new OracleBMCSStorageService(oracleBMCSProperties);
-    oracleBMCSStorageService.ensureBucketExists();
-    return oracleBMCSStorageService;
+  public OracleStorageService oracleStorageService(OracleProperties oracleProperties) throws IOException {
+    OracleStorageService oracleStorageService = new OracleStorageService(oracleProperties);
+    oracleStorageService.ensureBucketExists();
+    return oracleStorageService;
   }
 
   @Bean

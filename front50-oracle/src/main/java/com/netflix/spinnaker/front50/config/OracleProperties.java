@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018 Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10,8 +10,8 @@ package com.netflix.spinnaker.front50.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("spinnaker.oraclebmcs")
-public class OracleBMCSProperties {
+@ConfigurationProperties("spinnaker.oracle")
+public class OracleProperties {
 
   private String bucketName = "_spinnaker_front50_data";
   private String namespace;
