@@ -248,7 +248,7 @@ public class TitusV2ClusterCachingAgent implements CachingAgent, CustomScheduled
 
     List<Job> jobs = titusClient.getAllJobsWithoutTasks();
     PercentileTimer
-      .get(registry, metricId.withTag("operation", "getAllTasks"))
+      .get(registry, metricId.withTag("operation", "getAllJobsWithoutTasks"))
       .record(System.currentTimeMillis() - startTime, MILLISECONDS);
 
     Long startScalingPolicyTime = System.currentTimeMillis();
@@ -268,7 +268,7 @@ public class TitusV2ClusterCachingAgent implements CachingAgent, CustomScheduled
     Long startJobIdsTime = System.currentTimeMillis();
     Map<String, List<String>> taskAndJobIds = titusClient.getTaskIdsForJobIds();
     PercentileTimer
-      .get(registry, metricId.withTag("operation", "getJobIds"))
+      .get(registry, metricId.withTag("operation", "getTaskIdsForJobIds"))
       .record(System.currentTimeMillis() - startJobIdsTime, MILLISECONDS);
 
     List<String> serverGroupKeys = jobs.stream()
