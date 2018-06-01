@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys;
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*;
 
+@Slf4j
 @Component
 public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGroupProvider {
 
@@ -73,29 +75,31 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
               Map instanceDetails = instances.get(instanceKey);
               String healthKey = com.netflix.spinnaker.clouddriver.aws.data.Keys.getInstanceHealthKey(((Map) instanceDetails.get("task")).get("containerIp").toString(), targetGroupDetails.get("account").toString(), targetGroupDetails.get("region").toString(), "aws-load-balancer-v2-target-group-instance-health");
               CacheData healthData = cacheView.get(HEALTH.ns, healthKey);
-              Map health;
-              if (healthData == null && healthData.getAttributes().containsKey("targetGroups") && !((ArrayList) healthData.getAttributes().get("targetGroups")).isEmpty()) {
-                health = Collections.EMPTY_MAP;
-              } else {
-                Map targetGroupHealth = (Map) ((ArrayList) healthData.getAttributes().get("targetGroups")).stream().filter(tgh ->
-                  ((Map) tgh).get("targetGroupName").toString().equals(targetGroupDetails.get("targetGroup")
-                  )).findFirst().orElse(Collections.EMPTY_MAP);
-                if (!targetGroupHealth.isEmpty()) {
-                  health = new HashMap<String, String>() {
-                    {
-                      put("targetGroupName", targetGroupHealth.get("targetGroupName").toString());
-                      put("state", targetGroupHealth.get("healthState").toString());
-                      if (targetGroupHealth.containsKey("reasonCode")) {
-                        put("reasonCode", targetGroupHealth.get("reasonCode").toString());
+              Map health = Collections.EMPTY_MAP;
+              try {
+                if (healthData != null
+                  && healthData.getAttributes().containsKey("targetGroups")
+                  && !((ArrayList) healthData.getAttributes().get("targetGroups")).isEmpty()) {
+                  Map targetGroupHealth = (Map) ((ArrayList) healthData.getAttributes().get("targetGroups")).stream().filter(tgh ->
+                    ((Map) tgh).get("targetGroupName").toString().equals(targetGroupDetails.get("targetGroup")
+                    )).findFirst().orElse(Collections.EMPTY_MAP);
+                  if (!targetGroupHealth.isEmpty()) {
+                    health = new HashMap<String, String>() {
+                      {
+                        put("targetGroupName", targetGroupHealth.get("targetGroupName").toString());
+                        put("state", targetGroupHealth.get("state").toString());
+                        if (targetGroupHealth.containsKey("reasonCode")) {
+                          put("reasonCode", targetGroupHealth.get("reasonCode").toString());
+                        }
+                        if (targetGroupHealth.containsKey("description")) {
+                          put("description", targetGroupHealth.get("description").toString());
+                        }
                       }
-                      if (targetGroupHealth.containsKey("description")) {
-                        put("description", targetGroupHealth.get("description").toString());
-                      }
-                    }
-                  };
-                } else {
-                  health = Collections.EMPTY_MAP;
+                    };
+                  }
                 }
+              } catch (Exception e) {
+                log.error("failed to load health for " + instanceKey, e);
               }
               LoadBalancerInstance instance = new LoadBalancerInstance(
                 ((Map) instanceDetails.get("task")).get("id").toString(),
@@ -115,7 +119,9 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
             Collections.EMPTY_SET,
             targetGroupInstances
           );
-          allTargetGroups.get(targetGroup).getServerGroups().add(loadBalancerServerGroup);
+          if (allTargetGroups.containsKey(targetGroup)) {
+            allTargetGroups.get(targetGroup).getServerGroups().add(loadBalancerServerGroup);
+          }
         }
       }
     }

@@ -45,8 +45,8 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   private final Cache cacheView
   private final AwsProvider awsProvider
 
-  @Autowired
-  List<TargetGroupServerGroupProvider> targetGroupServerGroupProviders
+  @Autowired(required = false)
+  List<TargetGroupServerGroupProvider> targetGroupServerGroupProviders = Collections.EMPTY_LIST;
 
   @Autowired
   public AmazonLoadBalancerProvider(Cache cacheView, AwsProvider awsProvider) {
@@ -131,7 +131,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     Map<String, AmazonTargetGroup> allTargetGroups = translateTargetGroups(targetGroupData, targetGroupServerGroups)
 
     // resolve additional target group details
-    targetGroupServerGroupProviders.each{
+    targetGroupServerGroupProviders.each {
       it.getServerGroups(applicationName, allTargetGroups, targetGroupData)
     }
 
