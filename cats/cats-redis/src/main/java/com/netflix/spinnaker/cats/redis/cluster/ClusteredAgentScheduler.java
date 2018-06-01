@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @SuppressFBWarnings
 public class ClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock>, Runnable {
@@ -102,7 +104,10 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
     Set<String> skip = new HashSet<>(activeAgents.keySet());
     Integer availableAgents = maxConcurrentAgents - skip.size();
     if (availableAgents <= 0) {
-      logger.debug("Not acquiring more locks (activeAgents: " + skip.size() + " >= maxConcurrentAgents " + maxConcurrentAgents + ")");
+      logger.debug("Not acquiring more locks (activeAgents: {}, runningAgents: {}",
+        skip.size(),
+        skip.stream().sorted().collect(Collectors.joining(","))
+      );
       return Collections.emptyMap();
     }
     Map<String, NextAttempt> acquired = new HashMap<>(agents.size());
@@ -180,9 +185,15 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
     final boolean delete = newTtl < MIN_TTL_THRESHOLD;
 
     if (delete) {
-      deleteLock(agentType);
+      boolean success = deleteLock(agentType);
+      if (!success) {
+        logger.debug("Delete lock was unsuccessful for " + agentType);
+      }
     } else {
-      ttlLock(agentType, newTtl);
+      boolean success = ttlLock(agentType, newTtl);
+      if (!success) {
+        logger.debug("Ttl lock was unsuccessful for " + agentType);
+      }
     }
   }
 
