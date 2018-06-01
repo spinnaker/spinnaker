@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Modal, ModalProps } from 'react-bootstrap';
 import * as ReactDOM from 'react-dom';
-import { pick, omit } from 'lodash';
 
 /** The Modal content Component will be passed these two props */
 export interface IModalComponentProps {
@@ -30,44 +29,15 @@ export class ReactModal {
    * });
    *
    * @param ModalComponent the component to be rendered inside a modal
-   * @param props to pass to the Modal and ModalComponent
+   * @param componentProps to pass to the ModalComponent
+   * @param modalProps to pass to the Modal
    * @returns {Promise<T>}
    */
   public static show<P extends IModalComponentProps, T = any>(
     ModalComponent: React.ComponentType<P>,
-    props?: P,
+    componentProps?: P,
+    modalProps?: Partial<ModalProps>,
   ): Promise<T> {
-    const modalPropKeys: Array<keyof ModalProps> = [
-      'onHide',
-      'animation',
-      'autoFocus',
-      'backdrop',
-      'backdropClassName',
-      'backdropStyle',
-      'backdropTransitionTimeout',
-      'bsSize',
-      'container',
-      'containerClassName',
-      'dialogClassName',
-      'dialogComponent',
-      'dialogTransitionTimeout',
-      'enforceFocus',
-      'keyboard',
-      'onBackdropClick',
-      'onEnter',
-      'onEntered',
-      'onEntering',
-      'onEscapeKeyUp',
-      'onExit',
-      'onExited',
-      'onExiting',
-      'onShow',
-      'transition',
-    ];
-
-    const modalProps: ModalProps = pick(props, modalPropKeys);
-    const componentProps = omit(props, modalPropKeys);
-
     const modalPromise = new Promise<T>((resolve, reject) => {
       let mountNode = document.createElement('div');
       let show = true;
@@ -93,7 +63,7 @@ export class ReactModal {
 
       function render() {
         ReactDOM.render(
-          <Modal show={show} {...modalProps} onExited={onExited}>
+          <Modal show={show} {...modalProps as ModalProps} onExited={onExited}>
             <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
           </Modal>,
           mountNode,

@@ -7,15 +7,14 @@ import { Markdown } from 'core/presentation/Markdown';
 import { Modal } from 'react-bootstrap';
 
 export interface IExpressionInputProps {
+  value?: string;
+  onChange: (event: React.ChangeEvent<any>) => void;
   placeholder?: string;
   context?: object;
   locals?: object;
   markdown?: boolean;
   Help?: JSX.Element;
   label: string;
-  name: string;
-  onChange: (event: React.ChangeEvent<any>) => void;
-  value?: string;
   required?: boolean;
 }
 
@@ -132,6 +131,7 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
 
   private handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ value: event.target.value });
+    this.props.onChange(event);
   };
 
   public render(): JSX.Element {
