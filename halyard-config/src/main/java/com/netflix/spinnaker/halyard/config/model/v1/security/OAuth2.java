@@ -95,6 +95,19 @@ public class OAuth2 extends AuthnMethod {
         newUserInfoMapping.setLastName("name");
         newUserInfoMapping.setUsername("login");
         break;
+      case ORACLE:
+        final String idcsBaseUrl = "https://idcs-${idcsTenantId}.identity.oraclecloud.com";
+        newClient.setAccessTokenUri(idcsBaseUrl + "/oauth2/v1/token");
+        newClient.setUserAuthorizationUri(idcsBaseUrl + "/oauth2/v1/authorize");
+        newClient.setScope("openid urn:opc:idm:__myscopes__");
+
+        newResource.setUserInfoUri(idcsBaseUrl + "/oauth2/v1/userinfo");
+
+        newUserInfoMapping.setEmail("");
+        newUserInfoMapping.setFirstName("given_name");
+        newUserInfoMapping.setLastName("family_name");
+        newUserInfoMapping.setUsername("preferred_username");
+        break;
       case AZURE:
         newClient.setAccessTokenUri("https://login.microsoftonline.com/${azureTenantId}/oauth2/token");
         newClient.setUserAuthorizationUri("https://login.microsoftonline.com/${azureTenantId}/oauth2/authorize?resource=https://graph.windows.net");
@@ -154,6 +167,7 @@ public class OAuth2 extends AuthnMethod {
   public enum Provider {
     AZURE("azure"),
     GITHUB("github"),
+    ORACLE("oracle"),
     GOOGLE("google");
 
     private String id;

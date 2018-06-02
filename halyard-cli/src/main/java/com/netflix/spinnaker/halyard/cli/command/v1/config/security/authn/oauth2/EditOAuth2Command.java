@@ -44,7 +44,7 @@ public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
 
   @Parameter(
       names = "--provider",
-      description = "The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure",
+      description = "The OAuth provider handling authentication. The supported options are Google, GitHub, Oracle, and Azure",
       converter = OAuth2ProviderTypeConverter.class
   )
   private OAuth2.Provider provider;
