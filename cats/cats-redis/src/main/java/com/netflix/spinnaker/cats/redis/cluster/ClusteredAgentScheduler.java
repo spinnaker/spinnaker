@@ -154,7 +154,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
   private static final String SET_IF_NOT_EXIST = "NX";
   private static final String SET_EXPIRE_TIME_MILLIS = "PX";
   private static final String SUCCESS_RESPONSE = "OK";
-  private static final Integer DEL_SUCCESS = 1;
+  private static final Long DEL_SUCCESS = 1L;
 
   private static final String DELETE_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
   private static final String TTL_LOCK_KEY = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('set', KEYS[1], ARGV[1], 'PX', ARGV[2], 'XX') else return nil end";
