@@ -26,6 +26,7 @@ export interface IFeatures {
   canary?: boolean;
   entityTags?: boolean;
   fiatEnabled?: boolean;
+  iapRefresherEnabled?: boolean;
   pipelines?: boolean;
   notifications?: boolean;
   clusterDiff?: boolean;
