@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Armory, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.github;
+package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -39,7 +39,7 @@ import java.io.InputStream;
 
 @Slf4j
 @Data
-public class GitHubArtifactCredentials implements ArtifactCredentials {
+public class BitbucketArtifactCredentials implements ArtifactCredentials {
   private final String name;
 
   @JsonIgnore
@@ -51,31 +51,25 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
   @JsonIgnore
   ObjectMapper objectMapper;
 
-  public GitHubArtifactCredentials(GitHubArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper) {
+  public BitbucketArtifactCredentials(BitbucketArtifactAccount account, OkHttpClient okHttpClient, ObjectMapper objectMapper) {
     this.name = account.getName();
     this.okHttpClient = okHttpClient;
     this.objectMapper = objectMapper;
     Builder builder = new Request.Builder();
     boolean useLogin = !StringUtils.isEmpty(account.getUsername()) && !StringUtils.isEmpty(account.getPassword());
     boolean useUsernamePasswordFile = !StringUtils.isEmpty(account.getUsernamePasswordFile());
-    boolean useToken = !StringUtils.isEmpty(account.getToken());
-    boolean useTokenFile = !StringUtils.isEmpty(account.getTokenFile());
-    boolean useAuth = useLogin || useToken || useUsernamePasswordFile || useTokenFile;
+    boolean useAuth = useLogin || useUsernamePasswordFile;
     if (useAuth) {
       String authHeader = "";
-      if (useTokenFile) {
-        authHeader = "token " + credentialsFromFile(account.getTokenFile());
-      } else if (useUsernamePasswordFile) {
-        authHeader = "Basic " + Base64.encodeBase64String((credentialsFromFile(account.getUsernamePasswordFile())).getBytes());
-      }  else if (useToken) {
-        authHeader = "token " + account.getToken();
+      if (useUsernamePasswordFile) {
+        authHeader = Base64.encodeBase64String((credentialsFromFile(account.getUsernamePasswordFile())).getBytes());
       } else if (useLogin) {
-        authHeader = "Basic " + Base64.encodeBase64String((account.getUsername() + ":" + account.getPassword()).getBytes());
+        authHeader = Base64.encodeBase64String((account.getUsername() + ":" + account.getPassword()).getBytes());
       }
-      builder.header("Authorization", authHeader);
-      log.info("Loaded credentials for GitHub Artifact Account {}", account.getName());
+      builder.header("Authorization: Basic ", authHeader);
+      log.info("Loaded credentials for Bitbucket artifact account {}", account.getName());
     } else {
-      log.info("No credentials included with GitHub Artifact Account {}", account.getName());
+      log.info("No credentials included with Bitbucket artifact account {}", account.getName());
     }
     requestBuilder = builder;
   }
@@ -85,44 +79,21 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
       String credentials = FileUtils.readFileToString(new File(filename));
       return credentials.replace("\n", "");
     } catch (IOException e) {
-      log.error("Could not read GitHub credentials file {}", filename, e);
+      log.error("Could not read Bitbucket credentials file {}", filename, e);
       return null;
     }
   }
 
   public InputStream download(Artifact artifact) throws IOException {
-    HttpUrl.Builder metadataUrlBuilder;
+    HttpUrl.Builder fileUrl;
     try {
-      metadataUrlBuilder = HttpUrl.parse(artifact.getReference()).newBuilder();
+      fileUrl = HttpUrl.parse(artifact.getReference()).newBuilder();
     } catch (Exception e) {
-      throw new IllegalArgumentException("Malformed github content URL in 'reference'. Read more here https://www.spinnaker.io/reference/artifacts/types/github-file/: " + e.getMessage(), e);
-    }
-    String version = artifact.getVersion();
-    if (StringUtils.isEmpty(version)) {
-      log.info("No version specified for artifact {}, using 'master'.", version);
-      version = "master";
-    }
-
-    metadataUrlBuilder.addQueryParameter("ref", version);
-    Request metadataRequest = requestBuilder
-      .url(metadataUrlBuilder.build().toString())
-      .build();
-
-    Response metadataResponse;
-    try {
-      metadataResponse = okHttpClient.newCall(metadataRequest).execute();
-    } catch (IOException e) {
-      throw new FailedDownloadException("Unable to determine the download URL of artifact " + artifact + ": " + e.getMessage(), e);
-    }
-
-    String body = metadataResponse.body().string();
-    ContentMetadata metadata = objectMapper.readValue(body, ContentMetadata.class);
-    if (StringUtils.isEmpty(metadata.downloadUrl)) {
-      throw new FailedDownloadException("Failed to retrieve your github artifact's download URL. This is likely due to incorrect auth setup. Artifact: " + artifact);
+      throw new IllegalArgumentException("Malformed Bitbucket content URL in 'reference'. Read more here https://www.spinnaker.io/reference/artifacts/types/bitbucket-file/: " + e.getMessage(), e);
     }
 
     Request downloadRequest = requestBuilder
-      .url(metadata.getDownloadUrl())
+      .url(artifact.getReference())
       .build();
 
     try {
@@ -135,13 +106,7 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
 
   @Override
   public boolean handlesType(String type) {
-    return type.equals("github/file");
-  }
-
-  @Data
-  public static class ContentMetadata {
-    @JsonProperty("download_url")
-    private String downloadUrl;
+    return type.equals("bitbucket/file");
   }
 
   public class FailedDownloadException extends IOException {

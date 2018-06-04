@@ -75,7 +75,7 @@ public class HttpArtifactCredentials implements ArtifactCredentials {
       String credentials = FileUtils.readFileToString(new File(filename));
       return credentials.replace("\n", "");
     } catch (IOException e) {
-      log.error("Could not read http credentials file {}", filename);
+      log.error("Could not read http credentials file {}", filename, e);
       return null;
     }
   }
