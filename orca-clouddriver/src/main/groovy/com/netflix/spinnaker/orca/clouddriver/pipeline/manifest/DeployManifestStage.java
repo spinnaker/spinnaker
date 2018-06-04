@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
-import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.CleanupArtifactsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStab
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -39,6 +40,7 @@ public class DeployManifestStage implements StageDefinitionBuilder {
         .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
         .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
         .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class)
+        .withTask(CleanupArtifactsTask.TASK_NAME, CleanupArtifactsTask.class)
         .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
   }
 }
