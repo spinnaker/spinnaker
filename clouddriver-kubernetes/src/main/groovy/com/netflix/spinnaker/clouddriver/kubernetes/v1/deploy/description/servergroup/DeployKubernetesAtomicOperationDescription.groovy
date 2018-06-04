@@ -283,6 +283,9 @@ enum KubernetesVolumeSourceType {
   @JsonProperty("AWSELASTICBLOCKSTORE")
   AwsElasticBlockStore,
 
+  @JsonProperty("NFS")
+  NFS,
+
   @JsonProperty("UNSUPPORTED")
   Unsupported,
 }
@@ -317,6 +320,7 @@ class KubernetesVolumeSource {
   KubernetesSecretVolumeSource secret
   KubernetesConfigMapVolumeSource configMap
   KubernetesAwsElasticBlockStoreVolumeSource awsElasticBlockStore
+  KubernetesNfsVolumeSource nfs
 }
 
 @AutoClone
@@ -333,6 +337,14 @@ class KubernetesAwsElasticBlockStoreVolumeSource {
   String volumeId
   String fsType
   Integer partition
+}
+
+@AutoClone
+@Canonical
+class KubernetesNfsVolumeSource {
+  String server
+  String path
+  Boolean readOnly
 }
 
 @AutoClone

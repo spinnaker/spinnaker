@@ -52,6 +52,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesHttpGetAction
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesKeyToPath
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesLifecycle
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesNfsVolumeSource
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesPersistentVolumeClaim
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesProbe
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesPullPolicy
@@ -91,6 +92,7 @@ import io.fabric8.kubernetes.api.model.HorizontalPodAutoscalerFluentImpl
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.KeyToPath
+import io.fabric8.kubernetes.api.model.NFSVolumeSourceBuilder
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSourceBuilder
 import io.fabric8.kubernetes.api.model.PodTemplateSpec
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder
@@ -253,6 +255,15 @@ class KubernetesApiConverter {
         }
 
         volume.awsElasticBlockStore = res.build()
+        break
+
+      case KubernetesVolumeSourceType.NFS:
+        def res = new NFSVolumeSourceBuilder()
+            .withServer(volumeSource.nfs.server)
+            .withPath(volumeSource.nfs.path)
+            .withReadOnly(volumeSource.nfs.readOnly)
+
+        volume.nfs = res.build()
         break
 
       default:
@@ -751,6 +762,10 @@ class KubernetesApiConverter {
       res.awsElasticBlockStore = new KubernetesAwsElasticBlockStoreVolumeSource(volumeId: ebs.volumeID,
                                                                                 fsType: ebs.fsType,
                                                                                 partition: ebs.partition)
+    } else if (volume.nfs) {
+      res.type = KubernetesVolumeSourceType.NFS
+      def nfs = volume.nfs
+      res.nfs = new KubernetesNfsVolumeSource(server: nfs.server, path: nfs.path, readOnly: nfs.readOnly)
     } else {
       res.type = KubernetesVolumeSourceType.Unsupported
     }
