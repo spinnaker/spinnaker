@@ -20,10 +20,7 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,21 +42,23 @@ public class JenkinsCache {
     }
 
     public List<String> getJobNames(String master) {
-        List<String> jobs = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(prefix() + ":" + master + ":*").stream()
-                .map(JenkinsCache::extractJobName)
-                .collect(Collectors.toList());
-        });
+        List<String> jobs = new ArrayList<>();
+        redisClientDelegate.withKeyScan(prefix() + ":" + master + ":*", 1000, page -> jobs.addAll(
+            page.getResults().stream().map(JenkinsCache::extractJobName).collect(Collectors.toList())
+        ));
         jobs.sort(Comparator.naturalOrder());
         return jobs;
     }
 
     public List<String> getTypeaheadResults(String search) {
-        List<String> results = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(prefix() + ":*:*" + search.toUpperCase() + "*:*").stream()
+        List<String> results = new ArrayList<>();
+        redisClientDelegate.withKeyScan(prefix() + ":*:*" + search.toUpperCase() + "*:*", 1000, page ->
+            results.addAll(page.getResults()
+                .stream()
                 .map(JenkinsCache::extractTypeaheadResult)
-                .collect(Collectors.toList());
-        });
+                .collect(Collectors.toList())
+            )
+        );
         results.sort(Comparator.naturalOrder());
         return results;
     }

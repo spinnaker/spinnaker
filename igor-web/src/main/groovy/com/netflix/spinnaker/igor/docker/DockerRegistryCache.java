@@ -45,9 +45,11 @@ public class DockerRegistryCache {
     }
 
     public Set<String> getImages(String account) {
-        return redisClientDelegate.withMultiClient(c -> {
-            return c.keys(makeIndexPattern(prefix(), account));
+        Set<String> result = new HashSet<>();
+        redisClientDelegate.withKeyScan(makeIndexPattern(prefix(), account), 1000, page -> {
+            result.addAll(page.getResults());
         });
+        return result;
     }
 
     public String getLastDigest(String account, String repository, String tag) {

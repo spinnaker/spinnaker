@@ -20,10 +20,7 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,21 +42,19 @@ public class BuildCache {
     }
 
     public List<String> getJobNames(String master) {
-        List<String> jobs = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(baseKey() + ":completed:" + master + ":*").stream()
-                .map(BuildCache::extractJobName)
-                .collect(Collectors.toList());
-        });
+        List<String> jobs = new ArrayList<>();
+        redisClientDelegate.withKeyScan(baseKey() + ":completed:" + master + ":*", 1000, page ->
+            jobs.addAll(page.getResults().stream().map(BuildCache::extractJobName).collect(Collectors.toList()))
+        );
         jobs.sort(Comparator.naturalOrder());
         return jobs;
     }
 
     public List<String> getTypeaheadResults(String search) {
-        List<String> results = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(baseKey() + ":*:*:*" + search.toUpperCase() + "*:*").stream()
-                .map(BuildCache::extractTypeaheadResult)
-                .collect(Collectors.toList());
-        });
+        List<String> results = new ArrayList<>();
+        redisClientDelegate.withKeyScan(baseKey() + ":*:*:*" + search.toUpperCase() + "*:*", 1000, page ->
+            results.addAll(page.getResults().stream().map(BuildCache::extractTypeaheadResult).collect(Collectors.toList()))
+        );
         results.sort(Comparator.naturalOrder());
         return results;
     }
@@ -99,11 +94,13 @@ public class BuildCache {
     }
 
     public List<String> getDeprecatedJobNames(String master) {
-        List<String> jobs = redisClientDelegate.withMultiClient(c -> {
-            return c.keys(baseKey() + ":" + master + ":*").stream()
+        List<String> jobs = new ArrayList<>();
+        redisClientDelegate.withKeyScan(baseKey() + ":" + master + ":*", 1000, page ->
+            jobs.addAll(page.getResults()
+                .stream()
                 .map(BuildCache::extractDeprecatedJobName)
-                .collect(Collectors.toList());
-        });
+                .collect(Collectors.toList())
+        ));
         jobs.sort(Comparator.naturalOrder());
         return jobs;
     }
