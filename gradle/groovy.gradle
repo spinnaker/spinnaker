@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-apply plugin: "nebula.kotlin"
-apply plugin: "kotlin-spring"
+/**
+ * Apply to sub-projects that use Groovy for production code.
+ */
 
-configurations.all {
-  resolutionStrategy {
-    eachDependency { details ->
-      if (details.requested.group == "org.jetbrains.kotlin") {
-        details.useVersion kotlinVersion
-      }
-    }
-  }
-}
+apply plugin: "groovy"
 
-compileKotlin {
-  kotlinOptions {
-    languageVersion = "1.2"
-    jvmTarget = "1.8"
-  }
-}
-
-kapt {
-  mapDiagnosticLocations = true
+dependencies {
+  compile spinnaker.dependency("groovy")
+  spinnaker.group("spockBase")
+  testCompile spinnaker.dependency("groovy")
 }
