@@ -580,21 +580,19 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         ScanResult<String> chunk = mc.scan(finalCursor, scanParams);
 
         if (redisClientDelegate.supportsMultiKeyPipelines()) {
-          Map<String, Response<Long>> pipelineResults = new HashMap<>();
+          List<ImmutablePair<String, Response<Long>>> pipelineResults = new ArrayList<>();
           redisClientDelegate.withMultiKeyPipeline(p -> {
             chunk.getResult().forEach(id -> {
-              String[] parts = id.split(":");
-              String app = parts[2];
-              pipelineResults.put(app, p.scard(id));
+              String app = id.split(":")[2];
+              pipelineResults.add(new ImmutablePair<>(app, p.scard(id)));
             });
             p.sync();
           });
 
           pipelineResults
-            .entrySet()
-            .forEach(e -> apps.compute(
-              e.getKey(),
-              (app, numExecutions) -> Optional.ofNullable(numExecutions).orElse(0L) + e.getValue().get())
+            .forEach(p -> apps.compute(
+              p.left,
+              (app, numExecutions) -> Optional.ofNullable(numExecutions).orElse(0L) + p.right.get())
             );
         } else {
           redisClientDelegate.withCommandsClient(cc -> {
