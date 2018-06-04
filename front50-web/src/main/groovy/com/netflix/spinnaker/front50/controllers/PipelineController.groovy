@@ -101,6 +101,7 @@ class PipelineController {
     validatePipeline(pipeline)
 
     pipeline.name = pipeline.getName().trim()
+    pipeline = ensureCronTriggersHaveIdentifier(pipeline)
 
     if (!pipeline.id) {
       // ensure that cron triggers are assigned a unique identifier for new pipelines
@@ -142,8 +143,9 @@ class PipelineController {
     validatePipeline(pipeline)
 
     pipeline.name = pipeline.getName().trim()
-
     pipeline.updateTs = System.currentTimeMillis()
+    pipeline = ensureCronTriggersHaveIdentifier(pipeline)
+
     pipelineDAO.update(id, pipeline)
     return pipeline
   }
@@ -199,5 +201,15 @@ class PipelineController {
     }) {
       throw new DuplicateEntityException("A pipeline with name ${name} already exists in application ${application}")
     }
+  }
+
+  private static Pipeline ensureCronTriggersHaveIdentifier(Pipeline pipeline) {
+    def triggers = (pipeline.triggers ?: []) as List<Map>
+    triggers.findAll { "cron".equalsIgnoreCase(it.type) }.each { Map trigger ->
+      // ensure that all cron triggers have an assigned identifier
+      trigger.id = trigger.id ?: UUID.randomUUID().toString()
+    }
+
+    return pipeline
   }
 }

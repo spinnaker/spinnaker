@@ -194,6 +194,39 @@ abstract class PipelineControllerTck extends Specification {
     true             || { Map p -> p.triggers*.id == ["original-id"] }
   }
 
+  void 'should ensure that all cron triggers have an identifier'() {
+    given:
+    def pipeline = [
+      name       : "My Pipeline",
+      application: "test",
+      triggers   : [
+        [type: "cron", id: "original-id", expression: "1"],
+        [type: "cron", expression: "2"],
+        [type: "cron", id: "", expression: "3"]
+      ]
+    ]
+
+    pipelineDAO.create(null, pipeline as Pipeline)
+    pipeline.id = pipelineDAO.findById(
+      pipelineDAO.getPipelineId("test", "My Pipeline")
+    ).getId()
+
+    when:
+    def response = mockMvc.perform(post('/pipelines').
+      contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
+      .andReturn().response
+
+    def updatedPipeline = pipelineDAO.findById(
+      pipelineDAO.getPipelineId("test", "My Pipeline")
+    )
+
+    then:
+    response.status == OK
+    updatedPipeline.get("triggers").find { it.expression == "1" }.id == "original-id"
+    updatedPipeline.get("triggers").find { it.expression == "2" }.id.length() > 1
+    updatedPipeline.get("triggers").find { it.expression == "3" }.id.length() > 1
+  }
+
   void 'should delete an existing pipeline by name or id'() {
     given:
     pipelineDAO.create(null, new Pipeline([
