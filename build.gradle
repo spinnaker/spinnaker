@@ -37,7 +37,7 @@ allprojects {
     sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
     ext {
-        spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.155.1'
+        spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.157.1'
     }
 
     def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]

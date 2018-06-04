@@ -51,6 +51,7 @@ class JenkinsBuildMonitorSpec extends Specification {
             igorConfigurationProperties,
             new NoopRegistry(),
             Optional.empty(),
+            Optional.empty(),
             cache,
             new BuildMasters(map: [MASTER: jenkinsService]),
             true,

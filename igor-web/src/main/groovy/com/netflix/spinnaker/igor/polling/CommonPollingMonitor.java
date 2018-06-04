@@ -21,16 +21,20 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import com.netflix.spinnaker.kork.lock.LockManager;
+import com.netflix.spinnaker.kork.lock.LockManager.LockOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.lang.String.format;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 public abstract class CommonPollingMonitor<I extends DeltaItem, T extends PollingDelta<I>> implements PollingMonitor, PollAccess {
@@ -50,19 +54,24 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     private final Id pollCycleFailedId;
     protected final Id missedNotificationId;
 
+    private final Optional<LockManager> lockManager;
+
     public CommonPollingMonitor(IgorConfigurationProperties igorProperties,
                                 Registry registry,
-                                Optional<DiscoveryClient> discoveryClient) {
-        this(igorProperties, registry, discoveryClient, Schedulers.io());
+                                Optional<DiscoveryClient> discoveryClient,
+                                Optional<LockManager> lockManager) {
+        this(igorProperties, registry, discoveryClient, lockManager, Schedulers.io());
     }
 
     public CommonPollingMonitor(IgorConfigurationProperties igorProperties,
                                 Registry registry,
                                 Optional<DiscoveryClient> discoveryClient,
+                                Optional<LockManager> lockManager,
                                 Scheduler scheduler) {
         this.igorProperties = igorProperties;
         this.registry = registry;
         this.discoveryClient = discoveryClient;
+        this.lockManager = lockManager;
         this.worker = scheduler.createWorker();
 
         itemsCachedId = registry.createId("pollingMonitor.newItems");
@@ -106,6 +115,20 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
 
     @Override
     public void pollSingle(PollContext ctx) {
+        if (lockManager.isPresent()) {
+            // Lock duration of the full poll interval; if the work is completed ahead of that time, it'll be released.
+            // If anything, this will mean builds are polled more often, rather than less.
+            LockOptions lockOptions = new LockOptions()
+                .withLockName(format("%s.%s", getName(), ctx.partitionName))
+                .withMaximumLockDuration(Duration.ofSeconds(getPollInterval()));
+
+            lockManager.get().acquireLock(lockOptions, () -> internalPollSingle(ctx));
+        } else {
+            internalPollSingle(ctx);
+        }
+    }
+
+    protected void internalPollSingle(PollContext ctx) {
         String monitorName = getClass().getSimpleName();
 
         try {

@@ -51,7 +51,8 @@ class TravisBuildMonitorSpec extends Specification {
             buildCache,
             new BuildMasters(map: [MASTER : travisService]),
             travisProperties,
-            Optional.of(echoService)
+            Optional.of(echoService),
+            Optional.empty()
         )
     }
 

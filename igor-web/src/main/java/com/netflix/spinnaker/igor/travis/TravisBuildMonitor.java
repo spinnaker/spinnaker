@@ -38,6 +38,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 import com.netflix.spinnaker.igor.travis.service.TravisBuildConverter;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
+import com.netflix.spinnaker.kork.lock.LockManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -68,8 +69,15 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
     private final Optional<EchoService> echoService;
 
     @Autowired
-    public TravisBuildMonitor(IgorConfigurationProperties properties, Registry registry, Optional<DiscoveryClient> discoveryClient, BuildCache buildCache, BuildMasters buildMasters, TravisProperties travisProperties, Optional<EchoService> echoService) {
-        super(properties, registry, discoveryClient);
+    public TravisBuildMonitor(IgorConfigurationProperties properties,
+                              Registry registry,
+                              Optional<DiscoveryClient> discoveryClient,
+                              BuildCache buildCache,
+                              BuildMasters buildMasters,
+                              TravisProperties travisProperties,
+                              Optional<EchoService> echoService,
+                              Optional<LockManager> redisLockManager) {
+        super(properties, registry, discoveryClient, redisLockManager);
         this.buildCache = buildCache;
         this.buildMasters = buildMasters;
         this.travisProperties = travisProperties;

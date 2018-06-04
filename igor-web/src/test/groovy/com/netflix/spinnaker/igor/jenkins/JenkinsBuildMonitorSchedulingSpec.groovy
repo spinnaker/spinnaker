@@ -52,6 +52,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
             cfg,
             new NoopRegistry(),
             Optional.empty(),
+            Optional.empty(),
             cache,
             buildMasters,
             true,
@@ -105,6 +106,7 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         monitor = new JenkinsBuildMonitor(
             cfg,
             new NoopRegistry(),
+            Optional.empty(),
             Optional.empty(),
             cache,
             buildMasters,
