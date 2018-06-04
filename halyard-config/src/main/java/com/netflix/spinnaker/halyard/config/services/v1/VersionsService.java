@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+
 import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -24,15 +26,12 @@ import com.netflix.spinnaker.halyard.core.memoize.v1.ExpiringConcurrentMap;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import java.io.IOException;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
-
-import java.io.IOException;
-import java.util.Optional;
-
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
 @Component
 public class VersionsService {
@@ -65,6 +64,22 @@ public class VersionsService {
       throw new HalException(
           new ConfigProblemBuilder(FATAL,
               "You must pick a version of Spinnaker to deploy.")
+              .build()
+      );
+    }
+
+    if (Versions.isBranch(version)) {
+      throw new HalException(
+          new ConfigProblemBuilder(FATAL,
+              "Version prefixed with \"branch:\" does not have a BOM")
+              .build()
+      );
+    }
+
+    if (Versions.isLocal(version)) {
+      throw new HalException(
+          new ConfigProblemBuilder(FATAL,
+              "Version prefixed with \"local:\" does not have a BOM")
               .build()
       );
     }

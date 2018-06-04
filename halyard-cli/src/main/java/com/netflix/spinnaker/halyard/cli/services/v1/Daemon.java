@@ -773,7 +773,7 @@ public class Daemon {
 
   public static Supplier<BillOfMaterials> getBillOfMaterials(String version) {
     return () -> {
-      Object rawBillOfMaterials = ResponseUnwrapper.get(getService().getBillOfMaterials(version));
+      Object rawBillOfMaterials = ResponseUnwrapper.get(getService().getBillOfMaterialsV2(version));
       return getObjectMapper().convertValue(rawBillOfMaterials, BillOfMaterials.class);
     };
   }

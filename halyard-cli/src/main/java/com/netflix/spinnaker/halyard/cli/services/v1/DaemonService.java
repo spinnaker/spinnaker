@@ -724,8 +724,16 @@ public interface DaemonService {
   @GET("/v1/versions/latest/")
   DaemonTask<Halconfig, String> getLatest();
 
+  @Deprecated
   @GET("/v1/versions/bom/{version}")
   DaemonTask<Halconfig, Object> getBillOfMaterials(@Path("version") String version);
+
+  /**
+   * This method should be used in place of getBillOfMaterials because of Spring's inability to
+   * receive encoded forward slashes in a path variable.
+   */
+  @GET("/v1/versions/bom")
+  DaemonTask<Halconfig, Object> getBillOfMaterialsV2(@Query("version") String version);
 
   @PUT("/v1/admin/publishProfile/{artifactName}")
   DaemonTask<Halconfig, Void> publishProfile(

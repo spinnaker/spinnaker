@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -49,8 +50,23 @@ public class VersionsController {
     return DaemonTaskHandler.submitTask(builder::build, "Get latest released version");
   }
 
+  /**
+   * This method is deprecated because of the inability to handle encoded forward slashes in the
+   * path variable. Although it is possible to configure Spring to allow this, it is recommended
+   * that the variable be moved to a request variable:
+   *
+   * https://stackoverflow.com/questions/13482020/encoded-slash-2f-with-spring-requestmapping-path-param-gives-http-400
+   *
+   * Please use bomV2 instead.
+   */
+  @Deprecated
   @RequestMapping(value = "/bom/{version:.+}", method = RequestMethod.GET)
   DaemonTask<Halconfig, BillOfMaterials> bom(@PathVariable String version) {
+    return bomV2(version);
+  }
+
+  @RequestMapping(value = "/bom", method = RequestMethod.GET)
+  DaemonTask<Halconfig, BillOfMaterials> bomV2(@RequestParam(value = "version") String version) {
     DaemonResponse.StaticRequestBuilder<BillOfMaterials> builder = new DaemonResponse.StaticRequestBuilder<>(
             () -> versionsService.getBillOfMaterials(version));
     return DaemonTaskHandler.submitTask(builder::build, "Get BOM for " + version);
