@@ -19,6 +19,15 @@
  * [**hal backup restore**](#hal-backup-restore)
  * [**hal config**](#hal-config)
  * [**hal config artifact**](#hal-config-artifact)
+ * [**hal config artifact bitbucket**](#hal-config-artifact-bitbucket)
+ * [**hal config artifact bitbucket account**](#hal-config-artifact-bitbucket-account)
+ * [**hal config artifact bitbucket account add**](#hal-config-artifact-bitbucket-account-add)
+ * [**hal config artifact bitbucket account delete**](#hal-config-artifact-bitbucket-account-delete)
+ * [**hal config artifact bitbucket account edit**](#hal-config-artifact-bitbucket-account-edit)
+ * [**hal config artifact bitbucket account get**](#hal-config-artifact-bitbucket-account-get)
+ * [**hal config artifact bitbucket account list**](#hal-config-artifact-bitbucket-account-list)
+ * [**hal config artifact bitbucket disable**](#hal-config-artifact-bitbucket-disable)
+ * [**hal config artifact bitbucket enable**](#hal-config-artifact-bitbucket-enable)
  * [**hal config artifact gcs**](#hal-config-artifact-gcs)
  * [**hal config artifact gcs account**](#hal-config-artifact-gcs-account)
  * [**hal config artifact gcs account add**](#hal-config-artifact-gcs-account-add)
@@ -37,6 +46,15 @@
  * [**hal config artifact github account list**](#hal-config-artifact-github-account-list)
  * [**hal config artifact github disable**](#hal-config-artifact-github-disable)
  * [**hal config artifact github enable**](#hal-config-artifact-github-enable)
+ * [**hal config artifact gitlab**](#hal-config-artifact-gitlab)
+ * [**hal config artifact gitlab account**](#hal-config-artifact-gitlab-account)
+ * [**hal config artifact gitlab account add**](#hal-config-artifact-gitlab-account-add)
+ * [**hal config artifact gitlab account delete**](#hal-config-artifact-gitlab-account-delete)
+ * [**hal config artifact gitlab account edit**](#hal-config-artifact-gitlab-account-edit)
+ * [**hal config artifact gitlab account get**](#hal-config-artifact-gitlab-account-get)
+ * [**hal config artifact gitlab account list**](#hal-config-artifact-gitlab-account-list)
+ * [**hal config artifact gitlab disable**](#hal-config-artifact-gitlab-disable)
+ * [**hal config artifact gitlab enable**](#hal-config-artifact-gitlab-enable)
  * [**hal config artifact http**](#hal-config-artifact-http)
  * [**hal config artifact http account**](#hal-config-artifact-http-account)
  * [**hal config artifact http account add**](#hal-config-artifact-http-account-add)
@@ -46,6 +64,15 @@
  * [**hal config artifact http account list**](#hal-config-artifact-http-account-list)
  * [**hal config artifact http disable**](#hal-config-artifact-http-disable)
  * [**hal config artifact http enable**](#hal-config-artifact-http-enable)
+ * [**hal config artifact s3**](#hal-config-artifact-s3)
+ * [**hal config artifact s3 account**](#hal-config-artifact-s3-account)
+ * [**hal config artifact s3 account add**](#hal-config-artifact-s3-account-add)
+ * [**hal config artifact s3 account delete**](#hal-config-artifact-s3-account-delete)
+ * [**hal config artifact s3 account edit**](#hal-config-artifact-s3-account-edit)
+ * [**hal config artifact s3 account get**](#hal-config-artifact-s3-account-get)
+ * [**hal config artifact s3 account list**](#hal-config-artifact-s3-account-list)
+ * [**hal config artifact s3 disable**](#hal-config-artifact-s3-disable)
+ * [**hal config artifact s3 enable**](#hal-config-artifact-s3-enable)
  * [**hal config canary**](#hal-config-canary)
  * [**hal config canary aws**](#hal-config-canary-aws)
  * [**hal config canary aws account**](#hal-config-canary-aws-account)
@@ -597,9 +624,168 @@ hal config artifact [subcommands]
 ```
 
 #### Subcommands
+ * `bitbucket`: Manage and view Spinnaker configuration for the bitbucket provider
  * `gcs`: Manage and view Spinnaker configuration for the gcs provider
  * `github`: Manage and view Spinnaker configuration for the github provider
+ * `gitlab`: Manage and view Spinnaker configuration for the gitlab provider
  * `http`: Manage and view Spinnaker configuration for the http provider
+ * `s3`: Manage and view Spinnaker configuration for the s3 provider
+
+---
+## hal config artifact bitbucket
+
+Manage and view Spinnaker configuration for the bitbucket provider
+
+#### Usage
+```
+hal config artifact bitbucket [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the bitbucket artifact provider's account
+ * `disable`: Set the bitbucket artifact provider as disabled
+ * `enable`: Set the bitbucket artifact provider as enabled
+
+---
+## hal config artifact bitbucket account
+
+Manage and view Spinnaker configuration for the bitbucket artifact provider's account
+
+#### Usage
+```
+hal config artifact bitbucket account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the bitbucket artifact provider.
+ * `delete`: Delete a specific bitbucket artifact account by name.
+ * `edit`: Edit an artifact account in the bitbucket artifact provider.
+ * `get`: Get the specified account details for the bitbucket provider.
+ * `list`: List the artifact account names for the bitbucket artifact provider.
+
+---
+## hal config artifact bitbucket account add
+
+Add an artifact account to the bitbucket artifact provider.
+
+#### Usage
+```
+hal config artifact bitbucket account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Bitbucket password
+ * `--username`: Bitbucket username
+ * `--username-password-file`: File containing "username:password" to use for Bitbucket authentication
+
+
+---
+## hal config artifact bitbucket account delete
+
+Delete a specific bitbucket artifact account by name.
+
+#### Usage
+```
+hal config artifact bitbucket account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact bitbucket account edit
+
+Edit an artifact account in the bitbucket artifact provider.
+
+#### Usage
+```
+hal config artifact bitbucket account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Bitbucket password
+ * `--username`: Bitbucket username
+ * `--username-password-file`: File containing "username:password" to use for Bitbucket authentication
+
+
+---
+## hal config artifact bitbucket account get
+
+Get the specified account details for the bitbucket provider.
+
+#### Usage
+```
+hal config artifact bitbucket account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact bitbucket account list
+
+List the artifact account names for the bitbucket artifact provider.
+
+#### Usage
+```
+hal config artifact bitbucket account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact bitbucket disable
+
+Set the bitbucket artifact provider as disabled
+
+#### Usage
+```
+hal config artifact bitbucket disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact bitbucket enable
+
+Set the bitbucket artifact provider as enabled
+
+#### Usage
+```
+hal config artifact bitbucket enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config artifact gcs
@@ -914,6 +1100,160 @@ hal config artifact github enable [parameters]
 
 
 ---
+## hal config artifact gitlab
+
+Manage and view Spinnaker configuration for the gitlab provider
+
+#### Usage
+```
+hal config artifact gitlab [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the gitlab artifact provider's account
+ * `disable`: Set the gitlab artifact provider as disabled
+ * `enable`: Set the gitlab artifact provider as enabled
+
+---
+## hal config artifact gitlab account
+
+Manage and view Spinnaker configuration for the gitlab artifact provider's account
+
+#### Usage
+```
+hal config artifact gitlab account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the gitlab artifact provider.
+ * `delete`: Delete a specific gitlab artifact account by name.
+ * `edit`: Edit an artifact account in the gitlab artifact provider.
+ * `get`: Get the specified account details for the gitlab provider.
+ * `list`: List the artifact account names for the gitlab artifact provider.
+
+---
+## hal config artifact gitlab account add
+
+Add an artifact account to the gitlab artifact provider.
+
+#### Usage
+```
+hal config artifact gitlab account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) Gitlab token
+ * `--token-file`: File containing a Gitlab authentication token
+
+
+---
+## hal config artifact gitlab account delete
+
+Delete a specific gitlab artifact account by name.
+
+#### Usage
+```
+hal config artifact gitlab account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitlab account edit
+
+Edit an artifact account in the gitlab artifact provider.
+
+#### Usage
+```
+hal config artifact gitlab account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) Gitlab token
+ * `--token-file`: File containing a Gitlab authentication token
+
+
+---
+## hal config artifact gitlab account get
+
+Get the specified account details for the gitlab provider.
+
+#### Usage
+```
+hal config artifact gitlab account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitlab account list
+
+List the artifact account names for the gitlab artifact provider.
+
+#### Usage
+```
+hal config artifact gitlab account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitlab disable
+
+Set the gitlab artifact provider as disabled
+
+#### Usage
+```
+hal config artifact gitlab disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitlab enable
+
+Set the gitlab artifact provider as enabled
+
+#### Usage
+```
+hal config artifact gitlab enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
 ## hal config artifact http
 
 Manage and view Spinnaker configuration for the http provider
@@ -1062,6 +1402,162 @@ Set the http artifact provider as enabled
 #### Usage
 ```
 hal config artifact http enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact s3
+
+Manage and view Spinnaker configuration for the s3 provider
+
+#### Usage
+```
+hal config artifact s3 [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the s3 artifact provider's account
+ * `disable`: Set the s3 artifact provider as disabled
+ * `enable`: Set the s3 artifact provider as enabled
+
+---
+## hal config artifact s3 account
+
+Manage and view Spinnaker configuration for the s3 artifact provider's account
+
+#### Usage
+```
+hal config artifact s3 account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the s3 artifact provider.
+ * `delete`: Delete a specific s3 artifact account by name.
+ * `edit`: Edit an artifact account in the s3 artifact provider.
+ * `get`: Get the specified account details for the s3 provider.
+ * `list`: List the artifact account names for the s3 artifact provider.
+
+---
+## hal config artifact s3 account add
+
+Add an artifact account to the s3 artifact provider.
+
+#### Usage
+```
+hal config artifact s3 account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--api-endpoint`: S3 api endpoint
+ * `--api-region`: S3 api region
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--region`: S3 region
+
+
+---
+## hal config artifact s3 account delete
+
+Delete a specific s3 artifact account by name.
+
+#### Usage
+```
+hal config artifact s3 account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact s3 account edit
+
+Edit an artifact account in the s3 artifact provider.
+
+#### Usage
+```
+hal config artifact s3 account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--api-endpoint`: S3 api endpoint
+ * `--api-region`: S3 api region
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--region`: S3 region
+
+
+---
+## hal config artifact s3 account get
+
+Get the specified account details for the s3 provider.
+
+#### Usage
+```
+hal config artifact s3 account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact s3 account list
+
+List the artifact account names for the s3 artifact provider.
+
+#### Usage
+```
+hal config artifact s3 account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact s3 disable
+
+Set the s3 artifact provider as disabled
+
+#### Usage
+```
+hal config artifact s3 disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact s3 enable
+
+Set the s3 artifact provider as enabled
+
+#### Usage
+```
+hal config artifact s3 enable [parameters]
 ```
 
 #### Parameters

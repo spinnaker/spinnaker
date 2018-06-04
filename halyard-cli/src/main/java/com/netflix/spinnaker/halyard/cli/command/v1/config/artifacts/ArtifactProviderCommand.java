@@ -20,9 +20,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.bitbucket.BitbucketArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gcs.GcsArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.github.GitHubArtifactProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gitlab.GitlabArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.http.HttpArtifactProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.s3.S3ArtifactProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -40,9 +43,12 @@ public class ArtifactProviderCommand extends NestableCommand {
   private String description = "Configure, validate, and view the specified artifact provider.";
 
   public ArtifactProviderCommand() {
+    registerSubcommand(new BitbucketArtifactProviderCommand());
     registerSubcommand(new GcsArtifactProviderCommand());
     registerSubcommand(new GitHubArtifactProviderCommand());
+    registerSubcommand(new GitlabArtifactProviderCommand());
     registerSubcommand(new HttpArtifactProviderCommand());
+    registerSubcommand(new S3ArtifactProviderCommand());
   }
 
   @Override

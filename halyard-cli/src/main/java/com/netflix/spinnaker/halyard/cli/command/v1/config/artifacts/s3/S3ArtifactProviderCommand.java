@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Datadog, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,17 +12,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.s3;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
-import lombok.Data;
+import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractNamedArtifactProviderCommand;
 
-@Data
-public class S3ArtifactAccount extends ArtifactAccount {
-    public String name;
-    public String apiEndpoint;
-    public String apiRegion;
-    public String region;
+@Parameters(separators = "=")
+public class S3ArtifactProviderCommand extends AbstractNamedArtifactProviderCommand {
+  @Override
+  protected String getArtifactProviderName() {
+    return "s3";
+  }
+
+  public S3ArtifactProviderCommand() {
+    registerSubcommand(new S3ArtifactAccountCommand());
+  }
 }
