@@ -167,7 +167,7 @@ public class KubectlJobExecutor {
       throw new KubectlException("Failed to delete " + kind + "/" + name + " from " + namespace + ": " + status.getStdErr());
     }
 
-    if (StringUtils.isEmpty(status.getStdOut())) {
+    if (StringUtils.isEmpty(status.getStdOut()) || status.getStdOut().equals("No output from command.")) {
       return new ArrayList<>();
     }
 

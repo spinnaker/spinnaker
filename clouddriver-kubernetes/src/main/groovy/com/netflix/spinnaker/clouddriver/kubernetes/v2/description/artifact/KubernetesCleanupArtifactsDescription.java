@@ -15,18 +15,20 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.artifact;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class KubernetesManifestStrategy {
-  Boolean versioned;
-  Integer maxVersionHistory;
+@NoArgsConstructor
+public class KubernetesCleanupArtifactsDescription extends KubernetesAtomicOperationDescription {
+  Set<KubernetesManifest> manifests = new HashSet<>();
 }

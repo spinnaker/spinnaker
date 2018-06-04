@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +50,7 @@ public class KubernetesManifestAnnotater {
   private static final String VERSION = ARTIFACT_ANNOTATION_PREFIX + "/version";
   private static final String IGNORE_CACHING = CACHING_ANNOTATION_PREFIX + "/ignore";
   private static final String VERSIONED = STRATEGY_ANNOTATION_PREFIX + "/versioned";
+  private static final String MAX_VERSION_HISTORY = STRATEGY_ANNOTATION_PREFIX + "/max-version-history";
 
   private static final String KUBERNETES_ANNOTATION = "kubernetes.io";
   private static final String KUBECTL_ANNOTATION_PREFIX = "kubectl." + KUBERNETES_ANNOTATION;
@@ -230,6 +230,7 @@ public class KubernetesManifestAnnotater {
 
     return KubernetesManifestStrategy.builder()
         .versioned(getAnnotation(annotations, VERSIONED, new TypeReference<Boolean>() {}))
+        .maxVersionHistory(getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {}))
         .build();
   }
 

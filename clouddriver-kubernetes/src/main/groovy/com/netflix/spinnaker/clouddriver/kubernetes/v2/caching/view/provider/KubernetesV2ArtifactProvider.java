@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,7 @@ public class KubernetesV2ArtifactProvider implements ArtifactProvider {
     String key = Keys.artifact(type, name, location, "*");
     return cacheUtils.getAllDataMatchingPattern(Keys.Kind.ARTIFACT.toString(), key)
         .stream()
+        .sorted(Comparator.comparing(cd -> (String) cd.getAttributes().getOrDefault("creationTimestamp", "")))
         .map(this::cacheDataToArtifact)
         .collect(Collectors.toList());
   }
