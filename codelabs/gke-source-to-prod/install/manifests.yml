@@ -173,7 +173,7 @@ data:
           accounts: []
           bakeryDefaults:
             baseImages: []
-        oraclebmcs:
+        oracle:
           enabled: false
           accounts: []
       deploymentEnvironment:
@@ -197,7 +197,7 @@ data:
           rootFolder: front50
         redis: {}
         s3: {}
-        oraclebmcs: {}
+        oracle: {}
       features:
         artifacts: true
         auth: false
