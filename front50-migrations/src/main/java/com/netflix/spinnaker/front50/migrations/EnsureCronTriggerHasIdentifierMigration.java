@@ -73,9 +73,10 @@ public class EnsureCronTriggerHasIdentifierMigration implements Migration {
 
   private void migrate(ItemDAO<Pipeline> dao, Pipeline pipeline) {
     log.info(
-      "Added cron trigger identifier (application: {}, pipelineId: {})",
+      "Added cron trigger identifier (application: {}, pipelineId: {}, triggers: {})",
       pipeline.getApplication(),
-      pipeline.getId()
+      pipeline.getId(),
+      pipeline.get("triggers")
     );
 
     List<Map<String, Object>> triggers = (List<Map<String, Object>>) pipeline.get("triggers");
@@ -90,9 +91,10 @@ public class EnsureCronTriggerHasIdentifierMigration implements Migration {
     dao.update(pipeline.getId(), pipeline);
 
     log.info(
-      "Added cron trigger identifier (application: {}, pipelineId: {})",
+      "Added cron trigger identifier (application: {}, pipelineId: {}, triggers: {})",
       pipeline.getApplication(),
-      pipeline.getId()
+      pipeline.getId(),
+      pipeline.get("triggers")
     );
   }
 }
