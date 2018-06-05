@@ -38,6 +38,12 @@ public interface StorageService {
 
   void deleteObject(ObjectType objectType, String objectKey);
 
+  default void bulkDeleteObjects(ObjectType objectType, Collection<String> objectKeys) {
+    for (String objectKey : objectKeys) {
+      deleteObject(objectType, objectKey);
+    }
+  }
+
   <T extends Timestamped> void storeObject(ObjectType objectType, String objectKey, T item);
 
   Map<String, Long> listObjectKeys(ObjectType objectType);

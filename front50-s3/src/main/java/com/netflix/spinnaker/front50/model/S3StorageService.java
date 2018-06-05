@@ -22,6 +22,7 @@ import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -127,6 +128,27 @@ public class S3StorageService implements StorageService {
     }
     amazonS3.deleteObject(bucket, buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename));
     writeLastModified(objectType.group);
+  }
+
+  public void bulkDeleteObjects(ObjectType objectType, Collection<String> objectKeys) {
+    if (readOnlyMode) {
+      throw new ReadOnlyModeException();
+    }
+
+    // s3 supports bulk delete for a maximum of 1000 object keys
+    Lists.partition(new ArrayList<>(objectKeys), 1000).forEach( keys -> {
+      amazonS3.deleteObjects(
+        new DeleteObjectsRequest(bucket)
+          .withKeys(
+            keys
+              .stream()
+              .map(k -> new DeleteObjectsRequest.KeyVersion(
+                buildS3Key(objectType.group, k, objectType.defaultMetadataFilename))
+              )
+              .collect(Collectors.toList())
+          )
+      );
+    });
   }
 
   @Override

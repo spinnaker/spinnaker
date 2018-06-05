@@ -27,6 +27,12 @@ public interface ItemDAO<T> {
 
   void bulkImport(Collection<T> items);
 
+  default void bulkDelete(Collection<String> ids) {
+    for (String id : ids) {
+      delete(id);
+    }
+  }
+
   boolean isHealthy();
 
   default long getHealthIntervalMillis() {

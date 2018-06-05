@@ -55,7 +55,7 @@ public class EnsureCronTriggerHasIdentifierMigration implements Migration {
 
   @Override
   public void run() {
-    log.info("Starting cron trigger identifer migration");
+    log.info("Starting cron trigger identifier migration");
     Predicate<Pipeline> hasCronTrigger = p -> {
       List<Map> triggers = (List<Map>) p.get("triggers");
       return triggers != null && triggers.stream().anyMatch(t -> {

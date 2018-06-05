@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.util.AntPathMatcher
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -89,6 +88,15 @@ class EntityTagsController {
 
     taggedEntityDAO.bulkImport(tags)
     return findAllByIds(tags.findResults { it.id })
+  }
+
+  @RequestMapping(value = "/batchDelete", method = RequestMethod.POST)
+  void batchDelete(@RequestBody final Collection<String> ids) {
+    if (!taggedEntityDAO) {
+      throw new BadRequestException("Tagging is not supported")
+    }
+
+    taggedEntityDAO.bulkDelete(ids)
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/**")

@@ -236,6 +236,10 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         .single();
   }
 
+  public void bulkDelete(Collection<String> ids) {
+    service.bulkDeleteObjects(objectType, ids);
+  }
+
   /**
    * Update local cache with any recently modified items.
    */
