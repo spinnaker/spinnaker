@@ -16,7 +16,7 @@ import { Overridable } from 'core/overrideRegistry';
 
 export interface IServerGroupHeaderProps {
   application: Application;
-  images?: string;
+  images?: string[];
   isMultiSelected: boolean;
   jenkins: IJenkinsViewModel;
   docker: IDockerViewModel;
@@ -70,7 +70,14 @@ export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeade
             {docker.image}:{docker.tag}
           </a>
         )}
-        {!!images && <span>{images}</span>}
+        {!!images &&
+          images.map((image, index) => (
+            <span key={image}>
+              {index > 0 && <br />}
+              {image}
+              {index < images.length - 1 ? ',' : ''}
+            </span>
+          ))}
       </div>
     );
   }
