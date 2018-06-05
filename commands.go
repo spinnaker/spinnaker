@@ -42,6 +42,11 @@ func init() {
 				ApiMeta: meta,
 			}, nil
 		},
+		"pipeline delete": func() (cli.Command, error) {
+			return &pipelines.PipelineDeleteCommand{
+				ApiMeta: meta,
+			}, nil
+		},
 		"pipeline execute": func() (cli.Command, error) {
 			return &pipelines.PipelineExecuteCommand{
 				ApiMeta: meta,
