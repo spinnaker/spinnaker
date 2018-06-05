@@ -51,14 +51,14 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
   public Map<String, AmazonTargetGroup> getServerGroups(String applicationName, Map<String, AmazonTargetGroup> allTargetGroups, Collection<CacheData> targetGroupData) {
 
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName));
-    if (application == null) {
+    if (application == null || allTargetGroups.isEmpty() || !application.getRelationships().containsKey(TARGET_GROUPS.ns) || application.getRelationships().get(TARGET_GROUPS.ns).isEmpty()) {
       return allTargetGroups;
     }
     Collection<CacheData> applicationServerGroups = resolveRelationshipData(application, SERVER_GROUPS.ns);
     Set<String> instanceKeys = new HashSet<>();
     Set<String> instanceHealths = new HashSet<>();
     for (CacheData serverGroup : applicationServerGroups) {
-      if (serverGroup.getRelationships().containsKey(TARGET_GROUPS.ns) && serverGroup.getRelationships().containsKey(INSTANCES.ns)) {
+      if (serverGroup.getRelationships().containsKey(TARGET_GROUPS.ns) && !serverGroup.getRelationships().get(TARGET_GROUPS.ns).isEmpty() && serverGroup.getRelationships().containsKey(INSTANCES.ns) && !serverGroup.getRelationships().get(INSTANCES.ns).isEmpty()) {
         for (String instanceKey : serverGroup.getRelationships().get(INSTANCES.ns)) {
           instanceKeys.add(instanceKey);
         }
