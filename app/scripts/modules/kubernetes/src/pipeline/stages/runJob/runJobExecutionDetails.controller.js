@@ -16,7 +16,6 @@ module.exports = angular
     $uibModal,
   ) {
     $scope.configSections = ['runJobConfig', 'taskStatus'];
-    $scope.hasLogs = has($scope.stage, 'context.jobStatus.logs');
     $scope.executionId = $stateParams.executionId;
 
     // if the stage is pre-multi-containers
