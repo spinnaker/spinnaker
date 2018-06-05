@@ -156,6 +156,8 @@ const helpContents: { [key: string]: string } = {
     'Filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.',
   'kubernetes.pod.volume.awsElasticBlockStore.partition':
     'The partition in the volume that you want to mount. If omitted, the default is to mount by volume name. Examples: For volume /dev/sda1, you specify the partition as "1". Similarly, the volume partition for /dev/sda is "0" (or you can leave the property empty).',
+  'kubernetes.pod.volume.nfs.server': 'NFS (Network File System) server to be mount',
+  'kubernetes.pod.volume.nfs.path': 'The path in the NFS to mount',
   'kubernetes.ingress.backend.port': 'The port for the specified load balancer.',
   'kubernetes.ingress.backend.service':
     'The load balancer (service) traffic not matching the below rules will be routed to.',

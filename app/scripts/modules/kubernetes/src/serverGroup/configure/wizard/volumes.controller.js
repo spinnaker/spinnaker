@@ -5,7 +5,15 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.volumes', [])
   .controller('kubernetesServerGroupVolumesController', function($scope) {
-    this.volumeTypes = ['CONFIGMAP', 'EMPTYDIR', 'HOSTPATH', 'PERSISTENTVOLUMECLAIM', 'SECRET', 'AWSELASTICBLOCKSTORE'];
+    this.volumeTypes = [
+      'CONFIGMAP',
+      'EMPTYDIR',
+      'HOSTPATH',
+      'PERSISTENTVOLUMECLAIM',
+      'SECRET',
+      'AWSELASTICBLOCKSTORE',
+      'NFS',
+    ];
     this.mediumTypes = ['DEFAULT', 'MEMORY'];
     this.pathPattern = '^/.*$';
     this.relativePathPattern = '^[^/].*';
@@ -57,6 +65,14 @@ module.exports = angular
       };
     };
 
+    this.defaultNfs = function() {
+      return {
+        server: '',
+        path: '/',
+        readOnly: false,
+      };
+    };
+
     this.addItem = function(sourceIndex) {
       $scope.command.volumeSources[sourceIndex].configMap.items.push(this.defaultItem());
     };
@@ -75,6 +91,7 @@ module.exports = angular
         secret: this.defaultSecret(),
         configMap: this.defaultConfigMap(),
         awsElasticBlockStore: this.defaultAwsElasticBlockStore(),
+        nfs: this.defaultNfs(),
       };
     };
 
@@ -111,6 +128,10 @@ module.exports = angular
 
         if (!source.awsElasticBlockStore) {
           source.awsElasticBlockStore = this.defaultAwsElasticBlockStore();
+        }
+
+        if (!source.nfs) {
+          source.nfs = this.defaultNfs();
         }
 
         return source;
