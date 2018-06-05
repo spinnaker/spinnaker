@@ -1,7 +1,7 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .server-group {
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     font-size: 200%;
     margin: 0;
   }
@@ -41,12 +41,15 @@
   &.disabled {
     opacity: 0.4;
     border: 1px dashed var(--color-titanium);
-    &:hover, &.active {
-      opacity: .75;
+    &:hover,
+    &.active {
+      opacity: 0.75;
     }
   }
 
-  .glyphicon-th, .glyphicon-th-large, .icon-server-group {
+  .glyphicon-th,
+  .glyphicon-th-large,
+  .icon-server-group {
     color: var(--color-success);
   }
 
@@ -76,11 +79,12 @@ table.instances {
   line-height: 10px;
   border-radius: 2px;
   padding-bottom: 5px;
-  td:first-child, th:first-child {
+  td:first-child,
+  th:first-child {
     padding-left: 0;
   }
   .instance-group-Starting {
-    .pulsing(1.0);
+    .pulsing(1);
     &:hover {
       animation: none;
     }
@@ -97,7 +101,8 @@ table.instances {
     &.health-status-Up {
       background-color: var(--color-success-light);
     }
-    &.health-status-Down, &.health-status-Failed {
+    &.health-status-Down,
+    &.health-status-Failed {
       background-color: var(--color-danger);
     }
     &.health-status-OutOfService {
@@ -112,7 +117,9 @@ table.instances {
       background-color: var(--color-accent-g1);
     }
 
-    &:hover, &.active, &.highlighted {
+    &:hover,
+    &.active,
+    &.highlighted {
       height: @instance-height - 1;
       margin-top: 0;
       margin-bottom: 1px;
@@ -125,7 +132,8 @@ table.instances {
       &.health-status-Up {
         background-color: var(--color-success);
       }
-      &.health-status-Down, &.health-status-Failed {
+      &.health-status-Down,
+      &.health-status-Failed {
         background-color: var(--color-danger);
       }
       &.health-status-OutOfService {
@@ -133,7 +141,8 @@ table.instances {
         border-color: var(--color-mineshaft);
       }
 
-      &.health-status-Unknown, &.health-status-Starting {
+      &.health-status-Unknown,
+      &.health-status-Starting {
         background-color: var(--color-accent);
       }
     }
@@ -166,7 +175,8 @@ table.instances {
     display: inline-block;
     margin-right: 5px;
     line-height: 1;
-    &.active, &:focus {
+    &.active,
+    &:focus {
       outline: 0;
       box-shadow: none;
     }
@@ -177,7 +187,6 @@ table.instances {
     .icon-spinner {
       font-size: 20px;
     }
-
   }
 }
 
@@ -208,7 +217,9 @@ table.instances {
     padding: 0 10px;
     border-left: 1px solid var(--color-alabaster);
   }
-  &:active, &:hover, &:focus {
+  &:active,
+  &:hover,
+  &:focus {
     text-decoration: none;
   }
   @media (min-width: 768px) and (max-width: 992px) {
@@ -259,7 +270,8 @@ running-tasks-tag {
     color: var(--color-cirrus);
     background-color: var(--color-dovegray);
   }
-  .menu-load-balancers-header, a {
+  .menu-load-balancers-header,
+  a {
     text-transform: none;
     font-size: 82.5%;
     padding: 5px 10px;
@@ -282,7 +294,8 @@ running-tasks-tag {
     &:last-child {
       border-bottom-width: 0;
     }
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
       background-color: var(--color-cirrus);
       text-decoration: none;
     }
@@ -293,12 +306,18 @@ running-tasks-tag {
   }
 }
 
-.load-balancers-tag, .server-group-manager-tag {
+.load-balancers-tag,
+.server-group-manager-tag {
   &.overflowing {
     position: relative;
   }
-  .btn-load-balancer button, .btn-multiple-load-balancers {
+  .btn-load-balancer button,
+  .btn-multiple-load-balancers {
     margin-top: -5px;
+  }
+
+  .btn-server-group-manager {
+    margin-top: -2px;
   }
 
   text-align: right;
@@ -377,11 +396,11 @@ running-tasks-tag {
     }
     .rollup-pod-server-group {
       .server-group-title {
-        background-color: rgba(255, 255, 255, .90);
+        background-color: rgba(255, 255, 255, 0.9);
       }
       &.running {
         background-color: var(--color-alabaster);
-        .pulsing(1.0);
+        .pulsing(1);
         .server-group-title {
           background-color: var(--color-alabaster);
         }
@@ -410,12 +429,14 @@ running-tasks-tag {
       margin-top: -5px;
       margin-bottom: 10px;
       font-size: 90%;
-      th, td {
+      th,
+      td {
         padding: 5px 1px;
       }
     }
   }
-  h5, h6 {
+  h5,
+  h6 {
     font-weight: 600;
     margin-bottom: 5px;
     font-size: 110%;
@@ -448,14 +469,20 @@ running-tasks-tag {
 
   .disabled {
     opacity: 1;
-    .section-title, .health-counts, .load-balancers-tag .badge, .instances {
+    .section-title,
+    .health-counts,
+    .load-balancers-tag .badge,
+    .instances {
       opacity: 0.4;
     }
     .icon-server-group {
       color: var(--color-dovegray);
     }
     &:hover {
-      .section-title, .health-counts, .load-balancers-tag .badge, .instances {
+      .section-title,
+      .health-counts,
+      .load-balancers-tag .badge,
+      .instances {
         opacity: 0.7;
       }
     }
@@ -495,11 +522,13 @@ running-tasks-tag {
   .build-link {
     margin-left: 3px;
   }
-  .server-group-title, .subgroup-title {
+  .server-group-title,
+  .subgroup-title {
     padding: 5px 10px 2px;
     border-bottom-width: 0;
     &.clickable {
-      &:hover, &.active {
+      &:hover,
+      &.active {
         background-color: var(--color-cirrus);
       }
     }
