@@ -49,7 +49,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.Kuberne
 
 @Component
 @Slf4j
-public class KubernetesIngressHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesIngressHandler extends KubernetesHandler {
   @Override
   public int deployPriority() {
     return NETWORK_RESOURCE_PRIORITY.getValue();

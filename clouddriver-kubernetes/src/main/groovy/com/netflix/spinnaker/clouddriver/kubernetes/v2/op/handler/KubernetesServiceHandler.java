@@ -42,7 +42,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manife
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
 
 @Component
-public class KubernetesServiceHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesServiceHandler extends KubernetesHandler {
   @Override
   public int deployPriority() {
     return NETWORK_RESOURCE_PRIORITY.getValue();

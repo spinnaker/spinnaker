@@ -23,6 +23,7 @@ import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
@@ -373,6 +374,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   public void resumeRollout(KubernetesKind kind, String namespace, String name) {
     runAndRecordMetrics("resumeRollout", kind, namespace, () -> jobExecutor.resumeRollout(this, kind, namespace, name));
+  }
+
+  public void patch(KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options,
+    KubernetesManifest manifest) {
+    runAndRecordMetrics("patch", kind, namespace, () -> jobExecutor.patch(this, kind, namespace, name, options, manifest));
   }
 
   private <T> T runAndRecordMetrics(String action, KubernetesKind kind, String namespace, Supplier<T> op) {

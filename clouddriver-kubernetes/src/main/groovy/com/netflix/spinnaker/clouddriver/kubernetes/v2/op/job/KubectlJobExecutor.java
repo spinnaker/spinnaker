@@ -22,12 +22,14 @@ import com.google.gson.JsonSyntaxException;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobStatus;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1DeleteOptions;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -511,6 +513,44 @@ public class KubectlJobExecutor {
       throw new KubectlException("Could not fetch OAuth token: " + status.getStdErr());
     }
     return status.getStdOut();
+  }
+
+  public Void patch(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace,
+    String name, KubernetesPatchOptions options, KubernetesManifest manifest) {
+    List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
+
+    command.add("patch");
+    command.add(kind.toString());
+    command.add(name);
+
+    if (options.isRecord()) {
+      command.add("--record");
+    }
+
+    String mergeStrategy = options.getMergeStrategy().toString();
+    if (StringUtils.isNotEmpty(mergeStrategy)) {
+      command.add("--type");
+      command.add(mergeStrategy);
+    }
+
+    command.add("--patch");
+    command.add(gson.toJson(manifest));
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
+      System.getenv(),
+      new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      String errMsg = status.getStdErr();
+      if (StringUtils.isEmpty(errMsg)) {
+        errMsg = status.getStdOut();
+      }
+      throw new KubectlException("Patch failed: " + errMsg);
+    }
+
+    return null;
   }
 
   public static class NoResourceTypeException extends RuntimeException {

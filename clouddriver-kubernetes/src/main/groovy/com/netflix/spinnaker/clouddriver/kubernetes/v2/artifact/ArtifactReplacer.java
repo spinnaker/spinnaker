@@ -88,10 +88,10 @@ public class ArtifactReplacer {
         .collect(Collectors.toList());
   }
 
-  public ReplaceResult replaceAll(KubernetesManifest input, List<Artifact> artifacts) {
+  public ReplaceResult replaceAll(KubernetesManifest input, List<Artifact> artifacts, String namespace) {
     log.debug("Doing replacement on {} using {}", input, artifacts);
     // final to use in below lambda
-    final List<Artifact> finalArtifacts = filterKubernetesArtifactsByNamespace(input.getNamespace(), artifacts);
+    final List<Artifact> finalArtifacts = filterKubernetesArtifactsByNamespace(namespace, artifacts);
     DocumentContext document;
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));

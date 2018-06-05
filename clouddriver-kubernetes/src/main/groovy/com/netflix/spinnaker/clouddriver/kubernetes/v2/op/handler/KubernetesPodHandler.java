@@ -37,7 +37,7 @@ import java.util.Map;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_PRIORITY;
 
 @Component
-public class KubernetesPodHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesPodHandler extends KubernetesHandler {
   public KubernetesPodHandler() {
     registerReplacer(
         ArtifactReplacer.Replacer.builder()

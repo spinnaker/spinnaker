@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.MOUNTABLE_DATA_PRIORITY;
 
 @Component
-public class KubernetesPersistentVolumeClaimHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesPersistentVolumeClaimHandler extends KubernetesHandler {
   @Override
   public int deployPriority() {
     return MOUNTABLE_DATA_PRIORITY.getValue();

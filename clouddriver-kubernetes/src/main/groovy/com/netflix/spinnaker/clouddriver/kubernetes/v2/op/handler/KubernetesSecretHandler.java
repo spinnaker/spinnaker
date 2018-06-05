@@ -31,7 +31,7 @@ import java.util.List;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.MOUNTABLE_DATA_PRIORITY;
 
 @Component
-public class KubernetesSecretHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesSecretHandler extends KubernetesHandler {
   @Override
   public int deployPriority() {
     return MOUNTABLE_DATA_PRIORITY.getValue();

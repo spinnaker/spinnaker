@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NAMESPACE_PRIORITY;
 
 @Component
-public class KubernetesNamespaceHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesNamespaceHandler extends KubernetesHandler {
   @Override
   public int deployPriority() {
     return NAMESPACE_PRIORITY.getValue();

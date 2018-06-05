@@ -41,7 +41,6 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.Kuberne
 @Component
 public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     CanResize,
-    CanDelete,
     CanScale,
     ServerGroupHandler {
 

@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.ROLE_BINDING_PRIORITY;
 
 @Component
-public class KubernetesRoleBindingHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesRoleBindingHandler extends KubernetesHandler {
   @Override
   public int deployPriority() {
     return ROLE_BINDING_PRIORITY.getValue();

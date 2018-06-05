@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.SERVICE_ACCOUNT_PRIORITY;
 
 @Component
-public class KubernetesServiceAccountHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesServiceAccountHandler extends KubernetesHandler {
   @Override
   public int deployPriority() {
     return SERVICE_ACCOUNT_PRIORITY.getValue();

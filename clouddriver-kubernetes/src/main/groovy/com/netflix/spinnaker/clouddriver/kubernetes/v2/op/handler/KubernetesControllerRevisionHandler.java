@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesControllerRevisionHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesControllerRevisionHandler extends KubernetesHandler {
   @Override
   public int deployPriority() {
     throw new IllegalStateException("Controller revisions cannot be deployed.");
