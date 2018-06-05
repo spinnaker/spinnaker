@@ -33,7 +33,10 @@ import com.netflix.spinnaker.q.metrics.*
 import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
-import org.jetbrains.spek.api.dsl.*
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import rx.Observable.just
@@ -78,7 +81,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
       registry,
       repository,
       clock,
-      activator,
+      listOf(activator),
       conch,
       true,
       Optional.of(Schedulers.immediate()),

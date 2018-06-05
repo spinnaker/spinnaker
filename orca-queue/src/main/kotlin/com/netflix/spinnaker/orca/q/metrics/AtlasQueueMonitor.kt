@@ -62,7 +62,7 @@ class AtlasQueueMonitor
   private val registry: Registry,
   private val repository: ExecutionRepository,
   private val clock: Clock,
-  private val activator: Activator,
+  private val activators: List<Activator>,
   private val conch: NotificationClusterLock,
   @Value("\${queue.zombieCheck.enabled:false}")private val zombieCheckEnabled: Boolean,
   @Qualifier("scheduler") private val zombieCheckScheduler: Optional<Scheduler>,
@@ -97,7 +97,7 @@ class AtlasQueueMonitor
 
   @Scheduled(fixedDelayString = "\${queue.zombieCheck.intervalMs:3600000}")
   fun checkForZombies() {
-    if (!zombieCheckEnabled || !activator.enabled || !conch.tryAcquireLock("zombie", TimeUnit.MINUTES.toSeconds(5))) return
+    if (!zombieCheckEnabled || activators.none { it.enabled } || !conch.tryAcquireLock("zombie", TimeUnit.MINUTES.toSeconds(5))) return
 
     val startedAt = clock.instant()
     val criteria = ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING)
