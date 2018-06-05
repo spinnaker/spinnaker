@@ -210,6 +210,13 @@ const helpContents: { [key: string]: string } = {
       <p>How many revisions to rollback from the current active revision. This is not a hard-coded revision to rollout.</p>
       <p>For example: If you specify "1", and this stage executes, the prior revision will be active upon success.</p>
   `,
+  'kubernetes.manifest.patch.record': `Record the applied patch in the <i>kubernetes.io/change-cause</i> annotation. If the annotation already exists, the contents are replaced.`,
+  'kubernetes.manifest.patch.mergeStrategy': `
+    <p>Which merge strategy to use for updating Kubernetes objects:</p>
+    <p><b>strategic</b>: <i>(Default)</i> <a href="https://github.com/kubernetes/community/blob/master/contributors/devel/strategic-merge-patch.md" target="_blank">Kubernetes Strategic merge patch.</a></p>
+    <p><b>json</b>: <a href="https://tools.ietf.org/html/rfc6902" target="_blank">JSON Patch, RFC 6902</a></p>
+    <p><b>merge</b>: <a href="https://tools.ietf.org/html/rfc7386" target="_blank">JSON Merge Patch, RFC 7386</a></p>
+  `,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
