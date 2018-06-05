@@ -22,6 +22,8 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.q.Attribute
 import com.netflix.spinnaker.q.Message
@@ -160,13 +162,17 @@ data class ContinueParentStage(
   override val executionType: ExecutionType,
   override val executionId: String,
   override val application: String,
-  override val stageId: String
+  override val stageId: String,
+  /**
+   * The phase that just completed, either before or after stages.
+   */
+  val phase: SyntheticStageOwner = STAGE_BEFORE
 ) : Message(), StageLevel {
-  constructor(source: StageLevel) :
-    this(source.executionType, source.executionId, source.application, source.stageId)
+  constructor(source: StageLevel, phase: SyntheticStageOwner) :
+    this(source.executionType, source.executionId, source.application, source.stageId, phase)
 
-  constructor(source: Stage) :
-    this(source.execution.type, source.execution.id, source.execution.application, source.id)
+  constructor(source: Stage, phase: SyntheticStageOwner) :
+    this(source.execution.type, source.execution.id, source.execution.application, source.id, phase)
 }
 
 @JsonTypeName("completeStage")
