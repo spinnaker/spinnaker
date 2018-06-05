@@ -304,10 +304,10 @@
  * [**hal config security api ssl edit**](#hal-config-security-api-ssl-edit)
  * [**hal config security api ssl enable**](#hal-config-security-api-ssl-enable)
  * [**hal config security authn**](#hal-config-security-authn)
- * [**hal config security authn_iap**](#hal-config-security-authn-iap)
- * [**hal config security authn_iap_disable**](#hal-config-security-authn-iap-disable)
- * [**hal config security authn_iap_edit**](#hal-config-security-authn-iap-edit)
- * [**hal config security authn_iap_enable**](#hal-config-security-authn-iap-enable)
+ * [**hal config security authn iap**](#hal-config-security-authn-iap)
+ * [**hal config security authn iap disable**](#hal-config-security-authn-iap-disable)
+ * [**hal config security authn iap edit**](#hal-config-security-authn-iap-edit)
+ * [**hal config security authn iap enable**](#hal-config-security-authn-iap-enable)
  * [**hal config security authn ldap**](#hal-config-security-authn-ldap)
  * [**hal config security authn ldap disable**](#hal-config-security-authn-ldap-disable)
  * [**hal config security authn ldap edit**](#hal-config-security-authn-ldap-edit)
@@ -3169,13 +3169,13 @@ hal config provider appengine account add ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-known-hosts-file-path`: The path to a known_hosts file to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-trust-unknown-hosts`: (*Default*: `false`) Enabling this flag will allow Spinnaker to connect with a remote git repository over SSH without verifying the server's IP address against a known_hosts file.
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -3219,16 +3219,16 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-known-hosts-file-path`: The path to a known_hosts file to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-trust-unknown-hosts`: Enabling this flag will allow Spinnaker to connect with a remote git repository over SSH without verifying the server's IP address against a known_hosts file.
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -3361,10 +3361,10 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--edda`: The endpoint Edda is reachable at. Edda is not a hard dependency of Spinnaker, but is helpful for reducing the request volume against AWS. See https://github.com/Netflix/edda for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: (*Default*: `[]`) The AWS regions this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -3413,14 +3413,14 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--edda`: The endpoint Edda is reachable at. Edda is not a hard dependency of Spinnaker, but is helpful for reducing the request volume against AWS. See https://github.com/Netflix/edda for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: The AWS regions this Spinnaker account will manage.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-region`: Remove this region from the list of managed regions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -3604,11 +3604,11 @@ hal config provider azure account add ACCOUNT [parameters]
  * `--packer-resource-group`: The resource group to use if baking images with Packer.
  * `--packer-storage-account`: The storage account to use if baking images with Packer.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--subscription-id`: (*Required*) The subscriptionId that your service principal is assigned to.
  * `--tenant-id`: (*Required*) The tenantId that your service principal is assigned to.
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -3652,14 +3652,14 @@ hal config provider azure account edit ACCOUNT [parameters]
  * `--packer-resource-group`: The resource group to use if baking images with Packer.
  * `--packer-storage-account`: The storage account to use if baking images with Packer.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--subscription-id`: The subscriptionId that your service principal is assigned to.
  * `--tenant-id`: The tenantId that your service principal is assigned to.
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -3933,11 +3933,11 @@ hal config provider dcos account add ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: Password for a user account
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-key-file`: Path to a file containing the secret key for service account authentication
  * `--uid`: (*Required*) User or service account identifier
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -3976,16 +3976,16 @@ hal config provider dcos account edit ACCOUNT [parameters]
  * `--docker-registries`: (*Default*: `[]`) Provide the list of docker registries to use with this DC/OS account
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-credential`: (*Default*: `[]`) Provide the cluster name and uid of credentials to remove: --remove-credential my-cluster my-user
  * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--update-service-credential`: (*Default*: `[]`) A DC/OS cluster service account credential in 3 parts: cluster-name uid serviceKey
  * `--update-user-credential`: (*Default*: `[]`) A DC/OS cluster user credential in 3 parts: cluster-name uid password
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -4234,13 +4234,13 @@ hal config provider docker-registry account add ACCOUNT [parameters]
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--sort-tags-by-date`: (*Default*: `false`) Sort tags by creation date.
  * `--track-digests`: (*Default*: `false`) Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.
  * `--username`: Your docker registry username
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -4293,17 +4293,17 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
- * `--remove-repository`: Remove this repository to the list of repositories to cache images from.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
+ * `--remove-repository`: Remove this repository to the list of repositories to cache images from.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--sort-tags-by-date`: Sort tags by creation date.
  * `--track-digests`: Track digest changes. This is not recommended as it consumes a high QPM, and most registries are flaky.
  * `--username`: Your docker registry username
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -4424,9 +4424,9 @@ hal config provider ecs account add ACCOUNT [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -4464,12 +4464,12 @@ hal config provider ecs account edit ACCOUNT [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -4595,11 +4595,11 @@ hal config provider google account add ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--user-data`: The path to user data template file. Spinnaker has the ability to inject userdata into generated instance templates. The mechanism is via a template file that is token replaced to provide some specifics about the deployment. See https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/UserData.md for more information.
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -4641,17 +4641,17 @@ hal config provider google account edit ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-image-project`: Remove this image project from the list of image projects to cache and deploy images from.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-region`: Remove this region from the list of regions for caching and mutating calls.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--set-alpha-listed`: Enable this flag if your project has access to alpha features and you want Spinnaker to take advantage of them.
  * `--user-data`: The path to user data template file. Spinnaker has the ability to inject userdata into generated instance templates. The mechanism is via a template file that is token replaced to provide some specifics about the deployment. See https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/UserData.md for more information.
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -4960,10 +4960,10 @@ This can only be set when --kinds is empty or not set.
  * `--omit-namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account cannot deploy to or cache.
 This can only be set when --namespaces is empty or not set.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-account`: When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/.
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -5021,7 +5021,7 @@ This can only be set when --kinds is empty or not set.
  * `--omit-namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account cannot deploy to or cache.
 This can only be set when --namespaces is empty or not set.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
  * `--remove-kind`: Remove this kind to the list of kinds to manage.
  * `--remove-namespace`: Remove this namespace to the list of namespaces to manage.
@@ -5029,10 +5029,10 @@ This can only be set when --namespaces is empty or not set.
  * `--remove-omit-namespace`: Remove this namespace to the list of namespaces to omit.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-account`: When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/.
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -5179,12 +5179,12 @@ hal config provider openstack account add ACCOUNT [parameters]
  * `--password`: (*Required*) The password used to access your cloud.
  * `--project-name`: (*Required*) The name of the project (formerly tenant) within the cloud. Can be found in the RC file.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: (*Default*: `[]`) (*Required*) The region(s) of the cloud. Can be found in the RC file.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--user-data-file`: User data passed to Heat Orchestration Template. Replacement of tokens supported, see http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack for details.
  * `--username`: (*Required*) The username used to access your cloud.
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -5233,16 +5233,16 @@ hal config provider openstack account edit ACCOUNT [parameters]
  * `--password`: The password used to access your cloud.
  * `--project-name`: The name of the project (formerly tenant) within the cloud. Can be found in the RC file.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: (*Default*: `[]`) The region(s) of the cloud. Can be found in the RC file.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-region`: Remove this region from the list of managed regions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--user-data-file`: User data passed to Heat Orchestration Template. Replacement of tokens supported, see http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack for details.
  * `--username`: The username used to access your cloud.
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -5524,13 +5524,13 @@ hal config provider oraclebmcs account add ACCOUNT [parameters]
  * `--fingerprint`: (*Required*) Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--region`: (*Required*) An Oracle BMCS region (e.g., us-phoenix-1)
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
  * `--tenancyId`: (*Required*) Provide the OCID of the Oracle BMCS Tenancy to use.
  * `--user-id`: (*Required*) Provide the OCID of the Oracle BMCS User you're authenticating as
- * `--read-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to view this account's cloud resources.
- * `--write-permissions`: (*Default*: `[]`) a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -5569,16 +5569,16 @@ hal config provider oraclebmcs account edit ACCOUNT [parameters]
  * `--fingerprint`: Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
- * `--read-permissions`: a user must have at least one of these roles in order to view this account's cloud resources.
+ * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--region`: An Oracle BMCS region (e.g., us-phoenix-1)
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
- * `--remove-write-permission`: Remove this permission from the list of write permissions.
+ * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
  * `--tenancyId`: Provide the OCID of the Oracle BMCS Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle BMCS User you're authenticating as
- * `--write-permissions`: a user must have at least one of these roles in order to make changes to this account's cloud resources.
+ * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
@@ -5963,6 +5963,7 @@ hal config security authn [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
+ * `iap`: Configure the iap method for authenticating.
  * `ldap`: Configure the ldap method for authenticating.
  * `oauth2`: Configure the oauth2 method for authenticating.
  * `saml`: Configure the saml method for authenticating.
@@ -5984,7 +5985,7 @@ hal config security authn iap [parameters] [subcommands]
 
 #### Subcommands
  * `disable`: Set the iap method as disabled
- * `edit`: Configure authentication using Google Cloud Identity-Aware Proxy.
+ * `edit`: Configure authentication using the Google Cloud Identity-Aware Proxy authentication model.
  * `enable`: Set the iap method as enabled
 
 ---
@@ -6005,11 +6006,7 @@ hal config security authn iap disable [parameters]
 ---
 ## hal config security authn iap edit
 
-Google Cloud Identity-Aware Proxy (IAP) is an authentication model that utilizes
-Google OAuth2.0 and an authorization service to provide access control for users
-of GCP. After a user has been authenticated and authorized by IAP's service, a
-JWT token is passed along which Spinnaker uses to check for authenticity and to
-get the user email from the payload and sign the user in.
+Google Cloud Identity-Aware Proxy (IAP) is an authentication model that utilizes Google OAuth2.0 and an authorization service to provide access control for users of GCP. After a user has been authenticated and authorized by IAP's service, a JWT token is passed along which Spinnaker uses to check for authenticity and to get the user email from the payload and sign the user in.
 
 #### Usage
 ```
@@ -6017,8 +6014,7 @@ hal config security authn iap edit [parameters]
 ```
 
 #### Parameters
- * `--audience`:The Audience from the ID token payload. You can retrieve this field from the IAP
-console: https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.
+ * `--audience`: The Audience from the ID token payload. You can retrieve this field from the IAP console: https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--iap-verify-key-url`: The URL containing the Cloud IAP public keys in JWK format.
  * `--issuer-id`: The Issuer from the ID token payload.
@@ -6039,6 +6035,7 @@ hal config security authn iap enable [parameters]
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config security authn ldap
@@ -6153,13 +6150,22 @@ hal config security authn oauth2 edit [parameters]
 ```
 
 #### Parameters
+ * `--access-token-uri`: The access token uri for your OAuth provider.
+ * `--client-authentication-scheme`: The client authentication scheme for your OAuth provider.
  * `--client-id`: The OAuth client ID you have configured with your OAuth provider.
  * `--client-secret`: The OAuth client secret you have configured with your OAuth provider.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pre-established-redirect-uri`: The externally accessible URL for Gate. For use with load balancers that do any kind of address manipulation for Gate traffic, such as an SSL terminating load balancer.
- * `--provider`: The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure
+ * `--provider`: The OAuth provider handling authentication. The supported options are Google, GitHub, Oracle, Azure and Other
+ * `--scope`: The scope for your OAuth provider.
+ * `--user-authorization-uri`: The user authorization uri for your OAuth provider.
+ * `--user-info-mapping-email`: The email field returned from your OAuth provider.
+ * `--user-info-mapping-first-name`: The first name field returned from your OAuth provider.
+ * `--user-info-mapping-last-name`: The last name field returned from your OAuth provider.
+ * `--user-info-mapping-username`: The username field returned from your OAuth provider.
  * `--user-info-requirements`: (*Default*: `(empty)`) The map of requirements the userInfo request must have. This is used to restrict user login to specific domains or having a specific attribute. Use equal signs between key and value, and additional key/value pairs need to repeat the flag. Example: '--user-info-requirements foo=bar --userInfoRequirements baz=qux'.
+ * `--user-info-uri`: The user info uri for your OAuth provider.
 
 
 ---

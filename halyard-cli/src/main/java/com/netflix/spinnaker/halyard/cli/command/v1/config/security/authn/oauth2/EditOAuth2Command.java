@@ -41,10 +41,66 @@ public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
       description = "The OAuth client secret you have configured with your OAuth provider."
   )
   private String clientSecret;
+  
+  @Parameter(
+          names = "--access-token-uri",
+          description = "The access token uri for your OAuth provider."
+  )
+  private String accessTokenUri;
+
+  @Parameter(
+          names = "--user-authorization-uri",
+          description = "The user authorization uri for your OAuth provider."
+  )
+  private String userAuthorizationUri;
+
+  @Parameter(
+          names = "--user-info-uri",
+          description = "The user info uri for your OAuth provider."
+  )
+  private String userInfoUri;
+
+
+  @Parameter(
+          names = "--client-authentication-scheme",
+          description = "The client authentication scheme for your OAuth provider."
+  )
+  private String clientAuthenticationScheme;
+  
+  @Parameter(
+          names = "--scope",
+          description = "The scope for your OAuth provider."
+  )
+  private String scope;
+  
+
+  @Parameter(
+          names = "--user-info-mapping-email",
+          description = "The email field returned from your OAuth provider."
+  )
+  private String userInfoMappingEmail;  
+  
+  @Parameter(
+          names = "--user-info-mapping-first-name",
+          description = "The first name field returned from your OAuth provider."
+  )
+  private String userInfoMappingFirstName;    
+
+  @Parameter(
+          names = "--user-info-mapping-last-name",
+          description = "The last name field returned from your OAuth provider."
+  )
+  private String userInfoMappingLastName;
+  
+  @Parameter(
+          names = "--user-info-mapping-username",
+          description = "The username field returned from your OAuth provider."
+  )
+  private String userInfoMappingUsername;
 
   @Parameter(
       names = "--provider",
-      description = "The OAuth provider handling authentication. The supported options are Google, GitHub, Oracle, and Azure",
+      description = "The OAuth provider handling authentication. The supported options are Google, GitHub, Oracle, Azure and Other",
       converter = OAuth2ProviderTypeConverter.class
   )
   private OAuth2.Provider provider;
@@ -69,8 +125,15 @@ public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
   @Override
   protected AuthnMethod editAuthnMethod(OAuth2 authnMethod) {
     OAuth2.Client client = authnMethod.getClient();
+    OAuth2.Resource resource = authnMethod.getResource();
+    OAuth2.UserInfoMapping userInfoMapping = authnMethod.getUserInfoMapping();
+    
     client.setClientId(isSet(clientId) ? clientId : client.getClientId());
     client.setClientSecret(isSet(clientSecret) ? clientSecret : client.getClientSecret());
+    client.setAccessTokenUri(isSet(accessTokenUri) ? accessTokenUri : client.getAccessTokenUri());
+    client.setUserAuthorizationUri(isSet(userAuthorizationUri) ? userAuthorizationUri : client.getUserAuthorizationUri());
+    client.setScope(isSet(scope) ? scope : client.getScope());
+    client.setClientAuthenticationScheme(isSet(clientAuthenticationScheme) ? clientAuthenticationScheme : client.getClientAuthenticationScheme()); 
 
     if (isSet(preEstablishedRedirectUri)) {
       if (preEstablishedRedirectUri.isEmpty()) {
@@ -82,6 +145,13 @@ public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
       }
     }
 
+    resource.setUserInfoUri(isSet(userInfoUri) ? userInfoUri : resource.getUserInfoUri());
+
+    userInfoMapping.setEmail(isSet(userInfoMappingEmail) ? userInfoMappingEmail : userInfoMapping.getEmail()); 
+    userInfoMapping.setFirstName(isSet(userInfoMappingFirstName) ? userInfoMappingFirstName : userInfoMapping.getFirstName()); 
+    userInfoMapping.setLastName(isSet(userInfoMappingLastName) ? userInfoMappingLastName : userInfoMapping.getLastName()); 
+    userInfoMapping.setUsername(isSet(userInfoMappingUsername) ? userInfoMappingLastName : userInfoMapping.getUsername()); 
+    
     authnMethod.setProvider(provider != null ? provider : authnMethod.getProvider());
 
     if (!userInfoRequirements.isEmpty()) {

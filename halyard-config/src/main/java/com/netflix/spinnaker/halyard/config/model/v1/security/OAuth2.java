@@ -120,6 +120,19 @@ public class OAuth2 extends AuthnMethod {
         newUserInfoMapping.setFirstName("givenName");
         newUserInfoMapping.setLastName("surname");
         break;
+      case OTHER:
+        newClient.setAccessTokenUri(client.getAccessTokenUri());
+        newClient.setUserAuthorizationUri(client.getUserAuthorizationUri());
+        newClient.setScope(client.getScope());
+        newClient.setClientAuthenticationScheme(client.getClientAuthenticationScheme());
+
+        newResource.setUserInfoUri(resource.getUserInfoUri());
+
+        newUserInfoMapping.setEmail(userInfoMapping.getEmail());
+        newUserInfoMapping.setFirstName(userInfoMapping.getFirstName());
+        newUserInfoMapping.setLastName(userInfoMapping.getLastName());
+        newUserInfoMapping.setUsername(userInfoMapping.getUsername());  
+        break;
       default:
         throw new RuntimeException("Unknown provider type " + provider);
     }
@@ -168,6 +181,7 @@ public class OAuth2 extends AuthnMethod {
     AZURE("azure"),
     GITHUB("github"),
     ORACLE("oracle"),
+    OTHER("other"),
     GOOGLE("google");
 
     private String id;
