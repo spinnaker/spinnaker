@@ -21,6 +21,11 @@
              ng-change="ctrl.outputNameChange()">
       </input>
     </stage-config-field>
+    <stage-config-field label="Namespace" field-columns="3">
+      <input type="text" class="form-control input-sm"
+             ng-model="ctrl.$scope.stage.properties.namespace">
+      </input>
+    </stage-config-field>
 
     <h4>Template Artifact</h4>
     <expected-artifact-selector command="ctrl.$scope.stage"
