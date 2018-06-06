@@ -30,6 +30,7 @@ import spock.lang.Specification
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.Callable
+import java.util.concurrent.atomic.AtomicInteger
 
 import static com.netflix.spinnaker.kork.lock.LockManager.LockStatus.*
 import static com.netflix.spinnaker.kork.lock.RefreshableLockManager.*
@@ -169,13 +170,14 @@ class RedisLockManagerSpec extends Specification {
 
   def "should heartbeat by updating lock ttl"() {
     given:
+    def heartbeatRetriesOnFailure = new AtomicInteger(1)
     def lockOptions = new LockManager.LockOptions()
       .withMaximumLockDuration(Duration.ofMillis(testLockMaxDurationMillis))
       .withLockName("veryImportantLock")
 
     and:
     def lock = redisLockManager.tryCreateLock(lockOptions)
-    def request = new HeartbeatLockRequest(lock, clock, Duration.ofMillis(200))
+    def request = new HeartbeatLockRequest(lock, heartbeatRetriesOnFailure, clock, Duration.ofMillis(200))
     Thread.sleep(10)
 
     when:
@@ -186,7 +188,7 @@ class RedisLockManagerSpec extends Specification {
     response.lockStatus == ACQUIRED
 
     when: "Late heartbeat resulting in expired lock "
-    request = new HeartbeatLockRequest(lock, clock, Duration.ofMillis(200))
+    request = new HeartbeatLockRequest(lock, heartbeatRetriesOnFailure, clock, Duration.ofMillis(200))
     redisLockManager.heartbeat(request)
     Thread.sleep(30)
     response = redisLockManager.heartbeat(request)

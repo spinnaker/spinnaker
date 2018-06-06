@@ -20,6 +20,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -31,12 +32,17 @@ public interface RefreshableLockManager extends LockManager {
 
   class HeartbeatLockRequest {
     private AtomicReference<Lock> lock;
+    private final AtomicInteger retriesOnFailure;
     private final Duration heartbeatDuration;
     private final Instant startedAt;
     private final Clock clock;
 
-    public HeartbeatLockRequest(Lock lock, Clock clock, Duration heartbeatDuration) {
+    public HeartbeatLockRequest(Lock lock,
+                                AtomicInteger retriesOnFailure,
+                                Clock clock,
+                                Duration heartbeatDuration) {
       this.lock = new AtomicReference<>(lock);
+      this.retriesOnFailure = retriesOnFailure;
       this.clock = clock;
       this.startedAt = clock.instant();
       this.heartbeatDuration = heartbeatDuration;
@@ -66,12 +72,28 @@ public interface RefreshableLockManager extends LockManager {
       return Duration.between(startedAt, clock.instant()).minus(heartbeatDuration).abs();
     }
 
+    public boolean shouldRetry() {
+      return retriesOnFailure.decrementAndGet() >= 0;
+    }
+
+    @Override
+    public String toString() {
+      return "HeartbeatLockRequest{" +
+        "lock=" + lock +
+        ", retriesOnFailure=" + retriesOnFailure +
+        ", heartbeatDuration=" + heartbeatDuration +
+        ", startedAt=" + startedAt +
+        ", clock=" + clock +
+        '}';
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       HeartbeatLockRequest that = (HeartbeatLockRequest) o;
       return Objects.equals(lock, that.lock) &&
+        Objects.equals(retriesOnFailure, that.retriesOnFailure) &&
         Objects.equals(heartbeatDuration, that.heartbeatDuration) &&
         Objects.equals(startedAt, that.startedAt) &&
         Objects.equals(clock, that.clock);
@@ -79,7 +101,7 @@ public interface RefreshableLockManager extends LockManager {
 
     @Override
     public int hashCode() {
-      return Objects.hash(lock, heartbeatDuration, startedAt, clock);
+      return Objects.hash(lock, retriesOnFailure, heartbeatDuration, startedAt, clock);
     }
   }
 

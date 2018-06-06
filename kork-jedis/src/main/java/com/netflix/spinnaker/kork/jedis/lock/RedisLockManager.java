@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.netflix.spinnaker.kork.jedis.lock.RedisLockManager.LockScripts.*;
 import static com.netflix.spinnaker.kork.lock.LockManager.LockReleaseStatus.*;
@@ -43,6 +44,7 @@ public class RedisLockManager implements RefreshableLockManager {
   private static final Logger log = LoggerFactory.getLogger(RedisLockManager.class);
   private static final long DEFAULT_HEARTBEAT_RATE_MILLIS = 5000L;
   private static final long DEFAULT_TTL_MILLIS = 10000L;
+  private static final int MAX_HEARTBEAT_RETRIES = 3;
 
   private final String ownerName;
   private final Clock clock;
@@ -202,9 +204,15 @@ public class RedisLockManager implements RefreshableLockManager {
       long timer = acquireDurationTimer.start();
 
       // Queues the acquired lock to receive heartbeats for the defined max lock duration.
-      heartbeatLockRequest = new HeartbeatLockRequest(lock, clock, lockOptions.getMaximumLockDuration());
-      queueHeartbeat(heartbeatLockRequest);
+      AtomicInteger heartbeatRetriesOnFailure = new AtomicInteger(MAX_HEARTBEAT_RETRIES);
+      heartbeatLockRequest = new HeartbeatLockRequest(
+        lock,
+        heartbeatRetriesOnFailure,
+        clock,
+        lockOptions.getMaximumLockDuration()
+      );
 
+      queueHeartbeat(heartbeatLockRequest);
       synchronized (heartbeatLockRequest.getLock()) {
         try {
           if (onLockAcquiredCallbackCallable.isPresent()) {
@@ -291,7 +299,9 @@ public class RedisLockManager implements RefreshableLockManager {
         }
       } catch (Exception e) {
         log.error("Heartbeat {} for {} failed", heartbeatLockRequest, heartbeatLockRequest.getLock(), e);
-        heartbeatQueue.remove(heartbeatLockRequest);
+        if (!heartbeatLockRequest.shouldRetry()) {
+          heartbeatQueue.remove(heartbeatLockRequest);
+        }
       }
     }
   }
@@ -344,7 +354,7 @@ public class RedisLockManager implements RefreshableLockManager {
       Object payload = redisClientDelegate.withScriptingClient(c -> {
         return c.eval(
           ACQUIRE_SCRIPT,
-          Collections.singletonList(lockKey(lockOptions.getLockName())),
+          Arrays.asList(lockKey(lockOptions.getLockName())),
           Arrays.asList(
             Long.toString(Duration.ofMillis(leaseDurationMillis).toMillis()),
             ownerName,
@@ -369,7 +379,7 @@ public class RedisLockManager implements RefreshableLockManager {
     Object payload =  redisClientDelegate.withScriptingClient(c -> {
       return c.eval(
         RELEASE_SCRIPT,
-        Collections.singletonList(lockKey(lock.getName())),
+        Arrays.asList(lockKey(lock.getName())),
         Arrays.asList(
           ownerName,
           String.valueOf(lock.getVersion())
@@ -384,7 +394,7 @@ public class RedisLockManager implements RefreshableLockManager {
     Object payload = redisClientDelegate.withScriptingClient(c -> {
       return c.eval(
         HEARTBEAT_SCRIPT,
-        Collections.singletonList(lockKey(lock.getName())),
+        Arrays.asList(lockKey(lock.getName())),
         Arrays.asList(
           ownerName,
           String.valueOf(lock.getVersion()),
