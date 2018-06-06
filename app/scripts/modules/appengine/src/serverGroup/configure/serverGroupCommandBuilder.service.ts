@@ -122,6 +122,7 @@ export class AppengineServerGroupCommandBuilder {
         region,
         selectedProvider,
         interestingHealthProviderNames: [],
+        sourceType: AppengineSourceType.GIT,
       } as IAppengineServerGroupCommand;
     });
   }
