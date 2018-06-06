@@ -17,8 +17,11 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers
 
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
+import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import rx.schedulers.Schedulers
@@ -142,5 +145,22 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     then:
     front50.getPipelines() >> just([]) >> { throw unavailable() } >> just([pipeline])
     pipelineCache.pipelines == [pipeline]
+  }
+
+  def "we can serialize pipelines with triggers that have a parent"() {
+    given:
+    ObjectMapper objectMapper = new ObjectMapper()
+    Trigger trigger = Trigger.builder().id('123-456').build()
+    Pipeline pipeline = Pipeline.builder().application('app').name('pipe').id('idPipe').triggers([trigger]).build()
+    Pipeline decorated = PipelineCache.decorateTriggers([pipeline])[0]
+
+    expect:
+    decorated.triggers[0].parent == decorated
+
+    when:
+    objectMapper.writeValueAsString(decorated)
+
+    then:
+    notThrown(JsonMappingException)
   }
 }

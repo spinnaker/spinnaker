@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
@@ -96,6 +97,7 @@ public class Trigger {
   Map<String, ?> lastSuccessfulExecution;
 
   // this is set after deserialization, not in the json representation
+  @JsonIgnore
   Pipeline parent;
 
   public String generateFallbackId() {
