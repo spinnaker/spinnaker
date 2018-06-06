@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.bakery.api.BakeryService;
-import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest;
+import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequest;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import lombok.Data;
@@ -83,11 +83,12 @@ public class CreateBakeManifestTask implements RetryableTask {
           return a;
         }).collect(Collectors.toList());
 
-    BakeManifestRequest request = new BakeManifestRequest();
+    HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     request.setInputArtifacts(inputArtifacts);
     request.setTemplateRenderer((String) context.get("templateRenderer"));
     request.setOutputName((String) context.get("outputName"));
     request.setOverrides(objectMapper.convertValue(context.get("overrides"), new TypeReference<Map<String, Object>>() { }));
+    request.setNamespace((String) context.get("namespace"));
 
     log.info("Requesting {}", request);
     Artifact result = bakery.bakeManifest(request);
