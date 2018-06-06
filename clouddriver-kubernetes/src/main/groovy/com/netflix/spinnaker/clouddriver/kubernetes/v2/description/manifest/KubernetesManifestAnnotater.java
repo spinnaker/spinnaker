@@ -44,6 +44,7 @@ public class KubernetesManifestAnnotater {
   private static final String APPLICATION = MONIKER_ANNOTATION_PREFIX + "/application";
   private static final String STACK = MONIKER_ANNOTATION_PREFIX + "/stack";
   private static final String DETAIL = MONIKER_ANNOTATION_PREFIX + "/detail";
+  private static final String SEQUENCE = MONIKER_ANNOTATION_PREFIX + "/sequence";
   private static final String TYPE = ARTIFACT_ANNOTATION_PREFIX + "/type";
   private static final String NAME = ARTIFACT_ANNOTATION_PREFIX + "/name";
   private static final String LOCATION = ARTIFACT_ANNOTATION_PREFIX + "/location";
@@ -162,6 +163,7 @@ public class KubernetesManifestAnnotater {
     storeAnnotation(annotations, APPLICATION, moniker.getApp());
     storeAnnotation(annotations, STACK, moniker.getStack());
     storeAnnotation(annotations, DETAIL, moniker.getDetail());
+    storeAnnotation(annotations, SEQUENCE, moniker.getSequence());
   }
 
 
@@ -213,7 +215,8 @@ public class KubernetesManifestAnnotater {
         .app(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}, parsed.getApp()))
         .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}, null))
         .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}, null))
-        .sequence(getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, null))
+        .sequence(getAnnotation(annotations, SEQUENCE, new TypeReference<Integer>() {},
+            getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, null)))
         .build();
   }
 

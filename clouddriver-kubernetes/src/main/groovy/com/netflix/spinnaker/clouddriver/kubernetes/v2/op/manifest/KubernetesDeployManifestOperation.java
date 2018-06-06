@@ -153,6 +153,15 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
       Artifact artifact = converter.toArtifact(provider, manifest);
 
+      String version = artifact.getVersion();
+      if (StringUtils.isNotEmpty(version) && version.startsWith("v")) {
+        try {
+          moniker.setSequence(Integer.valueOf(version.substring(1)));
+        } catch (NumberFormatException e) {
+          log.warn("Malformed moniker version {}", version, e);
+        }
+      }
+
       getTask().updateStatus(OP_NAME, "Annotating manifest " + manifest.getFullResourceName() + " with artifact, relationships & moniker...");
       KubernetesManifestAnnotater.annotateManifest(manifest, artifact);
 
