@@ -34,6 +34,7 @@ public class KubernetesKind {
   public static KubernetesKind CONFIG_MAP = new KubernetesKind("configMap", "cm");
   public static KubernetesKind CONTROLLER_REVISION = new KubernetesKind("controllerRevision");
   public static KubernetesKind CUSTOM_RESOURCE_DEFINITION = new KubernetesKind("customResourceDefinition", "crd", false, false);
+  public static KubernetesKind CRON_JOB = new KubernetesKind("cronJob");
   public static KubernetesKind DAEMON_SET = new KubernetesKind("daemonSet", "ds", true, true);
   public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy", true, true);
   public static KubernetesKind EVENT = new KubernetesKind("event");

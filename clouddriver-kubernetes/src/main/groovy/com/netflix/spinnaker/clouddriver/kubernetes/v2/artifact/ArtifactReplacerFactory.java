@@ -40,8 +40,8 @@ public class ArtifactReplacerFactory {
 
   public static Replacer dockerImageReplacer() {
     return Replacer.builder()
-        .replacePath("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
-        .findPath("$.spec.template.spec.containers.*.image")
+        .replacePath("$..spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
+        .findPath("$..spec.template.spec.containers.*.image")
         .namePattern(DOCKER_IMAGE_REFERENCE_PATTERN)
         .type(ArtifactTypes.DOCKER_IMAGE)
         .build();
@@ -49,48 +49,48 @@ public class ArtifactReplacerFactory {
 
   public static Replacer configMapVolumeReplacer() {
     return Replacer.builder()
-        .replacePath("$.spec.template.spec.volumes.[?( @.configMap.name == \"{%name%}\" )].configMap.name")
-        .findPath("$.spec.template.spec.volumes.*.configMap.name")
+        .replacePath("$..spec.template.spec.volumes.[?( @.configMap.name == \"{%name%}\" )].configMap.name")
+        .findPath("$..spec.template.spec.volumes.*.configMap.name")
         .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
         .build();
   }
 
   public static Replacer secretVolumeReplacer() {
     return Replacer.builder()
-        .replacePath("$.spec.template.spec.volumes.[?( @.secret.secretName == \"{%name%}\" )].secret.secretName")
-        .findPath("$.spec.template.spec.volumes.*.secret.secretName")
+        .replacePath("$..spec.template.spec.volumes.[?( @.secret.secretName == \"{%name%}\" )].secret.secretName")
+        .findPath("$..spec.template.spec.volumes.*.secret.secretName")
         .type(ArtifactTypes.KUBERNETES_SECRET)
         .build();
   }
 
   public static Replacer configMapKeyValueFromReplacer() {
     return Replacer.builder()
-        .replacePath("$.spec.template.spec.containers.*.env.[?( @.valueFrom.configMapKeyRef.name == \"{%name%}\" )].valueFrom.configMapKeyRef.name")
-        .findPath("$.spec.template.spec.containers.*.env.*.valueFrom.configMapKeyRef.name")
+        .replacePath("$..spec.template.spec.containers.*.env.[?( @.valueFrom.configMapKeyRef.name == \"{%name%}\" )].valueFrom.configMapKeyRef.name")
+        .findPath("$..spec.template.spec.containers.*.env.*.valueFrom.configMapKeyRef.name")
         .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
         .build();
   }
 
   public static Replacer secretKeyValueFromReplacer() {
     return Replacer.builder()
-        .replacePath("$.spec.template.spec.containers.*.env.[?( @.valueFrom.secretKeyRef.name == \"{%name%}\" )].valueFrom.secretKeyRef.name")
-        .findPath("$.spec.template.spec.containers.*.env.*.valueFrom.secretKeyRef.name")
+        .replacePath("$..spec.template.spec.containers.*.env.[?( @.valueFrom.secretKeyRef.name == \"{%name%}\" )].valueFrom.secretKeyRef.name")
+        .findPath("$..spec.template.spec.containers.*.env.*.valueFrom.secretKeyRef.name")
         .type(ArtifactTypes.KUBERNETES_SECRET)
         .build();
   }
 
   public static Replacer configMapEnvFromReplacer() {
     return Replacer.builder()
-        .replacePath("$.spec.template.spec.containers.*.envFrom.[?( @.configMapRef.name == \"{%name%}\" )].configMapRef.name")
-        .findPath("$.spec.template.spec.containers.*.envFrom.*.configMapRef.name")
+        .replacePath("$..spec.template.spec.containers.*.envFrom.[?( @.configMapRef.name == \"{%name%}\" )].configMapRef.name")
+        .findPath("$..spec.template.spec.containers.*.envFrom.*.configMapRef.name")
         .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
         .build();
   }
 
   public static Replacer secretEnvFromReplacer() {
     return Replacer.builder()
-        .replacePath("$.spec.template.spec.containers.*.envFrom.[?( @.secretRef.name == \"{%name%}\" )].secretRef.name")
-        .findPath("$.spec.template.spec.containers.*.envFrom.*.secretRef.name")
+        .replacePath("$..spec.template.spec.containers.*.envFrom.[?( @.secretRef.name == \"{%name%}\" )].secretRef.name")
+        .findPath("$..spec.template.spec.containers.*.envFrom.*.secretRef.name")
         .type(ArtifactTypes.KUBERNETES_SECRET)
         .build();
   }
