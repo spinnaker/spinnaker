@@ -29,12 +29,6 @@ public abstract class TemplateUtils {
   @Autowired
   ClouddriverService clouddriverService;
 
-  public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, BakeManifestRequest request) {
-    BakeRecipe result = new BakeRecipe();
-    result.setName(request.getOutputName());
-    return result;
-  }
-
   private RetrySupport retrySupport = new RetrySupport();
 
   private String nameFromReference(String reference) {

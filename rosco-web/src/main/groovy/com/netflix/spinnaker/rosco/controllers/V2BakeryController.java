@@ -2,7 +2,8 @@ package com.netflix.spinnaker.rosco.controllers;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest;
-import com.netflix.spinnaker.rosco.manifests.BakeManifestService;
+import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestRequest;
+import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestService;
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class V2BakeryController {
   @Autowired
-  BakeManifestService bakeManifestService;
+  HelmBakeManifestService helmBakeManifestService;
 
-  @RequestMapping(value = "/api/v2/manifest/bake", method = RequestMethod.POST)
-  Artifact doBake(@RequestBody BakeManifestRequest bakeRequest) {
-    return bakeManifestService.bake(bakeRequest);
+  @RequestMapping(value = "/api/v2/manifest/bake/helm", method = RequestMethod.POST)
+  Artifact doBake(@RequestBody HelmBakeManifestRequest bakeRequest) {
+    return helmBakeManifestService.bake(bakeRequest);
   }
 }

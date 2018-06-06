@@ -1,12 +1,13 @@
-package com.netflix.spinnaker.rosco.manifests;
+package com.netflix.spinnaker.rosco.manifests.helm;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.api.BakeStatus;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
 import com.netflix.spinnaker.rosco.jobs.JobRequest;
+import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest;
+import com.netflix.spinnaker.rosco.manifests.TemplateUtils;
 import com.netflix.spinnaker.rosco.manifests.TemplateUtils.BakeManifestEnvironment;
-import com.netflix.spinnaker.rosco.manifests.helm.HelmTemplateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,29 +16,32 @@ import java.util.Base64;
 import java.util.UUID;
 
 @Component
-public class BakeManifestService {
+public class HelmBakeManifestService {
   @Autowired
   HelmTemplateUtils helmTemplateUtils;
 
   @Autowired
   JobExecutor jobExecutor;
 
-  TemplateUtils templateUtils(BakeManifestRequest request) {
-    if (request.templateRenderer == null) {
+  HelmTemplateUtils templateUtils(HelmBakeManifestRequest request) {
+    BakeManifestRequest.TemplateRenderer templateRenderer = request.getTemplateRenderer();
+    if (templateRenderer == null) {
       throw new IllegalArgumentException("The request type must be set (e.g. helm2).");
     }
-    switch (request.templateRenderer) {
+
+    switch (templateRenderer) {
       case HELM2:
         return helmTemplateUtils;
       default:
-        throw new IllegalArgumentException("Request type " + request.templateRenderer + " is not supported.");
+        throw new IllegalArgumentException("Request type " + templateRenderer + " is not supported.");
     }
   }
 
-  public Artifact bake(BakeManifestRequest request) {
-    TemplateUtils utils = templateUtils(request);
+  public Artifact bake(HelmBakeManifestRequest request) {
+    HelmTemplateUtils utils = templateUtils(request);
     BakeManifestEnvironment env = new BakeManifestEnvironment();
     BakeRecipe recipe = utils.buildBakeRecipe(env, request);
+
     BakeStatus bakeStatus;
 
     try {

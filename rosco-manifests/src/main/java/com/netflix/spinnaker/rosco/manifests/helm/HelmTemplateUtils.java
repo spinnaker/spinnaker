@@ -15,9 +15,10 @@ import java.util.stream.Collectors;
 
 @Component
 public class HelmTemplateUtils extends TemplateUtils {
-  @Override
-  public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, BakeManifestRequest request) {
-    BakeRecipe result = super.buildBakeRecipe(env, request);
+  public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, HelmBakeManifestRequest request) {
+    BakeRecipe result = new BakeRecipe();
+    result.setName(request.getOutputName());
+
     Path templatePath;
     List<Path> valuePaths = new ArrayList<>();
     List<Artifact> inputArtifacts = request.getInputArtifacts();
@@ -42,6 +43,12 @@ public class HelmTemplateUtils extends TemplateUtils {
     command.add(templatePath.toString());
     command.add("--name");
     command.add(request.getOutputName());
+
+    String namespace = request.getNamespace();
+    if (namespace != null && !namespace.isEmpty()) {
+      command.add("--namespace");
+      command.add(namespace);
+    }
 
     Map<String, Object> overrides = request.getOverrides();
     if (!overrides.isEmpty()) {
