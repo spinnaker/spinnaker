@@ -27,6 +27,7 @@ dependencies {
   compileOnly spinnaker.dependency("okHttpApache")
   compileOnly spinnaker.dependency("retrofit")
   compileOnly spinnaker.dependency("retrofitJackson")
+  compileOnly spinnaker.dependency("spectatorApi")
 
   compile spinnaker.dependency("guava")
   compile spinnaker.dependency("springSecurityConfig")
@@ -39,4 +40,5 @@ dependencies {
   testCompile spinnaker.dependency("frigga")
   testCompile spinnaker.dependency("korkSecurity")
   testCompile spinnaker.dependency("bootAutoConfigure")
+  testCompile spinnaker.dependency("spectatorApi")
 }

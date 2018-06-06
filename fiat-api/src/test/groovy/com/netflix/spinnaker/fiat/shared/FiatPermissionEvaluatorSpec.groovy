@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.shared
 
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Application
@@ -25,27 +27,20 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
-import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
 class FiatPermissionEvaluatorSpec extends Specification {
+  FiatService fiatService = Mock(FiatService)
+  Registry registry = new NoopRegistry();
 
-  @Shared
-  FiatPermissionEvaluator evaluator
-
-  @Shared
-  FiatService fiatService
-
-  def setup() {
-    FiatClientConfigurationProperties configProps = new FiatClientConfigurationProperties()
-    configProps.cache.maxEntries = 0
-    fiatService = Mock(FiatService)
-    evaluator = new FiatPermissionEvaluator(fiatEnabled: true,
-                                            fiatService: fiatService,
-                                            configProps: configProps)
-    evaluator.afterPropertiesSet()
-  }
+  @Subject
+  FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(
+      registry,
+      fiatService,
+      buildConfigurationProperties()
+  )
 
   @Unroll
   def "should parse application name"() {
@@ -142,5 +137,13 @@ class FiatPermissionEvaluatorSpec extends Specification {
     then:
     1 * fiatService.getUserPermission("testUser") >> upv
     hasPermission
+  }
+
+  private static FiatClientConfigurationProperties buildConfigurationProperties() {
+    FiatClientConfigurationProperties configurationProperties = new FiatClientConfigurationProperties();
+    configurationProperties.enabled = true
+    configurationProperties.cache.maxEntries = 0
+
+    return configurationProperties
   }
 }

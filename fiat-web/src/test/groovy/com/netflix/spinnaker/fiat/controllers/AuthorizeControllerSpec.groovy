@@ -27,12 +27,14 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -144,7 +146,8 @@ class AuthorizeControllerSpec extends Specification {
   def "should get user from repo"() {
     setup:
     PermissionsRepository repository = Mock(PermissionsRepository)
-    AuthorizeController controller = new AuthorizeController(permissionsRepository: repository)
+    AuthorizeController controller = new AuthorizeController(repository, fiatServerConfigurationProperties)
+
     def foo = new UserPermission().setId("foo@batman.com")
 
     when:
@@ -165,7 +168,8 @@ class AuthorizeControllerSpec extends Specification {
   def "should get user's accounts from repo"() {
     setup:
     PermissionsRepository repository = Mock(PermissionsRepository)
-    AuthorizeController controller = new AuthorizeController(permissionsRepository: repository)
+    AuthorizeController controller = new AuthorizeController(repository, fiatServerConfigurationProperties)
+
     def bar = new Account().setName("bar")
     def foo = new UserPermission().setId("foo").setAccounts([bar] as Set)
 
@@ -233,5 +237,35 @@ class AuthorizeControllerSpec extends Specification {
     mockMvc.perform(get("/authorize/roleAroleBUser/roles"))
            .andExpect(status().isOk())
            .andExpect(content().json(expected))
+  }
+
+  @Unroll
+  def "should fallback to unrestricted user if no session available"() {
+    given:
+    def authorizeController = new AuthorizeController(
+        permissionsRepository,
+        new FiatServerConfigurationProperties(defaultToUnrestrictedUser: defaultToUnrestrictedUser)
+    )
+    permissionsRepository.put(unrestrictedUser)
+
+    when:
+    Optional<UserPermission> optionalUserPermission
+
+    try {
+      MDC.put("X-SPINNAKER-USER", authenticatedUser)
+      optionalUserPermission = authorizeController.getUserPermissionOrDefault(targetUser)
+    } finally {
+      MDC.remove("X-SPINNAKER-USER")
+    }
+
+    then:
+    optionalUserPermission.orElse(null) == (shouldReturnUnrestrictedUser ? unrestrictedUser.setId(targetUser) : null)
+
+    where:
+    authenticatedUser     | targetUser            | defaultToUnrestrictedUser || shouldReturnUnrestrictedUser
+    "existing_user"       | "user_does_not_exist" | false                     || false
+    "existing_user"       | "user_does_not_exist" | true                      || false
+    "user_has_no_session" | "user_has_no_session" | false                     || false
+    "user_has_no_session" | "user_has_no_session" | true                      || true
   }
 }

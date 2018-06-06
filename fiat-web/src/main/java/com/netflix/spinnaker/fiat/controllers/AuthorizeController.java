@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.controllers;
 
 import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties;
+import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,11 +48,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/authorize")
 public class AuthorizeController {
 
-  @Autowired
-  private PermissionsRepository permissionsRepository;
+  private final PermissionsRepository permissionsRepository;
+  private final FiatServerConfigurationProperties configProps;
 
   @Autowired
-  FiatServerConfigurationProperties configProps;
+  public AuthorizeController(PermissionsRepository permissionsRepository,
+                             FiatServerConfigurationProperties configProps) {
+    this.permissionsRepository = permissionsRepository;
+    this.configProps = configProps;
+  }
+
 
   @ApiOperation(value = "Used mostly for testing. Not really any real value to the rest of " +
       "the system. Disabled by default.")
@@ -71,16 +79,15 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.GET)
   public UserPermission.View getUserPermission(@PathVariable String userId) {
-    val user = ControllerSupport.convert(userId);
-    log.debug("UserPermission requested for " + user);
-    return permissionsRepository.get(user)
+    log.debug("UserPermission requested for " + userId);
+    return getUserPermissionOrDefault(userId)
                                 .orElseThrow(NotFoundException::new)
                                 .getView();
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts", method = RequestMethod.GET)
   public Set<Account.View> getUserAccounts(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
+    return getUserPermissionOrDefault(userId)
                                 .orElseThrow(NotFoundException::new)
                                 .getView()
                                 .getAccounts()
@@ -90,7 +97,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/roles", method = RequestMethod.GET)
   public Set<Role.View> getUserRoles(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
+    return getUserPermissionOrDefault(userId)
                                 .orElseThrow(NotFoundException::new)
                                 .getView()
                                 .getRoles()
@@ -100,7 +107,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/accounts/{accountName:.+}", method = RequestMethod.GET)
   public Account.View getUserAccount(@PathVariable String userId, @PathVariable String accountName) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
+    return getUserPermissionOrDefault(userId)
                                 .orElseThrow(NotFoundException::new)
                                 .getView()
                                 .getAccounts()
@@ -112,7 +119,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/applications", method = RequestMethod.GET)
   public Set<Application.View> getUserApplications(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
+    return getUserPermissionOrDefault(userId)
                                 .orElseThrow(NotFoundException::new)
                                 .getView()
                                 .getApplications()
@@ -122,7 +129,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/applications/{applicationName:.+}", method = RequestMethod.GET)
   public Application.View getUserApplication(@PathVariable String userId, @PathVariable String applicationName) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
+    return getUserPermissionOrDefault(userId)
                                 .orElseThrow(NotFoundException::new)
                                 .getView()
                                 .getApplications()
@@ -134,7 +141,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/serviceAccounts", method = RequestMethod.GET)
   public Set<ServiceAccount.View> getServiceAccounts(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
+    return getUserPermissionOrDefault(userId)
                                 .orElseThrow(NotFoundException::new)
                                 .getView()
                                 .getServiceAccounts()
@@ -145,7 +152,7 @@ public class AuthorizeController {
   @RequestMapping(value = "/{userId:.+}/serviceAccounts/{serviceAccountName:.+}", method = RequestMethod.GET)
   public ServiceAccount.View getServiceAccount(@PathVariable String userId,
                                                @PathVariable String serviceAccountName) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
+    return getUserPermissionOrDefault(userId)
                                 .orElseThrow(NotFoundException::new)
                                 .getView()
                                 .getServiceAccounts()
@@ -190,5 +197,32 @@ public class AuthorizeController {
     }
 
     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+  }
+
+  private Optional<UserPermission> getUserPermissionOrDefault(String userId) {
+    String authenticatedUserId = AuthenticatedRequest.getSpinnakerUser().orElse(null);
+
+    UserPermission userPermission = permissionsRepository.get(
+        ControllerSupport.convert(userId)
+    ).orElse(null);
+
+    if (userPermission != null || !configProps.isDefaultToUnrestrictedUser()) {
+      return Optional.ofNullable(userPermission);
+    }
+
+    if (userId.equalsIgnoreCase(authenticatedUserId)) {
+      /*
+       * User does not have any stored permissions, likely a request that has not transited gate.
+       *
+       * If the request is for the permissions of the currently authenticated user, default to those of the
+       * unrestricted user.
+       */
+      userPermission = permissionsRepository
+          .get(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+          .map(u -> u.setId(authenticatedUserId))
+          .orElse(null);
+    }
+
+    return Optional.ofNullable(userPermission);
   }
 }

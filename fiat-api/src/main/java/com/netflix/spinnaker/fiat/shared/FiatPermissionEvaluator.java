@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2016 Google, Inc.
  *
@@ -19,29 +20,25 @@ package com.netflix.spinnaker.fiat.shared;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.netflix.frigga.Names;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 import java.io.Serializable;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,30 +46,32 @@ import java.util.function.Function;
 
 @Component
 @Slf4j
-public class FiatPermissionEvaluator implements PermissionEvaluator, InitializingBean {
+public class FiatPermissionEvaluator implements PermissionEvaluator {
+
+  private final Registry registry;
+  private final FiatService fiatService;
+  private final FiatClientConfigurationProperties configProps;
+
+  private final Cache<String, UserPermission.View> permissionsCache;
+
+  private final Id getPermissionCounterId;
 
   @Autowired
-  @Setter
-  private FiatService fiatService;
+  public FiatPermissionEvaluator(Registry registry,
+                                 FiatService fiatService,
+                                 FiatClientConfigurationProperties configProps) {
+    this.registry = registry;
+    this.fiatService = fiatService;
+    this.configProps = configProps;
 
-  @Autowired
-  @Setter
-  private FiatClientConfigurationProperties configProps;
-
-  @Value("${services.fiat.enabled:false}")
-  @Setter
-  private String fiatEnabled;
-
-  private Cache<String, UserPermission.View> permissionsCache;
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    permissionsCache = CacheBuilder
+    this.permissionsCache = CacheBuilder
         .newBuilder()
         .maximumSize(configProps.getCache().getMaxEntries())
         .expireAfterWrite(configProps.getCache().getExpiresAfterWriteSeconds(), TimeUnit.SECONDS)
         .recordStats()
         .build();
+
+    this.getPermissionCounterId = registry.createId("fiat.getPermission");
   }
 
   @Override
@@ -87,12 +86,12 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
                                Serializable resourceName,
                                String resourceType,
                                Object authorization) {
-    if (!Boolean.valueOf(fiatEnabled)) {
+    if (!configProps.isEnabled()) {
       return true;
     }
     if (resourceName == null || resourceType == null || authorization == null) {
       log.debug("Permission denied due to null argument. resourceName={}, resourceType={}, " +
-                    "authorization={}", resourceName, resourceType, authorization);
+          "authorization={}", resourceName, resourceType, authorization);
       return false;
     }
 
@@ -104,7 +103,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
     }
 
     if (r == ResourceType.APPLICATION && StringUtils.isNotEmpty(resourceName.toString())) {
-        resourceName = resourceName.toString();
+      resourceName = resourceName.toString();
     }
 
     UserPermission.View permission = getPermission(getUsername(authentication));
@@ -124,61 +123,48 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
     return username;
   }
 
-  private boolean isAuthorized(String username,
-                               ResourceType resourceType,
-                               String resourceName,
-                               Authorization a) {
-    try {
-      AuthenticatedRequest.propagate(() ->
-        fiatService.hasAuthorization(username, resourceType.toString(), resourceName, a.toString())
-      ).call();
-    } catch (Exception e) {
-      String message = String.format("Fiat authorization failed for user '%s' '%s'-ing '%s' resourceType named '%s'. Cause: %s",
-                                     username,
-                                     a,
-                                     resourceType,
-                                     resourceName,
-                                     e.getMessage());
-      if (log.isDebugEnabled()) {
-        log.debug(message, e);
-      } else {
-        log.info(message);
-      }
-      return false;
-    }
-    return true;
-  }
-
   public UserPermission.View getPermission(String username) {
     UserPermission.View view = null;
     if (StringUtils.isEmpty(username)) {
       return null;
     }
 
+    AtomicBoolean cacheHit = new AtomicBoolean(true);
+    boolean successfulLookup = true;
+
     try {
-      AtomicBoolean cacheHit = new AtomicBoolean(true);
       view = permissionsCache.get(username, () -> {
         cacheHit.set(false);
         return AuthenticatedRequest.propagate(() -> fiatService.getUserPermission(username)).call();
       });
-      log.debug("Fiat permission cache hit: " + cacheHit.get());
     } catch (ExecutionException | UncheckedExecutionException ee) {
-      String message = String.format("Cannot get whole user permission for user %s. Cause: %s",
-                                     username,
-                                     ee.getCause().getMessage());
+      successfulLookup = false;
+
+      String message = String.format(
+          "Cannot get whole user permission for user %s. Cause: %s",
+          username,
+          ee.getCause().getMessage()
+      );
       if (log.isDebugEnabled()) {
         log.debug(message, ee.getCause());
       } else {
         log.info(message);
       }
     }
+
+    registry.counter(
+        getPermissionCounterId
+            .withTag("cached", cacheHit.get())
+            .withTag("success", successfulLookup)
+    ).increment();
+
     return view;
   }
 
   @SuppressWarnings("unused")
   @Deprecated
   public boolean storeWholePermission() {
-    if (!Boolean.valueOf(fiatEnabled)) {
+    if (!configProps.isEnabled()) {
       return true;
     }
 
@@ -209,8 +195,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
         return containsAuth.apply(permission.getApplications());
       case SERVICE_ACCOUNT:
         return permission.getServiceAccounts()
-                         .stream()
-                         .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
+            .stream()
+            .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
       default:
         return false;
     }
