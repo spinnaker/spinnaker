@@ -1,7 +1,7 @@
 <div class="collapsible-{{getClassType()}}section">
   <a href class="section-{{getClassType()}}heading" ng-click="toggle()">
     <h4 class="collapsible-{{getClassType()}}heading">
-      <span class="glyphicon glyphicon-chevron-{{getIcon()}}"></span>
+      <span class="glyphicon glyphicon-chevron-right" style="{{getIconStyle()}}"></span>
       {{heading}}
       <span ng-transclude="heading"></span>
       <help-field ng-if="helpKey" key="{{helpKey}}" placement="right"></help-field>

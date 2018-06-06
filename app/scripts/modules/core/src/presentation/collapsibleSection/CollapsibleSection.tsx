@@ -1,36 +1,41 @@
 import * as React from 'react';
 
 import { CollapsibleSectionStateCache } from 'core/cache';
-import { HelpField } from 'core/help/HelpField';
 
 export interface ICollapsibleSectionProps {
+  outerDivClassName?: string;
+  toggleClassName?: string;
+  headingClassName?: string;
   bodyClassName?: string;
+
   cacheKey?: string;
   defaultExpanded?: boolean;
-  heading: (() => JSX.Element) | string;
-  helpKey?: string;
-  subsection?: boolean;
+  heading: ((props: { chevron: JSX.Element }) => JSX.Element) | string;
 }
 
 export interface ICollapsibleSectionState {
   cacheKey: string;
   expanded: boolean;
-  headingIsString: boolean;
 }
 
 export class CollapsibleSection extends React.Component<ICollapsibleSectionProps, ICollapsibleSectionState> {
+  public static defaultProps = {
+    outerDivClassName: 'collapsible-section',
+    toggleClassName: 'clickable section-heading',
+    headingClassName: 'collapsible-heading',
+    bodyClassName: 'content-body',
+    cacheKey: undefined as string,
+  };
+
   constructor(props: ICollapsibleSectionProps) {
     super(props);
 
-    const headingIsString = typeof props.heading === 'string' || props.heading instanceof String;
-    const cacheKey = props.cacheKey || (headingIsString ? (props.heading as string) : undefined);
-    this.state = {
-      cacheKey,
-      headingIsString,
-      expanded: CollapsibleSectionStateCache.isSet(cacheKey)
-        ? CollapsibleSectionStateCache.isExpanded(cacheKey)
-        : props.defaultExpanded,
-    };
+    const cacheKey = props.cacheKey || (typeof props.heading === 'string' ? (props.heading as string) : undefined);
+    const expanded = CollapsibleSectionStateCache.isSet(cacheKey)
+      ? CollapsibleSectionStateCache.isExpanded(cacheKey)
+      : props.defaultExpanded;
+
+    this.state = { cacheKey, expanded };
   }
 
   private toggle = (): void => {
@@ -40,23 +45,31 @@ export class CollapsibleSection extends React.Component<ICollapsibleSectionProps
   };
 
   public render() {
-    const { bodyClassName, children, heading, helpKey, subsection } = this.props;
-    const { expanded, headingIsString } = this.state;
+    const { outerDivClassName, toggleClassName, headingClassName, bodyClassName, children, heading } = this.props;
+    const { expanded } = this.state;
 
-    const Heading = headingIsString ? heading : (heading as () => JSX.Element)();
+    const chevronStyle = {
+      transform: `rotate(${expanded ? 90 : 0}deg)`,
+      transition: 'transform 0.15s ease',
+    };
 
-    const prefix = subsection ? 'sub' : '';
-    const icon = expanded ? 'down' : 'right';
+    const chevron = <span className="glyphicon glyphicon-chevron-right" style={chevronStyle} />;
+    const Heading =
+      typeof heading === 'string' ? (
+        <h4 className={headingClassName}>
+          {chevron} {heading}
+        </h4>
+      ) : (
+        <>{heading({ chevron })}</>
+      );
 
     return (
-      <div className={`collapsible-${prefix}section`}>
-        <a className={`clickable section-${prefix}heading`} onClick={this.toggle}>
-          <h4 className={`collapsible-${prefix}heading`}>
-            <span className={`glyphicon glyphicon-chevron-${icon}`} /> {Heading}
-            {helpKey && <HelpField id={helpKey} placement="right" />}
-          </h4>
+      <div className={outerDivClassName}>
+        <a className={toggleClassName} onClick={this.toggle}>
+          {Heading}
         </a>
-        {expanded && <div className={`content-body ${bodyClassName ? bodyClassName : ''}`}>{children}</div>}
+
+        {expanded && <div className={bodyClassName}>{children}</div>}
       </div>
     );
   }

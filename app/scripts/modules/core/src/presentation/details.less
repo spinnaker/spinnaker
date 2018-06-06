@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .details-panel {
   &.health-status-Healthy {
@@ -10,7 +10,7 @@
     border-color: var(--color-danger);
   }
 
-  &.health-status-Unknown{
+  &.health-status-Unknown {
     background-color: var(--color-accent-g2);
     border-color: var(--color-accent);
   }
@@ -80,10 +80,12 @@
     }
   }
 
-  &.disabled, &.OutOfService {
+  &.disabled,
+  &.OutOfService {
     .header {
       .header-text {
-        .glyphicon, .icon {
+        .glyphicon,
+        .icon {
           color: var(--color-titanium);
         }
       }
@@ -106,19 +108,23 @@
         color: inherit;
         font-size: 150%;
       }
-      > .glyphicon, > .fa {
+      > .glyphicon,
+      > .fa {
         color: var(--color-success-light);
         font-size: 200%;
-        &.Unhealthy, &.Down {
+        &.Unhealthy,
+        &.Down {
           color: var(--color-danger);
         }
-        &.Unknown, &.Starting {
+        &.Unknown,
+        &.Starting {
           color: var(--color-accent-g1);
         }
         &.Starting {
-          .pulsing(1.0);
+          .pulsing(1);
         }
-        &.disabled, &.OutOfService {
+        &.disabled,
+        &.OutOfService {
           color: var(--color-alto);
         }
         padding-right: 10px;
@@ -138,8 +144,10 @@
     }
   }
 
-  .content-section, .collapsible-section {
-    dl, ul {
+  .content-section,
+  .collapsible-section {
+    dl,
+    ul {
       &:last-child {
         margin-bottom: 0;
       }
@@ -148,8 +156,9 @@
       text-transform: uppercase;
       font-size: 110%;
       font-weight: 600;
-      .glyphicon, .icon {
-        font-size: 70%;
+      .glyphicon,
+      .icon {
+        font-size: 13px;
         opacity: 0.7;
         margin-right: 4px;
       }

@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .execution-group-container {
   padding: 10px 30px 0;
@@ -51,14 +51,16 @@
     }
     cursor: pointer;
     .glyphicon {
-      font-size: 70%;
-      &.glyphicon-certificate, &.glyphicon-play {
+      font-size: 13px;
+
+      &.glyphicon-certificate,
+      &.glyphicon-play {
         margin-left: 5px;
         padding: 2px 0 0 0;
         font-size: 80%;
       }
     }
-    @media(max-width: 1400px) {
+    @media (max-width: 1400px) {
       font-size: 14px;
     }
   }
@@ -69,7 +71,8 @@
   }
   &.inactive {
     color: var(--color-accessory-light);
-    .shadowed, .execution-group-actions {
+    .shadowed,
+    .execution-group-actions {
       background-color: var(--color-accent-g3);
     }
     .label-retired {
@@ -81,7 +84,8 @@
   }
 }
 
-.triggers-toggle, .next-run-tag {
+.triggers-toggle,
+.next-run-tag {
   display: inline-block;
   font-weight: 400;
   font-size: 85%;

@@ -57,15 +57,18 @@ export class ScheduledActionsDetailsSection extends React.Component<
     return (
       <CollapsibleSection
         cacheKey="Scheduled Actions"
-        heading={() => (
-          <span>
-            {scheduledActionsDisabled && (
-              <Tooltip value="Some scaling processes are disabled that may prevent scheduled actions from working">
-                <span className="fa fa-exclamation-circle warning-text" />
-              </Tooltip>
-            )}
-            Scheduled Actions
-          </span>
+        heading={({ chevron }) => (
+          <h4 className="collapsible-heading">
+            {chevron}
+            <span>
+              {scheduledActionsDisabled && (
+                <Tooltip value="Some scaling processes are disabled that may prevent scheduled actions from working">
+                  <span className="fa fa-exclamation-circle warning-text" />
+                </Tooltip>
+              )}
+              Scheduled Actions
+            </span>
+          </h4>
         )}
       >
         {serverGroup.scheduledActions.map((action, index) => <ScheduledAction key={index} action={action} />)}

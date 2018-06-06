@@ -1,10 +1,7 @@
 import * as React from 'react';
-
-import { CollapsibleSection, HelpField, ModalInjector, Tooltip, timestamp } from '@spinnaker/core';
-
 import { IScalingProcess } from 'amazon/domain';
+import { CollapsibleSection, HelpField, ModalInjector, timestamp, Tooltip } from '@spinnaker/core';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
-
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 export interface IScalingProcessesDetailsSectionState {
@@ -64,20 +61,23 @@ export class ScalingProcessesDetailsSection extends React.Component<
     return (
       <CollapsibleSection
         cacheKey="Scaling Processes"
-        heading={() => (
-          <span>
-            {scalingPoliciesDisabled && (
-              <Tooltip value="Some scaling processes are disabled that may prevent scaling policies from working">
-                <span className="fa fa-exclamation-circle warning-text" />
-              </Tooltip>
-            )}
-            {scheduledActionsDisabled && (
-              <Tooltip value="Some scaling processes are disabled that may prevent scheduled actions from working">
-                <span className="fa fa-exclamation-circle warning-text" />
-              </Tooltip>
-            )}
-            Scaling Processes
-          </span>
+        heading={({ chevron }) => (
+          <h4 className="collapsible-heading">
+            {chevron}
+            <span>
+              {scalingPoliciesDisabled && (
+                <Tooltip value="Some scaling processes are disabled that may prevent scaling policies from working">
+                  <span className="fa fa-exclamation-circle warning-text" />
+                </Tooltip>
+              )}
+              {scheduledActionsDisabled && (
+                <Tooltip value="Some scaling processes are disabled that may prevent scheduled actions from working">
+                  <span className="fa fa-exclamation-circle warning-text" />
+                </Tooltip>
+              )}
+              Scaling Processes
+            </span>
+          </h4>
         )}
       >
         <ul className="scaling-processes">

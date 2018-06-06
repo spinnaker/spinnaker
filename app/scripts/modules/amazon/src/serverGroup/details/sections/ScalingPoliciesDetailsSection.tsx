@@ -49,15 +49,18 @@ export class ScalingPoliciesDetailsSection extends React.Component<
     return (
       <CollapsibleSection
         cacheKey="Scaling Policies"
-        heading={() => (
-          <span>
-            {scalingPoliciesDisabled && (
-              <Tooltip value="Some scaling processes are disabled that may prevent scaling policies from working">
-                <span className="fa fa-exclamation-circle warning-text" />
-              </Tooltip>
-            )}
-            Scaling Policies
-          </span>
+        heading={({ chevron }) => (
+          <h4 className="collapsible-heading">
+            {chevron}
+            <span>
+              {scalingPoliciesDisabled && (
+                <Tooltip value="Some scaling processes are disabled that may prevent scaling policies from working">
+                  <span className="fa fa-exclamation-circle warning-text" />
+                </Tooltip>
+              )}
+              Scaling Policies
+            </span>
+          </h4>
         )}
       >
         {scalingPoliciesDisabled && (

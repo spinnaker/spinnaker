@@ -19,7 +19,11 @@ export class RunningTasks extends React.Component<IRunningTasksProps> {
 
     if (serverGroup.runningTasks.length > 0 || serverGroup.runningExecutions.length > 0) {
       return (
-        <CollapsibleSection heading="Running Tasks" defaultExpanded={true} bodyClassName="details-running-tasks">
+        <CollapsibleSection
+          heading="Running Tasks"
+          defaultExpanded={true}
+          bodyClassName="content-body details-running-tasks"
+        >
           {serverGroup.runningTasks
             .sort((a, b) => a.startTime - b.startTime)
             .map(task => <Task key={task.id} task={task} application={application} />)}

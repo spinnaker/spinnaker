@@ -15,8 +15,10 @@ module.exports = angular.module('cluster.filter.collapse', []).directive('filter
     link: function(scope) {
       var expanded = scope.expanded === 'true';
       scope.state = { expanded: expanded };
-      scope.getIcon = function() {
-        return scope.state.expanded ? 'down' : 'right';
+      scope.getIconStyle = function() {
+        return scope.state.expanded
+          ? 'transform: rotate(90deg); transition: all 0.15s ease'
+          : 'transform: rotate(0deg); transition: all 0.15s ease';
       };
 
       scope.toggle = function() {

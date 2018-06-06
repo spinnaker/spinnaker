@@ -27,11 +27,16 @@ export class FilterSection extends React.Component<IFilterSectionProps, IFilterS
   };
 
   public render() {
+    const chevronStyle = {
+      transform: this.state.expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+      transition: 'all ease 0.15s',
+    };
+
     return (
       <div className="collapsible-filter-section">
         <div className="section-heading clickable" onClick={this.toggle}>
           <h4>
-            <span className={`glyphicon glyphicon-chevron-${this.getIcon()}`} />
+            <span className={`glyphicon glyphicon-chevron-right`} style={chevronStyle} />
             {` ${this.props.heading}`}
             {this.props.helpKey && (
               <span>

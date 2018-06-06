@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .new-pipeline {
   .fade-in(0.4);
@@ -8,11 +8,11 @@
   display: inline-block;
   vertical-align: top;
   .glyphicon-time {
-    opacity: .6;
+    opacity: 0.6;
   }
   .invalid {
     border-color: var(--color-danger);
-    @shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--color-danger-light);
+    @shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
     .box-shadow(@shadow);
   }
 }
@@ -131,7 +131,7 @@ pipeline-configurer {
     }
 
     .glyphicon {
-      font-size: 70%;
+      font-size: 13px;
       opacity: 0.7;
       margin-right: 5px;
     }
@@ -145,10 +145,11 @@ pipeline-configurer {
         padding: 0 2px;
       }
     }
-
   }
 
-  .pipeline-actions, .create-action, .permalink {
+  .pipeline-actions,
+  .create-action,
+  .permalink {
     display: inline-block;
   }
 
@@ -157,7 +158,6 @@ pipeline-configurer {
     font-size: 80%;
     line-height: 30px;
   }
-
 }
 
 .nav-pipeline-config {
@@ -178,7 +178,8 @@ pipeline-configurer {
   }
 
   .config-section {
-    a, button {
+    a,
+    button {
       margin: 10px 5px;
       vertical-align: top;
       &:first-child {
@@ -197,7 +198,8 @@ triggers {
     margin-top: 25px;
     margin-bottom: 10px;
   }
-  trigger, expected-artifact {
+  trigger,
+  expected-artifact {
     display: block;
     padding: 10px 20px;
     background-color: var(--color-white);
@@ -214,7 +216,8 @@ triggers {
     border-right-width: 0;
   }
 
-  a, h4 {
+  a,
+  h4 {
     display: inline-block;
     padding-left: 15px;
   }
@@ -264,7 +267,8 @@ availability-zone-selector {
 .pipeline-graph-container {
   position: relative;
   overflow-x: hidden;
-  &::before, &::after {
+  &::before,
+  &::after {
     position: absolute;
     top: 0;
     bottom: 0;

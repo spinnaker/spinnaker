@@ -20,15 +20,17 @@ export class CollapsibleSectionStateCacheInternal {
   }
 
   public isSet(heading: string): boolean {
-    return this.stateCache.get(heading) !== undefined;
+    return !!heading && this.stateCache.get(heading) !== undefined;
   }
 
   public isExpanded(heading: string): boolean {
-    return this.stateCache.get(heading) === true;
+    return !!heading && this.stateCache.get(heading) === true;
   }
 
   public setExpanded(heading: string, expanded: boolean) {
-    this.stateCache.put(heading, !!expanded);
+    if (!!heading) {
+      this.stateCache.put(heading, !!expanded);
+    }
   }
 }
 
