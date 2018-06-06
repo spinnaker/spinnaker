@@ -27,7 +27,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.Do
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.oraclebmcs.OracleBMCSProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleBMCSProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
@@ -124,6 +125,9 @@ public class ProviderService {
         break;
       case OPENSTACK:
         providers.setOpenstack((OpenstackProvider) provider);
+        break;
+      case ORACLE:
+        providers.setOracle((OracleProvider) provider);
         break;
       case ORACLEBMCS:
         providers.setOraclebmcs((OracleBMCSProvider) provider);

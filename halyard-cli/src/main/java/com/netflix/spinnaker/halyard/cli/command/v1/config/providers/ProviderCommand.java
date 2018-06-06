@@ -27,7 +27,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ecs.EcsComm
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.GoogleCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes.KubernetesCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.openstack.OpenstackCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oraclebmcs.OracleBMCSCommand;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -54,7 +54,7 @@ public class ProviderCommand extends NestableCommand {
     registerSubcommand(new GoogleCommand());
     registerSubcommand(new KubernetesCommand());
     registerSubcommand(new OpenstackCommand());
-    registerSubcommand(new OracleBMCSCommand());
+    registerSubcommand(new com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommand());
   }
 
   @Override

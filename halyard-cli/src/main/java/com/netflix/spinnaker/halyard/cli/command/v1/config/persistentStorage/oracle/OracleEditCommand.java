@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7,56 +7,55 @@
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.oraclebmcs;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.oracle;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.AbstractPersistentStoreEditCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oraclebmcs.OracleBMCSCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
-import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.OracleBMCSPersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.OraclePersistentStore;
 
 @Parameters(separators = "=")
-public class OracleBMCSEditCommand extends AbstractPersistentStoreEditCommand<OracleBMCSPersistentStore> {
+public class OracleEditCommand extends AbstractPersistentStoreEditCommand<OraclePersistentStore> {
   protected String getPersistentStoreType() {
-    return PersistentStore.PersistentStoreType.ORACLEBMCS.getId();
+    return PersistentStore.PersistentStoreType.ORACLE.getId();
   }
 
   @Parameter(
           names = "--compartment-id",
-          description = OracleBMCSCommandProperties.COMPARTMENT_ID_DESCRIPTION
+          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.COMPARTMENT_ID_DESCRIPTION
   )
   private String compartmentId;
 
   @Parameter(
           names = "--user-id",
-          description = OracleBMCSCommandProperties.USER_ID_DESCRIPTION
+          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.USER_ID_DESCRIPTION
   )
   private String userId;
 
   @Parameter(
           names = "--fingerprint",
-          description = OracleBMCSCommandProperties.FINGERPRINT_DESCRIPTION
+          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.FINGERPRINT_DESCRIPTION
   )
   private String fingerprint;
 
   @Parameter(
           names = "--ssh-private-key-file-path",
           converter = LocalFileConverter.class,
-          description = OracleBMCSCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION
+          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION
   )
   private String sshPrivateKeyFilePath;
 
   @Parameter(
           names = "--tenancy-id",
-          description = OracleBMCSCommandProperties.TENANCY_ID_DESCRIPTION
+          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.TENANCY_ID_DESCRIPTION
   )
   private String tenancyId;
 
   @Parameter(
           names = "--region",
-          description = OracleBMCSCommandProperties.REGION_DESCRIPTION
+          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.REGION_DESCRIPTION
   )
   private String region;
 
@@ -73,7 +72,7 @@ public class OracleBMCSEditCommand extends AbstractPersistentStoreEditCommand<Or
   private String namespace;
 
   @Override
-  protected OracleBMCSPersistentStore editPersistentStore(OracleBMCSPersistentStore persistentStore) {
+  protected OraclePersistentStore editPersistentStore(OraclePersistentStore persistentStore) {
     persistentStore.setCompartmentId(isSet(compartmentId) ? compartmentId : persistentStore.getCompartmentId());
     persistentStore.setUserId(isSet(userId) ? userId : persistentStore.getUserId());
     persistentStore.setFingerprint(isSet(fingerprint) ? fingerprint : persistentStore.getFingerprint());

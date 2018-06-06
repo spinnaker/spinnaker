@@ -83,7 +83,8 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     GOOGLE("google", "gce"),
     KUBERNETES("kubernetes"),
     OPENSTACK("openstack"),
-    ORACLEBMCS("oraclebmcs");
+    ORACLE("oracle"),
+    ORACLEBMCS("oraclebmcs"); // obsolete, replaced by ORACLE
 
     @Getter
     String name;

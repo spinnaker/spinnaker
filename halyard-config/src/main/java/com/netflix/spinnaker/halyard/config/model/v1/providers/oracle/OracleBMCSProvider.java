@@ -7,18 +7,11 @@
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.persistentStorage;
+package com.netflix.spinnaker.halyard.config.model.v1.providers.oracle;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-@Data
-@EqualsAndHashCode(callSuper = false)
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class OracleBMCSPersistentStore extends OraclePersistentStore {
+public class OracleBMCSProvider extends OracleProvider {
   @Override
-  public PersistentStoreType persistentStoreType() {
-    return PersistentStoreType.ORACLEBMCS;
+  public ProviderType providerType() {
+    return ProviderType.ORACLEBMCS;
   }
 }

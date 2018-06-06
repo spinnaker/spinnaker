@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
@@ -25,13 +27,16 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.ecs.EcsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.oraclebmcs.OracleBMCSProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleBMCSProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Data
@@ -46,16 +51,35 @@ public class Providers extends Node implements Cloneable {
   GoogleProvider google = new GoogleProvider();
   KubernetesProvider kubernetes = new KubernetesProvider();
   OpenstackProvider openstack = new OpenstackProvider();
+  @JsonProperty(access = Access.WRITE_ONLY)
   OracleBMCSProvider oraclebmcs = new OracleBMCSProvider();
+  OracleProvider oracle = new OracleProvider();
 
   @Override
   public String getNodeName() {
     return "provider";
   }
 
+  public OracleProvider getOracle() {
+    return OracleProvider.mergeOracleBMCSProvider(oracle, oraclebmcs);
+  }
+  
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeReflectiveIterator(this);
+    List<Node> nodes = new ArrayList<Node>();
+
+    NodeIterator children = NodeIteratorFactory.makeReflectiveIterator(this);
+    Node child = children.getNext();
+    while (child != null) {
+      if (!child.getNodeName().equals("oracle") && !child.getNodeName().equals("oraclebmcs")) {
+        nodes.add(child);
+      }
+      child = children.getNext();
+    }
+
+    nodes.add(OracleProvider.mergeOracleBMCSProvider(oracle, oraclebmcs));
+
+    return NodeIteratorFactory.makeListIterator(nodes);
   }
 
   @Override

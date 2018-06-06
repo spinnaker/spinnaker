@@ -277,15 +277,15 @@
  * [**hal config provider openstack bakery edit**](#hal-config-provider-openstack-bakery-edit)
  * [**hal config provider openstack disable**](#hal-config-provider-openstack-disable)
  * [**hal config provider openstack enable**](#hal-config-provider-openstack-enable)
- * [**hal config provider oraclebmcs**](#hal-config-provider-oraclebmcs)
- * [**hal config provider oraclebmcs account**](#hal-config-provider-oraclebmcs-account)
- * [**hal config provider oraclebmcs account add**](#hal-config-provider-oraclebmcs-account-add)
- * [**hal config provider oraclebmcs account delete**](#hal-config-provider-oraclebmcs-account-delete)
- * [**hal config provider oraclebmcs account edit**](#hal-config-provider-oraclebmcs-account-edit)
- * [**hal config provider oraclebmcs account get**](#hal-config-provider-oraclebmcs-account-get)
- * [**hal config provider oraclebmcs account list**](#hal-config-provider-oraclebmcs-account-list)
- * [**hal config provider oraclebmcs disable**](#hal-config-provider-oraclebmcs-disable)
- * [**hal config provider oraclebmcs enable**](#hal-config-provider-oraclebmcs-enable)
+ * [**hal config provider oracle**](#hal-config-provider-oracle)
+ * [**hal config provider oracle account**](#hal-config-provider-oracle-account)
+ * [**hal config provider oracle account add**](#hal-config-provider-oracle-account-add)
+ * [**hal config provider oracle account delete**](#hal-config-provider-oracle-account-delete)
+ * [**hal config provider oracle account edit**](#hal-config-provider-oracle-account-edit)
+ * [**hal config provider oracle account get**](#hal-config-provider-oracle-account-get)
+ * [**hal config provider oracle account list**](#hal-config-provider-oracle-account-list)
+ * [**hal config provider oracle disable**](#hal-config-provider-oracle-disable)
+ * [**hal config provider oracle enable**](#hal-config-provider-oracle-enable)
  * [**hal config pubsub**](#hal-config-pubsub)
  * [**hal config pubsub google**](#hal-config-pubsub-google)
  * [**hal config pubsub google disable**](#hal-config-pubsub-google-disable)
@@ -346,8 +346,8 @@
  * [**hal config storage edit**](#hal-config-storage-edit)
  * [**hal config storage gcs**](#hal-config-storage-gcs)
  * [**hal config storage gcs edit**](#hal-config-storage-gcs-edit)
- * [**hal config storage oraclebmcs**](#hal-config-storage-oraclebmcs)
- * [**hal config storage oraclebmcs edit**](#hal-config-storage-oraclebmcs-edit)
+ * [**hal config storage oracle**](#hal-config-storage-oracle)
+ * [**hal config storage oracle edit**](#hal-config-storage-oracle-edit)
  * [**hal config storage s3**](#hal-config-storage-s3)
  * [**hal config storage s3 edit**](#hal-config-storage-s3-edit)
  * [**hal config version**](#hal-config-version)
@@ -3104,7 +3104,7 @@ hal config provider [subcommands]
  * `google`: Manage and view Spinnaker configuration for the google provider
  * `kubernetes`: Manage and view Spinnaker configuration for the kubernetes provider
  * `openstack`: Manage and view Spinnaker configuration for the openstack provider
- * `oraclebmcs`: Manage and view Spinnaker configuration for the oraclebmcs provider
+ * `oracle`: Manage and view Spinnaker configuration for the oracle provider
 
 ---
 ## hal config provider appengine
@@ -5467,13 +5467,13 @@ hal config provider openstack enable [parameters]
 
 
 ---
-## hal config provider oraclebmcs
+## hal config provider oracle
 
-Manage and view Spinnaker configuration for the oraclebmcs provider
+Manage and view Spinnaker configuration for the oracle provider
 
 #### Usage
 ```
-hal config provider oraclebmcs [parameters] [subcommands]
+hal config provider oracle [parameters] [subcommands]
 ```
 
 #### Parameters
@@ -5481,18 +5481,18 @@ hal config provider oraclebmcs [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
- * `account`: Manage and view Spinnaker configuration for the oraclebmcs provider's account
- * `disable`: Set the oraclebmcs provider as disabled
- * `enable`: Set the oraclebmcs provider as enabled
+ * `account`: Manage and view Spinnaker configuration for the oracle provider's account
+ * `disable`: Set the oracle provider as disabled
+ * `enable`: Set the oracle provider as enabled
 
 ---
-## hal config provider oraclebmcs account
+## hal config provider oracle account
 
-Manage and view Spinnaker configuration for the oraclebmcs provider's account
+Manage and view Spinnaker configuration for the oracle provider's account
 
 #### Usage
 ```
-hal config provider oraclebmcs account ACCOUNT [parameters] [subcommands]
+hal config provider oracle account ACCOUNT [parameters] [subcommands]
 ```
 
 #### Parameters
@@ -5501,46 +5501,46 @@ hal config provider oraclebmcs account ACCOUNT [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
- * `add`: Add an account to the oraclebmcs provider.
- * `delete`: Delete a specific oraclebmcs account by name.
- * `edit`: Edit an account in the oraclebmcs provider.
- * `get`: Get the specified account details for the oraclebmcs provider.
- * `list`: List the account names for the oraclebmcs provider.
+ * `add`: Add an account to the oracle provider.
+ * `delete`: Delete a specific oracle account by name.
+ * `edit`: Edit an account in the oracle provider.
+ * `get`: Get the specified account details for the oracle provider.
+ * `list`: List the account names for the oracle provider.
 
 ---
-## hal config provider oraclebmcs account add
+## hal config provider oracle account add
 
-Add an account to the oraclebmcs provider.
+Add an account to the oracle provider.
 
 #### Usage
 ```
-hal config provider oraclebmcs account add ACCOUNT [parameters]
+hal config provider oracle account add ACCOUNT [parameters]
 ```
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
- * `--compartment-id`: (*Required*) Provide the OCID of the Oracle BMCS Compartment to use.
+ * `--compartment-id`: (*Required*) Provide the OCID of the Oracle Compartment to use.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--fingerprint`: (*Required*) Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
- * `--region`: (*Required*) An Oracle BMCS region (e.g., us-phoenix-1)
+ * `--region`: (*Required*) An Oracle region (e.g., us-phoenix-1)
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
- * `--tenancyId`: (*Required*) Provide the OCID of the Oracle BMCS Tenancy to use.
- * `--user-id`: (*Required*) Provide the OCID of the Oracle BMCS User you're authenticating as
+ * `--tenancyId`: (*Required*) Provide the OCID of the Oracle Tenancy to use.
+ * `--user-id`: (*Required*) Provide the OCID of the Oracle User you're authenticating as
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
-## hal config provider oraclebmcs account delete
+## hal config provider oracle account delete
 
-Delete a specific oraclebmcs account by name.
+Delete a specific oracle account by name.
 
 #### Usage
 ```
-hal config provider oraclebmcs account delete ACCOUNT [parameters]
+hal config provider oracle account delete ACCOUNT [parameters]
 ```
 
 #### Parameters
@@ -5550,13 +5550,13 @@ hal config provider oraclebmcs account delete ACCOUNT [parameters]
 
 
 ---
-## hal config provider oraclebmcs account edit
+## hal config provider oracle account edit
 
-Edit an account in the oraclebmcs provider.
+Edit an account in the oracle provider.
 
 #### Usage
 ```
-hal config provider oraclebmcs account edit ACCOUNT [parameters]
+hal config provider oracle account edit ACCOUNT [parameters]
 ```
 
 #### Parameters
@@ -5564,31 +5564,31 @@ hal config provider oraclebmcs account edit ACCOUNT [parameters]
  * `--add-read-permission`: Add this permission to the list of read permissions.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--add-write-permission`: Add this permission to the list of write permissions.
- * `--compartment-id`: Provide the OCID of the Oracle BMCS Compartment to use.
+ * `--compartment-id`: Provide the OCID of the Oracle Compartment to use.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--fingerprint`: Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
- * `--region`: An Oracle BMCS region (e.g., us-phoenix-1)
+ * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
- * `--tenancyId`: Provide the OCID of the Oracle BMCS Tenancy to use.
- * `--user-id`: Provide the OCID of the Oracle BMCS User you're authenticating as
+ * `--tenancyId`: Provide the OCID of the Oracle Tenancy to use.
+ * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
 ---
-## hal config provider oraclebmcs account get
+## hal config provider oracle account get
 
-Get the specified account details for the oraclebmcs provider.
+Get the specified account details for the oracle provider.
 
 #### Usage
 ```
-hal config provider oraclebmcs account get ACCOUNT [parameters]
+hal config provider oracle account get ACCOUNT [parameters]
 ```
 
 #### Parameters
@@ -5598,13 +5598,13 @@ hal config provider oraclebmcs account get ACCOUNT [parameters]
 
 
 ---
-## hal config provider oraclebmcs account list
+## hal config provider oracle account list
 
-List the account names for the oraclebmcs provider.
+List the account names for the oracle provider.
 
 #### Usage
 ```
-hal config provider oraclebmcs account list [parameters]
+hal config provider oracle account list [parameters]
 ```
 
 #### Parameters
@@ -5613,13 +5613,13 @@ hal config provider oraclebmcs account list [parameters]
 
 
 ---
-## hal config provider oraclebmcs disable
+## hal config provider oracle disable
 
-Set the oraclebmcs provider as disabled
+Set the oracle provider as disabled
 
 #### Usage
 ```
-hal config provider oraclebmcs disable [parameters]
+hal config provider oracle disable [parameters]
 ```
 
 #### Parameters
@@ -5628,13 +5628,13 @@ hal config provider oraclebmcs disable [parameters]
 
 
 ---
-## hal config provider oraclebmcs enable
+## hal config provider oracle enable
 
-Set the oraclebmcs provider as enabled
+Set the oracle provider as enabled
 
 #### Usage
 ```
-hal config provider oraclebmcs enable [parameters]
+hal config provider oracle enable [parameters]
 ```
 
 #### Parameters
@@ -6609,7 +6609,7 @@ hal config storage [parameters] [subcommands]
  * `azs`: Manage and view Spinnaker configuration for the "azs" persistent store.
  * `edit`: Edit Spinnaker's persistent storage.
  * `gcs`: Manage and view Spinnaker configuration for the "gcs" persistent store.
- * `oraclebmcs`: Manage and view Spinnaker configuration for the "oraclebmcs" persistent store.
+ * `oracle`: Manage and view Spinnaker configuration for the "oracle" persistent store.
  * `s3`: Manage and view Spinnaker configuration for the "s3" persistent store.
 
 ---
@@ -6701,13 +6701,13 @@ hal config storage gcs edit [parameters]
 
 
 ---
-## hal config storage oraclebmcs
+## hal config storage oracle
 
-Manage and view Spinnaker configuration for the "oraclebmcs" persistent store.
+Manage and view Spinnaker configuration for the "oracle" persistent store.
 
 #### Usage
 ```
-hal config storage oraclebmcs [parameters] [subcommands]
+hal config storage oracle [parameters] [subcommands]
 ```
 
 #### Parameters
@@ -6715,29 +6715,29 @@ hal config storage oraclebmcs [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
- * `edit`: Edit configuration for the "oraclebmcs" persistent store.
+ * `edit`: Edit configuration for the "oracle" persistent store.
 
 ---
-## hal config storage oraclebmcs edit
+## hal config storage oracle edit
 
-Edit configuration for the "oraclebmcs" persistent store.
+Edit configuration for the "oracle" persistent store.
 
 #### Usage
 ```
-hal config storage oraclebmcs edit [parameters]
+hal config storage oracle edit [parameters]
 ```
 
 #### Parameters
  * `--bucket-name`: The bucket name to store persistent state object in
- * `--compartment-id`: Provide the OCID of the Oracle BMCS Compartment to use.
+ * `--compartment-id`: Provide the OCID of the Oracle Compartment to use.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--fingerprint`: Fingerprint of the public key
  * `--namespace`: The namespace the bucket and objects should be created in
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--region`: An Oracle BMCS region (e.g., us-phoenix-1)
+ * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
- * `--tenancy-id`: Provide the OCID of the Oracle BMCS Tenancy to use.
- * `--user-id`: Provide the OCID of the Oracle BMCS User you're authenticating as
+ * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
+ * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 
 
 ---

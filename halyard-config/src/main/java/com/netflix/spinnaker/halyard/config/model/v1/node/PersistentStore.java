@@ -53,7 +53,8 @@ public abstract class PersistentStore extends Node {
     GCS("gcs"),
     REDIS("redis"),
     S3("s3"),
-    ORACLEBMCS("oraclebmcs");
+    ORACLE("oracle"),
+    ORACLEBMCS("oraclebmcs"); // obsolete, replaced by ORACLE
 
     String id;
 
