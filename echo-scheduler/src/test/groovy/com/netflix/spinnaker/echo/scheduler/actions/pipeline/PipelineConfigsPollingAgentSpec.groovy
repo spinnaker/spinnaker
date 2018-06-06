@@ -27,6 +27,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineConfigsPollingAgent
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class PipelineConfigsPollingAgentSpec extends Specification {
 
@@ -43,7 +44,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
             .cronExpression('* 0/30 * * * ? *')
             .build()
         Pipeline pipeline = buildPipeline([trigger])
-        pipelineCache.getPipelines() >> [pipeline]
+        pipelineCache.getPipelines() >> PipelineCache.decorateTriggers([pipeline])
         actionsOperator.getActionInstances() >> []
 
         when:
@@ -57,17 +58,19 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         1 * actionsOperator.registerActionInstance(_ as ActionInstance)
     }
 
-    void 'when an existing pipeline trigger is disabled, corresponding scheduled action is also disabled'() {
+    @Unroll
+    void 'with triggerEnabled=#triggerEnabled and pipelineDisabled=#pipelineDisabled, corresponding scheduled action is disabled'() {
         given:
         Trigger trigger = Trigger.builder()
-            .enabled(false)
+            .enabled(triggerEnabled)
             .id('t1')
             .type(Trigger.Type.CRON.toString())
             .cronExpression('* 0/30 * * * ? *')
             .build()
-        Pipeline pipeline = buildPipeline([trigger])
-        ActionInstance actionInstance = buildScheduledAction(trigger.id, '* 0/30 * * * ? *', true)
-        pipelineCache.getPipelines() >> [pipeline]
+        Pipeline pipeline = buildPipeline([trigger], pipelineDisabled)
+        def decoratedPipelines = PipelineCache.decorateTriggers([pipeline]) // new id for trigger will be generated here
+        ActionInstance actionInstance = buildScheduledAction(decoratedPipelines[0].triggers[0].id, '* 0/30 * * * ? *', true)
+        pipelineCache.getPipelines() >> decoratedPipelines
         actionsOperator.getActionInstances() >> [actionInstance]
 
         when:
@@ -76,66 +79,23 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         then:
         !actionInstance.disabled
         0 * actionsOperator.enableActionInstance(_)
+        0 * actionsOperator.enableActionInstance(_)
         0 * actionsOperator.updateActionInstance(_)
         0 * actionsOperator.registerActionInstance(_)
         0 * actionsOperator.deleteActionInstance(_)
         1 * actionsOperator.disableActionInstance(actionInstance)
-    }
 
-    void 'when an existing pipeline is disabled, corresponding scheduled action is also disabled'() {
-      given:
-      Trigger trigger = Trigger.builder()
-          .enabled(true)
-          .id('t1')
-          .type(Trigger.Type.CRON.toString())
-          .cronExpression('* 0/30 * * * ? *')
-          .build()
-      Pipeline pipeline = buildPipeline([trigger], true)
-      ActionInstance actionInstance = buildScheduledAction(trigger.id, '* 0/30 * * * ? *', true)
-      pipelineCache.getPipelines() >> [pipeline]
-      actionsOperator.getActionInstances() >> [actionInstance]
-
-      when:
-      pollingAgent.execute()
-
-      then:
-      !actionInstance.disabled
-      0 * actionsOperator.enableActionInstance(_)
-      0 * actionsOperator.updateActionInstance(_)
-      0 * actionsOperator.registerActionInstance(_)
-      0 * actionsOperator.deleteActionInstance(_)
-      1 * actionsOperator.disableActionInstance(actionInstance)
-    }
-
-    void 'when an existing disabled pipeline trigger is enabled, corresponding scheduled action is also enabled'() {
-        given:
-        Trigger trigger = Trigger.builder()
-            .enabled(true)
-            .id('t1')
-            .type(Trigger.Type.CRON.toString())
-            .cronExpression('* 0/30 * * * ? *')
-            .build()
-        Pipeline pipeline = buildPipeline([trigger])
-        ActionInstance actionInstance = buildScheduledAction(trigger.id, '* 0/30 * * * ? *', false)
-        pipelineCache.getPipelines() >> [pipeline]
-        actionsOperator.getActionInstances() >> [actionInstance]
-
-        when:
-        pollingAgent.execute()
-
-        then:
-        0 * actionsOperator.updateActionInstance(_)
-        0 * actionsOperator.registerActionInstance(_)
-        0 * actionsOperator.disableActionInstance(_)
-        0 * actionsOperator.deleteActionInstance(_)
-        1 * actionsOperator.enableActionInstance(actionInstance)
+        where:
+        triggerEnabled | pipelineDisabled
+        false          | false
+        true           | true
     }
 
     void 'when an existing pipeline trigger is removed, corresponding scheduled action is also removed'() {
         given:
         Pipeline pipeline = buildPipeline([])
         ActionInstance actionInstance = buildScheduledAction('t1', '* 0/30 * * * ? *', true)
-        pipelineCache.getPipelines() >> [pipeline]
+        pipelineCache.getPipelines() >> PipelineCache.decorateTriggers([pipeline])
         actionsOperator.getActionInstances() >> [actionInstance]
 
         when:
@@ -149,76 +109,39 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         1 * actionsOperator.deleteActionInstance(actionInstance)
     }
 
-    void 'when an existing pipeline trigger is updated, corresponding scheduled action is also updated'() {
+    @Unroll
+    void 'when we make changes to pipeline triggers, they are reflected in their corresponding action instance'() {
         given:
+        def actionCron = '* 0/30 * * * ? *'
+
         Trigger trigger = Trigger.builder()
-            .enabled(true)
-            .id('t1')
-            .type(Trigger.Type.CRON.toString())
-            .cronExpression('* 0/45 * * * ? *')
-            .build()
+          .enabled(triggerEnabled)
+          .id('t1')
+          .type(Trigger.Type.CRON.toString())
+          .cronExpression(changeTrigger ? actionCron.replaceAll('30', '45') : actionCron)
+          .build()
         Pipeline pipeline = buildPipeline([trigger])
-        ActionInstance actionInstance = buildScheduledAction('t1', '* 0/30 * * * ? *', true)
-        pipelineCache.getPipelines() >> [pipeline]
+        def decoratedPipelines = PipelineCache.decorateTriggers([pipeline]) // new id for trigger will be generated here
+        ActionInstance actionInstance = buildScheduledAction(changeTrigger ? trigger.id : decoratedPipelines[0].triggers[0].id, actionCron, actionEnabled)
+        pipelineCache.getPipelines() >> decoratedPipelines
         actionsOperator.getActionInstances() >> [actionInstance]
 
         when:
         pollingAgent.execute()
 
         then:
-        0 * actionsOperator.registerActionInstance(_)
+        numRegister * actionsOperator.registerActionInstance(_)
         0 * actionsOperator.disableActionInstance(_)
-        0 * actionsOperator.enableActionInstance(_)
-        0 * actionsOperator.deleteActionInstance(_)
-        1 * actionsOperator.updateActionInstance(_ as ActionInstance)
-    }
+        numEnable * actionsOperator.enableActionInstance(_)
+        numDelete * actionsOperator.deleteActionInstance(_)
+        0 * actionsOperator.updateActionInstance(_ as ActionInstance)
 
-    void 'when an existing pipeline trigger is updated but is still disabled, corresponding scheduled action is NOT updated'() {
-        given:
-        Trigger trigger = Trigger.builder()
-            .enabled(true)
-            .id('t1')
-            .type(Trigger.Type.CRON.toString())
-            .cronExpression('* 0/45 * * * ? *')
-            .build()
-        Pipeline pipeline = buildPipeline([trigger])
-        ActionInstance actionInstance = buildScheduledAction('t1', '* 0/30 * * * ? *', false)
-        pipelineCache.getPipelines() >> [pipeline]
-        actionsOperator.getActionInstances() >> [actionInstance]
-
-        when:
-        pollingAgent.execute()
-
-        then:
-        0 * actionsOperator.registerActionInstance(_)
-        0 * actionsOperator.disableActionInstance(_)
-        0 * actionsOperator.enableActionInstance(_)
-        0 * actionsOperator.deleteActionInstance(_)
-        0 * actionsOperator.updateActionInstance(actionInstance)
-    }
-
-    void 'with no changes to pipeline trigger, no scheduled actions are updated for that pipeline'() {
-        given:
-        Trigger trigger = Trigger.builder()
-            .enabled(true)
-            .id('t1')
-            .type(Trigger.Type.CRON.toString())
-            .cronExpression('* 0/30 * * * ? *')
-            .build()
-        Pipeline pipeline = buildPipeline([trigger])
-        ActionInstance actionInstance = buildScheduledAction('t1', '* 0/30 * * * ? *', true)
-        pipelineCache.getPipelines() >> [pipeline]
-        actionsOperator.getActionInstances() >> [actionInstance]
-
-        when:
-        pollingAgent.execute()
-
-        then:
-        0 * actionsOperator.registerActionInstance(_)
-        0 * actionsOperator.disableActionInstance(_)
-        0 * actionsOperator.enableActionInstance(_)
-        0 * actionsOperator.deleteActionInstance(_)
-        0 * actionsOperator.updateActionInstance(_)
+        where:
+        triggerEnabled | changeTrigger | actionEnabled || numRegister || numEnable || numDelete
+        true           | true          | true          || 1           || 0         || 1  // existing trigger is updated -> deleted and created again
+        false          | true          | false         || 0           || 0         || 1  // existing trigger is updated but disabled -> deleted and NOT created again
+        true           | false         | false         || 0           || 1         || 0  // existing trigger is enabled -> action is enabled
+        true           | false         | true          || 0           || 0         || 0  // no changes to pipeline trigger, no scheduled actions are updated
     }
 
     private static Pipeline buildPipeline(List<Trigger> triggers) {

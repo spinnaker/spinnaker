@@ -73,7 +73,7 @@ public class PipelineInitiator implements Action1<Pipeline> {
     }
 
     return (fiatEnabled && runAsUser != null && !runAsUser.isEmpty()) ?
-      orca.trigger(pipeline, pipeline.getTrigger().getRunAsUser()) :
+      orca.trigger(pipeline, runAsUser) :
       orca.trigger(pipeline);
   }
 

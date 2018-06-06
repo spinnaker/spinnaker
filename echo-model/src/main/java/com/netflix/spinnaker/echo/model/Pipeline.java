@@ -21,10 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
-import lombok.Builder;
-import lombok.NonNull;
-import lombok.ToString;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.Wither;
 
 import java.util.List;
@@ -34,7 +31,8 @@ import java.util.Map;
 @Builder
 @Wither
 @ToString(of = {"application", "name", "id"}, includeFieldNames = false)
-@Value public class Pipeline {
+@Value
+public class Pipeline {
   @JsonProperty
   @NonNull String application;
 

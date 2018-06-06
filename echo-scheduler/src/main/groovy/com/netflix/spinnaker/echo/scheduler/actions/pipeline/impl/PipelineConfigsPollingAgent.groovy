@@ -78,20 +78,20 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
     try {
       log.info("Running the pipeline configs polling agent...")
 
-      /**
-       * Only interested in pipelines that have triggers and that too scheduled triggers
-       */
+      // Only interested in pipelines that have triggers and that too scheduled triggers
       def pipelines = pipelineCache.getPipelines().findAll {
         it.triggers && it.triggers.any { TRIGGER_TYPE.equalsIgnoreCase(it.type) }
       }
+
+      def triggerRepo = new TriggerRepository(pipelines)
 
       try {
         /**
          * Getting all the registered scheduled actions
          */
         List<ActionInstance> actionInstances = actionsOperator.getActionInstances()
-        updateChangedTriggers(pipelines, actionInstances)
-        registerNewTriggers(pipelines, actionInstances)
+        updateChangedTriggers(triggerRepo, actionInstances)
+        registerNewTriggers(triggerRepo, actionInstances)
       } catch (Exception e) {
         registry.counter("actionsOperator.list.errors").increment()
         throw new Exception("Exception occurred while fetching all registered action instances", e)
@@ -105,29 +105,25 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
     }
   }
 
-  void updateChangedTriggers(List<Pipeline> pipelines, List<ActionInstance> actionInstances) {
+  void updateChangedTriggers(TriggerRepository triggerRepo, List<ActionInstance> actionInstances) {
     try {
-      /**
-       * Extract ALL the triggers
-       */
-      List<Trigger> triggers = pipelines.collect { it.triggers }.flatten()
-
       /**
        * Iterate through all the registered ActionInstances and for each, check if the corresponding
        * trigger has been updated or not. If it is, then update the ActionInstance as well. Trigger and
        * ActionInstance have the same 'id'
        */
       if (actionInstances) {
-        log.info("Found '${actionInstances?.size()}' existing scheduled action(s). " +
+        log.info("Found ${actionInstances?.size()} existing scheduled action(s). " +
           "Iterating through each scheduled action and checking if the corresponding trigger has been changed...")
       }
 
       actionInstances.each { actionInstance ->
-        // InMemoryActionInstanceDao builds composite action instance ids that end with the trigger id.
-        Trigger trigger = triggers.find { it.id == actionInstance.id || actionInstance.id.endsWith(":$it.id") }
+        // InMemoryActionInstanceDao builds composite action instance ids that end with the trigger id
+        // e.g. 2d05822d-0275-454b-9616-361bf3b557ca:com.netflix.scheduledactions.ActionInstance:74f13df7-e642-4f8b-a5f2-0d5319aa0bd1
+        Trigger trigger = triggerRepo.getTrigger(actionInstance.id)
         try {
           if (trigger) {
-            Pipeline pipeline = pipelines.find { it.triggers.contains(trigger) }
+            Pipeline pipeline = trigger.parent
             if (trigger.enabled && !pipeline.disabled) {
               if (!PipelineTriggerConverter.isInSync(actionInstance, trigger, timeZoneId)) {
                 /**
@@ -155,7 +151,7 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
             } else {
               if (!actionInstance.disabled) {
                 actionsOperator.disableActionInstance(actionInstance)
-                log.info("Disabled scheduled action '${actionInstance.id}' as the corresponding trigger has been " +
+                log.info("Disabled scheduled action '${actionInstance.id}' as the corresponding trigger ${trigger} has been " +
                   "disabled")
               }
             }
@@ -173,44 +169,38 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
     }
   }
 
-  void registerNewTriggers(List<Pipeline> pipelines, List<ActionInstance> actionInstances) {
+  void registerNewTriggers(TriggerRepository triggerRepo, List<ActionInstance> actionInstances) {
     try {
-      List<String> actionIds = actionInstances.collect { it.id }
-
-      /**
-       * Find all pipelines that don't have a trigger that is not associated (by id) with any actionInstance in the
-       * list of actionInstances. This indicates that these are new triggers
-       */
-      List<Pipeline> pipelinesWithNewTriggers = pipelines.findAll {
-        def cronTriggers = it.triggers.findAll { it.type == Trigger.Type.CRON.toString() }
-        cronTriggers.any { !actionIds.contains(it.id) && !actionIds.find { actionId -> actionId.endsWith(":$it.id") } }
+      // find all the triggers that don't have a corresponding action instance (by id)
+      // this indicates that these are new triggers
+      actionInstances.each { actionInstance ->
+        triggerRepo.remove(actionInstance.id)
       }
-      pipelinesWithNewTriggers.each { pipeline ->
-        /**
-         * Extract all the triggers of type 'cron' from a pipeline. Ideally, there would be just one,
-         * but pipelines 'could' have multiple cron triggers
-         */
-        List<Trigger> triggers = pipeline.triggers.findAll {
-          it.type == Trigger.Type.CRON.toString() && it.enabled
+
+      Collection<Trigger> newTriggers = triggerRepo.triggers()
+      newTriggers.each { trigger ->
+        if (!Trigger.Type.CRON.toString().equalsIgnoreCase(trigger.type) || !trigger.enabled) {
+          log.debug("Skipping disabled or non-cron trigger ${trigger}")
+          return
         }
-        if (triggers) {
-          log.info("Found '${triggers.size()}' new cron trigger(s) for ${pipeline}...")
+
+        Pipeline pipeline = trigger.parent
+        if (pipeline.disabled) {
+          log.debug("Skipping disabled pipeline ${pipeline}")
+          return
         }
-        triggers.each { trigger ->
-          try {
-            /**
-             * Create an ActionInstance for each trigger and assign the same id as the trigger id
-             * ActionInstances are grouped by pipeline id. Pass in enough parameters to the ActionInstance for it
-             * to construct the Pipeline instance back
-             */
-            ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, timeZoneId)
-            actionsOperator.registerActionInstance(actionInstance)
-            log.info('Registered scheduled trigger {} {} {}', kv('id', actionInstance.id), kv('trigger', trigger), kv('pipeline', pipeline))
-            registry.counter("newTriggers.count").increment()
-          } catch (Exception e) {
-            registry.counter("newTriggers.errors", "exception", e.getClass().getName()).increment()
-            log.error("Exception occurred while creating new ${trigger}", e)
-          }
+
+        try {
+          // Create an ActionInstance for each trigger and assign the same id as the trigger id
+          // ActionInstances are grouped by pipeline id. Pass in enough parameters to the ActionInstance for it
+          // to construct the Pipeline instance back
+          ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, timeZoneId)
+          actionsOperator.registerActionInstance(actionInstance)
+          log.info('Registered scheduled trigger {} {} {}', kv('id', actionInstance.id), kv('trigger', trigger), kv('pipeline', pipeline))
+          registry.counter("newTriggers.count").increment()
+        } catch (Exception e) {
+          log.error("Exception occurred while creating new trigger ${trigger} for pipeline ${pipeline}", e)
+          registry.counter("newTriggers.errors", "exception", e.getClass().getName()).increment()
         }
       }
     } catch (Exception e) {

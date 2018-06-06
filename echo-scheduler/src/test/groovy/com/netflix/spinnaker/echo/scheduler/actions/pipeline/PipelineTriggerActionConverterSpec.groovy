@@ -40,11 +40,12 @@ class PipelineTriggerActionConverterSpec extends Specification {
       .parallel(true)
       .build()
 
-    void 'toParameters() should return an equivalent map of parameters'() {
+    @Unroll
+    void 'toParameters() should return an equivalent map of parameters with triggerId=#triggerId'() {
         setup:
         Trigger trigger = Trigger.builder()
             .enabled(true)
-            .id('123-456')
+            .id(triggerId)
             .type('cron')
             .cronExpression('* 0/30 * * * ? *')
             .build()
@@ -59,6 +60,9 @@ class PipelineTriggerActionConverterSpec extends Specification {
         parameters.triggerCronExpression == trigger.cronExpression
         parameters.triggerTimeZoneId == 'America/New_York'
         parameters.triggerEnabled == Boolean.toString(trigger.enabled)
+
+        where:
+        triggerId << ['123-456', null]
     }
 
     void 'fromParameters() should return an equivalent valid Pipeline instance'() {
@@ -88,11 +92,12 @@ class PipelineTriggerActionConverterSpec extends Specification {
         pipelineWithTrigger.trigger.enabled == Boolean.valueOf(parameters.triggerEnabled)
     }
 
-    void 'toScheduledAction() should return an equivalent valid ActionInstance'() {
+    @Unroll
+    void 'toScheduledAction() should return an equivalent valid ActionInstance with triggerId=#triggerId'() {
         setup:
         Trigger trigger = Trigger.builder()
             .enabled(true)
-            .id('123-456')
+            .id(triggerId)
             .type('cron')
             .cronExpression('* 0/30 * * * ? *')
             .build()
@@ -115,6 +120,9 @@ class PipelineTriggerActionConverterSpec extends Specification {
         actionInstance.parameters.triggerCronExpression == trigger.cronExpression
         actionInstance.parameters.triggerTimeZoneId == 'America/Los_Angeles'
         actionInstance.parameters.triggerEnabled == Boolean.toString(trigger.enabled)
+
+        where:
+        triggerId << ['123-456', null]
     }
 
     @Unroll
@@ -161,5 +169,4 @@ class PipelineTriggerActionConverterSpec extends Specification {
         expect:
         isInSync(actionInstance, trigger, null)
     }
-
 }

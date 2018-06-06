@@ -59,7 +59,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv
 @Slf4j
 class MissedPipelineTriggerCompensationJob implements ApplicationListener<ContextRefreshedEvent> {
 
-  final static Duration STARTUP_POLL_INTERVAL = Duration.ofSeconds(5)
+  final static Duration STARTUP_POLL_INTERVAL = Duration.ofSeconds(60)
 
   final Scheduler scheduler
   final PipelineCache pipelineCache

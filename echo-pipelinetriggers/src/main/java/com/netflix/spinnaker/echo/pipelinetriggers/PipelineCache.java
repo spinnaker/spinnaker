@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
+import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +31,11 @@ import rx.Subscription;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -101,7 +104,7 @@ public class PipelineCache implements MonitoredPoller {
 
   private void cachePipelines(final List<Pipeline> pipelines) {
     log.info("Refreshing pipelines");
-    this.pipelines.set(pipelines);
+    this.pipelines.set(decorateTriggers(pipelines));
   }
 
   private void onFront50Request(final long tick) {
@@ -113,5 +116,29 @@ public class PipelineCache implements MonitoredPoller {
   private void onFront50Error(Throwable e) {
     log.error("Error fetching pipelines from Front50: {}", e.getMessage());
     registry.counter("front50.errors").increment();
+  }
+
+  // visible for testing
+  public static List<Pipeline> decorateTriggers(final List<Pipeline> pipelines) {
+    return pipelines
+      .stream()
+      .map(p -> {
+        List<Trigger> triggers = p.getTriggers();
+        if (triggers == null) {
+          return p;
+        }
+
+        List<Trigger> newTriggers = new ArrayList<>(triggers.size());
+        Pipeline newPipe = p.withTriggers(newTriggers);
+
+        for (Trigger oldTrigger: triggers) {
+          Trigger newTrigger = oldTrigger.withParent(newPipe);
+          newTrigger = newTrigger.withId(newTrigger.generateFallbackId());
+          newTriggers.add(newTrigger);
+        }
+
+        return newPipe;
+      })
+      .collect(Collectors.toList());
   }
 }
