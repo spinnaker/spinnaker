@@ -185,7 +185,7 @@ class BuildController {
             }
 
             log.info("Submitted build job '{}'", kv("job", job))
-            def locationHeader = response.headers.find { it.name == "Location" }
+            def locationHeader = response.headers.find { it.name.toLowerCase() == "location" }
             if (!locationHeader) {
                 throw new QueuedJobDeterminationError("Could not find Location header for job '${job}'")
             }
