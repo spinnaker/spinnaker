@@ -1,6 +1,6 @@
-import { has, intersection, map } from 'lodash';
+import { get, intersection, map } from 'lodash';
 
-import { IServerGroup, ITask } from 'core/domain';
+import { IServerGroup, ITask, IExecutionStage } from 'core/domain';
 
 export type ITaskMatcher = (task: ITask, serverGroup: IServerGroup) => boolean;
 
@@ -55,16 +55,13 @@ export class TaskMatcher {
     this.instanceIdMatchers.forEach(m => (matchers[m] = instanceIdsTaskMatcher));
     this.baseTaskMatchers.forEach(m => (matchers[m] = baseTaskMatcher));
 
-    const notificationType: string = has(task, 'execution.stages')
-      ? task.execution.stages[0].context['notification.type']
-        ? task.execution.stages[0].context['notification.type']
-        : task.execution.stages[0].type // TODO: good grief
-      : task.getValueFor('notification.type');
+    const emptyStage = { context: {} } as IExecutionStage;
+    const firstStage = get(task, 'execution.stages[0]', emptyStage);
+    const notificationType: string =
+      firstStage.context['notification.type'] || firstStage.type || task.getValueFor('notification.type');
 
-    if (notificationType && matchers[notificationType]) {
-      return matchers[notificationType](task, serverGroup);
-    }
-    return false;
+    const matcher = notificationType && (matchers[notificationType] || matchers[notificationType.toLowerCase()]);
+    return matcher ? matchers[notificationType](task, serverGroup) : false;
   }
 }
 
