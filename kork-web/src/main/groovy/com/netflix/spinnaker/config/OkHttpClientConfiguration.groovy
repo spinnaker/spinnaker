@@ -34,6 +34,10 @@ import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
+/**
+ * @deprecated replaced by {@link OkHttp3ClientConfiguration}
+ */
+
 @Slf4j
 @CompileStatic
 @Component
