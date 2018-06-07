@@ -61,7 +61,7 @@ export class TaskMatcher {
       firstStage.context['notification.type'] || firstStage.type || task.getValueFor('notification.type');
 
     const matcher = notificationType && (matchers[notificationType] || matchers[notificationType.toLowerCase()]);
-    return matcher ? matchers[notificationType](task, serverGroup) : false;
+    return !!matcher && matcher(task, serverGroup);
   }
 }
 
