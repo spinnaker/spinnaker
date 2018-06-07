@@ -286,17 +286,14 @@ module.exports = angular
         this.bastionHost = details.bastionHost || 'unknown';
 
         const discoveryHealth = $scope.instance.health.find(m => m.type === 'Discovery');
-
         if (discoveryHealth) {
-          this.discoveryInfoLink = `http://discoveryreadonly.${$scope.instance.region}.dyn${
-            details.environment
-          }.netflix.net:7001/discovery/v2/apps/${discoveryHealth.application}/${$scope.instance.instanceId}`;
+          this.discoveryInfoLink =
+            `http://discoveryreadonly.${region}.dyn${details.environment}` +
+            `.netflix.net:7001/discovery/v2/apps/${discoveryHealth.application}/${$scope.instance.instanceId}`;
         }
 
         this.titusUiEndpoint = filter(details.regions, { name: region })[0].endpoint;
-        $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh -region ${$scope.instance.region} -id ${
-          $scope.instance.id
-        }'`;
+        $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh -region ${region} ${$scope.instance.id}'`;
       });
     };
 
