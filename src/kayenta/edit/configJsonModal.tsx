@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get, omit } from 'lodash';
 
-import { jsonUtilityService, NgReact, IJsonDiff } from '@spinnaker/core';
+import { JsonUtils, NgReact, IJsonDiff } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
 import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
@@ -123,12 +123,12 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigJs
 
 function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
   const id: string = get(state, 'selectedConfig.config.id');
-  const persistedConfig = jsonUtilityService.makeSortedStringFromObject(
+  const persistedConfig = JsonUtils.makeSortedStringFromObject(
     omit(state.data.configs.find(c => c.id === id) || {}, 'id'),
   );
 
   const configJson = state.selectedConfig.json.configJson
-    || jsonUtilityService.makeSortedStringFromObject(omit(mapStateToConfig(state) || {}, 'id'));
+    || JsonUtils.makeSortedStringFromObject(omit(mapStateToConfig(state) || {}, 'id'));
 
   return {
     configJson,
@@ -136,7 +136,7 @@ function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
     show: state.app.configJsonModalOpen,
     deserializationError: state.selectedConfig.json.error,
     tabState: state.app.configJsonModalTabState,
-    diff: state.selectedConfig.json.error ? null : jsonUtilityService.diff(persistedConfig, configJson, true),
+    diff: state.selectedConfig.json.error ? null : JsonUtils.diff(persistedConfig, configJson, true),
   };
 }
 

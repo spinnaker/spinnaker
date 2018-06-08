@@ -6,9 +6,9 @@ import { KAYENTA_MODULE } from 'kayenta/canary.module';
 module('netflix.spinnaker', [
   CORE_MODULE,
   KAYENTA_MODULE,
-]).run((applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
+]).run(() => {
   'ngInject';
-  applicationDataSourceRegistry.setDataSourceOrder([
+  ApplicationDataSourceRegistry.setDataSourceOrder([
     'executions', 'serverGroups', 'tasks', 'loadBalancers', 'securityGroups', 'canaryConfigs', 'config'
   ]);
 });

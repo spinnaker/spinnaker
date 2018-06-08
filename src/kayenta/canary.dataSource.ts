@@ -2,7 +2,6 @@ import { module, IQService } from 'angular';
 import { CanarySettings } from 'kayenta/canary.settings';
 
 import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
   ApplicationDataSourceRegistry,
   Application
 } from '@spinnaker/core';
@@ -15,8 +14,8 @@ import { listCanaryExecutions } from './service/canaryRun.service';
 import { ICanaryExecutionStatusResult } from './domain/ICanaryExecutionStatusResult';
 
 export const CANARY_DATA_SOURCE = 'spinnaker.kayenta.canary.dataSource';
-module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
-  .run(($q: IQService, applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
+module(CANARY_DATA_SOURCE, [])
+  .run(($q: IQService) => {
     'ngInject';
     // TODO: IDataSourceConfig expects an IPromise (not a Promise) from the loaders in this function, which is why we're using $q.resolve(...).
     const loadCanaryConfigs = (application: Application) => {
@@ -40,7 +39,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       }));
     };
 
-    applicationDataSourceRegistry.registerDataSource({
+    ApplicationDataSourceRegistry.registerDataSource({
       optIn: !CanarySettings.optInAll,
       optional: true,
       loader: loadCanaryConfigs,
@@ -66,7 +65,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       }));
     };
 
-    applicationDataSourceRegistry.registerDataSource({
+    ApplicationDataSourceRegistry.registerDataSource({
       key: 'canaryJudges',
       label: 'Canary Configs',
       sref: '.canary.canaryConfig',
@@ -104,7 +103,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       }));
     };
 
-    applicationDataSourceRegistry.registerDataSource({
+    ApplicationDataSourceRegistry.registerDataSource({
       key: 'canaryExecutions',
       label: 'Canary Reports',
       sref: '.canary.report',
