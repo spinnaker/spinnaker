@@ -68,7 +68,11 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
               <dl>
                 <div>
                   <dt>
-                    <img className="artifact-icon" src={ArtifactIconService.getPath(type)} width="18" height="18" />
+                    {ArtifactIconService.getPath(type) ? (
+                      <img className="artifact-icon" src={ArtifactIconService.getPath(type)} width="18" height="18" />
+                    ) : (
+                      <span>{type}</span>
+                    )}
                   </dt>
                   <dd>{name}</dd>
                 </div>

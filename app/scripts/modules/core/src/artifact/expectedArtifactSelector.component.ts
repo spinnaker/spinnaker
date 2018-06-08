@@ -49,11 +49,21 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
           <ui-select ng-model="ctrl.id"
                      class="form-control input-sm expected-artifact-selector" required>
             <ui-select-match>
-              <img ng-if="ctrl.showIcons" width="16" height="16" class="artifact-icon" ng-src="{{ ctrl.iconPath($select.selected) }}" />
+              <img
+                ng-if="ctrl.showIcons && ctrl.iconPath($select.selected)"
+                width="16"
+                height="16"
+                class="artifact-icon"
+                ng-src="{{ ctrl.iconPath($select.selected) }}" />
               {{ $select.selected | summarizeExpectedArtifact }}
             </ui-select-match>
             <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
-              <img ng-if="ctrl.showIcons" width="16" height="16" class="artifact-icon" ng-src="{{ ctrl.iconPath(expected) }}" />
+              <img
+                ng-if="ctrl.showIcons && ctrl.iconPath(expected)"
+                width="16"
+                height="16"
+                class="artifact-icon"
+                ng-src="{{ ctrl.iconPath(expected) }}" />
               <span>{{ expected | summarizeExpectedArtifact }}</span>
             </ui-select-choices>
           </ui-select>

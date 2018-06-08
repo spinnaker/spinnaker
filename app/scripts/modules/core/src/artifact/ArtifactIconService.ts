@@ -13,9 +13,13 @@ export class ArtifactIconService {
   }
 
   public static getPath(type: string) {
+    if (type == null) {
+      return unknownArtifactPath;
+    }
+
     const icon = ArtifactIconService.icons.find(entry => entry.type.test(type));
     if (icon === undefined) {
-      return unknownArtifactPath;
+      return null;
     }
     return icon.path;
   }

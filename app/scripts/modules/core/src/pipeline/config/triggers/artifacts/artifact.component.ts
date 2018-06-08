@@ -97,11 +97,11 @@ class ArtifactComponent implements IComponentOptions {
                ng-model="ctrl.artifact.kind"
                on-select="ctrl.loadArtifactKind()">
       <ui-select-match>
-        <img width="20" height="20" ng-src="{{ ctrl.selectedIcon }}" />
+        <img width="20" height="20" ng-if="ctrl.selectedIcon" ng-src="{{ ctrl.selectedIcon }}" />
         {{ ctrl.selectedLabel }}
       </ui-select-match>
       <ui-select-choices repeat="option.key as option in ctrl.getOptions() | filter: { label: $select.search }">
-        <img width="20" height="20" ng-src="{{ ctrl.artifactIconPath(option) }}" />
+        <img width="20" height="20" ng-if="ctrl.artifactIconPath(option)" ng-src="{{ ctrl.artifactIconPath(option) }}" />
         <span>{{ option.label }}</span>
       </ui-select-choices>
     </ui-select>
