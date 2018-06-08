@@ -1,6 +1,8 @@
 import re
 from datetime import datetime
-from .pull_request_event import GetPullRequest
+
+from gh import ParseReleaseBranch, ParseCommitMessage, AddLabel
+from .pull_request_event import GetBaseBranch, GetPullRequest, GetRepo
 from .handler import Handler
 
 class PullRequestClosedEventHandler(Handler):
@@ -25,6 +27,8 @@ class PullRequestClosedEventHandler(Handler):
 
         approved = next((r for r in pull_request.get_reviews() if r.state == 'APPROVED'), None) is not None
 
+        release_branch = self.label_release(g, event, pull_request)
+
         self.monitoring_db.write('pull_request_closed',
             {
                 'count': 1,
@@ -36,9 +40,39 @@ class PullRequestClosedEventHandler(Handler):
             tags={
                 'repo': event.repo.name,
                 'user': event.actor.login,
+                'release_branch': release_branch,
                 'approved': approved,
                 'merged': merged
             }
         )
+
+    def label_release(self, g, event, pull_request):
+        if not pull_request or not pull_request.merged:
+            return None
+
+        base_branch = GetBaseBranch(event)
+        release_branch = ParseReleaseBranch(base_branch)
+        if release_branch != None:
+            return self.target_release(g, pull_request, release_branch)
+
+        repo = GetRepo(event)
+        branches = g.get_branches(repo)
+
+        parsed = [ ParseReleaseBranch(b.name) for b in branches if ParseReleaseBranch(b.name) is not None ]
+        if len(parsed) == 0:
+            self.logging.warn('No release branches in {}'.format(repo))
+            return None
+
+        parsed.sort()
+        release_branch = parsed[-1]
+        release_branch[1] = release_branch[1] + 1
+        return self.target_release(g, pull_request, release_branch)
+
+    def target_release(self, g, pull_request, release_branch):
+        release_name = '.'.join([ str(v) for v in release_branch ])
+        label = 'target-release/{}'.format(release_name)
+        AddLabel(g, pull_request, label)
+
+        return release_name
 
 PullRequestClosedEventHandler()
