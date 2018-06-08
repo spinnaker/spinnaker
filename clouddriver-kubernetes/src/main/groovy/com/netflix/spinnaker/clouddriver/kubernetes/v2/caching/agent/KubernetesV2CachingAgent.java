@@ -25,6 +25,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.RegistryUtils;
@@ -73,7 +74,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
   }
 
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
-    return namespaces.stream()
+    Map<KubernetesKind, List<KubernetesManifest>> result = namespaces.stream()
         .map(n -> {
           try {
             return credentials.list(primaryKinds(), n);
@@ -85,6 +86,26 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
         .collect(Collectors.groupingBy(KubernetesManifest::getKind));
+
+    for (KubernetesCachingPolicy policy : credentials.getCachingPolicies()) {
+      KubernetesKind policyKind = KubernetesKind.fromString(policy.getKubernetesKind());
+      if (!result.containsKey(policyKind)) {
+        continue;
+      }
+
+      List<KubernetesManifest> entries = result.get(policyKind);
+      if (entries == null) {
+        continue;
+      }
+
+      if (entries.size() > policy.getMaxEntriesPerAgent()) {
+        log.warn("{}: Pruning {} entries from kind {}", getAgentType(), entries.size() - policy.getMaxEntriesPerAgent(), policyKind);
+        entries = entries.subList(0, policy.getMaxEntriesPerAgent());
+        result.put(policyKind, entries);
+      }
+    }
+
+    return result;
   }
 
   protected KubernetesManifest loadPrimaryResource(KubernetesKind kind, String namespace, String name) {

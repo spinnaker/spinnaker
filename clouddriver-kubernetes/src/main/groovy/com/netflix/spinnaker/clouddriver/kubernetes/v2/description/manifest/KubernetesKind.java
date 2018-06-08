@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class KubernetesKind {
   public static KubernetesKind CLUSTER_ROLE = new KubernetesKind("clusterRole", false);
   public static KubernetesKind CLUSTER_ROLE_BINDING = new KubernetesKind("clusterRoleBinding", false);
@@ -139,6 +141,7 @@ public class KubernetesKind {
 
       // separate from the above chain to avoid concurrent modification of the values list
       return kindOptional.orElseGet(() -> {
+        log.info("Dynamically registering {}", name);
         KubernetesKind result = new KubernetesKind(name);
         result.isDynamic = true;
         result.isRegistered = registered;

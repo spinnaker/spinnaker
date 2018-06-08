@@ -49,6 +49,7 @@ class KubernetesConfigurationProperties {
     String namingStrategy = "kubernetesAnnotations"
     Boolean debug = false
     List<CustomKubernetesResource> customResources;
+    List<KubernetesCachingPolicy> cachingPolicies;
     List<String> kinds
     List<String> omitKinds
   }
@@ -68,4 +69,10 @@ class CustomKubernetesResource {
   String spinnakerKind = KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED.toString()
   String deployPriority = "100"
   boolean versioned = false
+}
+
+@ToString(includeNames = true)
+class KubernetesCachingPolicy {
+  String kubernetesKind
+  int maxEntriesPerAgent
 }

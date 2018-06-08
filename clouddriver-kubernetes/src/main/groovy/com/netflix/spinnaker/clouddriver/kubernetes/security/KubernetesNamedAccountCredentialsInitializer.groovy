@@ -103,6 +103,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .jobExecutor(jobExecutor)
           .namer(namerRegistry.getNamingStrategy(managedAccount.namingStrategy))
           .customResources(managedAccount.customResources)
+          .cachingPolicies(managedAccount.cachingPolicies)
           .kinds(managedAccount.kinds)
           .omitKinds(managedAccount.omitKinds)
           .debug(managedAccount.debug)

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -200,6 +201,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     KubectlJobExecutor jobExecutor;
     Namer namer;
     List<CustomKubernetesResource> customResources;
+    List<KubernetesCachingPolicy> cachingPolicies;
     List<String> kinds;
     List<String> omitKinds;
     boolean debug;
@@ -347,6 +349,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
+    Builder cachingPolicies(List<KubernetesCachingPolicy> cachingPolicies) {
+      this.cachingPolicies = cachingPolicies;
+      return this;
+    }
+
     Builder customResources(List<CustomKubernetesResource> customResources) {
       this.customResources = customResources;
       return this;
@@ -398,6 +405,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .omitNamespaces(omitNamespaces)
               .registry(spectatorRegistry)
               .customResources(customResources)
+              .cachingPolicies(cachingPolicies)
               .kinds(kinds)
               .omitKinds(omitKinds)
               .debug(debug)
