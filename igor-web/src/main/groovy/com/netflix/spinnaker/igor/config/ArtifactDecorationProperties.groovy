@@ -20,12 +20,14 @@ import groovy.transform.CompileStatic
 import org.hibernate.validator.constraints.NotEmpty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
+import org.springframework.validation.annotation.Validated
 
 import javax.validation.Valid
 
 @Configuration
 @CompileStatic
 @ConfigurationProperties(prefix = 'artifact.decorator')
+@Validated
 class ArtifactDecorationProperties {
     boolean enabled = false
 
