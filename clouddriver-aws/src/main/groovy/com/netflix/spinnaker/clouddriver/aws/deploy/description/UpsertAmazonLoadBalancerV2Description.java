@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
 import com.amazonaws.services.elasticloadbalancingv2.model.ActionTypeEnum;
+import com.amazonaws.services.elasticloadbalancingv2.model.AuthenticateOidcActionConfig;
 import com.amazonaws.services.elasticloadbalancingv2.model.Certificate;
 import com.amazonaws.services.elasticloadbalancingv2.model.ProtocolEnum;
 
@@ -280,6 +281,7 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
   public static class Action {
     private String type = ActionTypeEnum.Forward.toString();
     private String targetGroupName;
+    private AuthenticateOidcActionConfig authenticateOidcActionConfig;
 
     public String getType() {
       return type;
@@ -295,6 +297,14 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
 
     public void setTargetGroupName(String targetGroupName) {
       this.targetGroupName = targetGroupName;
+    }
+
+    public AuthenticateOidcActionConfig getAuthenticateOidcActionConfig() {
+      return authenticateOidcActionConfig;
+    }
+
+    public void setAuthenticateOidcActionConfig(AuthenticateOidcActionConfig authenticateOidcActionConfig) {
+      this.authenticateOidcActionConfig = authenticateOidcActionConfig;
     }
   }
 

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators;
 
+import com.amazonaws.services.elasticloadbalancingv2.model.AuthenticateOidcActionConfig;
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description;
@@ -33,6 +34,24 @@ import java.util.Set;
 @AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("createAmazonLoadBalancerDescriptionValidator")
 class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAmazonLoadBalancerDescription> {
+  private void validateActions(List<UpsertAmazonLoadBalancerV2Description.Action> actions, Set<String> allTargetGroupNames, Set<String> unusedTargetGroupNames, Errors errors) {
+    for (UpsertAmazonLoadBalancerV2Description.Action action : actions) {
+      if (action.getType().equals("forward")) {
+        String targetGroupName = action.getTargetGroupName();
+        if (!allTargetGroupNames.contains(targetGroupName)) {
+          errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.targetGroup");
+        }
+        unusedTargetGroupNames.remove(action.getTargetGroupName());
+      }
+
+      if (action.getType().equals("authenticate-oidc")) {
+        AuthenticateOidcActionConfig config = action.getAuthenticateOidcActionConfig();
+        if (config.getClientId() == null) {
+          errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.oidcConfig");
+        }
+      }
+    }
+  }
 
   @Override
   public void validate(List priorDescriptions, UpsertAmazonLoadBalancerDescription description, Errors errors) {
@@ -103,21 +122,9 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
           if (listener.getDefaultActions().size() == 0) {
             errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.missing.defaultAction");
           }
-          for (UpsertAmazonLoadBalancerV2Description.Action action: listener.getDefaultActions()) {
-            String targetGroupName = action.getTargetGroupName();
-            if (!allTargetGroupNames.contains(targetGroupName)) {
-              errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.targetGroup");
-            }
-            unusedTargetGroupNames.remove(action.getTargetGroupName());
-          }
+          this.validateActions(listener.getDefaultActions(), allTargetGroupNames, unusedTargetGroupNames, errors);
           for (UpsertAmazonLoadBalancerV2Description.Rule rule : listener.getRules()) {
-            for (UpsertAmazonLoadBalancerV2Description.Action action : rule.getActions()) {
-              String targetGroupName = action.getTargetGroupName();
-              if (!allTargetGroupNames.contains(targetGroupName)) {
-                errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.targetGroup");
-              }
-              unusedTargetGroupNames.remove(action.getTargetGroupName());
-            }
+            this.validateActions(rule.getActions(), allTargetGroupNames, unusedTargetGroupNames, errors);
           }
         }
         if (unusedTargetGroupNames.size() > 0) {

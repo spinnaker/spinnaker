@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.Action
+import com.amazonaws.services.elasticloadbalancingv2.model.ActionTypeEnum
 import com.amazonaws.services.elasticloadbalancingv2.model.CreateListenerRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.CreateListenerResult
 import com.amazonaws.services.elasticloadbalancingv2.model.CreateLoadBalancerRequest
@@ -299,6 +300,27 @@ class LoadBalancerV2UpsertHandler {
     }
   }
 
+  static List<Action> getAmazonActionsFromDescription(List<UpsertAmazonLoadBalancerV2Description.Action> actions, List<TargetGroup> existingTargetGroups, List<String> amazonErrors) {
+    List<Action> awsActions = []
+    actions.eachWithIndex { action, index ->
+      if (action.type == "forward") {
+        TargetGroup targetGroup = existingTargetGroups.find { it.targetGroupName == action.targetGroupName }
+        if (targetGroup != null) {
+          Action awsAction = new Action().withType(action.type).withTargetGroupArn(targetGroup.targetGroupArn).withOrder(index + 1)
+          awsActions.add(awsAction)
+        } else {
+          String exceptionMessage = "Target group name ${action.targetGroupName} not found when trying to create action"
+          task.updateStatus BASE_PHASE, exceptionMessage
+          amazonErrors << exceptionMessage
+        }
+      } else if (action.type == "authenticate-oidc") {
+        Action awsAction = new Action().withType(action.type).withAuthenticateOidcConfig(action.authenticateOidcActionConfig).withOrder(index + 1)
+        awsActions.add(awsAction)
+      }
+    }
+    awsActions
+  }
+
   static void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing,
                                  LoadBalancer loadBalancer,
                                  Collection<String> securityGroups,
@@ -372,28 +394,11 @@ class LoadBalancerV2UpsertHandler {
     Map<UpsertAmazonLoadBalancerV2Description.Listener, List<Action>> listenerToDefaultActions = new HashMap<>()
     Map<UpsertAmazonLoadBalancerV2Description.Listener, List<Rule>> listenerToRules = new HashMap<>()
     listeners.each { listener ->
-      List<Action> defaultActions = []
-      listener.defaultActions.each { action ->
-        TargetGroup targetGroup = existingTargetGroups.find { it.targetGroupName == action.targetGroupName }
-        if (targetGroup != null) {
-          Action awsAction = new Action().withTargetGroupArn(targetGroup.targetGroupArn).withType(action.type)
-          defaultActions.add(awsAction)
-        } else {
-          String exceptionMessage = "Target group name ${action.targetGroupName} not found when trying to create action for listener ${listener.protocol}:${listener.port}"
-          task.updateStatus BASE_PHASE, exceptionMessage
-          amazonErrors << exceptionMessage
-        }
-        listenerToDefaultActions.put(listener, defaultActions)
-      }
+      List<Action> defaultActions = getAmazonActionsFromDescription(listener.defaultActions, existingTargetGroups, amazonErrors)
+      listenerToDefaultActions.put(listener, defaultActions)
       List<Rule> rules = []
       listener.rules.each { rule ->
-        List<Action> actions = []
-        rule.actions.each { action ->
-          TargetGroup targetGroup = existingTargetGroups.find { it.targetGroupName == action.targetGroupName }
-          if (targetGroup != null) {
-            actions.add(new Action().withTargetGroupArn(targetGroup.targetGroupArn).withType(action.type))
-          }
-        }
+        List<Action> actions = getAmazonActionsFromDescription(rule.actions, existingTargetGroups, amazonErrors)
 
         List<RuleCondition> conditions = rule.conditions.collect { condition ->
           new RuleCondition().withField(condition.field).withValues(condition.values)
