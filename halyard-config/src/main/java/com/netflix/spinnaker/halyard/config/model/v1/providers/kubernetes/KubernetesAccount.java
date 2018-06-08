@@ -50,6 +50,7 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   @ValidForSpinnakerVersion(lowerBound = "1.5.0", message = "Spinnaker does not support configuring this behavior before that version.")
   Boolean configureImagePullSecrets;
   Boolean serviceAccount;
+  int cacheThreads = 1;
   List<String> namespaces = new ArrayList<>();
   List<String> omitNamespaces = new ArrayList<>();
   @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Configuring kind caching behavior is not supported yet.")
