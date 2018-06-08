@@ -7,6 +7,7 @@
           <help-field key="aws.securityGroup.name"></help-field>
           <input type="hidden" class="form-control input-sm"
                  ng-model="securityGroup.name"
+                 ng-model-options="{allowInvalid: true}"
                  validate-unique="existingSecurityGroupNames"
                  validate-ignore-case="true"
                  name="securityGroupName"
