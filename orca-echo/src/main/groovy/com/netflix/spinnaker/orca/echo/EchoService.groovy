@@ -58,6 +58,7 @@ interface EchoService {
       SLACK,
       HIPCHAT,
       EMAIL,
+      BEARYCHAT,
       SMS,
       PAGER_DUTY,
       JIRA
