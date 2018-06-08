@@ -119,7 +119,7 @@ bake_and_deploy test requires special configuration, which is basically
 a Jenkins job that it can trigger. Even there, the triggering information is
 passed to the test via command-line arguments. Instructions for this can be
 found in the test itself: [bake_and_deploy_test.py]
-(https://github.com/google/citest/blob/master/spinnaker/spinnaker_system/bake_and_deploy_test.py)
+(https://github.com/spinnaker/spinnaker/blob/master/testing/citest/tests/bake_and_deploy_test.py)
 
 ## Providing access
 If your deployment is firewalled in a way that the machine you are running
@@ -190,7 +190,7 @@ Flag | Description
 -----|------------
 gce_project | The Google Cloud Project *running spinnaker* is used to locate spinnaker on GCE.
 gce_instance | The name of the Google Cloud Instance that the instance is running on.
-gce_zone | The name of the Google Cloud Platform zone the instanve is in.
+gce_zone | The name of the Google Cloud Platform zone the instance is in.
 gce_ssh_passphrase_file | The path to the passphrase file for tunneling. Alternatively, you can run something like ssh-agent.
 
 
