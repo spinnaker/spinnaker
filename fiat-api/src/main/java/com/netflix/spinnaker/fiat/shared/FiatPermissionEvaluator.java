@@ -26,6 +26,7 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -47,7 +49,7 @@ import java.util.function.Function;
 @Component
 @Slf4j
 public class FiatPermissionEvaluator implements PermissionEvaluator {
-
+  private final DynamicConfigService dynamicConfigService;
   private final Registry registry;
   private final FiatService fiatService;
   private final FiatClientConfigurationProperties configProps;
@@ -57,9 +59,11 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   private final Id getPermissionCounterId;
 
   @Autowired
-  public FiatPermissionEvaluator(Registry registry,
+  public FiatPermissionEvaluator(DynamicConfigService dynamicConfigService,
+                                 Registry registry,
                                  FiatService fiatService,
                                  FiatClientConfigurationProperties configProps) {
+    this.dynamicConfigService = dynamicConfigService;
     this.registry = registry;
     this.fiatService = fiatService;
     this.configProps = configProps;
@@ -86,7 +90,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
                                Serializable resourceName,
                                String resourceType,
                                Object authorization) {
-    if (!configProps.isEnabled()) {
+    if (!isEnabled()) {
       return true;
     }
     if (resourceName == null || resourceType == null || authorization == null) {
@@ -168,7 +172,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   @SuppressWarnings("unused")
   @Deprecated
   public boolean storeWholePermission() {
-    if (!configProps.isEnabled()) {
+    if (!isEnabled()) {
       return true;
     }
 
@@ -209,5 +213,9 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   @SuppressWarnings("unused")
   public boolean isAdmin() {
     return true; // TODO(ttomsu): Chosen by fair dice roll. Guaranteed to be random.
+  }
+
+  private boolean isEnabled() {
+    return dynamicConfigService.isEnabled("fiat", configProps.isEnabled());
   }
 }

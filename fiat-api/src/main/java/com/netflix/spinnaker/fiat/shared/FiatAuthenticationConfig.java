@@ -26,18 +26,17 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
@@ -77,25 +76,36 @@ public class FiatAuthenticationConfig {
   }
 
   @Bean
-  FilterRegistrationBean fiatFilterRegistrationBean(FiatAuthenticationFilter filter) {
-    val frb = new FilterRegistrationBean(filter);
-    frb.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
-    frb.addUrlPatterns("/*");
-    return frb;
+  FiatWebSecurityConfigurerAdapter fiatSecurityConfig(@Value("${services.fiat.enabled:false}") boolean isFiatEnabled) {
+    return new FiatWebSecurityConfigurerAdapter(isFiatEnabled);
   }
 
-  @ConditionalOnExpression("!${services.fiat.enabled:false}")
-  @Bean
-  AnonymousConfig anonymousConfig() {
-    return new AnonymousConfig();
-  }
+  private class FiatWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+    private final boolean isFiatEnabled;
 
-  private class AnonymousConfig extends WebSecurityConfigurerAdapter {
+    private FiatWebSecurityConfigurerAdapter(boolean isFiatEnabled) {
+      this.isFiatEnabled = isFiatEnabled;
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-      // TODO(ttomsu): Make management endpoints non-sensitive?
-      log.info("Fiat service is disabled. Setting Spring Security to allow all traffic.");
-      http.authorizeRequests().anyRequest().permitAll().and().csrf().disable();
+      if (isFiatEnabled) {
+        /*
+         * Having `FiatAuthenticationFilter` prior to `SecurityContextPersistenceFilter` results in the
+         * `SecurityContextHolder` being overridden with a null value.
+         *
+         * The null value then causes the `AnonymousAuthenticationFilter` to inject an "anonymousUser" which when
+         * passed over the wire to fiat is promptly rejected.
+         *
+         * This behavior is triggered when `management.security.enabled` is `false`.
+         */
+        http
+            .csrf().disable()
+            .addFilterAfter(new FiatAuthenticationFilter(), SecurityContextPersistenceFilter.class);
+      } else {
+        log.info("Fiat service is disabled. Setting Spring Security to allow all traffic.");
+        http.authorizeRequests().anyRequest().permitAll().and().csrf().disable();
+      }
     }
   }
 

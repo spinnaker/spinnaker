@@ -18,6 +18,8 @@ package com.netflix.spinnaker.fiat.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.hystrix.strategy.HystrixPlugins
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.FiatSystemTest
 import com.netflix.spinnaker.config.TestUserRoleProviderConfig
 import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties
@@ -33,6 +35,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import spock.lang.AutoCleanup
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -42,6 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @FiatSystemTest
 class AuthorizeControllerSpec extends Specification {
+  @Shared
+  Registry registry = new NoopRegistry()
 
   @Autowired
   WebApplicationContext wac
@@ -146,7 +151,7 @@ class AuthorizeControllerSpec extends Specification {
   def "should get user from repo"() {
     setup:
     PermissionsRepository repository = Mock(PermissionsRepository)
-    AuthorizeController controller = new AuthorizeController(repository, fiatServerConfigurationProperties)
+    AuthorizeController controller = new AuthorizeController(registry, repository, fiatServerConfigurationProperties)
 
     def foo = new UserPermission().setId("foo@batman.com")
 
@@ -168,7 +173,7 @@ class AuthorizeControllerSpec extends Specification {
   def "should get user's accounts from repo"() {
     setup:
     PermissionsRepository repository = Mock(PermissionsRepository)
-    AuthorizeController controller = new AuthorizeController(repository, fiatServerConfigurationProperties)
+    AuthorizeController controller = new AuthorizeController(registry, repository, fiatServerConfigurationProperties)
 
     def bar = new Account().setName("bar")
     def foo = new UserPermission().setId("foo").setAccounts([bar] as Set)
@@ -243,6 +248,7 @@ class AuthorizeControllerSpec extends Specification {
   def "should fallback to unrestricted user if no session available"() {
     given:
     def authorizeController = new AuthorizeController(
+        registry,
         permissionsRepository,
         new FiatServerConfigurationProperties(defaultToUnrestrictedUser: defaultToUnrestrictedUser)
     )

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import spock.lang.Specification
@@ -32,11 +33,15 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 class FiatPermissionEvaluatorSpec extends Specification {
+  DynamicConfigService dynamicConfigService = Mock(DynamicConfigService) {
+    _ * isEnabled('fiat', true) >> { return true }
+  }
   FiatService fiatService = Mock(FiatService)
   Registry registry = new NoopRegistry();
 
   @Subject
   FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(
+      dynamicConfigService,
       registry,
       fiatService,
       buildConfigurationProperties()

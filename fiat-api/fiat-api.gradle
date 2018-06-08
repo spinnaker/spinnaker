@@ -21,6 +21,7 @@ dependencies {
   compileOnly spinnaker.dependency("frigga")
   compileOnly spinnaker.dependency("korkSecurity")
   compileOnly spinnaker.dependency("korkWeb")
+  compileOnly spinnaker.dependency("kork")
   compileOnly spinnaker.dependency("lombok")
   compileOnly spinnaker.dependency("okHttp")
   compileOnly spinnaker.dependency("okHttpUrlconnection")
@@ -39,6 +40,7 @@ dependencies {
   testCompile spinnaker.dependency("slf4jApi")
   testCompile spinnaker.dependency("frigga")
   testCompile spinnaker.dependency("korkSecurity")
+  testCompile spinnaker.dependency("kork")
   testCompile spinnaker.dependency("bootAutoConfigure")
   testCompile spinnaker.dependency("spectatorApi")
 }

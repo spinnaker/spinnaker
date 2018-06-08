@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.controllers;
 
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.Authorization;
@@ -48,16 +50,22 @@ import java.util.stream.Collectors;
 @RequestMapping("/authorize")
 public class AuthorizeController {
 
+  private final Registry registry;
   private final PermissionsRepository permissionsRepository;
   private final FiatServerConfigurationProperties configProps;
 
+  private final Id getUserPermissionCounterId;
+
   @Autowired
-  public AuthorizeController(PermissionsRepository permissionsRepository,
+  public AuthorizeController(Registry registry,
+                             PermissionsRepository permissionsRepository,
                              FiatServerConfigurationProperties configProps) {
+    this.registry = registry;
     this.permissionsRepository = permissionsRepository;
     this.configProps = configProps;
-  }
 
+    this.getUserPermissionCounterId = registry.createId("fiat.getUserPermissionCounterId");
+  }
 
   @ApiOperation(value = "Used mostly for testing. Not really any real value to the rest of " +
       "the system. Disabled by default.")
@@ -207,6 +215,11 @@ public class AuthorizeController {
     ).orElse(null);
 
     if (userPermission != null || !configProps.isDefaultToUnrestrictedUser()) {
+      registry.counter(
+          getUserPermissionCounterId
+              .withTag("success", userPermission != null)
+              .withTag("fallback", false)
+      ).increment();
       return Optional.ofNullable(userPermission);
     }
 
@@ -222,6 +235,12 @@ public class AuthorizeController {
           .map(u -> u.setId(authenticatedUserId))
           .orElse(null);
     }
+
+    registry.counter(
+        getUserPermissionCounterId
+            .withTag("success", userPermission != null)
+            .withTag("fallback", true)
+    ).increment();
 
     return Optional.ofNullable(userPermission);
   }
