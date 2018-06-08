@@ -191,7 +191,7 @@ public class RedisLockManager implements RefreshableLockManager {
           null,
           status,
           null,
-          tryLockReleaseQuietly(lock)
+          false
         );
       }
 
