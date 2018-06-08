@@ -1,6 +1,6 @@
 import { IController, IPromise, IQService, IScope, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
-import { head, sortBy, uniq } from 'lodash';
+import { head, sortBy } from 'lodash';
 
 import {
   Application,
@@ -11,6 +11,7 @@ import {
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
+  SETTINGS,
   SECURITY_GROUP_READER,
   SecurityGroupReader,
   SubnetReader,
@@ -23,6 +24,7 @@ import {
   IAmazonLoadBalancerSourceData,
   IApplicationLoadBalancerSourceData,
   IClassicLoadBalancerSourceData,
+  IListenerAction,
   ITargetGroup,
 } from 'amazon';
 
@@ -34,16 +36,21 @@ export interface ILoadBalancerFromStateParams {
   name: string;
 }
 
+export interface IActionDetails extends IListenerAction {
+  targetGroup: ITargetGroup;
+}
+
 export class AwsLoadBalancerDetailsController implements IController {
   public application: Application;
   public elbProtocol: string;
-  public listeners: Array<{ in: string; targets: ITargetGroup[] }>;
+  public listeners: Array<{ in: string; actions: IActionDetails[] }>;
   public loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IAmazonLoadBalancer;
   public securityGroups: ISecurityGroup[];
   public ipAddressTypeDescription: string;
   public state = { loading: true };
   public firewallsLabel = FirewallLabels.get('Firewalls');
+  public oidcConfigPath = SETTINGS.oidcConfigPath;
 
   constructor(
     private $scope: IScope,
@@ -116,20 +123,29 @@ export class AwsLoadBalancerDetailsController implements IController {
 
                 this.listeners = [];
                 elb.listeners.forEach(listener => {
-                  const inPort = `${listener.protocol}:${listener.port}`;
-                  const targets = uniq(
-                    listener.rules.map(rule => {
-                      const name = rule.actions[0].targetGroupName;
-                      // TODO: Support target groups outside of this application...
-                      return (
-                        (this.loadBalancer as IAmazonApplicationLoadBalancer).targetGroups.find(
-                          tg => tg.name === name,
-                        ) || ({ name } as ITargetGroup)
-                      );
-                    }),
-                  );
-
-                  this.listeners.push({ in: inPort, targets });
+                  listener.rules.map(rule => {
+                    let inMatch = [
+                      listener.protocol,
+                      (rule.conditions.find(c => c.field === 'host-header') || { values: [''] }).values[0],
+                      listener.port,
+                    ]
+                      .filter(f => f)
+                      .join(':');
+                    const path = (rule.conditions.find(c => c.field === 'path-pattern') || { values: [] }).values[0];
+                    if (path) {
+                      inMatch = `${inMatch}${path}`;
+                    }
+                    const actions = rule.actions.map(a => {
+                      const action = { ...a } as IActionDetails;
+                      if (action.type === 'forward') {
+                        action.targetGroup = (this.loadBalancer as IAmazonApplicationLoadBalancer).targetGroups.find(
+                          tg => tg.name === action.targetGroupName,
+                        );
+                      }
+                      return action;
+                    });
+                    this.listeners.push({ in: inMatch, actions });
+                  });
                 });
               }
 

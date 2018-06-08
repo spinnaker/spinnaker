@@ -7,10 +7,14 @@ import {
   IInstanceCounts,
   ISubnet,
 } from '@spinnaker/core';
+
+import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
+
 import { IAmazonServerGroup } from './IAmazonServerGroup';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS';
+export type IListenerActionType = 'forward' | 'authenticate-oidc';
 
 export interface IAmazonLoadBalancer extends ILoadBalancer {
   availabilityZones?: string[];
@@ -51,8 +55,9 @@ export interface IAmazonApplicationLoadBalancer extends IAmazonLoadBalancer {
 }
 
 export interface IListenerAction {
-  targetGroupName: string;
-  type: string;
+  authenticateOidcConfig?: IAuthenticateOidcActionConfig;
+  targetGroupName?: string;
+  type: IListenerActionType;
 }
 
 export interface IALBListenerCertificate {

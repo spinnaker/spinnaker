@@ -133,26 +133,42 @@
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="ctrl.loadBalancer.loadBalancerType !== 'classic'" heading="Listeners">
-      <dl>
-        <dt>Load Balancer &rarr; Target</dt>
-        <dd ng-repeat="listener in ctrl.listeners">
+        <div ng-repeat="listener in ctrl.listeners">
           <div class="listener-targets">
             {{listener.in}} &rarr;
           </div>
           <div class="listener-targets">
-            <div ng-repeat="target in listener.targets">
-              <a ui-sref="^.targetGroupDetails({region: target.region,
-                            loadBalancerName: ctrl.loadBalancer.name,
-                            accountId: target.account,
-                            name: target.name,
-                            vpcId: target.vpcId,
-                            provider: 'aws'})">
-                {{target.name}}
-              </a>
+            <div ng-repeat="action in listener.actions">
+              <!-- authenticate-oidc -->
+              <span ng-if="action.type === 'authenticate-oidc'">
+                <i class="fas fa-fw fa-user-lock"/>
+                <a ng-if="ctrl.oidcConfigPath"
+                  href="{{ctrl.oidcConfigPath}}{{action.authenticateOidcConfig.clientId}}" target="_blank">
+                  {{action.authenticateOidcConfig.clientId}}
+                </a>
+                <span ng-if="!ctrl.oidcConfigPath">
+                  {{action.authenticateOidcConfig.clientId}}
+                </span>
+              </span>
+              <!-- forward -->
+              <span ng-if="action.targetGroupName && action.targetGroup">
+                <i class="fa fa-fw fa-crosshairs icon" aria-hidden="true"/>
+                <a ui-sref="^.targetGroupDetails({region: action.targetGroup.region,
+                              loadBalancerName: ctrl.loadBalancer.name,
+                              accountId: action.targetGroup.account,
+                              name: action.targetGroup.name,
+                              vpcId: action.targetGroup.vpcId,
+                              provider: 'aws'})">
+                  {{action.targetGroupName}}
+                </a>
+              </span>
+              <span ng-if="action.targetGroupName && !action.targetGroup">
+                <i class="fa fa-fw fa-crosshairs icon" aria-hidden="true"/>
+                {{action.targetGroupName}}
+              </span>
             </div>
           </div>
-        </dd>
-      </dl>
+        </div>
     </collapsible-section>
     <collapsible-section heading="{{ctrl.firewallsLabel}}">
       <ul>

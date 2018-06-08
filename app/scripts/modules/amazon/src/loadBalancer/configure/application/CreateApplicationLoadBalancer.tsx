@@ -199,6 +199,25 @@ export class CreateApplicationLoadBalancer extends React.Component<
 
     const descriptor = isNew ? 'Create' : 'Update';
     const loadBalancerCommandFormatted = cloneDeep(values);
+
+    // replace all authenticateOidcConfig with authenticateOidcActionConfig because aws
+    loadBalancerCommandFormatted.listeners.forEach(listener => {
+      listener.defaultActions.forEach((a: any) => {
+        if (a.authenticateOidcConfig) {
+          a.authenticateOidcActionConfig = a.authenticateOidcConfig;
+          delete a.authenticateOidcConfig;
+        }
+      });
+      listener.rules.forEach(r =>
+        r.actions.forEach((a: any) => {
+          if (a.authenticateOidcConfig) {
+            a.authenticateOidcActionConfig = a.authenticateOidcConfig;
+            delete a.authenticateOidcConfig;
+          }
+        }),
+      );
+    });
+
     if (forPipelineConfig) {
       // don't submit to backend for creation. Just return the loadBalancerCommand object
       this.formatListeners(loadBalancerCommandFormatted).then(() => {
@@ -272,7 +291,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
         />
         <SecurityGroups done={true} />
         <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
-        <ALBListeners done={true} />
+        <ALBListeners app={app} done={true} />
       </ApplicationLoadBalancerModal>
     );
   }
