@@ -260,7 +260,9 @@ public class TitusV2ClusterCachingAgent implements CachingAgent, CustomScheduled
       .record(System.currentTimeMillis() - startScalingPolicyTime, MILLISECONDS);
 
     Long startLoadBalancerTime = System.currentTimeMillis();
-    Map<String, List<String>> allLoadBalancers = titusLoadBalancerClient.getAllLoadBalancers();
+    Map<String, List<String>> allLoadBalancers = titusLoadBalancerClient != null
+      ? titusLoadBalancerClient.getAllLoadBalancers()
+      : Collections.emptyMap();
     PercentileTimer
       .get(registry, metricId.withTag("operation", "getLoadBalancers"))
       .record(System.currentTimeMillis() - startLoadBalancerTime, MILLISECONDS);
