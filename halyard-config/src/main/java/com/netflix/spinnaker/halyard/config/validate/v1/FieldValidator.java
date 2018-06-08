@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 @Component
 @Slf4j
@@ -58,6 +59,11 @@ public class FieldValidator extends Validator<Node> {
 
               // If the field was set to false, it's assumed it's not enabling a restricted feature
               if (fieldNotValid && (v instanceof Boolean) && !((Boolean) v)) {
+                fieldNotValid = false;
+              }
+
+              // If the field is a collection, it may be empty
+              if (fieldNotValid && (v instanceof Collection) && ((Collection) v).isEmpty()) {
                 fieldNotValid = false;
               }
 

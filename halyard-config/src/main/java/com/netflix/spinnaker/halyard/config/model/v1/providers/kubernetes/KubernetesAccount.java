@@ -58,6 +58,8 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   List<String> omitKinds = new ArrayList<>();
   @ValidForSpinnakerVersion(lowerBound = "1.6.0", message = "Custom kinds and resources are not supported yet.")
   List<CustomKubernetesResource> customResources = new ArrayList<>();
+  @ValidForSpinnakerVersion(lowerBound = "1.8.0", message = "Caching policies are not supported yet.")
+  List<KubernetesCachingPolicy> cachingPolicies = new ArrayList<>();
 
   @LocalFile String kubeconfigFile;
   String kubeconfigContents;
@@ -145,5 +147,11 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
     String kubernetesKind;
     String spinnakerKind;
     boolean versioned = false;
+  }
+
+  @Data
+  public static class KubernetesCachingPolicy {
+    String kubernetesKind;
+    int maxEntriesPerAgent;
   }
 }
