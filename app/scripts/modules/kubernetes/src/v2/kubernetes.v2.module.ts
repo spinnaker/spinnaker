@@ -133,7 +133,6 @@ module(KUBERNETES_V2_MODULE, [
       'runJob',
       'scaleDown',
       'scaleDownCluster',
-      'script',
       'shrinkCluster',
     ],
   });
