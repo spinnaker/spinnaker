@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.qos.bufferstate
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.qos.BufferState
 import com.netflix.spinnaker.orca.qos.BufferState.ACTIVE
 import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class ActiveExecutionsBufferStateSupplier(
-  private val configService: DynamicConfigSerivce,
+  private val configService: DynamicConfigService,
   private val registry: Registry
 ) : BufferStateSupplier {
 

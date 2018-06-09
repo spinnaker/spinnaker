@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.qos.bufferstate
 
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.qos.BufferState.ACTIVE
 import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
 import com.netflix.spinnaker.orca.qos.BufferStateSupplier
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class KillSwitchBufferStateSupplier(
-  private val configService: DynamicConfigSerivce
+  private val configService: DynamicConfigService
 ) : BufferStateSupplier {
 
   override fun enabled() =

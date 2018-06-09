@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.qos
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.events.BeforeInitialExecutionPersist
@@ -36,7 +36,7 @@ import org.jetbrains.spek.subject.SubjectSpek
 
 class ExecutionBufferActuatorTest : SubjectSpek<ExecutionBufferActuator>({
 
-  val configService: DynamicConfigSerivce = mock()
+  val configService: DynamicConfigService = mock()
   val bufferStateSupplier: BufferStateSupplier = mock()
   val policy1: BufferPolicy = mock()
   val policy2: BufferPolicy = mock()

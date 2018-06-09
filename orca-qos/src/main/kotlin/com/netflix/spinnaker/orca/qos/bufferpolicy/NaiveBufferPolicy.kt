@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.qos.bufferpolicy
 
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.qos.BufferAction
 import com.netflix.spinnaker.orca.qos.BufferAction.ENQUEUE
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class NaiveBufferPolicy(
-  private val configService: DynamicConfigSerivce
+  private val configService: DynamicConfigService
 ) : BufferPolicy {
 
   override fun apply(execution: Execution): BufferResult {

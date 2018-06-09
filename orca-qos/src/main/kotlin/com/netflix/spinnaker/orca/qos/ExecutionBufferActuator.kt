@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.qos
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigSerivce
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED
 import com.netflix.spinnaker.orca.annotations.Sync
 import com.netflix.spinnaker.orca.events.BeforeInitialExecutionPersist
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component
 @Component
 class ExecutionBufferActuator(
   private val bufferStateSupplierProvider: BufferStateSupplierProvider,
-  private val configService: DynamicConfigSerivce,
+  private val configService: DynamicConfigService,
   private val registry: Registry,
   policies: List<BufferPolicy>
 ) {
