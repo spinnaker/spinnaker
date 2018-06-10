@@ -40,6 +40,7 @@ import com.netflix.spinnaker.gate.services.internal.MineService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.gate.services.internal.RoscoService
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector
@@ -321,8 +322,11 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  FiatPermissionEvaluator fiatPermissionEvaluator() {
-    return new FiatPermissionEvaluator()
+  FiatPermissionEvaluator fiatPermissionEvaluator(DynamicConfigService dynamicConfigService,
+                                                  Registry registry,
+                                                  FiatService fiatService,
+                                                  FiatClientConfigurationProperties fiatClientConfigurationProperties) {
+    return new FiatPermissionEvaluator(dynamicConfigService, registry, fiatService, fiatClientConfigurationProperties)
   }
 
   @Component

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security.saml
 
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
+import com.netflix.spinnaker.gate.security.saml.SamlSsoConfig.UserAttributeMapping
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
