@@ -18,8 +18,8 @@ package com.netflix.spinnaker.kork.jedis.lock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.LongTaskTimer;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.patterns.LongTaskTimer;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.lock.RefreshableLockManager;
 import org.slf4j.Logger;
@@ -56,6 +56,7 @@ public class RedisLockManager implements RefreshableLockManager {
   private final Id acquireId;
   private final Id releaseId;
   private final Id heartbeatId;
+  private final Id acquireDurationId;
 
   private long heartbeatRateMillis;
   private long leaseDurationMillis;
@@ -82,6 +83,7 @@ public class RedisLockManager implements RefreshableLockManager {
     acquireId = registry.createId("redis.lock.acquire");
     releaseId = registry.createId("redis.lock.release");
     heartbeatId = registry.createId("redis.lock.heartbeat");
+    acquireDurationId = registry.createId("redis.lock.acquire.duration");
     scheduleHeartbeats();
   }
 
@@ -195,8 +197,9 @@ public class RedisLockManager implements RefreshableLockManager {
         );
       }
 
-      LongTaskTimer acquireDurationTimer = registry.longTaskTimer(
-        String.format("redis.lock.acquireDuration.%s", lock.getName())
+      LongTaskTimer acquireDurationTimer = LongTaskTimer.get(
+        registry,
+        acquireDurationId.withTag("lockName", lock.getName())
       );
 
       status = LockStatus.ACQUIRED;
