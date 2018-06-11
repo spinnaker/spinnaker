@@ -5,6 +5,15 @@ commit_types = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'cho
 branchre = re.compile('release-(\d+\.\d+\.x)')
 commitre = re.compile('({})(.*): (.*)'.format('|'.join(commit_types)))
 
+def ParseReleaseBranch(branch):
+    branch = ReleaseBranchFor(branch)
+    if branch is None:
+        return None
+
+    branch = branch.split('.')[:-1]
+    branch = [ int(v) for v in branch ]
+    return branch
+
 def ReleaseBranchFor(branch):
     if not branch:
         return None

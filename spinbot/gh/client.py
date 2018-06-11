@@ -77,6 +77,9 @@ class Client(object):
         self.monitoring_db.write('events_count', { 'value': events }, tags={ 'repo': repo })
         raise StopIteration
 
+    def get_branches(self, repo):
+        return self.g.get_repo(repo).get_branches()
+
     def get_pull_request(self, repo, num):
         return self.g.get_repo(repo).get_pull(num)
 
