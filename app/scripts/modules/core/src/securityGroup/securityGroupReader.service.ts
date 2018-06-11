@@ -185,11 +185,8 @@ export class SecurityGroupReader {
             );
             SecurityGroupReader.attachUsageFields(securityGroup);
             if (!securityGroup.usages.serverGroups.some((sg: IServerGroupUsage) => sg.name === serverGroup.name)) {
-              securityGroup.usages.serverGroups.push({
-                name: serverGroup.name,
-                isDisabled: serverGroup.isDisabled,
-                region: serverGroup.region,
-              });
+              const { account, isDisabled, name, cloudProvider, region } = serverGroup;
+              securityGroup.usages.serverGroups.push({ account, isDisabled, name, cloudProvider, region });
             }
             securityGroups.push(securityGroup);
           } catch (e) {

@@ -7,8 +7,10 @@ export interface ILoadBalancerUsage {
 }
 
 export interface IServerGroupUsage {
-  name: string;
+  account: string;
+  cloudProvider: string;
   isDisabled: boolean;
+  name: string;
   region: string;
 }
 
