@@ -79,6 +79,10 @@ class TitusDeployHandlerSpec extends Specification {
       interestingHealthProviderNames: [
         "Titus",
         "Discovery"
+      ],
+      containerAttributes: [
+        'k1': 'value1',
+        'k2': 123
       ]
     )
     titusClient.findJobsByApplication(_) >> []
