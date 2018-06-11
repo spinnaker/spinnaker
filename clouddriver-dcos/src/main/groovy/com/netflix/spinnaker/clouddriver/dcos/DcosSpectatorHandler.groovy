@@ -64,7 +64,7 @@ class DcosSpectatorHandler implements InvocationHandler {
                 tags.put("success", "true")
             } else {
                 tags.put("success", "false")
-                tags.put("reason", failure.getClass().getSimpleName() + ": " + failure.getMessage())
+                tags.put("reason", failure.getClass().getSimpleName())
             }
 
             registry.timer(registry.createId("dcos.api", tags))
