@@ -85,7 +85,12 @@ data:
         config:
           omit_repos: 
           - spinnaker/spinnaker
+          - spinnaker/spinnaker.github.io
       - name: master_branch_pull_request_handler
+        config:
+          omit_repos: 
+          - spinnaker/spinnaker
+          - spinnaker/spinnaker.github.io
       - name: pull_request_closed_event_handler
 
     database:

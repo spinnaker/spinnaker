@@ -13,6 +13,7 @@ format_message = ('The following commits need their title changed:\n\n{}\n\n' +
 class MasterBranchPullRequestHandler(Handler):
     def __init__(self):
         super().__init__()
+        self.omit_repos = self.config.get('omit_repos', [])
 
     def handles(self, event):
         return (event.type == 'PullRequestEvent'
@@ -20,6 +21,11 @@ class MasterBranchPullRequestHandler(Handler):
             and GetBaseBranch(event) == 'master')
 
     def handle(self, g, event):
+        repo = GetRepo(event)
+        if repo in self.omit_repos:
+            self.logging.info('Skipping {} because it\'s in omitted repo {}'.format(event, repo))
+            return
+
         pull_request = GetPullRequest(g, event)
         if pull_request is None:
             self.logging.warn('Unable to determine PR that created {}'.format(event))
