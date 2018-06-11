@@ -70,6 +70,8 @@ public class MetricSetPair {
 
   @Builder
   @ToString
+  @AllArgsConstructor
+  @NoArgsConstructor
   static class MetricSetScope {
 
     @NotNull
