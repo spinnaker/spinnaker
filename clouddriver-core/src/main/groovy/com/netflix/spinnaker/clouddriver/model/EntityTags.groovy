@@ -25,7 +25,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class EntityTags {
+  /**
+   * Unique identifier for a collection of EntityTag
+   */
   String id
+
+  /**
+   * The string replacement pattern used to generate the id.
+   *
+   * Example: "{{cloudProvider}}:{{entityType}}:{{entityId}}:{{account}}:{{region}}"
+   */
   String idPattern
 
   Long lastModified
@@ -113,8 +122,19 @@ class EntityTags {
 
   static class EntityTag {
     String name
+
+    /**
+     * Scoping of the tag, allowing reuse of the same entity tag name across different partitions.
+     *
+     * This can also be used to restrict who has access to modify a particular groups of tags
+     */
     String namespace
+
+    /**
+     * An additional, optional, grouping mechanism separate from namespace.
+     */
     String category
+
     Object value
     EntityTagValueType valueType
 

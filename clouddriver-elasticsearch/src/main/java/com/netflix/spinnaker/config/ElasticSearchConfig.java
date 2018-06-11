@@ -18,6 +18,8 @@ package com.netflix.spinnaker.config;
 
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.elasticsearch.ElasticSearchEntityTagger;
+import com.netflix.spinnaker.clouddriver.elasticsearch.converters.DeleteEntityTagsAtomicOperationConverter;
+import com.netflix.spinnaker.clouddriver.elasticsearch.converters.UpsertEntityTagsAtomicOperationConverter;
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -51,12 +53,11 @@ public class ElasticSearchConfig {
   }
 
   @Bean
-  ElasticSearchEntityTagger elasticSearchEntityTagger(RetrySupport retrySupport,
-                                                      Front50Service front50Service,
-                                                      AccountCredentialsProvider accountCredentialsProvider,
-                                                      ElasticSearchEntityTagsProvider elasticSearchEntityTagsProvider) {
+  ElasticSearchEntityTagger elasticSearchEntityTagger(ElasticSearchEntityTagsProvider elasticSearchEntityTagsProvider,
+                                                      UpsertEntityTagsAtomicOperationConverter upsertEntityTagsAtomicOperationConverter,
+                                                      DeleteEntityTagsAtomicOperationConverter deleteEntityTagsAtomicOperationConverter) {
     return new ElasticSearchEntityTagger(
-      retrySupport, front50Service, accountCredentialsProvider, elasticSearchEntityTagsProvider
+      elasticSearchEntityTagsProvider, upsertEntityTagsAtomicOperationConverter, deleteEntityTagsAtomicOperationConverter
     );
   }
 }

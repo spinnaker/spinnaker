@@ -40,7 +40,7 @@ public class DeleteEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   public DeleteEntityTagsAtomicOperationConverter(ObjectMapper objectMapper,
                                                   Front50Service front50Service,
                                                   ElasticSearchEntityTagsProvider entityTagsProvider) {
-    this.objectMapper = objectMapper
+    this.objectMapper = objectMapper.copy()
       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -49,8 +49,12 @@ public class DeleteEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   }
 
   public AtomicOperation convertOperation(Map input) {
+    return buildOperation(convertDescription(input));
+  }
+
+  public AtomicOperation buildOperation(DeleteEntityTagsDescription description) {
     return new DeleteEntityTagsAtomicOperation(
-      front50Service, entityTagsProvider, this.convertDescription(input)
+      front50Service, entityTagsProvider, description
     );
   }
 

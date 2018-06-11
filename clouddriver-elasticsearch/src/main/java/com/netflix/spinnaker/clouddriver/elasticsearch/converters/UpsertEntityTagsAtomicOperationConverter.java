@@ -48,7 +48,7 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
                                                   Front50Service front50Service,
                                                   AccountCredentialsProvider accountCredentialsProvider,
                                                   ElasticSearchEntityTagsProvider entityTagsProvider) {
-    this.objectMapper = objectMapper
+    this.objectMapper = objectMapper.copy()
       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -59,14 +59,22 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   }
 
   public AtomicOperation convertOperation(Map input) {
+    return buildOperation(convertDescription(input));
+  }
+
+  public AtomicOperation buildOperation(UpsertEntityTagsDescription description) {
+    description.getTags().forEach(UpsertEntityTagsAtomicOperationConverter::setTagValueType);
     return new UpsertEntityTagsAtomicOperation(
-      retrySupport, front50Service, accountCredentialsProvider, entityTagsProvider, this.convertDescription(input)
+      retrySupport,
+      front50Service,
+      accountCredentialsProvider,
+      entityTagsProvider,
+      description
     );
   }
 
   public UpsertEntityTagsDescription convertDescription(Map input) {
     UpsertEntityTagsDescription upsertEntityTagsDescription = objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
-    upsertEntityTagsDescription.getTags().forEach(UpsertEntityTagsAtomicOperationConverter::setTagValueType);
     return upsertEntityTagsDescription;
   }
 

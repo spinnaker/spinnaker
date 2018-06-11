@@ -39,9 +39,10 @@ class UpsertEntityTagsAtomicOperationConverterSpec extends Specification {
         [name: "myTag", value: tagValue]
       ]
     ]
+    def description = converter.convertDescription(entityTags)
 
     when:
-    def description = converter.convertDescription(entityTags)
+    converter.buildOperation(description)
 
     then:
     description.tags[0].valueType == expectedValueType

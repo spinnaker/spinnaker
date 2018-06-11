@@ -19,14 +19,15 @@ package com.netflix.spinnaker.clouddriver.elasticsearch
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomicOperation
+import com.netflix.spinnaker.clouddriver.elasticsearch.converters.DeleteEntityTagsAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import spock.lang.Specification
-import spock.lang.Unroll;
+import spock.lang.Unroll
 
 class ElasticSearchEntityTaggerSpec extends Specification {
   void "should construct valid UpsertEntityTagsDescription"() {
     when:
-    def description = ElasticSearchEntityTagger.upsertEntityTagsDescription(
+    def categorizedDescription = ElasticSearchEntityTagger.upsertCategorizedEntityTagsDescription(
       ElasticSearchEntityTagger.ALERT_TYPE,
       ElasticSearchEntityTagger.ALERT_KEY_PREFIX,
       "myCloudProvider",
@@ -41,6 +42,37 @@ class ElasticSearchEntityTaggerSpec extends Specification {
     )
 
     then:
+    categorizedDescription.isPartial
+    categorizedDescription.entityRef.region == "us-east-1"
+    categorizedDescription.entityRef.accountId == "100"
+    categorizedDescription.entityRef.entityType == "servergroup"
+    categorizedDescription.entityRef.entityId == "myServerGroup-v001"
+    categorizedDescription.entityRef.cloudProvider == "myCloudProvider"
+
+    categorizedDescription.tags.size() == 1
+    categorizedDescription.tags[0].name == "spinnaker_ui_alert:my_event"
+    categorizedDescription.tags[0].value == [
+      message: "This server group failed to launch!",
+      type   : "alert"
+    ]
+    categorizedDescription.tags[0].timestamp == 500L
+    categorizedDescription.tags[0].category == "mycategory"
+
+    when:
+    def description = ElasticSearchEntityTagger.upsertEntityTagsDescription(
+      "scaling_policies",
+      "myCloudProvider",
+      "100",
+      "us-east-1",
+      "mynamespace",
+      null,
+      "servergroup",
+      "myServerGroup-v001",
+      "{'foo':'bar'}",
+      500L
+    )
+
+    then:
     description.isPartial
     description.entityRef.region == "us-east-1"
     description.entityRef.accountId == "100"
@@ -49,13 +81,12 @@ class ElasticSearchEntityTaggerSpec extends Specification {
     description.entityRef.cloudProvider == "myCloudProvider"
 
     description.tags.size() == 1
-    description.tags[0].name == "spinnaker_ui_alert:my_event"
-    description.tags[0].value == [
-      message: "This server group failed to launch!",
-      type   : "alert"
-    ]
+    description.tags[0].name == "scaling_policies"
+    description.tags[0].namespace == "mynamespace"
+    description.tags[0].value == "{'foo':'bar'}"
     description.tags[0].timestamp == 500L
-    description.tags[0].category == "mycategory"
+    description.tags[0].category == null
+
   }
 
   @Unroll
@@ -79,9 +110,13 @@ class ElasticSearchEntityTaggerSpec extends Specification {
   void "should only mutate threadLocalTask if null"() {
     given:
     Task threadLocalTask = null
-    def serverGroupTagger = new ElasticSearchEntityTagger(null, null, null, null) {
+    def deleteConverter = Stub(DeleteEntityTagsAtomicOperationConverter) {
+      buildOperation(_) >> Stub(AtomicOperation)
+    }
+
+    def serverGroupTagger = new ElasticSearchEntityTagger(null, null, deleteConverter) {
       @Override
-      protected void run(DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation) {
+      protected void run(AtomicOperation<?> operation) {
         threadLocalTask = TaskRepository.threadLocalTask.get()
       }
     }
