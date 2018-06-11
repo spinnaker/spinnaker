@@ -42,7 +42,7 @@ const buildAtlasGraphUrl = (metricSetPair: IMetricSetPair) => {
   const query = `${attributes.experiment.query},Canary,:legend,:freeze,${attributes.control.query},Baseline,:legend`;
 
   const startTime = Math.min(scopes.control.startTimeMillis, scopes.experiment.startTimeMillis);
-  const controlEndTime = scopes.control.startTimeMillis + (values.control.length * scopes.control.stepMillis);  
+  const controlEndTime = scopes.control.startTimeMillis + (values.control.length * scopes.control.stepMillis);
   const experimentEndTime = scopes.experiment.startTimeMillis + (values.experiment.length * scopes.experiment.stepMillis);
   const endTime = Math.max(controlEndTime, experimentEndTime);
 
@@ -147,7 +147,9 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run, service }: IMetri
     {
       label: 'explore data',
       getContent: () => {
-        if (service !== 'atlas') return null;
+        if (service !== 'atlas') {
+          return null;
+        }
 
         return <p><a className="small" href={buildAtlasGraphUrl(metricSetPair)} target="_blank">Atlas UI</a></p>;
       }

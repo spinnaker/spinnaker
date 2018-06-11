@@ -154,7 +154,7 @@ function EditMetricModal({
             <RadioChoice value="decrease" label="Decrease" name="direction" current={direction} action={updateDirection}/>
             <RadioChoice value="either"   label="Either"   name="direction" current={direction} action={updateDirection}/>
           </FormRow>
-          <FormRow label="Criticality" checkbox>
+          <FormRow label="Criticality" checkbox={true}>
             <label>
               <DisableableInput
                 type="checkbox"
