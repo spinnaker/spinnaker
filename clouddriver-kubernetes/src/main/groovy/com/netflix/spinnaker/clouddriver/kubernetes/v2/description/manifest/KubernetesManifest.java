@@ -113,6 +113,17 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
+  public Map<String, String> getLabels() {
+    Map<String, String> result = (Map<String, String>) getMetadata().get("labels");
+    if (result == null) {
+      result = new HashMap<>();
+      getMetadata().put("labels", result);
+    }
+
+    return result;
+  }
+
+  @JsonIgnore
   public Map<String, String> getAnnotations() {
     Map<String, String> result = (Map<String, String>) getMetadata().get("annotations");
     if (result == null) {
@@ -121,6 +132,32 @@ public class KubernetesManifest extends HashMap<String, Object> {
     }
 
     return result;
+  }
+
+  @JsonIgnore
+  public Optional<Map<String, String>> getSpecTemplateLabels() {
+    if (!containsKey("spec")) {
+      return Optional.empty();
+    }
+
+    Map<String, Object> spec = (Map<String, Object>) get("spec");
+    if (!spec.containsKey("template")) {
+      return Optional.empty();
+    }
+
+    Map<String, Object> template = (Map<String, Object>) spec.get("template");
+    if (!template.containsKey("metadata")) {
+      return Optional.empty();
+    }
+
+    Map<String, Object> metadata = (Map<String, Object>) template.get("metadata");
+    Map<String, String> result = (Map<String, String>) metadata.get("labels");
+    if (result == null) {
+      result = new HashMap<>();
+      metadata.put("labels", result);
+    }
+
+    return Optional.of(result);
   }
 
   @JsonIgnore

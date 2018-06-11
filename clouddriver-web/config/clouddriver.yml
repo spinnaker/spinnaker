@@ -263,6 +263,8 @@ openstack:
 
 kubernetes:
   enabled: false
+  v2:
+    applyAppLabels: false
 
 dockerRegistry:
   enabled: ${DOCKER_REGISTRY_ENABLED:false}
