@@ -27,9 +27,9 @@ import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.DockerEvent
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
 import com.netflix.spinnaker.igor.polling.DeltaItem
+import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.polling.PollingDelta
-import com.netflix.spinnaker.kork.lock.LockManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
@@ -51,13 +51,13 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
     DockerMonitor(IgorConfigurationProperties properties,
                   Registry registry,
                   Optional<DiscoveryClient> discoveryClient,
-                  Optional<LockManager> lockManager,
+                  Optional<LockService> lockService,
                   DockerRegistryCache cache,
                   DockerRegistryAccounts dockerRegistryAccounts,
                   Optional<EchoService> echoService,
                   Optional<DockerRegistryCacheV2KeysMigration> keysMigration,
                   DockerRegistryProperties dockerRegistryProperties) {
-        super(properties, registry, discoveryClient, lockManager)
+        super(properties, registry, discoveryClient, lockService)
         this.cache = cache
         this.dockerRegistryAccounts = dockerRegistryAccounts
         this.echoService = echoService

@@ -32,7 +32,7 @@ class DockerMonitorSpec extends Specification {
     def properties = new IgorConfigurationProperties()
     def registry = new NoopRegistry()
     def discoveryClient = Optional.empty()
-    def lockManager = Optional.empty()
+    def lockService = Optional.empty()
     def dockerRegistryCache = Mock(DockerRegistryCache)
     def dockerRegistryAccounts = Mock(DockerRegistryAccounts)
     def echoService = Mock(EchoService)
@@ -50,7 +50,7 @@ class DockerMonitorSpec extends Specification {
         )
 
         when:
-        new DockerMonitor(properties, registry, discoveryClient, lockManager, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty(), dockerRegistryProperties)
+        new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty(), dockerRegistryProperties)
             .postEvent(cachedImages, taggedImage, "imageId")
 
         then:
@@ -64,7 +64,7 @@ class DockerMonitorSpec extends Specification {
         })
 
         when: "should short circuit if `echoService` is not available"
-        new DockerMonitor(properties, registry, discoveryClient, lockManager, dockerRegistryCache, dockerRegistryAccounts, Optional.empty(), Optional.empty(), dockerRegistryProperties)
+        new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.empty(), Optional.empty(), dockerRegistryProperties)
             .postEvent(["imageId"] as Set, taggedImage, "imageId")
 
         then:
@@ -89,7 +89,7 @@ class DockerMonitorSpec extends Specification {
         )
 
         when:
-        new DockerMonitor(properties, registry, discoveryClient, lockManager, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty(), dockerRegistryProperties)
+        new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty(), dockerRegistryProperties)
             .postEvent(["job1"] as Set, taggedImage, "imageId")
 
         then:
@@ -155,7 +155,7 @@ class DockerMonitorSpec extends Specification {
     }
 
     private DockerMonitor createSubject(Optional<EchoService> echoService) {
-        return new DockerMonitor(properties, registry, discoveryClient, lockManager, dockerRegistryCache, dockerRegistryAccounts, echoService, Optional.empty(), dockerRegistryProperties)
+        return new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, echoService, Optional.empty(), dockerRegistryProperties)
     }
 
     private static String keyFromTaggedImage(TaggedImage taggedImage) {

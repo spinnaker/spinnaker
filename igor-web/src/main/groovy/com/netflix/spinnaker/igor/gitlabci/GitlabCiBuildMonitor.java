@@ -30,12 +30,8 @@ import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
-import com.netflix.spinnaker.igor.polling.CommonPollingMonitor;
-import com.netflix.spinnaker.igor.polling.DeltaItem;
-import com.netflix.spinnaker.igor.polling.PollContext;
-import com.netflix.spinnaker.igor.polling.PollingDelta;
+import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.igor.service.BuildMasters;
-import com.netflix.spinnaker.kork.lock.LockManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -64,12 +60,12 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
     public GitlabCiBuildMonitor(IgorConfigurationProperties properties,
                                 Registry registry,
                                 Optional<DiscoveryClient> discoveryClient,
-                                Optional<LockManager> lockManager,
+                                Optional<LockService> lockService,
                                 BuildCache buildCache,
                                 BuildMasters buildMasters,
                                 GitlabCiProperties gitlabCiProperties,
                                 Optional<EchoService> echoService) {
-        super(properties, registry, discoveryClient, lockManager);
+        super(properties, registry, discoveryClient, lockService);
         this.buildCache = buildCache;
         this.buildMasters = buildMasters;
         this.gitlabCiProperties = gitlabCiProperties;

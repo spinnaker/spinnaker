@@ -29,10 +29,10 @@ import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
 import com.netflix.spinnaker.igor.polling.DeltaItem
+import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.polling.PollingDelta
 import com.netflix.spinnaker.igor.service.BuildMasters
-import com.netflix.spinnaker.kork.lock.LockManager
 import groovy.time.TimeCategory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -62,13 +62,13 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
     JenkinsBuildMonitor(IgorConfigurationProperties properties,
                         Registry registry,
                         Optional<DiscoveryClient> discoveryClient,
-                        Optional<LockManager> lockManager,
+                        Optional<LockService> lockService,
                         JenkinsCache cache,
                         BuildMasters buildMasters,
                         @Value('${jenkins.polling.enabled:true}') boolean pollingEnabled,
                         Optional<EchoService> echoService,
                         JenkinsProperties jenkinsProperties) {
-        super(properties, registry, discoveryClient, lockManager)
+        super(properties, registry, discoveryClient, lockService)
         this.cache = cache
         this.buildMasters = buildMasters
         this.pollingEnabled = pollingEnabled

@@ -17,19 +17,27 @@ package com.netflix.spinnaker.igor.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
 import com.netflix.spinnaker.kork.lock.LockManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.Optional;
 
 @Configuration
 @ConditionalOnProperty("locking.enabled")
+@EnableConfigurationProperties(LockManagerConfigProperties.class)
 public class LockManagerConfig {
+    @Autowired
+    LockManagerConfigProperties lockManagerConfigProperties;
+
     @Bean
     Clock clock() {
         return Clock.systemDefaultZone();
@@ -45,7 +53,19 @@ public class LockManagerConfig {
             clock,
             registry,
             mapper,
-            redisClientDelegate
+            redisClientDelegate,
+            Optional.of(lockManagerConfigProperties.getHeartbeatRateMillis()),
+            Optional.of(lockManagerConfigProperties.getLeaseDurationMillis())
         );
+    }
+
+    @Bean
+    LockService lockService(final LockManager lockManager) {
+        Duration lockMaxDuration = null;
+        if (lockManagerConfigProperties.getMaximumLockDurationMillis() != null) {
+            lockMaxDuration = Duration.ofMillis(lockManagerConfigProperties.getMaximumLockDurationMillis());
+        }
+
+        return new LockService(lockManager, lockMaxDuration);
     }
 }
