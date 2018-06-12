@@ -80,10 +80,10 @@ public class RedisLockManager implements RefreshableLockManager {
     this.heartbeatRateMillis = heartbeatRateMillis.orElse(DEFAULT_HEARTBEAT_RATE_MILLIS);
     this.leaseDurationMillis = leaseDurationMillis.orElse(DEFAULT_TTL_MILLIS);
 
-    acquireId = registry.createId("redis.lock.acquire");
-    releaseId = registry.createId("redis.lock.release");
-    heartbeatId = registry.createId("redis.lock.heartbeat");
-    acquireDurationId = registry.createId("redis.lock.acquire.duration");
+    acquireId = registry.createId(LockMetricsConstants.ACQUIRE);
+    releaseId = registry.createId(LockMetricsConstants.RELEASE);
+    heartbeatId = registry.createId(LockMetricsConstants.HEARTBEATS);
+    acquireDurationId = registry.createId(LockMetricsConstants.ACQUIRE_DURATION);
     scheduleHeartbeats();
   }
 

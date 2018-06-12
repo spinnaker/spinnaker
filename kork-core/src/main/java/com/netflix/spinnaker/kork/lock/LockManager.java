@@ -202,6 +202,13 @@ public interface LockManager {
     String getName();
   }
 
+  interface LockMetricsConstants {
+    String ACQUIRE = "kork.lock.acquire";
+    String RELEASE = "kork.lock.release";
+    String HEARTBEATS = "kork.lock.heartbeat";
+    String ACQUIRE_DURATION = "kork.lock.acquire.duration";
+  }
+
   class LockOptions {
     private String lockName;
     private Duration maximumLockDuration;
