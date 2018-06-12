@@ -1,5 +1,15 @@
 import { module, IComponentController, IScope } from 'angular';
-import { isString, get, has, isEmpty, map, uniq, difference } from 'lodash';
+import {
+  isString,
+  isFinite,
+  isNil,
+  get,
+  has,
+  isEmpty,
+  map,
+  uniq,
+  difference,
+} from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 
 import {
@@ -30,6 +40,7 @@ interface IKayentaStageCanaryConfig {
   scopes: IKayentaStageCanaryConfigScope[];
   combinedCanaryResultStrategy: string;
   lifetimeHours?: string;
+  lifetimeDuration?: string;
   lookbackMins?: string;
   metricsAccountName: string;
   scoreThresholds: {
@@ -41,14 +52,19 @@ interface IKayentaStageCanaryConfig {
 
 interface IKayentaStageCanaryConfigScope {
   scopeName: string;
-  controlScope: string,
-  controlLocation: string,
+  controlScope: string;
+  controlLocation: string;
   experimentScope: string;
-  experimentLocation: string,
+  experimentLocation: string;
   startTimeIso?: string;
   endTimeIso?: string;
   step?: number;
   extendedScopeParams: {[key: string]: string};
+}
+
+interface IKayentaStageLifetime {
+  hours?: number;
+  minutes?: number;
 }
 
 enum KayentaAnalysisType {
@@ -58,11 +74,12 @@ enum KayentaAnalysisType {
 
 @autoBindMethods
 class CanaryStage implements IComponentController {
-
   public state = {
     useLookback: false,
     backingDataLoading: false,
     detailsLoading: false,
+    lifetimeHoursUpdatedToDuration: false,
+    lifetime: {hours: '', minutes: ''},
   };
   public canaryConfigSummaries: ICanaryConfigSummary[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
@@ -105,7 +122,7 @@ class CanaryStage implements IComponentController {
         break;
       case KayentaAnalysisType.Retrospective:
         delete this.stage.canaryConfig.beginCanaryAnalysisAfterMins;
-        delete this.stage.canaryConfig.lifetimeHours;
+        delete this.stage.canaryConfig.lifetimeDuration;
         break;
     }
   }
@@ -120,6 +137,15 @@ class CanaryStage implements IComponentController {
       this.stage.canaryConfig.combinedCanaryResultStrategy || 'LOWEST';
     this.stage.analysisType =
       this.stage.analysisType || KayentaAnalysisType.RealTime;
+
+    this.updateLifetimeFromHoursToDuration();
+    const stageLifetime = this.getLifetimeFromStageLifetimeDuration();
+    if (!isNil(stageLifetime.hours)) {
+      this.state.lifetime.hours = String(stageLifetime.hours);
+    }
+    if (!isNil(stageLifetime.minutes)) {
+      this.state.lifetime.minutes = String(stageLifetime.minutes);
+    }
 
     if (this.stage.canaryConfig.lookbackMins) {
       this.state.useLookback = true;
@@ -241,6 +267,72 @@ class CanaryStage implements IComponentController {
     this.stage.canaryConfig.scopes[0].experimentLocation =
       '${ deployedServerGroups[0].region }';
   }
+
+  public onLifetimeChange(): void {
+    const {hours, minutes} = this.getStateLifetime();
+    this.stage.canaryConfig.lifetimeDuration = `PT${hours}H${minutes}M`;
+  }
+
+  private updateLifetimeFromHoursToDuration(): void {
+    if (has(this.stage, ['canaryConfig', 'lifetimeHours'])) {
+      const hours = parseInt(this.stage.canaryConfig.lifetimeHours, 10);
+      if (isFinite(hours)) {
+        const fractional =
+          parseFloat(this.stage.canaryConfig.lifetimeHours) - hours;
+        const minutes = Math.floor(fractional * 60);
+        this.stage.canaryConfig.lifetimeDuration = `PT${hours}H`;
+        if (isFinite(minutes)) {
+          this.stage.canaryConfig.lifetimeDuration += `${minutes}M`;
+        }
+        this.state.lifetimeHoursUpdatedToDuration = true;
+      }
+      delete this.stage.canaryConfig.lifetimeHours;
+    }
+  }
+
+  private getStateLifetime(): IKayentaStageLifetime {
+    let hours = parseInt(this.state.lifetime.hours, 10);
+    let minutes = parseInt(this.state.lifetime.minutes, 10);
+    if (!isFinite(hours) || hours < 0) {
+      hours = 0;
+    }
+    if (!isFinite(minutes) || minutes < 0) {
+      minutes = 0;
+    }
+    return {hours, minutes};
+  }
+
+  private getLifetimeFromStageLifetimeDuration(): IKayentaStageLifetime {
+    const duration = get(this.stage, ['canaryConfig', 'lifetimeDuration']);
+    if (!isString(duration)) {
+      return {};
+    }
+    const lifetimeComponents = duration.match(/PT(\d+)H(?:(\d+)M)?/i);
+    if (lifetimeComponents == null) {
+      return {};
+    }
+    const hours = parseInt(lifetimeComponents[1], 10);
+    if (!isFinite(hours) || hours < 0) {
+      return {};
+    }
+    let minutes = parseInt(lifetimeComponents[2], 10);
+    if (!isFinite(minutes) || minutes < 0) {
+      minutes = 0;
+    }
+    return {hours, minutes};
+  }
+
+  public isLifetimeRequired(): boolean {
+    const lifetime = this.getStateLifetime();
+    return lifetime.hours === 0 && lifetime.minutes === 0;
+  }
+
+  public getLifetimeClassnames(): string {
+    if (this.state.lifetimeHoursUpdatedToDuration) {
+      return 'alert alert-warning';
+    }
+    return '';
+  }
 }
 
 const requiredForAnalysisType = (analysisType: KayentaAnalysisType, fieldName: string, fieldLabel?: string): (p: IPipeline, s: IKayentaStage) => string => {
@@ -313,7 +405,7 @@ module(KAYENTA_CANARY_STAGE, [
         { type: 'requiredField', fieldName: 'canaryConfig.scopes[0].experimentScope', fieldLabel: 'Canary Scope' },
         { type: 'requiredField', fieldName: 'canaryConfig.metricsAccountName', fieldLabel: 'Metrics Account' },
         { type: 'requiredField', fieldName: 'canaryConfig.storageAccountName', fieldLabel: 'Storage Account' },
-        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.RealTime, 'canaryConfig.lifetimeHours', 'Lifetime') },
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.RealTime, 'canaryConfig.lifetimeDuration', 'Lifetime') },
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].startTimeIso', 'Start Time') },
         { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].endTimeIso', 'End Time') },
         { type: 'custom', validate: allScopesMustBeConfigured },
