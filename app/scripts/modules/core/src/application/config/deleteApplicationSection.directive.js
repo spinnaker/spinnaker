@@ -36,9 +36,7 @@ module.exports = angular
     this.hasServerGroups = Boolean(this.serverGroupCount);
 
     this.deleteApplication = () => {
-      var submitMethod = () => {
-        ApplicationWriter.deleteApplication(this.application.attributes);
-      };
+      var submitMethod = () => ApplicationWriter.deleteApplication(this.application.attributes);
 
       var taskMonitor = {
         application: this.application,
