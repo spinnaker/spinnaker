@@ -81,9 +81,9 @@
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
 
-"@spinnaker/kayenta@0.0.49":
-  version "0.0.49"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.49.tgz#58b8071b2e68c850f0c3292a4d3d817b51292d57"
+"@spinnaker/kayenta@0.0.50":
+  version "0.0.50"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.50.tgz#aff6574d69f7680cd77d509a75610813174d3a41"
   dependencies:
     "@fortawesome/fontawesome-free-webfonts" "^1.0.4"
     "@types/plotly.js" "^1.28.12"
@@ -116,7 +116,6 @@
     react-redux "^5.0.7"
     react-select "^1.2.1"
     react-sortable-hoc "^0.6.8"
-    react-tether "^0.6.1"
     react-ultimate-pagination "^1.2.0"
     react-virtualized-select "3.1.3"
     redux "^3.7.2"
