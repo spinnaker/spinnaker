@@ -112,10 +112,21 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
    *
    * @param applicationName
    * @param account
-   * @return
+   * @return clusters with the instances
    */
   @Override
   Set<TitusCluster> getClusters(String applicationName, String account) {
+    return getClusters(applicationName, account, true)
+  }
+
+  /**
+   *
+   * @param applicationName
+   * @param account
+   * @return
+   */
+  @Override
+  Set<TitusCluster> getClusters(String applicationName, String account, boolean includeDetails) {
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName),
       RelationshipCacheFilter.include(CLUSTERS.ns))
     if (application == null) {
@@ -125,7 +136,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
       Keys.parse(it).account == account
     }
     Collection<CacheData> clusters = cacheView.getAll(CLUSTERS.ns, clusterKeys)
-    translateClusters(clusters, true) as Set<TitusCluster>
+    translateClusters(clusters, includeDetails) as Set<TitusCluster>
   }
 
   /**

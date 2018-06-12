@@ -132,7 +132,7 @@ class ClusterControllerSpec extends Specification {
       clusterController.getForAccount("app", "account")
 
     then:
-      1 * clusterProvider1.getClusters(_, _) >> null
+      1 * clusterProvider1.getClusters(_, _, false) >> null
       thrown NotFoundException
   }
 

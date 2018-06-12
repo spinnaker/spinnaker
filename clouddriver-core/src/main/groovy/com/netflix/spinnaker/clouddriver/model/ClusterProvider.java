@@ -71,6 +71,11 @@ public interface ClusterProvider<T extends Cluster> {
   @Empty
   Set<T> getClusters(String application, String account);
 
+  @Empty
+  default Set<T> getClusters(String application, String account, boolean includeDetails) {
+    return getClusters(application, account);
+  }
+
   /**
    * Looks up a cluster known to this provider to be for a specified application, within a specified {@link com.netflix.spinnaker.clouddriver.security.AccountCredentials}, and with the specified name.
    *
