@@ -50,6 +50,12 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
   private String rootFolder;
 
   @Parameter(
+      names = "--endpoint",
+      description = CommonCanaryAwsCommandProperties.ENDPOINT_DESCRIPTION
+  )
+  private String endpoint;
+
+  @Parameter(
       names = "--access-key-id",
       description = CommonCanaryAwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
   )
@@ -68,6 +74,7 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
 
     account.setBucket(bucket);
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
+    account.setEndpoint(endpoint);
     account.setAccessKeyId(accessKeyId);
     account.setSecretAccessKey(secretAccessKey);
 
