@@ -10,11 +10,15 @@ class LogIssuePolicy(Policy):
         return ObjectType(o) == 'issue'
 
     def apply(self, g, o):
-        now = datetime.now()
-        delta = now - o.created_at
+        days_since_created = None
+        if o.created_at is not None:
+            now = datetime.now()
+            days_since_created = (now - o.created_at).days
+
         repo = IssueRepo(o)
+
         self.monitoring_db.write('issue', { 
-            'days_since_created': delta.days,
+            'days_since_created': days_since_created,
             'count': 1
         }, tags={ 
             'repo': repo, 

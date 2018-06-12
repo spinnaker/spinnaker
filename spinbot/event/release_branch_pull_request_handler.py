@@ -1,5 +1,5 @@
 from .handler import Handler
-from .pull_request_event import GetBaseBranch, GetPullRequest, GetTitle
+from .pull_request_event import GetBaseBranch, GetPullRequest, GetTitle, GetRepo
 from gh import ReleaseBranchFor, ParseCommitMessage
 
 format_message = ('Features cannot be merged into release branches. The following commits ' +

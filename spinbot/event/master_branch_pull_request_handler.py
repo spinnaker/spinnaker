@@ -1,5 +1,5 @@
 from .handler import Handler
-from .pull_request_event import GetBaseBranch, GetPullRequest, GetTitle
+from .pull_request_event import GetBaseBranch, GetPullRequest, GetTitle, GetRepo
 from gh import ReleaseBranchFor, ParseCommitMessage
 
 format_message = ('The following commits need their title changed:\n\n{}\n\n' +

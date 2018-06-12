@@ -14,10 +14,13 @@ class StaleIssuePolicy(Policy):
         return ObjectType(o) == 'issue'
 
     def apply(self, g, o):
+        if o.created_at is None:
+            return
+
         now = datetime.now()
-        delta = now - o.created_at
-        # exit early to avoid listing all events
-        if delta.days < self.stale_days:
+        days_since_created = (now - o.created_at).days
+
+        if days_since_created < self.stale_days:
             return
 
         if HasLabel(o, 'stale'):
