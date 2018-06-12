@@ -19,8 +19,8 @@ export interface IExpressionFieldState {
 }
 
 export class ExpressionField extends React.Component<IExpressionFieldProps, IExpressionFieldState> {
-  static Formik: IFormikField<IExpressionFieldProps> = formikField(ExpressionField);
-  static defaultProps: Partial<IExpressionFieldProps> = { markdown: false, FieldLayout: BasicLayout };
+  public static Formik: IFormikField<IExpressionFieldProps> = formikField(ExpressionField);
+  public static defaultProps: Partial<IExpressionFieldProps> = { markdown: false, FieldLayout: BasicLayout };
   public state = { spelPreview: '', spelError: null as ISpelError };
 
   public render() {

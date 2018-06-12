@@ -24,10 +24,10 @@ export interface IExpressionRegexFieldState {
 }
 
 export class ExpressionRegexField extends React.Component<IExpressionRegexFieldProps, IExpressionRegexFieldState> {
-  static Formik: IFormikField<IExpressionRegexFieldProps> = formikField<IExpressionRegexFieldProps>(
+  public static Formik: IFormikField<IExpressionRegexFieldProps> = formikField<IExpressionRegexFieldProps>(
     ExpressionRegexField,
   );
-  static defaultProps: Partial<IExpressionFieldProps> = { markdown: false, FieldLayout: BasicLayout };
+  public static defaultProps: Partial<IExpressionFieldProps> = { markdown: false, FieldLayout: BasicLayout };
   public state: IExpressionRegexFieldState = {
     spelPreview: null,
     spelError: null,

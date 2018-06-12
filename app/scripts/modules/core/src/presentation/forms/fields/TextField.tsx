@@ -6,8 +6,8 @@ import { PartialInputProps, IFieldLayoutProps, IFieldProps } from '../interface'
 
 export type ITextFieldProps = IFieldProps & PartialInputProps;
 export class TextField extends React.Component<ITextFieldProps> {
-  static Formik: IFormikField<ITextFieldProps> = formikField<ITextFieldProps>(TextField);
-  static defaultProps: Partial<IFieldProps> = { FieldLayout: BasicLayout };
+  public static Formik: IFormikField<ITextFieldProps> = formikField<ITextFieldProps>(TextField);
+  public static defaultProps: Partial<IFieldProps> = { FieldLayout: BasicLayout };
 
   public render() {
     const { label, help, error, warning, preview, actions, ...rest } = this.props;
