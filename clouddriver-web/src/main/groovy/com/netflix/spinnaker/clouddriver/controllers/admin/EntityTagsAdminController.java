@@ -35,7 +35,7 @@ public class EntityTagsAdminController {
 
   private final EntityTagsProvider entityTagsProvider;
 
-  @Autowired(required = false)
+  @Autowired
   public EntityTagsAdminController(Optional<EntityTagsProvider> entityTagsProvider) {
     this.entityTagsProvider = entityTagsProvider.orElse(null);
   }

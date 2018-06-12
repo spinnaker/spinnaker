@@ -42,7 +42,7 @@ public class EntityTagsController {
   private final MessageSource messageSource;
   private final EntityTagsProvider tagProvider;
 
-  @Autowired(required = false)
+  @Autowired
   public EntityTagsController(MessageSource messageSource,
                               Optional<EntityTagsProvider> tagProvider) {
     this.messageSource = messageSource;
