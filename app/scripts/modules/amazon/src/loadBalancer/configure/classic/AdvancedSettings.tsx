@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Field, FormikProps } from 'formik';
 
-import { HelpField, IWizardPageProps, ValidationError, wizardPage } from '@spinnaker/core';
+import { HelpField, IWizardPageProps, ValidationMessage, wizardPage } from '@spinnaker/core';
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
@@ -42,7 +42,7 @@ class AdvancedSettingsImpl extends React.Component<
             </div>
             {errors.healthTimeout && (
               <div className="col-md-12 col-md-offset-6">
-                <ValidationError message={errors.healthTimeout} />
+                <ValidationMessage type="error" message={errors.healthTimeout} />
               </div>
             )}
           </div>

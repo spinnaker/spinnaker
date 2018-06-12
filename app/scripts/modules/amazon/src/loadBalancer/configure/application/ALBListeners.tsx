@@ -4,7 +4,7 @@ import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd 
 import { difference, flatten, get, uniq } from 'lodash';
 import { FormikErrors, FormikProps } from 'formik';
 
-import { Application, HelpField, IWizardPageProps, Tooltip, ValidationError, wizardPage } from '@spinnaker/core';
+import { Application, HelpField, IWizardPageProps, Tooltip, ValidationMessage, wizardPage } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
@@ -469,7 +469,7 @@ class ALBListenersImpl extends React.Component<
             ))}
             {errors.listeners && (
               <div className="wizard-pod-row-errors">
-                <ValidationError message={errors.listeners} />
+                <ValidationMessage type="error" message={errors.listeners} />
               </div>
             )}
             <table className="table table-condensed packed">

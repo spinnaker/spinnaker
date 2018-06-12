@@ -8,7 +8,7 @@ import {
   HelpField,
   IWizardPageProps,
   SpInput,
-  ValidationError,
+  ValidationMessage,
   spelNumberCheck,
   wizardPage,
 } from '@spinnaker/core';
@@ -228,7 +228,7 @@ class TargetGroupsImpl extends React.Component<
                         </div>
                         {tgErrors.name && (
                           <div className="wizard-pod-row-errors">
-                            <ValidationError message={tgErrors.name} />
+                            <ValidationMessage type="error" message={tgErrors.name} />
                           </div>
                         )}
                       </div>

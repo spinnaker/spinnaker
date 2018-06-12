@@ -18,7 +18,7 @@ import {
   RegionSelectField,
   Spinner,
   SubnetReader,
-  ValidationError,
+  ValidationMessage,
   wizardPage,
 } from '@spinnaker/core';
 
@@ -343,7 +343,7 @@ class LoadBalancerLocationImpl extends React.Component<
                 <span>{values.name}</span>
                 <HelpField id="aws.loadBalancer.name" />
                 <Field type="text" style={{ display: 'none' }} className="form-control input-sm no-spel" name="name" />
-                {errors.name && <ValidationError message={errors.name} />}
+                {errors.name && <ValidationMessage type="error" message={errors.name} />}
               </div>
             </div>
             <div className="form-group">
@@ -395,12 +395,12 @@ class LoadBalancerLocationImpl extends React.Component<
               </div>
               {errors.stack && (
                 <div className="col-md-7 col-md-offset-3">
-                  <ValidationError message={errors.stack} />
+                  <ValidationMessage type="error" message={errors.stack} />
                 </div>
               )}
               {errors.detail && (
                 <div className="col-md-7 col-md-offset-3">
-                  <ValidationError message={errors.detail} />
+                  <ValidationMessage type="error" message={errors.detail} />
                 </div>
               )}
             </div>
