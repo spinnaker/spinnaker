@@ -116,10 +116,11 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
                                                            ObjectKeyLoader objectKeyLoader,
                                                            Registry registry) {
     GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME, gcsProperties);
+    ObjectKeyLoader keyLoader = new DefaultObjectKeyLoader(service);
     return new DefaultApplicationPermissionDAO(
       service,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
-      objectKeyLoader,
+      keyLoader,
       storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
       storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
       registry
