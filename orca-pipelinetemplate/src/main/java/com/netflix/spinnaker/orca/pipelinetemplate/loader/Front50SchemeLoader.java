@@ -50,7 +50,7 @@ public class Front50SchemeLoader implements TemplateSchemeLoader {
       throw new TemplateLoaderException("Cannot load templates without front50 enabled. Set 'front50.enabled: true' in your orca config.");
     }
 
-    String id = uri.getHost();
+    String id = uri.getRawAuthority();
     try {
       Map<String, Object> pipelineTemplate = front50Service.getPipelineTemplate(id);
       return objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
