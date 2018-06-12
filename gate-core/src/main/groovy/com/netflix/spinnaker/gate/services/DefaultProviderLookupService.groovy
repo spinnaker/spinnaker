@@ -53,7 +53,34 @@ class DefaultProviderLookupService implements ProviderLookupService, AccountLook
   @Scheduled(fixedDelay = 30000L)
   void refreshCache() {
     try {
-      accountsCache.set(clouddriverService.getAccountDetails())
+      def accounts = clouddriverService.getAccountDetails()
+      //migration support, prefer permissions configuration, translate requiredGroupMembership
+      // (for credentialsservice in non fiat mode) into permissions collection.
+      //
+      // Ignore explicitly set requiredGroupMemberships if permissions are also present.
+      for (account in accounts) {
+        if (account.permissions != null) {
+          account.permissions = account.permissions.collectEntries { String perm, Collection<String> roles ->
+            Set<String> rolesLower = roles*.toLowerCase()
+            [(perm): rolesLower]
+          }
+          if (account.requiredGroupMembership) {
+            Set<String> rgmSet = account.requiredGroupMembership*.toLowerCase()
+            if (account.permissions.WRITE != rgmSet) {
+              log.warn("on Account $account.name: preferring permissions: $account.permissions over requiredGroupMemberships: $rgmSet for authz decision")
+            }
+          }
+
+        } else {
+          account.requiredGroupMembership = account.requiredGroupMembership.collect { it.toLowerCase() }
+          if (account.requiredGroupMembership) {
+            account.permissions = [READ: account.requiredGroupMembership, WRITE: account.requiredGroupMembership]
+          } else {
+            account.permissions = [:]
+          }
+        }
+      }
+      accountsCache.set(accounts)
     } catch (Exception e) {
       log.error("Unable to refresh account details cache, reason: ${e.message}")
     }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import spock.lang.Specification
 import spock.lang.Subject
@@ -27,9 +28,12 @@ class CredentialsServiceSpec extends Specification {
   @Unroll
   def "should return allowed account names"() {
     setup:
-    AccountLookupService accountLookupService = Mock(AccountLookupService) {
-      getAccounts() >> accounts
+    ClouddriverService clouddriverService = Stub(ClouddriverService) {
+      getAccountDetails() >> accounts
     }
+
+    AccountLookupService accountLookupService = new DefaultProviderLookupService(clouddriverService)
+    accountLookupService.refreshCache()
     FiatClientConfigurationProperties fiatConfig = new FiatClientConfigurationProperties(enabled: false)
 
     @Subject

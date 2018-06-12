@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import groovy.util.logging.Slf4j
@@ -44,26 +43,17 @@ class CredentialsService {
    * Returns all account names that a user with the specified list of userRoles has access to.
    */
   List<AccountDetails> getAccounts(Collection<String> userRoles) {
+    final Set<String> userRolesLower = userRoles*.toLowerCase() as Set<String>
     return accountLookupService.getAccounts().findAll { AccountDetails account ->
       if (fiatConfig.enabled) {
         return true // Returned list is filtered later.
       }
 
-      Set<String> permissions = []
-      //support migration from requiredGroupMemberships config to permissions config.
-      //prefer permissions.WRITE over requiredGroupMemberships if non-empty permissions present
-      if (account.permissions) {
-        if (account.requiredGroupMembership) {
-          log.warn("on Account $account.name: preferring permissions: $account.permissions over requiredGroupMemberships: $account.requiredGroupMembership for authz decision")
-        }
-        permissions.addAll(account.permissions.get(Authorization.WRITE.toString()).collect { it.toLowerCase() })
-      } else if (account.requiredGroupMembership) {
-        permissions.addAll(account.requiredGroupMembership*.toLowerCase())
-      } else {
-        return true // anonymous account.
+      if (!account.permissions) {
+        return true
       }
 
-      def userRolesLower = userRoles*.toLowerCase() as Set<String>
+      Set<String> permissions = account.permissions.WRITE*.toLowerCase() ?: []
 
       return userRolesLower.intersect(permissions) as Boolean
     } ?: []
