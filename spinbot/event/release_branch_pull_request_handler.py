@@ -43,7 +43,7 @@ class ReleaseBranchPullRequestHandler(Handler):
         if len(bad_commits) > 0:
             pull_request.create_issue_comment(format_message.format(
                 ', '.join(self.allowed_types),
-                '\n'.join(map(lambda c: '{}: {}'.format(c.sha, c.message), bad_commits))
+                '\n\n'.join(map(lambda c: '{}: {}'.format(c.sha, c.message), bad_commits))
             ))
 
 ReleaseBranchPullRequestHandler()

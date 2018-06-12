@@ -42,7 +42,7 @@ class MasterBranchPullRequestHandler(Handler):
         
         if len(bad_commits) > 0:
             pull_request.create_issue_comment(format_message.format(
-                ''.join(map(lambda c: '{}: {}'.format(c.sha, c.message), bad_commits))
+                '\n\n'.join(map(lambda c: '{}: {}'.format(c.sha, c.message), bad_commits))
             ))
 
 MasterBranchPullRequestHandler()
