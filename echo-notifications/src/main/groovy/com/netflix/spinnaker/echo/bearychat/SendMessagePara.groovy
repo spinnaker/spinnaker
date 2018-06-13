@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2018 xiaohongshu, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.api
+package com.netflix.spinnaker.echo.bearychat
 
-class Notification {
-  Type notificationType
-  Collection<String> to
-  Collection<String> cc
-  String templateGroup
-  Severity severity
-
-  Source source
-  Map<String, Object> additionalContext = [:]
-
-  static class Source {
-    String executionType
-    String executionId
-    String application
-    String user
-  }
-
-  static enum Type {
-    HIPCHAT,
-    EMAIL,
-    SMS,
-    SLACK,
-    PAGER_DUTY,
-    JIRA,
-    BEARYCHAT
-  }
-
-  static enum Severity {
-    NORMAL,
-    HIGH
-  }
+class SendMessagePara {
+  String vchannel_id
+  String text
+  char[] attachments
 }
-\
