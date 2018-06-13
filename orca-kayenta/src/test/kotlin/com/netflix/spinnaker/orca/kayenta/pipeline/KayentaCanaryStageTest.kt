@@ -239,7 +239,7 @@ object KayentaCanaryStageTest : Spek({
             "beginCanaryAnalysisAfterMins" to warmupMins,
             "canaryAnalysisIntervalMins" to intervalMins,
             "lookbackMins" to lookbackMins,
-            "lifetimeHours" to canaryDuration.toHours().toString()
+            "lifetimeDuration" to canaryDuration
           )
         }
 

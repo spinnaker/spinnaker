@@ -28,6 +28,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import java.time.Duration
 import java.util.*
 
 object AggregateCanaryResultsTaskSpec : Spek({
@@ -86,7 +87,7 @@ object AggregateCanaryResultsTaskSpec : Spek({
               "experimentScope" to "myapp-v021"
             )),
             "scoreThresholds" to scoreThresholds,
-            "lifetimeHours" to "1"
+            "lifetimeDuration" to Duration.parse("PT1H")
           )
         }
       }

@@ -73,7 +73,7 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
     } else if (canaryConfig.lifetime != null) {
       canaryConfig.lifetime
     } else {
-      throw IllegalArgumentException("Canary stage configuration must include either `endTime` or `lifetimeHours`.")
+      throw IllegalArgumentException("Canary stage configuration must include either `endTime` or `lifetimeDuration`.")
     }
 
     var canaryAnalysisInterval = canaryConfig.canaryAnalysisInterval ?: lifetime

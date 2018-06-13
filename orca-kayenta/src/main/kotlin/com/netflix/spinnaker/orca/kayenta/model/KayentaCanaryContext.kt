@@ -27,13 +27,19 @@ data class KayentaCanaryContext(
   val canaryConfigId: String,
   val scopes: List<CanaryConfigScope> = emptyList(),
   val scoreThresholds: Thresholds = Thresholds(pass = 75, marginal = 50),
+  @Deprecated("Kept to support pipelines that haven't been updated to use lifetimeDuration")
   private val lifetimeHours: Int? = null,
+  private val lifetimeDuration: Duration? = null,
   private val beginCanaryAnalysisAfterMins: Int = 0,
   private val lookbackMins: Int = 0,
   private val canaryAnalysisIntervalMins: Int? = null
 ) {
   @JsonIgnore
-  val lifetime = if (lifetimeHours == null) null else Duration.ofHours(lifetimeHours.toLong())
+  val lifetime = when {
+    lifetimeDuration != null -> lifetimeDuration
+    lifetimeHours != null -> Duration.ofHours(lifetimeHours.toLong())
+    else -> null
+  }
 
   @JsonIgnore
   val beginCanaryAnalysisAfter = Duration.ofMinutes(beginCanaryAnalysisAfterMins.toLong())
