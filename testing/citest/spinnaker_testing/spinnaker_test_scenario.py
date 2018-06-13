@@ -32,6 +32,7 @@ from spinnaker_testing import aws_scenario_support
 from spinnaker_testing import appengine_scenario_support
 from spinnaker_testing import google_scenario_support
 from spinnaker_testing import kubernetes_scenario_support
+from spinnaker_testing import kubernetes_v2_scenario_support
 from spinnaker_testing import openstack_scenario_support
 from spinnaker_testing import azure_scenario_support
 from spinnaker_testing import dcos_scenario_support
@@ -42,6 +43,7 @@ PLATFORM_SUPPORT_CLASSES = [
     google_scenario_support.GoogleScenarioSupport,
     appengine_scenario_support.AppEngineScenarioSupport,
     kubernetes_scenario_support.KubernetesScenarioSupport,
+    kubernetes_v2_scenario_support.KubernetesV2ScenarioSupport,
     openstack_scenario_support.OpenStackScenarioSupport,
     azure_scenario_support.AzureScenarioSupport,
     dcos_scenario_support.DcosScenarioSupport
@@ -203,6 +205,15 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       Exception if the observer is not available.
     """
     return self.__platform_support['kubernetes'].observer
+
+  @property
+  def kube_v2_observer(self):
+    """The observer for inspecting Kubernetes V2 platform state."
+
+    Raises:
+      Exception if the observer is not available.
+    """
+    return self.__platform_support['kubernetes_v2'].observer
 
   @property
   def aws_observer(self):
