@@ -68,22 +68,6 @@ public class VersionsService {
       );
     }
 
-    if (Versions.isBranch(version)) {
-      throw new HalException(
-          new ConfigProblemBuilder(FATAL,
-              "Version prefixed with \"branch:\" does not have a BOM")
-              .build()
-      );
-    }
-
-    if (Versions.isLocal(version)) {
-      throw new HalException(
-          new ConfigProblemBuilder(FATAL,
-              "Version prefixed with \"local:\" does not have a BOM")
-              .build()
-      );
-    }
-
     try {
       return profileRegistry.readBom(version);
     } catch (RetrofitError | IOException e) {
