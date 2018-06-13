@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export interface IValidationMessageProps {
   message: string | JSX.Element;
-  type: 'error' | 'warning';
+  type: 'error' | 'warning' | 'preview';
 }
 
 export const ValidationMessage = (props: IValidationMessageProps) => (
