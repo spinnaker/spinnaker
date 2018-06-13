@@ -6,6 +6,7 @@ import { GCE_LOAD_BALANCER_CHOICE_MODAL } from './loadBalancer/configure/choice/
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
 import { GCE_SSL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/ssl/gceCreateSslLoadBalancer.controller';
 import { GCE_TCP_LOAD_BALANCER_CTRL } from './loadBalancer/configure/tcp/gceCreateTcpLoadBalancer.controller';
+import { IAP_INTERCEPTOR } from 'google/interceptors/iap.interceptor';
 import { LOAD_BALANCER_SET_TRANSFORMER } from './loadBalancer/loadBalancer.setTransformer';
 import './help/gce.help';
 
@@ -24,6 +25,7 @@ module(GOOGLE_MODULE, [
   GCE_LOAD_BALANCER_CHOICE_MODAL,
   GCE_SSL_LOAD_BALANCER_CTRL,
   GCE_TCP_LOAD_BALANCER_CTRL,
+  IAP_INTERCEPTOR,
   require('./serverGroup/details/serverGroup.details.gce.module.js').name,
   require('./serverGroup/configure/serverGroupCommandBuilder.service.js').name,
   require('./serverGroup/configure/wizard/cloneServerGroup.gce.controller.js').name,

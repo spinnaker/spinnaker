@@ -7,6 +7,7 @@ var authEndpoint = gateHost + '/auth/user';
 var authEnabled = '{%features.auth%}' === 'true';
 var chaosEnabled = '{%features.chaos%}' === 'true';
 var fiatEnabled = '{%features.fiat%}' === 'true';
+var iapRefresherEnabled = '{%features.iapRefresherEnabled}' === 'true';
 var jobsEnabled = '{%features.jobs%}' === 'true';
 var infrastructureStagesEnabled = '{%features.infrastructureStages%}' === 'true';
 var pipelineTemplatesEnabled = '{%features.pipelineTemplates%}' === 'true';
@@ -170,6 +171,7 @@ window.spinnakerSettings = {
   feature: {
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,
+    iapRefresherEnabled: iapRefresherEnabled,
     netflixMode: netflixMode,
     chaosMonkey: chaosEnabled,
     jobs: jobsEnabled,
