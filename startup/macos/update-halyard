@@ -55,7 +55,7 @@ function install_halyard() {
   TEMPDIR=$(mktemp -d installhalyard.XXXX)
   pushd $TEMPDIR
 
-  curl -OL https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/osx/halyard.tar.gz
+  curl -OL https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/macos/halyard.tar.gz
   rm -rf /opt/halyard
   tar -xvf halyard.tar.gz -C /opt
 
