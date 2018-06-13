@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { Button } from 'react-bootstrap';
 
 import { NgReact } from 'core/reactShims';
 import { noop } from 'core/utils';
 
 export interface ISubmitButtonProps {
+  className?: string;
   onClick?: () => void;
   isDisabled?: boolean;
   isFormSubmit?: boolean;
@@ -14,19 +14,24 @@ export interface ISubmitButtonProps {
 }
 
 export class SubmitButton extends React.Component<ISubmitButtonProps> {
+  public static defaultProps = {
+    className: 'btn btn-primary',
+    onClick: noop,
+    isDisabled: false,
+    isFormSubmit: false,
+    isNew: false,
+  };
+
   public render() {
-    const { isDisabled, isFormSubmit, isNew, label, onClick, submitting } = this.props;
+    const { className, isDisabled, isFormSubmit, isNew, label, onClick, submitting } = this.props;
     const { ButtonBusyIndicator } = NgReact;
+    const type = isFormSubmit ? 'submit' : 'button';
+
     return (
-      <Button
-        className="btn btn-primary"
-        disabled={isDisabled}
-        onClick={onClick ? onClick : noop}
-        type={isFormSubmit ? 'submit' : 'button'}
-      >
+      <button className={className} disabled={isDisabled} onClick={onClick} type={type}>
         {(!submitting && <i className="far fa-check-circle" />) || <ButtonBusyIndicator />}&nbsp;
         {label || (isNew ? 'Create' : 'Update')}
-      </Button>
+      </button>
     );
   }
 }

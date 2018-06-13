@@ -42,7 +42,7 @@ export class ExpressionError extends React.Component<IExpressionErrorProps, IExp
 
         <ValidationMessage type="error" message={spelError.message} />
 
-        <button className="link clickable" onClick={toggleModal}>
+        <button className="link" type="button" onClick={toggleModal}>
           Show expression context where the error occurred
         </button>
       </div>
