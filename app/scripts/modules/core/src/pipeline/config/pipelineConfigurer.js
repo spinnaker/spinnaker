@@ -305,7 +305,7 @@ module.exports = angular
       $scope.$applyAsync(() => {
         $scope.renderablePipeline = _.clone($scope.renderablePipeline);
         // need to ensure references are maintained
-        if ($scope.plan) {
+        if ($scope.isTemplatedPipeline) {
           $scope.plan = $scope.renderablePipeline;
         } else {
           $scope.pipeline = $scope.renderablePipeline;
