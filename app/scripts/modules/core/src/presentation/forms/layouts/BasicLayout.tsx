@@ -22,8 +22,8 @@ export class BasicLayout extends React.Component<IFieldLayoutProps> {
 
         <div className="flex-grow">
           <div className="flex-container-v">
-            <div className="flex-container-h">
-              {input} {actions && <span className="flex-pull-right">{actions}</span>}
+            <div className="flex-container-h baseline margin-between-lg">
+              {input} {actions}
             </div>
 
             {validation}
