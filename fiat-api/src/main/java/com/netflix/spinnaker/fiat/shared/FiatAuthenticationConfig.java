@@ -76,20 +76,19 @@ public class FiatAuthenticationConfig {
   }
 
   @Bean
-  FiatWebSecurityConfigurerAdapter fiatSecurityConfig(@Value("${services.fiat.enabled:false}") boolean isFiatEnabled) {
-    return new FiatWebSecurityConfigurerAdapter(isFiatEnabled);
+  FiatWebSecurityConfigurerAdapter fiatSecurityConfig(FiatStatus fiatStatus) {
+    return new FiatWebSecurityConfigurerAdapter(fiatStatus);
   }
 
   private class FiatWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-    private final boolean isFiatEnabled;
+    private final FiatStatus fiatStatus;
 
-    private FiatWebSecurityConfigurerAdapter(boolean isFiatEnabled) {
-      this.isFiatEnabled = isFiatEnabled;
+    private FiatWebSecurityConfigurerAdapter(FiatStatus fiatStatus) {
+      this.fiatStatus = fiatStatus;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-      if (isFiatEnabled) {
         /*
          * Having `FiatAuthenticationFilter` prior to `SecurityContextPersistenceFilter` results in the
          * `SecurityContextHolder` being overridden with a null value.
@@ -101,11 +100,7 @@ public class FiatAuthenticationConfig {
          */
         http
             .csrf().disable()
-            .addFilterAfter(new FiatAuthenticationFilter(), SecurityContextPersistenceFilter.class);
-      } else {
-        log.info("Fiat service is disabled. Setting Spring Security to allow all traffic.");
-        http.authorizeRequests().anyRequest().permitAll().and().csrf().disable();
-      }
+            .addFilterAfter(new FiatAuthenticationFilter(fiatStatus), SecurityContextPersistenceFilter.class);
     }
   }
 

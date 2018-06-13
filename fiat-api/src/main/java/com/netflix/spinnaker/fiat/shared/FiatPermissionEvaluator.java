@@ -49,24 +49,22 @@ import java.util.function.Function;
 @Component
 @Slf4j
 public class FiatPermissionEvaluator implements PermissionEvaluator {
-  private final DynamicConfigService dynamicConfigService;
   private final Registry registry;
   private final FiatService fiatService;
-  private final FiatClientConfigurationProperties configProps;
+  private final FiatStatus fiatStatus;
 
   private final Cache<String, UserPermission.View> permissionsCache;
 
   private final Id getPermissionCounterId;
 
   @Autowired
-  public FiatPermissionEvaluator(DynamicConfigService dynamicConfigService,
-                                 Registry registry,
+  public FiatPermissionEvaluator(Registry registry,
                                  FiatService fiatService,
-                                 FiatClientConfigurationProperties configProps) {
-    this.dynamicConfigService = dynamicConfigService;
+                                 FiatClientConfigurationProperties configProps,
+                                 FiatStatus fiatStatus) {
     this.registry = registry;
     this.fiatService = fiatService;
-    this.configProps = configProps;
+    this.fiatStatus = fiatStatus;
 
     this.permissionsCache = CacheBuilder
         .newBuilder()
@@ -90,7 +88,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
                                Serializable resourceName,
                                String resourceType,
                                Object authorization) {
-    if (!isEnabled()) {
+    if (!fiatStatus.isEnabled()) {
       return true;
     }
     if (resourceName == null || resourceType == null || authorization == null) {
@@ -172,7 +170,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   @SuppressWarnings("unused")
   @Deprecated
   public boolean storeWholePermission() {
-    if (!isEnabled()) {
+    if (!fiatStatus.isEnabled()) {
       return true;
     }
 
@@ -213,9 +211,5 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
   @SuppressWarnings("unused")
   public boolean isAdmin() {
     return true; // TODO(ttomsu): Chosen by fair dice roll. Guaranteed to be random.
-  }
-
-  private boolean isEnabled() {
-    return dynamicConfigService.isEnabled("fiat", configProps.isEnabled());
   }
 }

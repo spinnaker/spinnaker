@@ -37,14 +37,17 @@ class FiatPermissionEvaluatorSpec extends Specification {
     _ * isEnabled('fiat', true) >> { return true }
   }
   FiatService fiatService = Mock(FiatService)
-  Registry registry = new NoopRegistry();
+  Registry registry = new NoopRegistry()
+  FiatStatus fiatStatus = Mock(FiatStatus) {
+    _ * isEnabled() >> { return true }
+  }
 
   @Subject
   FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(
-      dynamicConfigService,
       registry,
       fiatService,
-      buildConfigurationProperties()
+      buildConfigurationProperties(),
+      fiatStatus
   )
 
   @Unroll

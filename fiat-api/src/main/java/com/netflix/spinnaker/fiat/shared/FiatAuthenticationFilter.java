@@ -32,13 +32,27 @@ import java.util.ArrayList;
 @Slf4j
 public class FiatAuthenticationFilter implements Filter {
 
+  private final FiatStatus fiatStatus;
+
+  public FiatAuthenticationFilter(FiatStatus fiatStatus) {
+    this.fiatStatus = fiatStatus;
+  }
+
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+  public void doFilter(ServletRequest request,
+                       ServletResponse response,
+                       FilterChain chain) throws IOException, ServletException {
+    if (!fiatStatus.isEnabled()) {
+      chain.doFilter(request, response);
+      return;
+    }
+
     Authentication auth = AuthenticatedRequest
         .getSpinnakerUser()
-        .map(username -> (Authentication) new PreAuthenticatedAuthenticationToken(username,
-                                                                                  null,
-                                                                                  new ArrayList<>()))
+        .map(username -> (Authentication) new PreAuthenticatedAuthenticationToken(
+            username,
+            null,
+            new ArrayList<>()))
         .orElseGet(() -> new AnonymousAuthenticationToken(
             "anonymous",
             "anonymous",
