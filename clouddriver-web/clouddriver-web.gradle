@@ -39,7 +39,7 @@ dependencies {
   compile project(':clouddriver-eureka')
   compile project(':clouddriver-elasticsearch')
   compile project(':clouddriver-elasticsearch-aws')
-  compile project(':clouddriver-oracle-bmcs')
+  compile project(':clouddriver-oracle')
   compile project(':clouddriver-dcos')
   compile project(':clouddriver-titus')
 
