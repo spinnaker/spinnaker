@@ -34,6 +34,7 @@ public interface CanDelete {
   KubernetesKind kind();
 
   default OperationResult delete(KubernetesV2Credentials credentials, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
+    options = options == null ? new V1DeleteOptions() : options;
     List<String> deletedNames = credentials.delete(kind(), namespace, name, labelSelectors, options);
     OperationResult result = new OperationResult();
     Set<String> fullNames = deletedNames.stream().map(n -> KubernetesManifest.getFullResourceName(kind(), n)).collect(Collectors.toSet());
