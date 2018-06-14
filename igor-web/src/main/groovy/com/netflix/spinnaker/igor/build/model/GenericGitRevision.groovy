@@ -29,11 +29,19 @@ class GenericGitRevision {
     String compareUrl
     String message
     Instant timestamp
+    String remoteUrl
 
     GenericGitRevision(String name, String branch, String sha1) {
         this.name = name
         this.branch = branch
         this.sha1 = sha1
+    }
+
+    GenericGitRevision(String name, String branch, String sha1, String remoteUrl) {
+        this.name = name
+        this.branch = branch
+        this.sha1 = sha1
+        this.remoteUrl = remoteUrl
     }
 
     GenericGitRevision(String name, String branch, String sha1, String committer, String compareUrl, String message, Instant timestamp) {

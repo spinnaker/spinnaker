@@ -196,9 +196,7 @@ class JenkinsService implements BuildService{
     @Override
     List<GenericGitRevision> getGenericGitRevisions(String job, int buildNumber) {
         ScmDetails scmDetails = getGitDetails(job, buildNumber)
-        if (scmDetails?.action?.lastBuiltRevision?.branch?.name) {
-            return scmDetails.genericGitRevisions()
-        }
-        return null
+        return scmDetails.genericGitRevisions()
+
     }
 }

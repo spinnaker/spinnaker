@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins.service
 
+import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
@@ -207,5 +208,108 @@ class JenkinsServiceSpec extends Specification {
                 '</job>' +
                 '</job>' +
                 '</hudson>'
+    }
+
+
+    void "when Jenkins returns a single scm, our JenkinsService will return a single scm"() {
+        given:
+        String jenkinsSCMResponse = "<freeStyleBuild _class=\"hudson.model.FreeStyleBuild\">\n" +
+            "<action _class=\"hudson.plugins.git.util.BuildData\">\n" +
+            "<lastBuiltRevision>\n" +
+            "<branch>\n" +
+            "<SHA1>111aaa</SHA1>\n" +
+            "<name>refs/remotes/origin/master</name>\n" +
+            "</branch>\n" +
+            "</lastBuiltRevision>\n" +
+            "<remoteUrl>https://github.com/spinnaker/igor</remoteUrl>\n" +
+            "</action>\n" +
+            "</freeStyleBuild>"
+
+        MockWebServer server = new MockWebServer()
+        server.enqueue(
+            new MockResponse()
+                .setBody(jenkinsSCMResponse)
+                .setHeader('Content-Type', 'text/xml;charset=UTF-8')
+        )
+        server.start()
+        client = Mock(JenkinsClient)
+
+        def host = new JenkinsProperties.JenkinsHost(
+            address: server.url('/').toString(),
+            username: 'username',
+            password: 'password')
+        client = new JenkinsConfig().jenkinsClient(host)
+        service = new JenkinsService('http://my.jenkins.net', client, false)
+
+        when:
+        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
+
+        then:
+        genericGitRevision.size() == 1
+        genericGitRevision.get(0).name == "refs/remotes/origin/master"
+        genericGitRevision.get(0).branch == "master"
+        genericGitRevision.get(0).sha1 == "111aaa"
+        genericGitRevision.get(0).remoteUrl == "https://github.com/spinnaker/igor"
+
+        cleanup:
+        server.shutdown()
+    }
+
+    void "when Jenkins returns multiple scms, our JenkinsService will return multiple scms"() {
+        given:
+        String jenkinsSCMResponse = "<freeStyleBuild _class=\"hudson.model.FreeStyleBuild\">\n" +
+            "<action _class=\"hudson.plugins.git.util.BuildData\">\n" +
+            "<lastBuiltRevision>\n" +
+            "<branch>\n" +
+            "<SHA1>111aaa</SHA1>\n" +
+            "<name>refs/remotes/origin/master</name>\n" +
+            "</branch>\n" +
+            "</lastBuiltRevision>\n" +
+            "<remoteUrl>https://github.com/spinnaker/igor</remoteUrl>\n" +
+            "</action>\n" +
+            "<action _class=\"hudson.plugins.git.util.BuildData\">\n" +
+            "<lastBuiltRevision>\n" +
+            "<branch>\n" +
+            "<SHA1>222bbb</SHA1>\n" +
+            "<name>refs/remotes/origin/master-master</name>\n" +
+            "</branch>\n" +
+            "</lastBuiltRevision>\n" +
+            "<remoteUrl>https://github.com/spinnaker/igor-fork</remoteUrl>\n" +
+            "</action>\n" +
+            "</freeStyleBuild>"
+
+        MockWebServer server = new MockWebServer()
+        server.enqueue(
+            new MockResponse()
+                .setBody(jenkinsSCMResponse)
+                .setHeader('Content-Type', 'text/xml;charset=UTF-8')
+        )
+        server.start()
+        client = Mock(JenkinsClient)
+
+        def host = new JenkinsProperties.JenkinsHost(
+            address: server.url('/').toString(),
+            username: 'username',
+            password: 'password')
+        client = new JenkinsConfig().jenkinsClient(host)
+        service = new JenkinsService('http://my.jenkins.net', client, false)
+
+        when:
+        List<GenericGitRevision> genericGitRevision = service.getGenericGitRevisions('test', 1)
+
+        then:
+        genericGitRevision.size() == 2
+        genericGitRevision.get(0).name == "refs/remotes/origin/master"
+        genericGitRevision.get(0).branch == "master"
+        genericGitRevision.get(0).sha1 == "111aaa"
+        genericGitRevision.get(0).remoteUrl == "https://github.com/spinnaker/igor"
+
+        genericGitRevision.get(1).name == "refs/remotes/origin/master-master"
+        genericGitRevision.get(1).branch == "master-master"
+        genericGitRevision.get(1).sha1 == "222bbb"
+        genericGitRevision.get(1).remoteUrl == "https://github.com/spinnaker/igor-fork"
+
+        cleanup:
+        server.shutdown()
     }
 }
