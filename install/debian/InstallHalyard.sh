@@ -292,7 +292,7 @@ function install_halyard() {
     curl -O https://storage.googleapis.com/$gcs_bucket_and_file
   fi
 
-  tar -xvf halyard.tar.gz -C /opt
+  tar --no-same-owner --no-same-permissions -xvf halyard.tar.gz -C /opt
 
   groupadd halyard || true
   groupadd spinnaker || true
@@ -311,7 +311,7 @@ function install_halyard() {
   fi
 
   mkdir -p /var/log/spinnaker/halyard
-  chown $HAL_USER /var/log/spinnaker/halyard
+  chown $HAL_USER:halyard /var/log/spinnaker/halyard
   chmod 755 /var/log/spinnaker/halyard
 
   popd
