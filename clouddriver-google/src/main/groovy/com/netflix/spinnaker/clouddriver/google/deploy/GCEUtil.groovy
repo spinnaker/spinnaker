@@ -59,6 +59,7 @@ import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP_HEALTH_CHECKS
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HEALTH_CHECKS
+import static com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.AutoscalingMode
 
 @Slf4j
 class GCEUtil {
@@ -627,6 +628,10 @@ class GCEUtil {
             }
       }
 
+      if (mode) {
+        autoscalingPolicyDescription.mode = AutoscalingMode.valueOf(mode)
+      }
+
       return autoscalingPolicyDescription
     }
   }
@@ -800,7 +805,9 @@ class GCEUtil {
     autoscalingPolicy.with {
       def gceAutoscalingPolicy = new AutoscalingPolicy(coolDownPeriodSec: coolDownPeriodSec,
                                                        minNumReplicas: minNumReplicas,
-                                                       maxNumReplicas: maxNumReplicas)
+                                                       maxNumReplicas: maxNumReplicas,
+                                                       mode: mode ? mode.toString() : "ON"
+      )
 
       if (cpuUtilization) {
         gceAutoscalingPolicy.cpuUtilization =

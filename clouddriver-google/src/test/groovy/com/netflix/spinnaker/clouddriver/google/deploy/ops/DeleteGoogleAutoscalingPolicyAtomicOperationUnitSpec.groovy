@@ -18,16 +18,16 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManagersSetAutoHealingRequest
+import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.RegionInstanceGroupManagersSetAutoHealingRequest
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
-
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -70,7 +70,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       region: REGION,
       accountName: ACCOUNT_NAME,
       credentials: credentials)
-    @Subject def operation = new DeleteGoogleAutoscalingPolicyAtomicOperation(description)
+    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
 
@@ -78,6 +78,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     operation.operate([])
 
     then:
+    1 * operation.deletePolicyMetadata(computeMock, credentials, PROJECT_NAME, _) >> null // Tested separately.
     1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
 
     if (isRegional) {
@@ -130,7 +131,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
           "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
           [scope: "regional", region: REGION])
 
-    @Subject def operation = new DeleteGoogleAutoscalingPolicyAtomicOperation(description)
+    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
     operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
 
@@ -138,6 +139,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     operation.operate([])
 
     then:
+    1 * operation.deletePolicyMetadata(computeMock, credentials, PROJECT_NAME, _) >> null // Tested separately.
     1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
 
     if (isRegional) {
@@ -152,5 +154,61 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
 
     where:
     isRegional << [true, false]
+  }
+
+  void "delete the instance template when deletePolicyMetadata is called"() {
+    given:
+    def registry = new DefaultRegistry()
+    def googleClusterProviderMock = Mock(GoogleClusterProvider)
+    def computeMock = Mock(Compute)
+    def autoscaler = [:]
+
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+    def description = new DeleteGoogleAutoscalingPolicyDescription(serverGroupName: SERVER_GROUP_NAME,
+      region: REGION,
+      accountName: ACCOUNT_NAME,
+      credentials: credentials)
+
+    // Instance Template Update setup
+    def igm = Mock(Compute.InstanceGroupManagers)
+    def igmGet = Mock(Compute.InstanceGroupManagers.Get)
+    def regionIgm = Mock(Compute.RegionInstanceGroupManagers)
+    def regionIgmGet = Mock(Compute.RegionInstanceGroupManagers.Get)
+    def groupManager = [instanceTemplate: 'templates/template']
+    def instanceTemplates = Mock(Compute.InstanceTemplates)
+    def instanceTemplatesGet = Mock(Compute.InstanceTemplates.Get)
+    // TODO(jacobkiefer): The following is very change detector-y. Consider a refactor so we can just mock this function.
+    def template = new InstanceTemplate(properties: [
+      disks: [[getBoot: { return [initializeParams: [sourceImage: 'images/sourceImage']] }, initializeParams: [diskType: 'huge', diskSizeGb: 42], autoDelete: false]],
+      name: 'template',
+      networkInterfaces: [[network: 'networks/my-network']],
+      serviceAccounts: [[email: 'serviceAccount@google.com']]
+    ])
+
+    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    operation.registry = registry
+    operation.googleClusterProvider = googleClusterProviderMock
+
+    when:
+    operation.deletePolicyMetadata(computeMock, credentials, PROJECT_NAME, groupUrl)
+
+    then:
+    if (isRegional) {
+      1 * computeMock.regionInstanceGroupManagers() >> regionIgm
+      1 * regionIgm.get(PROJECT_NAME, location, _ ) >> regionIgmGet
+      1 * regionIgmGet.execute() >> groupManager
+    } else {
+      1 * computeMock.instanceGroupManagers() >> igm
+      1 * igm.get(PROJECT_NAME, location, _ ) >> igmGet
+      1 * igmGet.execute() >> groupManager
+    }
+    1 * computeMock.instanceTemplates() >> instanceTemplates
+    1 * instanceTemplates.get(PROJECT_NAME, _) >> instanceTemplatesGet
+    1 * instanceTemplatesGet.execute() >> template
+
+    where:
+    isRegional | location | groupUrl
+    false      | ZONE     | "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/zones/us-central1-f/autoscalers/okra-auto-v005"
+    true       | REGION   | "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/regions/us-central1/autoscalers/okra-auto-v005"
   }
 }

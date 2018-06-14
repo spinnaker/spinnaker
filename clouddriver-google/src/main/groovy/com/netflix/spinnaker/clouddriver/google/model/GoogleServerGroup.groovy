@@ -85,6 +85,7 @@ class GoogleServerGroup {
     static final String BACKEND_SERVICE_NAMES = "backend-service-names"
     static final String LOAD_BALANCING_POLICY = "load-balancing-policy"
     static final String SELECT_ZONES = 'select-zones'
+    static final String AUTOSCALING_POLICY = 'autoscaling-policy'
 
     String name = GoogleServerGroup.this.name
     String region = GoogleServerGroup.this.region

@@ -24,6 +24,8 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -109,6 +111,9 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
     }
 
     if (disable) {
+      task.updateStatus phaseName, "Disabling autoscaling for server group disable..."
+      setAutoscalingPolicyMode(compute, project, serverGroup, GoogleAutoscalingPolicy.AutoscalingMode.OFF)
+
       task.updateStatus phaseName, "Deregistering server group from Http(s) load balancers..."
 
       safeRetry.doRetry(
@@ -194,6 +199,27 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
         }
       }
     } else {
+
+      def instanceTemplateUrl = managedInstanceGroup.getInstanceTemplate()
+      def instanceTemplate = safeRetry.doRetry(
+        getInstanceTemplate(compute, project, instanceTemplateUrl),
+        "instance template",
+        task,
+        RETRY_ERROR_CODES,
+        [],
+        [operation: "getInstanceTemplate", action: "get", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
+      ) as InstanceTemplate
+      def metadataItems = instanceTemplate?.properties?.metadata?.items
+
+      task.updateStatus phaseName, "Re-enabling autoscaling for server group enable..."
+
+      Map metadataMap = GCEUtil.buildMapFromMetadata(instanceTemplate?.properties?.metadata)
+      String autoscalerJson = metadataMap?.(GoogleServerGroup.View.AUTOSCALING_POLICY)
+      def autoscaler = objectMapper.readValue(autoscalerJson, Map)
+      def enabledMode = GoogleAutoscalingPolicy.AutoscalingMode.valueOf(autoscaler?.autoscalingPolicy?.mode ?: "ON")
+      setAutoscalingPolicyMode(compute, project, serverGroup, enabledMode)
+
       task.updateStatus phaseName, "Registering server group with Http(s) load balancers..."
 
       safeRetry.doRetry(
@@ -269,19 +295,7 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
         new InstanceReference(instance: groupInstance.instance)
       }
 
-      def instanceTemplateUrl = managedInstanceGroup.getInstanceTemplate()
-      def instanceTemplate = safeRetry.doRetry(
-        getInstanceTemplate(compute, project, instanceTemplateUrl),
-        "instance template",
-        task,
-        RETRY_ERROR_CODES,
-        [],
-        [operation: "getInstanceTemplate", action: "get", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
-        registry
-      ) as InstanceTemplate
-      def metadataItems = instanceTemplate?.properties?.metadata?.items
       def newForwardingRuleNames = []
-
       metadataItems.each { item ->
         if (item.key == 'load-balancer-names') {
           newForwardingRuleNames = item.value.split(",") as List
@@ -462,6 +476,32 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
           compute.targetPools().addInstance(project, region, targetPoolLocalName, targetPoolsAddInstanceRequest),
           "compute.targetPools.addInstance",
           TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+    }
+  }
+
+  void setAutoscalingPolicyMode(compute, String project, serverGroup, GoogleAutoscalingPolicy.AutoscalingMode mode) {
+    String serverGroupName = serverGroup.name
+    String region = serverGroup.region
+    String zone = serverGroup.zone
+    if (serverGroup.autoscalingPolicy) {
+      def policyDescription =
+        GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(serverGroup.autoscalingPolicy)
+      if (policyDescription) {
+        def autoscaler = GCEUtil.buildAutoscaler(serverGroupName, serverGroup.selfLink, policyDescription)
+        autoscaler.getAutoscalingPolicy().setMode(mode.toString())
+
+        if (serverGroup.regional) {
+          timeExecute(
+            compute.regionAutoscalers().update(project, region, autoscaler),
+            "compute.regionAutoscalers.update",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+        } else {
+          timeExecute(
+            compute.autoscalers().update(project, zone, autoscaler),
+            "compute.autoscalers.update",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+        }
+      }
     }
   }
 }

@@ -31,6 +31,7 @@ class GoogleAutoscalingPolicy {
   CpuUtilization cpuUtilization
   LoadBalancingUtilization loadBalancingUtilization
   List<CustomMetricUtilization> customMetricUtilizations
+  AutoscalingMode mode
 
   @ToString(includeNames = true)
   static class CpuUtilization {
@@ -53,5 +54,13 @@ class GoogleAutoscalingPolicy {
       DELTA_PER_SECOND,
       DELTA_PER_MINUTE;
     }
+  }
+
+
+  static enum AutoscalingMode {
+    ON,
+    OFF,
+    ONLY_UP,
+    ONLY_DOWN
   }
 }

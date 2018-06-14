@@ -16,20 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
-import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.FixedOrPercent
-import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
-import com.google.api.services.compute.model.InstanceGroupManagersSetAutoHealingRequest
-import com.google.api.services.compute.model.RegionInstanceGroupManagersSetAutoHealingRequest
+import com.google.api.services.compute.model.*
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation<Void> {
@@ -43,7 +48,16 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
   private GoogleClusterProvider googleClusterProvider
 
   @Autowired
+  AtomicOperationsRegistry atomicOperationsRegistry
+
+  @Autowired
+  OrchestrationProcessor orchestrationProcessor
+
+  @Autowired
   Cache cacheView
+
+  @Autowired
+  ObjectMapper objectMapper
 
   private final UpsertGoogleAutoscalingPolicyDescription description
 
@@ -79,16 +93,17 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     def isRegional = serverGroup.regional
     def zone = serverGroup.zone
 
+    def autoscaler = null
     if (description.autoscalingPolicy) {
       def ancestorAutoscalingPolicyDescription =
         GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(serverGroup.autoscalingPolicy)
       if (ancestorAutoscalingPolicyDescription) {
         task.updateStatus BASE_PHASE, "Updating autoscaler for $serverGroupName..."
 
-        def autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
-                                                 serverGroup.selfLink,
-                                                 copyAndOverrideAncestorAutoscalingPolicy(ancestorAutoscalingPolicyDescription,
-                                                                                          description.autoscalingPolicy))
+        autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
+                                             serverGroup.selfLink,
+                                             copyAndOverrideAncestorAutoscalingPolicy(ancestorAutoscalingPolicyDescription,
+                                                                                      description.autoscalingPolicy))
 
         if (isRegional) {
           timeExecute(
@@ -104,9 +119,9 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       } else {
         task.updateStatus BASE_PHASE, "Creating new autoscaler for $serverGroupName..."
 
-        def autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
-                                                 serverGroup.selfLink,
-                                                 normalizeNewAutoscalingPolicy(description.autoscalingPolicy))
+        autoscaler = GCEUtil.buildAutoscaler(serverGroupName,
+                                             serverGroup.selfLink,
+                                             normalizeNewAutoscalingPolicy(description.autoscalingPolicy))
 
         if (isRegional) {
           timeExecute(
@@ -162,6 +177,23 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       }
     }
 
+    // TODO(jacobkiefer): Update metadata for autoHealingPolicy when 'mode' support lands.
+    // NOTE: This block is here intentionally, we should wait until all the modifications are done before
+    // updating the instance template metadata.
+    if (isRegional) {
+      updatePolicyMetadata(compute,
+                           credentials,
+                           project,
+                           GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName),
+                           autoscaler)
+    } else {
+      updatePolicyMetadata(compute,
+                           credentials,
+                           project,
+                           GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName),
+                           autoscaler)
+    }
+
     return null
   }
 
@@ -174,7 +206,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     }
 
     // Deletes existing customMetricUtilizations if passed an empty array.
-    ["minNumReplicas", "maxNumReplicas", "coolDownPeriodSec", "customMetricUtilizations"].each {
+    ["minNumReplicas", "maxNumReplicas", "coolDownPeriodSec", "customMetricUtilizations", "mode"].each {
       if (update[it] != null) {
         newDescription[it] = update[it]
       }
@@ -263,5 +295,79 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     }
 
     return autoHealingPolicy
+  }
+
+  void updatePolicyMetadata(Compute compute,
+                            GoogleNamedAccountCredentials credentials,
+                            String project,
+                            String groupUrl,
+                            autoscaler) {
+    def groupName = Utils.getLocalName(groupUrl)
+    def groupRegion = Utils.getRegionFromGroupUrl(groupUrl)
+
+    String templateUrl = null
+    switch (Utils.determineServerGroupType(groupUrl)) {
+      case GoogleServerGroup.ServerGroupType.REGIONAL:
+        templateUrl = timeExecute(
+          compute.regionInstanceGroupManagers().get(project, groupRegion, groupName),
+          "compute.regionInstanceGroupManagers.get",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, groupRegion)
+          .getInstanceTemplate()
+        break
+      case GoogleServerGroup.ServerGroupType.ZONAL:
+        def groupZone = Utils.getZoneFromGroupUrl(groupUrl)
+        templateUrl = timeExecute(
+          compute.instanceGroupManagers().get(project, groupZone, groupName),
+          "compute.instanceGroupManagers.get",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, groupZone)
+          .getInstanceTemplate()
+        break
+      default:
+        throw new IllegalStateException("Server group referenced by ${groupUrl} has illegal type.")
+        break
+    }
+
+    InstanceTemplate template = timeExecute(
+      compute.instanceTemplates().get(project, Utils.getLocalName(templateUrl)),
+      "compute.instancesTemplates.get",
+      TAG_SCOPE, SCOPE_GLOBAL)
+    def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(template)
+
+    def templateOpMap = [
+      image              : instanceDescription.image,
+      instanceType       : instanceDescription.instanceType,
+      credentials        : credentials.getName(),
+      disks              : instanceDescription.disks,
+      instanceMetadata   : instanceDescription.instanceMetadata,
+      tags               : instanceDescription.tags,
+      network            : instanceDescription.network,
+      subnet             : instanceDescription.subnet,
+      serviceAccountEmail: instanceDescription.serviceAccountEmail,
+      authScopes         : instanceDescription.authScopes,
+      preemptible        : instanceDescription.preemptible,
+      automaticRestart   : instanceDescription.automaticRestart,
+      onHostMaintenance  : instanceDescription.onHostMaintenance,
+      region             : groupRegion,
+      serverGroupName    : groupName
+    ]
+
+    if (instanceDescription.minCpuPlatform) {
+      templateOpMap.minCpuPlatform = instanceDescription.minCpuPlatform
+    }
+
+    def instanceMetadata = templateOpMap?.instanceMetadata
+    if (instanceMetadata && autoscaler) {
+      instanceMetadata.(GoogleServerGroup.View.AUTOSCALING_POLICY) = objectMapper.writeValueAsString(autoscaler)
+    } else if (autoscaler) {
+      templateOpMap.instanceMetadata = [
+        (GoogleServerGroup.View.AUTOSCALING_POLICY): objectMapper.writeValueAsString(autoscaler)
+      ]
+    }
+
+    if (templateOpMap.instanceMetadata) {
+      def converter = atomicOperationsRegistry.getAtomicOperationConverter('modifyGoogleServerGroupInstanceTemplateDescription', 'gce', ProviderVersion.v1)
+      AtomicOperation templateOp = converter.convertOperation(templateOpMap)
+      orchestrationProcessor.process([templateOp], UUID.randomUUID().toString())
+    }
   }
 }
