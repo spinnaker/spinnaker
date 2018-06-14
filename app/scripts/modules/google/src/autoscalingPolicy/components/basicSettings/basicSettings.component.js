@@ -9,4 +9,7 @@ module.exports = angular
       policy: '=',
     },
     templateUrl: require('./basicSettings.component.html'),
+    controller: function controller() {
+      this.modes = ['ON', 'OFF', 'ONLY_UP', 'ONLY_DOWN'];
+    },
   });
