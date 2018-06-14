@@ -9,6 +9,9 @@ export interface INotificationSettings {
   email: {
     enabled: boolean;
   };
+  bearychat: {
+    enabled: boolean;
+  };
   hipchat: {
     enabled: boolean;
     botName: string;
