@@ -137,25 +137,25 @@ public class RedisLockManager implements RefreshableLockManager {
   }
 
   @Override
-  public boolean releaseLock(@Nonnull final Lock lock) {
+  public boolean releaseLock(@Nonnull final Lock lock, boolean wasWorkSuccessful) {
     try {
       // we are aware that the cardinality can get high. To revisit if concerns arise.
       Id lockRelease = releaseId.withTag("lockName", lock.getName());
-      String status = tryReleaseLock(lock);
+      String status = tryReleaseLock(lock, wasWorkSuccessful);
       registry.counter(lockRelease.withTag("status", status)).increment();
 
       switch (status) {
         case SUCCESS:
         case SUCCESS_GONE:
-          log.info("Released lock {}", lock);
+          log.info("Released lock (wasWorkSuccessful: {}, {})", wasWorkSuccessful, lock);
           return true;
 
         case FAILED_NOT_OWNER:
-          log.warn("Failed releasing lock {}: Not owner", lock);
+          log.warn("Failed releasing lock, not owner (wasWorkSuccessful: {}, {})", wasWorkSuccessful, lock);
           return false;
 
         default:
-          log.error("Unknown release response code {} for lock {}", status, lock);
+          log.error("Unknown release response code {} (wasWorkSuccessful: {}, {})", status, wasWorkSuccessful, lock);
           return false;
       }
     } finally {
@@ -233,15 +233,16 @@ public class RedisLockManager implements RefreshableLockManager {
         }
       }
 
-      return new AcquireLockResponse<>(lock, workResult, status, null, tryLockReleaseQuietly(lock));
+      return new AcquireLockResponse<>(lock, workResult, status, null, tryLockReleaseQuietly(lock, true));
     } catch (Exception e) {
+      boolean lockWasReleased = tryLockReleaseQuietly(lock, false);
+
       if (e instanceof LockCallbackException) {
         throw e;
       }
 
-      log.error("Failed to acquire lock with options {}", lockOptions, e);
       status = LockStatus.ERROR;
-      return new AcquireLockResponse<>(lock, workResult, status, e, tryLockReleaseQuietly(lock));
+      return new AcquireLockResponse<>(lock, workResult, status, e, lockWasReleased);
     } finally {
       Optional.ofNullable(heartbeatLockRequest).ifPresent(r -> heartbeatQueue.remove(r));
       registry.counter(
@@ -334,10 +335,10 @@ public class RedisLockManager implements RefreshableLockManager {
     }
   }
 
-  private boolean tryLockReleaseQuietly(final Lock lock) {
+  private boolean tryLockReleaseQuietly(final Lock lock, boolean wasWorkSuccessful) {
     if (lock != null) {
       try {
-        return releaseLock(lock);
+        return releaseLock(lock, wasWorkSuccessful);
       } catch (Exception e) {
         log.warn("Attempt to release lock {} failed", lock, e);
       }
@@ -360,6 +361,9 @@ public class RedisLockManager implements RefreshableLockManager {
           Arrays.asList(lockKey(lockOptions.getLockName())),
           Arrays.asList(
             Long.toString(Duration.ofMillis(leaseDurationMillis).toMillis()),
+            Long.toString(Duration.ofMillis(leaseDurationMillis).getSeconds()),
+            Long.toString(lockOptions.getSuccessInterval().toMillis()),
+            Long.toString(lockOptions.getFailureInterval().toMillis()),
             ownerName,
             Long.toString(clock.millis()),
             String.valueOf(lockOptions.getVersion()),
@@ -378,14 +382,17 @@ public class RedisLockManager implements RefreshableLockManager {
     }
   }
 
-  private String tryReleaseLock(final Lock lock) {
+  private String tryReleaseLock(final Lock lock, boolean wasWorkSuccessful) {
+    long releaseTtl = wasWorkSuccessful ? lock.getSuccessIntervalMillis() : lock.getFailureIntervalMillis();
+
     Object payload =  redisClientDelegate.withScriptingClient(c -> {
       return c.eval(
         RELEASE_SCRIPT,
         Arrays.asList(lockKey(lock.getName())),
         Arrays.asList(
           ownerName,
-          String.valueOf(lock.getVersion())
+          String.valueOf(lock.getVersion()),
+          String.valueOf(Duration.ofMillis(releaseTtl).getSeconds())
         )
       );
     });
@@ -435,7 +442,7 @@ public class RedisLockManager implements RefreshableLockManager {
       "if payload then" +
       " local lock = cjson.decode(payload)" +
       "  if lock['ownerName'] == ARGV[1] and lock['version'] == ARGV[2] then" +
-      "    redis.call('DEL', KEYS[1])" +
+      "    redis.call('EXPIRE', KEYS[1], ARGV[3])" +
       "    return 'SUCCESS'" +
       "  end" +
       "  return 'FAILED_NOT_OWNER' " +
@@ -454,13 +461,15 @@ public class RedisLockManager implements RefreshableLockManager {
     String ACQUIRE_SCRIPT = "" +
       "local payload = cjson.encode({" +
       "  ['leaseDurationMillis']=ARGV[1]," +
-      "  ['ownerName']=ARGV[2]," +
-      "  ['ownerSystemTimestamp']=ARGV[3]," +
-      "  ['version']=ARGV[4]," +
-      "  ['name']=ARGV[5]," +
-      "  ['attributes']=ARGV[6]" +
+      "  ['successIntervalMillis']=ARGV[3]," +
+      "  ['failureIntervalMillis']=ARGV[4]," +
+      "  ['ownerName']=ARGV[5]," +
+      "  ['ownerSystemTimestamp']=ARGV[6]," +
+      "  ['version']=ARGV[7]," +
+      "  ['name']=ARGV[8]," +
+      "  ['attributes']=ARGV[9]" +
       "}) " +
-      "if redis.call('SET', KEYS[1], payload, 'NX', 'EX', ARGV[1]) == 'OK' then" +
+      "if redis.call('SET', KEYS[1], payload, 'NX', 'EX', ARGV[2]) == 'OK' then" +
       "  return payload " +
       "end " +
       "return redis.call('GET', KEYS[1])";

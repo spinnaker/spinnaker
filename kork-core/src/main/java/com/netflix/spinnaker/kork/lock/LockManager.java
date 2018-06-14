@@ -43,7 +43,7 @@ public interface LockManager {
                                         final long maximumLockDurationMillis,
                                         @Nonnull final Runnable onLockAcquiredCallback);
 
-  boolean releaseLock(@Nonnull final Lock lock);
+  boolean releaseLock(@Nonnull final Lock lock, boolean wasWorkSuccessful);
 
   String NAME_FALLBACK = UUID.randomUUID().toString();
 
@@ -120,6 +120,8 @@ public interface LockManager {
     private final String name;
     private final String ownerName;
     private final long leaseDurationMillis;
+    private final long successIntervalMillis;
+    private final long failureIntervalMillis;
     private final long version;
     private final long ownerSystemTimestamp;
     private final String attributes; //arbitrary string to store data along side the lock
@@ -129,11 +131,15 @@ public interface LockManager {
                 @JsonProperty("ownerName") String ownerName,
                 @JsonProperty("version") long version,
                 @JsonProperty("leaseDurationMillis") long leaseDurationMillis,
+                @JsonProperty("successIntervalMillis") Long successIntervalMillis,
+                @JsonProperty("failureIntervalMillis") Long failureIntervalMillis,
                 @JsonProperty("ownerSystemTimestamp") long ownerSystemTimestamp,
                 @JsonProperty("attributes") String attributes) {
       this.name = name;
       this.ownerName = ownerName;
       this.leaseDurationMillis = leaseDurationMillis;
+      this.successIntervalMillis = Optional.ofNullable(successIntervalMillis).orElse(0L);
+      this.failureIntervalMillis = Optional.ofNullable(failureIntervalMillis).orElse(0L);
       this.ownerSystemTimestamp = ownerSystemTimestamp;
       this.version = version;
       this.attributes = attributes;
@@ -150,6 +156,14 @@ public interface LockManager {
 
     public long getLeaseDurationMillis() {
       return leaseDurationMillis;
+    }
+
+    public long getSuccessIntervalMillis() {
+      return successIntervalMillis;
+    }
+
+    public long getFailureIntervalMillis() {
+      return failureIntervalMillis;
     }
 
     public long getVersion() {
@@ -171,13 +185,15 @@ public interface LockManager {
     @Override
     public String toString() {
       return "Lock{" +
-        "name='" + name + '\'' +
-        ", ownerName='" + ownerName + '\'' +
-        ", leaseDurationMillis=" + leaseDurationMillis +
-        ", version='" + version + '\'' +
-        ", ownerSystemTimestamp=" + ownerSystemTimestamp +
-        ", attributes=" + attributes +
-        '}';
+          "name='" + name + '\'' +
+          ", ownerName='" + ownerName + '\'' +
+          ", leaseDurationMillis=" + leaseDurationMillis +
+          ", successIntervalMillis=" + successIntervalMillis +
+          ", failureIntervalMillis=" + failureIntervalMillis +
+          ", version=" + version +
+          ", ownerSystemTimestamp=" + ownerSystemTimestamp +
+          ", attributes='" + attributes + '\'' +
+          '}';
     }
 
     @Override
@@ -212,6 +228,8 @@ public interface LockManager {
   class LockOptions {
     private String lockName;
     private Duration maximumLockDuration;
+    private Duration successInterval = Duration.ZERO;
+    private Duration failureInterval = Duration.ZERO;
     private long version;
     private List<String> attributes = new ArrayList<>(); // the list will be joined with a ';' delimiter for brevity
 
@@ -220,8 +238,18 @@ public interface LockManager {
       return this;
     }
 
-    public LockOptions withMaximumLockDuration(Duration duration) {
-      this.maximumLockDuration = duration;
+    public LockOptions withMaximumLockDuration(Duration maximumLockDuration) {
+      this.maximumLockDuration = maximumLockDuration;
+      return this;
+    }
+
+    public LockOptions withSuccessInterval(Duration successInterval) {
+      this.successInterval = successInterval;
+      return this;
+    }
+
+    public LockOptions withFailureInterval(Duration failureInterval) {
+      this.failureInterval = failureInterval;
       return this;
     }
 
@@ -241,6 +269,14 @@ public interface LockManager {
 
     public Duration getMaximumLockDuration() {
       return maximumLockDuration;
+    }
+
+    public Duration getSuccessInterval() {
+      return successInterval;
+    }
+
+    public Duration getFailureInterval() {
+      return failureInterval;
     }
 
     public List<String> getAttributes() {

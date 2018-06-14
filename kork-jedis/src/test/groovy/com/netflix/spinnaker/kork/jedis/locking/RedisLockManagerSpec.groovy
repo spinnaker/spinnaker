@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager
 import com.netflix.spinnaker.kork.lock.LockManager
+import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.JedisPool
 import spock.lang.Shared
 import spock.lang.Specification
@@ -31,9 +32,13 @@ import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.Callable
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Consumer
 
 import static com.netflix.spinnaker.kork.lock.LockManager.LockStatus.*
 import static com.netflix.spinnaker.kork.lock.RefreshableLockManager.*
+
+import static com.netflix.spinnaker.kork.lock.LockManager.*
+
 
 class RedisLockManagerSpec extends Specification {
   @Shared def embeddedRedis = EmbeddedRedis.embed()
@@ -43,7 +48,7 @@ class RedisLockManagerSpec extends Specification {
   def registry = new NoopRegistry()
   def redisClientDelegate = new JedisClientDelegate(jedisPool)
   def heartbeatRateMillis = 30L
-  def testLockMaxDurationMillis = 30L
+  def testLockMaxDurationMillis = 1000L
   def redisLockManager = new RedisLockManager(
     "testOwner",
     clock,
@@ -55,7 +60,9 @@ class RedisLockManagerSpec extends Specification {
   )
 
   def setup() {
-    jedisPool.resource.flushDB()
+    jedisPool.resource.withCloseable {
+      it.flushDB()
+    }
   }
 
   def cleanupSpec() {
@@ -76,7 +83,7 @@ class RedisLockManagerSpec extends Specification {
 
   def "should store arbitrary data as attributes alongside the lock"() {
     given:
-    def lockOptions = new LockManager.LockOptions()
+    def lockOptions = new LockOptions()
       .withMaximumLockDuration(Duration.ofMillis(testLockMaxDurationMillis))
       .withLockName("veryImportantLock")
       .withAttributes(["key:value","key2:value2"])
@@ -92,7 +99,7 @@ class RedisLockManagerSpec extends Specification {
 
   def "should fail to acquire an already taken lock"() {
     given:
-    def lockOptions = new LockManager.LockOptions()
+    def lockOptions = new LockOptions()
       .withMaximumLockDuration(Duration.ofMillis(testLockMaxDurationMillis))
       .withLockName("veryImportantLock")
 
@@ -111,7 +118,7 @@ class RedisLockManagerSpec extends Specification {
 
   def "should acquire with heartbeat"() {
     given:
-    def lockOptions = new LockManager.LockOptions()
+    def lockOptions = new LockOptions()
       .withMaximumLockDuration(Duration.ofMillis(testLockMaxDurationMillis))
       .withLockName("veryImportantLock")
 
@@ -161,17 +168,27 @@ class RedisLockManagerSpec extends Specification {
     and:
     def lock = redisLockManager.tryCreateLock(lockOptions)
 
+    redisClientDelegate.withCommandsClient({ JedisCommands c ->
+      // ensure that the lock was actually created
+      assert c.exists("{korkLock:veryimportantlock}")
+    } as Consumer<JedisCommands>)
+
     when:
-    def response = redisLockManager.tryReleaseLock(lock)
+    def response = redisLockManager.tryReleaseLock(lock, true)
 
     then:
-    response == LockManager.LockReleaseStatus.SUCCESS.toString()
+    response == LockReleaseStatus.SUCCESS.toString()
+
+    redisClientDelegate.withCommandsClient({ JedisCommands c ->
+      // ensure that the lock no longer exists (default `successInterval` of zero should immediately expire the lock)
+      assert !c.exists("{korkLock:veryimportantlock}")
+    } as Consumer<JedisCommands>)
   }
 
   def "should heartbeat by updating lock ttl"() {
     given:
     def heartbeatRetriesOnFailure = new AtomicInteger(1)
-    def lockOptions = new LockManager.LockOptions()
+    def lockOptions = new LockOptions()
       .withMaximumLockDuration(Duration.ofMillis(testLockMaxDurationMillis))
       .withLockName("veryImportantLock")
 
@@ -195,5 +212,39 @@ class RedisLockManagerSpec extends Specification {
 
     then:
     response.lockStatus == EXPIRED
+  }
+
+  def "should support success and failure intervals when releasing a lock"() {
+    given:
+    def lockOptions = new LockOptions()
+        .withMaximumLockDuration(Duration.ofMillis(testLockMaxDurationMillis))
+        .withLockName("veryImportantLock")
+        .withSuccessInterval(Duration.ofSeconds(100))
+        .withFailureInterval(Duration.ofSeconds(25))
+
+    and:
+    def lock = redisLockManager.tryCreateLock(lockOptions)
+
+    when:
+    def response = redisLockManager.tryReleaseLock(lock, true)
+
+    then:
+    response == LockReleaseStatus.SUCCESS.toString()
+
+    redisClientDelegate.withCommandsClient({ JedisCommands c ->
+      // ensure that the lock exists and has been tt'l corresponding to the `successInterval`
+      assert c.ttl("{korkLock:veryimportantlock}") > 25
+    } as Consumer<JedisCommands>)
+
+    when:
+    response = redisLockManager.tryReleaseLock(lock, false)
+
+    then:
+    response == LockReleaseStatus.SUCCESS.toString()
+
+    redisClientDelegate.withCommandsClient({ JedisCommands c ->
+      // ensure that the lock exists and has been tt'l corresponding to the `failureInterval`
+      assert c.ttl("{korkLock:veryimportantlock}") <= 25
+    } as Consumer<JedisCommands>)
   }
 }
