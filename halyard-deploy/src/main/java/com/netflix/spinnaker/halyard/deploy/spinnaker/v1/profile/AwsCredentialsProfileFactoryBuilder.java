@@ -38,6 +38,9 @@ public class AwsCredentialsProfileFactoryBuilder {
   protected ArtifactService artifactService;
 
   @Setter
+  private String profileName = "default";
+
+  @Setter
   private String accessKeyId;
 
   @Setter
@@ -74,7 +77,7 @@ public class AwsCredentialsProfileFactoryBuilder {
     }
 
     private String template = String.join("\n",
-        "[default]",
+        "[" + profileName + "]",
         "aws_access_key_id = {%accessKeyId%}",
         "aws_secret_access_key = {%secretAccessKey%}"
     );

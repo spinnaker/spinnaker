@@ -99,6 +99,8 @@ abstract public class KayentaService extends SpringService<KayentaService.Kayent
           AwsCanaryAccount awsCanaryAccount = optionalAwsCanaryAccount.get();
           String outputFile = awsCredentialsProfileFactoryBuilder.getOutputFile(spinnakerHome);
 
+          awsCredentialsProfileFactoryBuilder.setProfileName(StringUtils.isNotBlank(awsCanaryAccount.getProfileName()) ? awsCanaryAccount.getProfileName() : "default");
+
           return Optional.of(awsCredentialsProfileFactoryBuilder
               .setArtifact(SpinnakerArtifact.KAYENTA)
               .setAccessKeyId(awsCanaryAccount.getAccessKeyId())

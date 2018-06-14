@@ -33,6 +33,7 @@ import java.util.Set;
 public class AwsCanaryAccount extends AbstractCanaryAccount implements Cloneable {
   private String bucket;
   private String rootFolder = "kayenta";
+  private String profileName;
   private String endpoint;
   private String accessKeyId;
   private String secretAccessKey;

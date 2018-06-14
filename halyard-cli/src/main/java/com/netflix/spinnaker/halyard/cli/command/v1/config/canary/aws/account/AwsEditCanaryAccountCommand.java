@@ -45,6 +45,12 @@ public class AwsEditCanaryAccountCommand extends AbstractEditCanaryAccountComman
   private String rootFolder;
 
   @Parameter(
+      names = "--profile-name",
+      description = CommonCanaryAwsCommandProperties.PROFILE_NAME_DESCRIPTION
+  )
+  private String profileName;
+
+  @Parameter(
       names = "--endpoint",
       description = CommonCanaryAwsCommandProperties.ENDPOINT_DESCRIPTION
   )
@@ -67,6 +73,7 @@ public class AwsEditCanaryAccountCommand extends AbstractEditCanaryAccountComman
   protected AbstractCanaryAccount editAccount(AwsCanaryAccount account) {
     account.setBucket(isSet(bucket) ? bucket : account.getBucket());
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
+    account.setProfileName(isSet(profileName) ? profileName : account.getProfileName());
     account.setEndpoint(isSet(endpoint) ? endpoint : account.getEndpoint());
     account.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : account.getAccessKeyId());
     account.setSecretAccessKey(isSet(secretAccessKey) ? secretAccessKey : account.getSecretAccessKey());
