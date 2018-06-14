@@ -18,10 +18,11 @@ package com.netflix.kayenta.aws.config;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
-import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.netflix.kayenta.aws.security.AwsCredentials;
 import com.netflix.kayenta.aws.security.AwsNamedAccountCredentials;
@@ -56,7 +57,6 @@ public class AwsConfiguration {
 
   @Bean
   boolean registerAwsCredentials(AwsConfigurationProperties awsConfigurationProperties,
-                                 AWSCredentialsProvider awsCredentialsProvider,
                                  AccountCredentialsRepository accountCredentialsRepository) throws IOException {
     for (AwsManagedAccount awsManagedAccount : awsConfigurationProperties.getAccounts()) {
       String name = awsManagedAccount.getName();
@@ -79,16 +79,23 @@ public class AwsConfiguration {
           .ifPresent(clientConfiguration::setProxyPort);
       }
 
-      AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
+      String profileName = awsManagedAccount.getProfileName();
+      AmazonS3 amazonS3;
+
+      if (StringUtils.isEmpty(profileName)) {
+        amazonS3 = AmazonS3ClientBuilder.defaultClient();
+      } else {
+        amazonS3 = AmazonS3ClientBuilder.standard().withCredentials(new ProfileCredentialsProvider(profileName)).build();
+      }
 
       if (awsManagedAccount.getEndpoint() != null) {
-        client.setEndpoint(awsManagedAccount.getEndpoint());
-        client.setS3ClientOptions(S3ClientOptions.builder().setPathStyleAccess(true).build());
+        amazonS3.setEndpoint(awsManagedAccount.getEndpoint());
+        amazonS3.setS3ClientOptions(S3ClientOptions.builder().setPathStyleAccess(true).build());
       } else {
         Optional.ofNullable(awsManagedAccount.getRegion())
           .map(Regions::fromName)
           .map(Region::getRegion)
-          .ifPresent(client::setRegion);
+          .ifPresent(amazonS3::setRegion);
       }
 
       try {
@@ -115,7 +122,7 @@ public class AwsConfiguration {
             awsNamedAccountCredentialsBuilder.bucket(bucket);
             awsNamedAccountCredentialsBuilder.region(awsManagedAccount.getRegion());
             awsNamedAccountCredentialsBuilder.rootFolder(rootFolder);
-            awsNamedAccountCredentialsBuilder.amazonS3(client);
+            awsNamedAccountCredentialsBuilder.amazonS3(amazonS3);
           }
 
           awsNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
