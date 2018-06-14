@@ -17,12 +17,18 @@
 
 package com.netflix.spinnaker.orca.webhook.pipeline
 
+import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties.PreconfiguredWebhook
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookNotFoundException
+import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookUnauthorizedException
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
@@ -30,6 +36,12 @@ class PreconfiguredWebhookStage extends WebhookStage {
 
   @Autowired
   private WebhookService webhookService
+
+  @Value('${services.fiat.enabled:false}')
+  boolean fiatEnabled;
+
+  @Autowired(required = false)
+  FiatService fiatService
 
   def fields = PreconfiguredWebhook.declaredFields.findAll {
     !it.synthetic && !['props', 'enabled', 'label', 'description', 'type', 'parameters'].contains(it.name)
@@ -41,6 +53,16 @@ class PreconfiguredWebhookStage extends WebhookStage {
 
     if (!preconfiguredWebhook) {
       throw new PreconfiguredWebhookNotFoundException((String) stage.type)
+    }
+
+    if (preconfiguredWebhook.permissions) {
+      String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
+      def userPermission = fiatService.getUserPermission(user)
+
+      def isAllowed = preconfiguredWebhook.isAllowed("WRITE", userPermission.roles)
+      if (!isAllowed) {
+        throw new PreconfiguredWebhookUnauthorizedException((String) user, (String) stage.type)
+      }
     }
 
     stage.setContext(overrideIfNotSetInContextAndOverrideDefault(stage.context, preconfiguredWebhook))

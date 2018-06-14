@@ -57,7 +57,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
       successStatuses: "f",
       canceledStatuses: "g",
       terminalStatuses: "h",
-      parameterValues: null
+      parameterValues: null,
+      permissions: null
     ]
   }
 
@@ -76,7 +77,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
       successStatuses: "f",
       canceledStatuses: "g",
       terminalStatuses: "h",
-      parameterValues: null
+      parameterValues: null,
+      permissions: null
     ])
 
     when:
@@ -97,7 +99,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
       successStatuses: "f",
       canceledStatuses: "g",
       terminalStatuses: "h",
-      parameterValues: null
+      parameterValues: null,
+      permissions: null
     ]
   }
 

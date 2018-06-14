@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
@@ -32,7 +34,9 @@ import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -76,6 +80,12 @@ class OperationsController {
 
   @Autowired(required = false)
   ArtifactResolver artifactResolver
+
+  @Value('${services.fiat.enabled:false}')
+  boolean fiatEnabled;
+
+  @Autowired(required = false)
+  FiatService fiatService
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
@@ -237,6 +247,14 @@ class OperationsController {
       return []
     }
     def webhooks = webhookService.preconfiguredWebhooks
+
+    if (fiatEnabled) {
+      String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
+      UserPermission.View userPermission = fiatService.getUserPermission(user)
+
+      webhooks = webhooks.findAll { it.isAllowed("READ", userPermission.roles) }
+    }
+
     return webhooks.collect {
       [ label: it.label,
         description: it.description,

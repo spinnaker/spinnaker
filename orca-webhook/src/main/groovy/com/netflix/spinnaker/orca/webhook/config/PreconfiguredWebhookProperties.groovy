@@ -18,15 +18,18 @@
 package com.netflix.spinnaker.orca.webhook.config
 
 import groovy.transform.ToString
+import groovy.util.logging.Slf4j
 import org.springframework.boot.context.properties.ConfigurationProperties
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import org.springframework.http.HttpMethod
 
 @ConfigurationProperties("webhook")
 @ToString
+@Slf4j
 class PreconfiguredWebhookProperties {
 
   public static List<String> ALL_FIELDS = PreconfiguredWebhook.declaredFields.findAll {
-    !it.synthetic && !['props', 'enabled', 'label', 'description', 'type', 'parameters', 'parameterValues'].contains(it.name)
+    !it.synthetic && !['props', 'enabled', 'label', 'description', 'type', 'parameters', 'parameterValues', 'permissions'].contains(it.name)
   }.collect { it.name }
 
   List<PreconfiguredWebhook> preconfigured = []
@@ -53,6 +56,7 @@ class PreconfiguredWebhookProperties {
     String successStatuses
     String canceledStatuses
     String terminalStatuses
+    Map<String, List<String>> permissions
 
 
     List<String> getPreconfiguredProperties() {
@@ -67,6 +71,14 @@ class PreconfiguredWebhookProperties {
       } else {
         return ["url", "customHeaders", "method", "payload"].every { this[it] != null }
       }
+    }
+
+    boolean isAllowed(String permission, Set<Role.View> roles) {
+      if (permissions && permissions.containsKey(permission) && permissions[permission]) {
+        def allowedRoles = permissions[permission].findAll { roles*.getName().contains(it.toString()) }
+        return allowedRoles.size() > 0
+      }
+      return true
     }
   }
 

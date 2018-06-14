@@ -24,4 +24,6 @@ dependencies {
   compile('com.jayway.jsonpath:json-path:2.2.0')
 //  testCompile project(':orca-test')
   testCompile spinnaker.dependency("springTest")
+
+  spinnaker.group("fiat")
 }

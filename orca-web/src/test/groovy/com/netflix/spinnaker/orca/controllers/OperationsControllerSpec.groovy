@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.model.resources.Account
+import com.netflix.spinnaker.fiat.model.resources.Role
+import com.netflix.spinnaker.fiat.shared.FiatService
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
@@ -65,6 +69,7 @@ class OperationsControllerSpec extends Specification {
   def pipelineTemplateService = Mock(PipelineTemplateService)
   def webhookService = Mock(WebhookService)
   def artifactResolver = Mock(ArtifactResolver)
+  def fiatService = Mock(FiatService)
 
   def env = new MockEnvironment()
   def buildArtifactFilter = new BuildArtifactFilter(environment: env)
@@ -79,7 +84,9 @@ class OperationsControllerSpec extends Specification {
       executionLauncher: executionLauncher,
       contextParameterProcessor: new ContextParameterProcessor(),
       webhookService: webhookService,
-      artifactResolver: artifactResolver
+      artifactResolver: artifactResolver,
+      fiatService: fiatService,
+      fiatEnabled: false
     )
 
   @Unroll
@@ -691,8 +698,75 @@ class OperationsControllerSpec extends Specification {
 
     then:
     1 * webhookService.preconfiguredWebhooks >> [
-      createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1"),
-      createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2")
+      createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", null),
+      createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", null)
+    ]
+    preconfiguredWebhooks == [
+      [label: "Webhook #1", description: "Description #1", type: "webhook_1", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null],
+      [label: "Webhook #2", description: "Description #2", type: "webhook_2", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null]
+    ]
+  }
+
+  def "should not return protected preconfigured webhooks if user don't have the role"() {
+    given:
+    controller.fiatEnabled = true
+    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
+                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
+    executionLauncher.start(*_) >> { ExecutionType type, String json ->
+      startedPipeline = mapper.readValue(json, Execution)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
+    }
+
+    UserPermission userPermission = new UserPermission()
+    userPermission.addResource(new Role("test"))
+
+    def account = new Account().setName("account")
+    def role = new Role().setName("role")
+    def permission = new UserPermission().setId("foo").setAccounts([account] as Set).setRoles([role] as Set)
+
+    fiatService.getUserPermission(*_) >> permission.getView()
+
+    when:
+    def preconfiguredWebhooks = controller.preconfiguredWebhooks()
+
+    then:
+    1 * webhookService.preconfiguredWebhooks >> [
+      createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", ["READ": [], "WRITE": []]),
+      createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]])
+    ]
+    preconfiguredWebhooks == [
+      [label: "Webhook #1", description: "Description #1", type: "webhook_1", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null]
+    ]
+  }
+
+  def "should return protected preconfigured webhooks if user have the role"() {
+    given:
+    controller.fiatEnabled = true
+    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
+                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
+    executionLauncher.start(*_) >> { ExecutionType type, String json ->
+      startedPipeline = mapper.readValue(json, Execution)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
+    }
+
+    UserPermission userPermission = new UserPermission()
+    userPermission.addResource(new Role("some-role"))
+
+    def account = new Account().setName("account")
+    def role = new Role().setName("some-role")
+    def permission = new UserPermission().setId("foo").setAccounts([account] as Set).setRoles([role] as Set)
+
+    fiatService.getUserPermission(*_) >> permission.getView()
+
+    when:
+    def preconfiguredWebhooks = controller.preconfiguredWebhooks()
+
+    then:
+    1 * webhookService.preconfiguredWebhooks >> [
+      createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", ["READ": [], "WRITE": []]),
+      createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]])
     ]
     preconfiguredWebhooks == [
       [label: "Webhook #1", description: "Description #1", type: "webhook_1", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null],
@@ -701,14 +775,15 @@ class OperationsControllerSpec extends Specification {
   }
 
   static PreconfiguredWebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(
-    def label, def description, def type) {
+    def label, def description, def type, def permissions) {
     def customHeaders = new HttpHeaders()
     customHeaders.put("header", ["value1"])
     return new PreconfiguredWebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type,
       url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
       waitForCompletion: true, statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.webhookResponse,
-      statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h", parameters: null
+      statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h", parameters: null,
+      permissions: permissions
     )
   }
 }
