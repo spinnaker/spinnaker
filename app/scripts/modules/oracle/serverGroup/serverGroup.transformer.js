@@ -5,9 +5,9 @@ const angular = require('angular');
 import _ from 'lodash';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.transformer', [])
-  .factory('oraclebmcsServerGroupTransformer', function($q) {
-    let PROVIDER = 'oraclebmcs';
+  .module('spinnaker.oracle.serverGroup.transformer', [])
+  .factory('oracleServerGroupTransformer', function($q) {
+    let PROVIDER = 'oracle';
 
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup);

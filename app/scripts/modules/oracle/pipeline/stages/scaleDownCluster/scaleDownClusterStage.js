@@ -5,11 +5,11 @@ const angular = require('angular');
 import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.scaleDownClusterStage', [])
+  .module('spinnaker.oracle.pipeline.stage.scaleDownClusterStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'scaleDownCluster',
-      cloudProvider: 'oraclebmcs',
+      cloudProvider: 'oracle',
       templateUrl: require('./scaleDownClusterStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
@@ -24,10 +24,10 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('oraclebmcsScaleDownClusterStageCtrl', function($scope) {
+  .controller('oracleScaleDownClusterStageCtrl', function($scope) {
     let stage = $scope.stage;
 
-    const provider = 'oraclebmcs';
+    const provider = 'oracle';
 
     $scope.state = {
       accounts: false,

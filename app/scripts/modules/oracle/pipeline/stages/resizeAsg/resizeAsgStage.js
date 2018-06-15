@@ -5,13 +5,13 @@ const angular = require('angular');
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgStage', [
+  .module('spinnaker.oracle.pipeline.stage.resizeAsgStage', [
     require('core/application/modal/platformHealthOverride.directive.js').name,
   ])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',
-      cloudProvider: 'oraclebmcs',
+      cloudProvider: 'oracle',
       templateUrl: require('./resizeAsgStage.html'),
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
       validators: [
@@ -28,10 +28,10 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsResizeAsgStageCtrl', function($scope) {
+  .controller('oracleResizeAsgStageCtrl', function($scope) {
     let ctrl = this;
 
-    let provider = 'oraclebmcs';
+    let provider = 'oracle';
 
     let stage = $scope.stage;
 

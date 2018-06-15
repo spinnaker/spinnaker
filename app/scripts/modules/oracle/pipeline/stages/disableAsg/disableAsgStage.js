@@ -5,11 +5,11 @@ const angular = require('angular');
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [])
+  .module('spinnaker.oracle.pipeline.stage.disableAsgStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',
-      cloudProvider: 'oraclebmcs',
+      cloudProvider: 'oracle',
       templateUrl: require('./disableAsgStage.html'),
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
@@ -25,10 +25,10 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsDisableAsgStageCtrl', function($scope) {
+  .controller('oracleDisableAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
-    const provider = 'oraclebmcs';
+    const provider = 'oracle';
 
     $scope.state = {
       accounts: false,
@@ -45,12 +45,12 @@ module.exports = angular
     stage.regions = stage.regions || [];
     stage.cloudProvider = provider;
 
-    if (!stage.credentials && $scope.application.defaultCredentials.oraclebmcs) {
-      stage.credentials = $scope.application.defaultCredentials.oraclebmcs;
+    if (!stage.credentials && $scope.application.defaultCredentials.oracle) {
+      stage.credentials = $scope.application.defaultCredentials.oracle;
     }
 
     if (!stage.regions.length && $scope.application.defaultRegions.gce) {
-      stage.regions.push($scope.application.defaultRegions.oraclebmcs);
+      stage.regions.push($scope.application.defaultRegions.oracle);
     }
 
     if (!stage.target) {

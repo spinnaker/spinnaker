@@ -5,11 +5,11 @@ const angular = require('angular');
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.destroyAsgStage', [])
+  .module('spinnaker.oracle.pipeline.stage.destroyAsgStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',
-      cloudProvider: 'oraclebmcs',
+      cloudProvider: 'oracle',
       templateUrl: require('./destroyAsgStage.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
       validators: [
@@ -25,9 +25,9 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsDestroyAsgStageCtrl', function($scope) {
+  .controller('oracleDestroyAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
-    let provider = 'oraclebmcs';
+    let provider = 'oracle';
 
     $scope.targets = StageConstants.TARGET_LIST;
     stage.regions = stage.regions || [];
@@ -45,12 +45,12 @@ module.exports = angular
         $scope.state.accounts = true;
       });
 
-      if (!stage.credentials && $scope.application.defaultCredentials.oraclebmcs) {
-        stage.credentials = $scope.application.defaultCredentials.oraclebmcs;
+      if (!stage.credentials && $scope.application.defaultCredentials.oracle) {
+        stage.credentials = $scope.application.defaultCredentials.oracle;
       }
 
-      if (!stage.regions.length && $scope.application.defaultRegions.oraclebmcs) {
-        stage.regions.push($scope.application.defaultRegions.oraclebmcs);
+      if (!stage.regions.length && $scope.application.defaultRegions.oracle) {
+        stage.regions.push($scope.application.defaultRegions.oracle);
       }
 
       if (!stage.target) {

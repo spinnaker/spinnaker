@@ -4,15 +4,15 @@ const angular = require('angular');
 import { FirewallLabels, ModalWizard, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.configure.cloneServerGroup', [require('@uirouter/angularjs').default])
-  .controller('oraclebmcsCloneServerGroupCtrl', function(
+  .module('spinnaker.oracle.serverGroup.configure.cloneServerGroup', [require('@uirouter/angularjs').default])
+  .controller('oracleCloneServerGroupCtrl', function(
     $scope,
     $uibModalInstance,
     $q,
     application,
     serverGroupWriter,
     serverGroupCommand,
-    oraclebmcsServerGroupConfigurationService,
+    oracleServerGroupConfigurationService,
     title,
   ) {
     $scope.title = title;
@@ -56,7 +56,7 @@ module.exports = angular
     });
 
     function configureCommand() {
-      oraclebmcsServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
+      oracleServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
         $scope.state.loaded = true;
       });
     }

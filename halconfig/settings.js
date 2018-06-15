@@ -63,10 +63,10 @@ var azure = {
     region: '{%azure.default.region%}',
   },
 };
-var oraclebmcs = {
+var oracle = {
   defaults: {
-    account: '{%oraclebmcs.default.account%}',
-    region: '{%oraclebmcs.default.region%}',
+    account: '{%oracle.default.account%}',
+    region: '{%oracle.default.region%}',
   },
 };
 var dcos = {
@@ -90,7 +90,7 @@ var slack = {
 window.spinnakerSettings = {
   version: version,
   checkForUpdates: false,
-  defaultProviders: ['aws', 'ecs', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack', 'oraclebmcs', 'dcos'],
+  defaultProviders: ['aws', 'ecs', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack', 'oracle', 'dcos'],
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
   authEndpoint: authEndpoint,
@@ -126,7 +126,7 @@ window.spinnakerSettings = {
     openstack: openstack,
     kubernetes: kubernetes,
     appengine: appengine,
-    oraclebmcs: oraclebmcs,
+    oracle: oracle,
     dcos: dcos,
   },
   changelog: {

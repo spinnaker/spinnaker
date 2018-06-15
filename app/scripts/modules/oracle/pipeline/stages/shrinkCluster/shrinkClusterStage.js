@@ -5,11 +5,11 @@ const angular = require('angular');
 import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.oraclebmcs.shrinkClusterStage', [])
+  .module('spinnaker.core.pipeline.stage.oracle.shrinkClusterStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'shrinkCluster',
-      cloudProvider: 'oraclebmcs',
+      cloudProvider: 'oracle',
       templateUrl: require('./shrinkClusterStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsShrinkClusterStageCtrl', function($scope) {
+  .controller('oracleShrinkClusterStageCtrl', function($scope) {
     let ctrl = this;
 
     let stage = $scope.stage;
@@ -29,21 +29,21 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    AccountService.listAccounts('oraclebmcs').then(function(accounts) {
+    AccountService.listAccounts('oracle').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
 
     stage.regions = stage.regions || [];
 
-    stage.cloudProvider = 'oraclebmcs';
+    stage.cloudProvider = 'oracle';
 
-    if (!stage.credentials && $scope.application.defaultCredentials.oraclebmcs) {
-      stage.credentials = $scope.application.defaultCredentials.oraclebmcs;
+    if (!stage.credentials && $scope.application.defaultCredentials.oracle) {
+      stage.credentials = $scope.application.defaultCredentials.oracle;
     }
 
-    if (!stage.regions.length && $scope.application.defaultRegions.oraclebmcs) {
-      stage.regions.push($scope.application.defaultRegions.oraclebmcs);
+    if (!stage.regions.length && $scope.application.defaultRegions.oracle) {
+      stage.regions.push($scope.application.defaultRegions.oracle);
     }
 
     if (stage.shrinkToSize === undefined) {

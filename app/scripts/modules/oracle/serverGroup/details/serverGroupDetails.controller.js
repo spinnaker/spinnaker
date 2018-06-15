@@ -12,7 +12,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.details.controller', [
+  .module('spinnaker.oracle.serverGroup.details.controller', [
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
@@ -20,7 +20,7 @@ module.exports = angular
     require('./resize/resizeServerGroup.controller.js').name,
     require('./rollback/rollbackServerGroup.controller.js').name,
   ])
-  .controller('oraclebmcsServerGroupDetailsCtrl', function(
+  .controller('oracleServerGroupDetailsCtrl', function(
     $scope,
     $state,
     $uibModal,
@@ -28,9 +28,9 @@ module.exports = angular
     serverGroup,
     confirmationModalService,
     serverGroupWriter,
-    oraclebmcsImageReader,
+    oracleImageReader,
   ) {
-    const provider = 'oraclebmcs';
+    const provider = 'oracle';
 
     this.application = app;
     this.serverGroup = serverGroup;
@@ -75,7 +75,7 @@ module.exports = angular
     };
 
     let retrieveImage = () => {
-      oraclebmcsImageReader
+      oracleImageReader
         .getImage(this.serverGroup.launchConfig.imageId, this.serverGroup.region, this.serverGroup.account)
         .then(image => {
           if (!image) {
@@ -124,7 +124,7 @@ module.exports = angular
     this.resizeServerGroup = () => {
       $uibModal.open({
         templateUrl: require('./resize/resizeServerGroup.html'),
-        controller: 'oraclebmcsResizeServerGroupCtrl as ctrl',
+        controller: 'oracleResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: () => {
             return this.serverGroup;
@@ -139,7 +139,7 @@ module.exports = angular
     this.rollbackServerGroup = () => {
       $uibModal.open({
         templateUrl: require('./rollback/rollbackServerGroup.html'),
-        controller: 'oraclebmcsRollbackServerGroupCtrl as ctrl',
+        controller: 'oracleRollbackServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: () => this.serverGroup,
           disabledServerGroups: () => {

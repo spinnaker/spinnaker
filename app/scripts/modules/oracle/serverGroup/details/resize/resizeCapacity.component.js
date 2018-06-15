@@ -6,8 +6,8 @@ import _ from 'lodash';
 import { SERVER_GROUP_WRITER } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.details.resize.capacity.component', [SERVER_GROUP_WRITER])
-  .component('oracleBmcsResizeCapacity', {
+  .module('spinnaker.oracle.serverGroup.details.resize.capacity.component', [SERVER_GROUP_WRITER])
+  .component('oracleResizeCapacity', {
     bindings: {
       command: '=',
       application: '=',

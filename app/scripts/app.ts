@@ -22,7 +22,7 @@ module('netflix.spinnaker', [
   KUBERNETES_V1_MODULE,
   OPENSTACK_MODULE,
   DOCKER_MODULE,
-  require('./modules/oracle/oraclebmcs.module.js').name,
+  require('./modules/oracle/oracle.module.js').name,
   require('./modules/dcos/dcos.module.js').name,
   APPENGINE_MODULE,
   CANARY_MODULE,

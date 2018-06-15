@@ -5,11 +5,11 @@ const angular = require('angular');
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.details.rollback.controller', [
+  .module('spinnaker.oracle.serverGroup.details.rollback.controller', [
     SERVER_GROUP_WRITER,
     require('oracle/common/footer.component.js').name,
   ])
-  .controller('oraclebmcsRollbackServerGroupCtrl', function(
+  .controller('oracleRollbackServerGroupCtrl', function(
     $scope,
     $uibModalInstance,
     serverGroupWriter,

@@ -3,8 +3,8 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.configure.wizard.capacity.selector.component', [])
-  .component('oracleBmcsServerGroupCapacitySelector', {
+  .module('spinnaker.oracle.serverGroup.configure.wizard.capacity.selector.component', [])
+  .component('oracleServerGroupCapacitySelector', {
     templateUrl: require('./capacitySelector.component.html'),
     bindings: {
       command: '=',

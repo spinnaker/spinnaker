@@ -5,11 +5,11 @@ const angular = require('angular');
 import { TaskMonitor } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.details.resize.controller', [
+  .module('spinnaker.oracle.serverGroup.details.resize.controller', [
     require('./resizeCapacity.component.js').name,
     require('oracle/common/footer.component.js').name,
   ])
-  .controller('oraclebmcsResizeServerGroupCtrl', function($scope, $uibModalInstance, application, serverGroup) {
+  .controller('oracleResizeServerGroupCtrl', function($scope, $uibModalInstance, application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.application = application;
     $scope.verification = {};

@@ -5,18 +5,18 @@ import _ from 'lodash';
 
 import { NameUtils } from '@spinnaker/core';
 
-import { OracleBMCSProviderSettings } from '../../oraclebmcs.settings';
+import { OracleProviderSettings } from '../../oracle.settings';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroupCommandBuilder.service', [])
-  .factory('oraclebmcsServerGroupCommandBuilder', function($q) {
-    let oracle = 'oraclebmcs';
+  .module('spinnaker.oracle.serverGroupCommandBuilder.service', [])
+  .factory('oracleServerGroupCommandBuilder', function($q) {
+    let oracle = 'oracle';
 
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      let defaultAccount = defaults.account || OracleBMCSProviderSettings.defaults.account;
-      let defaultRegion = defaults.region || OracleBMCSProviderSettings.defaults.region;
+      let defaultAccount = defaults.account || OracleProviderSettings.defaults.account;
+      let defaultRegion = defaults.region || OracleProviderSettings.defaults.region;
 
       let command = {
         account: defaultAccount,

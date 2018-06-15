@@ -1,9 +1,9 @@
-<div ng-controller="oraclebmcsBakeStageCtrl as bakeStageCtrl">
+<div ng-controller="oracleBakeStageCtrl as bakeStageCtrl">
   <div ng-if="viewState.loading" class="horizontal center middle">
     <loading-spinner size="'small'"></loading-spinner>
   </div>
   <div ng-if="!viewState.loading">
-    <stage-config-field label="Base OS", help-key="oraclebmcs.pipeline.config.bake.baseOsOption">
+    <stage-config-field label="Base OS", help-key="oracle.pipeline.config.bake.baseOsOption">
       <div class="radio" ng-repeat="baseImage in baseOsOptions.baseImages">
         <label>
           <input type="radio"
@@ -14,11 +14,11 @@
       </div>
     </stage-config-field>
 
-    <stage-config-field label="Package" help-key="oraclebmcs.pipeline.config.bake.package">
+    <stage-config-field label="Package" help-key="oracle.pipeline.config.bake.package">
       <input type="text" class="form-control input-sm" ng-model="stage.package"/>
     </stage-config-field>
 
-    <stage-config-field label="Regions" help-key="oraclebmcs.pipeline.config.bake.regions">
+    <stage-config-field label="Regions" help-key="oracle.pipeline.config.bake.regions">
       <label class="radio-inline" ng-repeat="region in regionOptions">
         <input type="radio"
                ng-model="stage.region"
@@ -28,7 +28,7 @@
       </label>
     </stage-config-field>
 
-    <stage-config-field label="Network", help-key="oraclebmcs.pipeline.config.bake.network">
+    <stage-config-field label="Network", help-key="oracle.pipeline.config.bake.network">
       <select ng-model="stage.extended_attributes.network_ocid"
               ng-change="constrainAvailabilityDomainOptions(); constrainSubnetOptions()"
               class="form-control input-sm">
@@ -41,7 +41,7 @@
       </select>
     </stage-config-field>
 
-    <stage-config-field label="Availability Domain", help-key="oraclebmcs.pipeline.config.bake.availability_domain">
+    <stage-config-field label="Availability Domain", help-key="oracle.pipeline.config.bake.availability_domain">
       <select ng-model="stage.extended_attributes.availability_domain"
               ng-change="constrainSubnetOptions()"
               class="form-control input-sm">
@@ -51,7 +51,7 @@
       </select>
     </stage-config-field>
 
-    <stage-config-field label="Subnet", help-key="oraclebmcs.pipeline.config.bake.subnet_ocid">
+    <stage-config-field label="Subnet", help-key="oracle.pipeline.config.bake.subnet_ocid">
       <select ng-model="stage.extended_attributes.subnet_ocid" class="form-control input-sm">
         <div>
           <option ng-repeat="subnet in constrainedSubnetOptions" value="{{subnet.id}}">
@@ -62,14 +62,14 @@
       </select>
     </stage-config-field>
 
-    <stage-config-field label="User" help-key="oraclebmcs.pipeline.config.bake.user">
+    <stage-config-field label="User" help-key="oracle.pipeline.config.bake.user">
       <input type="text"
              class="form-control input-sm"
              ng-model="stage.user"
              ng-disabled="true"/>
     </stage-config-field>
 
-    <stage-config-field label="Account" help-key="oraclebmcs.pipeline.config.bake.account">
+    <stage-config-field label="Account" help-key="oracle.pipeline.config.bake.account">
       <input type="text"
              class="form-control input-sm"
              ng-model="stage.account"
@@ -97,7 +97,7 @@
       </div>
     </div>
     <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
-      <stage-config-field label="Upgrade" help-key="oraclebmcs.pipeline.config.bake.upgrade">
+      <stage-config-field label="Upgrade" help-key="oracle.pipeline.config.bake.upgrade">
         <input type="checkbox"
                class="form-control input-sm"
                ng-model="stage.upgrade"/>

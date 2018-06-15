@@ -5,11 +5,11 @@ const angular = require('angular');
 import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.findAmiStage', [])
+  .module('spinnaker.oracle.pipeline.stage.findAmiStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'findImage',
-      cloudProvider: 'oraclebmcs',
+      cloudProvider: 'oracle',
       templateUrl: require('./findAmiStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
@@ -19,8 +19,8 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsFindAmiStageCtrl', $scope => {
-    const provider = 'oraclebmcs';
+  .controller('oracleFindAmiStageCtrl', $scope => {
+    const provider = 'oracle';
 
     let stage = $scope.stage;
 
@@ -65,12 +65,12 @@ module.exports = angular
       stage.onlyEnabled = true;
     }
 
-    if (!stage.credentials && $scope.application.defaultCredentials.oraclebmcs) {
-      stage.credentials = $scope.application.defaultCredentials.oraclebmcs;
+    if (!stage.credentials && $scope.application.defaultCredentials.oracle) {
+      stage.credentials = $scope.application.defaultCredentials.oracle;
     }
 
-    if (!stage.regions.length && $scope.application.defaultRegions.oraclebmcs) {
-      stage.regions.push($scope.application.defaultRegions.oraclebmcs);
+    if (!stage.regions.length && $scope.application.defaultRegions.oracle) {
+      stage.regions.push($scope.application.defaultRegions.oracle);
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);

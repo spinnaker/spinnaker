@@ -12,7 +12,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs', [
+  .module('spinnaker.oracle', [
     //Cache
     require('./cache/cacheConfigurer.service.js').name,
     // Pipeline
@@ -39,35 +39,35 @@ module.exports = angular
     require('./securityGroup/configure/createSecurityGroup.controller.js').name,
   ])
   .config(function() {
-    CloudProviderRegistry.registerProvider('oraclebmcs', {
+    CloudProviderRegistry.registerProvider('oracle', {
       name: 'Oracle',
       cache: {
-        configurer: 'oraclebmcsCacheConfigurer',
+        configurer: 'oracleCacheConfigurer',
       },
       image: {
-        reader: 'oraclebmcsImageReader',
+        reader: 'oracleImageReader',
       },
       loadBalancer: {},
       serverGroup: {
-        transformer: 'oraclebmcsServerGroupTransformer',
+        transformer: 'oracleServerGroupTransformer',
         detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
-        detailsController: 'oraclebmcsServerGroupDetailsCtrl',
-        commandBuilder: 'oraclebmcsServerGroupCommandBuilder',
-        cloneServerGroupController: 'oraclebmcsCloneServerGroupCtrl',
+        detailsController: 'oracleServerGroupDetailsCtrl',
+        commandBuilder: 'oracleServerGroupCommandBuilder',
+        cloneServerGroupController: 'oracleCloneServerGroupCtrl',
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
-        configurationService: 'oraclebmcsServerGroupConfigurationService',
+        configurationService: 'oracleServerGroupConfigurationService',
       },
       instance: {
-        detailsController: 'oraclebmcsInstanceDetailsCtrl',
+        detailsController: 'oracleInstanceDetailsCtrl',
         detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
       },
       securityGroup: {
-        reader: 'oraclebmcsSecurityGroupReader',
-        transformer: 'oraclebmcsSecurityGroupTransformer',
+        reader: 'oracleSecurityGroupReader',
+        transformer: 'oracleSecurityGroupTransformer',
         createSecurityGroupTemplateUrl: require('./securityGroup/configure/createSecurityGroup.html'),
-        createSecurityGroupController: 'oraclebmcsCreateSecurityGroupCtrl',
+        createSecurityGroupController: 'oracleCreateSecurityGroupCtrl',
       },
     });
   });
 
-DeploymentStrategyRegistry.registerProvider('oraclebmcs', []);
+DeploymentStrategyRegistry.registerProvider('oracle', []);

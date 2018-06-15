@@ -1,14 +1,14 @@
-<div class="container-fluid form-horizontal" ng-controller="oraclebmcsServerGroupBasicSettingsCtrl as basicSettingsCtrl">
+<div class="container-fluid form-horizontal" ng-controller="oracleServerGroupBasicSettingsCtrl as basicSettingsCtrl">
   <div class="modal-body">
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Account
       </div>
       <div class="col-md-7">
-        <account-select-field required read-only="command.viewState.readOnlyFields.credentials" component="command" field="account" accounts="command.backingData.accounts" provider="'oraclebmcs'"></account-select-field>
+        <account-select-field required read-only="command.viewState.readOnlyFields.credentials" component="command" field="account" accounts="command.backingData.accounts" provider="'oracle'"></account-select-field>
       </div>
     </div>
-    <region-select-field label-columns="3" component="command" field="region" account="command.account" provider="'oraclebmcs'" regions="command.backingData.filtered.regions"></region-select-field>
+    <region-select-field label-columns="3" component="command" field="region" account="command.account" provider="'oracle'" regions="command.backingData.filtered.regions"></region-select-field>
     <!-- VCN Selection (which will then filter subnets) -->
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
@@ -76,7 +76,7 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Stack
-        <help-field key="oraclebmcs.serverGroup.stack"></help-field>
+        <help-field key="oracle.serverGroup.stack"></help-field>
       </div>
       <div class="col-md-7">
         <input type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.stackPattern" name="stack" ng-model="command.stack"
@@ -91,7 +91,7 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Detail
-        <help-field key="oraclebmcs.serverGroup.detail"></help-field>
+        <help-field key="oracle.serverGroup.detail"></help-field>
       </div>
       <div class="col-md-7">
         <input type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.detailPattern" name="details" ng-model="command.freeFormDetails" />

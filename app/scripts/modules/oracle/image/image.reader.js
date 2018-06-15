@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { API } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.oraclebmcs.image.reader', []).factory('oraclebmcsImageReader', function() {
+module.exports = angular.module('spinnaker.oracle.image.reader', []).factory('oracleImageReader', function() {
   function findImages(params) {
     return API.one('images/find')
       .withParams(params)
@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.image.reader', []).factory
       .one(credentials)
       .one(region)
       .one(imageId)
-      .withParams({ provider: 'oraclebmcs' })
+      .withParams({ provider: 'oracle' })
       .get()
       .then(
         function(results) {

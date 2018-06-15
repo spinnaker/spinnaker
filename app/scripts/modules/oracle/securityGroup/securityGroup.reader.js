@@ -3,8 +3,8 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.securityGroup.reader', [])
-  .factory('oraclebmcsSecurityGroupReader', function() {
+  .module('spinnaker.oracle.securityGroup.reader', [])
+  .factory('oracleSecurityGroupReader', function() {
     function resolveIndexedSecurityGroup(indexedSecurityGroups, container, securityGroupId) {
       return indexedSecurityGroups[container.account][container.region][securityGroupId];
     }

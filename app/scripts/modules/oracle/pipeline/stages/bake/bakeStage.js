@@ -14,11 +14,11 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller.js').name])
+  .module('spinnaker.oracle.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller.js').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',
-      cloudProvider: 'oraclebmcs',
+      cloudProvider: 'oracle',
       label: 'Bake',
       description: 'Bakes an image in the specified region',
       templateUrl: require('./bakeStage.html'),
@@ -47,8 +47,8 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('oraclebmcsBakeStageCtrl', function($scope, $q) {
-    const provider = 'oraclebmcs';
+  .controller('oracleBakeStageCtrl', function($scope, $q) {
+    const provider = 'oracle';
 
     if (!$scope.stage.cloudProvider) {
       $scope.stage.cloudProvider = provider;
@@ -78,8 +78,8 @@ module.exports = angular
           subnets: $scope.getSubNetworks(provider),
         })
         .then(results => {
-          if (!$scope.account && $scope.application.defaultCredentials.oraclebmcs) {
-            $scope.account = $scope.application.defaultCredentials.oraclebmcs;
+          if (!$scope.account && $scope.application.defaultCredentials.oracle) {
+            $scope.account = $scope.application.defaultCredentials.oracle;
           }
           if (results.baseOsOptions.baseImages.length > 0) {
             $scope.baseOsOptions = results.baseOsOptions;

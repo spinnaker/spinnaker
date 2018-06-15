@@ -27,7 +27,7 @@ var artifactsEnabled = process.env.ARTIFACTS_ENABLED === 'true';
 window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'dcos', 'openstack', 'oraclebmcs', 'ecs'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'dcos', 'openstack', 'oracle', 'ecs'],
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
   authEndpoint: authEndpoint,
@@ -92,7 +92,7 @@ window.spinnakerSettings = {
         iamProfile: '{{application}}InstanceProfile',
       },
     },
-    oraclebmcs: {
+    oracle: {
       defaults: {
         account: 'DEFAULT',
         region: 'us-phoenix-1',

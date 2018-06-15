@@ -5,11 +5,11 @@ import { EXECUTION_DETAILS_SECTION_SERVICE, SETTINGS } from '@spinnaker/core';
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.bake.executionDetails.controller', [
+  .module('spinnaker.oracle.pipeline.stage.bake.executionDetails.controller', [
     EXECUTION_DETAILS_SECTION_SERVICE,
     require('@uirouter/angularjs').default,
   ])
-  .controller('oraclebmcsBakeExecutionDetailsCtrl', function(
+  .controller('oracleBakeExecutionDetailsCtrl', function(
     $log,
     $scope,
     $stateParams,
@@ -20,7 +20,7 @@ module.exports = angular
 
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;
-      $scope.provider = $scope.stage.context.cloudProviderType || 'oraclebmcs';
+      $scope.provider = $scope.stage.context.cloudProviderType || 'oracle';
       $scope.roscoMode = SETTINGS.feature.roscoMode;
       $scope.bakeryDetailUrl = $interpolate(SETTINGS.bakeryDetailUrl);
     };

@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.oraclebmcs.footer.component', []).component('oracleBmcsFooter', {
+module.exports = angular.module('spinnaker.oracle.footer.component', []).component('oracleFooter', {
   templateUrl: require('./footer.component.html'),
   bindings: {
     action: '&',
