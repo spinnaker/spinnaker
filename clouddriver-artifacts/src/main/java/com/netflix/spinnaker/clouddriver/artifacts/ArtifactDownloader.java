@@ -44,13 +44,20 @@ public class ArtifactDownloader {
   }
 
   public InputStream download(Artifact artifact) throws IOException {
+    String artifactAccount = artifact.getArtifactAccount();
+    if (StringUtils.isEmpty(artifactAccount)) {
+      throw new IllegalArgumentException("An artifact account must be supplied to download this artifact: " + artifactAccount);
+    }
+
     ArtifactCredentials credentials = artifactCredentialsRepository.getAllCredentials()
         .stream()
-        // todo(lwander) remove isEmpty once the UI properly supports fetching artifact accounts
-        .filter(c -> (StringUtils.isEmpty(artifact.getArtifactAccount()) || c.getName().equals(artifact.getArtifactAccount()))
-            && c.handlesType(artifact.getType()))
+        .filter(c -> c.getName().equals(artifactAccount))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("No credentials registered to handle " + artifact));
+        .orElseThrow(() -> new IllegalArgumentException("No credentials with name '" + artifactAccount + "' could be found."));
+
+    if (!credentials.handlesType(artifact.getType())) {
+      throw new IllegalArgumentException("Artifact credentials '" + artifactAccount + "' cannot handle artifacts of type '" + artifact.getType() + "'");
+    }
 
     return credentials.download(artifact);
   }
