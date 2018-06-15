@@ -234,7 +234,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }) ?: AmiIdResolver.resolveAmiIdFromAllSources(amazonEC2, region, description.amiName, description.credentials.accountId)
 
       if (!ami) {
-        throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
+        throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName in $region")
       }
       validateInstanceType(ami, description.instanceType)
 
