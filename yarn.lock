@@ -73,6 +73,10 @@
     d3-collection "1"
     d3-interpolate "1"
 
+"@spinnaker/amazon@^0.0.104":
+  version "0.0.104"
+  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.104.tgz#e1b3305cc11f1029deba0a2003be2a4f2ba1973e"
+
 "@spinnaker/core@0.0.237":
   version "0.0.237"
   resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.237.tgz#ec80ac2f31f5c4bf8d2233d8a98b11c63eb6801e"
@@ -9081,6 +9085,13 @@ react-test-renderer@^16.0.0-0:
     object-assign "^4.1.1"
     prop-types "^15.6.0"
 
+react-tether@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/react-tether/-/react-tether-0.6.1.tgz#de64dd81a5e40053a9f275c4fef0beb0877b3e4e"
+  dependencies:
+    prop-types "^15.5.8"
+    tether "^1.4.3"
+
 react-transition-group@^2.0.0, react-transition-group@^2.2.0:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/react-transition-group/-/react-transition-group-2.2.1.tgz#e9fb677b79e6455fd391b03823afe84849df4a10"
@@ -10981,6 +10992,10 @@ tar@^2.2.1:
     block-stream "*"
     fstream "^1.0.2"
     inherits "2"
+
+tether@^1.4.3:
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/tether/-/tether-1.4.4.tgz#9dc6eb2b3e601da2098fd264e7f7a8b264de1125"
 
 text-cache@^4.1.0:
   version "4.1.0"

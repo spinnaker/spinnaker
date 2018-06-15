@@ -79,7 +79,7 @@ class CanaryStage implements IComponentController {
     backingDataLoading: false,
     detailsLoading: false,
     lifetimeHoursUpdatedToDuration: false,
-    lifetime: {hours: '', minutes: ''},
+    lifetime: { hours: '', minutes: '' },
   };
   public canaryConfigSummaries: ICanaryConfigSummary[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
@@ -151,8 +151,9 @@ class CanaryStage implements IComponentController {
       this.state.useLookback = true;
     }
 
-    if (!this.stage.canaryConfig.scopes) {
-      this.stage.canaryConfig.scopes = [];
+    if (!this.stage.canaryConfig.scopes || !this.stage.canaryConfig.scopes.length) {
+      this.stage.canaryConfig.scopes =
+        [{ scopeName: 'default' } as IKayentaStageCanaryConfigScope];
     }
 
     this.loadBackingData();
@@ -269,7 +270,7 @@ class CanaryStage implements IComponentController {
   }
 
   public onLifetimeChange(): void {
-    const {hours, minutes} = this.getStateLifetime();
+    const { hours, minutes } = this.getStateLifetime();
     this.stage.canaryConfig.lifetimeDuration = `PT${hours}H${minutes}M`;
   }
 
@@ -299,7 +300,7 @@ class CanaryStage implements IComponentController {
     if (!isFinite(minutes) || minutes < 0) {
       minutes = 0;
     }
-    return {hours, minutes};
+    return { hours, minutes };
   }
 
   private getLifetimeFromStageLifetimeDuration(): IKayentaStageLifetime {
@@ -319,7 +320,7 @@ class CanaryStage implements IComponentController {
     if (!isFinite(minutes) || minutes < 0) {
       minutes = 0;
     }
-    return {hours, minutes};
+    return { hours, minutes };
   }
 
   public isLifetimeRequired(): boolean {
