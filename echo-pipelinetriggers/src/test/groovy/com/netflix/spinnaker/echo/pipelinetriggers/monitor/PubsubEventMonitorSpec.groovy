@@ -28,6 +28,7 @@ import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import groovy.json.JsonOutput
+import rx.Observable
 import rx.functions.Action1
 import spock.lang.Shared
 import spock.lang.Specification
@@ -82,7 +83,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   def "triggers pipelines for successful builds for Google pubsub"() {
     given:
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -104,7 +105,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "attaches Google pubsub trigger to the pipeline"() {
     given:
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -124,7 +125,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for Google pubsub"() {
     given:
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -145,7 +146,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines containing artifacts for Google pubsub"() {
     given:
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -164,7 +165,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled pubsub trigger with missing #field"() {
     given:
-    pipelineCache.getPipelines() >> [badPipeline, goodPipeline]
+    pipelineCache.getPipelinesAsync() >> Observable.just([badPipeline, goodPipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -195,7 +196,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
       .build()
 
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
 
     when:
     def content = new PubsubEvent.Content()
@@ -232,7 +233,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
       .build()
 
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
 
     when:
     def content = new PubsubEvent.Content()

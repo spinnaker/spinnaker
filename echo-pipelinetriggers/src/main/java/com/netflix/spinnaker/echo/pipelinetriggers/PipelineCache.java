@@ -16,10 +16,21 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers;
 
+import static java.time.Instant.now;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,18 +38,8 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
-import static java.time.Instant.now;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import rx.subjects.ReplaySubject;
+import rx.subjects.SerializedSubject;
 
 @Component
 @Slf4j
@@ -51,6 +52,7 @@ public class PipelineCache implements MonitoredPoller {
   private transient Instant lastPollTimestamp;
   private transient Subscription subscription;
 
+  private transient SerializedSubject<List<Pipeline>, List<Pipeline>> pipelineSubject = ReplaySubject.<List<Pipeline>>createWithSize(1).toSerialized();
   private transient AtomicReference<List<Pipeline>> pipelines = new AtomicReference<>(Collections.emptyList());
 
   @Autowired
@@ -72,7 +74,9 @@ public class PipelineCache implements MonitoredPoller {
         .flatMap(tick -> front50.getPipelines())
         .doOnError(this::onFront50Error)
         .retry()
-        .subscribe(this::cachePipelines);
+        .map(PipelineCache::decorateTriggers)
+        .doOnNext(this::cachePipelines)
+        .subscribe(pipelineSubject);
     }
   }
 
@@ -98,13 +102,33 @@ public class PipelineCache implements MonitoredPoller {
     return pollingIntervalSeconds;
   }
 
+  /**
+   * Returns an observable that emits the configured pipelines as of the most recent polling cycle.
+   * If no polling cycles have been completed, the observable will wait until the first cycle
+   * completes and then emit the pipelines from that polling cycle.
+   *
+   * @return An observable emitting the pipelines as of the most recent polling cycle
+   */
+  public Observable<List<Pipeline>> getPipelinesAsync() {
+    return pipelineSubject.take(1);
+  }
+
+  /**
+   * Returns the pipelines as of the most recent polling cycle.  If no polling cycles have been
+   * completed, returns an empty list.
+   *
+   * See {@link #getPipelinesAsync()} for an alternate way of getting pipelines that will wait at
+   * at least one polling cycle before returning a value.
+   *
+   * @return The pipelines as of the most recent polling cycle
+   */
   public List<Pipeline> getPipelines() {
     return pipelines.get();
   }
 
   private void cachePipelines(final List<Pipeline> pipelines) {
     log.info("Refreshing pipelines");
-    this.pipelines.set(decorateTriggers(pipelines));
+    this.pipelines.set(pipelines);
   }
 
   private void onFront50Request(final long tick) {

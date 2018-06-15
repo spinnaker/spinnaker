@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
@@ -25,20 +28,16 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang.StringUtils;
 import rx.Observable;
 import rx.functions.Action1;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
 
 /**
  * Triggers pipelines in _Orca_ when a trigger-enabled pubsub message arrives.
@@ -69,8 +68,9 @@ public class PubsubEventMonitor extends TriggerMonitor {
     PubsubEvent pubsubEvent = objectMapper.convertValue(event, PubsubEvent.class);
 
     Observable.just(pubsubEvent)
-        .doOnNext(this::onEchoResponse)
-        .subscribe(triggerEachMatchFrom(pipelineCache.getPipelines()));
+      .doOnNext(this::onEchoResponse)
+      .zipWith(pipelineCache.getPipelinesAsync(), TriggerMatchParameters::new)
+      .subscribe(triggerEachMatch());
   }
 
   @Override

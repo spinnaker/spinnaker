@@ -22,6 +22,13 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,19 +36,17 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
  */
 @Component
 @Slf4j
 public abstract class TriggerMonitor implements EchoEventListener {
+  @AllArgsConstructor
+  static class TriggerMatchParameters {
+    TriggerEvent event;
+    List<Pipeline> pipelines;
+  }
 
   protected final Action1<Pipeline> subscriber;
   protected final Registry registry;
@@ -68,6 +73,12 @@ public abstract class TriggerMonitor implements EchoEventListener {
 
   protected void onEchoResponse(final TriggerEvent event) {
     registry.gauge("echo.events.per.poll", 1);
+  }
+
+  protected Action1<TriggerMatchParameters> triggerEachMatch() {
+    return parameters -> {
+      triggerEachMatchFrom(parameters.pipelines).call(parameters.event);
+    };
   }
 
   protected Action1<TriggerEvent> triggerEachMatchFrom(final List<Pipeline> pipelines) {
