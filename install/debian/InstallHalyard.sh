@@ -143,7 +143,7 @@ function configure_defaults() {
   chown $HAL_USER $halconfig_dir
 
   mkdir -p /opt/spinnaker/config
-  chmod +rx /opt/spinnaker/config
+  chmod a+rx /opt/spinnaker/config
 
   cat > /opt/spinnaker/config/halyard.yml <<EOL
 halyard:
@@ -179,13 +179,14 @@ fi
 
 rm /opt/halyard -rf
 rm /var/log/spinnaker/halyard -rf
+rm -f /usr/local/bin/hal /usr/local/bin/update-halyard
 
 echo "Deleting halconfig and artifacts"
 rm /opt/spinnaker/config/halyard* -rf
 rm $halconfig_dir -rf
 EOL
 
-  chmod +x $halconfig_dir/uninstall.sh
+  chmod a+rx $halconfig_dir/uninstall.sh
   echo "$(tput bold)Uninstall script is located at $halconfig_dir/uninstall.sh$(tput sgr0)"
 }
 
@@ -292,7 +293,7 @@ function install_halyard() {
     curl -O https://storage.googleapis.com/$gcs_bucket_and_file
   fi
 
-  tar --no-same-owner --no-same-permissions -xvf halyard.tar.gz -C /opt
+  tar --no-same-owner -xvf halyard.tar.gz -C /opt
 
   groupadd halyard || true
   groupadd spinnaker || true
@@ -301,18 +302,18 @@ function install_halyard() {
   chown $HAL_USER:halyard /opt/halyard
 
   mv /opt/hal /usr/local/bin
-  chmod +x /usr/local/bin/hal
+  chmod a+rx /usr/local/bin/hal
 
   if [ -f /opt/update-halyard ]; then
     mv /opt/update-halyard /usr/local/bin
-    chmod +x /usr/local/bin/update-halyard
+    chmod a+rx /usr/local/bin/update-halyard
   else
     echo "No update script supplied with installer..."
   fi
 
   mkdir -p /var/log/spinnaker/halyard
   chown $HAL_USER:halyard /var/log/spinnaker/halyard
-  chmod 755 /var/log/spinnaker/halyard
+  chmod 755 /var/log/spinnaker /var/log/spinnaker/halyard
 
   popd
   rm -rf $TEMPDIR

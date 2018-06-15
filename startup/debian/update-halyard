@@ -57,14 +57,14 @@ function install_halyard() {
 
   curl -O https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/debian/halyard.tar.gz
   rm -rf /opt/halyard
-  tar -xvf halyard.tar.gz -C /opt
+  tar --no-same-owner -xvf halyard.tar.gz -C /opt
 
   chown $HAL_USER:halyard /opt/halyard
 
   mv /opt/hal /usr/local/bin
   mv /opt/update-halyard /usr/local/bin
-  chmod +x /usr/local/bin/hal
-  chmod +x /usr/local/bin/update-halyard
+  chmod a+rx /usr/local/bin/hal
+  chmod a+rx /usr/local/bin/update-halyard
 
   popd
   rm -rf $TEMPDIR
