@@ -23,10 +23,11 @@ Directory | Purpose
 
 # Installing dependencies
 
+## Install and Create a Virtual Env
 These tests are written in Python. Instead of installing the dependencies
 into system folders consider using something like [virtualenv]
 (https://virtualenv.pypa.io/en/stable/). This is optional,
-but a suggestion.
+but suggested.
 
 
     # Install the python package manager if you dont already have it
@@ -52,10 +53,35 @@ If you are using Virtual Env, then all the remaining instructions
 would be performed within the virtual environment, entered by
 `source $MYENV/bin/activate` within the shell you run the commands in.
 
+## Install citest Dependencies
+The citest library is not yet published to a pip repository so you need to clone
+the citest repository and install it from there.
+```
+# From another directoy, such as the parent directory to this repository.
+cd <parent directory>
+git clone https://github.com/google/citest.git
+cd citest
+pip install -r requirements.txt
+```
+
+Then navigate back to the Spinnaker testing directory and install the
+requirements for the Spinnaker testing library.
+```
+cd <parent directory>/spinnaker/testing/citest
+pip install -r requirements.txt
+```
+
+When executing tests, the `spinnaker/testing/citest/spinnaker_testing` library
+needs to be added to your `PYTHONPATH`, e.g.
+
+    cd spinnaker/testing/citest
+    PYTHONPATH=.:spinnaker_testing python <test name>.py <args>
+
 ## Install Platform Dependencies
-These are not yet automated. Depending on the platforms involved either
-by hosting Spinnaker or being the platform the test is running against,
-you may need additional tools.
+Installation of platform-specific tools are not yet automated.
+Depending on the platforms involved either by hosting Spinnaker
+or being the platform the test is running against, you may need
+additional tools.
 
 Platform | Tools | Installation Command
 ---------|-------|---------------------
@@ -83,20 +109,6 @@ OS_PASSWORD | OpenStack user password.
 OS_REGION_NAME | OpenStack region name.
 OS_IDENTITY_API_VERSION | Keystone service endpoint version number.
 OS_PROJECT_DOMAIN_NAME | OpenStack project domain name.
-
-
-## Install Spinnaker citest Dependencies
-citest is not yet published to a pip repository so you need to clone
-the citest repository and install it from there.
-```
-# From another directoy, such as the sibling directory to this repository.
-git clone https://github.com/google/citest.git
-cd citest
-pip install -r requirements.txt
-```
-
-Then come back here and install the requirements for these tests.
-`Run pip install -r requirements.txt.`
 
 
 # Preparing a deployment to test against
@@ -254,8 +266,9 @@ a typical invocation has three sets of commandline parameters.
 One set specifies "spinnaker" things, another specifies "managed resource"
 things, and lastly, additional "observer" things.
 
-    PYTHONPATH=.:spinnaker \
-    python spinnaker/tests/<fixture name>.py \
+    # Assuming cwd is spinnaker/testing/citest
+    PYTHONPATH=.:spinnaker_testing \
+    python tests/<fixture name>.py \
     <Talking to Spinnaker Parameters> \
     <Managing Resource Parameters> \
     <Observer Parameters>
@@ -295,7 +308,7 @@ things, and lastly, additional "observer" things.
 
 # Usage Examples
 
-Assuming you are in the repository root directory and testing against GCE
+Assuming you are in the `spinnaker/testing/citest` directory and testing against GCE
 where:
 
     PROJECT_ID=ewiseblatt-spinnaker-test
@@ -304,8 +317,8 @@ where:
 
 then:
 
-    PYTHONPATH=.:spinnaker python \
-      spinnaker/spinnaker_system/google_kato_test.py \
+    PYTHONPATH=.:spinnaker_testing python \
+      tests/google_kato_test.py \
       --gce_project=$PROJECT_ID \
       --gce_instance=$INSTANCE \
       --gce_zone=$ZONE \
@@ -313,8 +326,8 @@ then:
 
 If you were testing against some "native" host:
 
-    PYTHONPATH=.:spinnaker python \
-      spinnaker/spinnaker_system/google_kato_test.py \
+    PYTHONPATH=.:spinnaker_testing python \
+      tests/google_kato_test.py \
       --native_host=$HOSTNAME \
       --managed_gce_project=$PROJECT_ID \
       --test_gce_zone=$ZONE
@@ -332,8 +345,8 @@ a "native" host where:
 
 then:
 
-    PYTHONPATH=.:spinnaker python \
-      spinnaker/spinnaker_system/aws_kato_test.py \
+    PYTHONPATH=.:spinnaker_testing python \
+      tests/aws_kato_test.py \
       --native_host=$HOSTNAME \
       --aws_profile=$PROFILE \
       --test_aws_zone=$ZONE
