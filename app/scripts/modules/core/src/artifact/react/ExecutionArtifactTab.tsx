@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { get, has, includes } from 'lodash';
+import { get, has, includes, uniq } from 'lodash';
 import { IExpectedArtifact, IExecution, IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core';
 import { ArtifactIconList } from './ArtifactIconList';
 
@@ -30,7 +30,8 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
     };
 
     const artifactFields = get(this.props, ['config', 'artifactFields'], []);
-    const consumedIds = artifactFields.reduce(accumulateArtifacts, []);
+    const inputArtifactIds = get(stage, ['context', 'inputArtifacts'], []).map(a => a.id);
+    const consumedIds = uniq(artifactFields.reduce(accumulateArtifacts, []).concat(inputArtifactIds));
     const boundArtifacts = this.extractBoundArtifactsFromExecution(execution);
 
     const consumedArtifacts = boundArtifacts

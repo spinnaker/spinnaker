@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { get } from 'lodash';
 
-import { ArtifactReferenceService, Registry, SETTINGS } from 'core';
+import { ArtifactReferenceService, Registry, SETTINGS, ExecutionDetailsTasks, ExecutionArtifactTab } from 'core';
 
 import { BakeManifestConfigCtrl } from './bakeManifestConfig.controller';
 
@@ -19,6 +19,7 @@ module(BAKE_MANIFEST_STAGE, [])
         producesArtifacts: true,
         cloudProvider: 'kubernetes',
         controllerAs: 'ctrl',
+        executionDetailsSections: [ExecutionDetailsTasks, ExecutionArtifactTab],
       });
 
       ArtifactReferenceService.registerReference('stage', stage => {

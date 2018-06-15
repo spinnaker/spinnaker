@@ -141,7 +141,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
             <div className="col-md-12">
               <div className="well alert alert-info">
                 {manifests.map(manifest => {
-                  const uid = manifest.manifest.metadata.uid;
+                  const uid = manifest.manifest.metadata.uid || this.manifestIdentifier(manifest.manifest);
                   return <ManifestStatus key={uid} manifest={manifest} application={application} stage={stage} />;
                 })}
               </div>
