@@ -6,7 +6,7 @@
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
-package com.netflix.spinnaker.orca.clouddriver.tasks.providers.oraclebmcs
+package com.netflix.spinnaker.orca.clouddriver.tasks.providers.oracle
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
@@ -14,10 +14,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
-class OracleBMCSServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
+class OracleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
 
   final boolean katoResultExpected = false
-  final String cloudProvider = "oraclebmcs"
+  final String cloudProvider = "oracle"
 
   @Override
   List<Map> getOperations(Stage stage) {

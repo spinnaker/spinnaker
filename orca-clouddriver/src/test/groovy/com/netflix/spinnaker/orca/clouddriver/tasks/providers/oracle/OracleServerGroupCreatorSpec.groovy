@@ -6,12 +6,12 @@
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
-package com.netflix.spinnaker.orca.clouddriver.tasks.providers.oraclebmcs
+package com.netflix.spinnaker.orca.clouddriver.tasks.providers.oracle
 
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
 
-class OracleBMCSServerGroupCreatorSpec extends Specification {
+class OracleServerGroupCreatorSpec extends Specification {
 
   def "should get operations"() {
     given:
@@ -26,7 +26,7 @@ class OracleBMCSServerGroupCreatorSpec extends Specification {
     }
 
     when:
-    def ops = new OracleBMCSServerGroupCreator().getOperations(stage)
+    def ops = new OracleServerGroupCreator().getOperations(stage)
 
     then:
     ops == [
@@ -48,7 +48,7 @@ class OracleBMCSServerGroupCreatorSpec extends Specification {
     stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
-    ops = new OracleBMCSServerGroupCreator().getOperations(stage)
+    ops = new OracleServerGroupCreator().getOperations(stage)
 
     then:
     ops == [
@@ -69,7 +69,7 @@ class OracleBMCSServerGroupCreatorSpec extends Specification {
     stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
-    new OracleBMCSServerGroupCreator().getOperations(stage)
+    new OracleServerGroupCreator().getOperations(stage)
 
     then:
     IllegalStateException ise = thrown()
