@@ -1,6 +1,5 @@
 'use strict';
 
-var feedbackUrl = '';
 var gateHost = '{%gate.baseUrl%}';
 var bakeryDetailUrl = gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
 var authEndpoint = gateHost + '/auth/user';
@@ -92,7 +91,6 @@ window.spinnakerSettings = {
   version: version,
   checkForUpdates: false,
   defaultProviders: ['aws', 'ecs', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack', 'oraclebmcs', 'dcos'],
-  feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
   authEndpoint: authEndpoint,
@@ -186,7 +184,6 @@ window.spinnakerSettings = {
     pagerDuty: false,
     clusterDiff: false,
     roscoMode: true,
-    infrastructureStages: false,
     snapshots: false,
     travis: false,
     versionedProviders: true,

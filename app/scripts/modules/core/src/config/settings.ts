@@ -82,6 +82,11 @@ export interface ISpinnakerSettings {
     };
   };
   feature: IFeatures;
+  feedback?: {
+    url: string;
+    text?: string;
+    icon?: string;
+  };
   gateUrl: string;
   gitSources: string[];
   notifications: INotificationSettings;

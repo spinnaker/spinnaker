@@ -1,6 +1,5 @@
 'use strict';
 
-var feedbackUrl = process.env.FEEDBACK_URL;
 var gateHost = process.env.API_HOST || 'http://localhost:8084';
 var bakeryDetailUrl =
   process.env.BAKERY_DETAIL_URL || gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
@@ -29,7 +28,6 @@ window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
   defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'dcos', 'openstack', 'oraclebmcs', 'ecs'],
-  feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
   authEndpoint: authEndpoint,

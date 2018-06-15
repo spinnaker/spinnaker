@@ -9,6 +9,14 @@ import { SETTINGS } from '@spinnaker/core';
 const DOCS_URL = 'https://spinnaker.io/docs';
 const COMMUNITY_URL = 'https://spinnaker.io/community';
 
+const Feedback = () =>
+  SETTINGS.feedback && SETTINGS.feedback.url ? (
+    <MenuItem href={SETTINGS.feedback.url} target="_blank">
+      <i className={SETTINGS.feedback.icon || 'fa fa-envelope'} />
+      &nbsp; {SETTINGS.feedback.text || 'Send feedback'}
+    </MenuItem>
+  ) : null;
+
 export const HelpMenu = () => {
   return (
     <li className="help-menu">
@@ -17,6 +25,7 @@ export const HelpMenu = () => {
           <Glyphicon glyph="question-sign" />
         </Dropdown.Toggle>
         <Dropdown.Menu>
+          <Feedback />
           <MenuItem href={DOCS_URL} target="_blank">
             Docs
           </MenuItem>
@@ -37,8 +46,11 @@ export const HelpMenu = () => {
       </Dropdown>
 
       <Dropdown id="help-menu-dropdown-large" pullRight={true}>
-        <Dropdown.Toggle className="hidden-xs hidden-sm hidden-md">Help</Dropdown.Toggle>
+        <Dropdown.Toggle className="hidden-xs hidden-sm hidden-md" noCaret={true}>
+          <Glyphicon glyph="question-sign" /> Help
+        </Dropdown.Toggle>
         <Dropdown.Menu>
+          <Feedback />
           <MenuItem href={DOCS_URL} target="_blank">
             Docs
           </MenuItem>
