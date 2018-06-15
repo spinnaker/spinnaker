@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 @Component
 public class AccountValidator extends Validator<Account> {
-  private final static String namePattern = "^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$";
+  private final static String namePattern = "^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$";
 
   @Override
   public void validate(ConfigProblemSetBuilder p, Account n) {
@@ -35,7 +35,7 @@ public class AccountValidator extends Validator<Account> {
       p.addProblem(Severity.FATAL, "Account name must be specified");
     } else if (!Pattern.matches(namePattern, n.getName())) {
       p.addProblem(Severity.ERROR, "Account name must match pattern " + namePattern)
-        .setRemediation("It must start and end with a lower-case character or number, and only contain lower-case characters, numbers, dashes, or underscores");
+        .setRemediation("It must start and end with a lower-case character or number, and only contain lower-case characters, numbers, or dashes");
     }
     if (n.getRequiredGroupMembership() != null && !n.getRequiredGroupMembership().isEmpty()) {
       p.addProblem(Problem.Severity.WARNING, "requiredGroupMembership has been "
