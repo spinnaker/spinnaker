@@ -220,7 +220,8 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       p.addProblem(FATAL, String.join(" ", "`kubectl` not installed, or can't be found by Halyard. It is needed for",
           "opening connections to your Kubernetes cluster to send commands to the Spinnaker deployment running there."))
           .setRemediation(String.join(" ", "Visit https://kubernetes.io/docs/tasks/kubectl/install/.",
-              "If you've already installed kubectl via gcloud, it's possible updates to your $PATH aren't visible to Halyard."));
+              "If you've already installed kubectl via gcloud, it's possible updates to your $PATH aren't visible to Halyard. ",
+              "You might have to restart Halyard for it to pick up the new $PATH."));
     }
   }
 }
