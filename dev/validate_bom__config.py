@@ -806,6 +806,56 @@ class GoogleConfigurator(Configurator):
     if options.google_account_credentials:
       file_set.add(options.google_account_credentials)
 
+class KubernetesV2Configurator(Configurator):
+  """Controls hal config provider kubernetes (for v2 accounts)."""
+
+  def init_argument_parser(self, parser, defaults):
+    """Implements interface."""
+    add_parser_argument(
+        parser, 'k8s_v2_account_credentials', defaults, None,
+        help='Path to k8s credentials file.')
+    add_parser_argument(
+        parser, 'k8s_v2_account_name', defaults, 'my-kubernetes-v2-account',
+        help='The name of the primary Kubernetes account to configure.')
+    add_parser_argument(
+        parser, 'k8s_v2_account_context', defaults, None,
+        help='The kubernetes context for the primary Kubernetes v2 account.')
+    add_parser_argument(
+        parser, 'k8s_v2_account_namespaces', defaults, 'validate-bom',
+        help='The kubernetes namespaces for the primary Kubernetes v2 account.'
+    )
+
+  def validate_options(self, options):
+    """Implements interface."""
+    pass
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if not options.k8s_v2_account_credentials:
+      return
+
+    account_params = [options.k8s_v2_account_name]
+    account_params.extend([
+        '--kubeconfig-file',
+        os.path.basename(options.k8s_v2_account_credentials),
+        '--provider-version',
+        'v2'
+    ])
+    if options.k8s_v2_account_context:
+      account_params.extend(['--context', options.k8s_v2_account_context])
+    if options.k8s_v2_account_namespaces:
+      account_params.extend(['--namespaces', options.k8s_v2_account_namespaces])
+
+    script.append('hal -q --log=info config provider kubernetes enable')
+    script.append('hal -q --log=info config provider kubernetes account'
+                  ' add {params}'
+                  .format(params=' '.join(account_params)))
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    if options.k8s_v2_account_credentials:
+      file_set.add(options.k8s_v2_account_credentials)
+
 
 class KubernetesConfigurator(Configurator):
   """Controls hal config provider kubernetes."""
@@ -1413,6 +1463,7 @@ CONFIGURATOR_LIST = [
     DcosConfigurator(),  # Hal requires docker config first.
     GoogleConfigurator(),
     KubernetesConfigurator(),
+    KubernetesV2Configurator(),
     JenkinsConfigurator(),
     NotificationConfigurator(),
     SecurityConfigurator(),
