@@ -66,7 +66,7 @@ func (c *ApplicationSaveCommand) saveApplication() (map[string]interface{}, *htt
 	createAppTask := map[string]interface{}{
 		"job":         []interface{}{appSpec},
 		"application": c.applicationName,
-		"description": "Create Application: ",
+		"description": fmt.Sprintf("Create Application: %s", c.applicationName),
 	}
 	return c.ApiMeta.GateClient.TaskControllerApi.TaskUsingPOST1(nil, createAppTask)
 }

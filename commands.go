@@ -27,6 +27,11 @@ func init() {
 	meta := command.ApiMeta{}
 
 	Commands = map[string]cli.CommandFactory{
+		"application delete": func() (cli.Command, error) {
+			return &applications.ApplicationDeleteCommand{
+				ApiMeta: meta,
+			}, nil
+		},
 		"application get": func() (cli.Command, error) {
 			return &applications.ApplicationGetCommand{
 				ApiMeta: meta,
