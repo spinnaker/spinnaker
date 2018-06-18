@@ -141,12 +141,19 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
   }
 
   private void restart() {
+    try {
+      stop();
+    } catch (Exception e) {
+      log.warn("Failure stopping subscriber: ", e);
+    }
+
     log.info("Waiting to restart Google Pubsub subscriber for {}", formatSubscriptionName(project, subscriptionName));
     try {
       // TODO: Use exponential backoff?
       Thread.sleep(1000);
     } catch (InterruptedException e) {
     }
+
     start();
   }
 
@@ -216,7 +223,12 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
 
     @Override
     public void failed(ApiService.State from, Throwable failure) {
-      log.error("Google Pubsub listener for subscription name {} failure caused by {}", subscriptionName, failure.getMessage());
+      if (failure.getMessage() != null && failure.getMessage().contains("NOT_FOUND")) {
+        log.error("Subscription name {} could not be found (will not retry): ", subscriptionName, failure);
+        return;
+      }
+
+      log.error("Google Pubsub listener for subscription name {} failure caused by: ", subscriptionName, failure);
       subscriber.restart();
     }
   }
