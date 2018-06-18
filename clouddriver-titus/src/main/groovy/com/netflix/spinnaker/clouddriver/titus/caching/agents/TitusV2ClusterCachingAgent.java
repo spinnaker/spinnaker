@@ -484,6 +484,11 @@ public class TitusV2ClusterCachingAgent implements CachingAgent, CustomScheduled
   private String getAwsAccountId(String account, String region) {
     return awsLookupUtil.get().awsAccountId(account, region);
   }
+
+  private String getAwsAccountName(String account, String region) {
+    return awsLookupUtil.get().awsAccountName(account, region);
+  }
+
   private String getAwsVpcId(String account, String region) {
     return awsLookupUtil.get().awsVpcId(account, region);
   }
@@ -620,7 +625,7 @@ public class TitusV2ClusterCachingAgent implements CachingAgent, CustomScheduled
         .collect(Collectors.toSet());
 
       targetGroupKeys = targetGroupNames.stream()
-        .map( it -> com.netflix.spinnaker.clouddriver.aws.data.Keys.getTargetGroupKey(it, account, region, TargetTypeEnum.Ip.toString(), getAwsVpcId(account, region)))
+        .map(it -> com.netflix.spinnaker.clouddriver.aws.data.Keys.getTargetGroupKey(it, getAwsAccountName(account, region), region, TargetTypeEnum.Ip.toString(), getAwsVpcId(account, region)))
         .collect(Collectors.toSet());
     }
   }
