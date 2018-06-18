@@ -37,6 +37,7 @@ import { KUBERNETES_MULTI_MANIFEST_SELECTOR } from './manifest/selector/multiSel
 import { KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transformer';
 import { KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transformer';
 import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
+import { KUBERNETES_V2_RESOURCE_STATES } from './resources/resources.state';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -83,6 +84,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_ANNOTATIONS,
   KUBERNETES_MANIFEST_EVENTS,
   KUBERNETES_ANNOTATION_CUSTOM_SECTIONS,
+  KUBERNETES_V2_RESOURCE_STATES,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',

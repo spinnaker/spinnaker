@@ -9,8 +9,6 @@ export interface IManifestDetailsProps {
   accountId: string;
 }
 
-const supportedKinds = ['deployment', 'replicaset'];
-
 export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> {
   constructor(props: IManifestDetailsProps) {
     super(props);
@@ -18,13 +16,7 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> 
   }
 
   private canOpen(): boolean {
-    return !!(
-      this.props.manifest.manifest &&
-      this.props.manifest.manifest.kind &&
-      this.props.manifest.manifest.metadata &&
-      this.props.manifest.manifest.metadata.annotations &&
-      supportedKinds.includes(this.props.manifest.manifest.kind.toLowerCase())
-    );
+    return !!this.props.manifest.manifest;
   }
 
   public openDetails() {
@@ -33,6 +25,8 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> 
       this.openDeploymentDetails();
     } else if (kind === 'replicaset') {
       this.openReplicaSetDetails();
+    } else {
+      this.openGenericResourceDetails();
     }
   }
 
@@ -59,6 +53,14 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> 
     const params = this.buildParams(annotations);
     params.serverGroup = `replicaSet ${annotations.name}-${annotations.version}`;
     $state.go('home.applications.application.insight.clusters.serverGroup', params);
+  }
+
+  private openGenericResourceDetails() {
+    const { $state } = ReactInjector;
+    const annotations = this.extractAnnotations(this.props.manifest.manifest.metadata.annotations);
+    const params = this.buildParams(annotations);
+    params.kubernetesResource = `${this.props.manifest.manifest.kind} ${this.props.manifest.manifest.metadata.name}`;
+    $state.go('home.applications.application.insight.clusters.kubernetesResource', params);
   }
 
   private stripQuotes(str: string): string {
