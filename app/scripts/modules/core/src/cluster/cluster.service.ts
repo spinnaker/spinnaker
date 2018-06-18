@@ -1,5 +1,5 @@
 import { IPromise, IQService, module } from 'angular';
-import { forOwn, get, groupBy, has, head, keys, values } from 'lodash';
+import { flatten, forOwn, get, groupBy, has, head, keys, values } from 'lodash';
 
 import { API } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
@@ -153,11 +153,10 @@ export class ClusterService {
           const stageServerGroup = stage ? this.extractServerGroupNameFromContext(stage.context) : '';
           const stageAccount = stage && stage.context ? stage.context.account || stage.context.credentials : '';
           const stageRegion = stage ? this.extractRegionFromContext(stage.context) : '';
-
           if (
             stageServerGroup.includes(serverGroup.name) &&
             stageAccount === serverGroup.account &&
-            stageRegion === serverGroup.region
+            (stageRegion === serverGroup.region || stageRegion === serverGroup.namespace)
           ) {
             serverGroup.runningExecutions.push(execution);
           }
@@ -206,13 +205,19 @@ export class ClusterService {
   }
 
   private extractServerGroupNameFromContext(context: any): string {
-    return head(values(context['deploy.server.groups'])) || context['targetop.asg.disableAsg.name'] || '';
+    return (
+      head(values(context['deploy.server.groups'])) ||
+      context['targetop.asg.disableAsg.name'] ||
+      flatten(values(context['outputs.manifestNamesByNamespace'])) ||
+      ''
+    );
   }
 
   public extractRegionFromContext(context: any): string {
     return (
       head(keys(context['deploy.server.groups'] as string)) ||
       head(context['targetop.asg.disableAsg.regions'] as string) ||
+      head(keys(context['outputs.manifestNamesByNamespace'])) ||
       ''
     );
   }
@@ -222,7 +227,8 @@ export class ClusterService {
       stage =>
         (['createServerGroup', 'deploy', 'destroyAsg', 'resizeAsg'].includes(stage.type) &&
           has(stage.context, 'deploy.server.groups')) ||
-        (stage.type === 'disableAsg' && has(stage.context, 'targetop.asg.disableAsg.name')),
+        (stage.type === 'disableAsg' && has(stage.context, 'targetop.asg.disableAsg.name')) ||
+        (stage.type === 'deployManifest' && has(stage.context, 'outputs.manifestNamesByNamespace')),
     );
   }
 

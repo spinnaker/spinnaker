@@ -37,6 +37,7 @@ export interface IServerGroup {
   launchConfig?: any;
   loadBalancers?: string[];
   name: string;
+  namespace?: string;
   moniker?: IMoniker;
   provider?: string;
   providerMetadata?: any;
