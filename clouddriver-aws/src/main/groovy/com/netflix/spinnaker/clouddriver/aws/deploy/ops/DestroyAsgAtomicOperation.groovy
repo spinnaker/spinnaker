@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.AmazonClientException
+import com.amazonaws.services.autoscaling.model.AmazonAutoScalingException
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
@@ -93,8 +94,16 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
 
     if (autoScalingGroup.launchConfigurationName) {
       task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
-      autoScaling.deleteLaunchConfiguration(new DeleteLaunchConfigurationRequest(
-          launchConfigurationName: autoScalingGroup.launchConfigurationName))
+      try {
+        autoScaling.deleteLaunchConfiguration(
+          new DeleteLaunchConfigurationRequest(launchConfigurationName: autoScalingGroup.launchConfigurationName)
+        )
+      } catch (AmazonAutoScalingException e) {
+        // Ignore not found exception
+        if (!e.message.toLowerCase().contains("launch configuration name not found")) {
+          throw e
+        }
+      }
     }
     def ec2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
 
