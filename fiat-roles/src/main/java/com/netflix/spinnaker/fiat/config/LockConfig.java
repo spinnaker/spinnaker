@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
@@ -37,13 +39,16 @@ public class LockConfig {
   @Bean
   LockManager redisLockManager(Clock clock,
                                Registry registry,
-                               ObjectMapper mapper,
                                RedisClientDelegate redisClientDelegate) {
+    ObjectMapper objectMapper = new ObjectMapper()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
     return new RedisLockManager(
         null, // will fall back to running node name
         clock,
         registry,
-        mapper,
+        objectMapper,
         redisClientDelegate,
         Optional.empty(),
         Optional.empty()
