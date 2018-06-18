@@ -82,6 +82,14 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     Map task = new HashMap(stage.getContext());
     String artifactSource = (String) task.get("source");
     if (StringUtils.isNotEmpty(artifactSource) && artifactSource.equals("artifact")) {
+      if (task.get("manifestArtifactId") == null) {
+        throw new IllegalArgumentException("No manifest artifact was specified.");
+      }
+
+      if (task.get("manifestArtifactAccount") == null) {
+        throw new IllegalArgumentException("No manifest artifact account was specified.");
+      }
+
       Artifact manifestArtifact = artifactResolver.getBoundArtifactForId(stage, task.get("manifestArtifactId").toString());
 
       if (manifestArtifact == null) {
