@@ -80,20 +80,6 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
     self.TEST_NAMESPACE = bindings['TEST_NAMESPACE'].split(',')[0]
     self.pipeline_id = None
 
-    # We will deploy two images. One with a tag that we want to find,
-    # and another that we don't want to find.
-    self.__image_registry = 'gcr.io'
-    self.__image_repository = 'kubernetes-spinnaker/test-image'
-    self.__desired_image_tag = 'validated'
-    self.__desired_image_pattern = '.*{0}'.format(self.__desired_image_tag)
-
-    image_id_format_string = '{0}/{1}:{2}'
-
-    self.__desired_image_id = image_id_format_string.format(
-        self.__image_registry,
-        self.__image_repository,
-        self.__desired_image_tag)
-
   def create_app(self):
     """Creates OperationContract that creates a new Spinnaker Application."""
     contract = jc.Contract()
@@ -116,7 +102,54 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
     return ov_factory.error_list_contains(st.CliAgentRunErrorPredicate(
       title=title, error_regex='.* not found'))
 
-  def deploy_manifest(self):
+  def __deployment_image_predicate(self, image):
+    return ov_factory.value_list_contains(jp.DICT_MATCHES({
+         'spec': jp.DICT_MATCHES({
+             'template': jp.DICT_MATCHES({
+                 'spec': jp.DICT_MATCHES({
+                     'containers': jp.LIST_MATCHES([
+                         jp.DICT_MATCHES({ 'image': jp.STR_EQ(image) })
+                     ])
+                 })
+             })
+         })
+     }))
+
+  def __deployment_manifest(self, name, image):
+    return {
+        'apiVersion': 'apps/v1beta2',
+        'kind': 'Deployment',
+        'metadata': {
+            'name': name,
+            'namespace': self.TEST_NAMESPACE,
+            'labels': {
+                'app': self.TEST_APP,
+            }
+        },
+        'spec': {
+            'replicas': 1,
+            'selector': {
+                'matchLabels': {
+                    'app': self.TEST_APP,
+                }
+            },
+            'template': {
+                'metadata': {
+                    'labels': {
+                        'app': self.TEST_APP,
+                    }
+                },
+                'spec': {
+                    'containers': [{
+                        'name': 'primary',
+                        'image': image,
+                    }]
+                }
+            }
+        }
+    }
+
+  def deploy_manifest(self, image):
     """Creates OperationContract for deployManifest.
 
     To verify the operation, we just check that the deployment was created.
@@ -133,38 +166,7 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
             'source': 'text',
             'type': 'deployManifest',
             'user': '[anonymous]',
-            'manifests': [{
-                'apiVersion': 'apps/v1beta2',
-                'kind': 'Deployment',
-                'metadata': {
-                    'name': name,
-                    'namespace': self.TEST_NAMESPACE,
-                    'labels': {
-                        'app': self.TEST_APP,
-                    }
-                },
-                'spec': {
-                    'replicas': 1,
-                    'selector': {
-                        'matchLabels': {
-                            'app': self.TEST_APP,
-                        }
-                    },
-                    'template': {
-                        'metadata': {
-                            'labels': {
-                                'app': self.TEST_APP,
-                            }
-                        },
-                        'spec': {
-                            'containers': [{
-                                'name': 'primary',
-                                'image': self.__desired_image_id,
-                            }]
-                        }
-                    }
-                }
-            }]
+            'manifests': [self.__deployment_manifest(name, image)]
         }],
         description='Deploy manifest',
         application=self.TEST_APP)
@@ -175,13 +177,78 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
      .get_resources(
          'deploy',
          extra_args=[name, '--namespace', self.TEST_NAMESPACE])
-     .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES(
-         { 'spec': jp.DICT_MATCHES({ 'replicas': jp.NUM_EQ(1) }) }
-     ))))
+     .EXPECT(self.__deployment_image_predicate(image)))
 
     return st.OperationContract(
         self.new_post_operation(
             title='deploy_manifest', data=payload, path='tasks'),
+        contract=builder.build())
+
+  def undo_rollout_manifest(self, image):
+    """Creates OperationContract for undoRolloutManifest.
+
+    To verify the operation, we just check that the deployment has changed size
+    """
+    bindings = self.bindings
+    name = self.TEST_APP + '-deployment'
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'cloudProvider': 'kubernetes',
+            'account': bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+            'manifestName': 'deployment ' + name,
+            'location': self.TEST_NAMESPACE,
+            'type': 'undoRolloutManifest',
+            'user': '[anonymous]',
+            'numRevisionsBack': 1
+        }],
+        description='Deploy manifest',
+        application=self.TEST_APP)
+
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('Deployment rolled back',
+                                retryable_for_secs=15)
+     .get_resources(
+         'deploy',
+         extra_args=[name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(self.__deployment_image_predicate(image)))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='undo_rollout_manifest', data=payload, path='tasks'),
+        contract=builder.build())
+
+  def scale_manifest(self):
+    """Creates OperationContract for scaleManifest.
+
+    To verify the operation, we just check that the deployment has changed size
+    """
+    bindings = self.bindings
+    name = self.TEST_APP + '-deployment'
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'cloudProvider': 'kubernetes',
+            'account': bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+            'manifestName': 'deployment ' + name,
+            'location': self.TEST_NAMESPACE,
+            'type': 'scaleManifest',
+            'user': '[anonymous]',
+            'replicas': 2
+        }],
+        description='Deploy manifest',
+        application=self.TEST_APP)
+
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('Deployment scaled',
+                                retryable_for_secs=15)
+     .get_resources(
+         'deploy',
+         extra_args=[name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES(
+         { 'spec': jp.DICT_MATCHES({ 'replicas': jp.NUM_EQ(2) }) }))))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='scale_manifest', data=payload, path='tasks'),
         contract=builder.build())
 
   def delete_manifest(self):
@@ -241,9 +308,21 @@ class KubeV2SmokeTest(st.AgentTestCase):
     self.run_test_case(self.scenario.create_app())
 
   def test_b_deploy_manifest(self):
-    self.run_test_case(self.scenario.deploy_manifest(),
+    self.run_test_case(self.scenario.deploy_manifest('library/nginx'),
                        max_retries=1,
                        timeout_ok=True)
+
+  def test_c_update_manifest(self):
+    self.run_test_case(self.scenario.deploy_manifest('library/redis'),
+                       max_retries=1,
+                       timeout_ok=True)
+
+  def test_d_undo_rollout_manifest(self):
+    self.run_test_case(self.scenario.undo_rollout_manifest('library/nginx'),
+                       max_retries=1)
+
+  def test_e_scale_manifest(self):
+    self.run_test_case(self.scenario.scale_manifest(), max_retries=1)
 
   def test_y_delete_manifest(self):
     self.run_test_case(self.scenario.delete_manifest(), max_retries=2)
