@@ -129,8 +129,8 @@ class DeployDcosServerGroupDescriptionToAppMapper {
           protocol = readinessCheck.protocol
           path = readinessCheck.path
           portName = readinessCheck.portName
-          intervalSeconds = readinessCheck.intervalSeconds
-          timeoutSeconds = readinessCheck.timeoutSeconds
+          intervalSeconds = readinessCheck.intervalSeconds ?: 0
+          timeoutSeconds = readinessCheck.timeoutSeconds ?: 0
           httpStatusCodesForReady = readinessCheck.httpStatusCodesForReady
           preserveLastResponse = readinessCheck.preserveLastResponse
           it
