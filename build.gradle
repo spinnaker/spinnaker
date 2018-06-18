@@ -41,8 +41,8 @@ repositories {
 dependencies {
   compile gradleApi()
   compile localGroovy()
-  compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:5.0.0'
-  compile 'com.netflix.nebula:gradle-ospackage-plugin:4.8.0'
-  compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+  compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:5.1.0'
+  compile 'com.netflix.nebula:gradle-ospackage-plugin:4.9.3'
+  compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.1'
   compile 'org.yaml:snakeyaml:1.17'
 }

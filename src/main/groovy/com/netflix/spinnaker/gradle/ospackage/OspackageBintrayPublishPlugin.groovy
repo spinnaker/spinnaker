@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gradle.ospackage
 import com.jfrog.bintray.gradle.BintrayExtension
 import com.jfrog.bintray.gradle.BintrayHttpClientFactory
 import com.jfrog.bintray.gradle.BintrayPlugin
-import com.jfrog.bintray.gradle.BintrayUploadTask
+import com.jfrog.bintray.gradle.tasks.BintrayUploadTask
 import com.jfrog.bintray.gradle.Utils
 import com.netflix.gradle.plugins.deb.Deb
 import com.netflix.gradle.plugins.rpm.Rpm
