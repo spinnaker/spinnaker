@@ -67,3 +67,14 @@ auth:
     keyPath: ~/.spin/keyfile
     certPath: ~/.spin/certfile
 ```
+
+# Usage
+
+Download the `spin` binary from a [release](https://github.com/spinnaker/spin/releases):
+
+```bash
+export VERSION=<desired spin version tag> # Select a tag from the released version, e.g. v0.1.0
+curl -L https://github.com/spinnaker/spin/releases/download/$VERSION/spin -o spin
+chmod +x ./spin
+./spin --help
+```
