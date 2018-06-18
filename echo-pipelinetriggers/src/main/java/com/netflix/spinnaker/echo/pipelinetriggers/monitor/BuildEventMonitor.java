@@ -71,7 +71,8 @@ public class BuildEventMonitor extends TriggerMonitor {
     BuildEvent buildEvent = objectMapper.convertValue(event, BuildEvent.class);
     Observable.just(buildEvent)
       .doOnNext(this::onEchoResponse)
-      .subscribe(triggerEachMatchFrom(pipelineCache.getPipelines()));
+      .zipWith(pipelineCache.getPipelines(), TriggerMatchParameters::new)
+      .subscribe(triggerEachMatch());
   }
 
   @Override

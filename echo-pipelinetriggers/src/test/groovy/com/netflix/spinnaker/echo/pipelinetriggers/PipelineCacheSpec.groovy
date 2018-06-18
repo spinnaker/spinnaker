@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import rx.observers.TestSubscriber
 import rx.schedulers.Schedulers
 import spock.lang.Shared
 import spock.lang.Specification
@@ -136,15 +137,17 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
 
   def "keeps polling if Front50 returns an error"() {
     given:
+    TestSubscriber<List<Pipeline>> testSubscriber = new TestSubscriber<>();
     def pipeline = Pipeline.builder().application('application').name('Pipeline').id('P1').build()
     pipelineCache.start()
 
     when:
     waitForTicks(3)
+    pipelineCache.getPipelines().subscribe(testSubscriber)
 
     then:
     front50.getPipelines() >> just([]) >> { throw unavailable() } >> just([pipeline])
-    pipelineCache.pipelines == [pipeline]
+    testSubscriber.assertValue([pipeline])
   }
 
   def "we can serialize pipelines with triggers that have a parent"() {

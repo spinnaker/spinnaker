@@ -83,7 +83,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   def "triggers pipelines for successful builds for Google pubsub"() {
     given:
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -105,7 +105,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "attaches Google pubsub trigger to the pipeline"() {
     given:
-    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -125,7 +125,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for Google pubsub"() {
     given:
-    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -146,7 +146,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines containing artifacts for Google pubsub"() {
     given:
-    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -165,7 +165,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled pubsub trigger with missing #field"() {
     given:
-    pipelineCache.getPipelinesAsync() >> Observable.just([badPipeline, goodPipeline])
+    pipelineCache.getPipelines() >> Observable.just([badPipeline, goodPipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -196,7 +196,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
       .build()
 
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     def content = new PubsubEvent.Content()
@@ -233,7 +233,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
       .build()
 
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelinesAsync() >> Observable.just([pipeline])
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     def content = new PubsubEvent.Content()

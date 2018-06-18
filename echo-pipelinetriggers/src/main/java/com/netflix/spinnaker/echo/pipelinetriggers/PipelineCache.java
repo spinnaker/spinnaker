@@ -53,7 +53,6 @@ public class PipelineCache implements MonitoredPoller {
   private transient Subscription subscription;
 
   private transient SerializedSubject<List<Pipeline>, List<Pipeline>> pipelineSubject = ReplaySubject.<List<Pipeline>>createWithSize(1).toSerialized();
-  private transient AtomicReference<List<Pipeline>> pipelines = new AtomicReference<>(Collections.emptyList());
 
   @Autowired
   public PipelineCache(@NonNull Scheduler scheduler,
@@ -75,7 +74,7 @@ public class PipelineCache implements MonitoredPoller {
         .doOnError(this::onFront50Error)
         .retry()
         .map(PipelineCache::decorateTriggers)
-        .doOnNext(this::cachePipelines)
+        .doOnNext(this::logRefresh)
         .subscribe(pipelineSubject);
     }
   }
@@ -109,26 +108,12 @@ public class PipelineCache implements MonitoredPoller {
    *
    * @return An observable emitting the pipelines as of the most recent polling cycle
    */
-  public Observable<List<Pipeline>> getPipelinesAsync() {
+  public Observable<List<Pipeline>> getPipelines() {
     return pipelineSubject.take(1);
   }
 
-  /**
-   * Returns the pipelines as of the most recent polling cycle.  If no polling cycles have been
-   * completed, returns an empty list.
-   *
-   * See {@link #getPipelinesAsync()} for an alternate way of getting pipelines that will wait at
-   * at least one polling cycle before returning a value.
-   *
-   * @return The pipelines as of the most recent polling cycle
-   */
-  public List<Pipeline> getPipelines() {
-    return pipelines.get();
-  }
-
-  private void cachePipelines(final List<Pipeline> pipelines) {
+  private void logRefresh(final List<Pipeline> pipelines) {
     log.info("Refreshing pipelines");
-    this.pipelines.set(pipelines);
   }
 
   private void onFront50Request(final long tick) {

@@ -69,7 +69,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
 
     Observable.just(pubsubEvent)
       .doOnNext(this::onEchoResponse)
-      .zipWith(pipelineCache.getPipelinesAsync(), TriggerMatchParameters::new)
+      .zipWith(pipelineCache.getPipelines(), TriggerMatchParameters::new)
       .subscribe(triggerEachMatch());
   }
 

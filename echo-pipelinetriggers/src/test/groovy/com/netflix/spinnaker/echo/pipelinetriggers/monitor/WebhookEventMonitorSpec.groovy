@@ -21,6 +21,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
+import rx.Observable
 import rx.functions.Action1
 import spock.lang.Shared
 import spock.lang.Specification
@@ -51,7 +52,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
   def 'triggers pipelines for successful builds for webhook'() {
     given:
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -72,7 +73,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def 'attaches webhook trigger to the pipeline'() {
     given:
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -92,7 +93,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for webhook"() {
     given:
-    pipelineCache.getPipelines() >> [pipeline]
+    pipelineCache.getPipelines() >> Observable.just([pipeline])
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))

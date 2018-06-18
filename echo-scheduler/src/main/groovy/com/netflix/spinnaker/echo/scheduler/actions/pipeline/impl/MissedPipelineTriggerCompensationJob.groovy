@@ -117,7 +117,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     if (startupSubscription == null) {
       startupSubscription = Observable.interval(STARTUP_POLL_INTERVAL.toMillis(), TimeUnit.MILLISECONDS, scheduler)
         .doOnNext { onPipelineCacheAwait(it) }
-        .flatMap { tick -> Observable.just(pipelineCache.pipelines) }
+        .flatMap { tick -> pipelineCache.getPipelines() }
         .doOnError { onPipelineCacheError(it) }
         .retry()
         .subscribe { List<Pipeline> pipelines ->
@@ -136,7 +136,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     if (enableRecurring && recurringSubscription == null) {
       recurringSubscription = Observable.interval(recurringPollInterval.toMinutes(), TimeUnit.MINUTES, scheduler)
         .doOnNext { onPipelineCacheAwait(it) }
-        .flatMap { tick -> Observable.just(pipelineCache.pipelines) }
+        .flatMap { tick -> pipelineCache.getPipelines() }
         .doOnError { onPipelineCacheError(it) }
         .retry()
         .subscribe { List<Pipeline> pipelines ->

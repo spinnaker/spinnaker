@@ -23,6 +23,7 @@ import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineTriggerConverter
+import rx.Observable
 import rx.functions.Action1
 import spock.lang.Shared
 import spock.lang.Specification
@@ -68,7 +69,7 @@ class PipelineTriggerActionConverterSpec extends Specification {
     void 'fromParameters() should return an equivalent valid Pipeline instance'() {
         setup:
         def pipelineCache = Mock(PipelineCache) {
-          getPipelines() >> { [pipeline ]}
+          getPipelines() >> Observable.just([pipeline])
         }
 
         Map parameters = [

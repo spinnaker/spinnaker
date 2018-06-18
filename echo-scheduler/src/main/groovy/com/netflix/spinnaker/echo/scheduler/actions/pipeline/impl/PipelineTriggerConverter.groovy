@@ -54,7 +54,7 @@ class PipelineTriggerConverter {
       triggerBuilder.runAsUser(parameters.runAsUser)
     }
 
-    def existingPipeline = pipelineCache.getPipelines().find { it.id == parameters.id }
+    def existingPipeline = pipelineCache.getPipelines().toBlocking().first().find { it.id == parameters.id }
     if (!existingPipeline) {
       throw new IllegalStateException("No pipeline found (id: ${parameters.id})")
     }
