@@ -84,6 +84,10 @@ public class UserRolesSyncer {
 
   @Scheduled(fixedDelay = 30000L)
   public void schedule() {
+    if (syncDelayMs < 0) {
+      return;
+    }
+
     LockManager.LockOptions lockOptions = new LockManager.LockOptions()
         .withLockName("Fiat.UserRolesSyncer".toLowerCase())
         .withMaximumLockDuration(Duration.ofMillis(syncDelayMs + syncDelayTimeoutMs))
