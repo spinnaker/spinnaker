@@ -65,7 +65,7 @@ class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand
       }
     })
 
-    metricRegistry.gauge(createMetricName("currentTime"), null, new ToDoubleFunction() {
+    metricRegistry.gauge(createMetricName("currentTime"), metrics, new ToDoubleFunction() {
       @Override
       double applyAsDouble(Object ref) {
         return System.currentTimeMillis()

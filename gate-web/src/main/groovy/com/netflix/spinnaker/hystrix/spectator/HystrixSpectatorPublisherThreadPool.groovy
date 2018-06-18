@@ -48,7 +48,7 @@ class HystrixSpectatorPublisherThreadPool implements HystrixMetricsPublisherThre
 
   @Override
   public void initialize() {
-    metricRegistry.gauge(createMetricName("currentTime"), null, new ToDoubleFunction() {
+    metricRegistry.gauge(createMetricName("currentTime"), metrics, new ToDoubleFunction() {
       @Override
       double applyAsDouble(Object ref) {
         return System.currentTimeMillis()
