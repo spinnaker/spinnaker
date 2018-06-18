@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spinnaker.cats.redis.JedisPoolSource;
-import com.netflix.spinnaker.cats.redis.JedisSource;
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -14,9 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Protocol;
+import redis.clients.jedis.*;
 
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -25,12 +23,6 @@ import java.net.URI;
 @Configuration
 @ConditionalOnProperty("redis.connection")
 public class RedisConfig {
-
-  @Bean
-  public JedisSource jedisSource(JedisPool jedisPool) {
-    return new JedisPoolSource(jedisPool);
-  }
-
   @Bean
   @ConfigurationProperties("redis")
   public GenericObjectPoolConfig redisPoolConfig() {
@@ -46,6 +38,11 @@ public class RedisConfig {
                              @Value("${redis.timeout:2000}") int timeout,
                              GenericObjectPoolConfig redisPoolConfig) {
     return createPool(redisPoolConfig, connection, timeout);
+  }
+
+  @Bean
+  RedisClientDelegate redisClientDelegate(JedisPool jedisPool) {
+    return new JedisClientDelegate(jedisPool);
   }
 
   private static JedisPool createPool(GenericObjectPoolConfig redisPoolConfig,

@@ -22,21 +22,18 @@ import com.fasterxml.jackson.databind.util.ArrayIterator;
 import com.google.common.collect.ArrayTable;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import com.netflix.spinnaker.cats.redis.JedisSource;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 
 import java.util.HashMap;
@@ -62,7 +59,6 @@ import java.util.stream.Collectors;
  * will likely not be exactly what you get out. That's because of "unrestricted" resources, which
  * are added to the returned UserPermission.
  */
-// TODO(ttomsu): Add RedisCacheOptions from Clouddriver.
 @Component
 @Slf4j
 public class RedisPermissionsRepository implements PermissionsRepository {
@@ -74,17 +70,19 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME;
 
-  @Value("${fiat.redis.prefix:spinnaker:fiat}")
-  @Setter
-  private String prefix;
+  private final ObjectMapper objectMapper;
+  private final RedisClientDelegate redisClientDelegate;
+
+  private final String prefix;
 
   @Autowired
-  @Setter
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  @Setter
-  private JedisSource jedisSource;
+  public RedisPermissionsRepository(ObjectMapper objectMapper,
+                                    RedisClientDelegate redisClientDelegate,
+                                    @Value("${fiat.redis.prefix:spinnaker:fiat}") String prefix) {
+    this.objectMapper = objectMapper;
+    this.redisClientDelegate = redisClientDelegate;
+    this.prefix = prefix;
+  }
 
   @Override
   public RedisPermissionsRepository put(@NonNull UserPermission permission) {
@@ -103,33 +101,31 @@ public class RedisPermissionsRepository implements PermissionsRepository {
           }
         });
 
-    try (Jedis jedis = jedisSource.getJedis()) {
-      Pipeline deleteOldValuesPipeline = jedis.pipelined();
-      Pipeline insertNewValuesPipeline = jedis.pipelined();
+    try {
+      redisClientDelegate.withMultiKeyPipeline(pipeline -> {
+        String userId = permission.getId();
+        pipeline.sadd(allUsersKey(), userId);
 
-      String userId = permission.getId();
-      insertNewValuesPipeline.sadd(allUsersKey(), userId);
-
-      if (permission.isAdmin()) {
-        insertNewValuesPipeline.sadd(adminKey(), userId);
-      } else {
-        deleteOldValuesPipeline.srem(adminKey(), userId);
-      }
-
-      permission.getRoles().forEach(role -> insertNewValuesPipeline.sadd(roleKey(role), userId));
-
-      for (ResourceType r : ResourceType.values()) {
-        String userResourceKey = userKey(userId, r);
-
-        deleteOldValuesPipeline.del(userResourceKey);
-
-        Map<String, String> redisValue = resourceTypeToRedisValue.get(r);
-        if (redisValue != null && !redisValue.isEmpty()) {
-          insertNewValuesPipeline.hmset(userResourceKey, redisValue);
+        if (permission.isAdmin()) {
+          pipeline.sadd(adminKey(), userId);
+        } else {
+          pipeline.srem(adminKey(), userId);
         }
-      }
-      deleteOldValuesPipeline.sync();
-      insertNewValuesPipeline.sync();
+
+        permission.getRoles().forEach(role -> pipeline.sadd(roleKey(role), userId));
+
+        for (ResourceType r : ResourceType.values()) {
+          String userResourceKey = userKey(userId, r);
+
+          pipeline.del(userResourceKey);
+
+          Map<String, String> redisValue = resourceTypeToRedisValue.get(r);
+          if (redisValue != null && !redisValue.isEmpty()) {
+            pipeline.hmset(userResourceKey, redisValue);
+          }
+        }
+        pipeline.sync();
+      });
     } catch (Exception e) {
       log.error("Storage exception writing " + permission.getId() + " entry.", e);
     }
@@ -138,28 +134,29 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   @Override
   public Optional<UserPermission> get(@NonNull String id) {
-    try (Jedis jedis = jedisSource.getJedis()) {
-      RawUserPermission userResponseMap = new RawUserPermission();
-      RawUserPermission unrestrictedResponseMap = new RawUserPermission();
+    try {
+      return redisClientDelegate.withMultiKeyPipeline(p -> {
+        RawUserPermission userResponseMap = new RawUserPermission();
+        RawUserPermission unrestrictedResponseMap = new RawUserPermission();
 
-      Pipeline p = jedis.pipelined();
-      Response<Boolean> isUserInRepo = p.sismember(allUsersKey(), id);
-      for (ResourceType r : ResourceType.values()) {
-        Response<Map<String, String>> resourceMap = p.hgetAll(userKey(id, r));
-        userResponseMap.put(r, resourceMap);
-        Response<Map<String, String>> unrestrictedMap = p.hgetAll(unrestrictedUserKey(r));
-        unrestrictedResponseMap.put(r, unrestrictedMap);
-      }
-      Response<Boolean> admin = p.sismember(adminKey(), id);
-      p.sync();
+        Response<Boolean> isUserInRepo = p.sismember(allUsersKey(), id);
+        for (ResourceType r : ResourceType.values()) {
+          Response<Map<String, String>> resourceMap = p.hgetAll(userKey(id, r));
+          userResponseMap.put(r, resourceMap);
+          Response<Map<String, String>> unrestrictedMap = p.hgetAll(unrestrictedUserKey(r));
+          unrestrictedResponseMap.put(r, unrestrictedMap);
+        }
+        Response<Boolean> admin = p.sismember(adminKey(), id);
+        p.sync();
 
-      if (!isUserInRepo.get()) {
-        return Optional.empty();
-      }
+        if (!isUserInRepo.get()) {
+          return Optional.empty();
+        }
 
-      userResponseMap.isAdmin = admin.get();
-      UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, unrestrictedResponseMap);
-      return Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
+        userResponseMap.isAdmin = admin.get();
+        UserPermission unrestrictedUser = getUserPermission(UNRESTRICTED, unrestrictedResponseMap);
+        return Optional.of(getUserPermission(id, userResponseMap).merge(unrestrictedUser));
+      });
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);
     }
@@ -202,8 +199,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       return new HashMap<>();
     }
 
-    try (Jedis jedis = jedisSource.getJedis()) {
-      Pipeline p = jedis.pipelined();
+    return redisClientDelegate.withMultiKeyPipeline(p -> {
       List<Response<Set<String>>> responses = anyRoles
           .stream()
           .map(role -> p.smembers(roleKey(role)))
@@ -235,7 +231,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
           })
           .collect(Collectors.toMap(UserPermission::getId,
                                     permission -> permission.merge(unrestrictedUser)));
-    }
+    });
   }
 
   private UserPermission getUserPermission(String userId, RawUserPermission raw) {
@@ -254,33 +250,34 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   }
 
   private Table<String, ResourceType, Response<Map<String, String>>> getAllFromRedis() {
-    Set<String> allUserIds;
-    try (Jedis jedis = jedisSource.getJedis()) {
-      allUserIds = jedis.smembers(allUsersKey());
+    try {
+      return redisClientDelegate.withCommandsClient(jedis -> {
+        return getAllFromRedis(jedis.smembers(allUsersKey()));
+      });
     } catch (Exception e) {
       log.error("Storage exception reading all entries.", e);
       return null;
     }
-
-    return getAllFromRedis(allUserIds);
   }
 
   private Table<String, ResourceType, Response<Map<String, String>>> getAllFromRedis(Set<String> userIds) {
     if (userIds.size() == 0) {
       return HashBasedTable.create();
     }
-    try (Jedis jedis = jedisSource.getJedis()) {
-      Table<String, ResourceType, Response<Map<String, String>>> responseTable =
-          ArrayTable.create(userIds, new ArrayIterator<>(ResourceType.values()));
 
-      Pipeline p = jedis.pipelined();
-      for (String userId : userIds) {
-        for (ResourceType r : ResourceType.values()) {
-          responseTable.put(userId, r, p.hgetAll(userKey(userId, r)));
+    try {
+      return redisClientDelegate.withMultiKeyPipeline(p -> {
+        Table<String, ResourceType, Response<Map<String, String>>> responseTable =
+            ArrayTable.create(userIds, new ArrayIterator<>(ResourceType.values()));
+
+        for (String userId : userIds) {
+          for (ResourceType r : ResourceType.values()) {
+            responseTable.put(userId, r, p.hgetAll(userKey(userId, r)));
+          }
         }
-      }
-      p.sync();
-      return responseTable;
+        p.sync();
+        return responseTable;
+      });
     } catch (Exception e) {
       log.error("Storage exception reading all entries.", e);
     }
@@ -289,30 +286,32 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
   @Override
   public void remove(@NonNull String id) {
-    try (Jedis jedis = jedisSource.getJedis()) {
-      Map<String, String> userRolesById = jedis.hgetAll(userKey(id, ResourceType.ROLE));
+    try {
+      redisClientDelegate.withCommandsClient(jedis -> {
+        Map<String, String> userRolesById = jedis.hgetAll(userKey(id, ResourceType.ROLE));
 
-      Pipeline p = jedis.pipelined();
+        redisClientDelegate.withMultiKeyPipeline(p -> {
+          p.srem(allUsersKey(), id);
+          for (String roleName : userRolesById.keySet()) {
+            p.srem(roleKey(roleName), id);
+          }
 
-      p.srem(allUsersKey(), id);
-      for (String roleName : userRolesById.keySet()) {
-        p.srem(roleKey(roleName), id);
-      }
-
-      for (ResourceType r : ResourceType.values()) {
-        p.del(userKey(id, r));
-      }
-      p.srem(adminKey(), id);
-      p.sync();
+          for (ResourceType r : ResourceType.values()) {
+            p.del(userKey(id, r));
+          }
+          p.srem(adminKey(), id);
+          p.sync();
+        });
+      });
     } catch (Exception e) {
       log.error("Storage exception reading " + id + " entry.", e);
     }
   }
 
   private Set<String> getAllAdmins() {
-    try (Jedis jedis = jedisSource.getJedis()) {
+    return redisClientDelegate.withCommandsClient(jedis -> {
       return jedis.smembers(adminKey());
-    }
+    });
   }
 
   private String allUsersKey() {

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.fiat.roles
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.redis.JedisSource
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -29,12 +28,18 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
 import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.lock.LockManager
 import org.springframework.boot.actuate.health.Health
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+
+import javax.annotation.Nonnull
+import java.util.concurrent.Callable
 
 class UserRolesSyncerSpec extends Specification {
 
@@ -60,15 +65,11 @@ class UserRolesSyncerSpec extends Specification {
   }
 
   def setup() {
-    JedisSource js = new JedisSource() {
-      @Override
-      Jedis getJedis() {
-        return embeddedRedis.jedis
-      }
-    }
-    repo = new RedisPermissionsRepository()
-        .setObjectMapper(objectMapper)
-        .setJedisSource(js)
+    repo = new RedisPermissionsRepository(
+        objectMapper,
+        new JedisClientDelegate(embeddedRedis.pool as JedisPool),
+        "unittests"
+    )
   }
 
   def cleanup() {
@@ -106,11 +107,25 @@ class UserRolesSyncerSpec extends Specification {
     }
 
     def permissionsResolver = Mock(PermissionsResolver)
-    @Subject syncer = new UserRolesSyncer()
-        .setPermissionsRepository(repo)
-        .setPermissionsResolver(permissionsResolver)
-        .setServiceAccountProvider(serviceAccountProvider)
-        .setHealthIndicator(new AlwaysUpHealthIndicator())
+
+    def lockManager = Mock(LockManager) {
+      _ * acquireLock() >> { LockManager.LockOptions lockOptions, Callable onLockAcquiredCallback ->
+        onLockAcquiredCallback.call()
+      }
+    }
+
+    @Subject
+    def syncer = new UserRolesSyncer(
+        lockManager,
+        repo,
+        permissionsResolver,
+        serviceAccountProvider,
+        new AlwaysUpHealthIndicator(),
+        1,
+        1,
+        1,
+        1
+    )
 
     expect:
     repo.getAllById() == [

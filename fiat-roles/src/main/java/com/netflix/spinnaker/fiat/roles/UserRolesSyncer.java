@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.fiat.roles;
 
 import com.diffplug.common.base.Functions;
-import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -29,8 +28,7 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
-import lombok.Getter;
-import lombok.Setter;
+import com.netflix.spinnaker.kork.lock.LockManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +39,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,41 +48,49 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @ConditionalOnExpression("${fiat.writeMode.enabled:true}")
-public class UserRolesSyncer implements RunnableAgent {
+public class UserRolesSyncer {
+  private final LockManager lockManager;
+  private final PermissionsRepository permissionsRepository;
+  private final PermissionsResolver permissionsResolver;
+  private final ResourceProvider<ServiceAccount> serviceAccountProvider;
+  private final ResourceProvidersHealthIndicator healthIndicator;
 
-  @Getter
-  private final String agentType = "UserRoleSyncer";
-  @Getter
-  private final String providerName = "Fiat";
-
-  @Autowired
-  @Setter
-  private PermissionsRepository permissionsRepository;
-
-  @Autowired
-  @Setter
-  private PermissionsResolver permissionsResolver;
-
-  @Autowired(required = false)
-  @Setter
-  private ResourceProvider<ServiceAccount> serviceAccountProvider;
+  private final long retryIntervalMs;
+  private final long syncDelayMs;
+  private final long syncFailureDelayMs;
+  private final long syncDelayTimeoutMs;
 
   @Autowired
-  @Setter
-  private ResourceProvidersHealthIndicator healthIndicator;
+  public UserRolesSyncer(LockManager lockManager,
+                         PermissionsRepository permissionsRepository,
+                         PermissionsResolver permissionsResolver,
+                         ResourceProvider<ServiceAccount> serviceAccountProvider,
+                         ResourceProvidersHealthIndicator healthIndicator,
+                         @Value("${fiat.writeMode.retryIntervalMs:10000}") long retryIntervalMs,
+                         @Value("${fiat.writeMode.syncDelayMs:600000}") long syncDelayMs,
+                         @Value("${fiat.writeMode.syncFailureDelayMs:600000}") long syncFailureDelayMs,
+                         @Value("${fiat.writeMode.syncDelayTimeoutMs:30000}") long syncDelayTimeoutMs) {
+    this.lockManager = lockManager;
+    this.permissionsRepository = permissionsRepository;
+    this.permissionsResolver = permissionsResolver;
+    this.serviceAccountProvider = serviceAccountProvider;
+    this.healthIndicator = healthIndicator;
 
-  @Value("${fiat.writeMode.retryIntervalMs:10000}")
-  @Setter
-  private long retryIntervalMs = 10000;
+    this.retryIntervalMs = retryIntervalMs;
+    this.syncDelayMs = syncDelayMs;
+    this.syncFailureDelayMs = syncFailureDelayMs;
+    this.syncDelayTimeoutMs = syncDelayTimeoutMs;
+  }
 
-  @Value("${fiat.writeMode.syncDelayTimeoutMs:30000}")
-  @Setter
-  private long syncDelayTimeoutMs = 30000;
+  @Scheduled(fixedDelay = 30000L)
+  public void schedule() {
+    LockManager.LockOptions lockOptions = new LockManager.LockOptions()
+        .withLockName("Fiat.UserRolesSyncer".toLowerCase())
+        .withMaximumLockDuration(Duration.ofMillis(syncDelayMs + syncDelayTimeoutMs))
+        .withSuccessInterval(Duration.ofMillis(syncDelayMs))
+        .withFailureInterval(Duration.ofMillis(syncFailureDelayMs));
 
-
-
-  public void run() {
-    syncAndReturn();
+    lockManager.acquireLock(lockOptions, this::syncAndReturn);
   }
 
   public long syncAndReturn() {
@@ -97,7 +104,7 @@ public class UserRolesSyncer implements RunnableAgent {
 
     if (!isServerHealthy()) {
       log.warn("Server is currently UNHEALTHY. User permission role synchronization and " +
-                   "resolution may not complete until this server becomes healthy again.");
+          "resolution may not complete until this server becomes healthy again.");
     }
 
     while (true) {
@@ -114,7 +121,7 @@ public class UserRolesSyncer implements RunnableAgent {
         }
 
         return updateUserPermissions(combo);
-      } catch (ProviderException|PermissionResolutionException ex) {
+      } catch (ProviderException | PermissionResolutionException ex) {
         Status status = healthIndicator.health().getStatus();
         long waitTime = backOffExec.nextBackOff();
         if (waitTime == BackOffExecution.STOP || System.currentTimeMillis() > timeout) {
@@ -173,16 +180,16 @@ public class UserRolesSyncer implements RunnableAgent {
         .map(permission -> new ExternalUser()
             .setId(permission.getId())
             .setExternalRoles(permission.getRoles()
-                                        .stream()
-                                        .filter(role -> role.getSource() == Role.Source.EXTERNAL)
-                                        .collect(Collectors.toList())))
+                .stream()
+                .filter(role -> role.getSource() == Role.Source.EXTERNAL)
+                .collect(Collectors.toList())))
         .collect(Collectors.toList());
 
     long count = permissionsResolver.resolve(extUsers)
-                                    .values()
-                                    .stream()
-                                    .map(permission -> permissionsRepository.put(permission))
-                                    .count();
+        .values()
+        .stream()
+        .map(permission -> permissionsRepository.put(permission))
+        .count();
     log.info("Synced {} non-anonymous user roles.", count);
     return count;
   }
