@@ -96,3 +96,14 @@ dockerRegistry:
 Igor requires redis server to be up and running.
 
 Start Igor via `./gradlew bootRun`. Or by following the instructions using the [Spinnaker installation scripts](https://www.github.com/spinnaker/spinnaker).
+
+### Debugging
+
+To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+```
+./gradlew -DDEBUG=true
+```
+
+The JVM will then listen for a debugger to be attached on port 8188.  The JVM will _not_ wait for
+the debugger to be attached before starting Igor; the relevant JVM arguments can be seen and
+modified as needed in `build.gradle`.
