@@ -113,8 +113,8 @@ public class PipelineController {
       return;
     }
 
-    executionRepository.cancel(executionId);
-    executionRepository.updateStatus(executionId, ExecutionStatus.CANCELED);
+    executionRepository.cancel(Execution.ExecutionType.PIPELINE, executionId);
+    executionRepository.updateStatus(Execution.ExecutionType.PIPELINE, executionId, ExecutionStatus.CANCELED);
   }
 
   private static class FeatureNotEnabledException extends RuntimeException {
