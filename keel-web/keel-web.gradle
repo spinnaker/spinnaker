@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: "org.springframework.boot"
+//apply plugin: "org.springframework.boot"
 apply plugin: "spinnaker.package"
 
 ext {
@@ -21,13 +21,14 @@ ext {
   repackage = System.getProperty("springBoot.repackage", "false")
 }
 
-tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
-  systemProperty("spring.config.location", project.springConfigLocation)
-}
-
-springBoot {
-  mainClass = "com.netflix.spinnaker.keel.MainKt"
-}
+//tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+//  systemProperty("spring.config.location", project.springConfigLocation)
+//}
+//
+//springBoot {
+//  mainClass = "com.netflix.spinnaker.keel.MainKt"
+//}
+mainClassName = "com.netflix.spinnaker.keel.MainKt"
 
 dependencies {
   compile "org.springframework.boot:spring-boot-starter-actuator:1.5.+"
@@ -46,4 +47,4 @@ dependencies {
   compile project(":keel-echo")
 }
 
-tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
+//tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)

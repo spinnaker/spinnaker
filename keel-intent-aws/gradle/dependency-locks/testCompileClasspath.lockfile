@@ -142,12 +142,12 @@ com.amazonaws:aws-java-sdk-workspaces:1.11.339
 com.amazonaws:aws-java-sdk-xray:1.11.339
 com.amazonaws:aws-java-sdk:1.11.339
 com.amazonaws:jmespath-java:1.11.339
-com.fasterxml.jackson.core:jackson-annotations:2.9.4
-com.fasterxml.jackson.core:jackson-core:2.9.5
-com.fasterxml.jackson.core:jackson-databind:2.9.5
+com.fasterxml.jackson.core:jackson-annotations:2.9.6
+com.fasterxml.jackson.core:jackson-core:2.9.6
+com.fasterxml.jackson.core:jackson-databind:2.9.6
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.6.7
-com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.4
-com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4
+com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.6
+com.fasterxml.jackson.module:jackson-module-kotlin:2.9.6
 com.fasterxml:classmate:1.3.1
 com.github.andrewoma.dexx:dexx-collections:0.2
 com.github.jonpeterson:jackson-module-model-versioning:1.2.2
