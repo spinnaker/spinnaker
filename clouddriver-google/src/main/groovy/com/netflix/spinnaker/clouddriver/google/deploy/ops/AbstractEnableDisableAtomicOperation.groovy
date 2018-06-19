@@ -216,9 +216,13 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
       Map metadataMap = GCEUtil.buildMapFromMetadata(instanceTemplate?.properties?.metadata)
       String autoscalerJson = metadataMap?.(GoogleServerGroup.View.AUTOSCALING_POLICY)
-      def autoscaler = objectMapper.readValue(autoscalerJson, Map)
-      def enabledMode = GoogleAutoscalingPolicy.AutoscalingMode.valueOf(autoscaler?.autoscalingPolicy?.mode ?: "ON")
-      setAutoscalingPolicyMode(compute, project, serverGroup, enabledMode)
+      if (autoscalerJson) {
+        def autoscaler = objectMapper.readValue(autoscalerJson, Map)
+        def enabledMode = GoogleAutoscalingPolicy.AutoscalingMode.valueOf(autoscaler?.autoscalingPolicy?.mode ?: "ON")
+        setAutoscalingPolicyMode(compute, project, serverGroup, enabledMode)
+      } else {
+        setAutoscalingPolicyMode(compute, project, serverGroup, GoogleAutoscalingPolicy.AutoscalingMode.ON)
+      }
 
       task.updateStatus phaseName, "Registering server group with Http(s) load balancers..."
 
