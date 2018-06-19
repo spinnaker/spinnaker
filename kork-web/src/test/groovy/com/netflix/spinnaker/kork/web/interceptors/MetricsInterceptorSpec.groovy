@@ -53,6 +53,7 @@ class MetricsInterceptorSpec extends Specification {
     def request = Mock(HttpServletRequest) {
       1 * getAttribute(MetricsInterceptor.TIMER_ATTRIBUTE) >> { return startTime }
       1 * getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE) >> templateVariables
+      1 * getContentLengthLong() >> { 10L }
       0 * _
     }
     def response = Mock(HttpServletResponse) {
@@ -80,7 +81,6 @@ class MetricsInterceptorSpec extends Specification {
     where:
     exception                  | variablesToTag | expectedTags
     null                       | []             | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example"]
-    new NullPointerException() | []             | [success: "false", statusCode: "500", status: "5xx", "method": "get", controller: "Example", cause: "NullPointerException"]
     new NullPointerException() | []             | [success: "false", statusCode: "500", status: "5xx", "method": "get", controller: "Example", cause: "NullPointerException"]
     null                       | ["account"]    | [success: "true", statusCode: "200", status: "2xx", "method": "get", controller: "Example", "account": "test"]
 

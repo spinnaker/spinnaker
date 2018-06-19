@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+
 /**
  * An interceptor that logs Controller metrics to an underlying {@link com.netflix.spectator.api.Registry}.
  * <p>
@@ -44,9 +46,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class MetricsInterceptor extends HandlerInterceptorAdapter {
   static final String TIMER_ATTRIBUTE = "Metrics_startTime";
+  static final String CONTENT_LENGTH = "contentLength";
 
   private final Registry registry;
   private final String metricName;
+  private final String contentLengthMetricName;
   private final Set<String> pathVariablesToTag = new HashSet<String>();
   private final Set<String> controllersToExclude = new HashSet<String>();
 
@@ -63,6 +67,7 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
   ) {
     this.registry = registry;
     this.metricName = metricName;
+    this.contentLengthMetricName = format("%s.contentLength", CONTENT_LENGTH);
     if (pathVariablesToTag != null) {
       this.pathVariablesToTag.addAll(pathVariablesToTag);
     }
@@ -118,6 +123,9 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
       registry.timer(id).record(
         getNanoTime() - ((Long) request.getAttribute(TIMER_ATTRIBUTE)), TimeUnit.NANOSECONDS
       );
+
+      Id contentLengthId = registry.createId(contentLengthMetricName).withTags(id.tags());
+      registry.distributionSummary(contentLengthId).record(request.getContentLengthLong());
     }
   }
 
