@@ -24,6 +24,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import sun.net.InetAddressCachePolicy
+
+import java.security.Security
 
 /**
  * Application entry point.
@@ -45,6 +48,12 @@ class Main extends SpringBootServletInitializer {
     ]
 
     static {
+        /**
+         * We often operate in an environment where we expect resolution of DNS names for remote dependencies to change
+         * frequently, so it's best to tell the JVM to avoid caching DNS results internally.
+         */
+        InetAddressCachePolicy.cachePolicy = InetAddressCachePolicy.NEVER
+        Security.setProperty('networkaddress.cache.ttl', '0')
         ConfigurationManager.loadCascadedPropertiesFromResources("hystrix")
     }
 
