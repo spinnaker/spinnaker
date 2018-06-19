@@ -18,6 +18,8 @@ package com.netflix.spinnaker.fiat.roles
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.appinfo.InstanceInfo.InstanceStatus
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -37,6 +39,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import javax.annotation.Nonnull
 import java.util.concurrent.Callable
@@ -116,6 +119,7 @@ class UserRolesSyncerSpec extends Specification {
 
     @Subject
     def syncer = new UserRolesSyncer(
+        Optional.ofNullable(null),
         lockManager,
         repo,
         permissionsResolver,
@@ -152,6 +156,45 @@ class UserRolesSyncerSpec extends Specification {
         "xyz@domain.com": xyzServiceAcct.merge(unrestrictedUser),
         (UNRESTRICTED)  : unrestrictedUser
     ]
+  }
+
+  @Unroll
+  def "should only schedule sync when in-service"() {
+    given:
+    def lockManager = Mock(LockManager)
+    def userRolesSyncer = new UserRolesSyncer(
+        Optional.ofNullable(discoveryClient),
+        lockManager,
+        null,
+        null,
+        null,
+        new AlwaysUpHealthIndicator(),
+        1,
+        1,
+        1,
+        1
+    )
+
+    when:
+    userRolesSyncer.onApplicationEvent(null)
+    userRolesSyncer.schedule()
+
+    then:
+    (shouldAcquireLock ? 1 : 0) * lockManager.acquireLock(_, _)
+
+    where:
+    discoveryClient                                || shouldAcquireLock
+    null                                           || true
+    discoveryClient(InstanceStatus.UP)             || true
+    discoveryClient(InstanceStatus.OUT_OF_SERVICE) || false
+    discoveryClient(InstanceStatus.DOWN)           || false
+    discoveryClient(InstanceStatus.STARTING)       || false
+  }
+
+  DiscoveryClient discoveryClient(InstanceStatus instanceStatus) {
+    return Mock(DiscoveryClient) {
+      1 * getInstanceRemoteStatus() >> { return instanceStatus }
+    }
   }
 
   class AlwaysUpHealthIndicator extends ResourceProvidersHealthIndicator {

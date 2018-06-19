@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.fiat.roles;
 
 import com.diffplug.common.base.Functions;
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -28,12 +30,14 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.kork.lock.LockManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
@@ -43,12 +47,16 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @ConditionalOnExpression("${fiat.writeMode.enabled:true}")
-public class UserRolesSyncer {
+public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedEvent> {
+  private final Optional<DiscoveryClient> discoveryClient;
+
   private final LockManager lockManager;
   private final PermissionsRepository permissionsRepository;
   private final PermissionsResolver permissionsResolver;
@@ -60,8 +68,11 @@ public class UserRolesSyncer {
   private final long syncFailureDelayMs;
   private final long syncDelayTimeoutMs;
 
+  private final AtomicBoolean isEnabled;
+
   @Autowired
-  public UserRolesSyncer(LockManager lockManager,
+  public UserRolesSyncer(Optional<DiscoveryClient> discoveryClient,
+                         LockManager lockManager,
                          PermissionsRepository permissionsRepository,
                          PermissionsResolver permissionsResolver,
                          ResourceProvider<ServiceAccount> serviceAccountProvider,
@@ -70,6 +81,8 @@ public class UserRolesSyncer {
                          @Value("${fiat.writeMode.syncDelayMs:600000}") long syncDelayMs,
                          @Value("${fiat.writeMode.syncFailureDelayMs:600000}") long syncFailureDelayMs,
                          @Value("${fiat.writeMode.syncDelayTimeoutMs:30000}") long syncDelayTimeoutMs) {
+    this.discoveryClient = discoveryClient;
+
     this.lockManager = lockManager;
     this.permissionsRepository = permissionsRepository;
     this.permissionsResolver = permissionsResolver;
@@ -80,11 +93,21 @@ public class UserRolesSyncer {
     this.syncDelayMs = syncDelayMs;
     this.syncFailureDelayMs = syncFailureDelayMs;
     this.syncDelayTimeoutMs = syncDelayTimeoutMs;
+
+    this.isEnabled = new AtomicBoolean(
+        // default to enabled iff discovery is not available
+        !discoveryClient.isPresent()
+    );
+  }
+
+  @Override
+  public void onApplicationEvent(RemoteStatusChangedEvent event) {
+    isEnabled.set(isInService());
   }
 
   @Scheduled(fixedDelay = 30000L)
   public void schedule() {
-    if (syncDelayMs < 0) {
+    if (syncDelayMs < 0 || !isEnabled.get()) {
       return;
     }
 
@@ -196,5 +219,22 @@ public class UserRolesSyncer {
         .count();
     log.info("Synced {} non-anonymous user roles.", count);
     return count;
+  }
+
+  private boolean isInService() {
+    InstanceInfo.InstanceStatus remoteStatus = null;
+    if (discoveryClient.isPresent()) {
+      remoteStatus = discoveryClient.get().getInstanceRemoteStatus();
+    }
+
+    boolean isInService = (remoteStatus == null || remoteStatus == InstanceInfo.InstanceStatus.UP);
+
+    log.info(
+        "User roles syncing is {} (discoveryStatus: {})",
+        isInService ? "active" : "disabled",
+        remoteStatus
+    );
+
+    return isInService;
   }
 }
