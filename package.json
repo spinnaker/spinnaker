@@ -2,7 +2,7 @@
   "main": "lib/lib.js",
   "typings": "lib/kayenta/index.d.ts",
   "name": "@spinnaker/kayenta",
-  "version": "0.0.50",
+  "version": "0.0.52",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free-webfonts": "^1.0.4",
-    "@spinnaker/amazon": "^0.0.104",
     "@types/plotly.js": "^1.28.12",
     "@uirouter/angularjs": "^1.0.15",
     "@uirouter/react-hybrid": "^0.1.0",
@@ -76,6 +75,7 @@
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
+    "@spinnaker/amazon": "^0.0.104",
     "@spinnaker/core": "0.0.237",
     "@spinnaker/styleguide": "^1.0.1",
     "@types/angular": "1.6.26",
