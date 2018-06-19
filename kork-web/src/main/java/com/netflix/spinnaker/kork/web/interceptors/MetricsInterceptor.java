@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.web.interceptors;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -46,7 +47,6 @@ import static java.lang.String.format;
  */
 public class MetricsInterceptor extends HandlerInterceptorAdapter {
   static final String TIMER_ATTRIBUTE = "Metrics_startTime";
-  static final String CONTENT_LENGTH = "contentLength";
 
   private final Registry registry;
   private final String metricName;
@@ -67,7 +67,7 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
   ) {
     this.registry = registry;
     this.metricName = metricName;
-    this.contentLengthMetricName = format("%s.contentLength", CONTENT_LENGTH);
+    this.contentLengthMetricName = format("%s.contentLength", metricName);
     if (pathVariablesToTag != null) {
       this.pathVariablesToTag.addAll(pathVariablesToTag);
     }
@@ -124,8 +124,10 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
         getNanoTime() - ((Long) request.getAttribute(TIMER_ATTRIBUTE)), TimeUnit.NANOSECONDS
       );
 
-      Id contentLengthId = registry.createId(contentLengthMetricName).withTags(id.tags());
-      registry.distributionSummary(contentLengthId).record(request.getContentLengthLong());
+      PercentileDistributionSummary.get(
+        registry,
+        registry.createId(contentLengthMetricName).withTags(id.tags())
+      ).record(request.getContentLengthLong());
     }
   }
 
