@@ -58,4 +58,4 @@ subprojects {
   }
 }
 
-defaultTasks ":keel-web:bootRun"
+defaultTasks ":keel-web:run"
