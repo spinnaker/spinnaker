@@ -121,6 +121,7 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
           );
           if (allTargetGroups.containsKey(targetGroup)) {
             allTargetGroups.get(targetGroup).getServerGroups().add(loadBalancerServerGroup);
+            allTargetGroups.get(targetGroup).set("instances", targetGroupInstances.stream().map(LoadBalancerInstance::getId).collect(Collectors.toSet()));
           }
         }
       }

@@ -132,7 +132,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
 
     // resolve additional target group details
     targetGroupServerGroupProviders.each {
-      it.getServerGroups(applicationName, allTargetGroups, targetGroupData)
+      allTargetGroups = it.getServerGroups(applicationName, allTargetGroups, targetGroupData)
     }
 
     // Combine the groups of server groups since it's just a lookup
