@@ -228,7 +228,7 @@ export class ClusterService {
         (['createServerGroup', 'deploy', 'destroyAsg', 'resizeAsg'].includes(stage.type) &&
           has(stage.context, 'deploy.server.groups')) ||
         (stage.type === 'disableAsg' && has(stage.context, 'targetop.asg.disableAsg.name')) ||
-        (stage.type === 'deployManifest' && has(stage.context, 'outputs.manifestNamesByNamespace')),
+        has(stage.context, 'outputs.manifestNamesByNamespace'),
     );
   }
 
