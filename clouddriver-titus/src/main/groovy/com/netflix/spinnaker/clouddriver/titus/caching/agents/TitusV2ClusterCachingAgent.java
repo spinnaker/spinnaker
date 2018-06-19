@@ -349,7 +349,7 @@ public class TitusV2ClusterCachingAgent implements CachingAgent, CustomScheduled
     List<ServerGroupData> serverGroupDatas = jobs.stream()
       .map( job -> {
         List<ScalingPolicyData> jobScalingPolicies = scalingPolicyResults.stream()
-          .filter( it -> it.getJobId().equalsIgnoreCase(job.getId()) && cacheablePolicyStates.contains(it.getPolicyState()))
+          .filter( it -> it.getJobId().equalsIgnoreCase(job.getId()) && cacheablePolicyStates.contains(it.getPolicyState().getState()))
           .map( it -> new ScalingPolicyData(it.getId().getId(), it.getScalingPolicy(), it.getPolicyState()))
           .collect(Collectors.toList());
 
