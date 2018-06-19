@@ -118,7 +118,7 @@ class GceDeployStagePreProcessor implements DeployStagePreProcessor  {
   }
 
   private static boolean shouldPinSourceServerGroup(String strategy) {
-    return true
+    return strategy == "redblack" // || strategy == "rollingredblack" TODO(jacobkiefer): Insert if/when RRB is implemented for GCE.
   }
 
   private Map<String, Object> getResizeContext(StageData stageData) {
