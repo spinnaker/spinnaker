@@ -23,6 +23,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.filters.CorsFilter
 import com.netflix.spinnaker.gate.filters.GateOriginValidator
@@ -322,11 +323,18 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  FiatPermissionEvaluator fiatPermissionEvaluator(DynamicConfigService dynamicConfigService,
+  FiatStatus fiatStatus(DynamicConfigService dynamicConfigService,
+                        Registry registry,
+                        FiatClientConfigurationProperties fiatClientConfigurationProperties) {
+    return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties)
+  }
+
+  @Bean
+  FiatPermissionEvaluator fiatPermissionEvaluator(FiatStatus fiatStatus,
                                                   Registry registry,
                                                   FiatService fiatService,
                                                   FiatClientConfigurationProperties fiatClientConfigurationProperties) {
-    return new FiatPermissionEvaluator(dynamicConfigService, registry, fiatService, fiatClientConfigurationProperties)
+    return new FiatPermissionEvaluator(registry, fiatService, fiatClientConfigurationProperties, fiatStatus)
   }
 
   @Component
