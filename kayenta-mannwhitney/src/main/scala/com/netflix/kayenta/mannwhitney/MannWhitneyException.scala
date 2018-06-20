@@ -16,17 +16,4 @@
 
 package com.netflix.kayenta.mannwhitney
 
-class MannWhitneyException(message: String) extends Exception {
-  def this(message: String, cause: Throwable) {
-    this(message)
-    initCause(cause)
-  }
-
-  def this(cause: Throwable) {
-    this(Option(cause).map(_.toString).orNull, cause)
-  }
-
-  def this() {
-    this(null: String)
-  }
-}
+class MannWhitneyException(message: String) extends Exception;
