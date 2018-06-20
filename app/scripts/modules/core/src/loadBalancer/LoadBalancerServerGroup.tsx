@@ -50,11 +50,12 @@ export class LoadBalancerServerGroup extends React.Component<
       disabled: serverGroup.isDisabled,
     });
 
+    console.log('sg', serverGroup);
     const params = {
       region: serverGroup.region || region,
-      accountId: account,
+      accountId: serverGroup.account || account,
       serverGroup: serverGroup.name,
-      provider: cloudProvider,
+      provider: serverGroup.cloudProvider || cloudProvider,
     };
 
     return (

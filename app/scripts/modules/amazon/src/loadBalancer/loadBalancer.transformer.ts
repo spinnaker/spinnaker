@@ -1,23 +1,23 @@
-import { IPromise, module } from 'angular';
-import { chain, filter, flatten, map } from 'lodash';
-
-import { Application, IHealth, IServerGroup, IInstance, IVpc, NameUtils } from '@spinnaker/core';
-
+import { AccountService, Application, IHealth, IInstance, IServerGroup, IVpc, NameUtils } from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
-  IAmazonApplicationLoadBalancer,
   IALBListenerCertificate,
+  IAmazonApplicationLoadBalancer,
+  IAmazonApplicationLoadBalancerUpsertCommand,
   IAmazonClassicLoadBalancer,
+  IAmazonClassicLoadBalancerUpsertCommand,
   IAmazonLoadBalancer,
   IAmazonServerGroup,
   IApplicationLoadBalancerSourceData,
   IClassicListenerDescription,
   IClassicLoadBalancerSourceData,
-  IAmazonApplicationLoadBalancerUpsertCommand,
-  IAmazonClassicLoadBalancerUpsertCommand,
   ITargetGroup,
 } from 'amazon/domain';
 import { VpcReader } from 'amazon/vpc/VpcReader';
+import { IPromise, module } from 'angular';
+import { chain, filter, flatten, map } from 'lodash';
+
+import { $q } from 'ngimport';
 
 export class AwsLoadBalancerTransformer {
   private updateHealthCounts(container: IServerGroup | ITargetGroup | IAmazonLoadBalancer): void {
@@ -79,8 +79,8 @@ export class AwsLoadBalancerTransformer {
     healthType: string,
   ): void {
     serverGroups.forEach(serverGroup => {
-      serverGroup.account = container.account;
-      serverGroup.region = container.region;
+      serverGroup.account = serverGroup.account || container.account;
+      serverGroup.region = serverGroup.region || container.region;
       if (serverGroup.detachedInstances) {
         serverGroup.detachedInstances = (serverGroup.detachedInstances as any).map((instanceId: string) => {
           return { id: instanceId } as IInstance;
@@ -114,7 +114,17 @@ export class AwsLoadBalancerTransformer {
       .value();
     this.updateHealthCounts(targetGroup);
 
-    return VpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup);
+    return $q.all([VpcReader.listVpcs(), AccountService.listAllAccounts()]).then(([vpcs, accounts]) => {
+      const tg = this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup;
+
+      tg.serverGroups = tg.serverGroups.map(serverGroup => {
+        const account = accounts.find(x => x.name === serverGroup.account);
+        const cloudProvider = serverGroup.cloudProvider || (account && account.cloudProvider);
+        return { ...serverGroup, cloudProvider };
+      });
+
+      return tg;
+    });
   }
 
   public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): IPromise<IAmazonLoadBalancer> {
