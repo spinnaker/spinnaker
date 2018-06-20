@@ -5,6 +5,7 @@ subprojects {
   apply plugin: 'pmd'
 
   dependencies {
+    compileOnly 'com.google.code.findbugs:findbugs-annotations:3.0.1'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.3'
     testCompile 'cglib:cglib-nodep:3.2.0'
     testCompile 'org.objenesis:objenesis:2.1'
