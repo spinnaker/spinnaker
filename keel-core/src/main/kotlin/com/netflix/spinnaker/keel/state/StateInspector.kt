@@ -50,7 +50,7 @@ class StateInspector(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  fun getDiff(intentId: String,
+  fun getDiff(assetId: String,
               currentState: Any,
               desiredState: Any,
               modelClass: KClass<*>,
@@ -81,7 +81,7 @@ class StateInspector(
     )
 
     if (fields.isNotEmpty()) {
-      log.debug("Actual state has diverged from desired state: $fields (intent: $intentId)")
+      log.debug("Actual state has diverged from desired state: $fields (asset: $assetId)")
     }
     return fields.toSet()
   }

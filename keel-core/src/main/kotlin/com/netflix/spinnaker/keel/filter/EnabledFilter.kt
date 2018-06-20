@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.keel.filter
 
-import com.netflix.spinnaker.keel.ApplicationAwareIntentSpec
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.ApplicationAwareAssetSpec
+import com.netflix.spinnaker.keel.Asset
+import com.netflix.spinnaker.keel.AssetSpec
 import com.netflix.spinnaker.keel.attribute.EnabledAttribute
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -33,23 +33,23 @@ class EnabledFilter
 
   override fun getOrder() = 10
 
-  override fun filter(intent: Intent<IntentSpec>): Boolean {
-    // Intent-level overrides overrule all other settings
-    if (intent.getAttribute(EnabledAttribute::class).takeIf { it != null }?.value == false) {
+  override fun filter(asset: Asset<AssetSpec>): Boolean {
+    // Asset-level overrides overrule all other settings
+    if (asset.getAttribute(EnabledAttribute::class).takeIf { it != null }?.value == false) {
       return false
     }
 
-    when (intent.spec) {
-      is ApplicationAwareIntentSpec -> {
-        if (config.global && config.disabledApplications.contains(intent.spec.application)) {
+    when (asset.spec) {
+      is ApplicationAwareAssetSpec -> {
+        if (config.global && config.disabledApplications.contains(asset.spec.application)) {
           return false
         }
-        if (!config.global && config.enabledApplications.contains(intent.spec.application)) {
+        if (!config.global && config.enabledApplications.contains(asset.spec.application)) {
           return true
         }
         return config.global
       }
-      else -> return config.global
+      else                         -> return config.global
     }
   }
 

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.keel.annotation
 
 /**
- * Flags IntentSpec parameters as provided by the system or not.
+ * Flags AssetSpec parameters as provided by the system or not.
  *
  * @param ignore Whether or not to ignore changes to this resource. If set to false, modifications to this value will
  * make the resource eligible for destruction. Destruction behaviors should be defined by Policies.

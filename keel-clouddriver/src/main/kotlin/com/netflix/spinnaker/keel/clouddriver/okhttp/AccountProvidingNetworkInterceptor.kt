@@ -27,9 +27,9 @@ import retrofit.RetrofitError
 
 /**
  * Builds a local cache of clouddriver credentials that is used to populate X-SPINNAKER-ACCOUNTS header, allowing
- * Keel to perform orchestrations against any account. Security of applying an Intent should be performed at Intent
- * submission time into Keel, validating the that user who is submitting the Intent has access to affect the accounts
- * and applications the Intent touches.
+ * Keel to perform orchestrations against any account. Security of applying an Asset should be performed at Asset
+ * submission time into Keel, validating the that user who is submitting the Asset has access to affect the accounts
+ * and applications the Asset touches.
  *
  * TODO rz - should have an account provider that is injected, rather than each interceptor running its own cache
  */

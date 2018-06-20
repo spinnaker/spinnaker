@@ -20,22 +20,22 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonValue
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.Asset
+import com.netflix.spinnaker.keel.AssetSpec
 import org.springframework.context.ApplicationEvent
 
 enum class EventKind(val kind: String) {
-  BEFORE_INTENT_UPSERT("beforeIntentUpsert"),
-  AFTER_INTENT_UPSERT("afterIntentUpsert"),
-  BEFORE_INTENT_DELETE("beforeIntentDelete"),
-  AFTER_INTENT_DELETE("afterIntentDelete"),
-  BEFORE_INTENT_DRYRUN("beforeIntentDryRun"),
-  BEFORE_INTENT_SCHEDULE("beforeIntentSchedule"),
-  BEFORE_INTENT_CONVERGE("beforeIntentConverge"),
-  INTENT_CONVERGE_TIMEOUT("intentConvergeTimeout"),
-  INTENT_CONVERGE_NOT_FOUND("intentConvergeNotFound"),
-  INTENT_CONVERGE_SUCCESS("intentConvergeSuccess"),
-  INTENT_CONVERGE_FAILURE("intentConvergeFailure");
+  BEFORE_ASSET_UPSERT("beforeAssetUpsert"),
+  AFTER_ASSET_UPSERT("afterAssetUpsert"),
+  BEFORE_ASSET_DELETE("beforeAssetDelete"),
+  AFTER_ASSET_DELETE("afterAssetDelete"),
+  BEFORE_ASSET_DRYRUN("beforeAssetDryRun"),
+  BEFORE_ASSET_SCHEDULE("beforeAssetSchedule"),
+  BEFORE_ASSET_CONVERGE("beforeAssetConverge"),
+  ASSET_CONVERGE_TIMEOUT("assetConvergeTimeout"),
+  ASSET_CONVERGE_NOT_FOUND("assetConvergeNotFound"),
+  ASSET_CONVERGE_SUCCESS("assetConvergeSuccess"),
+  ASSET_CONVERGE_FAILURE("assetConvergeFailure");
 
   companion object {
     @JvmStatic @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
@@ -51,88 +51,88 @@ enum class EventKind(val kind: String) {
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "kind")
 @JsonSubTypes(
-  Type(AfterIntentUpsertEvent::class),
-  Type(AfterIntentDeleteEvent::class),
-  Type(BeforeIntentScheduleEvent::class),
-  Type(BeforeIntentConvergeEvent::class),
-  Type(IntentConvergeTimeoutEvent::class),
-  Type(IntentConvergeNotFoundEvent::class),
-  Type(IntentConvergeSuccessEvent::class),
-  Type(IntentConvergeFailureEvent::class)
+  Type(AfterAssetUpsertEvent::class),
+  Type(AfterAssetDeleteEvent::class),
+  Type(BeforeAssetScheduleEvent::class),
+  Type(BeforeAssetConvergeEvent::class),
+  Type(AssetConvergeTimeoutEvent::class),
+  Type(AssetConvergeNotFoundEvent::class),
+  Type(AssetConvergeSuccessEvent::class),
+  Type(AssetConvergeFailureEvent::class)
 )
 abstract class KeelEvent : ApplicationEvent("internal") {
   abstract val kind: EventKind
 }
 
-abstract class IntentAwareEvent() : KeelEvent() {
-  abstract val intent: Intent<IntentSpec>
+abstract class AssetAwareEvent() : KeelEvent() {
+  abstract val asset: Asset<AssetSpec>
 }
 
-data class BeforeIntentUpsertEvent(
-  override val intent: Intent<IntentSpec>
-) : IntentAwareEvent() {
-  override val kind = EventKind.BEFORE_INTENT_UPSERT
+data class BeforeAssetUpsertEvent(
+  override val asset: Asset<AssetSpec>
+) : AssetAwareEvent() {
+  override val kind = EventKind.BEFORE_ASSET_UPSERT
 }
 
-data class AfterIntentUpsertEvent(
-  override val intent: Intent<IntentSpec>
-) : IntentAwareEvent() {
-  override val kind = EventKind.AFTER_INTENT_UPSERT
+data class AfterAssetUpsertEvent(
+  override val asset: Asset<AssetSpec>
+) : AssetAwareEvent() {
+  override val kind = EventKind.AFTER_ASSET_UPSERT
 }
 
-data class BeforeIntentDeleteEvent(
-  override val intent: Intent<IntentSpec>
-) : IntentAwareEvent() {
-  override val kind = EventKind.BEFORE_INTENT_DELETE
+data class BeforeAssetDeleteEvent(
+  override val asset: Asset<AssetSpec>
+) : AssetAwareEvent() {
+  override val kind = EventKind.BEFORE_ASSET_DELETE
 }
 
-data class AfterIntentDeleteEvent(
-  override val intent: Intent<IntentSpec>
-) : IntentAwareEvent() {
-  override val kind = EventKind.AFTER_INTENT_DELETE
+data class AfterAssetDeleteEvent(
+  override val asset: Asset<AssetSpec>
+) : AssetAwareEvent() {
+  override val kind = EventKind.AFTER_ASSET_DELETE
 }
 
-data class BeforeIntentDryRunEvent(
-  override val intent: Intent<IntentSpec>
-) : IntentAwareEvent() {
-  override val kind = EventKind.BEFORE_INTENT_DRYRUN
+data class BeforeAssetDryRunEvent(
+  override val asset: Asset<AssetSpec>
+) : AssetAwareEvent() {
+  override val kind = EventKind.BEFORE_ASSET_DRYRUN
 }
 
-data class BeforeIntentScheduleEvent(
-  override val intent: Intent<IntentSpec>
-) : IntentAwareEvent() {
-  override val kind = EventKind.BEFORE_INTENT_SCHEDULE
+data class BeforeAssetScheduleEvent(
+  override val asset: Asset<AssetSpec>
+) : AssetAwareEvent() {
+  override val kind = EventKind.BEFORE_ASSET_SCHEDULE
 }
 
-data class BeforeIntentConvergeEvent(
-  override val intent: Intent<IntentSpec>
-) : IntentAwareEvent() {
-  override val kind = EventKind.BEFORE_INTENT_CONVERGE
+data class BeforeAssetConvergeEvent(
+  override val asset: Asset<AssetSpec>
+) : AssetAwareEvent() {
+  override val kind = EventKind.BEFORE_ASSET_CONVERGE
 }
 
-data class IntentConvergeTimeoutEvent(
-  override val intent: Intent<IntentSpec>
-) : IntentAwareEvent() {
-  override val kind = EventKind.INTENT_CONVERGE_TIMEOUT
+data class AssetConvergeTimeoutEvent(
+  override val asset: Asset<AssetSpec>
+) : AssetAwareEvent() {
+  override val kind = EventKind.ASSET_CONVERGE_TIMEOUT
 }
 
-data class IntentConvergeNotFoundEvent(
-  val intentId: String
+data class AssetConvergeNotFoundEvent(
+  val assetId: String
 ) : KeelEvent() {
-  override val kind = EventKind.INTENT_CONVERGE_NOT_FOUND
+  override val kind = EventKind.ASSET_CONVERGE_NOT_FOUND
 }
 
-data class IntentConvergeSuccessEvent(
-  override val intent: Intent<IntentSpec>,
+data class AssetConvergeSuccessEvent(
+  override val asset: Asset<AssetSpec>,
   val orchestrations: List<String>
-) : IntentAwareEvent() {
-  override val kind = EventKind.INTENT_CONVERGE_SUCCESS
+) : AssetAwareEvent() {
+  override val kind = EventKind.ASSET_CONVERGE_SUCCESS
 }
 
-data class IntentConvergeFailureEvent(
-  override val intent: Intent<IntentSpec>,
+data class AssetConvergeFailureEvent(
+  override val asset: Asset<AssetSpec>,
   val reason: String,
   val cause: Throwable?
-) : IntentAwareEvent() {
-  override val kind = EventKind.INTENT_CONVERGE_FAILURE
+) : AssetAwareEvent() {
+  override val kind = EventKind.ASSET_CONVERGE_FAILURE
 }

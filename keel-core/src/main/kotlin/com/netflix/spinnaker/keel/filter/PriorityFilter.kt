@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.keel.filter
 
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentPriority
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.Asset
+import com.netflix.spinnaker.keel.AssetPriority
+import com.netflix.spinnaker.keel.AssetSpec
 import com.netflix.spinnaker.keel.PriorityMatcher
 import com.netflix.spinnaker.keel.attribute.PriorityAttribute
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,12 +34,12 @@ class PriorityFilter
 
   override fun getOrder() = 100
 
-  override fun filter(intent: Intent<IntentSpec>): Boolean {
+  override fun filter(asset: Asset<AssetSpec>): Boolean {
     if (!config.enabled) {
       return true
     }
 
-    val priority = intent.getAttribute(PriorityAttribute::class) ?: return true
+    val priority = asset.getAttribute(PriorityAttribute::class) ?: return true
 
     return when (config.matcher) {
       PriorityMatcher.EQUAL -> priority.value == config.threshold
@@ -51,7 +51,7 @@ class PriorityFilter
   @ConfigurationProperties
   open class Configuration {
     val enabled: Boolean = false
-    val threshold: IntentPriority = IntentPriority.LOW
+    val threshold: AssetPriority = AssetPriority.LOW
     val matcher: PriorityMatcher = PriorityMatcher.EQUAL_GT
   }
 }

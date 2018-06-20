@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.keel.echo
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.keel.event.AssetAwareEvent
 import com.netflix.spinnaker.keel.event.EventKind
-import com.netflix.spinnaker.keel.event.IntentAwareEvent
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -33,40 +33,40 @@ class EventNotificationListener(
 
   private val notificationsId = registry.createId("echo.notifications")
 
-  @EventListener(IntentAwareEvent::class)
-  fun onIntentAwareEvent(event: IntentAwareEvent) {
-    event.intent.getAttribute(NotificationAttribute::class)
+  @EventListener(AssetAwareEvent::class)
+  fun onAssetAwareEvent(event: AssetAwareEvent) {
+    event.asset.getAttribute(NotificationAttribute::class)
       ?.also { attribute ->
         attribute.value.subscriptions
           .filter { it.key == event.kind }
           .forEach { sub ->
-            log.info("Sending {} notifications for {}", value("kind", sub.key), value("intentId", event.intent.id()))
-            sub.value.forEach { sendNotification(event.intent.id(), event.kind, it) }
+            log.info("Sending {} notifications for {}", value("kind", sub.key), value("assetId", event.asset.id()))
+            sub.value.forEach { sendNotification(event.asset.id(), event.kind, it) }
           }
       }
   }
 
-  private fun sendNotification(intentId: String, eventKind: EventKind, notification: NotificationSpec) {
+  private fun sendNotification(assetId: String, eventKind: EventKind, notification: NotificationSpec) {
     try {
       echoService.create(EchoService.Notification(
         notificationType = notification.echoNotificationType,
         to = notification.to,
         cc = notification.cc,
         // TODO rz - Support other, non-generic templates
-        templateGroup = "keelIntent",
+        templateGroup = "keelAsset",
         severity = notification.severity,
         source = EchoService.Notification.Source("keel"),
         additionalContext = notification.getAdditionalContext().toMutableMap().let {
           it.putAll(mapOf(
             "eventKind" to eventKind.toValue(),
-            "intentId" to intentId
+            "assetId" to assetId
           ))
           it
         }
       ))
       registry.counter(notificationsId.withTag("result", "success"))
     } catch (e: Exception) {
-      log.error("Failed sending {} notification for {}", value("kind", eventKind), value("intentId", intentId), e)
+      log.error("Failed sending {} notification for {}", value("kind", eventKind), value("assetId", assetId), e)
       registry.counter(notificationsId.withTag("result", "failed"))
     }
   }

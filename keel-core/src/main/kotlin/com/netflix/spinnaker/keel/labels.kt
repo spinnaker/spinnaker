@@ -15,4 +15,4 @@
  */
 package com.netflix.spinnaker.keel
 
-const val PARENT_INTENT_LABEL = "keel.parentIntent"
+const val PARENT_ASSET_LABEL = "keel.parentAsset"

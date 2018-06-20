@@ -17,25 +17,25 @@ package com.netflix.spinnaker.keel
 
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.config.ApplicationIntentGuardProperties
-import com.netflix.spinnaker.config.KindIntentGuardProperties
-import com.netflix.spinnaker.keel.event.BeforeIntentConvergeEvent
-import com.netflix.spinnaker.keel.event.BeforeIntentDeleteEvent
-import com.netflix.spinnaker.keel.event.BeforeIntentUpsertEvent
-import com.netflix.spinnaker.keel.event.IntentAwareEvent
+import com.netflix.spinnaker.config.ApplicationAssetGuardProperties
+import com.netflix.spinnaker.config.KindAssetGuardProperties
+import com.netflix.spinnaker.keel.event.AssetAwareEvent
+import com.netflix.spinnaker.keel.event.BeforeAssetConvergeEvent
+import com.netflix.spinnaker.keel.event.BeforeAssetDeleteEvent
+import com.netflix.spinnaker.keel.event.BeforeAssetUpsertEvent
 import com.netflix.spinnaker.keel.exceptions.GuardConditionFailed
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 
-open class WhitelistingIntentGuardProperties {
+open class WhitelistingAssetGuardProperties {
   var enabled: Boolean = true
   var whitelist: MutableList<String> = mutableListOf()
 }
 
 // TODO rz - account guard
-abstract class WhitelistingIntentGuard(
+abstract class WhitelistingAssetGuard(
   private val registry: Registry,
-  private val properties: WhitelistingIntentGuardProperties
+  private val properties: WhitelistingAssetGuardProperties
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -51,12 +51,12 @@ abstract class WhitelistingIntentGuard(
     }
   }
 
-  protected abstract val supportedEvents: List<Class<out IntentAwareEvent>>
+  protected abstract val supportedEvents: List<Class<out AssetAwareEvent>>
 
-  protected abstract fun extractValue(event: IntentAwareEvent): String?
+  protected abstract fun extractValue(event: AssetAwareEvent): String?
 
-  @EventListener(IntentAwareEvent::class)
-  fun onIntentAwareEvent(event: IntentAwareEvent) {
+  @EventListener(AssetAwareEvent::class)
+  fun onAssetAwareEvent(event: AssetAwareEvent) {
     if (properties.enabled && matchesEventTypes(event)) {
       val value = extractValue(event)?.trim()?.toLowerCase()
       if (value != null && !whitelist.contains(value)) {
@@ -70,39 +70,39 @@ abstract class WhitelistingIntentGuard(
   }
 
   @VisibleForTesting
-  internal fun matchesEventTypes(event: IntentAwareEvent) =
+  internal fun matchesEventTypes(event: AssetAwareEvent) =
     supportedEvents.isEmpty() || supportedEvents.any { it.isInstance(event) }
 }
 
-class ApplicationIntentGuard(
+class ApplicationAssetGuard(
   registry: Registry,
-  applicationGuardProperties: ApplicationIntentGuardProperties
-) : WhitelistingIntentGuard(registry, applicationGuardProperties) {
+  applicationGuardProperties: ApplicationAssetGuardProperties
+) : WhitelistingAssetGuard(registry, applicationGuardProperties) {
 
   override val supportedEvents = listOf(
-    BeforeIntentUpsertEvent::class.java,
-    BeforeIntentDeleteEvent::class.java,
-    BeforeIntentConvergeEvent::class.java
+    BeforeAssetUpsertEvent::class.java,
+    BeforeAssetDeleteEvent::class.java,
+    BeforeAssetConvergeEvent::class.java
   )
 
-  override fun extractValue(event: IntentAwareEvent): String? {
-    if (event.intent.spec is ApplicationAwareIntentSpec) {
-      return (event.intent.spec as ApplicationAwareIntentSpec).application
+  override fun extractValue(event: AssetAwareEvent): String? {
+    if (event.asset.spec is ApplicationAwareAssetSpec) {
+      return (event.asset.spec as ApplicationAwareAssetSpec).application
     }
     return null
   }
 }
 
-class KindIntentGuard(
+class KindAssetGuard(
   registry: Registry,
-  kindGuardProperties: KindIntentGuardProperties
-) : WhitelistingIntentGuard(registry, kindGuardProperties) {
+  kindGuardProperties: KindAssetGuardProperties
+) : WhitelistingAssetGuard(registry, kindGuardProperties) {
 
   override val supportedEvents = listOf(
-    BeforeIntentUpsertEvent::class.java,
-    BeforeIntentDeleteEvent::class.java,
-    BeforeIntentConvergeEvent::class.java
+    BeforeAssetUpsertEvent::class.java,
+    BeforeAssetDeleteEvent::class.java,
+    BeforeAssetConvergeEvent::class.java
   )
 
-  override fun extractValue(event: IntentAwareEvent) = event.intent.kind
+  override fun extractValue(event: AssetAwareEvent) = event.asset.kind
 }

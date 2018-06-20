@@ -17,12 +17,12 @@ package com.netflix.spinnaker.keel.scheduler.handler
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ScheduleConvergeHandlerProperties
-import com.netflix.spinnaker.keel.IntentRepository
-import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
+import com.netflix.spinnaker.keel.AssetRepository
+import com.netflix.spinnaker.keel.scheduler.ConvergeAsset
 import com.netflix.spinnaker.keel.scheduler.ScheduleConvergence
 import com.netflix.spinnaker.keel.scheduler.ScheduleService
-import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
-import com.netflix.spinnaker.keel.test.TestIntent
+import com.netflix.spinnaker.keel.test.GenericTestAssetSpec
+import com.netflix.spinnaker.keel.test.TestAsset
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.Test
@@ -35,25 +35,25 @@ object ScheduleConvergeHandlerTest {
 
   val queue = mock<Queue>()
   val properties = ScheduleConvergeHandlerProperties(10000, 60000, 30000)
-  val intentRepository = mock<IntentRepository>()
+  val assetRepository = mock<AssetRepository>()
   val registry = NoopRegistry()
   val clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
   val scheduleService = ScheduleService(queue, properties, clock)
   val applicationEventPublisher = mock<ApplicationEventPublisher>()
 
-  val subject = ScheduleConvergeHandler(queue, scheduleService, intentRepository, emptyList(), registry, applicationEventPublisher)
+  val subject = ScheduleConvergeHandler(queue, scheduleService, assetRepository, emptyList(), registry, applicationEventPublisher)
 
   @Test
-  fun `should push converge messages for each active intent`() {
+  fun `should push converge messages for each active asset`() {
     val message = ScheduleConvergence()
 
-    val intent1 = TestIntent(GenericTestIntentSpec("1", emptyMap()))
-    val intent2 = TestIntent(GenericTestIntentSpec("2", emptyMap()))
-    whenever(intentRepository.getIntents(any())) doReturn listOf(intent1, intent2)
+    val asset1 = TestAsset(GenericTestAssetSpec("1", emptyMap()))
+    val asset2 = TestAsset(GenericTestAssetSpec("2", emptyMap()))
+    whenever(assetRepository.getAssets(any())) doReturn listOf(asset1, asset2)
 
     subject.handle(message)
 
-    verify(queue).push(ConvergeIntent(intent1, 10000, 60000))
-    verify(queue).push(ConvergeIntent(intent2, 10000, 60000))
+    verify(queue).push(ConvergeAsset(asset1, 10000, 60000))
+    verify(queue).push(ConvergeAsset(asset2, 10000, 60000))
   }
 }

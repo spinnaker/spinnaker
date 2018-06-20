@@ -20,10 +20,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("keel")
 class KeelProperties {
   var prettyPrintJson: Boolean = false
-  var immediatelyRunIntents: Boolean = true
-  var maxConvergenceLogEntriesPerIntent: Int = 1000
+  var immediatelyRunAssets: Boolean = true
+  var maxConvergenceLogEntriesPerAsset: Int = 1000
 
-  var intentPackages: List<String> = listOf("com.netflix.spinnaker.keel.intent")
-  var intentSpecPackages: List<String> = listOf("com.netflix.spinnaker.keel.intent")
+  var assetPackages: List<String> = listOf("com.netflix.spinnaker.keel.asset")
+  var assetSpecPackages: List<String> = listOf("com.netflix.spinnaker.keel.asset")
   var attributePackages: List<String> = listOf("com.netflix.spinnaker.keel.attribute")
 }

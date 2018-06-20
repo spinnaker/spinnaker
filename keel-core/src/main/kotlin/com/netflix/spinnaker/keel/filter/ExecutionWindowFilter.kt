@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.keel.filter
 
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.Asset
+import com.netflix.spinnaker.keel.AssetSpec
 import com.netflix.spinnaker.keel.attribute.ExecutionWindow
 import com.netflix.spinnaker.keel.attribute.ExecutionWindowAttribute
 import net.logstash.logback.argument.StructuredArguments.value
@@ -32,7 +32,7 @@ private const val ACTION_PROCEED = "proceeding as if inside of execution window"
 private const val ACTION_HALT = "assuming outside of execution window"
 
 /**
- * Filters out Intents that are not in their defined execution windows (configured via the ExecutionWindowAttribute).
+ * Filters out Assets that are not in their defined execution windows (configured via the ExecutionWindowAttribute).
  */
 @Component
 @EnableConfigurationProperties(ExecutionWindowFilter.Configuration::class)
@@ -51,13 +51,13 @@ class ExecutionWindowFilter
 
   override fun getOrder() = 50
 
-  override fun filter(intent: Intent<IntentSpec>): Boolean {
-    if (!intent.hasAttribute(ExecutionWindowAttribute::class)) {
+  override fun filter(asset: Asset<AssetSpec>): Boolean {
+    if (!asset.hasAttribute(ExecutionWindowAttribute::class)) {
       return true
     }
 
-    val executionWindow = intent.getAttribute(ExecutionWindowAttribute::class)!!
-    log.info("Calculating scheduled time for {}; $executionWindow", value("intent", intent.id()))
+    val executionWindow = asset.getAttribute(ExecutionWindowAttribute::class)!!
+    log.info("Calculating scheduled time for {}; $executionWindow", value("asset", asset.id()))
 
     val now = Date.from(clock.instant())
     val scheduledTime: Date
@@ -69,7 +69,7 @@ class ExecutionWindowFilter
       return config.allowExecutionOnFailure
     }
 
-    log.debug("Calculated schedule time for {}: $scheduledTime", value("intent", intent.id()))
+    log.debug("Calculated schedule time for {}: $scheduledTime", value("asset", asset.id()))
 
     return now >= scheduledTime
   }

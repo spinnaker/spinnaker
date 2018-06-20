@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.state.FieldState
  * A value-object that describes the calculated changes as a result of a de-convergence in desired and actual system
  * state.
  *
- * TODO rz - Need to include an ID for the summary; in multi-intent requests, unknown what is referring to what
+ * TODO rz - Need to include an ID for the summary; in multi-asset requests, unknown what is referring to what
  */
 data class ChangeSummary(
   val id: String,

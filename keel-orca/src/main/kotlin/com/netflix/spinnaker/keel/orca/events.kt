@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.keel.orca
 
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.Asset
+import com.netflix.spinnaker.keel.AssetSpec
 import org.springframework.context.ApplicationEvent
 
 class ConvergenceRequiredEvent(
-  @Suppress("UNUSED_PARAMETER") intent: Intent<IntentSpec>
+  @Suppress("UNUSED_PARAMETER") asset: Asset<AssetSpec>
 ) : ApplicationEvent("scheduler")

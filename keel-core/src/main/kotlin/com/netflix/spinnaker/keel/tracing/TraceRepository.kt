@@ -19,5 +19,5 @@ interface TraceRepository {
 
   fun record(trace: Trace)
 
-  fun getForIntent(intentId: String): List<Trace>
+  fun getForAsset(assetId: String): List<Trace>
 }

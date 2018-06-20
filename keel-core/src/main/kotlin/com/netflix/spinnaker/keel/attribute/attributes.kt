@@ -18,11 +18,11 @@ package com.netflix.spinnaker.keel.attribute
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.netflix.spinnaker.keel.IntentPriority
+import com.netflix.spinnaker.keel.AssetPriority
 
 /**
- * An Attribute is a strictly typed key/value pair. They're attached as a collection of metadata on Intents and used
- * by Filters, Policies and event handlers for performing direct or indirect actions on Intents.
+ * An Attribute is a strictly typed key/value pair. They're attached as a collection of metadata on Assets and used
+ * by Filters, Policies and event handlers for performing direct or indirect actions on Assets.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class Attribute<out T>
@@ -32,19 +32,19 @@ abstract class Attribute<out T>
 )
 
 /**
- * Defines the namespace-specific priority of an intent.
+ * Defines the namespace-specific priority of an asset.
  */
 @JsonTypeName("Priority")
-class PriorityAttribute(value: IntentPriority) : Attribute<IntentPriority>("Priority", value)
+class PriorityAttribute(value: AssetPriority) : Attribute<AssetPriority>("Priority", value)
 
 /**
- * Defines whether or not an Intent's desired state should be getting actively converged. Release valve.
+ * Defines whether or not an Asset's desired state should be getting actively converged. Release valve.
  */
 @JsonTypeName("Enabled")
 class EnabledAttribute(value: Boolean) : Attribute<Boolean>("Enabled", value)
 
 /**
- * Defines at what times during the time of day & weekly schedule an Intent should be a candidate for being converged.
+ * Defines at what times during the time of day & weekly schedule an Asset should be a candidate for being converged.
  */
 @JsonTypeName("ExecutionWindow")
 class ExecutionWindowAttribute(value: ExecutionWindow) : Attribute<ExecutionWindow>("ExecutionWindow", value) {
@@ -66,8 +66,8 @@ data class TimeWindow(
 )
 
 /**
- * Defines the origin of an Intent. When defined, Spinnaker is capable of exposing richer back-linking to where an
- * Intent is defined.
+ * Defines the origin of an Asset. When defined, Spinnaker is capable of exposing richer back-linking to where an
+ * Asset is defined.
  */
 @JsonTypeName("Origin")
 class OriginAttribute(value: String) : Attribute<String>("Origin", value)

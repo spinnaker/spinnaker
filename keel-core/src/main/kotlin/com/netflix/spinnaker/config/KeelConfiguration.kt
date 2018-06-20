@@ -18,8 +18,8 @@ package com.netflix.spinnaker.config
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.attribute.Attribute
-import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
-import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
+import com.netflix.spinnaker.keel.memory.MemoryAssetActivityRepository
+import com.netflix.spinnaker.keel.memory.MemoryAssetRepository
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -33,8 +33,8 @@ import java.time.Clock
 @Configuration
 @EnableConfigurationProperties(
   KeelProperties::class,
-  ApplicationIntentGuardProperties::class,
-  KindIntentGuardProperties::class
+  ApplicationAssetGuardProperties::class,
+  KindAssetGuardProperties::class
 )
 @ComponentScan(basePackages = [
   "com.netflix.spinnaker.keel.dryrun",
@@ -44,29 +44,29 @@ open class KeelConfiguration {
 
   @Autowired lateinit var properties: KeelProperties
 
-  @Bean open fun intentSubTypeLocator() =
-    ClassSubtypeLocator(Intent::class.java, properties.intentPackages)
+  @Bean open fun assetSubTypeLocator() =
+    ClassSubtypeLocator(Asset::class.java, properties.assetPackages)
 
-  @Bean open fun intentSpecSubTypeLocator() =
-    ClassSubtypeLocator(IntentSpec::class.java, properties.intentSpecPackages)
+  @Bean open fun assetSpecSubTypeLocator() =
+    ClassSubtypeLocator(AssetSpec::class.java, properties.assetSpecPackages)
 
   @Bean open fun attributeSubTypeLocator() =
     ClassSubtypeLocator(Attribute::class.java, properties.attributePackages)
 
   @Bean
-  @ConditionalOnMissingBean(IntentRepository::class)
-  open fun memoryIntentRepository(applicationEventPublisher: ApplicationEventPublisher): IntentRepository =
-    MemoryIntentRepository(applicationEventPublisher)
+  @ConditionalOnMissingBean(AssetRepository::class)
+  open fun memoryAssetRepository(applicationEventPublisher: ApplicationEventPublisher): AssetRepository =
+    MemoryAssetRepository(applicationEventPublisher)
 
   @Bean
-  @ConditionalOnMissingBean(IntentActivityRepository::class)
-  open fun memoryIntentActivityRepository(): IntentActivityRepository = MemoryIntentActivityRepository()
+  @ConditionalOnMissingBean(AssetActivityRepository::class)
+  open fun memoryAssetActivityRepository(): AssetActivityRepository = MemoryAssetActivityRepository()
 
   @Bean open fun clock(): Clock = Clock.systemDefaultZone()
 
-  @Bean open fun applicationIntentGuard(registry: Registry, properties: ApplicationIntentGuardProperties) =
-    ApplicationIntentGuard(registry, properties)
+  @Bean open fun applicationAssetGuard(registry: Registry, properties: ApplicationAssetGuardProperties) =
+    ApplicationAssetGuard(registry, properties)
 
-  @Bean open fun kindIntentGuard(registry: Registry, properties: KindIntentGuardProperties) =
-    KindIntentGuard(registry, properties)
+  @Bean open fun kindAssetGuard(registry: Registry, properties: KindAssetGuardProperties) =
+    KindAssetGuard(registry, properties)
 }

@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.keel.scheduler
 
 import com.netflix.spinnaker.config.ScheduleConvergeHandlerProperties
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.Asset
+import com.netflix.spinnaker.keel.AssetSpec
 import com.netflix.spinnaker.q.Queue
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -29,9 +29,9 @@ class ScheduleService(
   private val clock: Clock
 ) {
 
-  fun converge(intent: Intent<IntentSpec>) {
-    queue.push(ConvergeIntent(
-      intent,
+  fun converge(asset: Asset<AssetSpec>) {
+    queue.push(ConvergeAsset(
+      asset,
       clock.instant().plusMillis(scheduleConvergenceHandlerProperties.stalenessTtl).toEpochMilli(),
       clock.instant().plusMillis(scheduleConvergenceHandlerProperties.timeoutTtl).toEpochMilli()
     ))
