@@ -52,7 +52,6 @@ import static com.netflix.spinnaker.orca.config.RedisConfiguration.Clients.EXECU
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.NO_TRIGGER;
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
@@ -718,31 +717,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
       }
     });
 
-    /* Ensure proper stage ordering even when stageIndex is an unsorted set or absent */
-
-    if (stages.stream().map(Stage::getRefId).allMatch(Objects::nonNull)) {
-      execution.getStages().addAll(
-        stages.stream()
-          .filter(s -> s.getParentStageId() == null)
-          .sorted(Comparator.comparing(Stage::getRefId))
-          .collect(Collectors.toList())
-      );
-
-      stages.stream()
-        .filter(s -> s.getParentStageId() != null)
-        .sorted(Comparator.comparing(Stage::getRefId))
-        .forEach(
-          s -> {
-            Integer index = execution.getStages().indexOf(s.getParent());
-            if (s.getSyntheticStageOwner() == STAGE_AFTER) {
-              index++;
-            }
-            execution.getStages().add(index, s);
-          }
-        );
-    } else {
-      execution.getStages().addAll(stages);
-    }
+    ExecutionRepositoryUtil.sortStagesByReference(execution, stages);
 
     if (execution.getType() == PIPELINE) {
       execution.setName(map.get("name"));

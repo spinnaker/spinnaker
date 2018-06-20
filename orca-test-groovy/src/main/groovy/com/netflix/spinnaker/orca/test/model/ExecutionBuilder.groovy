@@ -86,7 +86,9 @@ class ExecutionBuilder {
     def parentStage = findParentStage(builder)
     if (parentStage) {
       stage.parentStageId = parentStage.id
-      stage.syntheticStageOwner = STAGE_BEFORE
+      if (stage.syntheticStageOwner == null) {
+        stage.syntheticStageOwner = STAGE_BEFORE
+      }
     }
 
     builder.delegate = stage
