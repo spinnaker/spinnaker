@@ -160,6 +160,16 @@ tests:
       spinnaker_kubernetes_account: $k8s_account_name
       test_namespace: $k8s_account_namespaces
 
+  kube_v2_smoke_test:
+    requires:
+      configuration:
+        k8s_v2_account_enabled: true
+      services: [clouddriver, front50, gate, orca]
+    api: gate
+    args:
+      spinnaker_kubernetes_v2_account: $k8s_v2_account_name
+      test_namespace: $k8s_v2_account_namespaces
+
   aws_kato_test:
     requires:
       configuration:
