@@ -22,6 +22,7 @@ dependencies {
   compile project(':kayenta-datadog')
   compile project(':kayenta-gcs')
   compile project(':kayenta-google')
+  compile project(':kayenta-influxdb')
   compile project(':kayenta-judge')
   compile project(':kayenta-objectstore-configbin')
   compile project(':kayenta-objectstore-memory')

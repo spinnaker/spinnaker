@@ -16,19 +16,10 @@
 
 package com.netflix.kayenta;
 
-import com.netflix.kayenta.atlas.config.AtlasConfiguration;
-import com.netflix.kayenta.aws.config.AwsConfiguration;
-import com.netflix.kayenta.config.KayentaConfiguration;
-import com.netflix.kayenta.config.WebConfiguration;
-import com.netflix.kayenta.configbin.config.ConfigBinConfiguration;
-import com.netflix.kayenta.datadog.config.DatadogConfiguration;
-import com.netflix.kayenta.gcs.config.GcsConfiguration;
-import com.netflix.kayenta.google.config.GoogleConfiguration;
-import com.netflix.kayenta.judge.config.NetflixJudgeConfiguration;
-import com.netflix.kayenta.memory.config.MemoryConfiguration;
-import com.netflix.kayenta.prometheus.config.PrometheusConfiguration;
-import com.netflix.kayenta.s3.config.S3Configuration;
-import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
@@ -38,9 +29,20 @@ import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import com.netflix.kayenta.atlas.config.AtlasConfiguration;
+import com.netflix.kayenta.aws.config.AwsConfiguration;
+import com.netflix.kayenta.config.KayentaConfiguration;
+import com.netflix.kayenta.config.WebConfiguration;
+import com.netflix.kayenta.configbin.config.ConfigBinConfiguration;
+import com.netflix.kayenta.datadog.config.DatadogConfiguration;
+import com.netflix.kayenta.gcs.config.GcsConfiguration;
+import com.netflix.kayenta.google.config.GoogleConfiguration;
+import com.netflix.kayenta.influxdb.config.InfluxDbConfiguration;
+import com.netflix.kayenta.judge.config.NetflixJudgeConfiguration;
+import com.netflix.kayenta.memory.config.MemoryConfiguration;
+import com.netflix.kayenta.prometheus.config.PrometheusConfiguration;
+import com.netflix.kayenta.s3.config.S3Configuration;
+import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
 
 @Configuration
 @Import({
@@ -50,13 +52,14 @@ import java.util.Map;
   DatadogConfiguration.class,
   GcsConfiguration.class,
   GoogleConfiguration.class,
+  InfluxDbConfiguration.class,
   KayentaConfiguration.class,
   MemoryConfiguration.class,
   PrometheusConfiguration.class,
   S3Configuration.class,
   StackdriverConfiguration.class,
   WebConfiguration.class,
-  NetflixJudgeConfiguration.class
+  NetflixJudgeConfiguration.class,
 })
 @ComponentScan({
   "com.netflix.spinnaker.config",

@@ -56,6 +56,15 @@ kayenta:
 #        supportedTypes:
 #          - METRICS_STORE
 
+  influxdb:
+    enabled: false
+#    accounts:
+#      - name:
+#        endpoint:
+#          baseUrl: http://localhost:8086
+#        supportedTypes:
+#          - METRICS_STORE
+
   gcs:
     enabled: false
 
