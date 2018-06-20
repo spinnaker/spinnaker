@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -82,5 +83,12 @@ public class KubernetesSpinnakerKindMap {
 
   public Set<KubernetesKind> allKubernetesKinds() {
     return kubernetesToSpinnaker.keySet();
+  }
+
+  public Map<String, String> kubernetesToSpinnakerKindStringMap() {
+    return kubernetesToSpinnaker.entrySet().stream().filter(
+      x -> x.getValue() != SpinnakerKind.UNCLASSIFIED && x.getKey() != KubernetesKind.NONE
+    ).collect(
+      Collectors.toMap(x -> x.getKey().toString(), x -> x.getValue().toString()));
   }
 }

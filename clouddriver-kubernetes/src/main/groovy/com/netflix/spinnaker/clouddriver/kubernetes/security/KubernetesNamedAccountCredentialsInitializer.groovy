@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -41,6 +42,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
   @Autowired Registry spectatorRegistry
   @Autowired KubectlJobExecutor jobExecutor
   @Autowired NamerRegistry namerRegistry
+  @Autowired KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap
 
   @Bean
   List<? extends KubernetesNamedAccountCredentials> kubernetesNamedAccountCredentials(
@@ -107,6 +109,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .kinds(managedAccount.kinds)
           .omitKinds(managedAccount.omitKinds)
           .debug(managedAccount.debug)
+          .kubernetesSpinnakerKindMap(kubernetesSpinnakerKindMap)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, kubernetesAccount)

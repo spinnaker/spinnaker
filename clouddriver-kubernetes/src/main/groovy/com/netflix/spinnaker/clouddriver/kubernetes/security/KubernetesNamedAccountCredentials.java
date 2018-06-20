@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResou
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
@@ -31,7 +32,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.moniker.Namer;
-import groovy.util.logging.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
@@ -39,11 +39,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.netflix.spinnaker.clouddriver.security.ProviderVersion.v1;
 
-@Slf4j
 public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> implements AccountCredentials<C> {
   final private String cloudProvider = "kubernetes";
   final private String name;
@@ -67,6 +68,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
   private final Registry spectatorRegistry;
   private final AccountCredentialsRepository accountCredentialsRepository;
+  private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
 
   KubernetesNamedAccountCredentials(String name,
                                     ProviderVersion providerVersion,
@@ -88,6 +90,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
                                     List<String> requiredGroupMembership,
                                     Permissions permissions,
                                     Registry spectatorRegistry,
+                                    KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
                                     C credentials) {
     this.name = name;
     this.providerVersion = providerVersion;
@@ -110,6 +113,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.spectatorRegistry = spectatorRegistry;
     this.credentials = credentials;
+    this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
   }
 
   public List<String> getNamespaces() {
@@ -167,6 +171,20 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     return permissions;
   }
 
+  public Map<String, String> getSpinnakerKindMap() {
+    if (kubernetesSpinnakerKindMap == null) {
+      return new HashMap<String, String>();
+    }
+    Map<String, String> kindMap = new HashMap<>(kubernetesSpinnakerKindMap.kubernetesToSpinnakerKindStringMap());
+    C creds = getCredentials();
+    if (creds instanceof KubernetesV2Credentials) {
+      ((KubernetesV2Credentials) creds).getCustomResources().forEach(customResource -> {
+        kindMap.put(customResource.getKubernetesKind(), customResource.getSpinnakerKind());
+      });
+    }
+    return kindMap;
+  }
+
   @Override
   public List<String> getRequiredGroupMembership() {
     return requiredGroupMembership;
@@ -205,6 +223,12 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     List<String> kinds;
     List<String> omitKinds;
     boolean debug;
+    KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
+
+    Builder kubernetesSpinnakerKindMap(KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
+      this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
+      return this;
+    }
 
     Builder name(String name) {
       this.name = name;
@@ -492,6 +516,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
           requiredGroupMembership,
           permissions,
           spectatorRegistry,
+          kubernetesSpinnakerKindMap,
           credentials
       );
     }
