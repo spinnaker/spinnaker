@@ -127,7 +127,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setKubeconfigFile(kubeconfigFile);
     account.setNamespaces(namespaces);
     account.setOmitNamespaces(omitNamespaces);
-    account.setKinds(namespaces);
+    account.setKinds(kinds);
     account.setOmitKinds(omitKinds);
     account.setConfigureImagePullSecrets(configureImagePullSecrets);
     account.setServiceAccount(serviceAccount);
