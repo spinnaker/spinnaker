@@ -56,4 +56,11 @@
       <checklist items="statusOptions" model="trigger.status" inline="true"></checklist>
     </div>
   </div>
+
+  <div class="form-group" ng-if="pipelineTriggerCtrl.fiatEnabled">
+    <run-as-user-selector service-accounts="pipelineTriggerCtrl.serviceAccounts"
+                          component="trigger"
+                          field="runAsUser">
+    </run-as-user-selector>
+  </div>
 </div>

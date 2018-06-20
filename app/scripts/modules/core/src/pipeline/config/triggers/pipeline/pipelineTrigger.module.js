@@ -3,10 +3,12 @@
 import _ from 'lodash';
 const angular = require('angular');
 
+import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
 import { Registry } from 'core/registry';
+import { SETTINGS } from 'core/config/settings';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.trigger.pipeline', [require('../trigger.directive.js').name])
@@ -23,6 +25,11 @@ module.exports = angular
   })
   .controller('pipelineTriggerCtrl', function($scope, trigger) {
     $scope.trigger = trigger;
+
+    this.fiatEnabled = SETTINGS.feature.fiatEnabled;
+    ServiceAccountReader.getServiceAccounts().then(accounts => {
+      this.serviceAccounts = accounts || [];
+    });
 
     if (!$scope.trigger.application) {
       $scope.trigger.application = $scope.application.name;
