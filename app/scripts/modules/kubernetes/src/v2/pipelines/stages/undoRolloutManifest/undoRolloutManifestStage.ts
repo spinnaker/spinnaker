@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { Registry, SETTINGS } from '@spinnaker/core';
+import { Registry, SETTINGS, IStage } from '@spinnaker/core';
 import { KubernetesV2UndoRolloutManifestConfigCtrl } from './undoRolloutManifestConfig.controller';
 
 export const KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipeline.stage.undoRolloutManifestStage';
@@ -17,6 +17,8 @@ module(KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE, [])
         templateUrl: require('./undoRolloutManifestConfig.html'),
         controller: 'KubernetesV2UndoRolloutManifestConfigCtrl',
         controllerAs: 'ctrl',
+        accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
+        configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
           { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },

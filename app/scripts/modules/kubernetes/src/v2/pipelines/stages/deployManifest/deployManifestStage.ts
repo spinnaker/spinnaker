@@ -7,6 +7,7 @@ import {
   Registry,
   SETTINGS,
   ExecutionArtifactTab,
+  IStage,
 } from '@spinnaker/core';
 
 import { KubernetesV2DeployManifestConfigCtrl } from './deployManifestConfig.controller';
@@ -31,6 +32,8 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [EXECUTION_ARTIFACT_TAB])
         producesArtifacts: true,
         defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
         validators: [],
+        accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
+        configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
       });
 
       ArtifactReferenceService.registerReference('stage', () => [['manifestArtifactId'], ['requiredArtifactIds']]);

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { Registry, SETTINGS } from '@spinnaker/core';
+import { Registry, SETTINGS, IStage } from '@spinnaker/core';
 import { KubernetesV2DeleteManifestConfigCtrl } from './deleteManifestConfig.controller';
 import { KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM } from '../../../manifest/delete/deleteOptionsForm.component';
 import { KUBERNETES_MANIFEST_SELECTOR } from '../../../manifest/selector/selector.component';
@@ -19,6 +19,8 @@ module(KUBERNETES_DELETE_MANIFEST_STAGE, [KUBERNETES_DELETE_MANIFEST_OPTIONS_FOR
         templateUrl: require('./deleteManifestConfig.html'),
         controller: 'KubernetesV2DeleteManifestConfigCtrl',
         controllerAs: 'ctrl',
+        accountExtractor: (stage: IStage): string => (stage.account ? stage.account : []),
+        configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
           { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
