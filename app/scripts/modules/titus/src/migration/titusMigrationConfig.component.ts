@@ -24,7 +24,7 @@ export class RollingPushStrategy implements IMigrationStrategyType {
   }
 
   public concurrentRelaunches = 1;
-  public concurrentRelaunchesAsPercentage = false;
+  public concurrentRelaunchesAsPercentage = true;
 
   public waitTime = 0;
 }
