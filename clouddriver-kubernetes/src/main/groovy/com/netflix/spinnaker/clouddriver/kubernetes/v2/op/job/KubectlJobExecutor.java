@@ -166,7 +166,13 @@ public class KubectlJobExecutor {
     JobStatus status = backoffWait(jobId, credentials.isDebug());
 
     if (status.getResult() != JobStatus.Result.SUCCESS) {
-      throw new KubectlException("Failed to delete " + kind + "/" + name + " from " + namespace + ": " + status.getStdErr());
+      String id;
+      if (StringUtils.isNotEmpty(name)) {
+        id = kind + "/" + name;
+      } else {
+        id = labelSelectors.toString();
+      }
+      throw new KubectlException("Failed to delete " + id + " from " + namespace + ": " + status.getStdErr());
     }
 
     if (StringUtils.isEmpty(status.getStdOut()) || status.getStdOut().equals("No output from command.") || status.getStdOut().startsWith("No resources found")) {
