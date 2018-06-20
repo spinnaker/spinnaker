@@ -831,7 +831,8 @@ class KubernetesV2Configurator(Configurator):
 
   def add_config(self, options, script):
     """Implements interface."""
-    if not options.k8s_v2_account_credentials:
+    options.k8s_v2_account_enabled = options.k8s_v2_account_credentials is not None
+    if not options.k8s_v2_account_enabled:
       return
 
     account_params = [options.k8s_v2_account_name]
