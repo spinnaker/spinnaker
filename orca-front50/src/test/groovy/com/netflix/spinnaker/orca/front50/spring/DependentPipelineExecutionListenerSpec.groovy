@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.security.User
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -30,19 +31,8 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
   def front50Service = Mock(Front50Service)
   def dependentPipelineStarter = Mock(DependentPipelineStarter)
-  def pipelineConfig = [
-    triggers: [
-      [
-        "enabled"    : true,
-        "type"       : "pipeline",
-        "application": "rush",
-        "status"     : [
-          "successful", "failed"
-        ],
-        "pipeline"   : "97c435a0-0faf-11e5-a62b-696d38c37faa"
-      ]
-    ]
-  ]
+  def pipelineConfig = buildPipelineConfig(null)
+  def pipelineConfigWithRunAsUser = buildPipelineConfig("my_run_as_user")
 
   def pipeline = pipeline {
     application = "orca"
@@ -54,7 +44,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
   @Subject
   DependentPipelineExecutionListener listener = new DependentPipelineExecutionListener(
-    front50Service, dependentPipelineStarter
+    front50Service, dependentPipelineStarter, true
   )
 
   def "should trigger downstream pipeline when status and pipelines match"() {
@@ -66,14 +56,15 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
     front50Service.getAllPipelines() >> [
-      pipelineConfig
+      pipelineConfig, pipelineConfigWithRunAsUser
     ]
 
     when:
     listener.afterExecution(null, pipeline, null, true)
 
     then:
-    1 * dependentPipelineStarter.trigger(_, _, _, _, _)
+    1 * dependentPipelineStarter.trigger(_, _, _, _, _, null)
+    1 * dependentPipelineStarter.trigger(_, _, _, _, _, { User user -> user.email == "my_run_as_user" })
 
     where:
     status << [ExecutionStatus.SUCCEEDED, ExecutionStatus.TERMINAL]
@@ -167,5 +158,22 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     then:
     0 * dependentPipelineStarter._
+  }
+
+  private static Map buildPipelineConfig(String runAsUser) {
+    return [
+      triggers: [
+        [
+          "enabled"    : true,
+          "type"       : "pipeline",
+          "application": "rush",
+          "status"     : [
+            "successful", "failed"
+          ],
+          "pipeline"   : "97c435a0-0faf-11e5-a62b-696d38c37faa",
+          "runAsUser"  : runAsUser
+        ]
+      ]
+    ]
   }
 }

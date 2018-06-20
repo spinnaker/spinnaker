@@ -21,7 +21,10 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -83,10 +86,35 @@ class StartPipelineTask implements Task {
       }
     }
 
-    def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, parameters, stage.id)
+    def pipeline = dependentPipelineStarter.trigger(
+      pipelineConfig,
+      stage.context.user,
+      stage.execution,
+      parameters,
+      stage.id,
+      getUser(stage.execution)
+    )
 
     new TaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id, executionName: pipelineConfig.name])
-
   }
 
+  // There are currently two sources-of-truth for the user:
+  // 1. The MDC context, which are the values that get propagated to downstream services like Front50.
+  // 2. The Execution.AuthenticationDetails object.
+  //
+  // In the case of the implicit pipeline invocation, the MDC is empty, which is why we fall back
+  // to Execution.AuthenticationDetails of the parent pipeline.
+  User getUser(Execution parentPipeline) {
+    def korkUsername = AuthenticatedRequest.getSpinnakerUser()
+    if (korkUsername.isPresent()) {
+      def korkAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("")
+      return new User(email: korkUsername.get(), allowedAccounts: korkAccounts?.split(",")?.toList() ?: []).asImmutable()
+    }
+
+    if (parentPipeline.authentication?.user) {
+      return parentPipeline.authentication.toKorkUser().get()
+    }
+
+    return null
+  }
 }

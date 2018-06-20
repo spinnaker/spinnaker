@@ -18,8 +18,12 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.security.User
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -31,6 +35,7 @@ class StartPipelineTaskSpec extends Specification {
   StartPipelineTask task = new StartPipelineTask(front50Service: front50Service,
     dependentPipelineStarter: dependentPipelineStarter)
 
+  @Unroll
   def "should trigger the dependent pipeline with the correct context and parentPipelineStageId"() {
     given:
     def pipelineConfig = [id: "testStrategyId", application: "orca", name: "testStrategy"]
@@ -54,8 +59,11 @@ class StartPipelineTaskSpec extends Specification {
         user              : "testUser"
       ]
     }
+    stage.execution.authentication = authentication
+
     def gotContext
     def parentPipelineStageId
+    User authenticatedUser
 
     when:
     def result = task.execute(stage)
@@ -64,6 +72,8 @@ class StartPipelineTaskSpec extends Specification {
     dependentPipelineStarter.trigger(*_) >> {
       gotContext = it[3] // 3rd arg is context.
       parentPipelineStageId = it[4]
+      authenticatedUser = it[5]
+
       return pipeline {
         id = "testPipelineId"
         application = "orca"
@@ -84,5 +94,17 @@ class StartPipelineTaskSpec extends Specification {
       ]
     ]
     parentPipelineStageId == stage.id
+
+    authenticatedUser?.email == expectedAuthenticatedEmail
+    authenticatedUser?.allowedAccounts == expectedAuthenticatedAllowedAccounts
+
+    where:
+    authentication || expectedAuthenticatedEmail || expectedAuthenticatedAllowedAccounts
+    null           || null                       || null
+    new Execution.AuthenticationDetails(
+      "authenticated_user",
+      "account1"
+    )              || "authenticated_user"       || ["account1"]
+
   }
 }

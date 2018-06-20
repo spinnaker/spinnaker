@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.User
 import org.slf4j.MDC
 import org.springframework.context.support.StaticApplicationContext
 import spock.lang.Specification
@@ -43,7 +44,7 @@ class DependentPipelineStarterSpec extends Specification {
   ExecutionRepository executionRepository = Mock(ExecutionRepository)
   ArtifactResolver artifactResolver = Spy(ArtifactResolver, constructorArgs: [mapper, executionRepository])
 
-  def "should propagate credentials from explicit pipeline invocation ('run pipeline' stage)"() {
+  def "should only propagate credentials when explicitly provided"() {
     setup:
     def triggeredPipelineConfig = [name: "triggered", id: "triggered"]
     def parentPipeline = pipeline {
@@ -53,55 +54,10 @@ class DependentPipelineStarterSpec extends Specification {
     def gotMDC = [:]
     def executionLauncher = Stub(ExecutionLauncher) {
       start(*_) >> {
-        gotMDC.putAll(MDC.copyOfContextMap)
-        def p = mapper.readValue(it[1], Map)
-        return pipeline {
-          name = p.name
-          id = p.name
-          trigger = mapper.convertValue(p.trigger, Trigger)
-        }
-      }
-    }
-    def applicationContext = new StaticApplicationContext()
-    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
-    def mdc = [
-      (AuthenticatedRequest.SPINNAKER_USER)    : "myMDCUser",
-      (AuthenticatedRequest.SPINNAKER_ACCOUNTS): "acct3,acct4"
-    ]
-    dependentPipelineStarter = new DependentPipelineStarter(
-      objectMapper: mapper,
-      applicationContext: applicationContext,
-      contextParameterProcessor: new ContextParameterProcessor(),
-      artifactResolver: artifactResolver
-    )
-
-    when:
-    MDC.setContextMap(mdc)
-    def result = dependentPipelineStarter.trigger(
-      triggeredPipelineConfig,
-      null /*user*/,
-      parentPipeline, [:],
-      null
-    )
-    MDC.clear()
-
-    then:
-    result?.name == "triggered"
-    gotMDC["X-SPINNAKER-USER"] == "myMDCUser"
-    gotMDC["X-SPINNAKER-ACCOUNTS"] == "acct3,acct4"
-  }
-
-  def "should propagate credentials from implicit pipeline invocation (listener for pipeline completion)"() {
-    setup:
-    def triggeredPipelineConfig = [name: "triggered", id: "triggered"]
-    def parentPipeline = pipeline {
-      name = "parent"
-      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
-    }
-    def gotMDC = [:]
-    def executionLauncher = Stub(ExecutionLauncher) {
-      start(*_) >> {
-        gotMDC.putAll(MDC.copyOfContextMap)
+        gotMDC.putAll([
+          "X-SPINNAKER-USER": MDC.get("X-SPINNAKER-USER"),
+          "X-SPINNAKER-ACCOUNTS": MDC.get("X-SPINNAKER-ACCOUNTS"),
+        ])
         def p = mapper.readValue(it[1], Map)
         return pipeline {
           name = p.name
@@ -120,20 +76,36 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     when:
-    MDC.clear()
     def result = dependentPipelineStarter.trigger(
       triggeredPipelineConfig,
       null /*user*/,
       parentPipeline,
       [:],
+      null,
+      buildAuthenticatedUser("user", ["acct3", "acct4"])
+    )
+    MDC.clear()
+
+    then:
+    result?.name == "triggered"
+    gotMDC["X-SPINNAKER-USER"] == "user"
+    gotMDC["X-SPINNAKER-ACCOUNTS"] == "acct3,acct4"
+
+    when:
+    result = dependentPipelineStarter.trigger(
+      triggeredPipelineConfig,
+      null /*user*/,
+      parentPipeline,
+      [:],
+      null,
       null
     )
     MDC.clear()
 
     then:
     result?.name == "triggered"
-    gotMDC["X-SPINNAKER-USER"] == "parentUser"
-    gotMDC["X-SPINNAKER-ACCOUNTS"] == "acct1,acct2"
+    gotMDC["X-SPINNAKER-USER"] == null
+    gotMDC["X-SPINNAKER-ACCOUNTS"] == null
   }
 
   def "should propagate dry run flag"() {
@@ -170,7 +142,8 @@ class DependentPipelineStarterSpec extends Specification {
       null /*user*/,
       parentPipeline,
       [:],
-      null
+      null,
+      buildAuthenticatedUser("user", [])
     )
 
     then:
@@ -228,7 +201,8 @@ class DependentPipelineStarterSpec extends Specification {
       null,
       parentPipeline,
       [:],
-      null
+      null,
+      buildAuthenticatedUser("user", [])
     )
 
     then:
@@ -297,7 +271,8 @@ class DependentPipelineStarterSpec extends Specification {
       null,
       parentPipeline,
       [:],
-      "stage1"
+      "stage1",
+      buildAuthenticatedUser("user", [])
     )
 
     then:
@@ -360,7 +335,8 @@ class DependentPipelineStarterSpec extends Specification {
       null,
       parentPipeline,
       [:],
-      null
+      null,
+      buildAuthenticatedUser("user", [])
     )
 
     then:
@@ -403,10 +379,19 @@ class DependentPipelineStarterSpec extends Specification {
       null /*user*/,
       parentPipeline,
       [:],
-      null
+      null,
+      buildAuthenticatedUser("user", [])
     )
 
     then:
     result.trigger.parameters.a == true
+  }
+
+  private static User buildAuthenticatedUser(String email, List<String> allowedAccounts) {
+    def authenticatedUser = new User()
+    authenticatedUser.setEmail(email)
+    authenticatedUser.setAllowedAccounts(allowedAccounts)
+
+    return authenticatedUser
   }
 }

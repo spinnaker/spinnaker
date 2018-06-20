@@ -52,7 +52,12 @@ class DependentPipelineStarter implements ApplicationContextAware {
   @Autowired(required = false)
   ArtifactResolver artifactResolver
 
-  Execution trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
+  Execution trigger(Map pipelineConfig,
+                    String user,
+                    Execution parentPipeline,
+                    Map suppliedParameters,
+                    String parentPipelineStageId,
+                    User principal) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
 
     if (pipelineConfig.disabled) {
@@ -60,8 +65,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
     }
 
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
-
-    User principal = getUser(parentPipeline)
 
     pipelineConfig.trigger = [
       type                 : "pipeline",
@@ -149,26 +152,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     log.info('executing dependent pipeline {}', pipeline.id)
     return pipeline
-  }
-
-  // There are currently two sources-of-truth for the user:
-  // 1. The MDC context, which are the values that get propagated to downstream services like Front50.
-  // 2. The Execution.AuthenticationDetails object.
-  //
-  // In the case of the implicit pipeline invocation, the MDC is empty, which is why we fall back
-  // to Execution.AuthenticationDetails of the parent pipeline.
-  User getUser(Execution parentPipeline) {
-    def korkUsername = AuthenticatedRequest.getSpinnakerUser()
-    if (korkUsername.isPresent()) {
-      def korkAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("")
-      return new User(email: korkUsername.get(), allowedAccounts: korkAccounts?.split(",")?.toList() ?: []).asImmutable()
-    }
-
-    if (parentPipeline.authentication.user) {
-      return parentPipeline.authentication.toKorkUser().get()
-    }
-
-    return null
   }
 
   /**

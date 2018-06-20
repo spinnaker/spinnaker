@@ -83,9 +83,10 @@ class Front50Configuration {
   @Bean
   DependentPipelineExecutionListener dependentPipelineExecutionListener(
     Front50Service front50Service,
-    DependentPipelineStarter dependentPipelineStarter
+    DependentPipelineStarter dependentPipelineStarter,
+    @Value('${services.fiat.enabled:false}') boolean fiatEnabled
   ) {
-    new DependentPipelineExecutionListener(front50Service, dependentPipelineStarter)
+    new DependentPipelineExecutionListener(front50Service, dependentPipelineStarter, fiatEnabled)
   }
 
   @Bean
