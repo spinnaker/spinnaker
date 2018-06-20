@@ -39,6 +39,7 @@ export interface IAccountDetails extends IAccount {
   primaryAccount: boolean;
   regions: IRegion[];
   namespaces?: string[];
+  spinnakerKindMap?: { [k: string]: string };
 }
 
 export interface IAggregatedAccounts {
