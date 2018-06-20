@@ -163,7 +163,7 @@ class AwsLookupUtil {
 
   private String convertVpcNameToId(String awsAccount, String region, String name) {
     if (!amazonVpcs) {
-      amazonVpcs = amazonVpcProvider.all
+      amazonVpcs = amazonVpcProvider.getAll()
     }
     amazonVpcs.find { it.name == name && it.account == awsAccount && it.region == region }?.id
   }
@@ -199,6 +199,7 @@ class AwsLookupUtil {
   }
 
   private void refreshAwsAccounts() {
+    amazonVpcs = amazonVpcProvider.getAll()
     awsAccountLookup = []
     accountCredentialsProvider.all.findAll {
       it instanceof NetflixTitusCredentials
