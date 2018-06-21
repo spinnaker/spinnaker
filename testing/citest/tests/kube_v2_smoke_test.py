@@ -184,6 +184,58 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
             title='deploy_manifest', data=payload, path='tasks'),
         contract=builder.build())
 
+  def patch_manifest(self):
+    """Creates OperationContract for patchManifest.
+
+    To verify the operation, we just check that the deployment was created.
+    """
+    bindings = self.bindings
+    name = self.TEST_APP + '-deployment'
+    test_label = 'patchedLabel'
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+          'account': bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+          'cloudProvider': 'kubernetes',
+          'kind': 'deployment',
+          'location': self.TEST_NAMESPACE,
+          'manifestName': 'deployment ' + name,
+          'type': 'patchManifest',
+          'user': '[anonymous]',
+          'source': 'text',
+          'patchBody': {
+            'metadata': {
+              'labels': {
+                'testLabel': test_label,
+              }
+            }
+          },
+          'options': {
+            'mergeStrategy': 'strategic',
+            'record': True
+          }
+        }],
+        description='Patch manifest',
+        application=self.TEST_APP)
+
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('Deployment patched',
+                                retryable_for_secs=15)
+     .get_resources(
+        'deploy',
+        extra_args=[name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES({
+      'metadata': jp.DICT_MATCHES({
+        'labels': jp.DICT_MATCHES({
+          'testLabel': jp.STR_EQ(test_label)
+        })
+      })
+    }))))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='patch_manifest', data=payload, path='tasks'),
+        contract=builder.build())
+
   def undo_rollout_manifest(self, image):
     """Creates OperationContract for undoRolloutManifest.
 
@@ -323,6 +375,9 @@ class KubeV2SmokeTest(st.AgentTestCase):
 
   def test_e_scale_manifest(self):
     self.run_test_case(self.scenario.scale_manifest(), max_retries=1)
+
+  def test_f_patch_manifest(self):
+    self.run_test_case(self.scenario.patch_manifest(), max_retries=1)
 
   def test_y_delete_manifest(self):
     self.run_test_case(self.scenario.delete_manifest(), max_retries=2)
