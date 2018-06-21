@@ -90,7 +90,7 @@ object MannWhitney {
             / ((xLen + yLen) * (xLen + yLen - 1))
           )
     )
-    if (sigmaCi == 0) throw new MannWhitneyException("cannot compute confidence interval when all observations are tied")
+    if (sigmaCi == 0) throw new IllegalArgumentException("cannot compute confidence interval when all observations are tied")
     (dz - correctionCi) / sigmaCi - quantile
   }
 }
