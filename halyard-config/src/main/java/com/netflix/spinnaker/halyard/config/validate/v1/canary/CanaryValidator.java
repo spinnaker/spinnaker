@@ -50,7 +50,7 @@ public class CanaryValidator extends Validator<Canary> {
     for (AbstractCanaryServiceIntegration svc : n.getServiceIntegrations()) {
       for (AbstractCanaryAccount account : (List<AbstractCanaryAccount>)svc.getAccounts()) {
         if (accounts.contains(account.getName())) {
-          p.addProblem(Problem.Severity.FATAL, "Canary account \"" + account.getName() + "\" appears more than once")
+          p.addProblem(Problem.Severity.FATAL, "Canary account \"" + account.getName() + "\" appears more than once.")
             .setRemediation("Change the name of the account in " + svc.getNodeName() + " service integration");
         } else {
           accounts.add(account.getName());
@@ -58,11 +58,32 @@ public class CanaryValidator extends Validator<Canary> {
       }
     }
 
+    boolean configurationAndObjectStoresAreConfigured = false;
+
     for (AbstractCanaryServiceIntegration s : n.getServiceIntegrations()) {
       if (s instanceof GoogleCanaryServiceIntegration) {
-        new GoogleCanaryValidator().setHalyardVersion(halyardVersion).setRegistry(registry).validate(p, (GoogleCanaryServiceIntegration)s);
+        GoogleCanaryServiceIntegration googleCanaryServiceIntegration = (GoogleCanaryServiceIntegration)s;
+
+        new GoogleCanaryValidator().setHalyardVersion(halyardVersion).setRegistry(registry).validate(p, googleCanaryServiceIntegration);
+
+        if (!configurationAndObjectStoresAreConfigured) {
+          configurationAndObjectStoresAreConfigured = googleCanaryServiceIntegration.isEnabled() && googleCanaryServiceIntegration.isGcsEnabled();
+        }
       } else if (s instanceof AwsCanaryServiceIntegration) {
-        new AwsCanaryValidator().validate(p, (AwsCanaryServiceIntegration)s);
+        AwsCanaryServiceIntegration awsCanaryServiceIntegration = (AwsCanaryServiceIntegration)s;
+
+        new AwsCanaryValidator().validate(p, awsCanaryServiceIntegration);
+
+        if (!configurationAndObjectStoresAreConfigured) {
+          configurationAndObjectStoresAreConfigured = awsCanaryServiceIntegration.isEnabled() && awsCanaryServiceIntegration.isS3Enabled();
+        }
+      }
+    }
+
+    if (n.isEnabled()) {
+      if (!configurationAndObjectStoresAreConfigured) {
+        p.addProblem(Problem.Severity.WARNING, "There is no account of type CONFIGURATION_STORE and OBJECT_STORE configured.")
+          .setRemediation("Enable GCS or S3 and ensure that the relevant Google or AWS canary account is also enabled.");
       }
     }
   }
