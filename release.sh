@@ -36,3 +36,6 @@ for elem in darwin,amd64 linux,amd64; do
   gsutil cp spin $path
   rm spin
 done
+
+echo $VERSION > latest
+gsutil cp latest ${GCS_BUCKET_PATH}/
