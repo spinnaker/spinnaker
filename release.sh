@@ -2,7 +2,7 @@ set -e
 
 if [ ! -d ${HOME}/google-cloud-sdk ]; then
   wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-206.0.0-linux-x86_64.tar.gz -O install.tar.gz
-  tar -xvfz install.tar.gz
+  tar -xvzf install.tar.gz
 
   ./google-cloud-sdk/install.sh
   ./google-cloud-sdk/bin/gcloud init
