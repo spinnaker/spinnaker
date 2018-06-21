@@ -234,6 +234,7 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
       } else {
         cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
           attributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
+          relationships[INSTANCES.ns].addAll(instanceKeys)
         }
       }
     }

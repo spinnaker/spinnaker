@@ -38,11 +38,13 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -138,6 +140,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     BatchRequest autoscalerRequest = buildBatchRequest()
 
     List<InstanceTemplate> instanceTemplates = fetchInstanceTemplates(compute, project)
+    List<GoogleInstance> instances = GCEUtil.fetchInstances(this, credentials)
 
     zones?.each { String zone ->
       InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
@@ -145,14 +148,15 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
         serverGroups: serverGroups,
         zone: zone,
         instanceGroupsRequest: instanceGroupsRequest,
-        autoscalerRequest: autoscalerRequest)
+        autoscalerRequest: autoscalerRequest,
+        instances: instances)
       if (onDemandServerGroupName) {
         InstanceGroupManagerCallbacks.InstanceGroupManagerSingletonCallback igmCallback =
-          instanceGroupManagerCallbacks.newInstanceGroupManagerSingletonCallback(instanceTemplates)
+          instanceGroupManagerCallbacks.newInstanceGroupManagerSingletonCallback(instanceTemplates, instances)
         compute.instanceGroupManagers().get(project, zone, onDemandServerGroupName).queue(igmRequest, igmCallback)
       } else {
         InstanceGroupManagerCallbacks.InstanceGroupManagerListCallback igmlCallback =
-          instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback(instanceTemplates)
+          instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback(instanceTemplates, instances)
         compute.instanceGroupManagers().list(project, zone).setMaxResults(maxMIGPageSize).queue(igmRequest, igmlCallback)
       }
     }
@@ -291,12 +295,13 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       def clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
       def appKey = Keys.getApplicationKey(applicationName)
 
-      def instanceKeys = []
       def loadBalancerKeys = []
+      def instanceKeys = serverGroup?.instances?.collect { Keys.getInstanceKey(accountName, region, it.name) } ?: []
 
       cacheResultBuilder.namespace(APPLICATIONS.ns).keep(appKey).with {
         attributes.name = applicationName
         relationships[CLUSTERS.ns].add(clusterKey)
+        relationships[INSTANCES.ns].addAll(instanceKeys)
       }
 
       cacheResultBuilder.namespace(CLUSTERS.ns).keep(clusterKey).with {
@@ -304,6 +309,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
         attributes.accountName = accountName
         relationships[APPLICATIONS.ns].add(appKey)
         relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+        relationships[INSTANCES.ns].addAll(instanceKeys)
       }
       log.debug("Writing cache entry for cluster key ${clusterKey} adding relationships for application ${appKey} and server group ${serverGroupKey}")
 
@@ -323,6 +329,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
           relationships[APPLICATIONS.ns].add(appKey)
           relationships[CLUSTERS.ns].add(clusterKey)
           relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
+          relationships[INSTANCES.ns].addAll(instanceKeys)
         }
       }
     }
@@ -381,18 +388,20 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     String zone
     BatchRequest instanceGroupsRequest
     BatchRequest autoscalerRequest
+    List<GoogleInstance> instances
 
-    InstanceGroupManagerSingletonCallback<InstanceGroupManager> newInstanceGroupManagerSingletonCallback(List<InstanceTemplate> instanceTemplates) {
-      return new InstanceGroupManagerSingletonCallback<InstanceGroupManager>(instanceTemplates: instanceTemplates)
+    InstanceGroupManagerSingletonCallback<InstanceGroupManager> newInstanceGroupManagerSingletonCallback(List<InstanceTemplate> instanceTemplates, List<GoogleInstance> instances) {
+      return new InstanceGroupManagerSingletonCallback<InstanceGroupManager>(instanceTemplates: instanceTemplates, instances: instances)
     }
 
-    InstanceGroupManagerListCallback<InstanceGroupManagerList> newInstanceGroupManagerListCallback(List<InstanceTemplate> instanceTemplates) {
-      return new InstanceGroupManagerListCallback<InstanceGroupManagerList>(instanceTemplates: instanceTemplates)
+    InstanceGroupManagerListCallback<InstanceGroupManagerList> newInstanceGroupManagerListCallback(List<InstanceTemplate> instanceTemplates, List<GoogleInstance> instances) {
+      return new InstanceGroupManagerListCallback<InstanceGroupManagerList>(instanceTemplates: instanceTemplates, instances: instances)
     }
 
     class InstanceGroupManagerSingletonCallback<InstanceGroupManager> extends JsonBatchCallback<InstanceGroupManager> {
 
       List<InstanceTemplate> instanceTemplates
+      List<GoogleInstance> instances
 
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -406,7 +415,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       @Override
       void onSuccess(InstanceGroupManager instanceGroupManager, HttpHeaders responseHeaders) throws IOException {
         if (Names.parseName(instanceGroupManager.name)) {
-          GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
+          GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager, instances)
           serverGroups << serverGroup
 
           populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup, instanceTemplates)
@@ -420,12 +429,13 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     class InstanceGroupManagerListCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> implements FailureLogger {
 
       List<InstanceTemplate> instanceTemplates
+      List<GoogleInstance> instances
 
       @Override
       void onSuccess(InstanceGroupManagerList instanceGroupManagerList, HttpHeaders responseHeaders) throws IOException {
         instanceGroupManagerList?.items?.each { InstanceGroupManager instanceGroupManager ->
           if (Names.parseName(instanceGroupManager.name)) {
-            GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager)
+            GoogleServerGroup serverGroup = buildServerGroupFromInstanceGroupManager(instanceGroupManager, instances)
             serverGroups << serverGroup
 
             populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup, instanceTemplates)
@@ -449,13 +459,15 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       }
     }
 
-    GoogleServerGroup buildServerGroupFromInstanceGroupManager(InstanceGroupManager instanceGroupManager) {
+    GoogleServerGroup buildServerGroupFromInstanceGroupManager(InstanceGroupManager instanceGroupManager, List<GoogleInstance> instances) {
       String zone = Utils.getLocalName(instanceGroupManager.zone)
+      List<GoogleInstance> groupInstances = instances.findAll { it.getName().startsWith(instanceGroupManager.getBaseInstanceName()) }
 
       Map<String, Integer> namedPorts = [:]
       instanceGroupManager.namedPorts.each { namedPorts[(it.name)] = it.port }
       return new GoogleServerGroup(
           name: instanceGroupManager.name,
+          instances: groupInstances,
           region: region,
           zone: zone,
           namedPorts: namedPorts,

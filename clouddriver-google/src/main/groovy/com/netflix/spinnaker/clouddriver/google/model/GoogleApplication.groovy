@@ -39,5 +39,7 @@ class GoogleApplication {
      * Account name -> cluster names
      */
     Map<String, Set<String>> clusterNames = [:].withDefault {[] as Set}
+
+    List<Map<String, String>> instances
   }
 }

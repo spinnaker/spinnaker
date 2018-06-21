@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
 
 @Component
 class GoogleApplicationProvider implements ApplicationProvider {
@@ -45,7 +46,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
 
   @Autowired
   ObjectMapper objectMapper
-  
+
   @Override
   Set<GoogleApplication.View> getApplications(boolean expand) {
     def filter = expand ? RelationshipCacheFilter.include(CLUSTERS.ns) : RelationshipCacheFilter.none()
@@ -58,7 +59,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
   GoogleApplication.View getApplication(String name) {
     CacheData cacheData = cacheView.get(APPLICATIONS.ns,
                                         Keys.getApplicationKey(name),
-                                        RelationshipCacheFilter.include(CLUSTERS.ns))
+                                        RelationshipCacheFilter.include(CLUSTERS.ns, INSTANCES.ns))
     if (cacheData) {
       return applicationFromCacheData(cacheData)
     }
@@ -71,6 +72,8 @@ class GoogleApplicationProvider implements ApplicationProvider {
       def clusterKeyParsed = Keys.parse(clusterKey)
       applicationView.clusterNames[clusterKeyParsed.account] << clusterKeyParsed.name
     }
+
+    applicationView.instances = cacheData?.relationships[INSTANCES.ns].collect { Keys.parse(it) } ?: []
 
     applicationView
   }

@@ -64,12 +64,11 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     }
 
     // TODO(duftler): De-frigga this.
-    def allApplicationInstanceKeys = cacheView.filterIdentifiers(INSTANCES.ns, Keys.getInstanceKey("*", "*", "$application-*"))
 
     cacheView.getAll(LOAD_BALANCERS.ns,
                      identifiers.unique(),
-                     RelationshipCacheFilter.include(SERVER_GROUPS.ns)).collect { CacheData loadBalancerCacheData ->
-      loadBalancersFromCacheData(loadBalancerCacheData, allApplicationInstanceKeys)
+                     RelationshipCacheFilter.include(SERVER_GROUPS.ns, INSTANCES.ns)).collect { CacheData loadBalancerCacheData ->
+      loadBalancersFromCacheData(loadBalancerCacheData, loadBalancerCacheData.relationships[INSTANCES.ns] as Set)
     } as Set
   }
 
