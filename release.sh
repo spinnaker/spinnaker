@@ -1,10 +1,17 @@
 set -e
 
 if [ ! -d ${HOME}/google-cloud-sdk ]; then
-  curl https://sdk.cloud.google.com | bash;
+  wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-206.0.0-linux-x86_64.tar.gz -O install.tar.gz
+  tar -xvfz install.tar.gz
+
+  ./google-cloud-sdk/install.sh
+  ./google-cloud-sdk/bin/gcloud init
 fi
 
+export PATH=$PATH:`pwd`/google-cloud-sdk/bin
+
 gcloud auth activate-service-account --key-file key.json
+gcloud components install gsutil -q
 
 if [ -z "$VERSION" ]; then
   echo -e "No version to release specified with the \$VERSION env var, exiting"
