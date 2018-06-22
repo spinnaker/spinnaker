@@ -7,6 +7,7 @@ if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   go test -v ./...
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
   echo -e 'Build Branch for Release => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']'
+  openssl aes-256-cbc -K $encrypted_ce4fc3e4b052_key -iv $encrypted_ce4fc3e4b052_iv -in key.json.enc -out key.json -d
   env VERSION=$TRAVIS_TAG ./release.sh
 else
   echo -e 'Unknown build command for PR? ('$TRAVIS_PULL') Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']'

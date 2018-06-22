@@ -1,5 +1,3 @@
 language: go
 install: ./travisInstall.sh
 script: ./travisBuild.sh
-before_install:
-- openssl aes-256-cbc -v -K $encrypted_ce4fc3e4b052_key -iv $encrypted_ce4fc3e4b052_iv -in key.json.enc -out key.json -d
