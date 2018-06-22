@@ -272,7 +272,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
       }
 
-      if (!description.hardConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE) && !description.softConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE)) {
+      if (description.getJobType() == "service" && !description.hardConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE) && !description.softConstraints?.contains(SubmitJobRequest.Constraint.ZONE_BALANCE)) {
         submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
       }
 
