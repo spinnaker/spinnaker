@@ -111,7 +111,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       Keys.getClusterKey(account, application, name),
       RelationshipCacheFilter.include(SERVER_GROUPS.ns, INSTANCES.ns))
 
-    Set<String> allClusterInstanceKeys = includeDetails ? clusterData.relationships[INSTANCES.ns] : [] as Set
+    Set<String> allClusterInstanceKeys = includeDetails ? (clusterData?.relationships[INSTANCES.ns] ?: []) : [] as Set
 
     return clusterData ? clusterFromCacheData(clusterData, allClusterInstanceKeys) : null
   }
