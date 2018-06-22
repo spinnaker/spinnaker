@@ -114,8 +114,8 @@ func (c *PipelineSaveCommand) Run(args []string) int {
 		return 1
 	}
 
-	c.ApiMeta.Ui.Output(fmt.Sprintf("Parsed submitted pipeline: %s\n", pipelineJson))
 	if valid := c.pipelineIsValid(pipelineJson); !valid {
+		c.ApiMeta.Ui.Error(fmt.Sprintf("Submitted pipeline is invalid: %s\n", pipelineJson))
 		return 1
 	}
 
