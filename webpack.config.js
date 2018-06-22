@@ -30,7 +30,7 @@ function configure(env, webpackOpts) {
     },
     output: {
       path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
-      filename: '[name].js',
+      filename: `[name]${IS_PRODUCTION ? '.[chunkhash]' : ''}.js`,
     },
     devtool: IS_PRODUCTION ? 'source-map' : 'eval',
     optimization: {
