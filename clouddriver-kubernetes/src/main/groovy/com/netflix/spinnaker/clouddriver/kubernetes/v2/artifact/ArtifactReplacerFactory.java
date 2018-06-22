@@ -42,7 +42,26 @@ public class ArtifactReplacerFactory {
     return Replacer.builder()
         .replacePath("$..spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
         .findPath("$..spec.template.spec.containers.*.image")
-        .namePattern(DOCKER_IMAGE_REFERENCE_PATTERN)
+        .nameFromReference(ref -> {
+          int atIndex = ref.indexOf('@');
+          // @ can only show up in image references denoting a digest
+          // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go#L70
+          if (atIndex >= 0) {
+            return ref.substring(0, atIndex);
+          }
+
+          // : can be used to denote a port, part of a digest (already matched) or a tag
+          // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go#L69
+          int lastColonIndex = ref.lastIndexOf(':');
+
+          if (lastColonIndex < 0) {
+            return ref;
+          }
+
+          // we don't need to check if this is a tag, or a port. ports will be matched lazily if they are numeric, and are treated as tags first:
+          // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go#L34
+          return ref.substring(0, lastColonIndex);
+        })
         .type(ArtifactTypes.DOCKER_IMAGE)
         .build();
   }
