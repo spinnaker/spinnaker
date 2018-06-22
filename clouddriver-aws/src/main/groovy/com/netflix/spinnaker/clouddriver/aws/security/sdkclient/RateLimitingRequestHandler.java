@@ -21,6 +21,8 @@ import com.amazonaws.handlers.RequestHandler2;
 import com.google.common.util.concurrent.RateLimiter;
 import com.netflix.spectator.api.Counter;
 
+import java.util.Objects;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -47,17 +49,12 @@ public class RateLimitingRequestHandler extends RequestHandler2 {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-
     RateLimitingRequestHandler that = (RateLimitingRequestHandler) o;
-
-    if (!counter.equals(that.counter)) return false;
-    return rateLimiter.equals(that.rateLimiter);
+    return Objects.equals(rateLimiter, that.rateLimiter);
   }
 
   @Override
   public int hashCode() {
-    int result = counter.hashCode();
-    result = 31 * result + rateLimiter.hashCode();
-    return result;
+    return Objects.hash(rateLimiter);
   }
 }
