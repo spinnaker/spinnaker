@@ -18,6 +18,7 @@ dependencies {
   spinnaker.group("test")
   spinnaker.group("lombok")
   spinnaker.group("retrofitDefault")
+  spinnaker.group("fiat")
 
   compile project(':echo-core')
   compile spinnaker.dependency('korkWeb')

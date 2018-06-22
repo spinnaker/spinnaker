@@ -3,6 +3,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
+import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,22 +26,22 @@ public class PipelineInitiator implements Action1<Pipeline> {
 
   private final Registry registry;
   private final OrcaService orca;
+  private final FiatStatus fiatStatus;
   private final boolean enabled;
-  private final boolean fiatEnabled;
   private final int retryCount;
   private final long retryDelayMillis;
 
   @Autowired
   public PipelineInitiator(Registry registry,
                            OrcaService orca,
+                           FiatStatus fiatStatus,
                            @Value("${orca.enabled:true}") boolean enabled,
-                           @Value("${services.fiat.enabled:false}") boolean fiatEnabled,
                            @Value("${orca.pipelineInitiatorRetryCount:5}") int retryCount,
                            @Value("${orca.pipelineInitiatorRetryDelayMillis:5000}") long retryDelayMillis) {
     this.registry = registry;
     this.orca = orca;
+    this.fiatStatus = fiatStatus;
     this.enabled = enabled;
-    this.fiatEnabled = fiatEnabled;
     this.retryCount = retryCount;
     this.retryDelayMillis = retryDelayMillis;
   }
@@ -72,7 +73,7 @@ public class PipelineInitiator implements Action1<Pipeline> {
       runAsUser = pipeline.getTrigger().getRunAsUser();
     }
 
-    return (fiatEnabled && runAsUser != null && !runAsUser.isEmpty()) ?
+    return (fiatStatus.isEnabled() && runAsUser != null && !runAsUser.isEmpty()) ?
       orca.trigger(pipeline, runAsUser) :
       orca.trigger(pipeline);
   }

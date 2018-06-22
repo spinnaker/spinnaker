@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse
  * A filter to enable CORS access
  */
 @Component
-class CorsFilter implements Filter {
+class EchoCorsFilter implements Filter {
 
     void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletResponse response = (HttpServletResponse) res
