@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.spring
 
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -33,14 +34,14 @@ class DependentPipelineExecutionListener implements ExecutionListener {
 
   private final Front50Service front50Service
   private DependentPipelineStarter dependentPipelineStarter
-  private final boolean fiatEnabled;
+  private final FiatStatus fiatStatus
 
   DependentPipelineExecutionListener(Front50Service front50Service,
                                      DependentPipelineStarter dependentPipelineStarter,
-                                     boolean fiatEnabled) {
+                                     FiatStatus fiatStatus) {
     this.front50Service = front50Service
     this.dependentPipelineStarter = dependentPipelineStarter
-    this.fiatEnabled = fiatEnabled
+    this.fiatStatus = fiatStatus
   }
 
   @Override
@@ -61,7 +62,7 @@ class DependentPipelineExecutionListener implements ExecutionListener {
         ) {
           User authenticatedUser = null
 
-          if (fiatEnabled && trigger.runAsUser) {
+          if (fiatStatus.enabled && trigger.runAsUser) {
             authenticatedUser = new User()
             authenticatedUser.setEmail(trigger.runAsUser)
           }

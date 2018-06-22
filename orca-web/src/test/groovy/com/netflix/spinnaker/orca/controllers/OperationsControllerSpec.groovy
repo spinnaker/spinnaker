@@ -20,6 +20,8 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.fiat.shared.FiatStatus
+
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
@@ -70,6 +72,9 @@ class OperationsControllerSpec extends Specification {
   def webhookService = Mock(WebhookService)
   def artifactResolver = Mock(ArtifactResolver)
   def fiatService = Mock(FiatService)
+  def fiatStatus = Mock(FiatStatus) {
+    _ * isEnabled() >> { return false }
+  }
 
   def env = new MockEnvironment()
   def buildArtifactFilter = new BuildArtifactFilter(environment: env)
@@ -86,7 +91,7 @@ class OperationsControllerSpec extends Specification {
       webhookService: webhookService,
       artifactResolver: artifactResolver,
       fiatService: fiatService,
-      fiatEnabled: false
+      fiatStatus: fiatStatus
     )
 
   @Unroll
@@ -709,7 +714,6 @@ class OperationsControllerSpec extends Specification {
 
   def "should not return protected preconfigured webhooks if user don't have the role"() {
     given:
-    controller.fiatEnabled = true
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
                                    "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
     executionLauncher.start(*_) >> { ExecutionType type, String json ->
@@ -731,6 +735,7 @@ class OperationsControllerSpec extends Specification {
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()
 
     then:
+    1 * controller.fiatStatus.isEnabled() >> { return true }
     1 * webhookService.preconfiguredWebhooks >> [
       createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", ["READ": [], "WRITE": []]),
       createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]])
@@ -742,7 +747,6 @@ class OperationsControllerSpec extends Specification {
 
   def "should return protected preconfigured webhooks if user have the role"() {
     given:
-    controller.fiatEnabled = true
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
                                    "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
     executionLauncher.start(*_) >> { ExecutionType type, String json ->
@@ -764,6 +768,7 @@ class OperationsControllerSpec extends Specification {
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()
 
     then:
+    1 * controller.fiatStatus.isEnabled() >> { return true }
     1 * webhookService.preconfiguredWebhooks >> [
       createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", ["READ": [], "WRITE": []]),
       createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]])

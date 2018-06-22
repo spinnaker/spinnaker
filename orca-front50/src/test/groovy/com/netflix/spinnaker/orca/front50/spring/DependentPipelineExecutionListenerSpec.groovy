@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.spring
 
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -42,9 +43,13 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     }
   }
 
+  def fiatStatus = Mock(FiatStatus) {
+    _ * isEnabled() >> { return true }
+  }
+
   @Subject
   DependentPipelineExecutionListener listener = new DependentPipelineExecutionListener(
-    front50Service, dependentPipelineStarter, true
+    front50Service, dependentPipelineStarter, fiatStatus
   )
 
   def "should trigger downstream pipeline when status and pipelines match"() {
