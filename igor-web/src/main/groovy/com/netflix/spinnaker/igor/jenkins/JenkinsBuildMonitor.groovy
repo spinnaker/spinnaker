@@ -94,7 +94,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
     void poll(boolean sendEvents) {
         long startTime = System.currentTimeMillis()
         log.info "Polling cycle started: ${new Date()}"
-        buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().parallelStream().forEach(
+        buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().stream().forEach(
             { master -> pollSingle(new PollContext(master, !sendEvents)) }
         )
         log.info "Polling cycle done in ${System.currentTimeMillis() - startTime}ms"
@@ -206,7 +206,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
     protected void commitDelta(JobPollingDelta delta, boolean sendEvents) {
         String master = delta.master
 
-        delta.items.parallelStream().forEach { job ->
+        delta.items.stream().forEach { job ->
             // post events for finished builds
             job.completedBuilds.forEach { build ->
                 Boolean eventPosted = cache.getEventPosted(master, job.name, job.cursor, build.number)
@@ -221,7 +221,8 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
 
             // advance cursor when all builds have completed in the interval
             if (job.runningBuilds.isEmpty()) {
-                log.info("[{}:{}] has no other builds between [${job.lowerBound} - ${job.upperBound}], advancing cursor to ${job.lastBuildStamp}", kv("master", master), kv("job", job.name))
+                log.info("[{}:{}] has no other builds between [${job.lowerBound} - ${job.upperBound}], " +
+                    "advancing cursor to ${job.lastBuildStamp}", kv("master", master), kv("job", job.name))
                 cache.pruneOldMarkers(master, job.name, job.cursor)
                 cache.setLastPollCycleTimestamp(master, job.name, job.lastBuildStamp)
             }
