@@ -40,7 +40,8 @@ class Notification {
     SLACK,
     PAGER_DUTY,
     JIRA,
-    BEARYCHAT
+    BEARYCHAT,
+    GOOGLECHAT
   }
 
   static enum Severity {
@@ -48,4 +49,3 @@ class Notification {
     HIGH
   }
 }
-\

@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.health;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-
 import com.netflix.spinnaker.echo.pipelinetriggers.MonitoredPoller;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +23,10 @@ import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 
 import static java.time.Instant.now;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;

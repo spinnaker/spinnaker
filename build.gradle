@@ -97,5 +97,4 @@ subprojects {
     }
 }
 
-
 defaultTasks ':echo-web:bootRun'

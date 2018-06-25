@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.echo.controller
 
-import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.notification.NotificationService
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/notifications")
 @RestController
+@Slf4j
 class NotificationController {
   @Autowired(required=false)
   Collection<NotificationService> notificationServices
