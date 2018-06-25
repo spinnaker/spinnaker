@@ -63,6 +63,7 @@ public class HalCommand extends NestableCommand {
     registerSubcommand(new BackupCommand());
     registerSubcommand(new ConfigCommand());
     registerSubcommand(new DeployCommand());
+    registerSubcommand(new ShutdownCommand());
     registerSubcommand(new TaskCommand());
     registerSubcommand(new VersionCommand());
   }

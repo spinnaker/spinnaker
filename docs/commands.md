@@ -360,6 +360,7 @@
  * [**hal deploy details**](#hal-deploy-details)
  * [**hal deploy diff**](#hal-deploy-diff)
  * [**hal deploy rollback**](#hal-deploy-rollback)
+ * [**hal shutdown**](#hal-shutdown)
  * [**hal task**](#hal-task)
  * [**hal task interrupt**](#hal-task-interrupt)
  * [**hal task list**](#hal-task-list)
@@ -400,6 +401,7 @@ hal [parameters] [subcommands]
  * `backup`: Backup and restore (remote or local) copies of your halconfig and all required files.
  * `config`: Configure, validate, and view your halconfig.
  * `deploy`: Manage the deployment of Spinnaker. This includes where it's deployed, what the infrastructure footprint looks like, what the currently running deployment looks like, etc...
+ * `shutdown`: Shutdown the halyard daemon.
  * `task`: This set of commands exposes utilities of dealing with Halyard's task engine.
  * `version`: Get information about the available Spinnaker versions.
 
@@ -6957,6 +6959,17 @@ hal deploy rollback [parameters]
  * `--exclude-service-names`: (*Default*: `[]`) When supplied, do not install or update the specified Spinnaker services.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
+
+
+---
+## hal shutdown
+
+Shutdown the halyard daemon.
+
+#### Usage
+```
+hal shutdown
+```
 
 
 ---
