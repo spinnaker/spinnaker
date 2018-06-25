@@ -150,6 +150,7 @@ function configure(env, webpackOpts) {
         template: './app/index.deck',
         favicon: process.env.NODE_ENV === 'production' ? 'app/prod-favicon.ico' : 'app/dev-favicon.ico',
         inject: true,
+        hash: IS_PRODUCTION,
       }),
     ],
     devServer: {
