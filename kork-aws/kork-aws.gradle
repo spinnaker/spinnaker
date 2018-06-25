@@ -22,6 +22,8 @@ dependencies {
   compile 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
   compile 'com.jcraft:jsch.agentproxy.connector-factory:0.0.9'
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
+
+  spinnaker.group("spockBase")
 }
 
 apply plugin: 'groovy'
