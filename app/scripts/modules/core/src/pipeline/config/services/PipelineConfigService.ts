@@ -56,6 +56,7 @@ export class PipelineConfigService {
 
   public static savePipeline(pipeline: IPipeline): IPromise<void> {
     delete pipeline.isNew;
+    pipeline.name = pipeline.name.trim();
     if (Array.isArray(pipeline.stages)) {
       pipeline.stages.forEach(function(stage) {
         delete stage.isNew;
@@ -76,7 +77,7 @@ export class PipelineConfigService {
     newName: string,
   ): IPromise<void> {
     this.configViewStateCache.remove(this.buildViewStateCacheKey(applicationName, currentName));
-    pipeline.name = newName;
+    pipeline.name = newName.trim();
     return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
       .one(pipeline.id)
       .data(pipeline)
