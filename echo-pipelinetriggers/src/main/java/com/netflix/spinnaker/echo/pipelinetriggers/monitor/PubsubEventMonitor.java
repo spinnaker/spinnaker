@@ -90,7 +90,8 @@ public class PubsubEventMonitor extends TriggerMonitor {
         .withTrigger(trigger
           .atMessageDescription(description.getSubscriptionName(), description.getPubsubSystem().toString())
           .atParameters(parameters)
-          .atPayload(payload));
+          .atPayload(payload)
+          .atEventId(event.getEventId()));
   }
 
   @Override

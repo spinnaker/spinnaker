@@ -14,6 +14,9 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+import static java.util.Collections.emptyList;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -25,6 +28,11 @@ import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -32,15 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
-import static java.util.Collections.emptyList;
 
 @Component @Slf4j
 public class WebhookEventMonitor extends TriggerMonitor {
@@ -93,7 +92,9 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
     return trigger -> pipeline
         .withReceivedArtifacts(artifacts)
-        .withTrigger(trigger.atParameters(parameters).atPayload(payload));
+        .withTrigger(trigger.atParameters(parameters)
+          .atPayload(payload)
+          .atEventId(event.getEventId()));
   }
 
   @Override

@@ -66,4 +66,52 @@ class WebhooksControllerSpec extends Specification {
     0 * controller.propagator.processEvent(_)
   }
 
+  void 'returns success status with eventId'() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper())
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+
+    when:
+    def response = controller.forwardEvent(
+      'webhook',
+      'test',
+      '{}',
+      new HttpHeaders())
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    response.eventProcessed == true
+    response.eventId == event.eventId
+  }
+
+  void 'no source returns success status with eventId'() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper())
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+
+    when:
+    def response = controller.forwardEvent(
+      'webhook',
+      [:],
+      new HttpHeaders())
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    response.eventProcessed == true
+    response.eventId == event.eventId
+  }
 }

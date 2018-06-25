@@ -24,12 +24,7 @@ import com.netflix.spinnaker.echo.model.Metadata
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 
@@ -47,10 +42,10 @@ class WebhooksController {
   ArtifactExtractor artifactExtractor
 
   @RequestMapping(value = '/webhooks/{type}/{source}', method = RequestMethod.POST)
-  void forwardEvent(@PathVariable String type,
-                    @PathVariable String source,
-                    @RequestBody String rawPayload,
-                    @RequestHeader HttpHeaders headers) {
+  WebhooksController.WebhookResponse forwardEvent(@PathVariable String type,
+                                                  @PathVariable String source,
+                                                  @RequestBody String rawPayload,
+                                                  @RequestHeader HttpHeaders headers) {
     Event event = new Event()
     boolean sendEvent = true
     event.details = new Metadata()
@@ -119,12 +114,16 @@ class WebhooksController {
     if (sendEvent) {
       propagator.processEvent(event)
     }
+
+    return sendEvent ?
+      WebhookResponse.newInstance(eventProcessed: true, eventId: event.eventId) :
+      WebhookResponse.newInstance(eventProcessed: false);
   }
 
   @RequestMapping(value = '/webhooks/{type}', method = RequestMethod.POST)
-  void forwardEvent(@PathVariable String type,
-                    @RequestBody Map postedEvent,
-                    @RequestHeader HttpHeaders headers) {
+  WebhooksController.WebhookResponse forwardEvent(@PathVariable String type,
+                                                  @RequestBody Map postedEvent,
+                                                  @RequestHeader HttpHeaders headers) {
     Event event = new Event()
     event.details = new Metadata()
     event.details.type = type
@@ -138,5 +137,12 @@ class WebhooksController {
     log.info("Webhook ${type}:${event.details.source}:${event.content}")
 
     propagator.processEvent(event)
+
+    WebhookResponse.newInstance(eventProcessed: true, eventId: event.eventId)
+  }
+
+  private static class WebhookResponse {
+    boolean eventProcessed;
+    String eventId;
   }
 }

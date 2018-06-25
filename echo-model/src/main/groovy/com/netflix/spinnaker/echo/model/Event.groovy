@@ -21,10 +21,11 @@ import com.fasterxml.jackson.annotation.JsonInclude
 /**
  * Represents an event
  */
-public class Event {
+class Event {
   Metadata details
   Map content
   String rawContent
   @JsonInclude(JsonInclude.Include.NON_NULL)
   Map payload
+  String eventId = UUID.randomUUID().toString()
 }

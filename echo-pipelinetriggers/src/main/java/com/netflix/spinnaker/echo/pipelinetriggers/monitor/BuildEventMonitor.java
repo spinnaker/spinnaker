@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
@@ -25,21 +27,18 @@ import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import lombok.NonNull;
-import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import rx.Observable;
-import rx.functions.Action1;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
+import lombok.NonNull;
+import lombok.val;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import rx.Observable;
+import rx.functions.Action1;
 
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
@@ -85,7 +84,7 @@ public class BuildEventMonitor extends TriggerMonitor {
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     BuildEvent buildEvent = (BuildEvent) event;
-    return trigger -> pipeline.withTrigger(trigger.atBuildNumber(buildEvent.getBuildNumber()))
+    return trigger -> pipeline.withTrigger(trigger.atBuildNumber(buildEvent.getBuildNumber()).withEventId(event.getEventId()))
       .withReceivedArtifacts(getArtifacts(buildEvent));
   }
 

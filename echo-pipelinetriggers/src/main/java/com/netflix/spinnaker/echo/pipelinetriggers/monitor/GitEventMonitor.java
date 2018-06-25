@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
@@ -25,6 +27,10 @@ import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -34,13 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
@@ -119,7 +118,9 @@ public class GitEventMonitor extends TriggerMonitor {
     GitEvent gitEvent = (GitEvent) event;
     return trigger -> pipeline
       .withReceivedArtifacts(gitEvent.getContent().getArtifacts())
-      .withTrigger(trigger.atHash(gitEvent.getHash()).atBranch(gitEvent.getBranch()));
+      .withTrigger(trigger.atHash(gitEvent.getHash())
+        .atBranch(gitEvent.getBranch())
+        .atEventId(gitEvent.getEventId()));
   }
 
   @Override

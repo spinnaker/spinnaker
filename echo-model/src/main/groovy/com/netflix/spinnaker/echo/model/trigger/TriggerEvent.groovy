@@ -22,4 +22,5 @@ abstract class TriggerEvent {
   Metadata details
   Map payload
   String rawContent
+  String eventId
 }

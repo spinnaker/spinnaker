@@ -35,7 +35,7 @@ class GitEvent extends TriggerEvent {
     String slug
     String hash
     String branch
-    List<Artifact> artifacts;
+    List<Artifact> artifacts
   }
 
   @JsonIgnore

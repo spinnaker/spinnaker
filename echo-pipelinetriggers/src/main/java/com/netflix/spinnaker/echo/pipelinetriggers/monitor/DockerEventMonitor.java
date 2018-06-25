@@ -97,7 +97,7 @@ public class DockerEventMonitor extends TriggerMonitor {
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     DockerEvent dockerEvent = (DockerEvent) event;
 
-    return trigger -> pipeline.withTrigger(trigger.atTag(dockerEvent.getContent().getTag()))
+    return trigger -> pipeline.withTrigger(trigger.atTag(dockerEvent.getContent().getTag()).withEventId(event.getEventId()))
       .withReceivedArtifacts(getArtifacts(dockerEvent));
   }
 
