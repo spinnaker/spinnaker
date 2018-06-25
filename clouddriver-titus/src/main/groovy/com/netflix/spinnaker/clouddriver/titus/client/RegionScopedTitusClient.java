@@ -307,7 +307,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
   @Override
   public Map<String, List<String>> getTaskIdsForJobIds() {
-    String filterByStates = "Accepted,Launched,StartInitiated,Started";
+    String filterByStates = "Launched,StartInitiated,Started";
 
     TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
     taskQueryBuilder
@@ -328,7 +328,7 @@ public class RegionScopedTitusClient implements TitusClient {
     if (titusRegion.getFeatureFlags().contains("jobIds")) {
       taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
     }
-    String filterByStates = "Accepted,Launched,StartInitiated,Started";
+    String filterByStates = "Launched,StartInitiated,Started";
     if (includeDoneJobs) {
       filterByStates = filterByStates + ",KillInitiated,Finished";
     }
@@ -342,7 +342,7 @@ public class RegionScopedTitusClient implements TitusClient {
   public List<Task> getAllTasks() {
     TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
     taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
-    String filterByStates = "Accepted,Launched,StartInitiated,Started";
+    String filterByStates = "Launched,StartInitiated,Started";
     taskQueryBuilder.putFilteringCriteria("taskStates", filterByStates);
 
     List<com.netflix.titus.grpc.protogen.Task> tasks = getTasksWithFilter(taskQueryBuilder);
