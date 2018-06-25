@@ -54,6 +54,57 @@ class ScorerSuite extends FunSuite {
     assert(scores.summaryScore == 0.0)
   }
 
+  test("Weighted Sum Group Scorer: Single group Nodata") {
+    val groupWeights = Map[String, Double]()
+    val weightedSumScorer = new WeightedSumScorer(groupWeights)
+
+    val metric = CanaryAnalysisResult.builder()
+      .name("test-metric-nodata")
+      .classification(Nodata.toString)
+      .groups(List[String]("test-group-nodata").asJava)
+      .build()
+
+    val scores = weightedSumScorer.score(List(metric))
+
+    assert(scores.groupScores.isDefined)
+    assert(scores.groupScores.size == 1)
+    val nodataGroup = scores.groupScores.get.head
+    assert(nodataGroup.score == 0.0)
+    assert(scores.summaryScore == 0.0)
+  }
+
+  test("Weighted Sum Group Scorer: Two Groups, one Pass, one Nodata") {
+    val groupWeights = Map[String, Double]()
+    val weightedSumScorer = new WeightedSumScorer(groupWeights)
+
+    val metric1a = CanaryAnalysisResult.builder()
+      .name("test-metric-pass1a")
+      .classification(Pass.toString)
+      .groups(List[String]("test-group-pass").asJava)
+      .build()
+    val metric1b = CanaryAnalysisResult.builder()
+      .name("test-metric-pass1b")
+      .classification(Pass.toString)
+      .groups(List[String]("test-group-pass").asJava)
+      .build()
+
+    val metric2 = CanaryAnalysisResult.builder()
+      .name("test-metric-nodata")
+      .classification(Nodata.toString)
+      .groups(List[String]("test-group-nodata").asJava)
+      .build()
+
+    val scores = weightedSumScorer.score(List(metric1a, metric1b, metric2))
+
+    assert(scores.groupScores.isDefined)
+    val groupScores = scores.groupScores.get
+    assert(groupScores.size == 2)
+    val justScores = groupScores.map { group => group.score }
+    assert(justScores.sorted == List(0.0, 100.0))
+
+    assert(scores.summaryScore == 100.0)
+  }
+
   test("Weighted Sum Group Scorer: One Group, Two Metrics") {
     val groupWeights = Map[String, Double]()
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
@@ -152,18 +203,30 @@ class ScorerSuite extends FunSuite {
     assert(scores.summaryScore == 25.0)
   }
 
-  test("Weighted Sum Group Scorer: No Data") {
-    val groupWeights = Map[String, Double]()
+  test("Weighted Sum Group Scorer: Two Groups, Three Metrics (Equal Weight), one NoData") {
+    val groupWeights = Map[String, Double]("group-1" -> 50.0, "group-2" -> 50.0)
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
-    val metricClassification = CanaryAnalysisResult.builder()
-      .name("test-metric-nodata")
-      .classification(Nodata.toString)
-      .groups(List[String]("test-group").asJava)
+    val passMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-pass")
+      .classification(Pass.toString)
+      .groups(List[String]("group-1").asJava)
       .build()
 
-    val scores = weightedSumScorer.score(List(metricClassification))
-    assert(scores.summaryScore == 0.0)
+    val failMetric1 = CanaryAnalysisResult.builder()
+      .name("test-metric-nodata")
+      .classification(Nodata.toString)
+      .groups(List[String]("group-1").asJava)
+      .build()
+
+    val failMetric2 = CanaryAnalysisResult.builder()
+      .name("test-metric-fail")
+      .classification(High.toString)
+      .groups(List[String]("group-2").asJava)
+      .build()
+
+    val scores = weightedSumScorer.score(List(passMetric, failMetric1, failMetric2))
+    assert(scores.summaryScore == 50.0)
   }
 
   test("Weighted Sum Group Scorer: Two metrics, one good (normal), one fail (critical)") {

@@ -17,11 +17,13 @@
 package com.netflix.kayenta.judge.scorers
 
 import com.netflix.kayenta.canary.results.CanaryAnalysisResult
-import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Pass}
+import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Pass, Nodata}
 
 import scala.collection.JavaConverters._
 
 class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
+
+  val NODATA_THRESHOLD = 50.0
 
   private def calculateGroupScore(groupName: String, classificationLabels: List[String]): GroupScore = {
     val labelCounts = classificationLabels.groupBy(identity).mapValues(_.size)
@@ -33,7 +35,7 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
     val numTotal = numHigh + numLow + numPass
 
     val hasNoData = numTotal == 0
-    val score = if (!hasNoData) (numPass/numTotal.toDouble) * 100 else 0.0
+    val score = if (hasNoData) 0.0 else (numPass/numTotal.toDouble) * 100
 
     GroupScore(groupName, score, hasNoData, labelCounts, numMetrics)
   }
@@ -57,13 +59,16 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
 
     //Determine which groups do not have weights associated with them
     val groupDifference = groupSet.diff(groupWeightSet)
-    val calculatedWeight = if (groupDifference.nonEmpty) (100-groupWeightSum)/groupDifference.size else 0.0
+    val calculatedWeight = if (groupDifference.nonEmpty)
+      (100 - groupWeightSum) / groupDifference.size
+    else 0.0
 
     //Compute the summary score based on the group score and weights
     var summaryScore: Double = 0.0
-    groupResults.filter(!_.noData).foreach{ group =>
-      val weight:Double = groupWeights.getOrElse(group.name, calculatedWeight)
-      summaryScore += group.score*(weight/100)
+    groupResults.foreach { group =>
+      val effectiveScore = if (group.noData) 100.0 else group.score
+      val weight: Double = groupWeights.getOrElse(group.name, calculatedWeight)
+      summaryScore += effectiveScore * (weight / 100)
     }
 
     summaryScore
@@ -74,17 +79,24 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
     criticalFailures.nonEmpty
   }
 
+  def tooManyNodata(results: List[CanaryAnalysisResult]): Boolean = {
+    val nodata = results.filter { result => result.getClassification.equals(Nodata.toString) }
+    val nodataPercent = nodata.size.toDouble / results.size * 100
+    nodataPercent >= NODATA_THRESHOLD
+  }
+
   override def score(results: List[CanaryAnalysisResult]): ScoreResult = {
     val groupScores = calculateGroupScores(results)
-    val summaryScore = calculateSummaryScore(groupScores)
 
     if (criticalFailures(results)) {
       ScoreResult(Some(groupScores), 0.0, results.size)
+    } else if (tooManyNodata(results)) {
+      ScoreResult(Some(groupScores), 0.0, results.size)
     } else {
+      val summaryScore = calculateSummaryScore(groupScores)
       ScoreResult(Some(groupScores), summaryScore, results.size)
     }
   }
-
 }
 
 
