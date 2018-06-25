@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { has } from 'lodash';
+import { get, has } from 'lodash';
 
 import { HoverablePopover, IStage, timestamp, NgReact, ReactInjector } from '@spinnaker/core';
 import { CanaryScore } from 'kayenta/components/canaryScore';
@@ -24,14 +24,24 @@ const canaryRunColumns: ICanaryRunColumn[] = [
   {
     label: 'Canary Result',
     width: 2,
-    getContent: run => (
-      <CanaryScore
-        score={run.context.canaryScore}
-        health={run.health}
-        result={run.result}
-        inverse={false}
-      />
-    ),
+    getContent: run => {
+      return (
+        <span>
+          <CanaryScore
+            score={run.context.canaryScore}
+            health={run.health}
+            result={run.result}
+            inverse={false}
+          />
+          { get(run, ['context', 'warnings'], []).length > 0 && (
+              <HoverablePopover template={<CanaryRunWarningMessages messages={run.context.warnings} />}>
+                <i className="fa fa-exclamation-triangle" style={{ paddingLeft: '8px' }}/>
+              </HoverablePopover>
+            )
+          }
+        </span>
+      );
+    },
   },
   {
     label: 'Duration',
@@ -147,4 +157,16 @@ function ReportLink({ canaryRun }: { canaryRun: IStage }) {
     );
 
   return <i className="fa fa-chart-bar clickable" onClick={onClick}/>;
+}
+
+function CanaryRunWarningMessages({ messages }: { messages: string[] }) {
+  return <div>
+    {
+      messages.map((message, i) =>
+        <p key={`${i}-${message}`}>
+          {message}
+        </p>
+      )
+    }
+  </div>;
 }
