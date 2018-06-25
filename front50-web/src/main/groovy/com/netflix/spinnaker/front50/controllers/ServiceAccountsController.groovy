@@ -21,7 +21,6 @@ import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.web.bind.annotation.PathVariable
@@ -75,10 +74,10 @@ public class ServiceAccountsController {
       return
     }
 
-    def roles = [StringUtils.substringBefore(serviceAccount.name.replaceAll('%40', "@"), "@")]
     try {
-      fiatService.sync(roles)
-      log.debug("Synced users with roles $roles")
+      // Empty body to keep OkHttp happy: https://github.com/square/retrofit/issues/854
+      fiatService.sync(new ArrayList<String>())
+      log.debug("Synced users with roles")
     } catch (RetrofitError re) {
       log.warn("Error syncing users", re)
     }
