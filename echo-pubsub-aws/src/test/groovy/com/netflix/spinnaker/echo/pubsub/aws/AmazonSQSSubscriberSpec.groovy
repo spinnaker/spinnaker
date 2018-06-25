@@ -18,11 +18,11 @@ package com.netflix.spinnaker.echo.pubsub.aws
 
 import com.amazonaws.services.sns.AmazonSNS
 import com.amazonaws.services.sqs.AmazonSQS
-import com.amazonaws.services.sqs.model.CreateQueueResult
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler
+import com.netflix.spinnaker.kork.aws.ARN
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -51,21 +51,6 @@ class AmazonSQSSubscriberSpec extends Specification {
     amazonSQS,
     {true},
     registry)
-
-  void "should create queue if it does not exist"() {
-    when:
-    def queueId = SQSSubscriber.ensureQueueExists(amazonSQS, queueARN, topicARN, 1)
-
-    then:
-    queueId == "my-queue-url"
-
-    1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
-    1 * amazonSQS.setQueueAttributes("my-queue-url", [
-      "Policy": SQSSubscriber.buildSQSPolicy(queueARN, topicARN).toJson(),
-      "MessageRetentionPeriod": "1"
-    ])
-    0 * _
-  }
 
   def 'should unmarshall an sns notification message'() {
     given:

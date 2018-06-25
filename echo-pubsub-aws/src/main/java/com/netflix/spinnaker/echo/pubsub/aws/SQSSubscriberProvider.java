@@ -27,6 +27,7 @@ import com.netflix.spinnaker.echo.discovery.DiscoveryActivated;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
+import com.netflix.spinnaker.kork.aws.ARN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

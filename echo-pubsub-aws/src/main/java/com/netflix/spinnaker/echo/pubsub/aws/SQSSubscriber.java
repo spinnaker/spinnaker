@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub.aws;
 
-import com.amazonaws.auth.policy.*;
-import com.amazonaws.auth.policy.actions.SQSActions;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.Message;
@@ -34,6 +32,8 @@ import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.aws.ARN;
+import com.netflix.spinnaker.kork.aws.pubsub.PubSubUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +66,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
   private final NodeIdentity identity = new NodeIdentity();
 
-  Registry registry;
+  private final Registry registry;
 
   private final ARN queueARN;
   private final ARN topicARN;
@@ -137,10 +137,10 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   }
 
   private void initializeQueue() {
-    this.queueId = ensureQueueExists(
+    this.queueId = PubSubUtils.ensureQueueExists(
       amazonSQS, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds()
     );
-    subscribeToTopic(amazonSNS, topicARN, queueARN);
+    PubSubUtils.subscribeToTopic(amazonSNS, topicARN, queueARN);
   }
 
   private void listenForMessages() {
@@ -157,9 +157,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
         continue;
       }
 
-      receiveMessageResult.getMessages().forEach(message -> {
-        handleMessage(message);
-      });
+      receiveMessageResult.getMessages().forEach(this::handleMessage);
     }
   }
 
@@ -222,52 +220,5 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       log.error("Unable unmarshal NotificationMessageWrapper. Unknown message type. (body: {})", messageBody, e);
     }
     return messagePayload;
-  }
-
-  // Todo emjburns: pull to kork-aws
-  private static String ensureQueueExists(AmazonSQS amazonSQS,
-                                          ARN queueARN,
-                                          ARN topicARN,
-                                          int sqsMessageRetentionPeriodSeconds) {
-    String queueUrl = amazonSQS.createQueue(queueARN.getName()).getQueueUrl();
-    log.debug("Created queue " + queueUrl);
-
-    HashMap<String, String> attributes = new HashMap<>();
-    attributes.put("Policy", buildSQSPolicy(queueARN, topicARN).toJson());
-    attributes.put("MessageRetentionPeriod", Integer.toString(sqsMessageRetentionPeriodSeconds));
-    amazonSQS.setQueueAttributes(
-      queueUrl,
-      attributes
-    );
-
-    return queueUrl;
-  }
-
-  // Todo emjburns: pull to kork-aws
-  private static String subscribeToTopic(AmazonSNS amazonSNS,
-                                         ARN topicARN,
-                                         ARN queueARN) {
-    amazonSNS.subscribe(topicARN.getArn(), "sqs", queueARN.getArn());
-    return topicARN.getArn();
-  }
-
-  // Todo emjburns: pull to kork-aws
-  /**
-   * This policy allows operators to choose whether or not to have pubsub messages to be sent via SNS for fanout, or
-   * be sent directly to an SQS queue from the autoscaling group.
-   */
-  private static Policy buildSQSPolicy(ARN queue, ARN topic) {
-    Statement snsStatement = new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage);
-    snsStatement.setPrincipals(Principal.All);
-    snsStatement.setResources(Collections.singletonList(new Resource(queue.getArn())));
-    snsStatement.setConditions(Collections.singletonList(
-      new Condition().withType("ArnEquals").withConditionKey("aws:SourceArn").withValues(topic.getArn())
-    ));
-
-    Statement sqsStatement = new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage, SQSActions.GetQueueUrl);
-    sqsStatement.setPrincipals(Principal.All);
-    sqsStatement.setResources(Collections.singletonList(new Resource(queue.getArn())));
-
-    return new Policy("allow-sns-or-sqs-send", Arrays.asList(snsStatement, sqsStatement));
   }
 }
