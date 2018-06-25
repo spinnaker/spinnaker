@@ -31,11 +31,11 @@ class WebhookService {
   @Autowired
   OrcaServiceSelector orcaServiceSelector
 
-  void webhooks(String type, String source, Map event) {
+  Map webhooks(String type, String source, Map event) {
     echoService.webhooks(type, source, event)
   }
 
-  void webhooks(String type, String source, Map event, String gitHubSignature, String bitBucketEventType) {
+  Map webhooks(String type, String source, Map event, String gitHubSignature, String bitBucketEventType) {
     echoService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
   }
 
