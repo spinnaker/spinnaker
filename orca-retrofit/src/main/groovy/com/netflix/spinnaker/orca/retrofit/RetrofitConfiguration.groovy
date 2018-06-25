@@ -18,8 +18,11 @@
 package com.netflix.spinnaker.orca.retrofit
 
 import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import groovy.transform.CompileStatic
 import okhttp3.ConnectionPool
@@ -58,7 +61,7 @@ class RetrofitConfiguration {
 
    @Bean(name = ["retrofitClient"])
    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-   Ok3Client ok3Client(OkHttp3ClientConfiguration okHttpClientConfig) {
+   Ok3Client ok3Client(Registry registry, OkHttp3ClientConfiguration okHttpClientConfig) {
      final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
      OkHttpClient.Builder builder = okHttpClientConfig.create()
      builder.addNetworkInterceptor(
@@ -69,6 +72,9 @@ class RetrofitConfiguration {
            chain.proceed(req)
          }
        })
+     .addInterceptor(
+       new OkHttp3MetricsInterceptor(registry)
+     )
        .connectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs, TimeUnit.MILLISECONDS))
        .retryOnConnectionFailure(retryOnConnectionFailure)
 
@@ -77,7 +83,7 @@ class RetrofitConfiguration {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkClient okClient(@Qualifier("okHttpClientConfiguration") OkHttpClientConfiguration okHttpClientConfig) {
+  OkClient okClient(Registry registry, @Qualifier("okHttpClientConfiguration") OkHttpClientConfiguration okHttpClientConfig) {
     final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
     def cfg = okHttpClientConfig.create()
     cfg.networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
@@ -87,6 +93,9 @@ class RetrofitConfiguration {
         chain.proceed(req)
       }
     })
+    cfg.interceptors().add(
+      new OkHttpMetricsInterceptor(registry)
+    )
     cfg.setConnectionPool(new com.squareup.okhttp.ConnectionPool(maxIdleConnections, keepAliveDurationMs))
     cfg.retryOnConnectionFailure = retryOnConnectionFailure
 
