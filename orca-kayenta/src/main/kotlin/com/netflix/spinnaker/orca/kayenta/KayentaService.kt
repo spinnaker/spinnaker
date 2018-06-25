@@ -46,6 +46,9 @@ interface KayentaService {
     @Path("executionId") executionId: String,
     @Body ignored: String
   ): Map<*, *>
+
+  @GET("/credentials")
+  fun getCredentials(): List<KayentaCredential>
 }
 
 data class CanaryExecutionRequest(
@@ -94,7 +97,8 @@ data class CanaryResult(
 )
 
 data class JudgeResult(
-  val score: JudgeScore
+  val score: JudgeScore,
+  val results: Array<JudgeResultEntry>
 )
 
 data class JudgeScore(
@@ -103,3 +107,19 @@ data class JudgeScore(
   val classificationReason: String
 )
 
+data class JudgeResultEntry(
+  val controlMetadata: ControlMetadata
+)
+
+data class ControlMetadata(
+  val stats: ControlMetadataStats
+)
+
+data class ControlMetadataStats(
+  val count: Int
+)
+
+data class KayentaCredential(
+  val name: String,
+  val type: String
+)

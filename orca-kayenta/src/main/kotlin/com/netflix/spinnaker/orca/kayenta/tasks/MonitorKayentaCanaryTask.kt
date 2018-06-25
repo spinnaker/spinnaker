@@ -20,10 +20,10 @@ import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.ext.mapTo
+import com.netflix.spinnaker.orca.kayenta.CanaryResults
 import com.netflix.spinnaker.orca.kayenta.KayentaService
 import com.netflix.spinnaker.orca.kayenta.Thresholds
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit.HOURS
 
@@ -32,8 +32,6 @@ class MonitorKayentaCanaryTask(
   private val kayentaService: KayentaService
 ) : OverridableTimeoutRetryableTask {
 
-  private val log = LoggerFactory.getLogger(javaClass)
-
   override fun getBackoffPeriod() = 1000L
 
   override fun getTimeout() = HOURS.toMillis(12)
@@ -41,6 +39,7 @@ class MonitorKayentaCanaryTask(
   data class MonitorKayentaCanaryContext(
     val canaryPipelineExecutionId: String,
     val storageAccountName: String?,
+    val metricsAccountName: String?,
     val scoreThresholds: Thresholds
   )
 
@@ -51,6 +50,8 @@ class MonitorKayentaCanaryTask(
     if (canaryResults.executionStatus == SUCCEEDED) {
       val canaryScore = canaryResults.result!!.judgeResult.score.score
 
+      val warnings = getResultWarnings(context, canaryResults)
+
       return if (canaryScore <= context.scoreThresholds.marginal) {
         val resultStatus = if (stage.context["continuePipeline"] == true) FAILED_CONTINUE else TERMINAL
         TaskResult(resultStatus, mapOf(
@@ -59,7 +60,8 @@ class MonitorKayentaCanaryTask(
           "lastUpdatedIso" to canaryResults.endTimeIso,
           "durationString" to canaryResults.result.canaryDuration.toString(),
           "canaryScore" to canaryScore,
-          "canaryScoreMessage" to "Canary score is not above the marginal score threshold."
+          "canaryScoreMessage" to "Canary score is not above the marginal score threshold.",
+          "warnings" to warnings
         ))
       } else {
         TaskResult(SUCCEEDED, mapOf(
@@ -67,7 +69,8 @@ class MonitorKayentaCanaryTask(
           "lastUpdated" to canaryResults.endTimeIso?.toEpochMilli(),
           "lastUpdatedIso" to canaryResults.endTimeIso,
           "durationString" to canaryResults.result.canaryDuration.toString(),
-          "canaryScore" to canaryScore
+          "canaryScore" to canaryScore,
+          "warnings" to warnings
         ))
       }
     }
@@ -86,5 +89,29 @@ class MonitorKayentaCanaryTask(
     }
 
     return TaskResult(RUNNING, mapOf("canaryPipelineStatus" to canaryResults.executionStatus))
+  }
+
+  fun getResultWarnings(context: MonitorKayentaCanaryContext, canaryResults: CanaryResults): List<String> {
+    val warnings = mutableListOf<String>()
+
+    var credentialType = ""
+    if (context.metricsAccountName != null) {
+      val allCredentials = kayentaService.getCredentials()
+      val credential = allCredentials.find({ it.name == context.metricsAccountName })
+      credentialType = if (credential != null) {
+        credential.type
+      } else {
+        ""
+      }
+    }
+
+    // Datadog doesn't return data points in the same way as other metrics providers
+    // and so are excluded here.  See this Github comment for more information:
+    // https://github.com/spinnaker/kayenta/issues/283#issuecomment-397346975
+    if (credentialType != "datadog" && canaryResults.result!!.judgeResult.results.any({ it.controlMetadata.stats.count < 50 })) {
+      warnings.add("One of the metrics returned fewer than 50 data points, which can reduce confidence in the final canary score.")
+    }
+
+    return warnings
   }
 }
