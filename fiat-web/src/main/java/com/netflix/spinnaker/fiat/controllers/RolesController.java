@@ -97,7 +97,7 @@ public class RolesController {
   @RequestMapping(value = "/sync", method = RequestMethod.POST)
   public long sync(HttpServletResponse response,
                    @RequestBody(required = false) List<String> specificRoles) throws IOException {
-    if (specificRoles == null) {
+    if (specificRoles == null || specificRoles.isEmpty()) {
       log.info("Full role sync invoked by web request.");
       long count = syncer.syncAndReturn();
       if (count == 0) {
