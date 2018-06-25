@@ -71,6 +71,11 @@ public interface ExecutionRepository {
                                                              @Nonnull ExecutionCriteria criteria);
 
   @Nonnull
+  Observable<Execution> retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(@Nonnull List<String> pipelineConfigIds,
+                                                                                      long buildTimeStartBoundary,
+                                                                                      long buildTimeEndBoundary);
+
+  @Nonnull
   Observable<Execution> retrieveOrchestrationsForApplication(@Nonnull String application,
                                                              @Nonnull ExecutionCriteria criteria);
 

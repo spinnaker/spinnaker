@@ -295,6 +295,50 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecution
     retrieved.isEmpty()
   }
 
+  def "can retrieve pipelines using pipelineConfigIds and buildTime boundaries"() {
+    given:
+    repository.store(pipeline {
+      application = "app-1"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 10
+    })
+    repository.store(pipeline {
+      application = "app-2"
+      pipelineConfigId = "pipeline-2"
+      buildTime = 11
+    })
+    repository.store(pipeline {
+      application = "app-3"
+      pipelineConfigId = "pipeline-3"
+      buildTime = 12
+    })
+
+    and:
+    previousRepository.store(pipeline {
+      application = "app-1"
+      pipelineConfigId = "pipeline-1"
+      buildTime = 7
+    })
+    previousRepository.store(pipeline {
+      application = "app-2"
+      pipelineConfigId = "pipeline-2"
+      buildTime = 8
+    })
+    previousRepository.store(pipeline {
+      application = "app-3"
+      pipelineConfigId = "pipeline-3"
+      buildTime = 9
+    })
+
+    when:
+    def retrieved = repository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(Arrays.asList("pipeline-2", "pipeline-3"), 9L, 11L)
+      .sorted({ a,b -> a.buildTime <=> b.buildTime })
+      .toList().toBlocking().first()
+
+    then:
+    retrieved*.buildTime == [9L, 11L]
+  }
+
   def "can retrieve pipeline without stageIndex"() {
     given:
     def pipeline = pipeline {

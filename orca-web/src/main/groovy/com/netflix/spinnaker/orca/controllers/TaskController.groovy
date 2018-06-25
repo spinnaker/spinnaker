@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import java.time.Clock
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.annotations.VisibleForTesting
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
@@ -25,6 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -39,6 +42,12 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
+
+import java.nio.charset.Charset
+import java.time.Clock
+import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static java.time.ZoneOffset.UTC
@@ -60,6 +69,12 @@ class TaskController {
 
   @Autowired
   ContextParameterProcessor contextParameterProcessor
+
+  @Autowired
+  ObjectMapper mapper
+
+  @Autowired
+  Registry registry
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -177,6 +192,145 @@ class TaskController {
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
+  }
+
+  @RequestMapping(value = "/test", method = RequestMethod.GET)
+  List<Execution> test() {
+    return executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(Arrays.asList("bcb6a213-d964-4d61-bbb5-be1a0723509d", "ee923317-4683-4f02-9b95-f58bf6e685f1" , "4023196c-e40b-4294-a394-a27640cacaff" ),
+      1529349621899, 1529349621899, { true })
+      .subscribeOn(Schedulers.io()).toList().toBlocking().single()
+  }
+
+  /**
+   * Search for pipeline executions using a combination of criteria. The returned list is sorted by
+   * buildTime (trigger time) in reverse order so that newer executions are first in the list.
+   *
+   * @param application Only includes executions that are part of this application. If this value is
+   * '*', includes executions of all applications.
+   * @param triggerTypes (optional) Only includes executions that were triggered by a trigger with a
+   * type that is equal to a type provided in this field. The list of trigger types should be a
+   * comma-delimited string. If this value is missing, includes executions of all trigger types.
+   * @param pipelineName (optional) Only includes executions that with this pipeline name.
+   * @param eventId (optional) Only includes executions that were triggered by a trigger with this
+   * eventId. This only applies to triggers that return a response message when called.
+   * @param trigger (optional) Only includes executions that were triggered by a trigger that
+   * matches the subset of fields provided by this value. This value should be a base64-encoded
+   * string of a JSON representation of a trigger object. The comparison succeeds if the execution
+   * trigger contains all the fields of the input trigger, the fields are of the same type, and each
+   * value of the field "matches". The term "matches" is specific for each field's type:
+   * - For Strings: A String value in the execution's trigger matches the input trigger's String
+   * value if the former equals the latter (case-insensitive) OR if the former matches the latter as
+   * a regular expression.
+   * - For Maps: A Map value in the execution's trigger matches the input trigger's Map value if the
+   * former contains all keys of the latter and their values match.
+   * - For Collections: A Collection value in the execution's trigger matches the input trigger's
+   * Collection value if the former has a unique element that matches each element of the latter.
+   * - Every other value is compared using the Java "equals" method (Groovy "==" operator)
+   * @param triggerTimeStartBoundary (optional) Only includes executions that were built at or after
+   * the given time, represented as a Unix timestamp in ms (UTC). This value must be >= 0 and <=
+   * the value of [triggerTimeEndBoundary], if provided. If this value is missing, it is defaulted
+   * to 0.
+   * @param triggerTimeEndBoundary (optional) Only includes executions that were built at or before
+   * the given time, represented as a Unix timestamp in ms (UTC). This value must be <=
+   * 9223372036854775807 (Long.MAX_VALUE) and >= the value of [triggerTimeStartBoundary], if
+   * provided. If this value is missing, it is defaulted to 9223372036854775807.
+   * @param statuses (optional) Only includes executions with a status that is equal to a status
+   * provided in this field. The list of statuses should be given as a comma-delimited string. If
+   * this value is missing, includes executions of all statuses. Allowed statuses are: NOT_STARTED,
+   * RUNNING, PAUSED, SUSPENDED, SUCCEEDED, FAILED_CONTINUE, TERMINAL, CANCELED, REDIRECT, STOPPED,
+   * SKIPPED, BUFFERED. @see com.netflix.spinnaker.orca.ExecutionStatus for more info.
+   * @param startIndex (optional) Sets the first item of the resulting list for pagination. The list
+   * is 0-indexed. This value must be >= 0. If this value is missing, it is defaulted to 0.
+   * @param size (optional) Sets the size of the resulting list for pagination. This value must be >
+   * 0. If this value is missing, it is defaulted to 10.
+   * @param reverse (optional) Reverses the resulting list before it is paginated. If this value is
+   * missing, it is defaulted to false.
+   * @param expand (optional) Expands each execution object in the resulting list. If this value is
+   * missing, it is defaulted to false.
+   * @return
+   */
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
+  @RequestMapping(value = "/applications/{application}/pipelines/search", method = RequestMethod.GET)
+  List<Execution> searchForPipelinesByTrigger(
+    @PathVariable(value = "application") String application,
+    @RequestParam(value = "triggerTypes", required = false) String triggerTypes,
+    @RequestParam(value = "pipelineName", required = false) String pipelineName,
+    @RequestParam(value = "eventId", required = false) String eventId,
+    @RequestParam(value = "trigger", required = false) String encodedTriggerParams,
+    @RequestParam(value = "triggerTimeStartBoundary", defaultValue = "0") long triggerTimeStartBoundary,
+    @RequestParam(value = "triggerTimeEndBoundary", defaultValue = "9223372036854775807" /* Long.MAX_VALUE */) long triggerTimeEndBoundary,
+    @RequestParam(value = "statuses", required = false) String statuses,
+    @RequestParam(value = "startIndex", defaultValue =  "0") int startIndex,
+    @RequestParam(value = "size", defaultValue = "10") int size,
+    @RequestParam(value = "reverse", defaultValue = "false") boolean reverse,
+    @RequestParam(value = "expand", defaultValue = "false") boolean expand
+    // TODO(joonlim): May make sense to add a summary boolean so that, when true, this returns a condensed summary rather than complete execution objects.
+  ) {
+    validateSearchForPipelinesByTriggerParameters(triggerTimeStartBoundary, triggerTimeEndBoundary, startIndex, size)
+
+    final Map triggerParams = decodeTriggerParams(encodedTriggerParams) // Returned map will be empty if encodedTriggerParams is null
+
+    Set<String> triggerTypesAsSet = (triggerTypes && triggerTypes != "*") ? triggerTypes.split(",") as Set : null // null means all trigger types
+    Set<String> statusesAsSet = (statuses && statuses != "*") ? statuses.split(",") as Set : null // null means all statuses
+
+    // Filter by application
+    List<String> pipelineConfigIds = application == "*" ? getPipelineConfigIdsOfReadableApplications() : front50Service.getPipelines(application, false)*.id as List<String>
+
+    List<Execution> pipelineExecutions = executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds, triggerTimeStartBoundary, triggerTimeEndBoundary)
+      .subscribeOn(Schedulers.io())
+      .filter{
+        // Filter by pipeline name
+        if (pipelineName && pipelineName != it.name) {
+          return false
+        }
+        // Filter by trigger type
+        if (triggerTypesAsSet && !triggerTypesAsSet.contains(it.getTrigger().type)) {
+          return false
+        }
+        // Filter by statuses
+        if (statusesAsSet && !statusesAsSet.contains(it.getStatus().toString())) {
+          return false
+        }
+        // Filter by event ID
+        if (eventId && eventId != it.getTrigger().other.eventId) {
+          return false
+        }
+        // Filter by trigger params
+        return compareTriggerWithTriggerSubset(it.getTrigger(), triggerParams)
+      }
+      .toList()
+      .toBlocking()
+      .single()
+      .sort(reverseBuildTime)
+
+    if (reverse) {
+      pipelineExecutions.reverse(true)
+    }
+
+    List<Execution> rval
+    if (startIndex >= pipelineExecutions.size()) {
+      rval = []
+    } else {
+      rval = pipelineExecutions.subList(startIndex, Math.min(pipelineExecutions.size(), startIndex + size))
+    }
+
+    if (!expand) {
+      unexpandPipelineExecutions(rval)
+    }
+
+    return rval
+  }
+
+  private boolean compareTriggerWithTriggerSubset(Trigger trigger, Map triggerSubset) {
+    Map triggerAsMap = mapper.convertValue(trigger, Map.class)
+
+    long startMillis = clock.millis()
+    boolean result = checkObjectMatchesSubset(triggerAsMap, triggerSubset)
+    long ellapsedMillis = clock.millis() - startMillis
+
+    registry.timer("trigger.comparison").record(ellapsedMillis, TimeUnit.MILLISECONDS)
+
+    return result
   }
 
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
@@ -339,23 +493,44 @@ class TaskController {
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
     if (!expand) {
-      allPipelines.each { pipeline ->
-        clearTriggerStages(pipeline.trigger.other) // remove from the "other" field - that is what Jackson works against
-        pipeline.getStages().each { stage ->
-          if (stage.context?.group) {
-            // TODO: consider making "group" a top-level field on the Stage model
-            // for now, retain group in the context, as it is needed for collapsing templated pipelines in the UI
-            stage.context = [ group: stage.context.group ]
-          } else {
-            stage.context = [:]
-          }
-          stage.outputs = [:]
-          stage.tasks = []
-        }
-      }
+      unexpandPipelineExecutions(allPipelines)
     }
 
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
+  }
+
+  private static void validateSearchForPipelinesByTriggerParameters(long triggerTimeStartBoundary, long triggerTimeEndBoundary, int startIndex, int size) {
+    if (triggerTimeStartBoundary < 0) {
+      throw new IllegalArgumentException(String.format("triggerTimeStartBoundary must be >= 0: triggerTimeStartBoundary=%s", triggerTimeStartBoundary))
+    }
+    if (triggerTimeEndBoundary < 0) {
+      throw new IllegalArgumentException(String.format("triggerTimeEndBoundary must be >= 0: triggerTimeEndBoundary=%s", triggerTimeEndBoundary))
+    }
+    if (triggerTimeStartBoundary > triggerTimeEndBoundary) {
+      throw new IllegalArgumentException(String.format("triggerTimeStartBoundary must be <= triggerTimeEndBoundary: triggerTimeStartBoundary=%s, triggerTimeEndBoundary=%s", triggerTimeStartBoundary, triggerTimeEndBoundary))
+    }
+    if (startIndex < 0) {
+      throw new IllegalArgumentException(String.format("startIndex must be >= 0: startIndex=%s", startIndex))
+    }
+    if (size <= 0) {
+      throw new IllegalArgumentException(String.format("size must be > 0: size=%s", size))
+    }
+  }
+
+  private Map decodeTriggerParams(String encodedTriggerParams) {
+    Map triggerParams
+    if (encodedTriggerParams != null) {
+      try {
+        byte[] decoded = Base64.getDecoder().decode(encodedTriggerParams)
+        String str = new String(decoded, Charset.forName("UTF-8"))
+        triggerParams = mapper.readValue(str, Map.class)
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to parse encoded trigger", e)
+      }
+    } else {
+      triggerParams = new HashMap()
+    }
+    return Collections.unmodifiableMap(triggerParams)
   }
 
   private static void clearTriggerStages(Map trigger) {
@@ -391,6 +566,31 @@ class TaskController {
 
     return pipelinesSatisfyingCutoff.sort(startTimeOrId)
   }
+  // TODO(joonlim): Consider adding expand flag to RedisExecutionRepository's buildExecution method so that
+  // these fields are never added in the first place.
+  private static unexpandPipelineExecutions(List<Execution> pipelineExecutions) {
+    pipelineExecutions.each { pipelineExecution ->
+      clearTriggerStages(pipelineExecution.trigger.other) // remove from the "other" field - that is what Jackson works against
+      pipelineExecution.getStages().each { stage ->
+        if (stage.context?.group) {
+          // TODO: consider making "group" a top-level field on the Stage model
+          // for now, retain group in the context, as it is needed for collapsing templated pipelines in the UI
+          stage.context = [ group: stage.context.group ]
+        } else {
+          stage.context = [:]
+        }
+        stage.outputs = [:]
+        stage.tasks = []
+      }
+    }
+  }
+
+  private static Closure reverseBuildTime = { a, b ->
+    def aBuildTime = a.buildTime ?: 0
+    def bBuildTime = b.buildTime ?: 0
+
+    return bBuildTime <=> aBuildTime ?: b.id <=> a.id
+  }
 
   private static Closure startTimeOrId = { a, b ->
     def aStartTime = a.startTime ?: 0
@@ -423,6 +623,99 @@ class TaskController {
       endTime: orchestration.endTime,
       execution: orchestration
     )
+  }
+
+  @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
+  private List<String> getPipelineConfigIdsOfReadableApplications() {
+    List<String> applicationNames = front50Service.getAllApplications()*.name as List<String>
+    List<String> pipelineConfigIds = applicationNames.stream()
+      .map{ applicationName -> front50Service.getPipelines(applicationName, false)*.id as List<String> }
+      .flatMap{ c -> c.stream() }
+      .collect(Collectors.toList())
+
+    return pipelineConfigIds
+  }
+
+  @VisibleForTesting
+  private static boolean checkObjectMatchesSubset(Object object, Object subset) {
+    if (String.isInstance(object) && String.isInstance(subset)) {
+      return checkStringMatchesSubset((String) object, (String) subset)
+    } else if (Map.isInstance(object) && Map.isInstance(subset)) {
+      return checkMapMatchesSubset((Map) object, (Map) subset)
+    } else if (Collection.isInstance(object) && Collection.isInstance(subset)) {
+      return checkCollectionMatchesSubset((Collection) object, (Collection) subset)
+    } else {
+      return object == subset
+    }
+  }
+
+  private static boolean checkStringMatchesSubset(String string, String subset) {
+    // string matches subset if the former equals the latter (case-insensitive) OR if the former
+    // matches the latter as a regular expression
+    return string.equalsIgnoreCase(subset) ||
+      string.matches(subset)
+  }
+
+  private static boolean checkMapMatchesSubset(Map map, Map subset) {
+    // map matches subset if the former contains all keys of the latter and their values match
+    for (Object key : subset.keySet()) {
+      if (!checkObjectMatchesSubset(map.get(key), subset.get(key))) {
+        return false
+      }
+    }
+    return true
+  }
+
+  private static boolean checkCollectionMatchesSubset(Collection collection, Collection subset) {
+    // collection matches subset if the former has a unique element that matches each element of the
+    // latter.
+    //   * this means that an item in subset may not match to more than one item in object, which
+    //     means that we should check every permutation of object to avoid greedily stopping
+    //     on the first item that matches.
+    //     e.g., Given,
+    //             collection: [ { "name": "a", "version": "1" }, { "name": "a" } ]
+    //           Without checking all permutations, this will match:
+    //             subset: [ { "name": "a", "version": "1" }, { "name": "a" } ]
+    //           but will not match:
+    //             subset: [ { "name": "a" }, { "name", "version": "1" } ]
+    //           because the first item in subset will greedily match the first item in collection,
+    //           leaving the second items in both, which do not match. This is fixed by checking
+    //           all permutations of object.
+    if (subset.size() > collection.size()) {
+      return false
+    }
+    if (subset.isEmpty()) {
+      return true
+    }
+
+    PermutationGenerator subsetPermutations = new PermutationGenerator(subset)
+    for (List subsetPermutation : subsetPermutations) {
+      List collectionCopy = new ArrayList(collection) // copy this because we will be removing items
+      boolean matchedAllItems = true
+
+      for (Object subsetItem : subsetPermutation) {
+        boolean matchedItem = false
+        for (int i = 0; i < collectionCopy.size(); i++) {
+          Object collectionItem = collectionCopy.get(i)
+          if (checkObjectMatchesSubset(collectionItem, subsetItem)) {
+            collectionCopy.remove(i) // remove to make sure to not match the same item more than once
+            matchedItem = true
+            break
+          }
+        }
+
+        if (!matchedItem) {
+          matchedAllItems = false
+          break
+        }
+      }
+
+      if (matchedAllItems) {
+        return true
+      }
+    }
+    // Failed to match for all permutations
+    return false
   }
 
   @InheritConstructors

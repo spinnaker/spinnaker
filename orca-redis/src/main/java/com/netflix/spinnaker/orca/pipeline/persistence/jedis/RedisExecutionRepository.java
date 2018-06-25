@@ -52,6 +52,7 @@ import static com.netflix.spinnaker.orca.config.RedisConfiguration.Clients.EXECU
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.NO_TRIGGER;
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
@@ -73,6 +74,23 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
   private static final TypeReference<List<SystemNotification>> LIST_OF_SYSTEM_NOTIFICATIONS =
     new TypeReference<List<SystemNotification>>() {
     };
+
+  private static String GET_EXECUTIONS_FOR_PIPELINE_CONFIG_IDS_SCRIPT = String.join("\n",
+    "local executions = {}",
+      "for k,pipelineConfigId in pairs(KEYS) do",
+      " local pipelineConfigToExecutionsKey = 'pipeline:executions:' .. pipelineConfigId",
+      " local ids = redis.call('ZRANGEBYSCORE', pipelineConfigToExecutionsKey, ARGV[1], ARGV[2])",
+      " for k,id in pairs(ids) do",
+      "  table.insert(executions, id)",
+      "  local executionKey = 'pipeline:' .. id",
+      "  local execution = redis.call('HGETALL', executionKey)",
+      "  table.insert(executions, execution)",
+      "  local stageIdsKey = executionKey .. ':stageIndex'",
+      "  local stageIds = redis.call('LRANGE', stageIdsKey, 0, -1)",
+      "  table.insert(executions, stageIds)",
+      " end",
+      "end",
+      "return executions");
 
   private final RedisClientDelegate redisClientDelegate;
   private final Optional<RedisClientDelegate> previousRedisClientDelegate;
@@ -438,6 +456,18 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
     return currentObservable;
   }
 
+  /*
+   * There is no guarantee that the returned results will be sorted.
+   */
+  @Override
+  public @Nonnull
+  Observable<Execution> retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(@Nonnull List<String> pipelineConfigIds, long buildTimeStartBoundary, long buildTimeEndBoundary) {
+    List<Observable<Execution>> observables = allRedisDelegates().stream()
+      .map(d -> getPipelinesForPipelineConfigIdsBetweenBuildTimeBoundaryFromRedis(d, pipelineConfigIds, buildTimeStartBoundary, buildTimeEndBoundary))
+      .collect(Collectors.toList());
+    return Observable.merge(observables);
+  }
+
   @Override
   public @Nonnull
   Observable<Execution> retrieveOrchestrationsForApplication(@Nonnull String application, @Nonnull ExecutionCriteria criteria) {
@@ -627,6 +657,22 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
     return redisClientDelegate.withCommandsClient(c -> {
       return c.sismember("existingServerGroups:pipeline", "pipeline:" + id);
     });
+  }
+
+  private Map<String, String> buildExecutionMapFromRedisResponse(List<String> entries) {
+    if (entries.size() % 2 != 0) {
+      throw new RuntimeException("Failed to convert Redis response to map because the number of entries is not even");
+    }
+    Map<String, String> map = new HashMap<>();
+    String nextKey = null;
+    for (int i = 0; i < entries.size(); i++) {
+      if (i % 2 == 0) {
+        nextKey = entries.get(i);
+      } else {
+        map.put(nextKey, entries.get(i));
+      }
+    }
+    return map;
   }
 
   protected Execution buildExecution(@Nonnull Execution execution, @Nonnull Map<String, String> map, List<String> stageIds) {
@@ -840,6 +886,49 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         c.srem(alljobsKey(type), id);
       }
     });
+  }
+
+  private Observable<Execution> getPipelinesForPipelineConfigIdsBetweenBuildTimeBoundaryFromRedis(RedisClientDelegate redisClientDelegate, List<String> pipelineConfigIds, long buildTimeStartBoundary, long buildTimeEndBoundary) {
+    List<Execution> executions = new ArrayList<>();
+
+    redisClientDelegate.withScriptingClient(c -> {
+      Object response = c.eval(GET_EXECUTIONS_FOR_PIPELINE_CONFIG_IDS_SCRIPT, pipelineConfigIds, Arrays.asList(Long.toString(buildTimeStartBoundary), Long.toString(buildTimeEndBoundary)));
+      /*
+       *
+       * Response of eval script is in this format:
+       *
+       * For N executions,
+       *
+       *                          Type
+       * [
+       *   for(i = 0; i < N; i++)
+       *     execution ID         String
+       *     execution hash       List<String>
+       *     stage IDs            List<String>
+       * ]
+       */
+      List lists = (List) response;
+
+      int i = 0;
+      while (i < lists.size()) {
+        String id = (String) lists.get(i);
+        i++;
+
+        final Map<String, String> map = buildExecutionMapFromRedisResponse((List<String>) lists.get(i));
+        i++;
+
+        final List<String> stageIds = (List<String>) lists.get(i);
+        i++;
+
+        if (stageIds.isEmpty()) {
+          stageIds.addAll(extractStages(map));
+        }
+
+        Execution execution = new Execution(PIPELINE, id, map.get("application"));
+        executions.add(buildExecution(execution, map, stageIds));
+      }
+    });
+    return Observable.from(executions);
   }
 
   protected Observable<Execution> all(ExecutionType type, RedisClientDelegate redisClientDelegate) {
