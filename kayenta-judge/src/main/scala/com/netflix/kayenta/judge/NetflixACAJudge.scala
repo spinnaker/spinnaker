@@ -178,7 +178,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
         .build()
 
     } catch {
-      case e: MannWhitneyException =>
+      case e: RuntimeException =>
         logger.error("Metric Classification Failed", e)
         resultBuilder
           .classification(Error.toString)

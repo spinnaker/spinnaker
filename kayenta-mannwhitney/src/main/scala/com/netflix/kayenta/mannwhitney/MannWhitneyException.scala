@@ -16,4 +16,4 @@
 
 package com.netflix.kayenta.mannwhitney
 
-class MannWhitneyException(message: String) extends Exception;
+class MannWhitneyException(message: String) extends RuntimeException;
