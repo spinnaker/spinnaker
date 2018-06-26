@@ -59,6 +59,7 @@ interface EchoService {
       HIPCHAT,
       EMAIL,
       BEARYCHAT,
+      GOOGLECHAT,
       SMS,
       PAGER_DUTY,
       JIRA
