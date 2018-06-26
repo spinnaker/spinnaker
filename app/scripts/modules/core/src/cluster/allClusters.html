@@ -55,9 +55,13 @@
 </div>
 
 <!-- overflow-y is set to avoid flickering when scrollbars are set to always show (react virtualized thing) -->
+<div ng-if="!ctrl.initialized">
+  <loading-spinner size="medium"></loading-spinner>
+</div>
+
 <all-clusters-groupings
   class="content"
   app="ctrl.application"
-  initialized="ctrl.initialized"
   style="overflow-y: hidden"
+  initialized="ctrl.initialized"
 ></all-clusters-groupings>
