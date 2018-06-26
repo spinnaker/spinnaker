@@ -140,10 +140,16 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
     }
 
     List<String> requiredArtifactIds = (List<String>) task.get("requiredArtifactIds");
+    List<Artifact> requiredArtifacts = new ArrayList<>();
     requiredArtifactIds = requiredArtifactIds == null ? new ArrayList<>() : requiredArtifactIds;
-    List<Artifact> requiredArtifacts = requiredArtifactIds.stream()
-        .map(id -> artifactResolver.getBoundArtifactForId(stage, id))
-        .collect(Collectors.toList());
+    for (String id : requiredArtifactIds) {
+      Artifact requiredArtifact = artifactResolver.getBoundArtifactForId(stage, id);
+      if (requiredArtifact == null) {
+        throw new IllegalStateException("No artifact with id '" + id + "' could be found in the pipeline context.");
+      }
+
+      requiredArtifacts.add(requiredArtifact);
+    }
 
     log.info("Deploying {} artifacts within the provided manifest", requiredArtifacts);
 
