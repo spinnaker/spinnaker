@@ -149,7 +149,7 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.trigger.pubsub.attributeConstraints': `
       <p>Pubsub mesages can have system-specific metadata accompanying the payload called <b>attributes</b>.</p>
       <p>When provided, only a pubsub message with attributes containing at least the specified key/value pairs will be allowed to trigger this pipeline.</p>
-      <p>The constraint values may be supplied as regex.</p>
+      <p>The constraint value is a java regex string.</p>
   `,
   'pipeline.config.trigger.pubsub.payloadConstraints': `
       <p>
@@ -162,7 +162,7 @@ const helpContents: { [key: string]: string } = {
         The key/value pairs are matched against the unprocessed payload body, prior to any
         transformation using, for example, a Jinja template in a pubsub subscription configuration.
       </p>
-      <p>The constraint values may be supplied as regex.</p>
+      <p>The constraint value is a java regex string.</p>
   `,
   'pipeline.config.findArtifactFromExecution.considerExecutions': `
       <p>Select the types of executions to consider. When no selection is made, the default is "any execution".</p>
