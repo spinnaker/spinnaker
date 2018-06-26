@@ -57,7 +57,7 @@ class BuildDebianCommand(GradleCommandProcessor):
         or (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       args.append('-x test')
 
-    args.extend(self.gradle.get_debian_args('trusty,xenial'))
+    args.extend(self.gradle.get_debian_args('trusty,xenial,bionic'))
 
     with self.__semaphore:
       self.gradle.check_run(args, self, repository, 'candidate', 'debian-build')
