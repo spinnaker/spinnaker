@@ -211,10 +211,10 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
             job.completedBuilds.forEach { build ->
                 Boolean eventPosted = cache.getEventPosted(master, job.name, job.cursor, build.number)
                 if (!eventPosted) {
-                    log.debug("[${master}:${job.name}]:${build.number} event posted")
-                    cache.setEventPosted(master, job.name, job.cursor, build.number)
                     if (sendEvents) {
                         postEvent(new Project(name: job.name, lastBuild: build), master)
+                        log.debug("[${master}:${job.name}]:${build.number} event posted")
+                        cache.setEventPosted(master, job.name, job.cursor, build.number)
                     }
                 }
             }
