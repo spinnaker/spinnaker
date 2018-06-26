@@ -111,7 +111,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       Keys.getClusterKey(account, application, name),
       RelationshipCacheFilter.include(SERVER_GROUPS.ns, INSTANCES.ns))
 
-    Set<String> allClusterInstanceKeys = includeDetails ? (clusterData?.relationships[INSTANCES.ns] ?: []) : [] as Set
+    Set<String> allClusterInstanceKeys = includeDetails ? (clusterData?.relationships?.get(INSTANCES.ns) ?: []) : [] as Set
 
     return clusterData ? clusterFromCacheData(clusterData, allClusterInstanceKeys) : null
   }
@@ -143,7 +143,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     if (cacheData) {
       def securityGroups = securityGroupProvider.getAllByAccount(false, account)
 
-      def instanceKeys = cacheData.relationships[INSTANCES.ns]
+      def instanceKeys = cacheData.relationships?.get(INSTANCES.ns) ?: []
       def instances = instanceProvider.getInstances(account, instanceKeys as List, securityGroups)
       def loadBalancers = loadBalancersFromKeys(cacheData.relationships[LOAD_BALANCERS.ns] as List)
       return serverGroupFromCacheData(cacheData, account, instances, securityGroups, loadBalancers)?.view

@@ -73,7 +73,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
       applicationView.clusterNames[clusterKeyParsed.account] << clusterKeyParsed.name
     }
 
-    applicationView.instances = cacheData?.relationships[INSTANCES.ns].collect { Keys.parse(it) } ?: []
+    applicationView.instances = cacheData?.relationships?.get(INSTANCES.ns).collect { Keys.parse(it) } ?: []
 
     applicationView
   }

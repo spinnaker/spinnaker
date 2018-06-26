@@ -68,7 +68,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     cacheView.getAll(LOAD_BALANCERS.ns,
                      identifiers.unique(),
                      RelationshipCacheFilter.include(SERVER_GROUPS.ns, INSTANCES.ns)).collect { CacheData loadBalancerCacheData ->
-      loadBalancersFromCacheData(loadBalancerCacheData, (loadBalancerCacheData?.relationships[INSTANCES.ns] ?: []) as Set)
+      loadBalancersFromCacheData(loadBalancerCacheData, (loadBalancerCacheData?.relationships?.get(INSTANCES.ns) ?: []) as Set)
     } as Set
   }
 
