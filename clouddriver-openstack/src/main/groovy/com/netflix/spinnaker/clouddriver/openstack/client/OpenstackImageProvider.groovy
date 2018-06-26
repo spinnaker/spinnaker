@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
-import org.openstack4j.model.image.Image
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackImage
 
 /**
  *
@@ -29,13 +29,13 @@ interface OpenstackImageProvider {
    * @param filters
    * @return
    */
-  List<Image> listImages(String region, Map<String, String> filters)
+  List<OpenstackImage> listImages(String region, Map<String, String> filters)
 
   /**
    * Returns a list of images.
    * @param region
    * @return
    */
-  List<Image> listImages(String region)
+  List<OpenstackImage> listImages(String region)
 
 }

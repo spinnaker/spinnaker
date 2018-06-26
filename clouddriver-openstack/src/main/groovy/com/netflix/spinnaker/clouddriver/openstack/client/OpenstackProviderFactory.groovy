@@ -28,7 +28,7 @@ class OpenstackProviderFactory {
     OpenstackComputeV2Provider computeProvider = new OpenstackComputeV2Provider(identityProvider)
     OpenstackNetworkingProvider networkingProvider = new OpenstackNetworkingV2Provider(identityProvider)
     OpenstackOrchestrationProvider orchestrationProvider = new OpenstackOrchestrationV1Provider(identityProvider)
-    OpenstackImageProvider imageProvider = new OpenstackImageV1Provider(identityProvider)
+    OpenstackImageProvider imageProvider = new OpenstackImageV2Provider(identityProvider)
     OpenstackLoadBalancerProvider loadBalancerProvider = new OpenstackLoadBalancerV2Provider(identityProvider)
     OpenstackSwiftProvider swiftProvider = new OpenstackSwiftV1Provider(identityProvider)
     new OpenstackClientProvider(identityProvider, computeProvider, networkingProvider, orchestrationProvider, imageProvider, loadBalancerProvider, swiftProvider)

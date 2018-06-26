@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackImage
 import org.openstack4j.api.exceptions.ServerResponseException
-import org.openstack4j.api.image.ImageService
-import org.openstack4j.model.image.Image
-import org.openstack4j.model.network.Subnet
+import org.openstack4j.api.image.v2.ImageService
+import org.openstack4j.model.image.v2.Image
 import org.springframework.http.HttpStatus
 
 class OpenstackImageV1ClientProviderSpec extends OpenstackClientProviderSpec {
@@ -29,17 +29,21 @@ class OpenstackImageV1ClientProviderSpec extends OpenstackClientProviderSpec {
     setup:
     Map<String, String> filters = null
     ImageService imageService = Mock(ImageService)
-    List<Image> images = [Mock(Image)]
+    def imageLocation = "http://example.com/image.iso"
+    Image image = Mock(Image) {
+      getLocations() >> [imageLocation]
+    }
 
     when:
-    List<Subnet> result = provider.listImages(region, filters)
+    List<OpenstackImage> result = provider.listImages(region, filters)
 
     then:
-    1 * mockClient.images() >> imageService
-    1 * imageService.listAll(filters) >> images
+    1 * mockClient.imagesV2() >> imageService
+    1 * imageService.list(filters) >> [image]
 
     and:
-    result == images
+    result[0] instanceof OpenstackImage
+    result[0].location == imageLocation
     noExceptionThrown()
   }
 
@@ -53,8 +57,8 @@ class OpenstackImageV1ClientProviderSpec extends OpenstackClientProviderSpec {
     provider.listImages(region, filters)
 
     then:
-    1 * mockClient.images() >> imageService
-    1 * imageService.listAll(filters) >> { throw throwable }
+    1 * mockClient.imagesV2() >> imageService
+    1 * imageService.list(filters) >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)

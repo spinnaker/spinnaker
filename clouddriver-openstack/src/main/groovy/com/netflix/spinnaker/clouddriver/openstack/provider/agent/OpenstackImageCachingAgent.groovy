@@ -62,31 +62,16 @@ class OpenstackImageCachingAgent extends AbstractOpenstackCachingAgent {
 
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
-    List<Image> images = this.clientProvider.listImages(region)
+    List<OpenstackImage> images = this.clientProvider.listImages(region)
 
-    images?.each { Image image ->
+    images?.each { OpenstackImage image ->
       cacheResultBuilder.namespace(IMAGES.ns).keep(Keys.getImageKey(image.id, accountName, region)).with {
-        attributes = objectMapper.convertValue(buildImage(image), ATTRIBUTES)
+        attributes = objectMapper.convertValue(image, ATTRIBUTES)
       }
     }
 
     log.info("Caching ${cacheResultBuilder.namespace(IMAGES.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
-  }
-
-  OpenstackImage buildImage(Image image) {
-    OpenstackImage.builder()
-      .id(image.id)
-      .status(image.status?.value())
-      .size(image.size)
-      .location(image.location)
-      .createdAt(image.createdAt?.time)
-      .deletedAt(image.deletedAt?.time)
-      .updatedAt(image.updatedAt?.time)
-      .properties(image.properties)
-      .name(image.name)
-      .region(region)
-      .build()
   }
 }

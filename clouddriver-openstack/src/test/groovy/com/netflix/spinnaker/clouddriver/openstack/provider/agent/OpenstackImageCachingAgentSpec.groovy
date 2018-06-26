@@ -22,11 +22,11 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackImage
 import com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.common.ActionResponse
-import org.openstack4j.model.image.Image
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.IMAGES
@@ -50,7 +50,7 @@ class OpenstackImageCachingAgentSpec extends Specification {
     ProviderCache providerCache = Mock(ProviderCache)
     OpenstackCredentials credentials = GroovyMock()
     OpenstackClientProvider provider = Mock()
-    Image image = Mock(Image)
+    OpenstackImage image = Mock(OpenstackImage)
     String id = UUID.randomUUID().toString()
     String imageKey = Keys.getImageKey(id, account, region)
     Map<String, Object> imageAttributes = new HashMap<>()
