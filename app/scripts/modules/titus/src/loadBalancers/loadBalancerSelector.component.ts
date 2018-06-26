@@ -42,9 +42,11 @@ class LoadBalancerSelectorController implements IController {
         this.credentials = credentials;
       },
     );
+    this.refreshing = true;
     const loadBalancerLoader: ng.IPromise<void> = this.loadBalancerReader
       .listLoadBalancers('aws')
       .then((loadBalancers: any[]) => {
+        this.refreshing = false;
         this.loadBalancers = loadBalancers;
       });
     this.$q.all([credentialLoader, loadBalancerLoader]).then(() => this.configureLoadBalancerOptions());

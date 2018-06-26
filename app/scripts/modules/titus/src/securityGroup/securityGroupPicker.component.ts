@@ -11,6 +11,7 @@ import {
   ISecurityGroup,
   IVpc,
   SECURITY_GROUP_READER,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 import { VpcReader } from '@spinnaker/amazon';
@@ -27,9 +28,11 @@ class SecurityGroupPickerController implements ng.IComponentController {
   public regionChanged: Subject<void>;
   public groupsRemoved: Subject<string[]>;
   public hideLabel: boolean;
+  public showAmazonAccount: boolean;
   public loaded = false;
   private vpcs: IVpc[];
   private subscriptions: Subscription[];
+  public firewallsLabel: string;
 
   public constructor(
     private $q: ng.IQService,
@@ -54,6 +57,8 @@ class SecurityGroupPickerController implements ng.IComponentController {
       this.accountChanged.subscribe(() => this.configureSecurityGroupOptions()),
       this.regionChanged.subscribe(() => this.configureSecurityGroupOptions()),
     ];
+
+    this.firewallsLabel = FirewallLabels.get('firewalls');
   }
 
   public $onDestroy(): void {
@@ -152,6 +157,7 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
     removedGroups: '<',
     groupsToEdit: '=',
     hideLabel: '<',
+    showAmazonAccount: '<',
   };
   public controller: any = SecurityGroupPickerController;
   public template = `
@@ -162,6 +168,10 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
           refresh="$ctrl.refreshSecurityGroups()"
           help-key="titus.deploy.securityGroups"
           available-groups="$ctrl.availableGroups"></server-group-security-group-selector>
+
+      <div class="small col-md-9 col-md-offset-3" ng-if="$ctrl.showAmazonAccount && $ctrl.command.credentials !== undefined">
+        Uses {{$ctrl.firewallsLabel}} from the Amazon account <account-tag account="$ctrl.command.backingData.credentialsKeyedByAccount[$ctrl.command.credentials].awsAccount" pad="right"></account-tag>
+      </div>
     </div>
 `;
 }

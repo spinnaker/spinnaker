@@ -13,15 +13,15 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-4 sm-label-right">
+    <div class="col-md-3 sm-label-right">
       <b>Target Groups</b>
       <help-field key="aws.loadBalancer.targetGroups"></help-field>
     </div>
-    <div class="col-md-8">
+    <div class="col-md-9">
       <div class="form-control-static" ng-if="$ctrl.command.backingData.filtered.targetGroups.length === 0">
         No target groups found in the selected account/region/VPC
       </div>
-      <loading-spinner size="small" ng-if="!$ctrl.command.backingData.filtered.targetGroups.length"></loading-spinner>
+      <loading-spinner size="small" ng-if="$ctrl.refreshing"></loading-spinner>
       <ui-select ng-if="$ctrl.command.backingData.filtered.targetGroups.length"
                  multiple
                  ng-model="$ctrl.command.targetGroups"
@@ -33,8 +33,11 @@
       </ui-select>
     </div>
     <div class="form-group small" style="margin-top: 20px">
-      <div class="col-md-7 col-md-offset-4">
+      <div class="col-md-9 col-md-offset-3">
         <p>Only target groups with target type <em>ip</em> are supported in Titus. It is not possible to re-use target groups of target type <em>instance</em> used by Amazon instances. </p>
+        <p ng-if="$ctrl.command.credentials !== undefined">
+          Uses target groups from the Amazon account <account-tag account="$ctrl.command.backingData.credentialsKeyedByAccount[$ctrl.command.credentials].awsAccount" pad="right"></account-tag>
+        </p>
       </div>
     </div>
   </div>
