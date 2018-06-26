@@ -61,7 +61,7 @@ module.exports = angular
     };
 
     vm.supportsCustomMessage = function(notification, whenOption) {
-      return whenOption !== 'manualJudgment' && ['email', 'slack'].includes(notification.type);
+      return whenOption !== 'manualJudgment' && ['email', 'slack', 'googlechat'].includes(notification.type);
     };
 
     vm.stageType = function() {

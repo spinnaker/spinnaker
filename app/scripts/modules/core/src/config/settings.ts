@@ -12,6 +12,9 @@ export interface INotificationSettings {
   bearychat: {
     enabled: boolean;
   };
+  googlechat: {
+    enabled: boolean;
+  };
   hipchat: {
     enabled: boolean;
     botName: string;
