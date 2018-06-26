@@ -39,6 +39,18 @@ bold "Using bucket $BUCKET_URI..."
 
 gsutil mb $BUCKET_URI
 
+bold "Installing the 'spin' CLI..."
+
+curl -LO https://storage.googleapis.com/spinnaker-artifacts/spin/$(curl -s https://storage.googleapis.com/spinnaker-artifacts/spin/latest)/linux/amd64/spin
+
+chmod +x spin
+
+mkdir bin/
+
+mv spin bin/
+
+export PATH=$PATH:`pwd`/bin
+
 replace() {
   sed -i $1 manifests.yml
 }
