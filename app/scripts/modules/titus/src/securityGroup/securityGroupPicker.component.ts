@@ -28,7 +28,7 @@ class SecurityGroupPickerController implements ng.IComponentController {
   public regionChanged: Subject<void>;
   public groupsRemoved: Subject<string[]>;
   public hideLabel: boolean;
-  public showAmazonAccount: boolean;
+  public amazonAccount: string;
   public loaded = false;
   private vpcs: IVpc[];
   private subscriptions: Subscription[];
@@ -157,7 +157,7 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
     removedGroups: '<',
     groupsToEdit: '=',
     hideLabel: '<',
-    showAmazonAccount: '<',
+    amazonAccount: '<',
   };
   public controller: any = SecurityGroupPickerController;
   public template = `
@@ -169,8 +169,8 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
           help-key="titus.deploy.securityGroups"
           available-groups="$ctrl.availableGroups"></server-group-security-group-selector>
 
-      <div class="small col-md-9 col-md-offset-3" ng-if="$ctrl.showAmazonAccount && $ctrl.command.credentials !== undefined">
-        Uses {{$ctrl.firewallsLabel}} from the Amazon account <account-tag account="$ctrl.command.backingData.credentialsKeyedByAccount[$ctrl.command.credentials].awsAccount" pad="right"></account-tag>
+      <div class="small" ng-class="{ 'col-md-9': !$ctrl.hideLabel, 'col-md-offset-3': !$ctrl.hideLabel }" ng-if="$ctrl.amazonAccount && $ctrl.command.credentials !== undefined">
+        Uses {{$ctrl.firewallsLabel}} from the Amazon account <account-tag account="$ctrl.amazonAccount" pad="right"></account-tag>
       </div>
     </div>
 `;

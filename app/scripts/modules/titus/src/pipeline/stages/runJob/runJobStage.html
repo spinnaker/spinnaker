@@ -1,9 +1,15 @@
 <div ng-controller="titusRunJobStageCtrl as runJobCtrl" class="form-horizontal">
-  <stage-config-field label="Account">
-    <account-select-field component="stage" field="credentials" accounts="backingData.credentials"
-                          on-change="runJobCtrl.accountChanged()"
-                          provider="'titus'"></account-select-field>
-  </stage-config-field>
+  <div class="form-group">
+    <label class="col-md-3 sm-label-right">
+      <span class="label-text">Account</span>
+    </label>
+    <div class="col-md-5">
+      <account-select-field component="stage" field="credentials" accounts="backingData.credentials"
+                            on-change="runJobCtrl.accountChanged()"
+                            provider="'titus'"></account-select-field>
+      <div class="small" ng-if="stage.credentials !== undefined">Uses resources from the Amazon account <account-tag account="backingData.credentialsKeyedByAccount[stage.credentials].awsAccount" pad="right"></account-tag></div>
+    </div>
+  </div>
 
   <div class="form-group">
     <div class="col-md-6 col-md-offset-2">
@@ -79,18 +85,27 @@
   </div>
 
   <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
-    <stage-config-field label="IAM Instance Profile (optional)" help-key="titus.deploy.iamProfile">
+  <div class="form-group">
+    <label class="col-md-3 sm-label-right">
+      <span class="label-text">IAM Instance Profile (optional)</span>
+      <help-field key="titus.deploy.iamProfile"></help-field>
+    </label>
+    <div class="col-md-4">
       <input type="text"
              class="form-control input-sm"
              ng-model="stage.cluster.iamProfile"/>
-    </stage-config-field>
-
+    </div>
+    <div class="col-md-1 small" style="white-space: nowrap; padding-left: 0; padding-top: 7px;">
+        in <account-tag account="backingData.credentialsKeyedByAccount[stage.credentials].awsAccount" pad="right"></account-tag>
+    </div>
+  </div>
     <stage-config-field label="{{firewallsLabel}}" help-key="titus.job.securityGroups">
       <div ng-if="!stage.credentials || !stage.cluster.region">
         Account and region must be selected before <firewall-label label="firewalls"/> can be added
       </div>
       <titus-security-group-picker ng-if="runJobCtrl.loaded && stage.credentials && stage.cluster.region"
                                    command="stage"
+                                   amazon-account="backingData.credentialsKeyedByAccount[stage.credentials].awsAccount"
                                    hide-label="true"
                                    groups-to-edit="stage.cluster.securityGroups"
                                    removed-groups="runJobCtrl.removedGroups"
