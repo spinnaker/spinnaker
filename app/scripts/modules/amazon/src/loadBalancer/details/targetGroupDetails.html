@@ -75,7 +75,7 @@
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="ctrl.loadBalancer.dnsname">Load Balancer DNS Name</dt>
         <dd ng-if="ctrl.loadBalancer.dnsname">
-          <a target=_blank href="{{ctrl.elbProtocol}}//{{ctrl.loadBalancer.dnsname}}">{{ctrl.loadBalancer.dnsname}}</a>
+          <a target="_blank" href="{{ctrl.elbProtocol}}//{{ctrl.loadBalancer.dnsname}}">{{ctrl.loadBalancer.dnsname}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="ctrl.loadBalancer.dnsname"

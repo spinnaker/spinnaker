@@ -17,8 +17,9 @@ export class AwsTargetGroupDetailsController implements IController {
   private targetGroupFromParams: ITargetGroupFromStateParams;
   public application: Application;
   public state = { loading: true };
+  public elbProtocol: string;
   public targetGroup: ITargetGroup;
-  public loadBalancer: ILoadBalancer;
+  public loadBalancer: IAmazonApplicationLoadBalancer;
 
   constructor(
     private $scope: IScope,
@@ -75,6 +76,11 @@ export class AwsTargetGroupDetailsController implements IController {
     this.targetGroup = targetGroup;
     this.loadBalancer = appLoadBalancer;
     this.state.loading = false;
+
+    this.elbProtocol = 'http:';
+    if (this.loadBalancer.listeners && this.loadBalancer.listeners.some(l => l.protocol === 'HTTPS')) {
+      this.elbProtocol = 'https:';
+    }
 
     return this.$q.when(null);
   }
