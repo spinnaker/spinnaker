@@ -169,8 +169,6 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       Map<String, String> stringifiedMessageAttributes = message.getMessageAttributes().entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
 
-      log.debug("Received Amazon sqs message: {} with payload: {} and attributes: {}", messageId, messagePayload, stringifiedMessageAttributes);
-
       MessageDescription description = MessageDescription.builder()
         .subscriptionName(subscriptionName())
         .messagePayload(messagePayload)
@@ -194,14 +192,10 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
   private List<Artifact> parseArtifacts(String messagePayload, String messageId){
     List<Artifact> artifacts = messageArtifactTranslator.parseArtifacts(messagePayload);
-    if (artifacts == null || artifacts.size() == 0) {
-      log.debug("No artifacts were found for subscription: {} and messageId: {}", subscription.getName(), messageId);
-    } else {
-      log.debug(
-        "Artifacts found for subscription: {}: {}",
-        subscription.getName(),
-        String.join(", ", artifacts.stream().map(Artifact::toString).collect(Collectors.toList()))
-      );
+    // Artifact must have at least a reference defined.
+    if (artifacts == null || artifacts.size() == 0
+        || artifacts.get(0).getReference() == null || artifacts.get(0).getReference().equals("")) {
+      return Collections.emptyList();
     }
     return artifacts;
   }

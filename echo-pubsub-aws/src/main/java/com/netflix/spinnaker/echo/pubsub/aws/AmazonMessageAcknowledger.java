@@ -52,7 +52,6 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
     // Delete from queue
     try {
       amazonSQS.deleteMessage(queueUrl, message.getReceiptHandle());
-      log.debug("Deleted message: {} from queue {}", message.getMessageId(), queueUrl);
       registry.counter(getProcessedMetricId(subscriptionName)).increment();
     } catch (ReceiptHandleIsInvalidException e) {
       log.warn(

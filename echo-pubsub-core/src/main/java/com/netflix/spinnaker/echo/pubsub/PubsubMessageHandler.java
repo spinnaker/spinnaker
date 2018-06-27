@@ -113,8 +113,7 @@ public class PubsubMessageHandler {
 
 
   private void processEvent(MessageDescription description) {
-    log.info("Processed Pubsub event with payload {}", description.getMessagePayload());
-
+    log.debug("Processing pubsub event with payload {}", description.getMessagePayload());
     Event event = new Event();
     Map<String, Object> content = new HashMap<>();
     Metadata details = new Metadata();
