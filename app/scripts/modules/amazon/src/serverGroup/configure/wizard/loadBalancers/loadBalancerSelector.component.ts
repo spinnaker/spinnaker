@@ -1,5 +1,7 @@
 import { IController, IComponentOptions, module } from 'angular';
 
+import { ModalWizard } from '@spinnaker/core';
+
 import {
   AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   AwsServerGroupConfigurationService,
@@ -21,6 +23,13 @@ class LoadBalancerSelectorController implements IController {
       this.refreshing = false;
       this.refreshed = true;
     });
+  }
+
+  public clearWarnings(key: string): void {
+    this.command.viewState.dirty[key] = null;
+    if (!this.command.viewState.dirty.loadBalancers && !this.command.viewState.dirty.targetGroups) {
+      ModalWizard.markClean('load-balancers');
+    }
   }
 }
 

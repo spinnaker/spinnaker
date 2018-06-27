@@ -229,6 +229,8 @@ module.exports = angular
       return (
         $scope.command &&
         ($scope.command.viewState.disableImageSelection || $scope.command.amiName) &&
+        !$scope.command.viewState.dirty.loadBalancers &&
+        !$scope.command.viewState.dirty.targetGroups &&
         $scope.command.application &&
         $scope.command.credentials &&
         $scope.command.instanceType &&

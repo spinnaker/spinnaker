@@ -6,6 +6,7 @@ export interface IWizardPageState {
   rendered: boolean;
   current: boolean;
   dirty: boolean;
+  markCleanOnView: boolean;
   markCompleteOnView: boolean;
   required: boolean;
 }
@@ -49,7 +50,10 @@ export class ModalWizard {
   public static setCurrentPage(page: IWizardPage, skipScroll?: boolean): void {
     this.pageRegistry.forEach(test => (test.state.current = test === page));
     this.currentPage = page;
-    this.markClean(page.key);
+
+    if (page.state.markCleanOnView) {
+      this.markClean(page.key);
+    }
 
     if (page.state.markCompleteOnView) {
       this.markComplete(page.key);
@@ -67,6 +71,7 @@ export class ModalWizard {
       rendered: true,
       current: false,
       dirty: false,
+      markCleanOnView: true,
       markCompleteOnView: false,
       required: false,
     };

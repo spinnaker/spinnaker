@@ -32,6 +32,13 @@ export class WizardPageController implements IController {
   public done: boolean;
 
   /**
+   * when set to false, the page will not be marked clean when scrolled into view
+   * default: true
+   * @type {boolean}
+   */
+  public markCleanOnView: boolean;
+
+  /**
    * when set to false, the page will not be marked complete when scrolled into view
    * default: true
    * @type {boolean}
@@ -68,6 +75,7 @@ export class WizardPageController implements IController {
 
   public $onInit() {
     this.render = this.render !== false;
+    this.markCleanOnView = this.markCleanOnView !== false;
     this.markCompleteOnView = this.markCompleteOnView !== false;
 
     this.state = {
@@ -77,6 +85,7 @@ export class WizardPageController implements IController {
       done: this.done || !this.mandatory,
       dirty: false,
       required: this.mandatory,
+      markCleanOnView: this.markCleanOnView,
       markCompleteOnView: this.markCompleteOnView,
     };
     ModalWizard.registerPage(this.key, this.label, this.state);
@@ -88,6 +97,7 @@ class WizardPageComponent implements ng.IComponentOptions {
   public bindings: any = {
     mandatory: '<',
     done: '<',
+    markCleanOnView: '<',
     markCompleteOnView: '<',
     key: '@',
     label: '@',
