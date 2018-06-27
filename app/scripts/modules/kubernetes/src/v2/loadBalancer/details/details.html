@@ -73,6 +73,70 @@
       <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
     </collapsible-section>
 
+    <collapsible-section heading="Load Balancer Details" expanded="true">
+      <dl>
+        <dt>Service Type</dt>
+        <dd>
+          {{ctrl.loadBalancer.manifest.spec.type}}
+        </dd>
+      </dl>
+      <dl>
+        <dt>Session Affinity</dt>
+        <dd>
+          {{ctrl.loadBalancer.manifest.spec.sessionAffinity}}
+        </dd>
+      </dl>
+      <dl ng-if="ctrl.loadBalancer.manifest.spec.clusterIP">
+        <dt>Cluster IP</dt>
+        <dd>
+          <a target="_blank" href="//{{ctrl.loadBalancer.manifest.spec.clusterIP}}">
+            {{ctrl.loadBalancer.manifest.spec.clusterIP}}
+          </a>
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.loadBalancer.manifest.spec.clusterIP"
+            tool-tip="'Copy Cluster IP to clipboard'">
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+      <dl ng-if="ctrl.loadBalancer.manifest.status.loadBalancer.ingress.length">
+        <dt>Ingress</dt>
+        <dd ng-repeat="ingress in ctrl.loadBalancer.manifest.status.loadBalancer.ingress">
+          <a ng-if="ingress.hostname" target="_blank" href="//{{ingress.hostname}}">
+            {{ingress.hostname}}
+          </a>
+          <copy-to-clipboard
+            ng-if="ingress.hostname"
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ingress.hostname"
+            tool-tip="'Copy Ingress hostname to clipboard'">
+          </copy-to-clipboard>
+          <a ng-if="ingress.ip" target="_blank" href="//{{ingress.ip}}">
+            {{ingress.ip}}
+          </a>
+          <copy-to-clipboard
+            ng-if="ingress.ip"
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ingress.ip"
+            tool-tip="'Copy Ingress IP to clipboard'">
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+      <dl ng-if="ctrl.loadBalancer.menifest.spec.loadBalancerIP">
+        <dt>Load Balancer IP</dt>
+        <dd>
+          <a target="_blank" href="//{{ctrl.loadBalancer.manifest.spec.loadBalancerIP}}">
+            {{ctrl.loadBalancer.menifest.spec.loadBalancerIP}}
+          </a>
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.loadBalancer.manifest.spec.loadBalancerIP"
+            tool-tip="'Copy Load Balancer IP to clipboard'">
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+    </collapsible-section>
+
     <kubernetes-annotation-custom-sections manifest="ctrl.loadBalancer.manifest" resource="ctrl.loadBalancer"></kubernetes-annotation-custom-sections>
 
     <collapsible-section heading="Events" expanded="true">
