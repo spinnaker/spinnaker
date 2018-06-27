@@ -63,7 +63,29 @@ class KubernetesManifestFactory(object):
         }
     }
 
+  def config_map(self, name, data):
+    return {
+        'apiVersion': 'v1',
+        'kind': 'ConfigMap',
+        'metadata': {
+            'name': name,
+            'namespace': self.scenario.TEST_NAMESPACE,
+            'labels': {
+                'app': self.scenario.TEST_APP,
+                'owner': 'citest',
+            }
+        },
+        'data': data
+    }
+
 class KubernetesManifestPredicateFactory(object):
+  def config_map_key_value_predicate(self, key, value):
+    return ov_factory.value_list_contains(jp.DICT_MATCHES({
+         'data': jp.DICT_MATCHES({
+             key: jp.STR_EQ(value)
+         })
+     }))
+
   def deployment_image_predicate(self, image):
     return ov_factory.value_list_contains(jp.DICT_MATCHES({
          'spec': jp.DICT_MATCHES({
