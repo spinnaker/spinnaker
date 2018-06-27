@@ -212,6 +212,11 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
                 .collect(Collectors.toList())))
         .collect(Collectors.toList());
 
+    if (extUsers.isEmpty()) {
+      log.info("Found no non-anonymous user roles to sync.");
+      return 0;
+    }
+
     long count = permissionsResolver.resolve(extUsers)
         .values()
         .stream()
