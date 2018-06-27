@@ -134,9 +134,31 @@ class ALBListenersImpl extends React.Component<
     });
   }
 
+  private attachClientSecret = (action: IListenerAction, oidcConfigs: IAuthenticateOidcActionConfig[]) => {
+    if (action.type === 'authenticate-oidc') {
+      const config = oidcConfigs.find(c => c.clientId === action.authenticateOidcConfig.clientId);
+      if (config) {
+        action.authenticateOidcConfig.clientSecret = config.clientSecret;
+      }
+    }
+  };
+
   private loadOidcClients(): void {
     OidcConfigReader.getOidcConfigsByApp(this.props.app.name)
-      .then(oidcConfigs => this.setState({ oidcConfigs }))
+      .then(oidcConfigs => {
+        // make sure we have all the secrets for listener actions that need them
+        if (oidcConfigs && oidcConfigs.length) {
+          this.props.values.listeners.forEach(listener => {
+            listener.defaultActions.forEach(action => this.attachClientSecret(action, oidcConfigs));
+            listener.rules.forEach(rule =>
+              rule.actions.forEach(action => this.attachClientSecret(action, oidcConfigs)),
+            );
+          });
+        }
+
+        this.setState({ oidcConfigs });
+        this.updateListeners();
+      })
       .catch(() => {});
   }
 
