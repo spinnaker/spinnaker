@@ -112,6 +112,44 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
       'uuid': id_
     }
 
+  def deploy_unversioned_config_map(self, value):
+    """Creates OperationContract for deploying an unversioned configmap
+
+    To verify the operation, we just check that the configmap was created with
+    the correct 'value'.
+    """
+    name = self.TEST_APP + '-configmap'
+    manifest = self.mf.config_map(name, {'value': value})
+    manifest['metadata']['annotations'] = {'strategy.spinnaker.io/versioned': 'false'}
+
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'cloudProvider': 'kubernetes',
+            'moniker': {
+                'app': self.TEST_APP
+            },
+            'account': self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+            'source': 'text',
+            'type': 'deployManifest',
+            'user': '[anonymous]',
+            'manifests': [manifest],
+        }],
+        description='Deploy manifest',
+        application=self.TEST_APP)
+
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('ConfigMap created',
+                                retryable_for_secs=15)
+     .get_resources(
+         'configmap',
+         extra_args=[name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(self.mp.config_map_key_value_predicate('value', value)))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='deploy_manifest', data=payload, path='tasks'),
+        contract=builder.build())
+
   def deploy_config_map(self, version):
     """Creates OperationContract for deploying a versioned configmap
 
@@ -259,10 +297,19 @@ class KubeV2ArtifactTest(st.AgentTestCase):
   def test_c2_noop_update_config_map(self):
     self.run_test_case(self.scenario.deploy_config_map('v000'))
 
-  def test_c2_update_config_map(self):
+  def test_c3_update_config_map(self):
     self.run_test_case(self.scenario.deploy_config_map('v001'))
 
   def test_c4_delete_configmap(self):
+    self.run_test_case(self.scenario.delete_kind('configmap'), max_retries=2)
+
+  def test_d1_create_unversioned_configmap(self):
+    self.run_test_case(self.scenario.deploy_unversioned_config_map('1'))
+
+  def test_d2_update_unversioned_configmap(self):
+    self.run_test_case(self.scenario.deploy_unversioned_config_map('2'))
+
+  def test_d3_delete_unversioned_configmap(self):
     self.run_test_case(self.scenario.delete_kind('configmap'), max_retries=2)
 
   def test_z_delete_app(self):
