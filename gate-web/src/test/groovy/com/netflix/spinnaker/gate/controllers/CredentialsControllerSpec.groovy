@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.CredentialsService
@@ -50,14 +51,18 @@ class CredentialsControllerSpec extends Specification {
   }
 
   void setup() {
-    FiatClientConfigurationProperties fiatConfig = new FiatClientConfigurationProperties(enabled: false)
+    def fiatStatus = Mock(FiatStatus) {
+      _ * isEnabled() >> { return false }
+    }
 
     @Subject
-    CredentialsService credentialsService = new CredentialsService(accountLookupService: accountLookupService,
-      fiatConfig: fiatConfig)
+    CredentialsService credentialsService = new CredentialsService(
+      accountLookupService: accountLookupService,
+      fiatStatus: fiatStatus
+    )
 
     FiatPermissionEvaluator fpe = Stub(FiatPermissionEvaluator)
-    AllowedAccountsSupport allowedAccountsSupport = new AllowedAccountsSupport(fpe, credentialsService, false)
+    AllowedAccountsSupport allowedAccountsSupport = new AllowedAccountsSupport(fiatStatus, fpe, credentialsService)
 
     server.start()
     mockMvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountLookupService:  accountLookupService, allowedAccountsSupport: allowedAccountsSupport)).build()

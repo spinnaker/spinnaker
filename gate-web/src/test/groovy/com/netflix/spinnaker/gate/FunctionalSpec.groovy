@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.gate
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.controllers.PipelineController
@@ -35,6 +37,8 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -72,6 +76,7 @@ class FunctionalSpec extends Specification {
   static PipelineService pipelineService
   static ServiceConfiguration serviceConfiguration
   static AccountLookupService accountLookupService
+  static FiatStatus fiatStatus
 
   ConfigurableApplicationContext ctx
 
@@ -88,6 +93,8 @@ class FunctionalSpec extends Specification {
     accountLookupService = Mock(AccountLookupService)
     pipelineService = Mock(PipelineService)
     serviceConfiguration = new ServiceConfiguration()
+    fiatStatus = Mock(FiatStatus)
+
 
     def sock = new ServerSocket(0)
     def localPort = sock.localPort
@@ -319,6 +326,21 @@ class FunctionalSpec extends Specification {
     @Bean
     FiatClientConfigurationProperties fiatClientConfigurationProperties() {
       new FiatClientConfigurationProperties(enabled: false)
+    }
+
+    @Bean
+    SpringDynamicConfigService dynamicConfigService() {
+      new SpringDynamicConfigService()
+    }
+
+    @Bean
+    FiatStatus fiatStatus(DynamicConfigService dynamicConfigService,
+                          FiatClientConfigurationProperties fiatClientConfigurationProperties) {
+      new FiatStatus(
+        new NoopRegistry(),
+        dynamicConfigService,
+        fiatClientConfigurationProperties
+      )
     }
 
     @Bean

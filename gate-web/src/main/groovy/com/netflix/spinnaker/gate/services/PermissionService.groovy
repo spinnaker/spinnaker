@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.security.User
@@ -46,12 +47,15 @@ class PermissionService {
   @Autowired
   FiatPermissionEvaluator permissionEvaluator
 
+  @Autowired
+  FiatStatus fiatStatus
+
   boolean isEnabled() {
-    return fiatConfig.enabled
+    return fiatStatus.isEnabled()
   }
 
   void login(String userId) {
-    if (fiatConfig.enabled) {
+    if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "login") {
         try {
           fiatService.loginUser(userId, "")
@@ -64,7 +68,7 @@ class PermissionService {
   }
 
   void loginWithRoles(String userId, Collection<String> roles) {
-    if (fiatConfig.enabled) {
+    if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "loginWithRoles") {
         try {
           fiatService.loginWithRoles(userId, roles)
@@ -77,7 +81,7 @@ class PermissionService {
   }
 
   void logout(String userId) {
-    if (fiatConfig.enabled) {
+    if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "logout") {
         try {
           fiatService.logoutUser(userId)
@@ -90,7 +94,7 @@ class PermissionService {
   }
 
   void sync() {
-    if (fiatConfig.enabled) {
+    if (fiatStatus.isEnabled()) {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "sync") {
         try {
           fiatService.sync()
@@ -102,7 +106,7 @@ class PermissionService {
   }
 
   Set<Role> getRoles(String userId) {
-    if (!fiatConfig.enabled) {
+    if (!fiatStatus.isEnabled()) {
       return []
     }
     return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getRoles") {
@@ -121,7 +125,7 @@ class PermissionService {
       return []
     }
 
-    if (!fiatConfig.enabled) {
+    if (!fiatStatus.isEnabled()) {
       log.debug("getServiceAccounts: Fiat disabled.")
       return []
     }

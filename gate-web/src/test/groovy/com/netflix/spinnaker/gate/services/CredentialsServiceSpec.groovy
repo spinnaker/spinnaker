@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import spock.lang.Specification
@@ -34,17 +35,19 @@ class CredentialsServiceSpec extends Specification {
 
     AccountLookupService accountLookupService = new DefaultProviderLookupService(clouddriverService)
     accountLookupService.refreshCache()
-    FiatClientConfigurationProperties fiatConfig = new FiatClientConfigurationProperties(enabled: false)
+
+    def fiatStatus = Mock(FiatStatus) {
+      _ * isEnabled() >> { return false }
+    }
 
     @Subject
-    CredentialsService credentialsService = new CredentialsService(accountLookupService: accountLookupService,
-      fiatConfig: fiatConfig)
+    CredentialsService credentialsService = new CredentialsService(
+      accountLookupService: accountLookupService,
+      fiatStatus: fiatStatus
+    )
 
-    when:
-    def allowedAccounts = credentialsService.getAccountNames(roles)
-
-    then:
-    allowedAccounts == expectedAccounts
+    expect:
+    credentialsService.getAccountNames(roles) == expectedAccounts
 
     where:
     roles              | accounts                                                      || expectedAccounts

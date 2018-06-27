@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.gate.security.anonymous
 
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.Scheduled
@@ -48,6 +48,9 @@ class AnonymousConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   CredentialsService credentialsService
 
+  @Autowired
+  FiatStatus fiatStatus
+
   List<String> anonymousAllowedAccounts = new CopyOnWriteArrayList<>()
 
   void configure(HttpSecurity http) {
@@ -65,8 +68,11 @@ class AnonymousConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Scheduled(fixedDelay = 60000L)
-  @ConditionalOnExpression('!${services.fiat.enabled:false}')
   void updateAnonymousAccounts() {
+    if (fiatStatus.isEnabled()) {
+      return
+    }
+
     try {
       def newAnonAccounts = credentialsService.getAccountNames([]) ?: []
 

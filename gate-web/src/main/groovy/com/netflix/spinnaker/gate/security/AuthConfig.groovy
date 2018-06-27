@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security
 
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.filters.FiatSessionFilter
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
@@ -55,15 +56,20 @@ class AuthConfig {
   FiatClientConfigurationProperties configProps
 
   @Autowired
+  FiatStatus fiatStatus
+
+  @Autowired
   FiatPermissionEvaluator permissionEvaluator
 
   @Value('${fiat.sessionFilter.enabled:true}')
   boolean fiatSessionFilterEnabled
 
   void configure(HttpSecurity http) throws Exception {
-    Filter fiatSessionFilter = new FiatSessionFilter(fiatSessionFilterEnabled,
-                                                     configProps,
-                                                     permissionEvaluator)
+    Filter fiatSessionFilter = new FiatSessionFilter(
+      fiatSessionFilterEnabled,
+      fiatStatus,
+      permissionEvaluator
+    )
     // @formatter:off
     SecurityBuilder result = http
       .authorizeRequests()

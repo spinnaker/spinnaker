@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,23 +29,23 @@ class CredentialsService {
   AccountLookupService accountLookupService
 
   @Autowired
-  FiatClientConfigurationProperties fiatConfig
-
-  Collection<String> getAccountNames() {
-    getAccountNames([])
-  }
+  FiatStatus fiatStatus
 
   Collection<String> getAccountNames(Collection<String> userRoles) {
-    getAccounts(userRoles)*.name
+    getAccounts(userRoles, false)*.name
+  }
+
+  Collection<String> getAccountNames(Collection<String> userRoles, boolean ignoreFiatStatus) {
+    getAccounts(userRoles, ignoreFiatStatus)*.name
   }
 
   /**
    * Returns all account names that a user with the specified list of userRoles has access to.
    */
-  List<AccountDetails> getAccounts(Collection<String> userRoles) {
+  List<AccountDetails> getAccounts(Collection<String> userRoles, boolean ignoreFiatStatus) {
     final Set<String> userRolesLower = userRoles*.toLowerCase() as Set<String>
     return accountLookupService.getAccounts().findAll { AccountDetails account ->
-      if (fiatConfig.enabled) {
+      if (!ignoreFiatStatus && fiatStatus.isEnabled()) {
         return true // Returned list is filtered later.
       }
 

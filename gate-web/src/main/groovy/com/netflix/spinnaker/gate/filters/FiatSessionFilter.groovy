@@ -18,8 +18,10 @@ package com.netflix.spinnaker.gate.filters
 
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 
 import javax.servlet.Filter
@@ -38,15 +40,15 @@ class FiatSessionFilter implements Filter {
 
   boolean enabled
 
-  FiatClientConfigurationProperties fiatConfig
+  FiatStatus fiatStatus
 
   FiatPermissionEvaluator permissionEvaluator
 
   FiatSessionFilter(boolean enabled,
-                    FiatClientConfigurationProperties fiatConfig,
+                    FiatStatus fiatStatus,
                     FiatPermissionEvaluator permissionEvaluator) {
     this.enabled = enabled
-    this.fiatConfig = fiatConfig
+    this.fiatStatus = fiatStatus
     this.permissionEvaluator = permissionEvaluator
   }
 
@@ -56,7 +58,7 @@ class FiatSessionFilter implements Filter {
    */
   @Override
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-    if (fiatConfig.enabled && this.enabled) {
+    if (fiatStatus.isEnabled() && this.enabled) {
       String user = AuthenticatedRequest.getSpinnakerUser().orElse(null)
       log.debug("Fiat session filter - found user: ${user}")
       if (permissionEvaluator.getPermission(user) == null) {
@@ -73,7 +75,7 @@ class FiatSessionFilter implements Filter {
     } else {
       if (log.isDebugEnabled()) {
         log.debug("Skipping Fiat session filter: Both `services.fiat.enabled` " +
-                      "(${fiatConfig.enabled}) and the FiatSessionFilter (${this.enabled}) " +
+                      "(${fiatStatus.isEnabled()}) and the FiatSessionFilter (${this.enabled}) " +
                       "need to be enabled.")
       }
     }

@@ -16,38 +16,48 @@
 
 package com.netflix.spinnaker.gate.security.anonymous
 
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.services.CredentialsService
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.util.concurrent.CopyOnWriteArrayList
 
 class AnonymousConfigSpec extends Specification {
-
   @Unroll
-  def "should update accounts correctly"() {
+  def "should update accounts when fiat is not enabled"() {
     setup:
-      CredentialsService credentialsService = Mock(CredentialsService) {
-        getAccountNames(*_) >> newAccounts
-      }
-      @Subject
-      AnonymousConfig config = new AnonymousConfig(
-          anonymousAllowedAccounts: new CopyOnWriteArrayList<String>(oldAccounts),
-          credentialsService: credentialsService
-      )
+    def fiatStatus = Mock(FiatStatus)
+    def credentialsService = Mock(CredentialsService) {
+      getAccountNames(*_) >> newAccounts
+    }
+
+    and:
+    AnonymousConfig config = new AnonymousConfig(
+      anonymousAllowedAccounts: new CopyOnWriteArrayList<String>(oldAccounts),
+      credentialsService: credentialsService,
+      fiatStatus: fiatStatus
+    )
 
     when:
-      config.updateAnonymousAccounts()
+    config.updateAnonymousAccounts()
 
     then:
-      config.anonymousAllowedAccounts == newAccounts
+    1 * fiatStatus.isEnabled() >> { return true }
+    config.anonymousAllowedAccounts == oldAccounts
+
+    when:
+    config.updateAnonymousAccounts()
+
+    then:
+    1 * fiatStatus.isEnabled() >> { return false }
+    config.anonymousAllowedAccounts == newAccounts
 
     where:
-      oldAccounts || newAccounts
-      []          || ["a"]
-      ["a"]       || ["a", "b"]
-      ["a"]       || ["b"]
-      ["a"]       || []
+    oldAccounts || newAccounts
+    []          || ["a"]
+    ["a"]       || ["a", "b"]
+    ["a"]       || ["b"]
+    ["a"]       || []
   }
 }
