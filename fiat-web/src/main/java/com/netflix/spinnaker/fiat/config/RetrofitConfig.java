@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor;
 import com.squareup.okhttp.ConnectionPool;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Request;
@@ -87,11 +89,13 @@ public class RetrofitConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkClient okClient() {
+  OkClient okClient(Registry registry) {
     val client = okHttpClientConfig.create();
     client.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs));
     client.setRetryOnConnectionFailure(retryOnConnectionFailure);
     client.interceptors().add(new RetryingInterceptor(maxElapsedBackoffMs));
+    client.interceptors().add(new OkHttpMetricsInterceptor(registry));
+
     return new OkClient(client);
   }
 

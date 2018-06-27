@@ -26,6 +26,8 @@ import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import org.slf4j.MDC
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import spock.lang.Specification
@@ -49,6 +51,10 @@ class FiatPermissionEvaluatorSpec extends Specification {
       buildConfigurationProperties(),
       fiatStatus
   )
+
+  def cleanup() {
+    MDC.clear()
+  }
 
   @Unroll
   def "should parse application name"() {
@@ -145,6 +151,33 @@ class FiatPermissionEvaluatorSpec extends Specification {
     then:
     1 * fiatService.getUserPermission("testUser") >> upv
     hasPermission
+  }
+
+  @Unroll
+  def "should support legacy fallback when fiat is unavailable"() {
+    given:
+    def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
+
+    and:
+    MDC.put(AuthenticatedRequest.SPINNAKER_USER, "fallback")
+    MDC.put(AuthenticatedRequest.SPINNAKER_ACCOUNTS, "account1,account2")
+
+    when:
+    def permission = evaluator.getPermission("testUser")
+    def hasPermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "READ")
+
+    then:
+    2 * fiatStatus.isLegacyFallbackEnabled() >> { return legacyFallbackEnabled }
+    2 * fiatService.getUserPermission("testUser") >> { throw new IllegalStateException("something something something")}
+
+    hasPermission == expectedToHavePermission
+    permission?.name == expectedName
+    permission?.accounts*.name?.sort() == expectedAccounts?.sort()
+
+    where:
+    legacyFallbackEnabled || expectedToHavePermission || expectedName || expectedAccounts
+    true                  || true                     || "fallback"   || ["account1", "account2"]
+    false                 || false                    || null         || null
   }
 
   private static FiatClientConfigurationProperties buildConfigurationProperties() {

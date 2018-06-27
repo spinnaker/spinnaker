@@ -24,9 +24,9 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import lombok.extern.slf4j.Slf4j;
@@ -38,13 +38,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -136,33 +138,61 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     }
 
     AtomicBoolean cacheHit = new AtomicBoolean(true);
-    boolean successfulLookup = true;
+    AtomicBoolean successfulLookup = new AtomicBoolean(true);
+    AtomicBoolean legacyFallback = new AtomicBoolean(false);
+    AtomicReference<Throwable> exception = new AtomicReference<>();
 
     try {
       view = permissionsCache.get(username, () -> {
         cacheHit.set(false);
-        return AuthenticatedRequest.propagate(() -> fiatService.getUserPermission(username)).call();
-      });
-    } catch (ExecutionException | UncheckedExecutionException ee) {
-      successfulLookup = false;
+        return AuthenticatedRequest.propagate(() -> {
+          try {
+            return fiatService.getUserPermission(username);
+          } catch (Exception e) {
+            if (!fiatStatus.isLegacyFallbackEnabled()) {
+              throw e;
+            }
 
-      String message = String.format(
-          "Cannot get whole user permission for user %s. Cause: %s",
-          username,
-          ee.getCause().getMessage()
-      );
-      if (log.isDebugEnabled()) {
-        log.debug(message, ee.getCause());
-      } else {
-        log.info(message);
-      }
+            legacyFallback.set(true);
+            successfulLookup.set(false);
+            exception.set(e);
+
+            // this fallback permission will be temporarily cached in the permissions cache
+            return new UserPermission.View(
+                new UserPermission()
+                    .setId(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+                    .setAccounts(
+                        Arrays
+                            .stream(AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(","))
+                            .map(a -> new Account().setName(a))
+                            .collect(Collectors.toSet())
+                    )
+            ).setLegacyFallback(true);
+          }
+        }).call();
+      });
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      successfulLookup.set(false);
+      exception.set(e.getCause() != null ? e.getCause() : e);
     }
 
-    registry.counter(
-        getPermissionCounterId
-            .withTag("cached", cacheHit.get())
-            .withTag("success", successfulLookup)
-    ).increment();
+    if (!successfulLookup.get()) {
+      log.error(
+          "Cannot get whole user permission for user {}, reason: {}",
+          username,
+          exception.get().getMessage()
+      );
+    }
+
+    Id id = getPermissionCounterId
+        .withTag("cached", cacheHit.get())
+        .withTag("success", successfulLookup.get());
+
+    if (!successfulLookup.get()) {
+      id = id.withTag("legacyFallback", legacyFallback.get());
+    }
+
+    registry.counter(id).increment();
 
     return view;
   }
@@ -193,12 +223,11 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
             .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName) &&
                 view.getAuthorizations().contains(authorization));
 
-
     switch (resourceType) {
       case ACCOUNT:
         return containsAuth.apply(permission.getAccounts());
       case APPLICATION:
-        return containsAuth.apply(permission.getApplications());
+        return permission.isLegacyFallback() || containsAuth.apply(permission.getApplications());
       case SERVICE_ACCOUNT:
         return permission.getServiceAccounts()
             .stream()
