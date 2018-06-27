@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import com.netflix.spinnaker.clouddriver.eureka.api.EurekaApi
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
@@ -37,7 +38,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HE
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
 @Slf4j
-class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
+class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, CustomScheduledAgent {
 
   private final String region
   private final EurekaApi eurekaApi
@@ -46,10 +47,21 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
   private final String eurekaAccountName
   private final boolean allowMultipleEurekaPerAccount
   final String healthId = "Discovery"
+  private final long pollIntervalMillis
+  private final long timeoutMillis
 
   private List<EurekaAwareProvider> eurekaAwareProviderList
 
-  EurekaCachingAgent(EurekaApi eurekaApi, String region, ObjectMapper objectMapper, eurekaHost, allowMultipleEurekaPerAccount, eurekaAccountName, eurekaAwareProviderList) {
+  EurekaCachingAgent(EurekaApi eurekaApi,
+                     String region,
+                     ObjectMapper objectMapper,
+                     eurekaHost,
+                     allowMultipleEurekaPerAccount,
+                     eurekaAccountName,
+                     eurekaAwareProviderList,
+                     long pollIntervalMillis,
+                     long timeoutMillis
+  ) {
     this.region = region
     this.eurekaApi = eurekaApi
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -57,6 +69,8 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
     this.allowMultipleEurekaPerAccount = allowMultipleEurekaPerAccount
     this.eurekaAccountName = eurekaAccountName
     this.eurekaAwareProviderList = eurekaAwareProviderList
+    this.timeoutMillis = timeoutMillis
+    this.pollIntervalMillis = pollIntervalMillis
   }
 
   @Override
@@ -113,4 +127,15 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
       (INSTANCES.ns): instanceCacheData,
       (HEALTH.ns): eurekaCacheData)
   }
+
+  @Override
+  long getPollIntervalMillis() {
+    return pollIntervalMillis
+  }
+
+  @Override
+  long getTimeoutMillis() {
+    return timeoutMillis
+  }
+
 }

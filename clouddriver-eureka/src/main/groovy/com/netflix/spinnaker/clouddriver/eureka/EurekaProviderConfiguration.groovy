@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.eureka.provider.EurekaCachingProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaCachingAgent
 import com.netflix.spinnaker.clouddriver.eureka.provider.config.EurekaAccountConfigurationProperties
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -46,6 +47,12 @@ class EurekaProviderConfiguration {
     new EurekaAccountConfigurationProperties()
   }
 
+  @Value('${eureka.pollIntervalMillis:15000}')
+  Long pollIntervalMillis
+
+  @Value('${eureka.timeoutMillis:15000}')
+  Long timeoutMillis
+
   @Bean
   EurekaCachingProvider eurekaCachingProvider(EurekaAccountConfigurationProperties eurekaAccountConfigurationProperties,
                                               List<EurekaAwareProvider> eurekaAwareProviderList,
@@ -56,7 +63,7 @@ class EurekaProviderConfiguration {
       accountConfig.regions.each { region ->
         String eurekaHost = accountConfig.readOnlyUrl.replaceAll(Pattern.quote('{{region}}'), region)
         boolean multipleEurekaPerAcc = eurekaAccountConfigurationProperties.allowMultipleEurekaPerAccount ?: false
-        agents << new EurekaCachingAgent(eurekaApiFactory.createApi(eurekaHost), region, objectMapper, eurekaHost, multipleEurekaPerAcc, accountConfig.name, eurekaAwareProviderList)
+        agents << new EurekaCachingAgent(eurekaApiFactory.createApi(eurekaHost), region, objectMapper, eurekaHost, multipleEurekaPerAcc, accountConfig.name, eurekaAwareProviderList, pollIntervalMillis, timeoutMillis)
       }
     }
     EurekaCachingProvider eurekaCachingProvider = new EurekaCachingProvider(agents)
