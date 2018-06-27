@@ -81,6 +81,9 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
     # because some uses below assume just one.
     self.TEST_NAMESPACE = bindings['TEST_NAMESPACE'].split(',')[0]
 
+    self.mf = sk.KubernetesManifestFactory(self)
+    self.mp = sk.KubernetesManifestPredicateFactory()
+
   def create_app(self):
     """Creates OperationContract that creates a new Spinnaker Application."""
     contract = jc.Contract()
@@ -99,61 +102,8 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
             account_name=self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']),
         contract=contract)
 
-  def __not_found_observation_predicate(self, title='Not Found Permitted'):
-    return ov_factory.error_list_contains(st.CliAgentRunErrorPredicate(
-      title=title, error_regex='.* not found'))
-
-  def __deployment_image_predicate(self, image):
-    return ov_factory.value_list_contains(jp.DICT_MATCHES({
-         'spec': jp.DICT_MATCHES({
-             'template': jp.DICT_MATCHES({
-                 'spec': jp.DICT_MATCHES({
-                     'containers': jp.LIST_MATCHES([
-                         jp.DICT_MATCHES({ 'image': jp.STR_EQ(image) })
-                     ])
-                 })
-             })
-         })
-     }))
-
-  def __deployment_manifest(self, name, image):
-    return {
-        'apiVersion': 'apps/v1beta2',
-        'kind': 'Deployment',
-        'metadata': {
-            'name': name,
-            'namespace': self.TEST_NAMESPACE,
-            'labels': {
-                'app': self.TEST_APP,
-                'owner': 'citest',
-            }
-        },
-        'spec': {
-            'replicas': 1,
-            'selector': {
-                'matchLabels': {
-                    'app': self.TEST_APP,
-                }
-            },
-            'template': {
-                'metadata': {
-                    'labels': {
-                        'app': self.TEST_APP,
-                        'owner': 'citest',
-                    }
-                },
-                'spec': {
-                    'containers': [{
-                        'name': 'primary',
-                        'image': image,
-                    }]
-                }
-            }
-        }
-    }
-
   def __docker_image_artifact(self, name, image):
-    id_ = ''.join(random.choice(string.ascii_uppercase + string.digits) 
+    id_ = ''.join(random.choice(string.ascii_uppercase + string.digits)
                   for _ in range(10))
     return {
       'type': 'docker/image',
@@ -163,7 +113,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
     }
 
   def deploy_deployment_with_docker_artifact(self, image):
-    """Creates OperationContract for deploying and substituting one image into 
+    """Creates OperationContract for deploying and substituting one image into
     a Deployment object
 
     To verify the operation, we just check that the deployment was created with
@@ -183,7 +133,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
             'source': 'text',
             'type': 'deployManifest',
             'user': '[anonymous]',
-            'manifests': [self.__deployment_manifest(name, image_name)],
+            'manifests': [self.mf.deployment(name, image_name)],
             'artifacts': [docker_artifact]
         }],
         description='Deploy manifest',
@@ -195,7 +145,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
      .get_resources(
          'deploy',
          extra_args=[name, '--namespace', self.TEST_NAMESPACE])
-     .EXPECT(self.__deployment_image_predicate(image)))
+     .EXPECT(self.mp.deployment_image_predicate(image)))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -235,7 +185,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
      .get_resources(
          'deployment',
          extra_args=[name, '--namespace', self.TEST_NAMESPACE])
-     .EXPECT(self.__not_found_observation_predicate()))
+     .EXPECT(self.mp.not_found_observation_predicate()))
 
     return st.OperationContract(
         self.new_post_operation(
