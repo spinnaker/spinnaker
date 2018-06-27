@@ -201,6 +201,27 @@ public class StackdriverMetricsService implements MetricsService {
             }
           }
         }
+      } else if ("gke_container".equals(resourceType)) {
+        filter += " AND project=" + projectId;
+        Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
+
+        if (extendedScopeParams != null) {
+          List<String> resourceLabelKeys = Arrays.asList("cluster_name", "namespace_id", "instance_id", "pod_id", "container_name", "zone");
+
+          for (String resourceLabelKey : resourceLabelKeys) {
+            if (extendedScopeParams.containsKey(resourceLabelKey)) {
+              filter += " AND resource.labels." + resourceLabelKey + "=" + extendedScopeParams.get(resourceLabelKey);
+            }
+          }
+
+          for (String extendedScopeParamsKey : extendedScopeParams.keySet()) {
+            if (extendedScopeParamsKey.startsWith("user_labels.")) {
+              String userLabelKey = extendedScopeParamsKey.substring(12);
+
+              filter += " AND metadata.user_labels.\"" + userLabelKey + "\"=\"" + extendedScopeParams.get(extendedScopeParamsKey) + "\"";
+            }
+          }
+        }
       } else if (!"global".equals(resourceType)) {
         throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet supported.");
       }
