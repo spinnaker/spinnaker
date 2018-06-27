@@ -1,0 +1,82 @@
+# Copyright 2018 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import citest.json_contract as jc
+import citest.json_predicate as jp
+import citest.service_testing as st
+
+ov_factory = jc.ObservationPredicateFactory()
+
+"""Utilities for producing and manipulating Kubernetes Manifests stored as
+dictionaries"""
+
+class KubernetesManifestFactory(object):
+  """Utilities for building Kubernetes Manifests"""
+
+  def __init__(self, scenario):
+    self.scenario = scenario
+
+  def deployment(self, name, image):
+    return {
+        'apiVersion': 'apps/v1beta2',
+        'kind': 'Deployment',
+        'metadata': {
+            'name': name,
+            'namespace': self.scenario.TEST_NAMESPACE,
+            'labels': {
+                'app': self.scenario.TEST_APP,
+                'owner': 'citest',
+            }
+        },
+        'spec': {
+            'replicas': 1,
+            'selector': {
+                'matchLabels': {
+                    'app': self.scenario.TEST_APP,
+                }
+            },
+            'template': {
+                'metadata': {
+                    'labels': {
+                        'app': self.scenario.TEST_APP,
+                        'owner': 'citest',
+                    }
+                },
+                'spec': {
+                    'containers': [{
+                        'name': 'primary',
+                        'image': image,
+                    }]
+                }
+            }
+        }
+    }
+
+class KubernetesManifestPredicateFactory(object):
+  def deployment_image_predicate(self, image):
+    return ov_factory.value_list_contains(jp.DICT_MATCHES({
+         'spec': jp.DICT_MATCHES({
+             'template': jp.DICT_MATCHES({
+                 'spec': jp.DICT_MATCHES({
+                     'containers': jp.LIST_MATCHES([
+                         jp.DICT_MATCHES({ 'image': jp.STR_EQ(image) })
+                     ])
+                 })
+             })
+         })
+     }))
+
+  def not_found_observation_predicate(self, title='Not Found Permitted'):
+    return ov_factory.error_list_contains(st.CliAgentRunErrorPredicate(
+      title=title, error_regex='.* not found'))

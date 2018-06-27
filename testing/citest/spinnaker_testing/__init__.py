@@ -28,3 +28,7 @@ from gcs_pubsub_trigger_agent import(
     BaseGcsPubsubTriggerOperation,
     GcsPubsubUploadTriggerOperation,
     GcsPubsubTriggerOperationStatus)
+
+from kubernetes_manifests import (
+    KubernetesManifestFactory,
+    KubernetesManifestPredicateFactory)
