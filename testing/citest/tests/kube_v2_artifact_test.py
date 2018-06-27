@@ -112,6 +112,42 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
       'uuid': id_
     }
 
+  def deploy_config_map(self, version):
+    """Creates OperationContract for deploying a versioned configmap
+
+    To verify the operation, we just check that the deployment was created with
+    the correct image.
+    """
+    bindings = self.bindings
+    name = self.TEST_APP + '-configmap'
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'cloudProvider': 'kubernetes',
+            'moniker': {
+                'app': self.TEST_APP
+            },
+            'account': bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+            'source': 'text',
+            'type': 'deployManifest',
+            'user': '[anonymous]',
+            'manifests': [self.mf.config_map(name, {'version': version})],
+        }],
+        description='Deploy manifest',
+        application=self.TEST_APP)
+
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('ConfigMap created',
+                                retryable_for_secs=15)
+     .get_resources(
+         'configmap',
+         extra_args=[name + '-' + version, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(self.mp.config_map_key_value_predicate('version', version)))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='deploy_manifest', data=payload, path='tasks'),
+        contract=builder.build())
+
   def deploy_deployment_with_docker_artifact(self, image):
     """Creates OperationContract for deploying and substituting one image into
     a Deployment object
@@ -152,21 +188,21 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
             title='deploy_manifest', data=payload, path='tasks'),
         contract=builder.build())
 
-  def delete_manifest(self):
+  def delete_kind(self, kind):
     """Creates OperationContract for deleteManifest
 
     To verify the operation, we just check that the Kubernetes deployment
     is no longer visible (or is in the process of terminating).
     """
     bindings = self.bindings
-    name = self.TEST_APP + '-deployment'
+    name = self.TEST_APP + '-' + kind
     payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'cloudProvider': 'kubernetes',
             'type': 'deleteManifest',
             'account': bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
             'user': '[anonymous]',
-            'kinds': [ 'deployment' ],
+            'kinds': [ kind ],
             'location': self.TEST_NAMESPACE,
             'options': { },
             'labelSelectors': {
@@ -181,15 +217,15 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
         description='Destroy Manifest')
 
     builder = kube.KubeContractBuilder(self.kube_v2_observer)
-    (builder.new_clause_builder('Replica Set Removed')
+    (builder.new_clause_builder('Manifest Removed')
      .get_resources(
-         'deployment',
+         kind,
          extra_args=[name, '--namespace', self.TEST_NAMESPACE])
      .EXPECT(self.mp.not_found_observation_predicate()))
 
     return st.OperationContract(
         self.new_post_operation(
-            title='delete_manifest', data=payload, path='tasks'),
+            title='delete_kind', data=payload, path='tasks'),
         contract=builder.build())
 
 class KubeV2ArtifactTest(st.AgentTestCase):
@@ -208,14 +244,26 @@ class KubeV2ArtifactTest(st.AgentTestCase):
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
-  def test_b_deploy_deployment_with_docker_artifact(self):
+  def test_b1_deploy_deployment_with_docker_artifact(self):
     self.run_test_case(self.scenario.deploy_deployment_with_docker_artifact('library/nginx'))
 
-  def test_b_update_deployment_with_docker_artifact(self):
+  def test_b2_update_deployment_with_docker_artifact(self):
     self.run_test_case(self.scenario.deploy_deployment_with_docker_artifact('library/redis'))
 
-  def test_y_delete_manifest(self):
-    self.run_test_case(self.scenario.delete_manifest(), max_retries=2)
+  def test_b3_delete_deployment(self):
+    self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
+
+  def test_c1_create_config_map(self):
+    self.run_test_case(self.scenario.deploy_config_map('v000'))
+
+  def test_c2_noop_update_config_map(self):
+    self.run_test_case(self.scenario.deploy_config_map('v000'))
+
+  def test_c2_update_config_map(self):
+    self.run_test_case(self.scenario.deploy_config_map('v001'))
+
+  def test_c4_delete_configmap(self):
+    self.run_test_case(self.scenario.delete_kind('configmap'), max_retries=2)
 
   def test_z_delete_app(self):
     # Give a total of a minute because it might also need
