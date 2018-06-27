@@ -63,7 +63,7 @@ public class GoogleChatNotificationAgent extends AbstractEventNotificationAgent 
       body +=
         """${capitalize(application)}'s <a href="${link}">${
           event.content?.execution?.name ?: event.content?.execution?.description
-        }</a>${buildInfo}${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
+        }</a> ${buildInfo}${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
           status == 'complete' ? 'completed successfully' : status
         }"""
 
@@ -83,7 +83,7 @@ public class GoogleChatNotificationAgent extends AbstractEventNotificationAgent 
       String baseUrl = "https://chat.googleapis.com/v1/spaces/"
       String completeLink = preference.address
       String partialWebhookURL = completeLink.substring(baseUrl.length())
-      Response response = chatService.sendMessage(partialWebhookURL, new GoogleChatMessage(body))
+      Response response = googleChatService.sendMessage(partialWebhookURL, new GoogleChatMessage(body))
 
       log.info("Received response from Google Chat: {} {} for execution id {}. {}",
         response?.status, response?.reason, event.content?.execution?.id, response?.body)
