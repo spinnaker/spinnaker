@@ -125,6 +125,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
             'namespace': self.TEST_NAMESPACE,
             'labels': {
                 'app': self.TEST_APP,
+                'owner': 'citest',
             }
         },
         'spec': {
@@ -138,6 +139,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
                 'metadata': {
                     'labels': {
                         'app': self.TEST_APP,
+                        'owner': 'citest',
                     }
                 },
                 'spec': {
