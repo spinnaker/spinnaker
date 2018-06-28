@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +42,11 @@ public class AllowedAccountsSupport {
   public Collection<String> filterAllowedAccounts(String username, Collection<String> roles) {
     if (fiatStatus.isEnabled()) {
       UserPermission.View permission = fiatPermissionEvaluator.getPermission(username);
-      if (permission != null && permission.isLegacyFallback()) {
+      if (permission == null) {
+        return new ArrayList<>();
+      }
+
+      if (permission.isLegacyFallback()) {
         // fetch allowed accounts as if fiat were not enabled (ie. check available roles against clouddriver directly)
         Collection<String> allowedAccounts = credentialsService.getAccountNames(roles, true);
 

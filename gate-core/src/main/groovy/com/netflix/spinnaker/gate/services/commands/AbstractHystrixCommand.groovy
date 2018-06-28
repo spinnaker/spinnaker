@@ -76,10 +76,15 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
 
   private void handleDownstreamException() {
     def e = getFailedExecutionException()
+
+    log.error(
+      "Downstream exception encountered (group: '{}', command: '{}')",
+      value("group", groupKey),
+      value("command", commandKey),
+      e
+    )
+
     if (e instanceof RetrofitError) {
-      def retrofitError = (RetrofitError) e
-      log.error("Fallback encountered (url: {}, type: {}, status: {})", value("retrofitErrorUrl", retrofitError.url),
-        value("retrofitErrorKind", retrofitError.kind), value("retrofitResponseStatus", retrofitError.response?.status), e)
       def status = e?.getResponse()?.getStatus()
 
       if (status == 429 || status == 503) {
@@ -89,9 +94,6 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
       } else if (status in HttpStatus.values().findAll { it.is5xxServerError() }*.value()) {
         throw new ServerErrorException()
       }
-
-      log.error("No fallback available (group: '{}', command: '{}', exception: '{}'", value("group", groupKey),
-        value("command", commandKey), value("exception", e?.toString() ?: ""), e)
     }
 
     /**
