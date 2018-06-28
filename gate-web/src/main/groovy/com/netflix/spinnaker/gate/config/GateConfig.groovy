@@ -173,7 +173,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
     if (serviceConfiguration.getService("clouddriver").getConfig().containsKey("dynamicEndpoints")) {
       def endpoints = (Map<String, String>) serviceConfiguration.getService("clouddriver").getConfig().get("dynamicEndpoints")
       dynamicServices = (Map<String, ClouddriverService>) endpoints.collectEntries { k, v ->
-        [k, createClient("clouddriver", ClouddriverService, okHttpClient, k)]
+        [k, createClient("clouddriver", ClouddriverService, okHttpClient, k, false)]
       }
     }
 

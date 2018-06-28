@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.gate.config
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,10 +44,11 @@ class RetrofitConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkHttpClient okHttpClient() {
+  OkHttpClient okHttpClient(Registry registry) {
     def okHttpClient = okHttpClientConfig.create()
     okHttpClient.connectionPool = new ConnectionPool(maxIdleConnections, keepAliveDurationMs)
     okHttpClient.retryOnConnectionFailure = retryOnConnectionFailure
+    okHttpClient.interceptors().add(new OkHttpMetricsInterceptor(registry))
     return okHttpClient
   }
 
