@@ -60,7 +60,6 @@ func (c *ApplicationSaveCommand) saveApplication() (map[string]interface{}, *htt
 			"name":           c.applicationName,
 			"email":          c.ownerEmail,
 		},
-		"user": "anonymous", // TODO(jacobkiefer): How to rectify this from the auth context?
 	}
 
 	createAppTask := map[string]interface{}{
@@ -68,7 +67,7 @@ func (c *ApplicationSaveCommand) saveApplication() (map[string]interface{}, *htt
 		"application": c.applicationName,
 		"description": fmt.Sprintf("Create Application: %s", c.applicationName),
 	}
-	return c.ApiMeta.GateClient.TaskControllerApi.TaskUsingPOST1(nil, createAppTask)
+	return c.ApiMeta.GateClient.TaskControllerApi.TaskUsingPOST1(c.ApiMeta.Context, createAppTask)
 }
 
 func (c *ApplicationSaveCommand) validateCommand() bool {

@@ -19,3 +19,17 @@ auth:
       -----BEGIN RSA PRIVATE KEY-----
       BLAHBLAHBLAHBLAHBLAHBLAH==
       -----END RSA PRIVATE KEY-----
+
+  oauth2:
+    # The following is an example for Google's OAuth2 endpoints.
+    # The values for these are specific to your OAuth2 provider.
+    authUrl: https://accounts.google.com/o/oauth2/auth
+    tokenUrl: https://accounts.google.com/o/oauth2/token
+
+    # See https://www.spinnaker.io/setup/security/authentication/oauth/providers/
+    # to see examples for acquiring clientId/clientSecret.
+    clientId: 
+    clientSecret: 
+    scopes:
+      - scope1
+      - scope2

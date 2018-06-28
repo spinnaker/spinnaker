@@ -12,16 +12,23 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package auth
+package oauth2
 
 import (
-	"github.com/spinnaker/spin/config/auth/oauth2"
-	"github.com/spinnaker/spin/config/auth/x509"
+	"golang.org/x/oauth2"
 )
 
-// AuthConfig is the CLI's authentication configuration.
-type AuthConfig struct {
-	Enabled bool                 `yaml:"enabled"`
-	X509    *x509.X509Config     `yaml:"x509,omitempty"`
-	OAuth2  *oauth2.OAuth2Config `yaml:"oauth2,omitempty"`
+// OAuth2Config is the configuration for using OAuth2.0 to
+// authenticate with Spinnaker
+type OAuth2Config struct {
+	TokenUrl     string        `yaml:"tokenUrl"`
+	AuthUrl      string        `yaml:"authUrl"`
+	ClientId     string        `yaml:"clientId"`
+	ClientSecret string        `yaml:"clientSecret"`
+	Scopes       []string      `yaml:"scopes"`
+	CachedToken  *oauth2.Token `yaml:"cachedToken,omitempty"`
+}
+
+func (x *OAuth2Config) IsValid() bool {
+	return (x.TokenUrl != "" && x.AuthUrl != "" && x.ClientId != "" && x.ClientSecret != "" && len(x.Scopes) != 0)
 }

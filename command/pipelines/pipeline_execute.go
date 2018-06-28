@@ -50,7 +50,7 @@ func (c *PipelineExecuteCommand) flagSet() *flag.FlagSet {
 
 // executePipeline calls the Gate endpoint to execute the pipeline.
 func (c *PipelineExecuteCommand) executePipeline() (gate.HttpEntity, *http.Response, error) {
-	entity, resp, err := c.ApiMeta.GateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(nil,
+	entity, resp, err := c.ApiMeta.GateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(c.ApiMeta.Context,
 		c.application,
 		c.name,
 		map[string]interface{}{"type": "manual"})

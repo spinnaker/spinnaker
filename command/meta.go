@@ -15,6 +15,8 @@
 package command
 
 import (
+	"bufio"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
@@ -23,6 +25,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
+	_ "net/http/pprof"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -33,6 +36,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spinnaker/spin/config"
 	gate "github.com/spinnaker/spin/gateapi"
+	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 )
 
@@ -51,11 +55,17 @@ type ApiMeta struct {
 	// Spin CLI configuration.
 	Config config.Config
 
+	// Context for OAuth2 access token.
+	Context context.Context
+
 	// Internal fields
 	color bool
 
 	// This is the set of flags global to the command parser.
 	gateEndpoint string
+
+	// Location of the spin config.
+	configLocation string
 }
 
 // GlobalFlagSet adds all global options to the flagset, and returns the flagset object
@@ -105,10 +115,10 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 	}
 
 	// TODO(jacobkiefer): Add flag for config location?
-	configLocation := filepath.Join(usr.HomeDir, ".spin", "config")
-	yamlFile, err := ioutil.ReadFile(configLocation)
+	m.configLocation = filepath.Join(usr.HomeDir, ".spin", "config")
+	yamlFile, err := ioutil.ReadFile(m.configLocation)
 	if err != nil {
-		m.Ui.Warn(fmt.Sprintf("Could not read configuration file from %s.", configLocation))
+		m.Ui.Warn(fmt.Sprintf("Could not read configuration file from %s.", m.configLocation))
 	}
 
 	if yamlFile != nil {
@@ -122,6 +132,12 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 	}
 
 	// Api client initialization.
+	err = m.Authenticate()
+	if err != nil {
+		m.Ui.Error(fmt.Sprintf("OAuth2 Authentication failed."))
+		return args, err
+	}
+
 	client, err := m.InitializeClient()
 	if err != nil {
 		m.Ui.Error(fmt.Sprintf("Could not initialize http client, failing."))
@@ -212,9 +228,76 @@ func (m *ApiMeta) initializeX509Config(client http.Client, clientCA []byte, cert
 	client.Transport.(*http.Transport).TLSClientConfig.MinVersion = tls.VersionTLS12
 	client.Transport.(*http.Transport).TLSClientConfig.PreferServerCipherSuites = true
 	client.Transport.(*http.Transport).TLSClientConfig.Certificates = []tls.Certificate{cert}
-	client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true // TODO(jacobkiefer): Add a flag this.
+	client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true // TODO(jacobkiefer): Add a flag for this.
 
 	return &client
+}
+
+func (m *ApiMeta) Authenticate() error {
+	auth := m.Config.Auth
+	if auth != nil && auth.Enabled && auth.OAuth2 != nil {
+		OAuth2 := auth.OAuth2
+		if !OAuth2.IsValid() {
+			// TODO(jacobkiefer): Improve this error message.
+			return errors.New("Incorrect OAuth2 auth configuration.")
+		}
+
+		config := &oauth2.Config{
+			ClientID:     OAuth2.ClientId,
+			ClientSecret: OAuth2.ClientSecret,
+			RedirectURL:  "http://localhost:8085",
+			Scopes:       OAuth2.Scopes,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  OAuth2.AuthUrl,
+				TokenURL: OAuth2.TokenUrl,
+			},
+		}
+		var newToken *oauth2.Token
+		var err error
+
+		if auth.OAuth2.CachedToken != nil {
+			// Look up cached credentials to save oauth2 roundtrip.
+			token := auth.OAuth2.CachedToken
+			tokenSource := config.TokenSource(oauth2.NoContext, token)
+			newToken, err = tokenSource.Token()
+			if err != nil {
+				m.Ui.Error(fmt.Sprintf("Could not refresh token from source: %v", tokenSource))
+				return err
+			}
+		} else {
+			// Do roundtrip.
+			http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				code := r.FormValue("code")
+				fmt.Fprintln(w, code)
+			}))
+			go http.ListenAndServe(":8085", nil)
+			// Note: leaving server connection open for scope of request, will be reaped on exit.
+
+			authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+			m.Ui.Output(fmt.Sprintf("Navigate to %s and authenticate", authURL))
+			code := m.Prompt()
+
+			newToken, err = config.Exchange(oauth2.NoContext, code)
+			if err != nil {
+				return err
+			}
+		}
+
+		m.Ui.Output("Caching oauth2 token.")
+		OAuth2.CachedToken = newToken
+		buf, _ := yaml.Marshal(&m.Config)
+		info, _ := os.Stat(m.configLocation)
+		ioutil.WriteFile(m.configLocation, buf, info.Mode())
+		m.Context = context.WithValue(context.Background(), gate.ContextAccessToken, newToken.AccessToken)
+	}
+	return nil
+}
+
+func (m *ApiMeta) Prompt() string {
+	reader := bufio.NewReader(os.Stdin)
+	m.Ui.Output(fmt.Sprintf("Paste authorization code:"))
+	text, _ := reader.ReadString('\n')
+	return text
 }
 
 func (m *ApiMeta) Help() string {

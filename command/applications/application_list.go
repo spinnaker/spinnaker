@@ -48,7 +48,7 @@ func (c *ApplicationListCommand) listApplications() ([]interface{}, *http.Respon
 	// since json.Marshal* doesn't serialize it properly (it is not treated as a Map).
 	// We need to think of a strategy (e.g. Concrete types or deferring to just returning Object)
 	// In the cases where we use 'HashMap' currently.
-	return c.ApiMeta.GateClient.ApplicationControllerApi.GetAllApplicationsUsingGET(nil, map[string]interface{}{})
+	return c.ApiMeta.GateClient.ApplicationControllerApi.GetAllApplicationsUsingGET(c.ApiMeta.Context, map[string]interface{}{})
 }
 
 func (c *ApplicationListCommand) Run(args []string) int {

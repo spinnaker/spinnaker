@@ -48,7 +48,7 @@ func (c *PipelineListCommand) flagSet() *flag.FlagSet {
 
 // listPipelines calls the Gate endpoint to list the pipelines for the given application.
 func (c *PipelineListCommand) listPipelines(application string) ([]interface{}, *http.Response, error) {
-	return c.ApiMeta.GateClient.ApplicationControllerApi.GetPipelineConfigsForApplicationUsingGET(nil, application)
+	return c.ApiMeta.GateClient.ApplicationControllerApi.GetPipelineConfigsForApplicationUsingGET(c.ApiMeta.Context, application)
 }
 
 func (c *PipelineListCommand) Run(args []string) int {

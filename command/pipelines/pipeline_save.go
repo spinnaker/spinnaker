@@ -86,7 +86,7 @@ func (c *PipelineSaveCommand) pipelineIsValid(pipelineJson map[string]interface{
 
 // savePipeline calls the Gate endpoint to save the pipeline.
 func (c *PipelineSaveCommand) savePipeline(pipelineJson map[string]interface{}) (*http.Response, error) {
-	resp, err := c.ApiMeta.GateClient.PipelineControllerApi.SavePipelineUsingPOST(nil, pipelineJson)
+	resp, err := c.ApiMeta.GateClient.PipelineControllerApi.SavePipelineUsingPOST(c.ApiMeta.Context, pipelineJson)
 	if err != nil {
 		return nil, err
 	}

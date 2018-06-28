@@ -52,7 +52,6 @@ func (c *ApplicationDeleteCommand) deleteApplication() (map[string]interface{}, 
 		"application": map[string]interface{}{
 			"name": c.applicationName,
 		},
-		"user": "anonymous", // TODO(jacobkiefer): How to rectify this from the auth context?
 	}
 
 	createAppTask := map[string]interface{}{
@@ -60,7 +59,7 @@ func (c *ApplicationDeleteCommand) deleteApplication() (map[string]interface{}, 
 		"application": c.applicationName,
 		"description": fmt.Sprintf("Delete Application: %s", c.applicationName),
 	}
-	return c.ApiMeta.GateClient.TaskControllerApi.TaskUsingPOST1(nil, createAppTask)
+	return c.ApiMeta.GateClient.TaskControllerApi.TaskUsingPOST1(c.ApiMeta.Context, createAppTask)
 }
 
 func (c *ApplicationDeleteCommand) Run(args []string) int {

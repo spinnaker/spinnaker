@@ -49,7 +49,7 @@ func (c *PipelineDeleteCommand) flagSet() *flag.FlagSet {
 
 // deletePipeline calls the Gate endpoint to delete the pipeline.
 func (c *PipelineDeleteCommand) deletePipeline() (*http.Response, error) {
-	resp, err := c.ApiMeta.GateClient.PipelineControllerApi.DeletePipelineUsingDELETE(nil,
+	resp, err := c.ApiMeta.GateClient.PipelineControllerApi.DeletePipelineUsingDELETE(c.ApiMeta.Context,
 		c.application,
 		c.name)
 	if err != nil {

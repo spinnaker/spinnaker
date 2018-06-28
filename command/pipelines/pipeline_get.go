@@ -50,7 +50,9 @@ func (c *PipelineGetCommand) flagSet() *flag.FlagSet {
 
 // getPipeline calls the Gate endpoint to get the pipelines for the given id.
 func (c *PipelineGetCommand) getPipeline() (map[string]interface{}, *http.Response, error) {
-	return c.ApiMeta.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(nil, c.application, c.name)
+	return c.ApiMeta.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(c.ApiMeta.Context,
+		c.application,
+		c.name)
 }
 
 func (c *PipelineGetCommand) Run(args []string) int {

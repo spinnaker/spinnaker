@@ -50,7 +50,7 @@ func (c *ApplicationGetCommand) getApplication() (map[string]interface{}, *http.
 	// since json.Marshal* doesn't serialize it properly (it is not treated as a Map).
 	// We need to think of a strategy (e.g. Concrete types or deferring to just returning Object)
 	// In the cases where we use 'HashMap' currently.
-	return c.ApiMeta.GateClient.ApplicationControllerApi.GetApplicationUsingGET(nil, c.applicationName, map[string]interface{}{})
+	return c.ApiMeta.GateClient.ApplicationControllerApi.GetApplicationUsingGET(c.ApiMeta.Context, c.applicationName, map[string]interface{}{})
 }
 
 func (c *ApplicationGetCommand) Run(args []string) int {
