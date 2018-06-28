@@ -223,7 +223,8 @@ public class StackdriverMetricsService implements MetricsService {
           }
         }
       } else if (!"global".equals(resourceType)) {
-        throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet supported.");
+        throw new IllegalArgumentException("Resource type '" + resourceType + "' not yet explicitly supported. If you employ a " +
+          "custom filter, you may use any resource type you like.");
       }
     } else {
       filter += " AND " + customFilter;
