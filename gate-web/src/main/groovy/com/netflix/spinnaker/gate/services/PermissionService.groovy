@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
@@ -40,9 +39,6 @@ class PermissionService {
 
   @Autowired
   FiatService fiatService
-
-  @Autowired
-  FiatClientConfigurationProperties fiatConfig
 
   @Autowired
   FiatPermissionEvaluator permissionEvaluator

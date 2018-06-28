@@ -152,7 +152,8 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
   @Bean
   FiatService fiatService(OkHttpClient okHttpClient) {
-    createClient "fiat", FiatService, okHttpClient
+    // always create the fiat service even if 'services.fiat.enabled' is 'false' (it can be enabled dynamically)
+    createClient "fiat", FiatService, okHttpClient, null, true
   }
 
   @Bean
@@ -211,12 +212,17 @@ class GateConfig extends RedisHttpSessionConfiguration {
     createClient "kayenta", KayentaService, okHttpClient
   }
 
-  private <T> T createClient(String serviceName, Class<T> type, OkHttpClient okHttpClient, String dynamicName = null) {
+  private <T> T createClient(String serviceName,
+                             Class<T> type,
+                             OkHttpClient okHttpClient,
+                             String dynamicName = null,
+                             boolean forceEnabled = false) {
     Service service = serviceConfiguration.getService(serviceName)
     if (service == null) {
       throw new IllegalArgumentException("Unknown service ${serviceName} requested of type ${type}")
     }
-    if (!service.enabled) {
+
+    if (!service.enabled && !forceEnabled) {
       return null
     }
 
