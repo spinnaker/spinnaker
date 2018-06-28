@@ -417,6 +417,5 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
         new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral1'),
         new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, iops: 100, deleteOnTermination: false, volumeType: 'io1', snapshotId: 's-69', encrypted: true)],
       securityGroups: securityGroups)
-
   }
 }

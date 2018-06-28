@@ -483,7 +483,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         device.size = volumeSize
         device.volumeType = volumeType
         device.snapshotId = snapshotId
-        device.encrypted = encrypted
+        if (snapshotId == null) {
+          // only set encryption if snapshotId isn't provided. AWS will error out otherwise
+          device.encrypted = encrypted
+        }
       }
       device
     }
