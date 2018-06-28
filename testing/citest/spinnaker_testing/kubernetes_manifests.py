@@ -63,6 +63,14 @@ class KubernetesManifestFactory(object):
         }
     }
 
+  def add_configmap_volume(self, deployment, configmap_name):
+    deployment['spec']['template']['spec']['volumes'] = [{
+      'name': 'test-volume',
+      'configMap': {
+        'name': configmap_name,
+      },
+    }]
+
   def config_map(self, name, data):
     return {
         'apiVersion': 'v1',
@@ -86,16 +94,38 @@ class KubernetesManifestPredicateFactory(object):
          })
      }))
 
+  def deployment_configmap_mounted_predicate(self, configmap_name):
+    return ov_factory.value_list_contains(jp.DICT_MATCHES({
+         'spec': jp.DICT_MATCHES({
+           'template': jp.DICT_MATCHES({
+             'spec': jp.DICT_MATCHES({
+               'volumes': jp.LIST_MATCHES([jp.DICT_MATCHES({
+                  'configMap': jp.DICT_MATCHES({ 
+                    'name': jp.STR_EQ(configmap_name)
+                   })
+                 })
+               ])
+             })
+           })
+         }),
+         'status': jp.DICT_MATCHES({
+           'availableReplicas': jp.NUM_GE(1)
+         })
+     }))
+
   def deployment_image_predicate(self, image):
     return ov_factory.value_list_contains(jp.DICT_MATCHES({
          'spec': jp.DICT_MATCHES({
-             'template': jp.DICT_MATCHES({
-                 'spec': jp.DICT_MATCHES({
-                     'containers': jp.LIST_MATCHES([
-                         jp.DICT_MATCHES({ 'image': jp.STR_EQ(image) })
-                     ])
-                 })
+           'template': jp.DICT_MATCHES({
+             'spec': jp.DICT_MATCHES({
+               'containers': jp.LIST_MATCHES([
+                 jp.DICT_MATCHES({ 'image': jp.STR_EQ(image) })
+               ])
              })
+           })
+         }),
+         'status': jp.DICT_MATCHES({
+           'availableReplicas': jp.NUM_GE(1)
          })
      }))
 

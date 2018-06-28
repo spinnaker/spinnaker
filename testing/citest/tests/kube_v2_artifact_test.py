@@ -150,6 +150,54 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
             title='deploy_manifest', data=payload, path='tasks'),
         contract=builder.build())
 
+  def deploy_deployment_with_config_map(self, versioned):
+    """Creates OperationContract for deploying a configmap along with a deployment
+    mounting this configmap.
+
+    To verify the operation, we just check that the deployment was created with
+    the correct configmap mounted
+    """
+    deployment_name = self.TEST_APP + '-deployment'
+    deployment = self.mf.deployment(deployment_name, 'library/nginx')
+    configmap_name = self.TEST_APP + '-configmap'
+    configmap = self.mf.config_map(configmap_name, {'key': 'value'})
+
+    if not versioned:
+      configmap['metadata']['annotations'] = {'strategy.spinnaker.io/versioned': 'false'}
+
+    self.mf.add_configmap_volume(deployment, configmap_name)
+
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'cloudProvider': 'kubernetes',
+            'moniker': {
+                'app': self.TEST_APP
+            },
+            'account': self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+            'source': 'text',
+            'type': 'deployManifest',
+            'user': '[anonymous]',
+            'manifests': [deployment, configmap],
+        }],
+        description='Deploy manifest',
+        application=self.TEST_APP)
+
+    if versioned:
+      configmap_name = configmap_name + '-v000'
+
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('Deployment created',
+                                retryable_for_secs=15)
+     .get_resources(
+         'deploy',
+         extra_args=[deployment_name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(self.mp.deployment_configmap_mounted_predicate(configmap_name)))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='deploy_manifest', data=payload, path='tasks'),
+        contract=builder.build())
+
   def deploy_config_map(self, version):
     """Creates OperationContract for deploying a versioned configmap
 
@@ -226,7 +274,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
             title='deploy_manifest', data=payload, path='tasks'),
         contract=builder.build())
 
-  def delete_kind(self, kind):
+  def delete_kind(self, kind, version=None):
     """Creates OperationContract for deleteManifest
 
     To verify the operation, we just check that the Kubernetes deployment
@@ -253,6 +301,9 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
         }],
         application=self.TEST_APP,
         description='Destroy Manifest')
+
+    if version is not None:
+      name = name + '-' + version
 
     builder = kube.KubeContractBuilder(self.kube_v2_observer)
     (builder.new_clause_builder('Manifest Removed')
@@ -301,7 +352,7 @@ class KubeV2ArtifactTest(st.AgentTestCase):
     self.run_test_case(self.scenario.deploy_config_map('v001'))
 
   def test_c4_delete_configmap(self):
-    self.run_test_case(self.scenario.delete_kind('configmap'), max_retries=2)
+    self.run_test_case(self.scenario.delete_kind('configmap', version='v001'), max_retries=2)
 
   def test_d1_create_unversioned_configmap(self):
     self.run_test_case(self.scenario.deploy_unversioned_config_map('1'))
@@ -311,6 +362,15 @@ class KubeV2ArtifactTest(st.AgentTestCase):
 
   def test_d3_delete_unversioned_configmap(self):
     self.run_test_case(self.scenario.delete_kind('configmap'), max_retries=2)
+
+  def test_e1_create_deployment_with_versioned_configmap(self):
+    self.run_test_case(self.scenario.deploy_deployment_with_config_map(True))
+
+  def test_e2_delete_deployment(self):
+    self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
+
+  def test_e3_delete_configmap(self):
+    self.run_test_case(self.scenario.delete_kind('configmap', version='v000'), max_retries=2)
 
   def test_z_delete_app(self):
     # Give a total of a minute because it might also need
