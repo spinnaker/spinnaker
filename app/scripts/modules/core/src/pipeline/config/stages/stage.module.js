@@ -19,6 +19,7 @@ module.exports = angular
     require('./overrideTimeout/overrideTimeout.directive.js').name,
     require('./overrideFailure/overrideFailure.component.js').name,
     require('./optionalStage/optionalStage.directive.js').name,
+    require('./failOnFailedExpressions/failOnFailedExpressions.directive.js').name,
     CONFIRMATION_MODAL_SERVICE,
     require('./core/stageConfigField/stageConfigField.directive.js').name,
   ])
