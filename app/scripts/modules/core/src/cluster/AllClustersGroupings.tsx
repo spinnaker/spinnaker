@@ -6,7 +6,6 @@ import { Subscription } from 'rxjs';
 import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
 import { ClusterPod } from 'core/cluster/ClusterPod';
-import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ISortFilter } from 'core/filterModel';
 import { ClusterState } from 'core/state';
 
@@ -20,7 +19,6 @@ export interface IAllClustersGroupingsProps {
 export interface IAllClustersGroupingsState {
   groups: IClusterSubgroup[];
   sortFilter: ISortFilter;
-  scrollToRow?: number;
 }
 
 @UIRouterContext
@@ -87,29 +85,32 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     // TODO: Remove $rootScope. Keeping it here so we can use $watch for now.
     //       Eventually, there should be events fired when filters change.
     this.unwatchSortFilter = ReactInjector.$rootScope.$watch(getSortFilter, onFilterChanged, true);
-    const { $stateParams } = ReactInjector;
-    // Automatically scroll server group into view if deep linked
-    if ($stateParams.serverGroup) {
-      this.clusterFilterService.groupsUpdatedStream.take(1).subscribe(() => {
-        const scrollToRow = this.state.groups.findIndex(group =>
-          group.subgroups.some(subgroup =>
-            subgroup.serverGroups.some(
-              sg =>
-                sg.account === $stateParams.accountId &&
-                sg.name === $stateParams.serverGroup &&
-                sg.region === $stateParams.region,
-            ),
-          ),
-        );
-        this.setState({ scrollToRow });
-      });
-    }
+
+    this.scrollToRow();
   }
 
   public componentWillUnmount() {
     this.groupsSubscription.unsubscribe();
     this.unwatchSortFilter();
   }
+
+  private scrollToRow = () => {
+    const { $stateParams } = ReactInjector;
+    // Automatically scroll server group into view if deep linkedif ($stateParams.serverGroup) {
+    this.clusterFilterService.groupsUpdatedStream.take(1).subscribe(() => {
+      const scrollToRow = this.state.groups.findIndex(group =>
+        group.subgroups.some(subgroup =>
+          subgroup.serverGroups.some(
+            sg =>
+              sg.account === $stateParams.accountId &&
+              sg.name === $stateParams.serverGroup &&
+              sg.region === $stateParams.region,
+          ),
+        ),
+      );
+      this.listRef.scrollToRow(scrollToRow);
+    });
+  };
 
   private renderRow = (props: ListRowProps): JSX.Element => {
     const { app } = this.props;
@@ -132,6 +133,10 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
 
   private noRowsRender = (): JSX.Element => {
     const dataSource = this.props.app.getDataSource('serverGroups');
+    if (!this.props.initialized) {
+      return null;
+    }
+
     if (!dataSource.data.length && !dataSource.fetchOnDemand) {
       return <h4 className="text-center">No server groups found in this application</h4>;
     }
@@ -149,12 +154,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
   };
 
   public render() {
-    const { initialized } = this.props;
     const { groups = [] } = this.state;
-
-    if (!initialized) {
-      return <Spinner size="medium" />;
-    }
 
     return (
       <AutoSizer>
@@ -170,7 +170,6 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
             rowRenderer={this.renderRow}
             noRowsRenderer={this.noRowsRender}
             scrollToAlignment="start"
-            scrollToIndex={this.state.scrollToRow}
             overscanRowCount={3}
             containerStyle={{ overflow: 'visible' }}
           />
