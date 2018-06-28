@@ -62,7 +62,8 @@ public class FiatStatus {
   void refreshStatus() {
     try {
       enabled.set(dynamicConfigService.isEnabled("fiat", enabled.get()));
-      legacyFallbackEnabled.set(dynamicConfigService.isEnabled("legacyFallback", legacyFallbackEnabled.get()));
+      legacyFallbackEnabled.set(dynamicConfigService.isEnabled("fiat.legacyFallback", legacyFallbackEnabled.get()));
+
     } catch (Exception e) {
       log.warn("Unable to refresh fiat status, reason: {}", e.getMessage());
     }
