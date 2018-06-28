@@ -76,6 +76,13 @@ interface ExpressionAware {
     }
   }
 
+  fun Stage.hasFailedExpressions(): Boolean = PipelineExpressionEvaluator.SUMMARY in this.context
+
+  fun Stage.shouldFailOnFailedExpressionEvaluation(): Boolean {
+    return this.hasFailedExpressions() && this.context.containsKey("failOnFailedExpressions")
+      && this.context["failOnFailedExpressions"] as Boolean
+  }
+
   private fun mergedExceptionErrors(exception: Map<*, *>?, errors: List<String>): Map<*, *> =
     if (exception == null) {
       mapOf("details" to ExceptionHandler.responseDetails(PipelineExpressionEvaluator.ERROR, errors))

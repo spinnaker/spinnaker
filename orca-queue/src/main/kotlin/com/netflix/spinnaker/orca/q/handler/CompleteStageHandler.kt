@@ -54,6 +54,12 @@ class CompleteStageHandler(
     message.withStage { stage ->
       if (stage.status in setOf(RUNNING, NOT_STARTED)) {
         var status = stage.determineStatus()
+        if (stage.shouldFailOnFailedExpressionEvaluation()) {
+          log.warn("Stage ${stage.id} (${stage.type}) of ${stage.execution.id} " +
+            "is set to fail because of failed expressions.")
+          status = TERMINAL
+        }
+
         try {
           if (status in setOf(RUNNING, NOT_STARTED) || (status.isComplete && !status.isHalt)) {
             // check to see if this stage has any unplanned synthetic after stages

@@ -1189,6 +1189,41 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         expressionError in errors
       }
     }
+
+    given("a stage configured to be TERMINAL if it contains any expression errors") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          name = "wait"
+          context = mapOf(
+            "failOnFailedExpressions" to true,
+            PipelineExpressionEvaluator.SUMMARY to mapOf(
+              "failedExpression" to listOf(mapOf("description" to "failed expression foo", "level" to "ERROR"))
+            )
+          )
+          status = RUNNING
+          type = singleTaskStage.type
+          singleTaskStage.plan(this)
+          tasks.first().status = SUCCEEDED
+        }
+      }
+
+      val message = CompleteStage(pipeline.stageByRef("1"))
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving the message") {
+        subject.handle(message)
+      }
+
+      it("should fail the stage") {
+        assertThat(pipeline.stageById(message.stageId).status).isEqualTo(TERMINAL)
+      }
+    }
   }
 
   given("a stage ends with TERMINAL status") {
