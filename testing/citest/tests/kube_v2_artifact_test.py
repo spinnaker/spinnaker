@@ -182,9 +182,6 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
         description='Deploy manifest',
         application=self.TEST_APP)
 
-    if versioned:
-      configmap_name = configmap_name + '-v000'
-
     builder = kube.KubeContractBuilder(self.kube_v2_observer)
     (builder.new_clause_builder('Deployment created',
                                 retryable_for_secs=15)
