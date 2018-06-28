@@ -50,7 +50,7 @@ class EurekaProviderConfiguration {
   @Value('${eureka.pollIntervalMillis:15000}')
   Long pollIntervalMillis
 
-  @Value('${eureka.timeoutMillis:15000}')
+  @Value('${eureka.timeoutMillis:300000}')
   Long timeoutMillis
 
   @Bean
