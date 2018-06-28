@@ -299,7 +299,10 @@ class OperationsController {
   }
 
   private Map<String, String> startTask(Map config) {
-    convertLinearToParallel(config)
+    def linear = config.stages.every { it.refId == null }
+    if (linear) {
+      convertLinearToParallel(config)
+    }
     injectPipelineOrigin(config)
     def json = objectMapper.writeValueAsString(config)
     log.info('requested task:{}', json)
