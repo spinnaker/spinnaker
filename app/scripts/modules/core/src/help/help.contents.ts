@@ -397,6 +397,7 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.parameter.label': '(Optional): a label to display when users are triggering the pipeline manually',
   'pipeline.config.parameter.description': `(Optional): if supplied, will be displayed to users as a tooltip
       when triggering the pipeline manually. You can include HTML in this field.`,
+  'pipeline.config.failOnFailedExpressions': `When this option is enabled, the stage will be marked as failed if it contains any failed expressions`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

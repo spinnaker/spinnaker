@@ -62,6 +62,7 @@
       <override-failure stage="stage"></override-failure>
       <execution-windows stage="stage" ng-if="!pipeline.strategy"></execution-windows>
       <override-timeout stage="stage"></override-timeout>
+      <fail-on-failed-expressions stage="stage"></fail-on-failed-expressions>
       <optional-stage stage="stage"></optional-stage>
     </page-section>
     <page-section key="notification" label="Notifications" visible="canConfigureNotifications" badge="stage.notifications.length">
