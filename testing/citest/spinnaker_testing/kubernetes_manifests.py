@@ -101,7 +101,7 @@ class KubernetesManifestPredicateFactory(object):
              'spec': jp.DICT_MATCHES({
                'volumes': jp.LIST_MATCHES([jp.DICT_MATCHES({
                   'configMap': jp.DICT_MATCHES({ 
-                    'name': jp.STR_EQ(configmap_name)
+                    'name': jp.STR_SUBSTR(configmap_name)
                    })
                  })
                ])
