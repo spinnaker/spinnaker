@@ -27,6 +27,7 @@ import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.*;
 import com.google.api.client.http.HttpResponseException
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.scheduling.TaskScheduler;
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -50,9 +51,11 @@ class GoogleStorageServiceSpec extends Specification {
   Storage mockStorage = Mock(Storage)
   Storage.Objects mockObjectApi = Mock(Storage.Objects)
   GcsStorageService gcs
+  TaskScheduler mockScheduler = Mock(TaskScheduler)
 
   GcsStorageService makeGcs() {
-    return new GcsStorageService(BUCKET_NAME, BUCKET_LOCATION, BASE_PATH, PROJECT_NAME, mockStorage, registry)
+    return new GcsStorageService(BUCKET_NAME, BUCKET_LOCATION, BASE_PATH, PROJECT_NAME,
+                                 mockStorage, mockScheduler, registry)
   }
 
   def "ensureBucketExists make bucket"() {
@@ -234,5 +237,84 @@ class GoogleStorageServiceSpec extends Specification {
      1 * mockListObjects.setVersions(true) >> mockListObjects
      1 * mockListObjects.execute() >> objects
      1 * mockListObjects.setPageToken(_)
+  }
+
+  def "rateLimitExceeded"() {
+    given:
+      Storage.Objects.Patch mockUpdateObject = Mock(Storage.Objects.Patch)
+      Storage.Objects.Insert mockInsertObject = Mock(Storage.Objects.Insert)
+      Storage.Objects.List mockListObjects = Mock(Storage.Objects.List)
+      com.google.api.services.storage.model.Objects objects = new com.google.api.services.storage.model.Objects()
+      StorageObject storageObject = new StorageObject()
+              .setBucket(BUCKET_NAME)
+              .setName(BASE_PATH + '/applications/testkey/specification.json')
+
+      StorageObject timestampObject = new StorageObject()
+        .setBucket(BUCKET_NAME)
+        .setName(BASE_PATH + '/applications/last-modified')
+      Application app = new Application()
+      byte[] appBytes = new ObjectMapper().writeValueAsBytes(app)
+      ByteArrayContent appContent = new ByteArrayContent(
+        "application/json", appBytes)
+      ByteArrayContent timestampContent = new ByteArrayContent(
+        "application/json", "{}".getBytes())
+      long startTime = System.currentTimeMillis()
+
+    when:
+     gcs = makeGcs()
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+      gcs.storeObject(ObjectType.APPLICATION, "testkey", app)
+
+    then:
+      1 * mockObjectApi.insert(
+           BUCKET_NAME,
+           { StorageObject obj -> obj.getBucket() == storageObject.getBucket()
+                                  obj.getName() == storageObject.getName() },
+           _) >> mockInsertObject
+      1 * mockInsertObject.execute()
+
+    then:
+      1 * mockObjectApi.patch(
+              BUCKET_NAME,
+              timestampObject.getName(),
+              { StorageObject obj -> obj.getBucket() == timestampObject.getBucket()
+                obj.getName() == timestampObject.getName()
+                obj.getUpdated().getValue() >= startTime
+                obj.getUpdated().getValue() <= System.currentTimeMillis()
+              }
+              ) >> mockUpdateObject
+
+      1 * mockUpdateObject.execute() >> {
+        throw new HttpResponseException.Builder(503, 'Exceeded API quota', new HttpHeaders()).build()
+      }
+
+
+     then:
+     1 * mockScheduler.schedule(_, _);
+  }
+
+  def "scheduleOncePerType"() {
+    when:
+     gcs = makeGcs()
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+      gcs.scheduleWriteLastModified('TypeOne')
+    then:
+      1 * mockScheduler.schedule(_, _);
+
+    when:
+      gcs.scheduleWriteLastModified('TypeOne')
+    then:
+      0 * mockScheduler.schedule(_, _);
+
+    when:
+      gcs.scheduleWriteLastModified('TypeTwo')
+    then:
+      1 * mockScheduler.schedule(_, _);
   }
 }
