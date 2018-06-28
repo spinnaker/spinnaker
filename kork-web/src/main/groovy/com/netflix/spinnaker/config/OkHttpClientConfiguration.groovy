@@ -57,7 +57,7 @@ class OkHttpClientConfiguration {
   OkHttpClient create() {
 
     def okHttpClient = new OkHttpClient()
-    okHttpClient.setConnectTimeout(okHttpClientConfigurationProperties.connectTimoutMs, TimeUnit.MILLISECONDS)
+    okHttpClient.setConnectTimeout(okHttpClientConfigurationProperties.connectTimeoutMs, TimeUnit.MILLISECONDS)
     okHttpClient.setReadTimeout(okHttpClientConfigurationProperties.readTimeoutMs, TimeUnit.MILLISECONDS)
     okHttpClient.setRetryOnConnectionFailure(okHttpClientConfigurationProperties.retryOnConnectionFailure)
     okHttpClient.connectionPool = new ConnectionPool(

@@ -50,7 +50,7 @@ class OkHttp3ClientConfiguration {
    */
   OkHttpClient.Builder create() {
     OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
-      .connectTimeout(okHttpClientConfigurationProperties.connectTimoutMs, TimeUnit.MILLISECONDS)
+      .connectTimeout(okHttpClientConfigurationProperties.connectTimeoutMs, TimeUnit.MILLISECONDS)
       .readTimeout(okHttpClientConfigurationProperties.readTimeoutMs, TimeUnit.MILLISECONDS)
       .retryOnConnectionFailure(okHttpClientConfigurationProperties.retryOnConnectionFailure)
       .connectionPool(new ConnectionPool(

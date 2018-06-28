@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty
 @Canonical
 @ConfigurationProperties(prefix="okHttpClient")
 class OkHttpClientConfigurationProperties {
-  long connectTimoutMs = 15000
+  long connectTimeoutMs = 15000
   long readTimeoutMs = 20000
 
   boolean propagateSpinnakerHeaders = true
