@@ -39,8 +39,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import retrofit.RetrofitError
-
-import javax.annotation.PreDestroy
 import java.util.stream.Collectors
 
 import static net.logstash.logback.argument.StructuredArguments.kv
@@ -98,14 +96,6 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
             { master -> pollSingle(new PollContext(master, !sendEvents)) }
         )
         log.info "Polling cycle done in ${System.currentTimeMillis() - startTime}ms"
-    }
-
-    @PreDestroy
-    void stop() {
-        log.info('Stopped')
-        if (!worker.isUnsubscribed()) {
-            worker.unsubscribe()
-        }
     }
 
     /**

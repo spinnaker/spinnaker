@@ -27,6 +27,7 @@ import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 import javax.annotation.Nullable;
+import javax.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -91,6 +92,14 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
                 lastPoll.set(0);
             }
         }, 0, getPollInterval(), TimeUnit.SECONDS);
+    }
+
+    @PreDestroy
+    void stop() {
+        log.info("Stopped");
+        if (!worker.isUnsubscribed()) {
+            worker.unsubscribe();
+        }
     }
 
     protected abstract void initialize();
