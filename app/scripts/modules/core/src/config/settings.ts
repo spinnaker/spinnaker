@@ -92,6 +92,7 @@ export interface ISpinnakerSettings {
   };
   gateUrl: string;
   gitSources: string[];
+  maxPipelineAgeDays: number;
   notifications: INotificationSettings;
   pagerDuty?: {
     accountName?: string;

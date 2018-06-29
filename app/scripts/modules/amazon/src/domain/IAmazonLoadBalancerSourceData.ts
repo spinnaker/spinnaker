@@ -113,6 +113,7 @@ export interface IApplicationLoadBalancerListenerSourceData {
   defaultActions: Array<{
     targetGroupName: string;
     type: IListenerActionType;
+    order: number;
   }>;
   listenerArn: string;
   loadBalancerName: string;

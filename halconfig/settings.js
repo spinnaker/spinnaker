@@ -22,6 +22,7 @@ var atlasWebComponentsUrl = '{%canary.atlasWebComponentsUrl%}';
 var templatesEnabled = '{%canary.templatesEnabled%}' === 'true';
 var showAllConfigsEnabled = '{%canary.showAllCanaryConfigs%}' === 'true';
 var canaryFeatureDisabled = '{%canary.featureEnabled%}' !== 'true';
+var maxPipelineAgeDays = '{%maxPipelineAgeDays%}';
 var timezone = '{%timezone%}';
 var version = '{%version%}';
 var changelogGistId = '{%changelog.gist.id%}';
@@ -98,6 +99,7 @@ window.spinnakerSettings = {
   defaultTimeZone: timezone, // see http://momentjs.com/timezone/docs/#/data-utilities/
   defaultCategory: 'serverGroup',
   defaultInstancePort: 80,
+  maxPipelineAgeDays: maxPipelineAgeDays,
   providers: {
     azure: azure,
     aws: {

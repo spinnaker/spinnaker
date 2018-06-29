@@ -56,6 +56,7 @@ export interface IAmazonApplicationLoadBalancer extends IAmazonLoadBalancer {
 
 export interface IListenerAction {
   authenticateOidcConfig?: IAuthenticateOidcActionConfig;
+  order?: number;
   targetGroupName?: string;
   type: IListenerActionType;
 }

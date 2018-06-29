@@ -122,6 +122,13 @@ export class AwsLoadBalancerDetailsController implements IController {
                 }
 
                 this.listeners = [];
+
+                // Sort the actions by the order specified since amazon does not return them in order of order
+                elb.listeners.forEach(l => {
+                  l.defaultActions.sort((a, b) => a.order - b.order);
+                  l.rules.forEach(r => r.actions.sort((a, b) => a.order - b.order));
+                });
+
                 elb.listeners.forEach(listener => {
                   listener.rules.map(rule => {
                     let inMatch = [

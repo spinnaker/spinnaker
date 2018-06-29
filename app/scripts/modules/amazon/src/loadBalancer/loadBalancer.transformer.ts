@@ -127,6 +127,18 @@ export class AwsLoadBalancerTransformer {
     });
   }
 
+  public normalizeActions(loadBalancer: IAmazonApplicationLoadBalancer) {
+    if (loadBalancer.loadBalancerType === 'application') {
+      const alb = loadBalancer as IAmazonApplicationLoadBalancer;
+
+      // Sort the actions by the order specified since amazon does not return them in order of order
+      alb.listeners.forEach(l => {
+        l.defaultActions.sort((a, b) => a.order - b.order);
+        l.rules.forEach(r => r.actions.sort((a, b) => a.order - b.order));
+      });
+    }
+  }
+
   public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): IPromise<IAmazonLoadBalancer> {
     this.normalizeServerGroups(loadBalancer.serverGroups, loadBalancer, 'loadBalancers', 'LoadBalancer');
 
@@ -137,8 +149,12 @@ export class AwsLoadBalancerTransformer {
       serverGroups = flatten<IAmazonServerGroup>(map(appLoadBalancer.targetGroups, 'serverGroups'));
     }
 
-    const activeServerGroups = filter(serverGroups, { isDisabled: false });
+    loadBalancer.loadBalancerType = loadBalancer.loadBalancerType || 'classic';
     loadBalancer.provider = loadBalancer.type;
+
+    this.normalizeActions(loadBalancer as IAmazonApplicationLoadBalancer);
+
+    const activeServerGroups = filter(serverGroups, { isDisabled: false });
     loadBalancer.instances = chain(activeServerGroups)
       .map('instances')
       .flatten<IInstance>()
