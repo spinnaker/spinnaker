@@ -2,7 +2,8 @@ FROM openjdk:8
 
 MAINTAINER delivery-engineering@netflix.com
 
-ENV KUBECTL_RELEASE=v1.7.3
+ENV KUBECTL_RELEASE=v1.10.3
+ENV HEPTIO_BINARY_RELEASE_DATE=2018-06-05
 
 COPY . workdir/
 
@@ -20,6 +21,12 @@ RUN chmod +x /usr/local/bin/hal
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
+
+RUN curl -o heptio-authenticator-aws https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${HEPTIO_BINARY_RELEASE_DATE}/bin/linux/amd64/heptio-authenticator-aws && \
+  chmod +x ./heptio-authenticator-aws && \
+  mv ./heptio-authenticator-aws /usr/local/bin/heptio-authenticator-aws
+
+ENV PATH "$PATH:/usr/local/bin/heptio-authenticator-aws"
 
 RUN useradd -m spinnaker
 
