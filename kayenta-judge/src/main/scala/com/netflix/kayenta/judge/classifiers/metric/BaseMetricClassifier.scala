@@ -59,5 +59,6 @@ case class MetricClassification(classification: MetricClassificationLabel, reaso
 
 abstract class BaseMetricClassifier {
   def classify(control: Metric, experiment: Metric,
-               direction: MetricDirection = MetricDirection.Either): MetricClassification
+               direction: MetricDirection = MetricDirection.Either,
+               nanStrategy: NaNStrategy = NaNStrategy.Remove): MetricClassification
 }

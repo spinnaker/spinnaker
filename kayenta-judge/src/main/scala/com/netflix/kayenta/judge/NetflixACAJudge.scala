@@ -170,7 +170,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       .critical(critical)
 
     try {
-      val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality)
+      val metricClassification = mannWhitney.classify(transformedControl, transformedExperiment, directionality, nanStrategy)
       resultBuilder
         .classification(metricClassification.classification.toString)
         .classificationReason(metricClassification.reason.orNull)

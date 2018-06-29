@@ -27,11 +27,15 @@ import org.apache.commons.math3.stat.StatUtils
   */
 class MeanInequalityClassifier extends BaseMetricClassifier {
 
-  override def classify(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification = {
+  override def classify(control: Metric, experiment: Metric, direction: MetricDirection, nanStrategy: NaNStrategy): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
-      return MetricClassification(Nodata, None, 0.0)
+      if (nanStrategy == NaNStrategy.Remove) {
+        return MetricClassification(Nodata, None, 0.0)
+      } else {
+        return MetricClassification(Pass, None, 1.0)
+      }
     }
 
     val experimentMean = StatUtils.mean(experiment.values)

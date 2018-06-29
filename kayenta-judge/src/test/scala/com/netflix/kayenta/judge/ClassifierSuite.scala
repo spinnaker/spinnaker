@@ -361,6 +361,19 @@ class ClassifierSuite extends FunSuite{
     assert(result.classification == Nodata)
   }
 
+  test("Mann-Whitney Missing Experiment Data with NaN Replacement") {
+    val experimentData = Array[Double]()
+    val controlData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+
+    val experimentMetric = Metric("test-metric", experimentData, "canary")
+    val controlMetric = Metric("test-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease, NaNStrategy.Replace)
+
+    assert(result.classification == Pass)
+  }
+
   test("Mean Inequality Classifier Test: High Metric"){
     val experimentData = Array(10.0, 20.0, 30.0, 40.0, 50.0)
     val controlData = Array(1.0, 2.0, 3.0, 4.0, 5.0)

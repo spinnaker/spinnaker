@@ -55,11 +55,15 @@ class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) exte
     (lowerBound, upperBound)
   }
 
-  override def classify(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification = {
+  override def classify(control: Metric, experiment: Metric, direction: MetricDirection, nanStrategy: NaNStrategy): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
-      return MetricClassification(Nodata, None, 0.0)
+      if (nanStrategy == NaNStrategy.Remove) {
+        return MetricClassification(Nodata, None, 0.0)
+      } else {
+        return MetricClassification(Pass, None, 1.0)
+      }
     }
 
     //Check if the experiment and control data are equal
