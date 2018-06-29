@@ -6,8 +6,6 @@ import { ViewStateCache } from 'core/cache';
 
 const angular = require('angular');
 
-import { Subject } from 'rxjs';
-
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { EditPipelineJsonModalCtrl } from './actions/json/editPipelineJsonModal.controller';
 import { PipelineConfigValidator } from './validation/PipelineConfigValidator';
