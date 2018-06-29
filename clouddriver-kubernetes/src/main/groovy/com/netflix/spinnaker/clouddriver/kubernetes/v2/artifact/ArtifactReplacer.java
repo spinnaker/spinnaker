@@ -211,6 +211,8 @@ public class ArtifactReplacer {
 
       String jsonPath = processPath(replacePath, artifact);
 
+      log.debug("Processed jsonPath == {}", jsonPath);
+
       Object get;
       try {
         get = obj.read(jsonPath);

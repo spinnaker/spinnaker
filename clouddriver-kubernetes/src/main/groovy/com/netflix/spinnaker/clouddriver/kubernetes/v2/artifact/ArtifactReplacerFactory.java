@@ -113,4 +113,20 @@ public class ArtifactReplacerFactory {
         .type(ArtifactTypes.KUBERNETES_SECRET)
         .build();
   }
+
+  public static Replacer hpaDeploymentReplacer() {
+    return Replacer.builder()
+        .replacePath("$[?( (@.spec.scaleTargetRef.kind == \"Deployment\" || @.spec.scaleTargetRef.kind == \"deployment\") && @.spec.scaleTargetRef.name == \"{%name%}\" )].spec.scaleTargetRef.name")
+        .findPath("$[?( @.spec.scaleTargetRef.kind == \"Deployment\" || @.spec.scaleTargetRef.kind == \"deployment\" )].spec.scaleTargetRef.name")
+        .type(ArtifactTypes.KUBERNETES_DEPLOYMENT)
+        .build();
+  }
+
+  public static Replacer hpaReplicaSetReplacer() {
+    return Replacer.builder()
+        .replacePath("$[?( (@.spec.scaleTargetRef.kind == \"ReplicaSet\" || @.spec.scaleTargetRef.kind == \"replicaSet\") && @.spec.scaleTargetRef.name == \"{%name%}\" )].spec.scaleTargetRef.name")
+        .findPath("$[?( @.spec.scaleTargetRef.kind == \"ReplicaSet\" || @.spec.scaleTargetRef.kind == \"replicaSet\" )].spec.scaleTargetRef.name")
+        .type(ArtifactTypes.KUBERNETES_REPLICA_SET)
+        .build();
+  }
 }

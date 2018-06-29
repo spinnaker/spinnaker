@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
@@ -29,6 +30,11 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.Kuberne
 
 @Component
 public class KubernetesHorizontalPodAutoscalerHandler extends KubernetesHandler {
+  public KubernetesHorizontalPodAutoscalerHandler() {
+    registerReplacer(ArtifactReplacerFactory.hpaDeploymentReplacer());
+    registerReplacer(ArtifactReplacerFactory.hpaReplicaSetReplacer());
+  }
+
   @Override
   public int deployPriority() {
     return WORKLOAD_ATTACHMENT_PRIORITY.getValue();

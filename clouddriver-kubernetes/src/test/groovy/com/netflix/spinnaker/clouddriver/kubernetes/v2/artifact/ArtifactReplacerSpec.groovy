@@ -16,6 +16,57 @@ class ArtifactReplacerSpec extends Specification {
     return objectMapper.convertValue(yaml.load(input), KubernetesManifest)
   }
 
+  def "correctly extracts deployment name from hpa"() {
+    when:
+    def name = "my-deployment"
+    def hpaManifest = """
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: $name
+"""
+    def artifactReplacer = new ArtifactReplacer()
+    artifactReplacer.addReplacer(ArtifactReplacerFactory.hpaDeploymentReplacer())
+    def manifest = stringToManifest(hpaManifest)
+    def artifacts = artifactReplacer.findAll(manifest)
+
+    then:
+    artifacts.size() == 1
+    Artifact artifact = artifacts.toList().get(0)
+    artifact.getType() == ArtifactTypes.KUBERNETES_DEPLOYMENT.toString()
+    artifact.getName() == name
+  }
+
+  def "doesn't extract bad kind from hpa"() {
+    when:
+    def name = "my-deployment"
+    def hpaManifest = """
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: UNKNOWN
+    name: $name
+"""
+    def artifactReplacer = new ArtifactReplacer()
+    artifactReplacer.addReplacer(ArtifactReplacerFactory.hpaDeploymentReplacer())
+    def manifest = stringToManifest(hpaManifest)
+    def artifacts = artifactReplacer.findAll(manifest)
+
+    then:
+    artifacts.size() == 0
+  }
+
   @Unroll
   def "correctly extracts Docker artifacts from image names"() {
     expect:
