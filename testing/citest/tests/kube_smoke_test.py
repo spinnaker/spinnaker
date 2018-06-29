@@ -503,7 +503,6 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
        .get_url_path(
           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_match(expect_match))
-      builder = kube.KubeContractBuilder(self.kube_observer)
       return st.OperationContract(
           self.new_post_operation(title='Save Daemonset',
                                   data=payload, path='pipelines',
