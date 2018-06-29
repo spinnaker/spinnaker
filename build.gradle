@@ -48,6 +48,12 @@ allprojects {
     exclude group: 'javax.servlet', module: 'javax.servlet-api'
   }
 
+  tasks.withType(JavaExec) {
+    if (System.getProperty('DEBUG', 'false') == 'true') {
+      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8184'
+    }
+  }
+
   group = "com.netflix.spinnaker.gate"
 
   test {
