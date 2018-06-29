@@ -32,6 +32,7 @@ window.spinnakerSettings = {
   bakeryDetailUrl: bakeryDetailUrl,
   authEndpoint: authEndpoint,
   pollSchedule: 30000,
+  maxPipelineAgeDays: 14,
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   defaultCategory: 'serverGroup',
   defaultInstancePort: 80,

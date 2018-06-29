@@ -3,6 +3,7 @@ import { extend } from 'lodash';
 import { Subject } from 'rxjs';
 import { $rootScope } from 'ngimport';
 
+import { SETTINGS } from 'core/config/settings';
 import { ICache, ViewStateCache } from 'core/cache';
 import { IExecutionGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
@@ -38,7 +39,7 @@ export class ExecutionFilterModel {
   constructor() {
     this.configViewStateCache = ViewStateCache.createCache('executionFilters', {
       version: 2,
-      maxAge: 14 * 24 * 60 * 60 * 1000,
+      maxAge: SETTINGS.maxPipelineAgeDays * 24 * 60 * 60 * 1000,
     });
 
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
