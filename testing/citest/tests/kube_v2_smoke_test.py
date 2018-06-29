@@ -255,6 +255,71 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
             title='scale_manifest', data=payload, path='tasks'),
         contract=builder.build())
 
+  def save_deploy_manifest_pipeline(self, image):
+    name = self.TEST_APP + '-deployment'
+    stage = {
+        'type': 'deployManifest',
+        'cloudProvider': 'kubernetes',
+        'moniker': {
+            'app': self.TEST_APP
+        },
+        'account': self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+        'source': 'text',
+        'manifests': [self.mf.deployment(name, image)],
+    }
+    job = {
+        'keepWaitingPipelines': 'false',
+        'application': self.TEST_APP,
+        'name': 'deploy-manifest-pipeline',
+        'lastModifiedBy': 'anonymous',
+        'limitConcurrent': 'true',
+        'parallel': 'true',
+        'stages': [stage]
+    }
+    payload = self.agent.make_json_payload_from_kwargs(**job)
+    expect_match = {key: jp.EQUIVALENT(value)
+                    for key, value in job.items()}
+    expect_match['stages'] = jp.LIST_MATCHES(
+        [jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                         for key, value in stage.items()})])
+
+    builder = st.HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has Pipeline',
+                                retryable_for_secs=15)
+     .get_url_path(
+        'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+     .contains_match(expect_match))
+    return st.OperationContract(
+        self.new_post_operation(title='save_deploy_manifest_operation',
+                                data=payload, path='pipelines',
+                                status_class=st.SynchronousHttpOperationStatus),
+        contract=builder.build())
+
+  def execute_deploy_manifest_pipeline(self, image):
+    name = self.TEST_APP + '-deployment'
+    bindings = self.bindings
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'type': 'manual',
+            'user': '[anonymous]'
+        }],
+        description='Deploy manifest in ' + self.TEST_APP,
+        application=self.TEST_APP)
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('Deployment deployed',
+                                retryable_for_secs=15)
+     .get_resources(
+         'deploy',
+         extra_args=[name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(self.mp.deployment_image_predicate(image)))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='Deploy manifest', data=payload,
+            path='pipelines/' + self.TEST_APP + '/deploy-manifest-pipeline',
+            status_class=st.SynchronousHttpOperationStatus),
+        contract=builder.build())
+
   def delete_manifest(self):
     """Creates OperationContract for deleteManifest
 
@@ -311,27 +376,36 @@ class KubeV2SmokeTest(st.AgentTestCase):
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
-  def test_b_deploy_manifest(self):
+  def test_b1_deploy_manifest(self):
     self.run_test_case(self.scenario.deploy_manifest('library/nginx'),
                        max_retries=1,
                        timeout_ok=True)
 
-  def test_c_update_manifest(self):
+  def test_b2_update_manifest(self):
     self.run_test_case(self.scenario.deploy_manifest('library/redis'),
                        max_retries=1,
                        timeout_ok=True)
 
-  def test_d_undo_rollout_manifest(self):
+  def test_b3_undo_rollout_manifest(self):
     self.run_test_case(self.scenario.undo_rollout_manifest('library/nginx'),
                        max_retries=1)
 
-  def test_e_scale_manifest(self):
+  def test_b4_scale_manifest(self):
     self.run_test_case(self.scenario.scale_manifest(), max_retries=1)
 
-  def test_f_patch_manifest(self):
+  def test_b5_patch_manifest(self):
     self.run_test_case(self.scenario.patch_manifest(), max_retries=1)
 
-  def test_y_delete_manifest(self):
+  def test_b6_delete_manifest(self):
+    self.run_test_case(self.scenario.delete_manifest(), max_retries=2)
+
+  def test_c1_save_deploy_manifest_pipeline(self):
+    self.run_test_case(self.scenario.save_deploy_manifest_pipeline('library/nginx'))
+
+  def test_c2_execute_deploy_manifest_pipeline(self):
+    self.run_test_case(self.scenario.execute_deploy_manifest_pipeline('library/nginx'))
+
+  def test_c3_delete_manifest(self):
     self.run_test_case(self.scenario.delete_manifest(), max_retries=2)
 
   def test_z_delete_app(self):
