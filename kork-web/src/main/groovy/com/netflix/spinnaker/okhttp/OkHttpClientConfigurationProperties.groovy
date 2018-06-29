@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.okhttp
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import groovy.transform.Canonical
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.NestedConfigurationProperty
+import org.springframework.core.annotation.AliasFor
 
 @Canonical
 @ConfigurationProperties(prefix="okHttpClient")
@@ -57,6 +59,13 @@ class OkHttpClientConfigurationProperties {
     "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
     "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
   ]
+
+  /**
+   * Provide backwards compatibility for 'okHttpClient.connectTimoutMs'
+   */
+  void setConnectTimoutMs(long connectTimeoutMs) {
+    this.connectTimeoutMs = connectTimeoutMs;
+  }
 
   @Canonical
   static class ConnectionPoolProperties {
