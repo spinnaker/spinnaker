@@ -66,7 +66,7 @@ class ElasticSearchEntityTagsReconcilerSpec extends Specification {
   @Subject
   def entityTagsReconciler = new ElasticSearchEntityTagsReconciler(
     front50Service,
-    [amazonServerGroupProvider, titusServerGroupProvider]
+    Optional.of([amazonServerGroupProvider, titusServerGroupProvider])
   )
 
   def "should build provider-specific identifier"() {

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.elasticsearch.model;
 
 import com.google.common.collect.ImmutableMap;
+
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupProvider;
@@ -25,13 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,10 +41,10 @@ public class ElasticSearchEntityTagsReconciler {
 
   @Autowired
   public ElasticSearchEntityTagsReconciler(Front50Service front50Service,
-                                           Collection<ServerGroupProvider> serverGroupProviders) {
+                                           Optional<Collection<ServerGroupProvider>> serverGroupProviders) {
     this.front50Service = front50Service;
 
-    for (ServerGroupProvider serverGroupProvider : serverGroupProviders) {
+    for (ServerGroupProvider serverGroupProvider : serverGroupProviders.orElse(new ArrayList<>())) {
       serverGroupProviderByCloudProvider.put(serverGroupProvider.getCloudProviderId(), serverGroupProvider);
     }
   }
