@@ -56,7 +56,6 @@ export class LoadBalancerReader {
       lb.stack = nameParts.stack;
       lb.detail = nameParts.freeFormDetails;
       lb.cloudProvider = lb.cloudProvider || lb.type || lb.provider;
-      lb.loadBalancerType = lb.loadBalancerType || 'classic';
       return lb;
     });
   }
