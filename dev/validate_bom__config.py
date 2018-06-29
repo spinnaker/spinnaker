@@ -45,7 +45,6 @@ interface, which is provided via free functions.
 
 import logging
 import os
-import textwrap
 
 from buildtool import (
     add_parser_argument,
