@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder(toBuilder = true)
 @Wither
-@ToString(of = {"id", "parent", "type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds", "payload"}, includeFieldNames = false)
+@ToString(of = {"id", "parent", "type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds", "payload", "status"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
@@ -84,6 +84,7 @@ public class Trigger {
   String branch;
   String runAsUser;
   String secret;
+  List<String> status;
 
   /**
    * Unique ID of a trigger that can be used to correlate a pipeline execution with its trigger.
