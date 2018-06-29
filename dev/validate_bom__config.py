@@ -45,6 +45,7 @@ interface, which is provided via free functions.
 
 import logging
 import os
+import textwrap
 
 from buildtool import (
     add_parser_argument,
@@ -1444,6 +1445,14 @@ class SpinnakerConfigurator(Configurator):
     script.append('mkdir -p  ~/.hal/default/profiles')
     script.append('echo "management.security.enabled: false"'
                   ' > ~/.hal/default/profiles/spinnaker-local.yml')
+    hystrix_config = textwrap.dedent('''\
+      hystrix:
+        threadpool:
+          default:
+            maxQueueSize: 20
+            queueSizeRejectionThreshold: 20
+    ''')
+    script.append('echo "{}" > ~/.hal/default/profiles/gate-local.yml'.format(hystrix_config))
 
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
