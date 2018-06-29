@@ -130,12 +130,12 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
   }
 
   public List<String> getDeclaredNamespaces() {
-    if (namespaces != null && !namespaces.isEmpty()) {
-      // If namespaces are provided, used them
-      reconfigureRegistries(namespaces);
-      return namespaces;
-    } else {
-      try {
+    try {
+      if (namespaces != null && !namespaces.isEmpty()) {
+        // If namespaces are provided, used them
+        reconfigureRegistries(namespaces);
+        return namespaces;
+      } else {
         List<String> addedNamespaces = apiAdaptor.getNamespacesByName();
         addedNamespaces.removeAll(omitNamespaces);
 
@@ -148,10 +148,10 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
         oldNamespaces = resultNamespaces;
 
         return resultNamespaces;
-      } catch (Exception e) {
-        LOG.warn("Could not determine kubernetes namespaces. Will try again later.", e);
-        return Lists.newArrayList();
       }
+    } catch (Exception e) {
+      LOG.warn("Could not determine kubernetes namespaces. Will try again later.", e);
+      return Lists.newArrayList();
     }
   }
 

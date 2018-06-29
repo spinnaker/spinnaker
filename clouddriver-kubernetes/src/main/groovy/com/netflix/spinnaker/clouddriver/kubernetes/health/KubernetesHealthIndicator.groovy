@@ -40,37 +40,37 @@ class KubernetesHealthIndicator implements HealthIndicator {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
-  private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
+  private final AtomicReference<Map<String, String>> warningMessages = new AtomicReference<>(null)
 
   @Override
   Health health() {
-    def ex = lastException.get()
+    def warnings = warningMessages.get()
 
-    if (ex) {
-      throw ex
-    }
+    def resultBuilder = new Health.Builder().up()
 
-    new Health.Builder().up().build()
+    warnings.each { k, v -> resultBuilder.withDetail(k, v) }
+
+    return resultBuilder.build()
   }
 
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
-    try {
-      Set<KubernetesNamedAccountCredentials> kubernetesCredentialsSet = accountCredentialsProvider.all.findAll {
-        it instanceof KubernetesNamedAccountCredentials
-      } as Set<KubernetesNamedAccountCredentials>
+    def warnings = [:]
 
-      for (KubernetesNamedAccountCredentials accountCredentials in kubernetesCredentialsSet) {
+    Set<KubernetesNamedAccountCredentials> kubernetesCredentialsSet = accountCredentialsProvider.all.findAll {
+      it instanceof KubernetesNamedAccountCredentials
+    } as Set<KubernetesNamedAccountCredentials>
+
+    for (KubernetesNamedAccountCredentials accountCredentials in kubernetesCredentialsSet) {
+      try {
         KubernetesCredentials kubernetesCredentials = accountCredentials.credentials
         kubernetesCredentials.getDeclaredNamespaces()
+      } catch (Exception ex) {
+        warnings.put("kubernetes:${accountCredentials.name}".toString(), ex.message)
       }
-
-      lastException.set(null)
-    } catch (Exception ex) {
-      LOG.warn "Unhealthy", ex
-
-      lastException.set(ex)
     }
+
+    warningMessages.set(warnings)
   }
 
   @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Problem communicating with Kubernetes.")
