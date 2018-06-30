@@ -116,7 +116,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     def result = resolver.resolve("unknownUser")
 
     then:
-    1 * userRolesProvider.loadRoles("unknownUser") >> []
+    1 * userRolesProvider.loadRoles({ u -> u.getId() == "unknownUser" }) >> []
     def expected = new UserPermission().setId("unknownUser")
     result == expected
 
@@ -125,14 +125,14 @@ class DefaultPermissionsResolverSpec extends Specification {
     expected = new UserPermission().setId(testUserId)
 
     then:
-    1 * userRolesProvider.loadRoles(testUserId) >> []
+    1 * userRolesProvider.loadRoles({ u -> u.getId() == testUserId }) >> []
     result == expected
 
     when:
     result = resolver.resolve(testUserId)
 
     then:
-    1 * userRolesProvider.loadRoles(testUserId) >> [role2]
+    1 * userRolesProvider.loadRoles({ u -> u.getId() == testUserId }) >> [role2]
     expected.setAccounts([reqGroup1and2Acct] as Set)
             .setServiceAccounts([group2SvcAcct] as Set)
             .setRoles([role2] as Set)
@@ -142,7 +142,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     result = resolver.resolveAndMerge(testUser)
 
     then:
-    1 * userRolesProvider.loadRoles(testUserId) >> [role2]
+    1 * userRolesProvider.loadRoles({ u -> u.getId() == testUserId }) >> [role2]
     expected.setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
             .setServiceAccounts([group1SvcAcct, group2SvcAcct] as Set)
             .setRoles([role1, role2] as Set)
@@ -168,7 +168,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     def result = resolver.resolveAndMerge(testUser)
 
     then:
-    1 * userRolesProvider.loadRoles(testUserId) >> [role1]
+    1 * userRolesProvider.loadRoles({ u -> u.getId() == testUserId }) >> [role1]
     def expected = new UserPermission().setId("testUserId")
     expected.setRoles([role1] as Set).setAdmin(true)
             .setServiceAccounts([group1SvcAcct, group2SvcAcct] as Set)

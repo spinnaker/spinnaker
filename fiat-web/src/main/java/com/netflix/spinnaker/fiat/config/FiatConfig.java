@@ -3,6 +3,7 @@ package com.netflix.spinnaker.fiat.config;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
@@ -56,12 +57,12 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
   UserRolesProvider defaultUserRolesProvider() {
     return new UserRolesProvider() {
       @Override
-      public Map<String, Collection<Role>> multiLoadRoles(Collection<String> userIds) {
+      public Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users) {
         return new HashMap<>();
       }
 
       @Override
-      public List<Role> loadRoles(String userId) {
+      public List<Role> loadRoles(ExternalUser user) {
         return new ArrayList<>();
       }
     };

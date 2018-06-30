@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.fiat.model.resources.Role
+import com.netflix.spinnaker.fiat.permissions.ExternalUser
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -34,14 +35,14 @@ class TestUserRoleProviderConfig {
     Map<String, List<Role>> userToRoles = new HashMap<>();
 
     @Override
-    List<Role> loadRoles(String userId) {
-      return userToRoles.get(userId) ?: []
+    List<Role> loadRoles(ExternalUser user) {
+      return userToRoles.get(user.getId()) ?: []
     }
 
     @Override
-    Map<String, Collection<Role>> multiLoadRoles(Collection<String> userIds) {
-      return userIds.collectEntries{ String userId ->
-        [(userId): loadRoles(userId) ]
+    Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users) {
+      return users.collectEntries { u ->
+        [(u.getId()): loadRoles(u) ]
       }
     }
   }

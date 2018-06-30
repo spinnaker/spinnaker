@@ -33,6 +33,7 @@ import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.api.services.admin.directory.model.Group;
 import com.google.api.services.admin.directory.model.Groups;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -107,10 +108,12 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   }
 
   @Override
-  public Map<String, Collection<Role>> multiLoadRoles(Collection<String> userEmails) {
-    if (userEmails == null || userEmails.isEmpty()) {
+  public Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users) {
+    if (users == null || users.isEmpty()) {
       return new HashMap<>();
     }
+
+    Collection<String> userEmails = users.stream().map(ExternalUser::getId).collect(Collectors.toList());
     HashMap<String, Collection<Role>> emailGroupsMap = new HashMap<>();
     Directory service = getDirectoryService();
     BatchRequest batch = service.batch();
@@ -147,12 +150,14 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   }
 
   @Override
-  public List<Role> loadRoles(String userEmail) {
-    if (userEmail == null || userEmail.isEmpty()) {
+  public List<Role> loadRoles(ExternalUser user) {
+    if (user == null || user.getId().isEmpty()) {
       return new ArrayList<>();
     }
 
+    String userEmail = user.getId();
     Directory service = getDirectoryService();
+
     try {
       Groups groups = service.groups().list().setDomain(config.getDomain()).setUserKey(userEmail).execute();
       if (groups == null || groups.getGroups() == null || groups.getGroups().isEmpty()) {
