@@ -200,8 +200,10 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     self.docker_pipeline_id = None
     self.test_google = bindings['TEST_GOOGLE']
     self.test_aws = bindings['TEST_AWS']
+    # This test has been exceeding the default timeout of 13 minutes for the Jenkins agent,
+    # so increase the timeout to 20 minutes
     self.jenkins_agent = sk.JenkinsAgent(bindings['JENKINS_URL'],
-        bindings['JENKINS_AUTH_PATH'], self.agent)
+        bindings['JENKINS_AUTH_PATH'], self.agent, None, 1200)
     self.run_tests = True
 
     if not (self.test_google or self.test_aws):

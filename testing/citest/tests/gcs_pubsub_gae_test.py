@@ -284,10 +284,11 @@ class GcsPubsubGaeTestScenario(sk.SpinnakerTestScenario):
     def create_pipeline_id_extractor(_ignored, context):
       pipeline_config_resp = self.agent.get(pipeline_config_path)
       pipeline_config_list = json.JSONDecoder().decode(pipeline_config_resp.output)
-      found = next(x for x in pipeline_config_list if x['name'] == self.pipeline_id)
-      context['pipelineId'] = found['id'] # I don't know how to reference this later, so I'm saving it in self for now.
-      self.__pipeline_id = found['id'] # I don't know how to reference this later, so I'm saving it in self for now.
-      logging.info('Created pipeline config with id: %s', context['pipelineId'])
+      found = next((x for x in pipeline_config_list if x['name'] == self.pipeline_id), None)
+      if (found is not None):
+        context['pipelineId'] = found['id'] # I don't know how to reference this later, so I'm saving it in self for now.
+        self.__pipeline_id = found['id'] # I don't know how to reference this later, so I'm saving it in self for now.
+        logging.info('Created pipeline config with id: %s', context['pipelineId'])
 
     return st.OperationContract(
       self.new_post_operation(
