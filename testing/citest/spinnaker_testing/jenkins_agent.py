@@ -93,15 +93,16 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
 
 class JenkinsAgent(base_agent.BaseAgent):
   """A specialization of BaseAgent for interacting with Jenkins."""
-  def __init__(self, baseUrl, auth_path, owner_agent, logger=None):
+  def __init__(self, baseUrl, auth_path, owner_agent, logger=None, max_wait_secs=780):
     super(JenkinsAgent, self).__init__(logger=logger)
     self.__http_agent = http_agent.HttpAgent(baseUrl)
     self.__owner_agent = owner_agent
 
-    # Allow up to 13 minutes to wait on operations.
-    # 13 minutes is arbitrary. The current test takes around 6-7 minutes
-    # end-to-end. Other use cases might make it more clear what this should be.
-    self.default_max_wait_secs = 780
+    # Set the timeout for waiting on operations.  The default of 13 minutes
+    # (set in the parameter list above) is arbitrary; the current test takes
+    # around 6-7 minutes end-to-end. Other use cases might make it more clear
+    # what this should be.
+    self.default_max_wait_secs = max_wait_secs
 
     # pylint: disable=bad-indentation
     if auth_path is None:
