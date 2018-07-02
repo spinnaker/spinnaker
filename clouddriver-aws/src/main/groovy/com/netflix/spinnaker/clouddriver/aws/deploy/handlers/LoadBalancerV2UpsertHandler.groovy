@@ -330,18 +330,20 @@ class LoadBalancerV2UpsertHandler {
     def amazonErrors = []
     def loadBalancerName = loadBalancer.loadBalancerName
     def loadBalancerArn = loadBalancer.loadBalancerArn
-    if (loadBalancer.vpcId && !securityGroups) {
-      throw new IllegalArgumentException("Load balancer ${loadBalancerName} must have at least one security group")
-    }
 
-    if (securityGroups && loadBalancer.getType() == 'application') {
-      loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
-        loadBalancerArn: loadBalancerArn,
-        securityGroups: securityGroups
-      ))
-    }
+    if (loadBalancer.getType() == 'application') {
+      if (loadBalancer.vpcId && !securityGroups) {
+        throw new IllegalArgumentException("Load balancer ${loadBalancerName} must have at least one security group")
+      }
 
-    task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
+      if (securityGroups) {
+        loadBalancing.setSecurityGroups(new SetSecurityGroupsRequest(
+          loadBalancerArn: loadBalancerArn,
+          securityGroups: securityGroups
+        ))
+        task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
+      }
+    }
 
     // Get the state of this load balancer from aws
     List<TargetGroup> existingTargetGroups = []
