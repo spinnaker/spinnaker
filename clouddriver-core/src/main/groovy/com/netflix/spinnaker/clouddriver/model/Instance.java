@@ -14,26 +14,38 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Primarily a marker interface, but provides the representation of an instance, which exists within a {@link ServerGroup}. Concrete implementations should provide more-specific data.
  *
  *
  */
-interface Instance {
+public interface Instance {
   /**
    * The name of the instance
    *
    * @return instance name
    */
-  String getName()
+  String getName();
+
+  /**
+   * The instances unique identifier
+   *
+   * @return the instances uid
+   */
+  default String getUid() {
+    return getName();
+  }
 
   /**
    * A status of the health of the instance
    * @return HealthState
    */
-  HealthState getHealthState()
+  HealthState getHealthState();
 
   /**
    * A timestamp indicating when the instance was launched
@@ -41,14 +53,14 @@ interface Instance {
    * @return the number of milliseconds after the beginning of time (1 January, 1970 UTC) when
    * this instance was launched
    */
-  Long getLaunchTime()
+  Long getLaunchTime();
 
   /**
    * A zone specifier indicating where the instance resides
    *
    * @return the availability zone
    */
-  String getZone()
+  String getZone();
 
   /**
    * A list of all health metrics reported for this instance
@@ -56,16 +68,16 @@ interface Instance {
    * @return A list of health metrics, which will always include keys for type and status,
    * and may include others, depending on the health metric
    */
-  List<Map<String, Object>> getHealth()
+  List<Map<String, Object>> getHealth();
 
   /**
    * @deprecated use #getCloudProvider
    */
-  String getProviderType()
+  String getProviderType();
 
   /**
    * Cloud-provider key, e.g. "aws", "titus"
    * @return
    */
-  String getCloudProvider()
+  String getCloudProvider();
 }

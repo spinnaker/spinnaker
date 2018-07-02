@@ -47,6 +47,10 @@ abstract public class ManifestBasedModel {
     return getManifest().getNamespace();
   }
 
+  public String getUid() {
+    return getManifest().getUid();
+  }
+
   public String getType() {
     return KubernetesCloudProvider.getID();
   }

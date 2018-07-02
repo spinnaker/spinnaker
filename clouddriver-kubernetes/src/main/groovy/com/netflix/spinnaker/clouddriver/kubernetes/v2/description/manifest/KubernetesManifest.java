@@ -79,6 +79,11 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
+  public String getUid() {
+    return (String) getMetadata().get("uid");
+  }
+
+  @JsonIgnore
   public void setName(String name) {
     getMetadata().put("name", name);
   }
