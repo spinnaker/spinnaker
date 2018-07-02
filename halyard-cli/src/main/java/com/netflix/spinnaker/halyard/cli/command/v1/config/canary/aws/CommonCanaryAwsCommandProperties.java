@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws;
 
 public class CommonCanaryAwsCommandProperties {
+  public static final String REGION_DESCRIPTION = "The region to use.";
+
   public static final String PROFILE_NAME_DESCRIPTION = "The profile name to use when resolving AWS credentials. Typically found in ~/.aws/credentials (*Default*: `default`).";
 
   public static final String ENDPOINT_DESCRIPTION = "The endpoint used to reach the service implementing the AWS api. Typical use is with Minio.";

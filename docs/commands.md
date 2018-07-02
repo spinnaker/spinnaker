@@ -1650,6 +1650,7 @@ hal config canary aws account add ACCOUNT [parameters]
  * `--endpoint`: The endpoint used to reach the service implementing the AWS api. Typical use is with Minio.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--profile-name`: The profile name to use when resolving AWS credentials. Typically found in ~/.aws/credentials (*Default*: `default`).
+ * `--region`: The region to use.
  * `--root-folder`: The root folder in the chosen bucket to place all of the canary service's persistent data in (*Default*: `kayenta`).
  * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) The secret key used to communicate with AWS.
 
@@ -1688,6 +1689,7 @@ hal config canary aws account edit ACCOUNT [parameters]
  * `--endpoint`: The endpoint used to reach the service implementing the AWS api. Typical use is with Minio.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--profile-name`: The profile name to use when resolving AWS credentials. Typically found in ~/.aws/credentials (*Default*: `default`).
+ * `--region`: The region to use.
  * `--root-folder`: The root folder in the chosen bucket to place all of the canary service's persistent data in (*Default*: `kayenta`).
  * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) The secret key used to communicate with AWS.
 

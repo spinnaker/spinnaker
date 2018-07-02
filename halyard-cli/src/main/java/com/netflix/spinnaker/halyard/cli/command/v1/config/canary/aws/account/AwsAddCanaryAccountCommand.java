@@ -44,6 +44,12 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
   private String bucket;
 
   @Parameter(
+      names = "--region",
+      description = CommonCanaryAwsCommandProperties.REGION_DESCRIPTION
+  )
+  private String region;
+
+  @Parameter(
       names = "--root-folder",
       description = CommonCanaryCommandProperties.ROOT_FOLDER
   )
@@ -79,6 +85,7 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
     AwsCanaryAccount account = (AwsCanaryAccount)new AwsCanaryAccount().setName(accountName);
 
     account.setBucket(bucket);
+    account.setRegion(region);
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
     account.setProfileName(profileName);
     account.setEndpoint(endpoint);

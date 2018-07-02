@@ -39,6 +39,12 @@ public class AwsEditCanaryAccountCommand extends AbstractEditCanaryAccountComman
   private String bucket;
 
   @Parameter(
+      names = "--region",
+      description = CommonCanaryAwsCommandProperties.REGION_DESCRIPTION
+  )
+  private String region;
+
+  @Parameter(
       names = "--root-folder",
       description = CommonCanaryCommandProperties.ROOT_FOLDER
   )
@@ -72,6 +78,7 @@ public class AwsEditCanaryAccountCommand extends AbstractEditCanaryAccountComman
   @Override
   protected AbstractCanaryAccount editAccount(AwsCanaryAccount account) {
     account.setBucket(isSet(bucket) ? bucket : account.getBucket());
+    account.setRegion(isSet(region) ? region : account.getRegion());
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
     account.setProfileName(isSet(profileName) ? profileName : account.getProfileName());
     account.setEndpoint(isSet(endpoint) ? endpoint : account.getEndpoint());

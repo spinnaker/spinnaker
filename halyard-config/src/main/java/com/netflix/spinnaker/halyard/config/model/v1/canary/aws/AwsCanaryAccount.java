@@ -32,6 +32,7 @@ import java.util.Set;
 @Slf4j
 public class AwsCanaryAccount extends AbstractCanaryAccount implements Cloneable {
   private String bucket;
+  private String region;
   private String rootFolder = "kayenta";
   private String profileName;
   private String endpoint;
