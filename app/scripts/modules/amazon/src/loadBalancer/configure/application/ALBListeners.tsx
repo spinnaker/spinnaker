@@ -10,7 +10,7 @@ import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
   ALBListenerProtocol,
   IALBListenerCertificate,
-  IALBListenerDescription,
+  IListenerDescription,
   IALBTargetGroupDescription,
   IAmazonApplicationLoadBalancerUpsertCommand,
   IListenerAction,
@@ -77,7 +77,7 @@ class ALBListenersImpl extends React.Component<
     };
   }
 
-  private getAllTargetGroupsFromListeners(listeners: IALBListenerDescription[]): string[] {
+  private getAllTargetGroupsFromListeners(listeners: IListenerDescription[]): string[] {
     const actions = flatten(listeners.map(l => l.defaultActions));
     const rules = flatten(listeners.map(l => l.rules));
     actions.push(...flatten(rules.map(r => r.actions)));
@@ -166,7 +166,7 @@ class ALBListenersImpl extends React.Component<
     this.props.setFieldValue('listeners', this.props.values.listeners);
   }
 
-  private needsCert(listener: IALBListenerDescription): boolean {
+  private needsCert(listener: IListenerDescription): boolean {
     return listener.protocol === 'HTTPS';
   }
 
@@ -174,7 +174,7 @@ class ALBListenersImpl extends React.Component<
     return certificate.type === 'iam' && this.state.certificates && Object.keys(this.state.certificates).length > 0;
   }
 
-  private addListenerCertificate(listener: IALBListenerDescription): void {
+  private addListenerCertificate(listener: IListenerDescription): void {
     listener.certificates = listener.certificates || [];
     listener.certificates.push({
       certificateArn: undefined,
@@ -183,7 +183,7 @@ class ALBListenersImpl extends React.Component<
     });
   }
 
-  private removeAuthActions(listener: IALBListenerDescription): void {
+  private removeAuthActions(listener: IListenerDescription): void {
     const authIndex = listener.defaultActions.findIndex(a => a.type === 'authenticate-oidc');
     if (authIndex !== -1) {
       this.removeAuthAction(listener.defaultActions, authIndex, -1);
@@ -197,7 +197,7 @@ class ALBListenersImpl extends React.Component<
     this.updateListeners();
   }
 
-  private reenableAuthActions(listener: IALBListenerDescription): void {
+  private reenableAuthActions(listener: IListenerDescription): void {
     const existingDefaultAuthAction = this.removedAuthActions[-1];
     this.removedAuthActions[-1] = undefined;
     if (existingDefaultAuthAction) {
@@ -212,7 +212,7 @@ class ALBListenersImpl extends React.Component<
     });
   }
 
-  private listenerProtocolChanged(listener: IALBListenerDescription, newProtocol: ALBListenerProtocol): void {
+  private listenerProtocolChanged(listener: IListenerDescription, newProtocol: ALBListenerProtocol): void {
     listener.protocol = newProtocol;
     if (listener.protocol === 'HTTPS') {
       listener.port = 443;
@@ -229,7 +229,7 @@ class ALBListenersImpl extends React.Component<
     this.updateListeners();
   }
 
-  private listenerPortChanged(listener: IALBListenerDescription, newPort: string): void {
+  private listenerPortChanged(listener: IListenerDescription, newPort: string): void {
     listener.port = Number.parseInt(newPort, 10);
     this.updateListeners();
   }
@@ -265,7 +265,7 @@ class ALBListenersImpl extends React.Component<
     this.updateListeners();
   };
 
-  private addRule = (listener: IALBListenerDescription): void => {
+  private addRule = (listener: IListenerDescription): void => {
     const newRule: IListenerRule = {
       priority: null,
       actions: [
@@ -286,7 +286,7 @@ class ALBListenersImpl extends React.Component<
     this.updateListeners();
   };
 
-  public removeRule = (listener: IALBListenerDescription, index: number): void => {
+  public removeRule = (listener: IListenerDescription, index: number): void => {
     listener.rules.splice(index, 1);
     this.updateListeners();
   };
@@ -322,7 +322,7 @@ class ALBListenersImpl extends React.Component<
     this.updateListeners();
   };
 
-  private handleSortEnd = (sortEnd: SortEnd, listener: IALBListenerDescription): void => {
+  private handleSortEnd = (sortEnd: SortEnd, listener: IListenerDescription): void => {
     listener.rules = arrayMove(listener.rules, sortEnd.oldIndex, sortEnd.newIndex);
     this.updateListeners();
   };
@@ -340,7 +340,7 @@ class ALBListenersImpl extends React.Component<
     this.removedAuthActions[ruleIndex || -1] = removedAuthAction;
   }
 
-  private authenticateRuleToggle = (listener: IALBListenerDescription, ruleIndex: number) => {
+  private authenticateRuleToggle = (listener: IListenerDescription, ruleIndex: number) => {
     const rules = listener.rules[ruleIndex];
     const actions = (rules && rules.actions) || listener.defaultActions;
     if (actions) {
@@ -516,14 +516,14 @@ class ALBListenersImpl extends React.Component<
 
 interface IRuleProps {
   rule: IListenerRule;
-  listener: IALBListenerDescription;
+  listener: IListenerDescription;
   index: number;
   targetGroups: IALBTargetGroupDescription[];
   oidcConfigChanged: (action: IListenerAction, config: IAuthenticateOidcActionConfig) => void;
   oidcConfigs: IAuthenticateOidcActionConfig[];
   ruleIndex: number;
-  authenticateRuleToggle: (listener: IALBListenerDescription, index: number) => void;
-  removeRule: (listener: IALBListenerDescription, index: number) => void;
+  authenticateRuleToggle: (listener: IListenerDescription, index: number) => void;
+  removeRule: (listener: IListenerDescription, index: number) => void;
   handleRuleActionTargetChanged: (action: IListenerAction, newTarget: string) => void;
   addCondition: (rule: IListenerRule) => void;
   removeCondition: (rule: IListenerRule, index: number) => void;
@@ -682,9 +682,9 @@ const Action = (props: {
 const RuleActions = (props: {
   ruleIndex?: number;
   actions: IListenerAction[];
-  listener: IALBListenerDescription;
-  authenticateRuleToggle: (listener: IALBListenerDescription, index: number) => void;
-  removeRule?: (listener: IALBListenerDescription, index: number) => void;
+  listener: IListenerDescription;
+  authenticateRuleToggle: (listener: IListenerDescription, index: number) => void;
+  removeRule?: (listener: IListenerDescription, index: number) => void;
 }) => {
   const hasAuth = Boolean(props.actions.find(a => a.type === 'authenticate-oidc'));
   const allowAuth = props.listener.protocol === 'HTTPS';
@@ -721,15 +721,15 @@ const RuleActions = (props: {
 };
 
 interface IRulesProps {
-  addRule: (listener: IALBListenerDescription) => void;
-  authenticateRuleToggle: (listener: IALBListenerDescription, index: number) => void;
-  removeRule: (listener: IALBListenerDescription, index: number) => void;
+  addRule: (listener: IListenerDescription) => void;
+  authenticateRuleToggle: (listener: IListenerDescription, index: number) => void;
+  removeRule: (listener: IListenerDescription, index: number) => void;
   handleRuleActionTargetChanged: (action: IListenerAction, newTarget: string) => void;
   addCondition: (rule: IListenerRule) => void;
   removeCondition: (rule: IListenerRule, index: number) => void;
   handleConditionFieldChanged: (condition: IListenerRuleCondition, newField: ListenerRuleConditionField) => void;
   handleConditionValueChanged: (condition: IListenerRuleCondition, newValue: string) => void;
-  listener: IALBListenerDescription;
+  listener: IListenerDescription;
   targetGroups: IALBTargetGroupDescription[];
   oidcConfigChanged: (action: IListenerAction, config: IAuthenticateOidcActionConfig) => void;
   oidcConfigs: IAuthenticateOidcActionConfig[];

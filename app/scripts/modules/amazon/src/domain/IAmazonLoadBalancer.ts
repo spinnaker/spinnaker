@@ -15,6 +15,7 @@ import { IAmazonServerGroup } from './IAmazonServerGroup';
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS';
 export type IListenerActionType = 'forward' | 'authenticate-oidc';
+export type NLBListenerProtocol = 'TCP';
 
 export interface IAmazonLoadBalancer extends ILoadBalancer {
   availabilityZones?: string[];
@@ -54,6 +55,12 @@ export interface IAmazonApplicationLoadBalancer extends IAmazonLoadBalancer {
   ipAddressType?: string; // returned from clouddriver
 }
 
+export interface IAmazonNetworkLoadBalancer extends IAmazonLoadBalancer {
+  listeners: INLBListener[];
+  targetGroups: ITargetGroup[];
+  ipAddressType?: string; // returned from clouddriver
+}
+
 export interface IListenerAction {
   authenticateOidcConfig?: IAuthenticateOidcActionConfig;
   order?: number;
@@ -68,6 +75,15 @@ export interface IALBListenerCertificate {
 }
 
 export interface IALBListener {
+  certificates: IALBListenerCertificate[];
+  defaultActions: IListenerAction[];
+  port: number;
+  protocol: string;
+  rules: IListenerRule[];
+  sslPolicy?: string;
+}
+
+export interface INLBListener {
   certificates: IALBListenerCertificate[];
   defaultActions: IListenerAction[];
   port: number;
@@ -124,9 +140,9 @@ export interface ITargetGroup {
   vpcName?: string;
 }
 
-export interface IALBListenerDescription {
+export interface IListenerDescription {
   certificates?: IALBListenerCertificate[];
-  protocol: 'HTTP' | 'HTTPS';
+  protocol: ALBListenerProtocol | NLBListenerProtocol;
   port: number;
   sslPolicy?: string;
   defaultActions: IListenerAction[];
@@ -160,6 +176,27 @@ export interface IALBTargetGroupDescription {
   // Defaults to 5
   healthCheckTimeout?: number;
   // Defaults to 2
+  unhealthyThreshold?: number;
+}
+
+export interface INLBTargetGroupDescription {
+  name: string;
+  protocol: 'TCP';
+  port: number;
+  targetType: 'instance' | 'ip';
+  attributes: {
+    // Defaults to 300
+    deregistrationDelay?: number;
+  };
+  // Defaults to 10
+  healthCheckInterval?: number;
+  healthCheckPort: string;
+  healthCheckProtocol: 'TCP';
+  // Defaults to 10
+  healthyThreshold?: number;
+  // Defaults to 5
+  healthCheckTimeout?: number;
+  // Defaults to 10
   unhealthyThreshold?: number;
 }
 
@@ -199,6 +236,11 @@ export interface IAmazonClassicLoadBalancerUpsertCommand extends IAmazonLoadBala
 }
 
 export interface IAmazonApplicationLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
-  listeners: IALBListenerDescription[];
+  listeners: IListenerDescription[];
   targetGroups: IALBTargetGroupDescription[];
+}
+
+export interface IAmazonNetworkLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
+  listeners: IListenerDescription[];
+  targetGroups: INLBTargetGroupDescription[];
 }

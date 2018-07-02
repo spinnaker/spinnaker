@@ -1,6 +1,7 @@
 import { ILoadBalancerSourceData } from '@spinnaker/core';
 
 import { IListenerActionType, IListenerRule } from './IAmazonLoadBalancer';
+import { NLBListenerProtocol } from 'amazon';
 
 export interface IAmazonContainerServerGroupSourceData {
   detachedInstances: string[];
@@ -127,7 +128,33 @@ export interface IApplicationLoadBalancerSourceData extends IAmazonLoadBalancerS
   ipAddressType: 'ipv4' | 'dualstack';
   listeners: IApplicationLoadBalancerListenerSourceData[];
   loadBalancerArn: string;
-  loadBalancerType: 'application' | 'network';
+  loadBalancerType: 'application';
+  state: {
+    code: 'active' | 'provisioning' | 'failed';
+    reason?: string;
+  };
+  targetGroups: IAmazonTargetGroupSourceData[];
+}
+
+export interface INetworkLoadBalancerListenerSourceData {
+  certificates?: IApplicationLoadBalancerCertificateSourceData[];
+  defaultActions: Array<{
+    targetGroupName: string;
+    type: 'forward';
+  }>;
+  listenerArn: string;
+  loadBalancerName: string;
+  port: number;
+  protocol: NLBListenerProtocol;
+  rules: IListenerRule[];
+  sslPolicy?: string;
+}
+
+export interface INetworkLoadBalancerSourceData extends IAmazonLoadBalancerSourceData {
+  ipAddressType: 'ipv4' | 'dualstack';
+  listeners: INetworkLoadBalancerListenerSourceData[];
+  loadBalancerArn: string;
+  loadBalancerType: 'network';
   state: {
     code: 'active' | 'provisioning' | 'failed';
     reason?: string;

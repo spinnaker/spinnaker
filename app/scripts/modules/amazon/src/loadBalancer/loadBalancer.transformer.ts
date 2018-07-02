@@ -11,6 +11,8 @@ import {
   IApplicationLoadBalancerSourceData,
   IClassicListenerDescription,
   IClassicLoadBalancerSourceData,
+  INetworkLoadBalancerSourceData,
+  IAmazonNetworkLoadBalancerUpsertCommand,
   ITargetGroup,
 } from 'amazon/domain';
 import { VpcReader } from 'amazon/vpc/VpcReader';
@@ -349,6 +351,104 @@ export class AwsLoadBalancerTransformer {
     return toEdit;
   }
 
+  public convertNetworkLoadBalancerForEditing(
+    loadBalancer: IAmazonApplicationLoadBalancer,
+  ): IAmazonNetworkLoadBalancerUpsertCommand {
+    const applicationName = NameUtils.parseLoadBalancerName(loadBalancer.name).application;
+
+    // Since we build up toEdit as we go, much easier to declare as any, then cast at return time.
+    const toEdit: IAmazonNetworkLoadBalancerUpsertCommand = {
+      availabilityZones: undefined,
+      isInternal: loadBalancer.isInternal,
+      region: loadBalancer.region,
+      loadBalancerType: 'network',
+      cloudProvider: loadBalancer.cloudProvider,
+      credentials: loadBalancer.account || loadBalancer.credentials,
+      listeners: [],
+      targetGroups: [],
+      name: loadBalancer.name,
+      regionZones: loadBalancer.availabilityZones,
+      securityGroups: [],
+      subnetType: loadBalancer.subnetType,
+      vpcId: undefined,
+    };
+
+    if (loadBalancer.elb) {
+      const elb = loadBalancer.elb as INetworkLoadBalancerSourceData;
+      toEdit.securityGroups = elb.securityGroups;
+      toEdit.vpcId = elb.vpcid || elb.vpcId;
+
+      // Convert listeners
+      if (elb.listeners) {
+        toEdit.listeners = elb.listeners.map(listener => {
+          const certificates: IALBListenerCertificate[] = [];
+          if (listener.certificates) {
+            listener.certificates.forEach(cert => {
+              const certArnParts = cert.certificateArn.split(':');
+              const certParts = certArnParts[5].split('/');
+              certificates.push({
+                certificateArn: cert.certificateArn,
+                type: certArnParts[2],
+                name: certParts[1],
+              });
+            });
+          }
+
+          (listener.defaultActions || []).forEach(action => {
+            if (action.targetGroupName) {
+              action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
+            }
+          });
+
+          // Remove the default rule because it already exists in defaultActions
+          listener.rules = (listener.rules || []).filter(l => !l.default);
+          listener.rules.forEach(rule => {
+            (rule.actions || []).forEach(action => {
+              if (action.targetGroupName) {
+                action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
+              }
+            });
+            rule.conditions = rule.conditions || [];
+          });
+
+          // Sort listener.rules by priority.
+          listener.rules.sort((a, b) => (a.priority as number) - (b.priority as number));
+
+          return {
+            protocol: listener.protocol,
+            port: listener.port,
+            defaultActions: listener.defaultActions,
+            certificates,
+            rules: listener.rules || [],
+            sslPolicy: listener.sslPolicy,
+          };
+        });
+      }
+
+      // Convert target groups
+      if (elb.targetGroups) {
+        toEdit.targetGroups = elb.targetGroups.map((targetGroup: any) => {
+          return {
+            name: targetGroup.targetGroupName.replace(`${applicationName}-`, ''),
+            protocol: targetGroup.protocol,
+            port: targetGroup.port,
+            targetType: targetGroup.targetType,
+            healthCheckProtocol: targetGroup.healthCheckProtocol,
+            healthCheckPort: targetGroup.healthCheckPort,
+            healthCheckTimeout: targetGroup.healthCheckTimeoutSeconds,
+            healthCheckInterval: targetGroup.healthCheckIntervalSeconds,
+            healthyThreshold: targetGroup.healthyThresholdCount,
+            unhealthyThreshold: targetGroup.unhealthyThresholdCount,
+            attributes: {
+              deregistrationDelay: Number(targetGroup.attributes['deregistration_delay.timeout_seconds']),
+            },
+          };
+        });
+      }
+    }
+    return toEdit;
+  }
+
   public constructNewClassicLoadBalancerTemplate(application: Application): IAmazonClassicLoadBalancerUpsertCommand {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
       defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
@@ -432,6 +532,59 @@ export class AwsLoadBalancerTransformer {
         {
           certificates: [],
           protocol: 'HTTP',
+          port: 80,
+          defaultActions: [
+            {
+              type: 'forward',
+              targetGroupName: defaultTargetGroupName,
+            },
+          ],
+          rules: [],
+        },
+      ],
+    };
+  }
+
+  public constructNewNetworkLoadBalancerTemplate(application: Application): IAmazonNetworkLoadBalancerUpsertCommand {
+    const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
+      defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
+      defaultSubnetType = AWSProviderSettings.defaults.subnetType,
+      defaultTargetGroupName = `targetgroup`;
+    return {
+      name: undefined,
+      availabilityZones: undefined,
+      stack: '',
+      detail: '',
+      loadBalancerType: 'network',
+      isInternal: false,
+      cloudProvider: 'aws',
+      credentials: defaultCredentials,
+      region: defaultRegion,
+      vpcId: null,
+      subnetType: defaultSubnetType,
+      securityGroups: [],
+      targetGroups: [
+        {
+          name: defaultTargetGroupName,
+          protocol: 'TCP',
+          port: 7001,
+          targetType: 'instance',
+          healthCheckProtocol: 'TCP',
+          healthCheckPort: '7001',
+          healthCheckTimeout: 5,
+          healthCheckInterval: 10,
+          healthyThreshold: 10,
+          unhealthyThreshold: 10,
+          attributes: {
+            deregistrationDelay: 600,
+          },
+        },
+      ],
+      regionZones: [],
+      listeners: [
+        {
+          certificates: [],
+          protocol: 'TCP',
           port: 80,
           defaultActions: [
             {
