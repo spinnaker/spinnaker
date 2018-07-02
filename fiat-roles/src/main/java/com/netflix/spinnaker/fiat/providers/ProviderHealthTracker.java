@@ -29,7 +29,6 @@ public class ProviderHealthTracker {
   private final long maximumStalenessTimeMs;
   private AtomicLong lastSuccessfulUpdateTimeMs = new AtomicLong(-1);
 
-  @Autowired
   public ProviderHealthTracker(long maximumStalenessTimeMs) {
     this.maximumStalenessTimeMs = maximumStalenessTimeMs;
   }
