@@ -1,4 +1,4 @@
-local sponnet = import "pipelines/pipelines.libsonnet";
+local sponnet = import "pipeline/pipeline.libsonnet";
 local kubeutils = import "kubeutils.libsonnet";
 local deployment = import "deployment.json";
 
