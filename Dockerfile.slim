@@ -6,7 +6,7 @@ COPY ./echo-web/build/install/echo /opt/echo
 
 RUN apk --no-cache add --update bash
 
-RUN useradd -m spinnaker -U
+RUN adduser -D -S spinnaker
 
 USER spinnaker
 
