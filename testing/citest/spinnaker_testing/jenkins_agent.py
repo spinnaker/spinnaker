@@ -98,9 +98,10 @@ class JenkinsAgent(base_agent.BaseAgent):
     self.__http_agent = http_agent.HttpAgent(baseUrl)
     self.__owner_agent = owner_agent
 
-    # Allow up to 13 minutes to wait on operations.
-    # 13 minutes is arbitrary. The current test takes around 6-7 minutes
-    # end-to-end. Other use cases might make it more clear what this should be.
+    # Set the timeout for waiting on operations.  The default of 13 minutes
+    # (set in the parameter list above) is arbitrary; the current test takes
+    # around 6-7 minutes end-to-end. Other use cases might make it more clear
+    # what this should be.
     self.default_max_wait_secs = max_wait_secs
 
     # pylint: disable=bad-indentation
