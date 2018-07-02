@@ -108,6 +108,7 @@ module(KUBERNETES_V1_MODULE, [
       'undoRolloutManifest',
       'findArtifactsFromResource',
       'bakeManifest',
+      'patchManifest',
     ],
   });
 });
