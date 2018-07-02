@@ -57,7 +57,7 @@ class PermissionService {
           fiatService.loginUser(userId, "")
           permissionEvaluator.invalidatePermission(userId)
         } catch (RetrofitError e) {
-          classifyError(e)
+          throw classifyError(e)
         }
       }.execute()
     }
@@ -70,7 +70,7 @@ class PermissionService {
           fiatService.loginWithRoles(userId, roles)
           permissionEvaluator.invalidatePermission(userId)
         } catch (RetrofitError e) {
-          classifyError(e)
+          throw classifyError(e)
         }
       }.execute()
     }
@@ -83,7 +83,7 @@ class PermissionService {
           fiatService.logoutUser(userId)
           permissionEvaluator.invalidatePermission(userId)
         } catch (RetrofitError e) {
-          classifyError(e)
+          throw classifyError(e)
         }
       }.execute()
     }
@@ -95,7 +95,7 @@ class PermissionService {
         try {
           fiatService.sync()
         } catch (RetrofitError e) {
-          classifyError(e)
+          throw classifyError(e)
         }
       }.execute()
     }
@@ -109,7 +109,7 @@ class PermissionService {
       try {
         return permissionEvaluator.getPermission(userId)?.roles ?: []
       } catch (RetrofitError e) {
-        classifyError(e)
+        throw classifyError(e)
       }
     }.execute() as Set<Role>
   }
