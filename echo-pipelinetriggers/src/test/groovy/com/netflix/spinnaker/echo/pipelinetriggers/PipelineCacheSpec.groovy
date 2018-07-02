@@ -166,4 +166,21 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     then:
     notThrown(JsonMappingException)
   }
+
+  def "can handle pipelines without triggers"() {
+    given:
+    ObjectMapper objectMapper = new ObjectMapper()
+    Trigger trigger = Trigger.builder().id('123-456').build()
+    Pipeline pipeline = Pipeline.builder().application('app').name('pipe').id('idPipe').triggers([]).build()
+    Pipeline decorated = PipelineCache.decorateTriggers([pipeline])[0]
+
+    expect:
+    decorated.triggers.size() == 0
+
+    when:
+    objectMapper.writeValueAsString(decorated)
+
+    then:
+    notThrown(JsonMappingException)
+  }
 }
