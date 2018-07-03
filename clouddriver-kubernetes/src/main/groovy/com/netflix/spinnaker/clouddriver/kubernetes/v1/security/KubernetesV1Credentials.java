@@ -132,7 +132,7 @@ public class KubernetesV1Credentials implements KubernetesCredentials {
   public List<String> getDeclaredNamespaces() {
     try {
       if (namespaces != null && !namespaces.isEmpty()) {
-        // If namespaces are provided, used them
+        // If namespaces are provided, use them
         reconfigureRegistries(namespaces);
         return namespaces;
       } else {
