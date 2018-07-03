@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.security.saml.SamlSsoConfig.UserAttributeMapping
 import com.netflix.spinnaker.gate.services.PermissionService
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.opensaml.saml2.core.Assertion
@@ -185,37 +186,42 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
       @Autowired
       AllowedAccountsSupport allowedAccountsSupport
 
+      RetrySupport retrySupport = new RetrySupport()
+
       @Override
       User loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
-        String username = null
-        try {
-          def assertion = credential.authenticationAssertion
-          def attributes = extractAttributes(assertion)
-          def userAttributeMapping = samlSecurityConfigProperties.userAttributeMapping
+        def assertion = credential.authenticationAssertion
+        def attributes = extractAttributes(assertion)
+        def userAttributeMapping = samlSecurityConfigProperties.userAttributeMapping
 
-          def email = assertion.getSubject().nameID.value
-          username = attributes[userAttributeMapping.username] ?: email
-          def roles = extractRoles(email, attributes, userAttributeMapping)
+        def email = assertion.getSubject().nameID.value
+        String username = attributes[userAttributeMapping.username] ?: email
+        def roles = extractRoles(email, attributes, userAttributeMapping)
 
-          if (samlSecurityConfigProperties.requiredRoles) {
-            if (!samlSecurityConfigProperties.requiredRoles.any { it in roles }) {
-              throw new BadCredentialsException("User $email does not have all roles $samlSecurityConfigProperties.requiredRoles")
-            }
+        if (samlSecurityConfigProperties.requiredRoles) {
+          if (!samlSecurityConfigProperties.requiredRoles.any { it in roles }) {
+            throw new BadCredentialsException("User $email does not have all roles $samlSecurityConfigProperties.requiredRoles")
           }
+        }
 
-          permissionService.loginWithRoles(username, roles)
-          log.debug("Successful SAML authentication (user: {}, roles: {})", username, roles)
-
-          new User(email: email,
-            firstName: attributes[userAttributeMapping.firstName]?.get(0),
-            lastName: attributes[userAttributeMapping.lastName]?.get(0),
-            roles: roles,
-            allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles),
-            username: username)
+        try {
+          retrySupport.retry({ ->
+            permissionService.loginWithRoles(username, roles)
+          }, 5, 2000, false)
+          log.debug("Successful SAML authentication (user: {}, roleCount: {}, roles: {})", username, roles.size(), roles)
         } catch (Exception e) {
-          log.error("Failed to load SAML user '{}'", username, e)
+          log.debug("Unsuccessful SAML authentication (user: {}, roleCount: {}, roles: {})", username, roles.size(), roles)
           throw e
         }
+
+        return new User(
+          email: email,
+          firstName: attributes[userAttributeMapping.firstName]?.get(0),
+          lastName: attributes[userAttributeMapping.lastName]?.get(0),
+          roles: roles,
+          allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles),
+          username: username
+        )
       }
 
       Set<String> extractRoles(String email,
