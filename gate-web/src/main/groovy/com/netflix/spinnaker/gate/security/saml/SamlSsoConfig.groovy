@@ -187,28 +187,35 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
       @Override
       User loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
-        def assertion = credential.authenticationAssertion
-        def attributes = extractAttributes(assertion)
-        def userAttributeMapping = samlSecurityConfigProperties.userAttributeMapping
+        String username = null
+        try {
+          def assertion = credential.authenticationAssertion
+          def attributes = extractAttributes(assertion)
+          def userAttributeMapping = samlSecurityConfigProperties.userAttributeMapping
 
-        def email = assertion.getSubject().nameID.value
-        String username = attributes[userAttributeMapping.username] ?: email
-        def roles = extractRoles(email, attributes, userAttributeMapping)
+          def email = assertion.getSubject().nameID.value
+          username = attributes[userAttributeMapping.username] ?: email
+          def roles = extractRoles(email, attributes, userAttributeMapping)
 
-        if (samlSecurityConfigProperties.requiredRoles) {
-          if (!samlSecurityConfigProperties.requiredRoles.any { it in roles }) {
-            throw new BadCredentialsException("User $email does not have all roles $samlSecurityConfigProperties.requiredRoles")
+          if (samlSecurityConfigProperties.requiredRoles) {
+            if (!samlSecurityConfigProperties.requiredRoles.any { it in roles }) {
+              throw new BadCredentialsException("User $email does not have all roles $samlSecurityConfigProperties.requiredRoles")
+            }
           }
+
+          permissionService.loginWithRoles(username, roles)
+          log.debug("Successful SAML authentication (user: {}, roles: {})", username, roles)
+
+          new User(email: email,
+            firstName: attributes[userAttributeMapping.firstName]?.get(0),
+            lastName: attributes[userAttributeMapping.lastName]?.get(0),
+            roles: roles,
+            allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles),
+            username: username)
+        } catch (Exception e) {
+          log.error("Failed to load SAML user '{}'", username, e)
+          throw e
         }
-
-        permissionService.loginWithRoles(username, roles)
-
-        new User(email: email,
-          firstName: attributes[userAttributeMapping.firstName]?.get(0),
-          lastName: attributes[userAttributeMapping.lastName]?.get(0),
-          roles: roles,
-          allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles),
-          username: username)
       }
 
       Set<String> extractRoles(String email,

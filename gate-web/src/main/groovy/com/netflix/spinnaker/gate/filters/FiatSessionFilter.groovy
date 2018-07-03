@@ -61,7 +61,8 @@ class FiatSessionFilter implements Filter {
     if (fiatStatus.isEnabled() && this.enabled) {
       String user = AuthenticatedRequest.getSpinnakerUser().orElse(null)
       log.debug("Fiat session filter - found user: ${user}")
-      if (permissionEvaluator.getPermission(user) == null) {
+
+      if (user != null && permissionEvaluator.getPermission(user) == null) {
         HttpServletRequest httpReq = (HttpServletRequest) request
         HttpSession session = httpReq.getSession(false)
         if (session != null) {
