@@ -65,13 +65,8 @@ class AuthConfig {
   boolean fiatSessionFilterEnabled
 
   void configure(HttpSecurity http) throws Exception {
-    Filter fiatSessionFilter = new FiatSessionFilter(
-      fiatSessionFilterEnabled,
-      fiatStatus,
-      permissionEvaluator
-    )
     // @formatter:off
-    SecurityBuilder result = http
+    SecurityBuilder securityBuilder = http
       .authorizeRequests()
         .antMatchers('/**/favicon.ico').permitAll()
         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -81,8 +76,16 @@ class AuthConfig {
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
         .and()
-      .addFilterBefore(fiatSessionFilter, AnonymousAuthenticationFilter.class)
-      .logout()
+    if (fiatSessionFilterEnabled) {
+      Filter fiatSessionFilter = new FiatSessionFilter(
+        fiatSessionFilterEnabled,
+        fiatStatus,
+        permissionEvaluator)
+
+      securityBuilder.addFilterBefore(fiatSessionFilter, AnonymousAuthenticationFilter.class)
+    }
+
+    securityBuilder.logout()
         .logoutUrl("/auth/logout")
         .logoutSuccessHandler(permissionRevokingLogoutSuccessHandler)
         .permitAll()
@@ -92,7 +95,7 @@ class AuthConfig {
     // @formatter:on
 
     if (securityProperties.basic.enabled) {
-      result.httpBasic()
+      securityBuilder.httpBasic()
     }
   }
 
