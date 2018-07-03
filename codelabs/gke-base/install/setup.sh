@@ -15,7 +15,28 @@ if [ -z "$PROJECT_ID" ]; then
   exit 1
 fi
 
+if [ -z "$1" ]; then
+  err "No codelab specified as the first argument to this script. Exiting."
+  exit 1
+fi
+
+gsutil cp gs://gke-spinnaker-codelab/$1/overrides.tar .
+
+if [ "$!" -ne "0" ]; then
+  err "Codelab name '$1' invalid, no overrides found. Exiting."
+  exit 1
+fi
+
+tar -xvf overrides.tar
+
+mkdir bin/
+export PATH=$PATH:`pwd`/bin
+
 bold "Starting the setup process in project $PROJECT_ID..."
+
+if [ -f "predeploy.sh" ]; then
+  ./predeploy.sh
+fi
 
 bold "Creating a service account $SERVICE_ACCOUNT_NAME..."
 
@@ -42,14 +63,8 @@ gsutil mb $BUCKET_URI
 bold "Installing the 'spin' CLI..."
 
 curl -LO https://storage.googleapis.com/spinnaker-artifacts/spin/$(curl -s https://storage.googleapis.com/spinnaker-artifacts/spin/latest)/linux/amd64/spin
-
 chmod +x spin
-
-mkdir bin/
-
 mv spin bin/
-
-export PATH=$PATH:`pwd`/bin
 
 replace() {
   sed -i $1 manifests.yml

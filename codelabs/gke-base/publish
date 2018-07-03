@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+tar -cvf install.tar -C install .
+
+gsutil cp install.tar gs://gke-spinnaker-codelab/base/install.tar
+
+rm install.tar
