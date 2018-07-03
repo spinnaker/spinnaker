@@ -55,8 +55,8 @@ class EmailNotificationService implements NotificationService {
 
   @Override
   EchoResponse.Void handle(Notification notification) {
-    def to = notification.to as String[]
-    def cc = notification.cc as String[]
+    def to = notification.to?.collect { it.split(" ") }?.flatten() as String[]
+    def cc = notification.cc?.collect { it.split(" ") }?.flatten() as String[]
     def subject = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.SUBJECT)
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
 

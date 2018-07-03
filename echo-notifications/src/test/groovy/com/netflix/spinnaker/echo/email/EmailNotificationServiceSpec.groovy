@@ -15,12 +15,13 @@
  */
 
 
-
 package com.netflix.spinnaker.echo.email
 
 import com.icegreen.greenmail.util.GreenMail
 import com.icegreen.greenmail.util.GreenMailUtil
 import com.icegreen.greenmail.util.ServerSetupTest
+import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
 import org.springframework.mail.javamail.JavaMailSenderImpl
 import spock.lang.Shared
 import spock.lang.Specification
@@ -31,6 +32,7 @@ import javax.mail.Message
 import javax.mail.internet.MimeMessage
 
 class EmailNotificationServiceSpec extends Specification {
+  def notificationTemplateEngine = Mock(NotificationTemplateEngine)
 
   @Shared
   @Subject
@@ -48,6 +50,7 @@ class EmailNotificationServiceSpec extends Specification {
     sender.setPort(3025)
 
     service.javaMailSender = sender
+    service.notificationTemplateEngine = notificationTemplateEngine
     service.from = 'me@localhost'
   }
 
@@ -61,10 +64,18 @@ class EmailNotificationServiceSpec extends Specification {
     String message = 'email body' + GreenMailUtil.random()
     String subject = 'subject' + GreenMailUtil.random()
 
+    def notification = new Notification(
+      to: to,
+      cc: cc
+    )
+
     when:
-    service.send(to as String[], cc as String[], subject, message)
+    service.handle(notification)
 
     then:
+    1 * notificationTemplateEngine.build(_, _) >> { return subject }
+    1 * notificationTemplateEngine.build(_, _) >> { return message }
+
     greenMail.waitForIncomingEmail(5000, 1)
 
     when:
@@ -74,14 +85,15 @@ class EmailNotificationServiceSpec extends Specification {
     mail.subject == subject
     GreenMailUtil.getBody(mail) == message
     GreenMailUtil.getAddressList(mail.from) == service.from
-    GreenMailUtil.getAddressList(mail.getRecipients(Message.RecipientType.TO)) == to?.getAt(0)
-    GreenMailUtil.getAddressList(mail.getRecipients(Message.RecipientType.CC)) == cc?.getAt(0)
+    GreenMailUtil.getAddressList(mail.getRecipients(Message.RecipientType.TO)) == expectedTo?.join(", ")
+    GreenMailUtil.getAddressList(mail.getRecipients(Message.RecipientType.CC)) == expectedCC?.join(", ")
 
     where:
-    to                     | cc
-    ['receiver@localhost'] | null
-    null                   | ['some-addr@localhost']
-    ['receiver@localhost'] | ['some-addr@localhost']
+    to                                       | cc                                                || expectedTo                                  || expectedCC
+    ['receiver@localhost']                   | null                                              || ['receiver@localhost']                      || null
+    null                                     | ['some-addr@localhost']                           || null                                        || ['some-addr@localhost']
+    ['receiver@localhost']                   | ['some-addr@localhost']                           || ['receiver@localhost']                      || ['some-addr@localhost']
+    ['receiver@localhost']                   | ['some-addr@localhost']                           || ['receiver@localhost']                      || ['some-addr@localhost']
+    ['receiver@localhost another@localhost'] | ['some-addr@localhost some-other-addr@localhost'] || ['receiver@localhost', 'another@localhost'] || ['some-addr@localhost', 'some-other-addr@localhost']
   }
-
 }
