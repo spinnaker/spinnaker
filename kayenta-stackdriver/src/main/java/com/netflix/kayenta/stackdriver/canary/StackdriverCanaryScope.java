@@ -32,4 +32,10 @@ public class StackdriverCanaryScope extends CanaryScope {
 
   @NotNull
   private String resourceType;
+
+  @NotNull
+  private String crossSeriesReducer = "REDUCE_MEAN";
+
+  @NotNull
+  private String perSeriesAligner = "ALIGN_MEAN";
 }

@@ -112,6 +112,8 @@ public class StackdriverMetricsService implements MetricsService {
     String location = stackdriverCanaryScope.getLocation();
     String scope = stackdriverCanaryScope.getScope();
     String resourceType = stackdriverCanaryScope.getResourceType();
+    String crossSeriesReducer = stackdriverCanaryScope.getCrossSeriesReducer();
+    String perSeriesAligner = stackdriverCanaryScope.getPerSeriesAligner();
 
     if (StringUtils.isEmpty(projectId)) {
       projectId = stackdriverCredentials.getProject();
@@ -238,8 +240,8 @@ public class StackdriverMetricsService implements MetricsService {
       .timeSeries()
       .list("projects/" + stackdriverCredentials.getProject())
       .setAggregationAlignmentPeriod(alignmentPeriodSec + "s")
-      .setAggregationCrossSeriesReducer("REDUCE_MEAN")
-      .setAggregationPerSeriesAligner("ALIGN_MEAN")
+      .setAggregationCrossSeriesReducer(crossSeriesReducer)
+      .setAggregationPerSeriesAligner(perSeriesAligner)
       .setFilter(filter)
       .setIntervalStartTime(stackdriverCanaryScope.getStart().toString())
       .setIntervalEndTime(stackdriverCanaryScope.getEnd().toString());
@@ -329,6 +331,8 @@ public class StackdriverMetricsService implements MetricsService {
       }
 
       metricSetBuilder.attribute("query", filter);
+      metricSetBuilder.attribute("crossSeriesReducer", crossSeriesReducer);
+      metricSetBuilder.attribute("perSeriesAligner", perSeriesAligner);
 
       metricSetList.add(metricSetBuilder.build());
     }

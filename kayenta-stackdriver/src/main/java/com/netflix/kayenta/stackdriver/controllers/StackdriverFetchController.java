@@ -18,12 +18,13 @@ package com.netflix.kayenta.stackdriver.controllers;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
-import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
+import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScopeFactory;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfigurationTestControllerDefaultProperties;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -130,19 +131,24 @@ public class StackdriverFetchController {
         .query(stackdriverCanaryMetricSetQueryConfigBuilder.build())
         .build();
 
-    StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
-    stackdriverCanaryScope.setScope(scope);
-    stackdriverCanaryScope.setLocation(location);
-    stackdriverCanaryScope.setResourceType(resourceType);
-    stackdriverCanaryScope.setStart(Instant.parse(startTimeIso));
-    stackdriverCanaryScope.setEnd(Instant.parse(endTimeIso));
-    stackdriverCanaryScope.setStep(step);
-    stackdriverCanaryScope.setExtendedScopeParams(extendedScopeParams);
+    CanaryScope canaryScope = new CanaryScope();
+    canaryScope.setScope(scope);
+    canaryScope.setLocation(location);
+    canaryScope.setStart(Instant.parse(startTimeIso));
+    canaryScope.setEnd(Instant.parse(endTimeIso));
+    canaryScope.setStep(step);
 
     if (!StringUtils.isEmpty(project)) {
-      stackdriverCanaryScope.setProject(project);
+      extendedScopeParams.put("project", project);
     }
 
+    if (!StringUtils.isEmpty(resourceType)) {
+      extendedScopeParams.put("resourceType", resourceType);
+    }
+
+    canaryScope.setExtendedScopeParams(extendedScopeParams);
+
+    CanaryScope stackdriverCanaryScope = new StackdriverCanaryScopeFactory().buildCanaryScope(canaryScope);
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,
                                                                     CanaryConfig.builder().metric(canaryMetricConfig).build(),
