@@ -35,8 +35,6 @@ func (c *ApplicationDeleteCommand) flagSet() *flag.FlagSet {
 	cmd := "application delete"
 
 	f := c.ApiMeta.GlobalFlagSet(cmd)
-	f.StringVar(&c.applicationName, "application-name", "", "Name of the Spinnaker application to delete")
-
 	// TODO auto-generate flag help rather than putting it in "Help"
 	f.Usage = func() {
 		c.ApiMeta.Ui.Error(c.Help())
@@ -70,12 +68,19 @@ func (c *ApplicationDeleteCommand) Run(args []string) int {
 		return 1
 	}
 
-	args, err = c.ApiMeta.Process(args)
+	_, err = c.ApiMeta.Process(args)
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
+	args = f.Args()
+	if len(args) != 1 {
+		f.Usage()
+		return 1
+	}
+
+	c.applicationName = args[0]
 	if c.applicationName == "" {
 		c.ApiMeta.Ui.Error("Required parameter 'applicationName' not set.\n")
 		return 1

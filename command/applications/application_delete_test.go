@@ -29,10 +29,7 @@ func TestApplicationDelete_basic(t *testing.T) {
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
-	args := []string{
-		"--application-name", NAME,
-		"--gate-endpoint", ts.URL,
-	}
+	args := []string{"--gate-endpoint", ts.URL, NAME}
 	cmd := ApplicationDeleteCommand{
 		ApiMeta: meta,
 	}
@@ -47,10 +44,7 @@ func TestApplicationDelete_fail(t *testing.T) {
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
-	args := []string{
-		"--application-name", NAME,
-		"--gate-endpoint", ts.URL,
-	}
+	args := []string{"--gate-endpoint", ts.URL, NAME}
 	cmd := ApplicationDeleteCommand{
 		ApiMeta: meta,
 	}
@@ -65,9 +59,7 @@ func TestApplicationDelete_flags(t *testing.T) {
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
-	args := []string{
-		"--gate-endpoint", ts.URL,
-	}
+	args := []string{"--gate-endpoint", ts.URL}
 	cmd := ApplicationDeleteCommand{
 		ApiMeta: meta,
 	}
