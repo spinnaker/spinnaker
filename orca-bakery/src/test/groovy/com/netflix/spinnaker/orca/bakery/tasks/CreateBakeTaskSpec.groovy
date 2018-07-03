@@ -102,6 +102,16 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
+  def bakeConfigWithoutOs = [
+    region           : "us-west-1",
+    packageArtifactIds : ["abc", "def"],
+    package          : "hodor",
+    user             : "bran",
+    cloudProviderType: "aws",
+    baseLabel        : "release",
+  ]
+
+  @Shared
   def buildInfo = new BuildInfo(
     "name", 0, "http://jenkins", [
     new JenkinsArtifact("hodor_1.1_all.deb", "."),
@@ -828,5 +838,23 @@ class CreateBakeTaskSpec extends Specification {
     then:
     0 * task.artifactResolver.getBoundArtifactForId(*_) >> new Artifact()
     bakeResult.getPackageArtifacts().size() == 0
+  }
+
+  def "handles null baseOs field"() {
+    given:
+    def stage = stage {
+      type = "bake"
+      context = bakeConfigWithoutOs
+    }
+    task.artifactResolver = Mock(ArtifactResolver)
+    task.bakery = Mock(BakeryService)
+
+    when:
+    def bakeResult = task.bakeFromContext(stage)
+
+    then:
+    noExceptionThrown()
+    2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> new Artifact()
+    bakeResult.getPackageArtifacts().size() == 2
   }
 }
