@@ -265,7 +265,16 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
 
     app_url_path = '/'.join(['/v2/applications', self.TEST_APP])
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
-    (f50_builder.new_clause_builder('Unlists Application')
+    # The application should be unlisted immediately (assuming 1 replica)
+    # However given GCS rate limiting on updating the timestamp file,
+    # there is a race condition in which the filesystem timestamp
+    # was rate limited from updating AND a scheduled update is in progress
+    # where the application was seen just before the delete so gets restored
+    # back. Because the timestamp was not updated, this observer will read
+    # from the cache thinking it is fresh. We need the extra second to allow
+    # for the retry on the timestamp update to write out to GCS.
+    (f50_builder.new_clause_builder('Unlists Application',
+                                    retryable_for_secs=2)
      .get_url_path('/v2/applications')
      .EXPECT(ov_factory.value_list_path_excludes(
          'name', jp.STR_SUBSTR(self.TEST_APP.upper()))))
