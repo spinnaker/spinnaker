@@ -91,6 +91,7 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
           return result;
         }))
         .id(getName())
+        .uid(getUid())
         .zone(getZone())
         .build();
   }
