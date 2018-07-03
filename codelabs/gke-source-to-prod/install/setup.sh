@@ -97,7 +97,7 @@ bold "Creating your cluster $GKE_CLUSTER..."
 
 gcloud container clusters create $GKE_CLUSTER --zone $ZONE \
   --service-account $SA_EMAIL \
-  --username admin --cluster-version 1.8.8-gke.0 \
+  --username admin \
   --machine-type n1-standard-4 --image-type COS --disk-size 100 \
   --num-nodes 3 --enable-cloud-logging --enable-cloud-monitoring
 
