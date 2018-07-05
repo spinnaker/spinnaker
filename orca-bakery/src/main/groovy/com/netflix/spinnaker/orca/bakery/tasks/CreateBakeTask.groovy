@@ -144,6 +144,12 @@ class CreateBakeTask implements RetryableTask {
       artifactResolver.getBoundArtifactForId(stage, artifactId)
     }
 
+    // Workaround for deck/titusBakeStage.js historically injecting baseOs=trusty into stage definitions;
+    // baseOs is unnecessary for docker bakes
+    if ("docker" == requestMap.storeType) {
+      requestMap.remove("baseOs")
+    }
+
     def request = mapper.convertValue(requestMap, BakeRequest)
     if (!roscoApisEnabled) {
       request.other.clear()
