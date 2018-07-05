@@ -180,15 +180,6 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
     String json = objectMapper.writeValueAsString(serverGroupData.attributes.job)
     Job job = objectMapper.readValue(json, Job)
 
-    if (job.tasks == null || job.tasks.isEmpty()) {
-      // tasks are cached separately from jobs, and we need to construct them
-      Collection<CacheData> data = resolveRelationshipData(serverGroupData, INSTANCES.ns)
-      List<Task> tasks = data.collect{ it ->
-        objectMapper.convertValue(it.attributes.task, Task)
-      }
-      job.tasks = tasks
-    }
-
     TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupData.attributes.account, serverGroupData.attributes.region)
     serverGroup.placement.account = account
     serverGroup.placement.region = region
