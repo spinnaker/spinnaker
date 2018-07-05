@@ -92,9 +92,17 @@ public class SavePipelineTask implements RetryableTask {
     outputs.put("application", pipeline.get("application"));
     outputs.put("pipeline.name", pipeline.get("name"));
 
-    if (pipeline.containsKey("id")) {
-      // a newly created pipeline will not yet have an `id`
-      outputs.put("pipeline.id", pipeline.get("id"));
+    try {
+      Map<String, Object> savedPipeline = (Map<String, Object>) objectMapper.readValue(
+        response.getBody().in(), Map.class
+      );
+      outputs.put("pipeline.id", savedPipeline.get("id"));
+    } catch (Exception e) {
+      log.error("Unable to deserialize saved pipeline, reason: ", e.getMessage());
+
+      if (pipeline.containsKey("id")) {
+        outputs.put("pipeline.id", pipeline.get("id"));
+      }
     }
 
     return new TaskResult(
