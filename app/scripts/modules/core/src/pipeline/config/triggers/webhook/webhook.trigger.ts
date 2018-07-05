@@ -2,10 +2,18 @@ import { IController, module } from 'angular';
 
 import { IWebhookTrigger } from 'core/domain';
 import { Registry } from 'core/registry';
+import { ServiceAccountReader } from 'core/serviceAccount/ServiceAccountReader';
 import { SETTINGS } from 'core/config/settings';
 
 class WebhookTriggerController implements IController {
+  public fiatEnabled: boolean;
+  public serviceAccounts: string[];
+
   constructor(public trigger: IWebhookTrigger) {
+    this.fiatEnabled = SETTINGS.feature.fiatEnabled;
+    ServiceAccountReader.getServiceAccounts().then(accounts => {
+      this.serviceAccounts = accounts || [];
+    });
     'ngInject';
   }
 
@@ -24,7 +32,14 @@ module(WEBHOOK_TRIGGER, [])
       controller: 'WebhookTriggerCtrl',
       controllerAs: 'ctrl',
       templateUrl: require('./webhookTrigger.html'),
-      validators: [],
+      validators: [
+        {
+          type: 'serviceAccountAccess',
+          message: `You do not have access to the service account configured in this pipeline's webhook trigger.
+                    You will not be able to save your edits to this pipeline.`,
+          preventSave: true,
+        },
+      ],
     });
   })
   .controller('WebhookTriggerCtrl', WebhookTriggerController);
