@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git.LocalGitService;
@@ -42,8 +43,10 @@ public class LocalGitDeployer extends LocalDeployer {
         .getLocalGitServices(serviceTypes);
 
     List<String> prepCommands = enabledServices.stream()
-        .filter(i -> !runtimeSettings.getServiceSettings(i.getService())
-            .getSkipLifeCycleManagement())
+        .filter(i -> {
+          ServiceSettings serviceSettings = runtimeSettings.getServiceSettings(i.getService());
+          return serviceSettings != null && !serviceSettings.getSkipLifeCycleManagement();
+        })
         .map(s -> {
           s.commitWrapperScripts();
           return s.prepArtifactCommand(deploymentDetails);
