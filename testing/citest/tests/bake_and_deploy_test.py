@@ -94,12 +94,13 @@ import logging
 import citest.base
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
+import citest.json_predicate as jp
 import citest.service_testing as st
 
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
-
+ov_factory = jc.ObservationPredicateFactory()
 
 class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
@@ -195,8 +196,10 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     self.__full_lb_name = '{app}-{stack}-{detail}'.format(
             app=self.TEST_APP, stack=bindings['TEST_STACK'],
             detail=self.__short_lb_name)
-    self.aws_pipeline_id = None
-    self.google_pipeline_id = None
+    self.aws_bake_pipeline_id = None
+    self.aws_destroy_pipeline_id = None
+    self.google_bake_pipeline_id = None
+    self.google_destroy_pipeline_id = None
     self.docker_pipeline_id = None
     self.test_google = bindings['TEST_GOOGLE']
     self.test_aws = bindings['TEST_AWS']
@@ -447,22 +450,17 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
   def create_bake_and_deploy_google_pipeline(self):
     name = 'BakeAndDeployGoogle'
-    self.google_pipeline_id = name
+    self.google_bake_pipeline_id = name
     bake_stage = self.make_bake_stage(
         package='vim', providerType='gce', region='global')
     deploy_stage = self.make_deploy_google_stage(requisiteStages=['BAKE'])
-    disable_stage = self.make_disable_group_stage(
-      cloudProvider='gce', regions=[self.bindings['TEST_GCE_REGION']],
-      requisiteStages=['DEPLOY'])
-    destroy_stage = self.make_destroy_group_stage(
-      cloudProvider='gce', requisiteStages=['DISABLE'])
 
     pipeline_spec = dict(
       name=name,
-      stages=[bake_stage, deploy_stage, disable_stage, destroy_stage],
+      stages=[bake_stage, deploy_stage],
       triggers=[self.make_jenkins_trigger()],
       application=self.TEST_APP,
-      stageCounter=4,
+      stageCounter=2,
       parallel=True,
       limitConcurrent=True,
       appConfig={}
@@ -482,9 +480,42 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             status_class=st.SynchronousHttpOperationStatus),
         contract=builder.build())
 
+  def create_disable_and_destroy_google_pipeline(self):
+    name = 'DisableAndDestroyGoogle'
+    self.google_destroy_pipeline_id = name
+    disable_stage = self.make_disable_group_stage(
+      cloudProvider='gce', regions=[self.bindings['TEST_GCE_REGION']])
+    destroy_stage = self.make_destroy_group_stage(
+      cloudProvider='gce', requisiteStages=['DISABLE'])
+
+    pipeline_spec = dict(
+      name=name,
+      stages=[disable_stage, destroy_stage],
+      application=self.TEST_APP,
+      stageCounter=2,
+      parallel=True,
+      limitConcurrent=True,
+      appConfig={}
+    )
+
+    payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
+
+    builder = st.HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has Pipeline')
+       .get_url_path(
+           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+       .contains_path_value(None, pipeline_spec))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='create_destroy_google_pipeline',
+            data=payload, path='pipelines',
+            status_class=st.SynchronousHttpOperationStatus),
+        contract=builder.build())
+
   def create_bake_and_deploy_aws_pipeline(self):
     name = 'BakeAndDeployAws'
-    self.aws_pipeline_id = name
+    self.aws_bake_pipeline_id = name
     bake_stage = self.make_bake_stage(
         package='vim',
         providerType='aws',
@@ -493,19 +524,13 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     # FIXME(jacobkiefer): this is creating a gce deploy stage in an aws
     # pipeline. Not good.
     deploy_stage = self.make_deploy_google_stage(requisiteStages=['BAKE'])
-    disable_stage = self.make_disable_group_stage(
-      cloudProvider='aws', regions=[self.bindings['TEST_AWS_REGION']],
-      requisiteStages=['DEPLOY'])
-    destroy_stage = self.make_destroy_group_stage(
-      cloudProvider='aws', zones=[self.bindings['TEST_AWS_ZONE']],
-      requisiteStages=['DISABLE'])
 
     pipeline_spec = dict(
       name=name,
-      stages=[bake_stage, deploy_stage, disable_stage, destroy_stage],
+      stages=[bake_stage, deploy_stage],
       triggers=[self.make_jenkins_trigger()],
       application=self.TEST_APP,
-      stageCounter=4,
+      stageCounter=2,
       parallel=True
     )
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
@@ -519,6 +544,37 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.new_post_operation(
             title='create_bake_aws_pipeline', data=payload, path='pipelines',
+            status_class=st.SynchronousHttpOperationStatus),
+        contract=builder.build())
+
+  def create_disable_and_destroy_aws_pipeline(self):
+    name = 'DisableAndDestroyAws'
+    self.aws_destroy_pipeline_id = name
+    disable_stage = self.make_disable_group_stage(
+      cloudProvider='aws', regions=[self.bindings['TEST_AWS_REGION']])
+    destroy_stage = self.make_destroy_group_stage(
+      cloudProvider='aws', zones=[self.bindings['TEST_AWS_ZONE']],
+      requisiteStages=['DISABLE'])
+
+    pipeline_spec = dict(
+      name=name,
+      stages=[disable_stage, destroy_stage],
+      triggers=[self.make_jenkins_trigger()],
+      application=self.TEST_APP,
+      stageCounter=2,
+      parallel=True
+    )
+    payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
+
+    builder = st.HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has Pipeline')
+       .get_url_path(
+           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+       .contains_path_value(None, pipeline_spec))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='create_destroy_aws_pipeline', data=payload, path='pipelines',
             status_class=st.SynchronousHttpOperationStatus),
         contract=builder.build())
 
@@ -539,8 +595,16 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             status_class=st.SynchronousHttpOperationStatus),
         contract=builder.build())
 
-  def run_bake_and_deploy_google_pipeline(self, pipeline_id):
+  def trigger_bake_and_deploy_google_pipeline(self):
     path = 'applications/{app}/pipelines'.format(app=self.TEST_APP)
+
+    group_name = '{app}-{stack}-v000'.format(
+        app=self.TEST_APP, stack=self.bindings['TEST_STACK'])
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
+    (builder.new_clause_builder('Managed Instance Group Deployed',
+                                retryable_for_secs=30)
+     .inspect_resource('instanceGroupManagers', group_name)
+     .EXPECT(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(1))))
 
     return st.OperationContract(
         self.jenkins_agent.new_jenkins_trigger_operation(
@@ -548,9 +612,30 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             job=self.bindings['JENKINS_JOB'],
             token=self.bindings['JENKINS_TOKEN'],
             status_class=gate.GatePipelineStatus,
-            status_path=path),
-        contract=jc.Contract(),
+            status_path=path,
+            max_wait_secs=480),  # Allow 8 mins to bake and deploy
+        contract=builder.build(),
         cleanup=self.delete_baked_image)
+
+  def run_disable_and_destroy_google_pipeline(self, pipeline_id):
+    path = 'pipelines/{app}/{id}'.format(app=self.TEST_APP,
+                                         id=self.google_destroy_pipeline_id)
+    group_name = '{app}-{stack}-v000'.format(
+        app=self.TEST_APP, stack=self.bindings['TEST_STACK'])
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
+    (builder.new_clause_builder('Managed Instance Group Destroyed')
+     .inspect_resource('instanceGroupManagers', group_name)
+     .EXPECT(ov_factory.error_list_contains(
+         gcp.HttpErrorPredicate(http_code=404)))
+     .OR(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(0))))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='run_destroy_pipeline',
+            data='',
+            path=path,
+            max_wait_secs=480),  # Allow 8 mins to disable and destroy
+        contract=jc.Contract())
 
   def new_jenkins_build_operation(self):
     return None
@@ -560,7 +645,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     if status is None:
       self.logger.info(
           'Operation could not be performed so there is no image to delete.')
-      return;
+      return
 
     status = status.trigger_status
     detail = status.detail_doc
@@ -571,15 +656,15 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         return
       self.logger.info('Using first status.')
       detail = detail[0]
-
-    context = detail.get('context')
-    details = context.get('deploymentDetails') if context else None
-    name = details[0].get('imageId') if details else None
-    self.logger.info('Deleting the baked image="%s"', name)
-    if name:
+    stages = detail.get('stages', [])
+    image_id = (stages[0].get('context', {}).get('imageId')
+                if stages
+                else None)
+    self.logger.info('Deleting the baked image="%s"', image_id)
+    if image_id:
       execution_context = citest.base.ExecutionContext()
       self.gcp_observer.invoke_resource(
-          execution_context, 'delete', 'images', resource_id=name)
+          execution_context, 'delete', 'images', resource_id=image_id)
 
 
 class BakeAndDeployTest(st.AgentTestCase):
@@ -629,27 +714,56 @@ class BakeAndDeployTest(st.AgentTestCase):
     else:
       self.run_test_case(self.scenario.create_bake_and_deploy_google_pipeline())
 
+  def test_d1_create_disable_and_destroy_google_pipeline(self):
+    if not self.scenario.test_google:
+      self.skipTest("--test_google flag not set")
+    else:
+      self.run_test_case(
+          self.scenario.create_disable_and_destroy_google_pipeline())
+
   def test_c2_create_bake_and_deploy_aws_pipeline(self):
     if not self.scenario.test_aws:
       self.skipTest("--test_aws flag not set")
     else:
       self.run_test_case(self.scenario.create_bake_and_deploy_aws_pipeline())
 
-  def test_d1_run_bake_and_deploy_google_pipeline(self):
+  def test_d2_create_disable_and_destroy_aws_pipeline(self):
+    if not self.scenario.test_aws:
+      self.skipTest("--test_aws flag not set")
+    else:
+      self.run_test_case(
+          self.scenario.create_disable_and_destroy_aws_pipeline())
+
+  def test_e1_trigger_bake_and_deploy_google_pipeline(self):
     if not self.scenario.test_google:
       self.skipTest("--test_google flag not set")
     else:
       self.run_test_case(
-          self.scenario.run_bake_and_deploy_google_pipeline(
-              self.scenario.google_pipeline_id),
+          self.scenario.trigger_bake_and_deploy_google_pipeline(),
           poll_every_secs=5)
 
-  def test_x1_delete_google_pipeline(self):
+  def test_w1_run_disable_and_destroy_google_pipeline(self):
     if not self.scenario.test_google:
       self.skipTest("--test_google flag not set")
     else:
       self.run_test_case(
-        self.scenario.delete_pipeline(self.scenario.google_pipeline_id))
+          self.scenario.run_disable_and_destroy_google_pipeline(
+              self.scenario.google_destroy_pipeline_id),
+          poll_every_secs=5)
+
+  def test_x1_delete_google_bake_pipeline(self):
+    if not self.scenario.test_google:
+      self.skipTest("--test_google flag not set")
+    else:
+      self.run_test_case(
+        self.scenario.delete_pipeline(self.scenario.google_bake_pipeline_id))
+
+  def test_x1_delete_google_destroy_pipeline(self):
+    if not self.scenario.test_google:
+      self.skipTest("--test_google flag not set")
+    else:
+      self.run_test_case(
+        self.scenario.delete_pipeline(self.scenario.google_destroy_pipeline_id))
 
   def test_x2_delete_aws_pipeline(self):
     if not self.scenario.test_aws:

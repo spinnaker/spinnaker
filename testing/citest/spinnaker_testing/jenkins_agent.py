@@ -142,7 +142,7 @@ class JenkinsAgent(base_agent.BaseAgent):
     super(JenkinsAgent, self).export_to_json_snapshot(snapshot, entity)
 
   def new_jenkins_trigger_operation(self, title, job, token, status_class,
-                                    status_path):
+                                    status_path, **kwargs):
     """Returns a new JenkinsTriggerOperation
 
     Args:
@@ -152,12 +152,13 @@ class JenkinsAgent(base_agent.BaseAgent):
       status_class [AgentOperationStatus]: The status object in charge of
         recording the success of the action resulting from the trigger.
       status_path [string]: The path the status_class must poll on for
-        success of the trigger
+        success of the trigger.
+      kwargs [kwargs]:  Additional AgentOperation kwargs.
     """
     return JenkinsTriggerOperation(
         title=title, jenkins_agent=self,
         status_class=status_class, job=job, token=token,
-        status_path=status_path)
+        status_path=status_path, **kwargs)
 
 
 class BaseJenkinsOperation(base_agent.AgentOperation):
@@ -170,7 +171,7 @@ class BaseJenkinsOperation(base_agent.AgentOperation):
     return self.__data
 
   def __init__(self, title, jenkins_agent,
-               status_class=JenkinsOperationStatus, max_wait_secs=None):
+               status_class=JenkinsOperationStatus, **kwargs):
     """Construct a BaseJenkinsOperation
 
     Args:
@@ -179,9 +180,9 @@ class BaseJenkinsOperation(base_agent.AgentOperation):
         configuration stored.
       status_class [AgentOperationStatus]: The status class that will
        confirm success of the action resulting from the Jenkins trigger.
+      kwargs [kwargs]:  Additional AgentOperation constructor kwargs.
     """
-    super(BaseJenkinsOperation, self).__init__(title, jenkins_agent,
-                                               max_wait_secs=max_wait_secs)
+    super(BaseJenkinsOperation, self).__init__(title, jenkins_agent, **kwargs)
     if not jenkins_agent or not isinstance(jenkins_agent, JenkinsAgent):
       raise TypeError('agent not a  JenkinsAgent: '
                       + jenkins_agent.__class__.__name__)
@@ -216,7 +217,7 @@ class JenkinsTriggerOperation(BaseJenkinsOperation):
   project.
   """
   def __init__(self, title, jenkins_agent, token, job, status_class,
-               status_path):
+               status_path, **kwargs):
     """Construct a JenkinsTriggerOperation.
 
     Args:
@@ -228,9 +229,11 @@ class JenkinsTriggerOperation(BaseJenkinsOperation):
       status_class [AgentOperationClass]: The status class used to monitor the
           action that the jenkins trigger kicked off.
       status_path [string]: The path the status should poll for success on.
+      kwargs [kwargs]:  Additional Operation constructor kwargs.
     """
     super(JenkinsTriggerOperation, self).__init__(
-        jenkins_agent=jenkins_agent, status_class=status_class, title=title)
+        jenkins_agent=jenkins_agent, status_class=status_class, title=title,
+        **kwargs)
 
     self.__token = token
     self.__job = job
