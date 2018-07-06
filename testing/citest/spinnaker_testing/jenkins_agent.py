@@ -84,6 +84,21 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
   def __str__(self):
     return 'jenkins_trigger_status={0}'.format(self.__trigger_status)
 
+  def export_summary_to_json_snapshot(self, snapshot, entity):
+    """Implements JsonSnapshotableEntity interface."""
+    super(JenkinsOperationStatus, self).export_summary_to_json_snapshot(
+        snapshot, entity)
+    trigger_status = self.__trigger_status
+    trigger_status_summary = snapshot.make_entity_for_object_summary(
+        self.__trigger_status)
+    detail_doc = trigger_status.detail_doc
+    status_status = detail_doc[0].get('status') if detail_doc else None
+    relation = ('VALID' if status_status == 'SUCCEEDED'
+                else 'INVALID' if status_status == 'TERMINAL'
+                else None)
+    snapshot.edge_builder.make(
+        entity, 'Trigger Status', trigger_status_summary, relation=relation)
+
   def export_to_json_snapshot(self, snapshot, entity):
     snapshot.edge_builder.make_output(
         entity, 'Trigger Status', self.__trigger_status)
