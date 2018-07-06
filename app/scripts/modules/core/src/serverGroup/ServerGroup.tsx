@@ -81,8 +81,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       docker = {
         tag: dockerConfig.tag,
         image: dockerConfig.image,
-        href:
-          SETTINGS.dockerInsights.url + 'image/' + encodeURIComponent(dockerConfig.image) + '/tag/' + dockerConfig.tag,
+        href: SETTINGS.dockerInsights.url + 'images/' + encodeURIComponent(dockerConfig.image) + '/' + dockerConfig.tag,
       };
     } else if (has(serverGroup, 'buildInfo.images')) {
       images = serverGroup.buildInfo.images;
