@@ -194,13 +194,6 @@ class TaskController {
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
   }
 
-  @RequestMapping(value = "/test", method = RequestMethod.GET)
-  List<Execution> test() {
-    return executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(Arrays.asList("bcb6a213-d964-4d61-bbb5-be1a0723509d", "ee923317-4683-4f02-9b95-f58bf6e685f1" , "4023196c-e40b-4294-a394-a27640cacaff" ),
-      1529349621899, 1529349621899, { true })
-      .subscribeOn(Schedulers.io()).toList().toBlocking().single()
-  }
-
   /**
    * Search for pipeline executions using a combination of criteria. The returned list is sorted by
    * buildTime (trigger time) in reverse order so that newer executions are first in the list.
