@@ -22,7 +22,9 @@ import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.exceptions.TimeoutException
+import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.ext.failureStatus
+import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -213,13 +215,26 @@ class RunTaskHandler(
       if (startTime != null) {
         val elapsedTime = Duration.between(startTime, clock.instant())
         val pausedDuration = stage.execution.pausedDurationRelativeTo(startTime)
+        val executionWindowDuration = stage.executionWindow?.duration ?: ZERO
         val timeout = Duration.ofMillis(it.timeout.get())
-        if (elapsedTime.minus(pausedDuration) > timeout) {
+        if (elapsedTime.minus(pausedDuration).minus(executionWindowDuration) > timeout) {
           throw TimeoutException("Stage ${stage.name} timed out after ${formatTimeout(elapsedTime.toMillis())}")
         }
       }
     }
   }
+
+  private val Stage.executionWindow: Stage?
+    get() = beforeStages()
+      .firstOrNull { it.type == RestrictExecutionDuringTimeWindow.TYPE }
+
+  private val Stage.duration: Duration
+    get() = run {
+      if (startTime == null || endTime == null) {
+        throw IllegalStateException("Only valid on completed stages")
+      }
+      Duration.between(startTime.toInstant(), endTime.toInstant())
+    }
 
   private fun Registry.timeoutCounter(executionType: ExecutionType,
                                       application: String,

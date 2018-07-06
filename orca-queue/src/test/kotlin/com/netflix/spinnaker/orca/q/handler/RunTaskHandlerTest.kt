@@ -23,10 +23,11 @@ import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.fixture.task
+import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KEY
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -45,7 +46,6 @@ import org.jetbrains.spek.subject.SubjectSpek
 import org.threeten.extra.Minutes
 import java.lang.RuntimeException
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 import kotlin.reflect.jvm.jvmName
 
 object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
@@ -745,6 +745,94 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           }
         }
         val message = RunTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(task.timeout) doReturn timeout.toMillis()
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("fails the task") {
+          verify(queue).push(CompleteTask(message, TERMINAL))
+        }
+
+        it("does not execute the task") {
+          verify(task, never()).execute(any())
+        }
+      }
+
+      given("the stage waited for an execution window") {
+        val timeout = Duration.ofMinutes(5)
+        val windowDuration = Duration.ofHours(1)
+        val windowStartedAt = clock.instant().minus(timeout).minus(windowDuration).plusSeconds(1)
+        val windowEndedAt = clock.instant().minus(timeout).plusSeconds(1)
+        val pipeline = pipeline {
+          stage {
+            stage {
+              type = RestrictExecutionDuringTimeWindow.TYPE
+              status = SUCCEEDED
+              startTime = windowStartedAt.toEpochMilli()
+              endTime = windowEndedAt.toEpochMilli()
+            }
+            refId = "1"
+            type = "whatever"
+            context[STAGE_TIMEOUT_OVERRIDE_KEY] = timeout.toMillis()
+            startTime = windowStartedAt.toEpochMilli()
+            task {
+              id = "1"
+              startTime = windowEndedAt.toEpochMilli()
+              status = RUNNING
+            }
+          }
+        }
+        val message = RunTask(pipeline.type, pipeline.id, pipeline.application, pipeline.stages.first().id, "1", DummyTask::class.java)
+
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(task.timeout) doReturn timeout.toMillis()
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("executes the task") {
+          verify(task).execute(pipeline.stageByRef("1"))
+        }
+      }
+
+      given("the stage waited for an execution window but is timed out anyway") {
+        val timeout = Duration.ofMinutes(5)
+        val windowDuration = Duration.ofHours(1)
+        val windowStartedAt = clock.instant().minus(timeout).minus(windowDuration).minusSeconds(1)
+        val windowEndedAt = clock.instant().minus(timeout).minusSeconds(1)
+        val pipeline = pipeline {
+          stage {
+            stage {
+              type = RestrictExecutionDuringTimeWindow.TYPE
+              status = SUCCEEDED
+              startTime = windowStartedAt.toEpochMilli()
+              endTime = windowEndedAt.toEpochMilli()
+            }
+            refId = "1"
+            type = "whatever"
+            context[STAGE_TIMEOUT_OVERRIDE_KEY] = timeout.toMillis()
+            startTime = windowStartedAt.toEpochMilli()
+            task {
+              id = "1"
+              startTime = windowEndedAt.toEpochMilli()
+              status = RUNNING
+            }
+          }
+        }
+        val message = RunTask(pipeline.type, pipeline.id, pipeline.application, pipeline.stages.first().id, "1", DummyTask::class.java)
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
