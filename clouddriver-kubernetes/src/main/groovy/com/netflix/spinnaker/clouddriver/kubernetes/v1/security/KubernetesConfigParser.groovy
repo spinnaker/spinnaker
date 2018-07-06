@@ -99,9 +99,7 @@ class KubernetesConfigParser {
       config.setNoProxy(noProxyList)
     }
     if (currentCluster != null) {
-      if (!currentCluster.getServer().endsWith("/")) {
-        config.setMasterUrl(currentCluster.getServer() + "/")
-      }
+      config.setMasterUrl(currentCluster.getServer() + (currentCluster.getServer().endsWith("/") ? "":  "/"))
 
       config.setNamespace(currentContext.getNamespace())
       config.setTrustCerts(currentCluster.getInsecureSkipTlsVerify() != null && currentCluster.getInsecureSkipTlsVerify())
