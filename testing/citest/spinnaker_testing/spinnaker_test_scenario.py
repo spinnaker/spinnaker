@@ -59,7 +59,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
   ENDPOINT_SUBSYSTEM = 'the server to test'
 
   @classmethod
-  def new_post_operation(cls, title, data, path, status_class=None):
+  def new_post_operation(cls, title, data, path, **kwargs):
     """Creates an operation that posts data to the given path when executed.
 
     The base_url will come from the agent that the operation is eventually
@@ -69,14 +69,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       title: [string] The name of the operation for reporting purposes.
       data: [string] The payload to send in the HTTP POST.
       path: [string] The path relative to the base url provided later.
-      status_class: [class AgentOperationStatus] If provided, a specialization
-         of the AgentOperationStatus to use for tracking the execution.
+      kwargs: [kwargs] Additional kwargs for HttpPostOperation
     """
     return http_agent.HttpPostOperation(title=title, data=data, path=path,
-                                        status_class=status_class)
+                                        **kwargs)
 
   @classmethod
-  def new_put_operation(cls, title, data, path, status_class=None):
+  def new_put_operation(cls, title, data, path, **kwargs):
     """Creates an operation that puts data to the given path when executed.
 
     The base_url will come from the agent that the operation is eventually
@@ -86,14 +85,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       title: [string] The name of the operation for reporting purposes.
       data: [string] The payload to send in the HTTP PUT.
       path: [string] The path relative to the base url provided later.
-      status_class: [class AgentOperationStatus] If provided, a specialization
-         of the AgentOperationStatus to use for tracking the execution.
+      kwargs: [kwargs] Additional kwargs for HttpPutOperation
     """
     return http_agent.HttpPutOperation(title=title, data=data, path=path,
-                                       status_class=status_class)
+                                       **kwargs)
 
   @classmethod
-  def new_patch_operation(cls, title, data, path, status_class=None):
+  def new_patch_operation(cls, title, data, path, **kwargs):
     """Creates an operation that patches data to the given path when executed.
 
     The base_url will come from the agent that the operation is eventually
@@ -103,14 +101,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       title: [string] The name of the operation for reporting purposes.
       data: [string] The payload to send in the HTTP PATCH.
       path: [string] The path relative to the base url provided later.
-      status_class: [class AgentOperationStatus] If provided, a specialization
-         of the AgentOperationStatus to use for tracking the execution.
+      kwargs: [kwargs] Additional kwargs for HttpPatchOperation
     """
     return http_agent.HttpPatchOperation(title=title, data=data, path=path,
-                                         status_class=status_class)
+                                         **kwargs)
 
   @classmethod
-  def new_delete_operation(cls, title, data, path, status_class=None):
+  def new_delete_operation(cls, title, data, path, **kwargs):
     """Creates an operation that deletes from the given path when executed.
 
     The base_url will come from the agent that the operation is eventually
@@ -120,11 +117,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       title: [string] The name of the operation for reporting purposes.
       data: [string] The payload to send in the HTTP DELETE.
       path: [string] The path relative to the base url provided later.
-      status_class: [class AgentOperationStatus] If provided, a specialization
-         of the AgentOperationStatus to use for tracking the execution.
+      kwargs: [kwargs] Additional kwargs for HttpDeleteOperation
     """
     return http_agent.HttpDeleteOperation(title=title, data=data, path=path,
-                                          status_class=status_class)
+                                          **kwargs)
 
   @classmethod
   def _init_spinnaker_bindings_builder(cls, builder, defaults):
@@ -291,7 +287,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         self.__platform_support[support.platform_name] = support
       except:
         logger = logging.getLogger(__name__)
-        
+
         logger.exception('Failed to initialize support class %s:\n%s',
                          str(klas), traceback.format_exc())
 
