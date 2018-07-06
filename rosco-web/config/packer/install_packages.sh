@@ -74,7 +74,7 @@ function get_artifact_references() {
   if [[ "$repository" != "" ]]; then
     IFS=';' read -ra repo <<< "$repository"
     for i in "${repo[@]}"; do
-      echo "$i" > /tmp/repos
+      echo "$i" >> /tmp/repos
     done
   fi
 
