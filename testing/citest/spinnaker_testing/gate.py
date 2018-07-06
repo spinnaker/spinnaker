@@ -21,9 +21,8 @@ import logging
 
 from . import spinnaker as sk
 
-
-class GateTaskStatus(sk.SpinnakerStatus):
-  """Specialization of sk.SpinnakerStatus for accessing Gate 'tasks' status."""
+class BaseGateStatus(sk.SpinnakerStatus):
+  """Common base class for gate status objects."""
 
   @classmethod
   def new(cls, operation, original_response):
@@ -36,23 +35,143 @@ class GateTaskStatus(sk.SpinnakerStatus):
     Returns:
       sk.SpinnakerStatus for handling status from a Gate request.
     """
-    return GateTaskStatus(operation, original_response)
+    return cls(operation, original_response)
+
+  @property
+  def finished(self):
+    """True if status indicates the request has finished."""
+    return self.current_state not in ['NOT_STARTED', 'RUNNING', None]
+
+  @property
+  def finished_ok(self):
+    """True if status indicates the request has finished successfully."""
+    return self.current_state == 'SUCCEEDED'
+
+  def export_summary_to_json_snapshot(self, snapshot, entity):
+    """Implements JsonSnapshotableEntity"""
+    super(BaseGateStatus, self).export_summary_to_json_snapshot(
+        snapshot, entity)
+    detail = self.detail_doc
+    if not detail:
+      return
+
+    builder = snapshot.edge_builder
+
+    if not isinstance(detail, list):
+      base_time = detail.get('startTime', 0)
+      self._export_status_entry_summary_to_json_snapshot(
+          detail, base_time, builder, snapshot, entity)
+      return
+
+
+    base_time = detail[0].get('startTime', 0)
+    self._export_status(detail[0], builder, entity)
+    self._export_time_info(detail[0], base_time, builder, entity)
+
+    step_list_entity = (snapshot.new_entity(
+        summary='{0} parts'.format(len(detail))))
+
+    for index, step in enumerate(detail):
+      step_entity = snapshot.new_entity()
+      self._export_status_entry_summary_to_json_snapshot(
+          step, base_time, builder, snapshot, step_entity)
+      builder.make(step_list_entity,
+                   '[{0}] {1}'.format(index, step.get('name')),
+                   step_entity)
+    builder.make(entity, 'Steps', step_list_entity)
+
+  def _export_status_entry_summary_to_json_snapshot(
+      self, status_entry, base_time, builder, snapshot, entity):
+    self._export_status(status_entry, builder, entity)
+    self._export_time_info(status_entry, base_time, builder, entity)
+    self._export_error_info(status_entry, builder, entity)
+    if 'execution' in status_entry:
+      execution = status_entry['execution']
+      execution_entity = snapshot.new_entity(summary='Execution Summary')
+      relation = self._STATUS_TO_RELATION.get(execution.get('status'))
+      builder.make(entity, 'Execution Info', execution_entity,
+                   relation=relation)
+      self._export_status_entry_summary_to_json_snapshot(
+          execution, base_time, builder, snapshot, execution_entity)
+      return
+
+    stages = status_entry.get('stages')
+    if not stages:
+      return
+    stage_list_entity = snapshot.new_entity(
+        summary='{0} stages'.format(len(stages)))
+    worst_relation_score = self._RELATION_SCORE.get(None)
+    for index, stage in enumerate(stages):
+      stage_entity = snapshot.new_entity()
+      relation = self._export_stage_summary_to_json_snapshot(
+          stage, base_time, builder, snapshot, stage_entity)
+      score = self._RELATION_SCORE.get(relation)
+      if worst_relation_score < score:
+        worst_relation_score = score
+      decorator = '(*) ' if stage.get('status') == 'RUNNING' else ''
+      builder.make(stage_list_entity,
+                   '[{0}] {1}{2}'.format(index, decorator, stage.get('name')),
+                   stage_entity,
+                   relation=relation)
+    builder.make(entity, 'Stages', stage_list_entity,
+                 relation=self._SCORE_TO_RELATION.get(worst_relation_score))
+
+  def _maybe_export_stage_context(self, stage, builder, snapshot, entity):
+    context = stage.get('context')
+    if not context:
+      return
+    ex = context.get('exception')
+    if not ex:
+      return
+    builder.make(entity, 'Exception Type', ex.get('exceptionType'),
+                 relation='ERROR')
+    errors = ex.get('defaults', {}).get('errors')
+    if errors:
+      message = '\n'.join([' * ' + err for err in errors])
+    else:
+      message = ex.get('error')
+    if message:
+      builder.make(entity, 'Errors', message, relation='ERROR', format='pre')
+
+  def _export_stage_summary_to_json_snapshot(
+      self, stage, base_time, builder, snapshot, entity):
+    stage_relation = self._export_status(stage, builder, entity)
+    self._export_time_info(stage, base_time, builder, entity)
+    self._maybe_export_stage_context(stage, builder, snapshot, entity)
+    tasks = stage.get('tasks')
+    if not tasks:
+      return stage_relation
+
+    task_list_entity = snapshot.new_entity(
+        summary='{0} tasks'.format(len(tasks)))
+    worst_relation_score = self._RELATION_SCORE.get(None)
+    for index, task in enumerate(tasks):
+      task_name = task.get('name')
+      task_entity = snapshot.new_entity()
+      relation = self._export_status(task, builder, task_entity)
+      score = self._RELATION_SCORE.get(relation)
+      if worst_relation_score < score:
+        worst_relation_score = score
+      self._export_time_info(task, base_time, builder, task_entity)
+      builder.make(task_entity, 'Task Name', task_name)
+      decorator = '(*) ' if task.get('status') == 'RUNNING' else ''
+      builder.make(task_list_entity,
+                   '[{0}] {1}{2}'.format(index, decorator, task_name),
+                   task_entity,
+                   relation=relation)
+    builder.make(entity, 'Tasks', task_list_entity,
+                 relation=self._SCORE_TO_RELATION.get(worst_relation_score))
+    return stage_relation
+
+
+class GateTaskStatus(BaseGateStatus):
+  """Specialization of BaseGateStatus for accessing Gate 'tasks' status."""
 
   @property
   def timed_out(self):
     """True if status indicates the request timed out."""
     return (self.current_state == 'TERMINAL'
             and str(self.detail).find(' timed out.') > 0)
-
-  @property
-  def finished(self):
-    """True if status indicates the request has finished."""
-    return not self.current_state in ["NOT_STARTED", "RUNNING", None]
-
-  @property
-  def finished_ok(self):
-    """True if status indicates the request has finished successfully."""
-    return self.current_state == 'SUCCEEDED'
 
   def __init__(self, operation, original_response=None):
     """Construct a new Gate request status.
@@ -82,7 +201,7 @@ class GateTaskStatus(sk.SpinnakerStatus):
       self.current_state = 'CITEST_INTERNAL_ERROR'
 
   def _update_response_from_json(self, doc):
-    """Updates abstract sk.SpinnakerStatus attributes from a Gate response.
+    """Updates abstract BaseGateStatus attributes from a Gate response.
 
     This is called by the base class.
 
@@ -110,8 +229,8 @@ class GateTaskStatus(sk.SpinnakerStatus):
     self._bind_exception_details(exception_details or gate_exception)
 
 
-class GatePipelineStatus(sk.SpinnakerStatus):
-  """Specialization of SpinnakerStatus for accessing Gate 'pipelines' status.
+class GatePipelineStatus(BaseGateStatus):
+  """Specialization of BaseGateStatus for accessing Gate 'pipelines' status.
   """
 
   @classmethod
@@ -132,16 +251,6 @@ class GatePipelineStatus(sk.SpinnakerStatus):
     """True if status indicates the request timed out."""
     return (self.current_state == 'TERMINAL'
             and str(self.detail).find(' timed out.') > 0)
-
-  @property
-  def finished(self):
-    """True if status indicates the request has finished."""
-    return not self.current_state in ["NOT_STARTED", "RUNNING", None]
-
-  @property
-  def finished_ok(self):
-    """True if status indicates the request has finished successfully."""
-    return self.current_state == 'SUCCEEDED'
 
   def __init__(self, operation, original_response=None):
     """Construct a new Gate request status.
@@ -274,4 +383,3 @@ def new_agent(bindings, port=8084):
   spinnaker = GateAgent.new_instance_from_bindings(
       'gate', GateTaskStatus.new, bindings, port)
   return spinnaker
-
