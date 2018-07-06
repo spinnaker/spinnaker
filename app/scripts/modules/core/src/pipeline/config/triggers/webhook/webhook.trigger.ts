@@ -10,11 +10,11 @@ class WebhookTriggerController implements IController {
   public serviceAccounts: string[];
 
   constructor(public trigger: IWebhookTrigger) {
+    'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     ServiceAccountReader.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];
     });
-    'ngInject';
   }
 
   public getTriggerEndpoint(): string {
