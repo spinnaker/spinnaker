@@ -101,13 +101,13 @@ class TestGitRunner(unittest.TestCase):
         'touch "{dir}/c_file"'.format(dir=git_dir),
         gitify('add "{dir}/c_file"'.format(dir=git_dir)),
         gitify('commit -a -m "feat(test): added c_file"'),
-      
+
         gitify('checkout master'),
         'touch "{dir}/extra_file"'.format(dir=git_dir),
         gitify('add "{dir}/extra_file"'.format(dir=git_dir)),
         gitify('commit -a -m "feat(test): added extra_file"'),
         gitify('tag version-9.9.9 HEAD')])
-        
+
   @classmethod
   def tearDownClass(cls):
     shutil.rmtree(cls.base_temp_dir)
@@ -177,7 +177,6 @@ class TestGitRunner(unittest.TestCase):
     self.assertEquals(2, len(messages))
     self.assertTrue(messages[0].message.find('added c_file'))
     self.assertTrue(messages[1].message.find('added master_file'))
-
 
   def test_determine_tag_at_patch(self):
     git = self.git
@@ -412,6 +411,9 @@ class TestCommitMessage(unittest.TestCase):
   MAJOR_BRANCH = 'major_branch'
   MERGED_BRANCH = 'merged_branch'
 
+  PATCH_MINOR_BRANCH = 'patch_minor_branch'
+  PATCH_MINOR_X = 'marker_for_minor_x'
+
   @classmethod
   def run_git(cls, command):
     return check_subprocess(
@@ -432,16 +434,22 @@ class TestCommitMessage(unittest.TestCase):
         gitify('add "{dir}/base_file"'.format(dir=git_dir)),
         gitify('commit -a -m "feat(test): added file"'),
         gitify('tag {base_version} HEAD'.format(base_version=VERSION_BASE)),
+
+        # For testing patches
         gitify('checkout -b {patch_branch}'.format(
             patch_branch=cls.PATCH_BRANCH)),
         'touch "{dir}/patch_file"'.format(dir=git_dir),
         gitify('add "{dir}/patch_file"'.format(dir=git_dir)),
         gitify('commit -a -m "fix(testA): added patch_file"'),
+
+        # For testing minor versions
         gitify('checkout -b {minor_branch}'.format(
             minor_branch=cls.MINOR_BRANCH)),
         'touch "{dir}/minor_file"'.format(dir=git_dir),
         gitify('add "{dir}/minor_file"'.format(dir=git_dir)),
         gitify('commit -a -m "chore(testB): added minor_file"'),
+
+        # For testing major versions
         gitify('checkout -b {major_branch}'.format(
             major_branch=cls.MAJOR_BRANCH)),
         'touch "{dir}/major_file"'.format(dir=git_dir),
@@ -450,11 +458,14 @@ class TestCommitMessage(unittest.TestCase):
                ' "feat(testC): added major_file\n'
                '\nInterestingly enough, this is a BREAKING CHANGE.'
                '"'),
+
+        # For testing composite commits from a merge of commits
         gitify('checkout -b {merged_branch}'.format(
             merged_branch=cls.MERGED_BRANCH)),
         gitify('reset --hard HEAD~3'),
-        gitify('merge --squash HEAD@{1}')
+        gitify('merge --squash HEAD@{1}'),
     ])
+
     env = dict(os.environ)
     if os.path.exists('/bin/true'):
       env['EDITOR'] = '/bin/true'
@@ -463,6 +474,23 @@ class TestCommitMessage(unittest.TestCase):
     else:
       raise NotImplementedError('platform not supported for this test')
     check_subprocess('git -C "{dir}" commit'.format(dir=git_dir), env=env)
+
+    # For testing changelog from a commit
+    check_subprocess_sequence([
+        gitify('checkout {minor_branch}'.format(
+            minor_branch=cls.MINOR_BRANCH)),
+        gitify('checkout -b {x_branch}'.format(
+            x_branch=cls.PATCH_MINOR_BRANCH)),
+        'touch "{dir}/xbefore_file"'.format(dir=git_dir),
+        gitify('add "{dir}/xbefore_file"'.format(dir=git_dir)),
+        gitify('commit -a -m "feat(test): COMMIT AT TAG"'),
+        gitify('tag {x_marker} HEAD'.format(x_marker=cls.PATCH_MINOR_X)),
+        'touch "{dir}/x_first"'.format(dir=git_dir),
+        gitify('add "{dir}/x_first"'.format(dir=git_dir)),
+        gitify('commit -a -m "fix(test): First Fix"'),
+        'rm "{dir}/x_first"'.format(dir=git_dir),
+        gitify('commit -a -m "fix(test): Second Fix"'),
+    ])
 
   def test_summarize(self):
     expect_messages = ['feat(testC): added major_file\n'
@@ -526,7 +554,22 @@ class TestCommitMessage(unittest.TestCase):
       if msg_date + one_sec != prototype_date:
         self.assertEqual(prototype.date, msg.date)
 
-  def test_message_analysis(self):
+  def test_message_analysis_with_commit_baseline(self):
+    # pylint: disable=line-too-long
+    git = self.git
+    all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
+
+    tests = [(self.PATCH_MINOR_BRANCH, self.PATCH_MINOR_X)]
+    for branch, baseline_commit in tests:
+      self.run_git('checkout {branch}'.format(branch=branch))
+      commit_id = git.query_local_repository_commit_id(self.git_dir)
+      _, messages = git.query_local_repository_commits_to_existing_tag_from_id(
+          self.git_dir, commit_id, all_tags, base_commit_id=baseline_commit)
+      self.assertEquals(2, len(messages))
+      self.assertEquals('fix(test): Second Fix', messages[0].message.strip())
+      self.assertEquals('fix(test): First Fix', messages[1].message.strip())
+
+  def test_message_analysis_with_branch_baseline(self):
     # pylint: disable=line-too-long
     git = self.git
     all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
