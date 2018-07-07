@@ -23,6 +23,7 @@ import re
 import shutil
 import textwrap
 import urllib2
+import yaml
 
 
 from buildtool import (
@@ -40,6 +41,7 @@ from buildtool import (
     UnexpectedError,
     CommitMessage,
     GitRunner,
+    HalRunner,
 
     check_kwargs_empty,
     check_options_set,
@@ -286,13 +288,34 @@ class BuildChangelogCommand(RepositoryCommandProcessor):
   def __init__(self, factory, options, **kwargs):
     # Use own repository to avoid race conditions when commands are
     # running concurrently.
+    if options.relative_to_bom_path and options.relative_to_bom_version:
+      raise_and_log_error(
+          ConfigError(
+              'Cannot specify both --relative_to_bom_path'
+              ' and --relative_to_bom_version.'))
+
     options_copy = copy.copy(options)
     options_copy.github_disable_upstream_push = True
+
+    if options.relative_to_bom_path:
+      with open(options.relative_to_bom_path, 'r') as stream:
+        self.__relative_bom = yaml.load(stream.read())
+    elif options.relative_to_bom_version:
+      self.__relative_bom = HalRunner(options).retrieve_bom_version(
+          options.relative_to_bom_version)
+    else:
+      self.__relative_bom = None
     super(BuildChangelogCommand, self).__init__(factory, options_copy, **kwargs)
 
   def _do_repository(self, repository):
     """Collect the summary for the given repository."""
-    return self.git.collect_repository_summary(repository.git_dir)
+    if self.__relative_bom:
+      repo_name = self.scm.repository_name_to_service_name(repository.name)
+      bom_commit = self.__relative_bom['services'][repo_name]['commit']
+    else:
+      bom_commit = None
+    return self.git.collect_repository_summary(repository.git_dir,
+                                               base_commit_id=bom_commit)
 
   def _do_postprocess(self, result_dict):
     """Construct changelog from the collected summary, then write it out."""
@@ -321,11 +344,24 @@ class BuildChangelogFactory(RepositoryCommandFactory):
     """Adds command-specific arguments."""
     super(BuildChangelogFactory, self).init_argparser(
         parser, defaults)
+
     self.add_argument(
         parser, 'include_changelog_details', defaults, False,
         action='store_true',
         help='Include a "details" section with the full commit messages'
              ' in time sequence in the changelog.')
+
+    HalRunner.add_parser_args(parser, defaults)
+    self.add_argument(
+        parser, 'relative_to_bom_path', defaults, None,
+        help='If specified then produce the changelog relative to the'
+             ' commits found in the specified bom rather than the previous'
+             ' repository tag.')
+    self.add_argument(
+        parser, 'relative_to_bom_version', defaults, None,
+        help='If specified then produce the changelog relative to the'
+             ' commits found in the specified bom rather than the previous'
+             ' repository tag.')
 
 
 class PublishChangelogFactory(RepositoryCommandFactory):
