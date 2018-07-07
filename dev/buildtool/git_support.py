@@ -748,9 +748,13 @@ class GitRunner(object):
     We'll use this to know that the changes since the tag are X, Y, Z,
     and be able to determine the new semantic version tag based on 0.2.0 even
     though it is not directly in <id>'s hierarchy.
+
+    Args:
+      base_commit_id [string]: If base_commit_id is provided then rather than
+          use it ias the base commit id for determining recent commits.
     """
     # Find the starting commit, which is most recent tag in our direct history.
-    # For the example in the function docs, this would be tat 0.1.0
+    # For the example in the function docs, this would be tag 0.1.0
     retcode, most_recent_ancestor_tag = self.run_git(
         git_dir, 'describe --abbrev=0 --tags --match version-* ' + commit_id)
     if retcode != 0:
@@ -815,20 +819,20 @@ class GitRunner(object):
 
     return start_tag, start_commit
 
-
   def query_local_repository_commits_to_existing_tag_from_id(
-      self, git_dir, commit_id, commit_tags):
+      self, git_dir, commit_id, commit_tags, base_commit_id=None):
     """Returns the list of commit messages to the local repository."""
     # pylint: disable=invalid-name
 
     tag, found_commit = self.find_newest_tag_and_common_commit_from_id(
         git_dir, commit_id, commit_tags)
 
-    result = self.check_run(
+    base_commit = base_commit_id or found_commit
+    commit_history = self.check_run(
         git_dir,
-        'log --pretty=medium {found_commit}..{id}'.format(
-            found_commit=found_commit, id=commit_id))
-    messages = CommitMessage.make_list_from_result(result)
+        'log --pretty=medium {base_commit}..{id}'.format(
+            base_commit=base_commit, id=commit_id))
+    messages = CommitMessage.make_list_from_result(commit_history)
     return tag, messages
 
   def query_commit_at_tag(self, git_dir, tag):
@@ -1097,7 +1101,7 @@ class GitRunner(object):
                              origin=origin_url,
                              upstream=remote_urls.get('upstream'))
 
-  def collect_repository_summary(self, git_dir):
+  def collect_repository_summary(self, git_dir, base_commit_id=None):
     """Collects RepsitorySummary from local repository directory."""
     start_time = time.time()
     logging.debug('Begin analyzing %s', git_dir)
@@ -1105,7 +1109,7 @@ class GitRunner(object):
         git_dir, r'^version-[0-9]+\.[0-9]+\.[0-9]+$')
     current_id = self.query_local_repository_commit_id(git_dir)
     tag, msgs = self.query_local_repository_commits_to_existing_tag_from_id(
-        git_dir, current_id, all_tags)
+        git_dir, current_id, all_tags, base_commit_id=base_commit_id)
 
     if not tag:
       current_semver = SemanticVersion.make('version-0.0.0')
