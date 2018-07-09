@@ -65,12 +65,16 @@ class RunJobTask extends AbstractCloudProviderAwareTask implements RetryableTask
     def ops = creator.getOperations(stage)
     def taskId = kato.requestOperations(cloudProvider, ops).toBlocking().first()
 
-    Map outputs = [
+    Map<String, Object> outputs = [
         "notification.type"   : "runjob",
         "kato.result.expected": creator.katoResultExpected,
         "kato.last.task.id"   : taskId,
         "deploy.account.name" : credentials,
     ]
+
+    outputs.putAll(
+      creator.getAdditionalOutputs(stage, ops)
+    )
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }

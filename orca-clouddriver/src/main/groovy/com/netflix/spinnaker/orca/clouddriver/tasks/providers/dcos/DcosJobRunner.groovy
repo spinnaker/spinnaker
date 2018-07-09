@@ -42,5 +42,10 @@ class DcosJobRunner implements JobRunner {
 
     return [[(OPERATION): operation]]
   }
+
+  @Override
+  Map<String, Object> getAdditionalOutputs(Stage stage, List<Map> operations) {
+    return [:]
+  }
 }
 

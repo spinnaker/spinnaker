@@ -32,6 +32,11 @@ interface JobRunner {
   List<Map> getOperations(Stage stage)
 
   /**
+   * @return any additional values that should be included in task outputs
+   */
+  Map<String, Object> getAdditionalOutputs(Stage stage, List<Map> operations)
+
+  /**
    * @return true if the resulting value from the Kato call should be used.
    */
   boolean isKatoResultExpected()

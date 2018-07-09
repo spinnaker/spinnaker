@@ -52,6 +52,17 @@ class TitusJobRunner implements JobRunner {
     return [[(OPERATION): operation]]
   }
 
+  @Override
+  Map<String, Object> getAdditionalOutputs(Stage stage, List<Map> operations) {
+    if (stage.context.cluster?.application) {
+      return [
+          application: stage.context.cluster.application
+      ]
+    }
+
+    return [:]
+  }
+
   private static void addAllNonEmpty(List<String> baseList, List<String> listToBeAdded) {
     if (listToBeAdded) {
       listToBeAdded.each { itemToBeAdded ->

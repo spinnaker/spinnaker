@@ -87,7 +87,7 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
 
       def name = names[0]
       def parsedName = Names.parseName(name)
-      String appName = stage.context.moniker?.app ?: stage.context.applicaton ?: parsedName.app
+      String appName = stage.context.moniker?.app ?: stage.context.application ?: parsedName.app
 
       InputStream jobStream
       retrySupport.retry({
