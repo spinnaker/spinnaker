@@ -25,10 +25,18 @@ interface InstanceManager {
   instances: IKubernetesInstance[];
 }
 
+interface IConsoleOutputInstance {
+  account: string;
+  region: string;
+  id: string;
+  provider: string;
+}
+
 class KubernetesInstanceDetailsController implements IController {
   public state = { loading: true };
   public instance: IKubernetesInstance;
   public manifest: IManifest;
+  public consoleOutputInstance: IConsoleOutputInstance;
 
   constructor(
     instance: InstanceFromStateParams,
@@ -44,6 +52,12 @@ class KubernetesInstanceDetailsController implements IController {
       .then(() => this.retrieveInstance(instance))
       .then(instanceDetails => {
         this.instance = instanceDetails;
+        this.consoleOutputInstance = {
+          account: instanceDetails.account,
+          region: instanceDetails.region,
+          id: instanceDetails.humanReadableName,
+          provider: instanceDetails.provider,
+        };
 
         const unsubscribe = KubernetesManifestService.makeManifestRefresher(
           this.app,
