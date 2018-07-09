@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
-import com.netflix.hystrix.exception.HystrixBadRequestException;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
@@ -82,10 +81,5 @@ public class ClouddriverService implements HealthTrackable, InitializingBean {
         clouddriverApi.getApplications()
     );
     healthTracker.success();
-  }
-
-  private static void logFallback(String resource, Throwable cause) {
-    String message = cause != null ? "Cause: " + cause.getMessage() : "";
-    log.info("Falling back to {} cache. {}", resource, message);
   }
 }

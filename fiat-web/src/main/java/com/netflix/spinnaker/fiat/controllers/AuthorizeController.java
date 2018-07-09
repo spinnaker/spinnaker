@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -64,7 +65,7 @@ public class AuthorizeController {
     this.permissionsRepository = permissionsRepository;
     this.configProps = configProps;
 
-    this.getUserPermissionCounterId = registry.createId("fiat.getUserPermissionCounterId");
+    this.getUserPermissionCounterId = registry.createId("fiat.getUserPermission");
   }
 
   @ApiOperation(value = "Used mostly for testing. Not really any real value to the rest of " +
@@ -87,89 +88,88 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.GET)
   public UserPermission.View getUserPermission(@PathVariable String userId) {
-    log.debug("UserPermission requested for " + userId);
     return getUserPermissionOrDefault(userId)
-                                .orElseThrow(NotFoundException::new)
-                                .getView();
+        .orElseThrow(NotFoundException::new)
+        .getView();
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts", method = RequestMethod.GET)
   public Set<Account.View> getUserAccounts(@PathVariable String userId) {
     return getUserPermissionOrDefault(userId)
-                                .orElseThrow(NotFoundException::new)
-                                .getView()
-                                .getAccounts()
-                                .stream()
-                                .collect(Collectors.toSet());
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .getAccounts()
+        .stream()
+        .collect(Collectors.toSet());
   }
 
   @RequestMapping(value = "/{userId:.+}/roles", method = RequestMethod.GET)
   public Set<Role.View> getUserRoles(@PathVariable String userId) {
     return getUserPermissionOrDefault(userId)
-                                .orElseThrow(NotFoundException::new)
-                                .getView()
-                                .getRoles()
-                                .stream()
-                                .collect(Collectors.toSet());
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .getRoles()
+        .stream()
+        .collect(Collectors.toSet());
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts/{accountName:.+}", method = RequestMethod.GET)
   public Account.View getUserAccount(@PathVariable String userId, @PathVariable String accountName) {
     return getUserPermissionOrDefault(userId)
-                                .orElseThrow(NotFoundException::new)
-                                .getView()
-                                .getAccounts()
-                                .stream()
-                                .filter(account -> accountName.equalsIgnoreCase(account.getName()))
-                                .findFirst()
-                                .orElseThrow(NotFoundException::new);
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .getAccounts()
+        .stream()
+        .filter(account -> accountName.equalsIgnoreCase(account.getName()))
+        .findFirst()
+        .orElseThrow(NotFoundException::new);
   }
 
   @RequestMapping(value = "/{userId:.+}/applications", method = RequestMethod.GET)
   public Set<Application.View> getUserApplications(@PathVariable String userId) {
     return getUserPermissionOrDefault(userId)
-                                .orElseThrow(NotFoundException::new)
-                                .getView()
-                                .getApplications()
-                                .stream()
-                                .collect(Collectors.toSet());
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .getApplications()
+        .stream()
+        .collect(Collectors.toSet());
   }
 
   @RequestMapping(value = "/{userId:.+}/applications/{applicationName:.+}", method = RequestMethod.GET)
   public Application.View getUserApplication(@PathVariable String userId, @PathVariable String applicationName) {
     return getUserPermissionOrDefault(userId)
-                                .orElseThrow(NotFoundException::new)
-                                .getView()
-                                .getApplications()
-                                .stream()
-                                .filter(application -> applicationName.equalsIgnoreCase(application.getName()))
-                                .findFirst()
-                                .orElseThrow(NotFoundException::new);
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .getApplications()
+        .stream()
+        .filter(application -> applicationName.equalsIgnoreCase(application.getName()))
+        .findFirst()
+        .orElseThrow(NotFoundException::new);
   }
 
   @RequestMapping(value = "/{userId:.+}/serviceAccounts", method = RequestMethod.GET)
   public Set<ServiceAccount.View> getServiceAccounts(@PathVariable String userId) {
     return getUserPermissionOrDefault(userId)
-                                .orElseThrow(NotFoundException::new)
-                                .getView()
-                                .getServiceAccounts()
-                                .stream()
-                                .collect(Collectors.toSet());
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .getServiceAccounts()
+        .stream()
+        .collect(Collectors.toSet());
   }
 
   @RequestMapping(value = "/{userId:.+}/serviceAccounts/{serviceAccountName:.+}", method = RequestMethod.GET)
   public ServiceAccount.View getServiceAccount(@PathVariable String userId,
                                                @PathVariable String serviceAccountName) {
     return getUserPermissionOrDefault(userId)
-                                .orElseThrow(NotFoundException::new)
-                                .getView()
-                                .getServiceAccounts()
-                                .stream()
-                                .filter(serviceAccount ->
-                                            serviceAccount.getName()
-                                                          .equalsIgnoreCase(ControllerSupport.convert(serviceAccountName)))
-                                .findFirst()
-                                .orElseThrow(NotFoundException::new);
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .getServiceAccounts()
+        .stream()
+        .filter(serviceAccount ->
+            serviceAccount.getName()
+                .equalsIgnoreCase(ControllerSupport.convert(serviceAccountName)))
+        .findFirst()
+        .orElseThrow(NotFoundException::new);
   }
 
   @RequestMapping(value = "/{userId:.+}/{resourceType:.+}/{resourceName:.+}/{authorization:.+}", method = RequestMethod.GET)
@@ -235,6 +235,13 @@ public class AuthorizeController {
           .map(u -> u.setId(authenticatedUserId))
           .orElse(null);
     }
+
+    log.debug(
+        "Returning fallback permissions (user: {}, accounts: {}, roles: {})",
+        userId,
+        (userPermission != null) ? userPermission.getAccounts() : Collections.emptyList(),
+        (userPermission != null) ? userPermission.getRoles().stream().map(Role::getName).collect(Collectors.toList()) : Collections.emptyList()
+    );
 
     registry.counter(
         getUserPermissionCounterId
