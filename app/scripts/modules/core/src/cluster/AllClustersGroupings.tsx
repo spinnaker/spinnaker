@@ -108,7 +108,10 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
           ),
         ),
       );
-      this.listRef.scrollToRow(scrollToRow);
+
+      if (scrollToRow >= 0) {
+        this.listRef.scrollToRow(scrollToRow);
+      }
     });
   };
 
