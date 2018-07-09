@@ -294,7 +294,7 @@ class ServerGroupController {
 
   static class InstanceViewModel {
     String id
-    String uid
+    String name
     List<Map<String, Object>> health
     String healthState
     Long launchTime
@@ -302,7 +302,7 @@ class ServerGroupController {
 
     InstanceViewModel(Instance instance) {
       id = instance.name
-      uid = instance.uid
+      name = instance.humanReadableName
       healthState = instance.getHealthState().toString()
       launchTime = instance.getLaunchTime()
       availabilityZone = instance.getZone()

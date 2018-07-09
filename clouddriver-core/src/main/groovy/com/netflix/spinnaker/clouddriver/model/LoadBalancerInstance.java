@@ -30,7 +30,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class LoadBalancerInstance {
   String id;
-  String uid;
+  String name;
   String zone;
   Map<String, Object> health;
 
@@ -40,11 +40,11 @@ public class LoadBalancerInstance {
     this.health = health;
   }
 
-  public String getUid() {
-    if (StringUtils.isEmpty(uid)) {
+  public String getName()  {
+    if (StringUtils.isEmpty(name)) {
       return id;
     } else {
-      return uid;
+      return name;
     }
   }
 }

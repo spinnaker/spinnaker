@@ -26,18 +26,18 @@ import java.util.Map;
  */
 public interface Instance {
   /**
-   * The name of the instance
+   * The name of the instance.  By convention this is expected to be globally unique.
    *
    * @return instance name
    */
   String getName();
 
   /**
-   * The instances unique identifier
+   * The human-readable name of the instance
    *
-   * @return the instances uid
+   * @return human-readable name
    */
-  default String getUid() {
+  default String getHumanReadableName() {
     return getName();
   }
 

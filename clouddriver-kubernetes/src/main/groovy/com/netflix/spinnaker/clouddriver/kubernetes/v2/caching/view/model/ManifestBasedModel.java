@@ -89,7 +89,7 @@ abstract public class ManifestBasedModel {
     } catch (ParseException e) {
       log.warn("Failed to parse timestamp: ", e);
     }
-    
+
     return null;
   }
 

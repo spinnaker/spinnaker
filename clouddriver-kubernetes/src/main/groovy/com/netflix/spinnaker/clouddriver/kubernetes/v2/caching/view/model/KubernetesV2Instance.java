@@ -91,12 +91,23 @@ public class KubernetesV2Instance extends ManifestBasedModel implements Instance
           return result;
         }))
         .id(getName())
-        .uid(getUid())
         .zone(getZone())
+        .name(getHumanReadableName())
         .build();
   }
 
   public HealthState getHealthState() {
     return KubernetesModelUtil.getHealthState(health);
+  }
+
+  // An implementor of the Instance interface is implicitly expected to return a globally-unique ID
+  // as its name because InstanceViewModel serializes it as such for API responses and Deck then
+  // relies on it to disambiguate between instances.
+  public String getName() {
+    return super.getUid();
+  }
+
+  public String getHumanReadableName() {
+    return super.getName();
   }
 }
