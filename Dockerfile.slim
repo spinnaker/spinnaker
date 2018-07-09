@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jdk-alpine
 
 MAINTAINER delivery-engineering@netflix.com
 
@@ -8,7 +8,7 @@ RUN apk --no-cache add --update bash wget unzip python=2.7.14-r2 && \
   wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
   unzip -qq google-cloud-sdk.zip -d /opt && \
   rm google-cloud-sdk.zip && \
-  CLOUDSDK_PYTHON="python2.7" /opt/google-cloud-sdk/install.sh --usage-reporting=false --bash-completion=false --disable-installation-options && \
+  CLOUDSDK_PYTHON="python2.7" /opt/google-cloud-sdk/install.sh --usage-reporting=false --bash-completion=false --additional-components app-engine-java && \
   rm -rf ~/.config/gcloud
 
 RUN wget https://storage.googleapis.com/kubernetes-release/release/stable.txt && wget https://storage.googleapis.com/kubernetes-release/release/$(cat stable.txt)/bin/linux/amd64/kubectl && \
@@ -22,4 +22,5 @@ RUN adduser -D -S spinnaker
 
 USER spinnaker
 
+WORKDIR /home/spinnaker
 CMD ["/opt/clouddriver/bin/clouddriver"]
