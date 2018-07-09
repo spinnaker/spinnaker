@@ -292,12 +292,12 @@ describe('Service: Cluster', function() {
           it('finds instance within server group (' + name + ')', () => {
             const serverGroups: IServerGroup[] = application.serverGroups.data;
             serverGroups[2].instances = [
-              { id: 'in-1', health: null, launchTime: 1, zone: null },
-              { id: 'in-2', health: null, launchTime: 1, zone: null },
+              { name: 'in-1', id: 'in-1', health: null, launchTime: 1, zone: null },
+              { name: 'in-2', id: 'in-2', health: null, launchTime: 1, zone: null },
             ];
             serverGroups[4].instances = [
-              { id: 'in-3', health: null, launchTime: 1, zone: null },
-              { id: 'in-2', health: null, launchTime: 1, zone: null },
+              { name: 'in-3', id: 'in-3', health: null, launchTime: 1, zone: null },
+              { name: 'in-2', id: 'in-2', health: null, launchTime: 1, zone: null },
             ];
             application.runningTasks.data = [
               buildTask({

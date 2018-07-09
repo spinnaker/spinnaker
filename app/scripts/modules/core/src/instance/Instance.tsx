@@ -36,7 +36,7 @@ export class Instance extends React.Component<IInstanceProps> {
 
   public render() {
     const { instance, active, highlight } = this.props;
-    const { id, healthState } = instance;
+    const { name, id, healthState } = instance;
 
     const className = `instance health-status-${healthState} ${highlight === id ? 'highlighted' : ''} ${
       active ? 'active' : ''
@@ -44,7 +44,7 @@ export class Instance extends React.Component<IInstanceProps> {
     return (
       <a
         className={className}
-        title={id}
+        title={name || id}
         data-toggle="tooltip"
         onMouseOver={this.onMouseOver}
         onClick={this.handleClick}

@@ -10,6 +10,7 @@ export interface IInstance {
   id: string;
   launchTime: number;
   loadBalancers?: string[];
+  name: string;
   provider?: string;
   region?: string;
   serverGroup?: string;

@@ -219,6 +219,7 @@ module.exports = angular
         availabilityZone: instance.availabilityZone,
         health: instance.health || [],
         healthState: instance.healthState,
+        name: instance.name,
       };
     };
 

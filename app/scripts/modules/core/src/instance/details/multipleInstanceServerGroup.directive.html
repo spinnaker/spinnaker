@@ -13,7 +13,7 @@
   <ul>
     <li ng-repeat="instance in vm.instanceGroup.instances">
       <span class="glyphicon glyphicon-{{instance.healthState}}-triangle"></span>
-      {{instance.id}}
+      {{instance.name || instance.id}}
     </li>
   </ul>
 </div>

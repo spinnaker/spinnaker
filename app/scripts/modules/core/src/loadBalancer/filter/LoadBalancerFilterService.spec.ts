@@ -204,7 +204,9 @@ describe('Service: loadBalancerFilterService', function() {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.status = { Up: true };
       app.loadBalancers.data[0].instanceCounts.down = 1;
       app.loadBalancers.data.forEach((loadBalancer: ILoadBalancer) => {
-        loadBalancer.instances = [{ id: 'foo', healthState: 'Up', health: [], launchTime: 0, zone: 'us-east-1a' }];
+        loadBalancer.instances = [
+          { name: 'foo', id: 'foo', healthState: 'Up', health: [], launchTime: 0, zone: 'us-east-1a' },
+        ];
       });
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -227,7 +229,9 @@ describe('Service: loadBalancerFilterService', function() {
       LoadBalancerState.filterModel.asFilterModel.sortFilter.status = { Down: true };
       app.loadBalancers.data[0].instanceCounts.down = 1;
       app.loadBalancers.data.forEach((loadBalancer: ILoadBalancer) => {
-        loadBalancer.instances = [{ id: 'foo', healthState: 'Down', health: [], launchTime: 0, zone: 'us-east-1a' }];
+        loadBalancer.instances = [
+          { name: 'foo', id: 'foo', healthState: 'Down', health: [], launchTime: 0, zone: 'us-east-1a' },
+        ];
       });
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -247,7 +251,7 @@ describe('Service: loadBalancerFilterService', function() {
       app.loadBalancers.data[0].instanceCounts.starting = 1;
       app.loadBalancers.data.forEach((loadBalancer: ILoadBalancer) => {
         loadBalancer.instances = [
-          { id: 'foo', healthState: 'Starting', health: [], launchTime: 0, zone: 'us-east-1a' },
+          { name: 'foo', id: 'foo', healthState: 'Starting', health: [], launchTime: 0, zone: 'us-east-1a' },
         ];
       });
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
