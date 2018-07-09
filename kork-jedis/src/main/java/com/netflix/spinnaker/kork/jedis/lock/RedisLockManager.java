@@ -188,7 +188,7 @@ public class RedisLockManager implements RefreshableLockManager {
     try {
       lock = tryCreateLock(lockOptions);
       if (!matchesLock(lockOptions, lock)) {
-        log.info("Could not acquire already taken lock {}", lock);
+        log.debug("Could not acquire already taken lock {}", lock);
         return new AcquireLockResponse<>(lock,
           null,
           status,
