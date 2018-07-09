@@ -1206,8 +1206,12 @@ class GcsPubsubNotficationConfigurator(Configurator):
 
     publisher_client, subscriber_client, storage_client = self.__instantiate_clients(options)
 
-    subscriber_client.delete_subscription(options.gcs_pubsub_subscription)
-    publisher_client.delete_topic(options.gcs_pubsub_topic)
+    # Pub/sub names must contain the project and collection type as specified
+    # in the spec: https://cloud.google.com//pubsub/docs/admin#resource_names.
+    subscriber_client.delete_subscription(subscriber_client.subscription_path(
+        options.gcs_pubsub_project, options.gcs_pubsub_subscription))
+    publisher_client.delete_topic(publisher_client.topic_path(
+        options.gcs_pubsub_project, options.gcs_pubsub_topic))
     storage_client.delete_bucket(options.gcs_pubsub_bucket)
 
 
