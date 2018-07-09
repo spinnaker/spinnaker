@@ -24,6 +24,11 @@ import com.netflix.spinnaker.orca.pipeline.model.*
 
 internal class TriggerDeserializer
   : StdDeserializer<Trigger>(Trigger::class.java) {
+
+  companion object {
+    val customTriggerSuppliers: MutableList<CustomTriggerDeserializerSupplier> = mutableListOf()
+  }
+
   override fun deserialize(parser: JsonParser, context: DeserializationContext): Trigger =
     parser.codec.readTree<JsonNode>(parser).run {
       return when {
@@ -88,6 +93,11 @@ internal class TriggerDeserializer
           get("branch").textValue(),
           get("slug").textValue()
         )
+        looksLikeCustom() -> {
+          // chooses the first custom deserializer to keep behavior consistent
+          // with the rest of this conditional
+          customTriggerSuppliers.first { it.predicate.invoke(this) }.deserializer.invoke(this)
+        }
         else -> DefaultTrigger(
           get("type")?.textValue() ?: "none",
           get("correlationId")?.textValue(),
@@ -116,6 +126,9 @@ internal class TriggerDeserializer
 
   private fun JsonNode.looksLikePipeline() =
     hasNonNull("parentExecution")
+
+  private fun JsonNode.looksLikeCustom() =
+    customTriggerSuppliers.any { it.predicate.invoke(this) }
 
   private fun <E> JsonNode.listValue(parser: JsonParser) =
     parser.codec.treeToValue(this, List::class.java) as List<E>
