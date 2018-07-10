@@ -107,6 +107,17 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
       value("project", gcsProperties.getProject()));
     log.info("Bucket versioning is {}.",
       value("versioning", service.supportsVersioning() ? "enabled" : "DISABLED"));
+
+    // Cleanup every 5 minutes to reduce rate limiting contention.
+    long period_ms = 300 * 1000;
+    taskScheduler.scheduleAtFixedRate(
+      new Runnable() {
+        public void run() {
+          service.purgeBatchedVersionPaths();
+        }
+      },
+      period_ms);
+
     return service;
   }
 

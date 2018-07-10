@@ -41,6 +41,7 @@ import java.io.FileInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.concurrent.Callable;
 
 import com.netflix.spectator.api.Id;
@@ -92,6 +93,9 @@ GcsStorageService implements StorageService {
   private final Timer insertTimer;
   private final Timer patchTimer;
   private final TaskScheduler taskScheduler;
+
+  @VisibleForTesting
+  final HashSet<String> purgeOldVersionPaths = new HashSet<String>();
 
   // These are for scheduled timestamp update retries
   private final HashMap<String, Long> daoTypeNameReferenceTime = new HashMap<String, Long>();
@@ -564,19 +568,40 @@ GcsStorageService implements StorageService {
               throw new IllegalStateException(e);
           }
       } catch (IOException e) {
-          log.error("writeLastModified failed: {}", e.getMessage());
+          log.error("writeLastModified failed:", e.getMessage());
           throw new IllegalStateException(e);
       }
 
-      try {
-          // If the bucket is versioned, purge the old timestamp versions
-          // because they serve no value and just consume storage and extra time
-          // if we eventually destroy this bucket.
-          purgeOldVersions(timestamp_path);
-      } catch (Exception e) {
-          log.warn("Failed to purge old versions of {}. Ignoring error.",
-                   value("path", timestamp_path));
+      synchronized(purgeOldVersionPaths) {
+        // If the bucket is versioned, purge the old timestamp versions
+        // because they serve no value and just consume storage and extra time
+        // if we eventually destroy this bucket.
+        // These are queued to reduce rate limiting contention on the file since
+        // it is a long term concern rather than a short term one.
+        purgeOldVersionPaths.add(timestamp_path);
       }
+  }
+
+  public void purgeBatchedVersionPaths() {
+    String[] paths;
+    synchronized(purgeOldVersionPaths) {
+      if (purgeOldVersionPaths.isEmpty()) {
+        return;
+      }
+      paths = purgeOldVersionPaths.toArray(new String[purgeOldVersionPaths.size()]);
+      purgeOldVersionPaths.clear();
+    }
+    for (String path: paths) {
+      try {
+        purgeOldVersions(path);
+      } catch (Exception e) {
+        synchronized(purgeOldVersionPaths) {
+          purgeOldVersionPaths.add(path);  // try again next time.
+        }
+        log.warn("Failed to purge old versions of {}. Ignoring error.",
+                 value("path", path));
+      }
+    }
   }
 
   // Remove the old versions of a path.
@@ -639,10 +664,10 @@ GcsStorageService implements StorageService {
               writeLastModified(daoTypeName);
               return now;
           }
-          log.error("Error writing timestamp file {}", e);
+          log.error("Error writing timestamp file:", e);
           return now;
         } else {
-          log.error("Error accessing timestamp file {}", e);
+          log.error("Error accessing timestamp file:", e);
           return System.currentTimeMillis();
         }
       }

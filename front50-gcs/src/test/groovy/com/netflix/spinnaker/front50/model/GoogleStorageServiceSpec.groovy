@@ -183,24 +183,23 @@ class GoogleStorageServiceSpec extends Specification {
 
   def "storeObject"() {
     given:
-      Storage.Objects.Patch mockUpdateObject = Mock(Storage.Objects.Patch)
-      Storage.Objects.Insert mockInsertObject = Mock(Storage.Objects.Insert)
-      Storage.Objects.List mockListObjects = Mock(Storage.Objects.List)
-      com.google.api.services.storage.model.Objects objects = new com.google.api.services.storage.model.Objects()
-      StorageObject storageObject = new StorageObject()
-              .setBucket(BUCKET_NAME)
-              .setName(BASE_PATH + '/applications/testkey/specification.json')
+     Storage.Objects.Patch mockUpdateObject = Mock(Storage.Objects.Patch)
+     Storage.Objects.Insert mockInsertObject = Mock(Storage.Objects.Insert)
 
-      StorageObject timestampObject = new StorageObject()
-        .setBucket(BUCKET_NAME)
-        .setName(BASE_PATH + '/applications/last-modified')
-      Application app = new Application()
-      byte[] appBytes = new ObjectMapper().writeValueAsBytes(app)
-      ByteArrayContent appContent = new ByteArrayContent(
-        "application/json", appBytes)
-      ByteArrayContent timestampContent = new ByteArrayContent(
-        "application/json", "{}".getBytes())
-      long startTime = System.currentTimeMillis()
+     StorageObject storageObject = new StorageObject()
+       .setBucket(BUCKET_NAME)
+       .setName(BASE_PATH + '/applications/testkey/specification.json')
+
+     StorageObject timestampObject = new StorageObject()
+       .setBucket(BUCKET_NAME)
+       .setName(BASE_PATH + '/applications/last-modified')
+     Application app = new Application()
+     byte[] appBytes = new ObjectMapper().writeValueAsBytes(app)
+     ByteArrayContent appContent = new ByteArrayContent(
+       "application/json", appBytes)
+     ByteArrayContent timestampContent = new ByteArrayContent(
+       "application/json", "{}".getBytes())
+     long startTime = System.currentTimeMillis()
 
     when:
      gcs = makeGcs()
@@ -208,32 +207,53 @@ class GoogleStorageServiceSpec extends Specification {
      1 * mockStorage.objects() >> mockObjectApi
 
     when:
-      gcs.storeObject(ObjectType.APPLICATION, "testkey", app)
+     gcs.storeObject(ObjectType.APPLICATION, "testkey", app)
 
     then:
-      1 * mockObjectApi.insert(
-           BUCKET_NAME,
-           { StorageObject obj -> obj.getBucket() == storageObject.getBucket()
-                                  obj.getName() == storageObject.getName() },
-           _) >> mockInsertObject
-      1 * mockInsertObject.execute()
+     1 * mockObjectApi.insert(
+       BUCKET_NAME,
+       { StorageObject obj ->
+         obj.getBucket() == storageObject.getBucket()
+         obj.getName() == storageObject.getName()
+       },
+       _) >> mockInsertObject
+     1 * mockInsertObject.execute()
 
     then:
-      1 * mockObjectApi.patch(
-              BUCKET_NAME,
-              timestampObject.getName(),
-              { StorageObject obj -> obj.getBucket() == timestampObject.getBucket()
-                obj.getName() == timestampObject.getName()
-                obj.getUpdated().getValue() >= startTime
-                obj.getUpdated().getValue() <= System.currentTimeMillis()
-              }
-              ) >> mockUpdateObject
+     1 * mockObjectApi.patch(
+       BUCKET_NAME,
+       timestampObject.getName(),
+       { StorageObject obj ->
+         obj.getBucket() == timestampObject.getBucket()
+         obj.getName() == timestampObject.getName()
+         obj.getUpdated().getValue() >= startTime
+         obj.getUpdated().getValue() <= System.currentTimeMillis()
+       }
+     ) >> mockUpdateObject
 
-      1 * mockUpdateObject.execute()
+     1 * mockUpdateObject.execute()
+     gcs.purgeOldVersionPaths.toArray() == [timestampObject.getName()]
+  }
 
-     then:
+  def "purgeOldVersions" () {
+    given:
+     Storage.Objects.List mockListObjects = Mock(Storage.Objects.List)
+     String timestamp_path = BASE_PATH + '/applications/last-modified'
+     com.google.api.services.storage.model.Objects objects = new com.google.api.services.storage.model.Objects()
+
+    when:
+     gcs = makeGcs()
+     gcs.purgeOldVersionPaths.add(timestamp_path)
+
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+     gcs.purgeBatchedVersionPaths()
+
+    then:
      1 * mockObjectApi.list(BUCKET_NAME) >> mockListObjects
-     1 * mockListObjects.setPrefix(timestampObject.getName()) >> mockListObjects
+     1 * mockListObjects.setPrefix(timestamp_path) >> mockListObjects
      1 * mockListObjects.setVersions(true) >> mockListObjects
      1 * mockListObjects.execute() >> objects
      1 * mockListObjects.setPageToken(_)
@@ -291,9 +311,8 @@ class GoogleStorageServiceSpec extends Specification {
         throw new HttpResponseException.Builder(503, 'Exceeded API quota', new HttpHeaders()).build()
       }
 
-
      then:
-     1 * mockScheduler.schedule(_, _);
+      1 * mockScheduler.schedule(_, _);
   }
 
   def "scheduleOncePerType"() {
