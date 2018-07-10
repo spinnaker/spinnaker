@@ -39,7 +39,8 @@ class JobController {
   @Autowired
   MessageSource messageSource
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")
+  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
   @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.POST)
   JobStatus collectJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
                        @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
@@ -54,7 +55,8 @@ class JobController {
     jobMatches.first()
   }
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")
+  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
   @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.DELETE)
   void cancelJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
                  @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
@@ -65,7 +67,8 @@ class JobController {
     }
   }
 
-  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")  @ApiOperation(value = "Collect a file from a job", notes = "Collects the file result of a job.")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")
+  @ApiOperation(value = "Collect a file from a job", notes = "Collects the file result of a job.")
   @RequestMapping(value = "/{account}/{location}/{id}/{fileName:.+}", method = RequestMethod.GET)
   Map<String, Object> getFileContents(
                        @ApiParam(value = "Application name", required = true) @PathVariable String application,

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.security
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed
 import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.shared.FiatStatus
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
@@ -27,11 +28,21 @@ import org.springframework.validation.Errors
 class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
 
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  private final AccountCredentialsProvider accountCredentialsProvider
+  private final FiatStatus fiatStatus
+
+  DefaultAllowedAccountsValidator(AccountCredentialsProvider accountCredentialsProvider, FiatStatus fiatStatus) {
+    this.accountCredentialsProvider = accountCredentialsProvider
+    this.fiatStatus = fiatStatus
+  }
 
   @Override
   void validate(String user, Collection<String> allowedAccounts, Object description, Errors errors) {
+    if (fiatStatus.isEnabled()) {
+      // fiat has it's own mechanisms for verifying access to an account
+      return
+    }
+
     if (!accountCredentialsProvider.all.find { it.requiredGroupMembership || it.permissions?.isRestricted() }) {
       // no accounts have group restrictions so no need to validate / log
       return
