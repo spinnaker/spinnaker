@@ -287,6 +287,11 @@ public class RedisLockManager implements RefreshableLockManager {
       // Informational warning. Lock may expire as it no longer receive heartbeats.
       log.warn("***MAX HEARTBEAT REACHED***. No longer sending heartbeats to {}", heartbeatLockRequest.getLock());
       heartbeatQueue.remove(heartbeatLockRequest);
+      registry.counter(
+        heartbeatId
+          .withTag("lockName", heartbeatLockRequest.getLock().getName())
+          .withTag("status", LockHeartbeatStatus.MAX_HEARTBEAT_REACHED.toString())
+      ).increment();
     } else {
       try {
         HeartbeatResponse heartbeatResponse = heartbeat(heartbeatLockRequest.getLock());
@@ -321,17 +326,17 @@ public class RedisLockManager implements RefreshableLockManager {
     Lock extendedLock = lock;
     try {
       extendedLock = tryUpdateLock(lock, lock.nextVersion());
-      registry.counter(lockHeartbeat.withTag("status", LockStatus.ACQUIRED.toString())).increment();
-      return new HeartbeatResponse(extendedLock, LockStatus.ACQUIRED);
+      registry.counter(lockHeartbeat.withTag("status", LockHeartbeatStatus.SUCCESS.toString())).increment();
+      return new HeartbeatResponse(extendedLock, LockHeartbeatStatus.SUCCESS);
     } catch (Exception e) {
       if (e instanceof LockExpiredException) {
-        registry.counter(lockHeartbeat.withTag("status", LockStatus.EXPIRED.toString())).increment();
-        return new HeartbeatResponse(extendedLock, LockStatus.EXPIRED);
+        registry.counter(lockHeartbeat.withTag("status", LockHeartbeatStatus.EXPIRED.toString())).increment();
+        return new HeartbeatResponse(extendedLock, LockHeartbeatStatus.EXPIRED);
       }
 
       log.error("Heartbeat failed for lock {}", extendedLock, e);
-      registry.counter(lockHeartbeat.withTag("status", LockStatus.ERROR.toString())).increment();
-      return new HeartbeatResponse(extendedLock, LockStatus.ERROR);
+      registry.counter(lockHeartbeat.withTag("status", LockHeartbeatStatus.ERROR.toString())).increment();
+      return new HeartbeatResponse(extendedLock, LockHeartbeatStatus.ERROR);
     }
   }
 

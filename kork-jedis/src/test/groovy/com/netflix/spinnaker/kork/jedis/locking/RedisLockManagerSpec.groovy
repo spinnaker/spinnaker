@@ -202,7 +202,7 @@ class RedisLockManagerSpec extends Specification {
     Thread.sleep(10)
 
     then:
-    response.lockStatus == ACQUIRED
+    response.lockStatus == LockHeartbeatStatus.SUCCESS
 
     when: "Late heartbeat resulting in expired lock "
     request = new HeartbeatLockRequest(lock, heartbeatRetriesOnFailure, clock, Duration.ofMillis(200))
@@ -211,7 +211,7 @@ class RedisLockManagerSpec extends Specification {
     response = redisLockManager.heartbeat(request)
 
     then:
-    response.lockStatus == EXPIRED
+    response.lockStatus == LockHeartbeatStatus.EXPIRED
   }
 
   def "should support success and failure intervals when releasing a lock"() {

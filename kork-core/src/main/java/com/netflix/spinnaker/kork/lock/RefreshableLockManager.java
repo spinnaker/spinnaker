@@ -107,19 +107,19 @@ public interface RefreshableLockManager extends LockManager {
 
   class HeartbeatResponse {
     private final Lock lock;
-    private final LockStatus lockStatus;
+    private final LockHeartbeatStatus lockHeartbeatStatus;
 
-    public HeartbeatResponse(Lock lock, LockStatus lockStatus) {
+    public HeartbeatResponse(Lock lock, LockHeartbeatStatus lockHeartbeatStatus) {
       this.lock = lock;
-      this.lockStatus = lockStatus;
+      this.lockHeartbeatStatus = lockHeartbeatStatus;
     }
 
     public Lock getLock() {
       return lock;
     }
 
-    public LockStatus getLockStatus() {
-      return lockStatus;
+    public LockHeartbeatStatus getLockStatus() {
+      return lockHeartbeatStatus;
     }
 
     @Override
@@ -128,12 +128,12 @@ public interface RefreshableLockManager extends LockManager {
       if (o == null || getClass() != o.getClass()) return false;
       HeartbeatResponse that = (HeartbeatResponse) o;
       return Objects.equals(lock, that.lock) &&
-        lockStatus == that.lockStatus;
+        lockHeartbeatStatus == that.lockHeartbeatStatus;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(lock, lockStatus);
+      return Objects.hash(lock, lockHeartbeatStatus);
     }
   }
 
@@ -149,5 +149,12 @@ public interface RefreshableLockManager extends LockManager {
     public LockFailedHeartbeatException(Throwable cause) {
       super(cause);
     }
+  }
+
+  enum LockHeartbeatStatus {
+    SUCCESS,
+    EXPIRED,
+    ERROR,
+    MAX_HEARTBEAT_REACHED
   }
 }
