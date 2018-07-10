@@ -16,10 +16,13 @@
 
 package com.netflix.kayenta.judge
 
-import com.netflix.kayenta.judge.preprocessing.Transforms.{removeNaNs, replaceNaNs, removeOutliers}
+import com.netflix.kayenta.judge.preprocessing.Transforms.{removeNaNs, removeOutliers, replaceNaNs}
 import com.netflix.kayenta.judge.detectors.{IQRDetector, KSigmaDetector}
 import com.netflix.kayenta.judge.preprocessing.Transforms
+import com.netflix.kayenta.judge.utils.RandomUtils
+import org.apache.commons.math3.stat.StatUtils
 import org.scalatest.FunSuite
+import org.scalatest.Matchers._
 
 
 class TransformSuite extends FunSuite {
@@ -65,5 +68,22 @@ class TransformSuite extends FunSuite {
     val result = removeOutliers(testData, detector)
     assert(result === truth)
   }
+
+  test("Add Gaussian Noise"){
+    val seed = 12345
+    RandomUtils.init(seed)
+
+    val testData = Array(0.0, 0.0, 0.0, 0.0, 0.0)
+    val transformed = Transforms.addGaussianNoise(testData, mean = 1.0, stdev = 1.0)
+
+    val transformedMean = StatUtils.mean(transformed)
+    val transformedStdev = math.sqrt(StatUtils.variance(transformed))
+
+    assert(transformedMean === (1.0 +- 0.2))
+    assert(transformedStdev === (1.0 +- 0.2))
+    assert(transformed.length === testData.length)
+  }
+
+
 
 }

@@ -18,14 +18,13 @@ package com.netflix.kayenta.judge.preprocessing
 
 import com.netflix.kayenta.judge.Metric
 import com.netflix.kayenta.judge.detectors.BaseOutlierDetector
+import com.netflix.kayenta.judge.utils.RandomUtils
 
 
 object Transforms {
 
   /**
     * Remove NaN values from the input array
-    * @param data
-    * @return
     */
   def removeNaNs(data: Array[Double]): Array[Double] = {
     data.filter(x => !x.isNaN)
@@ -33,7 +32,6 @@ object Transforms {
 
   /**
     * Remove NaN values from the input metric
-    * @param metric
     */
   def removeNaNs(metric: Metric): Metric = {
     metric.copy(values = removeNaNs(metric.values))
@@ -41,7 +39,6 @@ object Transforms {
 
   /**
     * Replace NaN values with 0.0 from the input metric.
-    * @param metric
     */
   def replaceNaNs(metric: Metric): Metric = {
     metric.copy(values = replaceNaNs(metric.values, 0))
@@ -49,9 +46,6 @@ object Transforms {
 
   /**
     * Replace NaN values from the input array
-    * @param data
-    * @param value
-    * @return
     */
   def replaceNaNs(data: Array[Double], value: Double): Array[Double] = {
     data.map(x => if (x.isNaN) value else x)
@@ -59,8 +53,6 @@ object Transforms {
 
   /**
     * Remove outliers from the input array
-    * @param data
-    * @param detector
     */
   def removeOutliers(data: Array[Double], detector: BaseOutlierDetector): Array[Double] = {
     val outliers = detector.detect(data)
@@ -69,12 +61,26 @@ object Transforms {
 
   /**
     * Remove outliers from the input metric
-    * @param metric
-    * @param detector
-    * @return
     */
   def removeOutliers(metric: Metric, detector: BaseOutlierDetector): Metric = {
     metric.copy(values = removeOutliers(metric.values, detector))
   }
+
+  /**
+    * Add Gaussian noise to the input array
+    */
+  def addGaussianNoise(data: Array[Double], mean: Double, stdev: Double): Array[Double] = {
+    val noise = RandomUtils.normal(mean, stdev, data.length)
+    (data, noise).zipped.map(_ + _)
+  }
+
+  /**
+    * Add Gaussian noise to the input metric
+    */
+  def addGaussianNoise(metric: Metric, mean: Double, stdev: Double): Metric = {
+    metric.copy(values = addGaussianNoise(metric.values, mean, stdev))
+  }
+
+
 
 }

@@ -17,7 +17,6 @@
 package com.netflix.kayenta.judge
 
 import com.netflix.kayenta.judge.classifiers.metric._
-import com.netflix.kayenta.mannwhitney.MannWhitney
 import org.scalatest.FunSuite
 
 
@@ -372,6 +371,45 @@ class ClassifierSuite extends FunSuite{
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease, NaNStrategy.Replace)
 
     assert(result.classification == Pass)
+  }
+
+  test("Mann-Whitney Majority Tied Observations"){
+    val experimentData = Array(1.0, 1.0, 1.0, 1.0, 10.0)
+    val controlData = Array(1.0, 1.0, 1.0, 1.0, 1.0)
+
+    val experimentMetric = Metric("pass-metric", experimentData, "canary")
+    val controlMetric = Metric("pass-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == Pass)
+  }
+
+  test("Mann-Whitney Tied Ranks"){
+    val experimentData = Array(10.0, 10.0, 10.0, 10.0, 10.0)
+    val controlData = Array(1.0, 1.0, 1.0, 1.0, 1.0)
+
+    val experimentMetric = Metric("high-metric", experimentData, "canary")
+    val controlMetric = Metric("high-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == High)
+  }
+
+  test("Mann-Whitney Tied Ranks With Zeros"){
+    val experimentData = Array(10.0, 10.0, 10.0, 10.0, 10.0)
+    val controlData = Array(0.0, 0.0, 0.0, 0.0, 0.0)
+
+    val experimentMetric = Metric("high-metric", experimentData, "canary")
+    val controlMetric = Metric("high-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
+
+    assert(result.classification == High)
   }
 
   test("Mean Inequality Classifier Test: High Metric"){
