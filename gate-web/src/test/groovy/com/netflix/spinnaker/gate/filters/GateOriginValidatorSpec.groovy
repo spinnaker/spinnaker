@@ -25,7 +25,7 @@ class GateOriginValidatorSpec extends Specification {
 
   void "#desc isValidOrigin #expected"() {
     given:
-    def validator = new GateOriginValidator('http://localhost:9000', null, null)
+    def validator = new GateOriginValidator('http://localhost:9000', null, null, true)
 
     expect:
     validator.isValidOrigin(origin) == expected
@@ -41,7 +41,7 @@ class GateOriginValidatorSpec extends Specification {
 
   void "uses allowedOrigins if configured #desc"() {
     given:
-    def validator = new GateOriginValidator('http://localhost:9000', 'evil.com', /^http(s)?:\/\/good.com:7777(\/)?$/)
+    def validator = new GateOriginValidator('http://localhost:9000', 'evil.com', /^http(s)?:\/\/good.com:7777(\/)?$/, true)
 
     expect:
     validator.isValidOrigin(origin) == expected
@@ -58,7 +58,7 @@ class GateOriginValidatorSpec extends Specification {
 
   void "wildcard domain example"() {
     given:
-    def validator = new GateOriginValidator("http://foo", null, /^https?:\/\/(?:localhost|[^\/]+\.example\.com)(?::[1-9]\d*)?\/?/)
+    def validator = new GateOriginValidator("http://foo", null, /^https?:\/\/(?:localhost|[^\/]+\.example\.com)(?::[1-9]\d*)?\/?/, true)
 
     expect:
     validator.isValidOrigin(origin) == expected
@@ -75,5 +75,26 @@ class GateOriginValidatorSpec extends Specification {
     'https://www.example.com:08/'                                             | false
     'https://www.evil.com' + URLEncoder.encode('/', 'UTF-8') + '.example.com' | false
     'https://www.evil.com/.example.com/'                                      | false
+  }
+
+  void "expects gate host and localhost"() {
+    given:
+    def validator = new GateOriginValidator("http://foo", null, /^https?:\/\/(?:localhost|[^\/]+\.example\.com)(?::[1-9]\d*)?\/?/, expectLocalhost)
+
+    expect:
+    validator.isExpectedOrigin(origin) == expected
+
+    where:
+    origin                   | expectLocalhost | expected
+    'http://foo'             | true            | true
+    'https://foo'            | true            | false
+    'http://foo:9000'        | true            | false
+    'http://foo/bar'         | true            | true
+    'http://localhost:9000'  | true            | true
+    'https://localhost:9000' | true            | true
+    'http://localHost'       | true            | true
+    'http://localhost:9000'  | false           | false
+    'https://localhost:9000' | false           | false
+    'http://localHost'       | false           | false
   }
 }

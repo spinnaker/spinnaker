@@ -290,8 +290,9 @@ class GateConfig extends RedisHttpSessionConfiguration {
   OriginValidator gateOriginValidator(
     @Value('${services.deck.baseUrl}') String deckBaseUrl,
     @Value('${services.deck.redirectHostPattern:#{null}}') String redirectHostPattern,
-    @Value('${cors.allowedOriginsPattern:#{null}}') String allowedOriginsPattern) {
-    return new GateOriginValidator(deckBaseUrl, redirectHostPattern, allowedOriginsPattern)
+    @Value('${cors.allowedOriginsPattern:#{null}}') String allowedOriginsPattern,
+    @Value('${cors.expectLocalhost:false}') boolean expectLocalhost) {
+    return new GateOriginValidator(deckBaseUrl, redirectHostPattern, allowedOriginsPattern, expectLocalhost)
   }
 
   @Bean

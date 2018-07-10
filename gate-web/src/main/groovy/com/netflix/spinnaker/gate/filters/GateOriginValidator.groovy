@@ -22,11 +22,38 @@ class GateOriginValidator implements OriginValidator {
   private final URI deckUri
   private final Pattern redirectHosts
   private final Pattern allowedOrigins
+  private final boolean expectLocalhost
 
-  GateOriginValidator(String deckUri, String redirectHostsPattern, String allowedOriginsPattern) {
+  GateOriginValidator(String deckUri, String redirectHostsPattern, String allowedOriginsPattern, boolean expectLocalhost) {
     this.deckUri = deckUri ? deckUri.toURI() : null
     this.redirectHosts = redirectHostsPattern ? Pattern.compile(redirectHostsPattern) : null
     this.allowedOrigins = allowedOriginsPattern ? Pattern.compile(allowedOriginsPattern) : null
+    this.expectLocalhost = expectLocalhost
+  }
+
+  boolean isExpectedOrigin(String origin) {
+    if (!origin) {
+      return false
+    }
+
+    if (!deckUri) {
+      return false
+    }
+
+    try {
+      def uri = URI.create(origin)
+      if (!(uri.scheme && uri.host)) {
+        return false
+      }
+
+      if (expectLocalhost && uri.host.equalsIgnoreCase("localhost")) {
+        return true
+      }
+
+      return deckUri.scheme == uri.scheme && deckUri.host == uri.host && deckUri.port == uri.port
+    } catch (URISyntaxException use) {
+      return false
+    }
   }
 
   @Override
