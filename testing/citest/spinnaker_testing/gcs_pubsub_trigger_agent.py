@@ -170,7 +170,7 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
         snapshot, entity)
     trigger_status = self.__trigger_response
     trigger_status_summary = snapshot.make_entity_for_object_summary(
-        self.__trigger_status)
+        trigger_status)
     detail_doc = trigger_status.detail_doc
     status_status = detail_doc[0].get('status') if detail_doc else None
     relation = ('VALID' if status_status == 'SUCCEEDED'
