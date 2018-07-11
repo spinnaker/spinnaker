@@ -20,8 +20,12 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.notifications.RedisNotificationClusterLock;
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
+import com.netflix.spinnaker.orca.telemetry.RedisInstrumentedExecutionRepository;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.BeanCreationException;
@@ -55,6 +59,25 @@ public class RedisConfiguration {
   public static class Clients {
     public static final String EXECUTION_REPOSITORY = "executionRepository";
     public static final String TASK_QUEUE = "taskQueue";
+  }
+
+  @Bean
+  @ConditionalOnProperty(value = "executionRepository.redis.enabled", matchIfMissing = true)
+  public ExecutionRepository redisExecutionRepository(Registry registry,
+                                                      RedisClientSelector redisClientSelector,
+                                                      @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
+                                                      @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
+                                                      @Value("${chunkSize.executionRepository:75}") Integer threadPoolChunkSize) {
+    return new RedisInstrumentedExecutionRepository(
+      new RedisExecutionRepository(
+        registry,
+        redisClientSelector,
+        queryAllScheduler,
+        queryByAppScheduler,
+        threadPoolChunkSize
+      ),
+      registry
+    );
   }
 
   @Bean

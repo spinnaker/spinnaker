@@ -21,11 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
 import redis.clients.jedis.BinaryClient;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
@@ -52,7 +47,6 @@ import static com.netflix.spinnaker.orca.config.RedisConfiguration.Clients.EXECU
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.NO_TRIGGER;
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
@@ -61,8 +55,6 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER;
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE;
 
-@Component
-@ConditionalOnProperty(value = "executionRepository.redis.enabled", matchIfMissing = true)
 public class RedisExecutionRepository implements ExecutionRepository, PollingAgentExecutionRepository {
 
   private static final TypeReference<List<Task>> LIST_OF_TASKS =
@@ -102,13 +94,12 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
 
   private final Registry registry;
 
-  @Autowired
   public RedisExecutionRepository(
     Registry registry,
     RedisClientSelector redisClientSelector,
-    @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
-    @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
-    @Value("${chunkSize.executionRepository:75}") Integer threadPoolChunkSize
+    Scheduler queryAllScheduler,
+    Scheduler queryByAppScheduler,
+    Integer threadPoolChunkSize
   ) {
     this.registry = registry;
     this.redisClientDelegate = redisClientSelector.primary(EXECUTION_REPOSITORY);
