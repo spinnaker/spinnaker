@@ -4,7 +4,7 @@ MAINTAINER delivery-engineering@netflix.com
 
 COPY ./clouddriver-web/build/install/clouddriver /opt/clouddriver
 
-RUN apk --no-cache add --update bash wget unzip python=2.7.14-r2 && \
+RUN apk --no-cache add --update bash wget unzip python=2.7.15-r0 && \
   wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
   unzip -qq google-cloud-sdk.zip -d /opt && \
   rm google-cloud-sdk.zip && \
