@@ -219,6 +219,12 @@ class GcsArtifactStorageConfiguratorHelper(Configurator):
   def init_argument_parser(cls, parser, defaults):
     """Implements interface."""
     add_parser_argument(
+        parser, 'artifact_gcs_bucket', defaults, None,
+        help='The name of the bucket to create.')
+    add_parser_argument(
+        parser, 'artifact_gcs_project', defaults, None,
+        help='The name of the project the bucket to create lives in.')
+    add_parser_argument(
         parser, 'artifact_gcs_credentials', defaults, None,
         help='Path to google credentials file to configure spinnaker'
              ' artifact storage.')
@@ -246,10 +252,45 @@ class GcsArtifactStorageConfiguratorHelper(Configurator):
           'hal -q --log=info config artifact gcs account add {name}'
           .format(name=options.artifact_gcs_account_name))
       if options.artifact_gcs_credentials:
-        hal += (' --json-path ./{filename}'
-                .format(filename=os.path.basename(
-                    options.artifact_gcs_credentials)))
+        hal += (' --json-path ' + os.path.basename(
+                    options.artifact_gcs_credentials))
       script.append(hal)
+
+  @staticmethod
+  def __instantiate_client(options):
+    """Instantiates and returns storage client.
+    """
+    scopes = [
+        'https://www.googleapis.com/auth/devstorage.full_control',
+        'https://www.googleapis.com/auth/cloud-platform',
+    ]
+    credentials = service_account.Credentials.from_service_account_file(
+        options.artifact_gcs_credentials,
+        scopes=scopes)
+    storage_client = storage.Client(credentials=credentials,
+                                    project=options.artifact_gcs_project)
+    return storage_client
+
+  @classmethod
+  def setup_environment(cls, options):
+    """Implements interface."""
+    if options.artifact_gcs_bucket is None:
+      return
+
+    storage_client = GcsArtifactStorageConfiguratorHelper.__instantiate_client(options)
+    if storage_client.lookup_bucket(options.artifact_gcs_bucket) is None:
+      storage_client.create_bucket(options.artifact_gcs_bucket)
+
+  @classmethod
+  def teardown_environment(cls, options):
+    """Implements interface."""
+    if options.artifact_gcs_bucket is None:
+      return
+
+    storage_client = GcsArtifactStorageConfiguratorHelper.__instantiate_client(options)
+    bucket = storage_client.lookup_bucket(options.artifact_gcs_bucket)
+    if bucket is not None:
+      bucket.delete(force=True)
 
 
 class GcsStorageConfiguratorHelper(Configurator):
@@ -345,6 +386,16 @@ class ArtifactConfigurator(Configurator):
     """Implements interface."""
     for helper in self.HELPERS:
       helper.add_config(options, script)
+
+  def setup_environment(self, options):
+    """Implements interface."""
+    for helper in self.HELPERS:
+      helper.setup_environment(options)
+
+  def teardown_environment(self, options):
+    """Implements interface."""
+    for helper in self.HELPERS:
+      helper.teardown_environment(options)
 
 
 class StorageConfigurator(Configurator):
@@ -1190,7 +1241,8 @@ class GcsPubsubNotficationConfigurator(Configurator):
     subscription_ref = subscriber_client.subscription_path(
         options.gcs_pubsub_project, options.gcs_pubsub_subscription)
     subscriber_client.create_subscription(subscription_ref, topic_ref)
-    storage_client.create_bucket(options.gcs_pubsub_bucket)
+    if storage_client.lookup_bucket(options.gcs_pubsub_bucket) is None:
+      storage_client.create_bucket(options.gcs_pubsub_bucket)
 
     bucket = storage_client.get_bucket(options.gcs_pubsub_bucket)
     notification = bucket.notification(
@@ -1212,7 +1264,9 @@ class GcsPubsubNotficationConfigurator(Configurator):
         options.gcs_pubsub_project, options.gcs_pubsub_subscription))
     publisher_client.delete_topic(publisher_client.topic_path(
         options.gcs_pubsub_project, options.gcs_pubsub_topic))
-    storage_client.delete_bucket(options.gcs_pubsub_bucket)
+    bucket = storage_client.lookup_bucket(options.gcs_pubsub_bucket)
+    if bucket is not None:
+      bucket.delete(force=True)
 
 
 class JenkinsConfigurator(Configurator):
