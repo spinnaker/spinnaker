@@ -32,8 +32,8 @@ import org.springframework.stereotype.Component
 @Component
 @Slf4j
 class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
-  long backoffPeriod = TimeUnit.SECONDS.toMillis(5)
-  long timeout = TimeUnit.MINUTES.toMillis(5)
+  long backoffPeriod = TimeUnit.SECONDS.toMillis(30)
+  long timeout = TimeUnit.MINUTES.toMillis(15)
 
   @Autowired
   KatoService kato
@@ -67,7 +67,12 @@ class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implem
       serverGroups.each { String serverGroup ->
         Collection<Map<String, Object>> tags = tagGenerators ?
           tagGenerators.findResults {
-            it.generateTags(stage, serverGroup, getCredentials(stage), region, getCloudProvider(stage))
+            try {
+              return it.generateTags(stage, serverGroup, getCredentials(stage), region, getCloudProvider(stage))
+            } catch (Exception e) {
+              log.error("TagGenerator ${it.class} failed for $serverGroup", e)
+              return []
+            }
           }.flatten() :
           []
         if (!tags) {

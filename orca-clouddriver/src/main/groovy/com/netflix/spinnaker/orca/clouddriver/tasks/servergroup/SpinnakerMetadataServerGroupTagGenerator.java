@@ -118,7 +118,7 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
         return getPreviousServerGroupFromClusterByTarget(
           application, account, cluster, cloudProvider, location, "NEWEST"
         );
-      }, 12, 5000, false); // retry for up to one minute
+      }, 10, 3000, false); // retry for up to 30 seconds
 
       if (newestServerGroup == null) {
         // cluster has no enabled server groups
@@ -136,7 +136,7 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
       return getPreviousServerGroupFromClusterByTarget(
         application, account, cluster, cloudProvider, location, "ANCESTOR"
       );
-    }, 12, 5000, false); // retry for up to one minute
+    }, 10, 3000, false); // retry for up to 30 seconds
   }
 
   Map<String, Object> getPreviousServerGroupFromClusterByTarget(String application,
