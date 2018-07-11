@@ -22,13 +22,18 @@ class DockerImage {
 
   String imageName
   String imageVersion
+  String imageDigest
 
   DockerImage(String imageId) {
     if (!imageId) throw new IllegalArgumentException("Invalid docker image id specified: ${imageId}")
     String[] imageNameParts = imageId.split(IMAGE_NAME_SEPARATOR)
-    if (imageNameParts.size() != 2) throw new IllegalArgumentException("Invalid docker image id specified: ${imageId}")
+    if (imageNameParts.size() != 2 && imageNameParts.size() != 3) throw new IllegalArgumentException("Invalid docker image id specified: ${imageId}")
     this.imageName = imageNameParts[0]
-    this.imageVersion = imageNameParts[1]
+    if(imageNameParts.size() == 2){
+      this.imageVersion = imageNameParts[1]
+    } else {
+      this.imageDigest = imageNameParts[1..2].join(IMAGE_NAME_SEPARATOR)
+    }
   }
 
   static class DockerImageResolver {
@@ -42,10 +47,18 @@ class DockerImage {
      */
     static DockerImage resolveImage(String image) {
       String[] imageNameParts = image.split(IMAGE_NAME_SEPARATOR)
-      return new DockerImage(
-        imageName: imageNameParts[0],
-        imageVersion: imageNameParts[1]
-      )
+
+      if( imageNameParts.size() == 2) {
+        return new DockerImage(
+          imageName: imageNameParts[0],
+          imageVersion: imageNameParts[1]
+        )
+      } else {
+        return new DockerImage(
+          imageName: imageNameParts[0],
+          imageDigest: imageNameParts[1..2].join(IMAGE_NAME_SEPARATOR)
+        )
+      }
     }
   }
 }

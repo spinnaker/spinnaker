@@ -30,6 +30,7 @@ public class JobDescription {
   private String type;
   private String applicationName;
   private String version;
+  private String digest;
   private int instancesDesired;
   private int instancesMax;
   private int instancesMin;
@@ -73,6 +74,7 @@ public class JobDescription {
     name = request.getJobName();
     applicationName = request.getDockerImageName();
     version = request.getDockerImageVersion();
+    digest = request.getDockerDigest();
     instancesDesired = request.getInstanceDesired();
     instancesMin = request.getInstanceMin();
     instancesMax = request.getInstanceMax();
@@ -377,6 +379,10 @@ public class JobDescription {
     this.securityGroups = securityGroups;
   }
 
+  public void setDigest(String digest) { this.digest = digest; }
+
+  public String getDigest() { return digest; }
+
   @JsonIgnore
   public Map<String, String> getSecurityAttributes() {
     return securityAttributes;
@@ -451,7 +457,16 @@ public class JobDescription {
     }
 
     containerBuilder.setSecurityProfile(securityProfile);
-    containerBuilder.setImage(Image.newBuilder().setName(applicationName).setTag(version));
+
+    Image.Builder imageBuilder = Image.newBuilder();
+    imageBuilder.setName(applicationName);
+    if(digest!=null){
+      imageBuilder.setDigest(digest);
+    } else {
+      imageBuilder.setTag(version);
+    }
+
+    containerBuilder.setImage(imageBuilder);
 
     if (entryPoint != null) {
       containerBuilder.addEntryPoint(entryPoint);

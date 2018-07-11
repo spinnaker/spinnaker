@@ -127,7 +127,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
         description.runtimeLimitSecs = description.runtimeLimitSecs ?: sourceJob.runtimeLimitSecs
         description.securityGroups = description.securityGroups ?: sourceJob.securityGroups
-        description.imageId = description.imageId ?: (sourceJob.applicationName + ":" + sourceJob.version)
+        description.imageId = description.imageId ?: (sourceJob.applicationName + ":" + (sourceJob.version ?: sourceJob.digest ))
 
         if (description.source.useSourceCapacity) {
           description.capacity.min = sourceJob.instancesMin
@@ -211,7 +211,6 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       SubmitJobRequest submitJobRequest = new SubmitJobRequest()
         .withApplication(description.application)
         .withDockerImageName(dockerImage.imageName)
-        .withDockerImageVersion(dockerImage.imageVersion)
         .withInstancesMin(description.capacity.min)
         .withInstancesMax(description.capacity.max)
         .withInstancesDesired(description.capacity.desired)
@@ -236,6 +235,12 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withMigrationPolicy(description.migrationPolicy)
         .withCredentials(description.credentials.name)
         .withContainerAttributes(description.containerAttributes.collectEntries { [(it.key): it.value?.toString()] })
+
+      if(dockerImage.imageDigest!=null){
+        submitJobRequest = submitJobRequest.withDockerDigest(dockerImage.imageDigest)
+      } else {
+        submitJobRequest = submitJobRequest.withDockerImageVersion(dockerImage.imageVersion)
+      }
 
       Set<String> securityGroups = []
       description.securityGroups?.each { providedSecurityGroup ->

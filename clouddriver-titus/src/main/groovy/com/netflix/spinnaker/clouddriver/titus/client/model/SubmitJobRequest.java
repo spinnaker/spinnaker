@@ -59,6 +59,7 @@ public class SubmitJobRequest {
   private String jobName;
   private String dockerImageName;
   private String dockerImageVersion;
+  private String dockerDigest;
   private String stack;
   private String detail;
   private String user;
@@ -108,6 +109,11 @@ public class SubmitJobRequest {
 
   public SubmitJobRequest withDockerImageVersion(String dockerImageVersion) {
     this.dockerImageVersion = dockerImageVersion;
+    return this;
+  }
+
+  public SubmitJobRequest withDockerDigest(String dockerDigest) {
+    this.dockerDigest = dockerDigest;
     return this;
   }
 
@@ -321,6 +327,8 @@ public class SubmitJobRequest {
   public String getDockerImageVersion() {
     return dockerImageVersion;
   }
+
+  public String getDockerDigest() { return dockerDigest; }
 
   public boolean getAllocateIpAddress() {
     return allocateIpAddress;

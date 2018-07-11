@@ -69,6 +69,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     name = job.name
     image << [dockerImageName: job.applicationName]
     image << [dockerImageVersion: job.version]
+    image << [dockerImageDigest: job.digest]
     entryPoint = job.entryPoint
     iamProfile = job.iamProfile
     resources.cpu = job.cpu
@@ -97,10 +98,11 @@ class TitusServerGroup implements ServerGroup, Serializable {
     efs = job.efs
     migrationPolicy = job.migrationPolicy
     buildInfo = [
-      images: ["${image.dockerImageName}:${image.dockerImageVersion}".toString()],
+      images: ["${image.dockerImageName}:${image.dockerImageVersion ?: image.dockerImageDigest}".toString()],
       docker: [
-        "image": "${image.dockerImageName}".toString(),
-        "tag"  : "${image.dockerImageVersion}".toString()
+        "image" : "${image.dockerImageName}".toString(),
+        "tag"   : "${image.dockerImageVersion}".toString(),
+        "digest": "${image.dockerImageDigest}".toString()
       ]
     ]
   }
@@ -155,7 +157,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   @Override
   ServerGroup.ImagesSummary getImagesSummary() {
     def i = image
-    String imageDetails = "${i.dockerImageName}:${i.dockerImageVersion}"
+    String imageDetails = "${i.dockerImageName}:${i.dockerImageVersion?: i.dockerImageDigest}"
     return new ServerGroup.ImagesSummary() {
       @Override
       List<ServerGroup.ImageSummary> getSummaries() {

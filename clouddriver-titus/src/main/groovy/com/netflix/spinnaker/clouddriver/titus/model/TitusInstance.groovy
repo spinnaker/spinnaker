@@ -59,6 +59,7 @@ class TitusInstance implements Instance {
     application = Names.parseName(job.name).app
     image << [dockerImageName: job.applicationName]
     image << [dockerImageVersion: job.version]
+    image << [dockerImageDigest: job.digest]
     state = task.state
     placement.account = job.environment?.account
     placement.region = task.region

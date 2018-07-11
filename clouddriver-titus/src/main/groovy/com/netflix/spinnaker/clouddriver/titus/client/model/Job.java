@@ -28,6 +28,7 @@ public class Job {
   private String type;
   private List<String> tags;
   private String applicationName;
+  private String digest;
   private String appName;
   private String user;
   private String version;
@@ -111,6 +112,7 @@ public class Job {
     name = grpcJob.getJobDescriptor().getAttributesOrDefault("name", appName);
     applicationName = grpcJob.getJobDescriptor().getContainer().getImage().getName();
     version = grpcJob.getJobDescriptor().getContainer().getImage().getTag();
+    digest = grpcJob.getJobDescriptor().getContainer().getImage().getDigest();
     entryPoint = grpcJob.getJobDescriptor().getContainer().getEntryPointList().stream().collect(Collectors.joining(" "));
     capacityGroup = grpcJob.getJobDescriptor().getCapacityGroup();
     cpu = (int) grpcJob.getJobDescriptor().getContainer().getResources().getCpu();
@@ -437,5 +439,9 @@ public class Job {
   public String getJobState() {
     return jobState;
   }
+
+  public void setDigest(String digest) { this.digest = digest; }
+
+  public String getDigest() { return digest; }
 
 }
