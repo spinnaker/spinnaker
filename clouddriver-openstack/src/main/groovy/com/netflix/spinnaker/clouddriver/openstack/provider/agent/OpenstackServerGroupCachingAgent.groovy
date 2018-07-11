@@ -214,7 +214,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       .account(accountName)
       .region(region)
       .name(stack?.name)
-      .createdTime(DateUtils.parseZonedDateTime(stack.creationTime).toInstant().toEpochMilli())
+      .createdTime(stack == null ? null : DateUtils.parseZonedDateTime(stack.creationTime).toInstant().toEpochMilli())
       .scalingConfig(buildScalingConfig(params))
       .launchConfig(launchConfig)
       .loadBalancers(loadbalancerIds)
