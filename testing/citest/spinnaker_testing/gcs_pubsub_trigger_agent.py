@@ -39,6 +39,14 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
     # end-to-end. Other use cases might make it more clear what this should be.
     self.default_max_wait_secs = 780
 
+  def upload_string(self, bucket_name, upload_path, contents):
+    """Uploads a local file to a bucket at a relative upload path.
+    """
+    logging.info('Uploading string to bucket %s at path %s', bucket_name, upload_path)
+    bucket = self.__client.get_bucket(bucket_name)
+    upload_blob = bucket.blob(upload_path)
+    upload_blob.upload_from_string(contents)
+
   def upload_file(self, bucket_name, upload_path, local_filename):
     """Uploads a local file to a bucket at a relative upload path.
     """
