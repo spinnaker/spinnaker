@@ -265,12 +265,14 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
       new TypeReference<Map<String, List<MutableCacheData>>>() {})
 
     onDemandData.each { String namespace, List<MutableCacheData> cacheDatas ->
-      cacheDatas.each { MutableCacheData cacheData ->
-        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with { it ->
-          it.attributes = cacheData.attributes
-          it.relationships = Utils.mergeOnDemandCacheRelationships(cacheData.relationships, it.relationships)
+      if (namespace != 'onDemand') {
+        cacheDatas.each { MutableCacheData cacheData ->
+          cacheResultBuilder.namespace(namespace).keep(cacheData.id).with { it ->
+            it.attributes = cacheData.attributes
+            it.relationships = Utils.mergeOnDemandCacheRelationships(cacheData.relationships, it.relationships)
+          }
+          cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
         }
-        cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
       }
     }
   }

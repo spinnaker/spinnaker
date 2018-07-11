@@ -346,24 +346,25 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
 
   static boolean shouldUseOnDemandData(CacheResultBuilder cacheResultBuilder, String serverGroupKey) {
     CacheData cacheData = cacheResultBuilder.onDemand.toKeep[serverGroupKey]
-
     return cacheData ? cacheData.attributes.cacheTime >= cacheResultBuilder.startTime : false
   }
 
   void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder,
-                                          GoogleServerGroup googleServerGroup) {
+                                   GoogleServerGroup googleServerGroup) {
     def serverGroupKey = getServerGroupKey(googleServerGroup)
     Map<String, List<MutableCacheData>> onDemandData = objectMapper.readValue(
       cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults as String,
       new TypeReference<Map<String, List<MutableCacheData>>>() {})
 
     onDemandData.each { String namespace, List<MutableCacheData> cacheDatas ->
-      cacheDatas.each { MutableCacheData cacheData ->
-        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with { it ->
-          it.attributes = cacheData.attributes
-          it.relationships = Utils.mergeOnDemandCacheRelationships(cacheData.relationships, it.relationships)
+      if (namespace != 'onDemand') {
+        cacheDatas.each { MutableCacheData cacheData ->
+          cacheResultBuilder.namespace(namespace).keep(cacheData.id).with { it ->
+            it.attributes = cacheData.attributes
+            it.relationships = Utils.mergeOnDemandCacheRelationships(cacheData.relationships, it.relationships)
+          }
+          cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
         }
-        cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
       }
     }
   }
