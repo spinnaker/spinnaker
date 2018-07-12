@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, ExpectedArtifactService } from '@spinnaker/core';
 
 import { KubernetesProviderSettings } from '../../kubernetes.settings';
 
@@ -138,6 +138,8 @@ module.exports = angular
           return 'Find Image Result(s)';
         } else if (container.imageDescription.fromTrigger) {
           return 'Images from Trigger(s)';
+        } else if (container.imageDescription.fromArtifact) {
+          return 'Images from Artifact(s)';
         } else {
           return container.imageDescription.registry;
         }
@@ -151,6 +153,8 @@ module.exports = angular
         return `${image.repository} (Baked during execution)`;
       } else if (image.fromTrigger && !image.tag) {
         return `${image.registry}/${image.repository} (Tag resolved at runtime)`;
+      } else if (image.fromArtifact) {
+        return `${image.name} (Artifact resolved at runtime)`;
       } else {
         if (image.registry) {
           return `${image.registry}/${image.repository}:${image.tag}`;
@@ -161,29 +165,47 @@ module.exports = angular
     }
 
     function reconcileUpstreamImages(containers, upstreamImages) {
+      const getConfig = image => {
+        if (image.fromContext) {
+          return {
+            match: a => b => a.stageId === b.stageId,
+            fieldsToCopy: matchImage => {
+              const { cluster, pattern, repository } = matchImage;
+              return { cluster, pattern, repository };
+            },
+          };
+        } else if (image.fromTrigger) {
+          return {
+            match: a => b => a.registry === b.registry && a.repository === b.repository && a.tag === b.tag,
+            fieldsToCopy: () => ({}),
+          };
+        } else if (image.fromArtifact) {
+          return {
+            match: a => b => a.stageId === b.stageId,
+            fieldsToCopy: matchImage => {
+              const { name } = matchImage;
+              return { name };
+            },
+          };
+        } else {
+          return {
+            skipProcessing: true,
+          };
+        }
+      };
+
       let result = [];
       containers.forEach(container => {
-        if (container.imageDescription.fromContext) {
-          let matchingImage = upstreamImages.find(image => container.imageDescription.stageId === image.stageId);
-          if (matchingImage) {
-            container.imageDescription.cluster = matchingImage.cluster;
-            container.imageDescription.pattern = matchingImage.pattern;
-            container.imageDescription.repository = matchingImage.repository;
-            result.push(container);
-          }
-        } else if (container.imageDescription.fromTrigger) {
-          let matchingImage = upstreamImages.find(image => {
-            return (
-              container.imageDescription.registry === image.registry &&
-              container.imageDescription.repository === image.repository &&
-              container.imageDescription.tag === image.tag
-            );
-          });
-          if (matchingImage) {
-            result.push(container);
-          }
-        } else {
+        let imageDescription = container.imageDescription;
+        let imageConfig = getConfig(imageDescription);
+        if (imageConfig.skipProcessing) {
           result.push(container);
+        } else {
+          let matchingImage = upstreamImages.find(imageConfig.match(imageDescription));
+          if (matchingImage) {
+            Object.assign(imageDescription, imageConfig.fieldsToCopy(matchingImage));
+            result.push(container);
+          }
         }
       });
       return result;
@@ -242,9 +264,21 @@ module.exports = angular
         });
     }
 
+    function findArtifactImages(currentStage, pipeline) {
+      let artifactImages = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline)
+        .filter(artifact => artifact.matchArtifact.type === 'docker/image')
+        .map(artifact => ({
+          fromArtifact: true,
+          artifactId: artifact.id,
+          name: artifact.matchArtifact.name,
+        }));
+      return artifactImages;
+    }
+
     function buildNewClusterCommandForPipeline(current, pipeline) {
       let contextImages = findContextImages(current, pipeline.stages) || [];
       contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
+      contextImages = contextImages.concat(findArtifactImages(current, pipeline));
       return {
         strategy: '',
         viewState: {
@@ -261,6 +295,7 @@ module.exports = angular
       let command = _.cloneDeep(originalCommand);
       let contextImages = findContextImages(current, pipeline.stages) || [];
       contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
+      contextImages = contextImages.concat(findArtifactImages(current, pipeline));
       command.containers = reconcileUpstreamImages(command.containers, contextImages);
       command.containers.map(container => {
         container.imageDescription.imageId = buildImageId(container.imageDescription);
