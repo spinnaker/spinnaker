@@ -694,12 +694,14 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
     write_data_to_secure_path('', os.path.join(log_dir, service + '.log'))
     service_dir = service if service != 'spinnaker-monitoring' else 'monitoring'
     retcode, stdout = run_subprocess(
-        'scp'
+        'ssh'
         ' -i {ssh_key}'
         ' -o StrictHostKeyChecking=no'
         ' -o UserKnownHostsFile=/dev/null'
-        ' {user}@{ip}:/var/log/spinnaker/{service_dir}/{service_name}.log'
-        ' {log_dir}'
+        ' {user}@{ip}'
+        ' "if [[ -f /var/log/spinnaker/{service_dir}/{service_name}.log ]];'
+        '  then cat /var/log/spinnaker/{service_dir}/{service_name}.log;'
+        '  else journalctl -u {service_name}; fi"'
         .format(user=self.hal_user,
                 ip=self.instance_ip,
                 ssh_key=self.ssh_key_path,
