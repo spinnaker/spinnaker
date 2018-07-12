@@ -92,8 +92,6 @@ module.exports = angular
         delete labels['name'];
         delete labels['source'];
         delete labels['spinnakerAccount'];
-        delete labels['NETFLIX_APP_METADATA'];
-        delete labels['NETFLIX_APP_METADATA_SIG'];
 
         Object.keys(labels).forEach(key => {
           if (key.startsWith('titus.')) {
