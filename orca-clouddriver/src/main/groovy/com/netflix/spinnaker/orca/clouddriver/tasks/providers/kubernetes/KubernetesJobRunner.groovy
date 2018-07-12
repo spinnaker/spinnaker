@@ -18,7 +18,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
@@ -27,6 +29,9 @@ class KubernetesJobRunner implements JobRunner {
 
   boolean katoResultExpected = false
   String cloudProvider = "kubernetes"
+
+  @Autowired
+  ArtifactResolver artifactResolver
 
   @Override
   List<Map> getOperations(Stage stage) {
@@ -39,7 +44,7 @@ class KubernetesJobRunner implements JobRunner {
       operation.putAll(stage.context)
     }
 
-    KubernetesContainerFinder.populateFromStage(operation, stage)
+    KubernetesContainerFinder.populateFromStage(operation, stage, artifactResolver)
 
     return [[(OPERATION): operation]]
   }

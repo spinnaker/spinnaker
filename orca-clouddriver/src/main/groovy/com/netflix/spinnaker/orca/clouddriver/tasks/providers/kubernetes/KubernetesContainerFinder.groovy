@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
 import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 class KubernetesContainerFinder {
@@ -52,7 +54,7 @@ class KubernetesContainerFinder {
     return [registry: registry, tag: tag, repository: imageName ]
   }
 
-  static void populateFromStage(Map operation, Stage stage) {
+  static void populateFromStage(Map operation, Stage stage, ArtifactResolver artifactResolver) {
     // If this is a stage in a pipeline, look in the context for the baked image.
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
 
@@ -93,6 +95,11 @@ class KubernetesContainerFinder {
         if (!container.imageDescription.tag) {
           throw new IllegalStateException("No tag found for image ${container.imageDescription.registry}/${container.imageDescription.repository} in trigger context.")
         }
+      }
+
+      if (container.imageDescription.fromArtifact) {
+        def resolvedArtifact = artifactResolver.getBoundArtifactForId(stage, container.imageDescription.artifactId)
+        container.imageDescription.uri = resolvedArtifact.reference
       }
     }
   }
