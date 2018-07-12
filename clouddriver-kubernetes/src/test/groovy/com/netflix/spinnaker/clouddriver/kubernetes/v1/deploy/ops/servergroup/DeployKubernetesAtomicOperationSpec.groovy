@@ -119,7 +119,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
       ])
     ])
 
-    imageId = KubernetesUtil.getImageId(REGISTRY, REPOSITORY, TAG)
+    imageId = KubernetesUtil.getImageId(REGISTRY, REPOSITORY, TAG, null)
     def imageDescription = KubernetesUtil.buildImageDescription(imageId)
 
     DOCKER_REGISTRY_ACCOUNTS.forEach({ account ->

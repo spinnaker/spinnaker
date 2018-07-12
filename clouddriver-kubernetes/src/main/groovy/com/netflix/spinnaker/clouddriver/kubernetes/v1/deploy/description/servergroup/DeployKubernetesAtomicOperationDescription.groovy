@@ -83,9 +83,10 @@ class KubernetesContainerPort {
 @AutoClone
 @Canonical
 class KubernetesImageDescription {
+  String registry
   String repository
   String tag
-  String registry
+  String digest
 }
 
 @AutoClone

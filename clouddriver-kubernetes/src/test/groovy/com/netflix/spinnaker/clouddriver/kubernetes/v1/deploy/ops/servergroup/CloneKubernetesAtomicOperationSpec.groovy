@@ -77,7 +77,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def setup() {
     apiMock = Mock(KubernetesApiAdaptor)
 
-    def imageId = KubernetesUtil.getImageId(REGISTRY, REPOSITORY, TAG)
+    def imageId = KubernetesUtil.getImageId(REGISTRY, REPOSITORY, TAG, null)
     def imageDescription = KubernetesUtil.buildImageDescription(imageId)
 
     containers = []

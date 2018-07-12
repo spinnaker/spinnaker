@@ -63,32 +63,43 @@ class KubernetesUtil {
     rc.spec?.template?.spec?.imagePullSecrets?.collect({ it.name })
   }
 
-  static KubernetesImageDescription buildImageDescription(String image) {
-    def sIndex = image.indexOf('/')
-    def result = new KubernetesImageDescription()
-
+  private static String extractRegistry(String image, KubernetesImageDescription description) {
+    def index = image.indexOf('/')
     // No slash means we only provided a repository name & optional tag.
-    if (sIndex < 0) {
-      result.repository = image
-    } else {
-      def sPrefix = image.substring(0, sIndex)
+    if (index >= 0) {
+      def sPrefix = image.substring(0, index)
 
       // Check if the content before the slash is a registry (either localhost, or a URL)
       if (sPrefix.startsWith('localhost') || sPrefix.contains('.')) {
-        result.registry = sPrefix
-
-        image = image.substring(sIndex + 1)
+        description.registry = sPrefix
+        image = image.substring(index + 1)
       }
     }
+    image
+  }
 
-    def cIndex = image.indexOf(':')
-
-    if (cIndex < 0) {
-      result.repository = image
+  private static String extractDigestOrTag(String image, KubernetesImageDescription description) {
+    def digestIndex = image.indexOf('@')
+    if (digestIndex >= 0) {
+      description.digest = image.substring(digestIndex + 1)
+      image = image.substring(0, digestIndex)
     } else {
-      result.tag = image.substring(cIndex + 1)
-      result.repository = image.subSequence(0, cIndex)
+      def tagIndex = image.indexOf(':')
+      if (tagIndex >= 0) {
+        description.tag = image.substring(tagIndex + 1)
+        image = image.substring(0, tagIndex)
+      }
     }
+    image
+  }
+
+  static KubernetesImageDescription buildImageDescription(String image) {
+    def result = new KubernetesImageDescription()
+
+    image = extractRegistry(image, result)
+    image = extractDigestOrTag(image, result)
+    // The repository is what's left after extracting the registry, and digest/tag
+    result.repository = image
 
     normalizeImageDescription(result)
     result
@@ -99,7 +110,7 @@ class KubernetesUtil {
       image.registry = DEFAULT_REGISTRY
     }
 
-    if (!image.tag) {
+    if (!image.tag && !image.digest) {
       image.tag = "latest"
     }
 
@@ -109,19 +120,21 @@ class KubernetesUtil {
   }
 
   static String getImageId(KubernetesImageDescription image) {
-    return getImageId(image.registry, image.repository, image.tag)
+    return getImageId(image.registry, image.repository, image.tag, image.digest)
   }
 
-  static String getImageId(String registry, String repository, String tag) {
+  static String getImageId(String registry, String repository, String tag, String digest) {
+    def tagSuffix = digest ? "@$digest" : ":$tag"
     if (registry) {
-      return "$registry/$repository:$tag".toString()
+      return "$registry/$repository$tagSuffix".toString()
     } else {
-      return "$repository:$tag".toString()
+      return "$repository$tagSuffix".toString()
     }
   }
 
   static getImageIdWithoutRegistry(KubernetesImageDescription image) {
-    "$image.repository:$image.tag".toString()
+    def tagSuffix = image.digest ? "@$image.digest" : ":$image.tag"
+    "$image.repository$tagSuffix".toString()
   }
 
   static String validateNamespace(KubernetesV1Credentials credentials, String namespace) {

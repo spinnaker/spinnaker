@@ -27,6 +27,8 @@ class KubernetesUtilSpec extends Specification {
   private static final String REPOSITORY2 = 'library/nginx'
   private static final String TAG1 = '1.0'
   private static final String TAG2 = 'mytag'
+  private static final String DIGEST1 = 'sha256:1b0a6c01c29ff911bf5c9857e29b8847a98f80b2b1b785622d78e317d25503dd'
+  private static final String DIGEST2 = 'sha256:c98c24b677eff44860afea6f493bbaec5bb1c4cbb209c6fc2bbb47f66ff2ad31'
 
   @Unroll
   void "should correctly build an image description"() {
@@ -37,6 +39,7 @@ class KubernetesUtilSpec extends Specification {
       imageDescription.registry == registry
       imageDescription.repository == repository
       imageDescription.tag == tag
+      imageDescription.digest == null
 
     where:
       registry  | repository  | tag
@@ -49,4 +52,28 @@ class KubernetesUtilSpec extends Specification {
       REGISTRY2 | REPOSITORY2 | TAG1
       REGISTRY2 | REPOSITORY2 | TAG2
   }
+
+  @Unroll
+  void "should correctly build an image description from a digest"() {
+    when:
+    def imageDescription = KubernetesUtil.buildImageDescription("$registry/$repository@$digest")
+
+    then:
+    imageDescription.registry == registry
+    imageDescription.repository == repository
+    imageDescription.tag == null
+    imageDescription.digest == digest
+
+    where:
+    registry  | repository  | digest
+    REGISTRY1 | REPOSITORY1 | DIGEST1
+    REGISTRY1 | REPOSITORY1 | DIGEST2
+    REGISTRY1 | REPOSITORY2 | DIGEST1
+    REGISTRY1 | REPOSITORY2 | DIGEST2
+    REGISTRY2 | REPOSITORY1 | DIGEST1
+    REGISTRY2 | REPOSITORY1 | DIGEST2
+    REGISTRY2 | REPOSITORY2 | DIGEST1
+    REGISTRY2 | REPOSITORY2 | DIGEST2
+  }
+
 }
