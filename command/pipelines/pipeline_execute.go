@@ -61,6 +61,16 @@ func (c *PipelineExecuteCommand) executePipeline() (gate.HttpEntity, *http.Respo
 	return entity, resp, err
 }
 
+func (c *PipelineExecuteCommand) queryExecution() ([]interface{}, *http.Response, error) {
+	return c.ApiMeta.GateClient.ExecutionsControllerApi.SearchForPipelineExecutionsByTriggerUsingGET(
+		c.ApiMeta.Context,
+		c.application,
+		map[string]interface{}{
+			"pipelineName": c.name,
+			"statuses":     "RUNNING",
+		})
+}
+
 func (c *PipelineExecuteCommand) Run(args []string) int {
 	var err error
 	f := c.flagSet()
@@ -82,7 +92,7 @@ func (c *PipelineExecuteCommand) Run(args []string) int {
 	_, resp, err := c.executePipeline()
 
 	if err != nil {
-		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
+		c.ApiMeta.Ui.Error(fmt.Sprintf("Execute pipeline failed with response: %v and error: %s\n", resp, err))
 		return 1
 	}
 
@@ -91,7 +101,30 @@ func (c *PipelineExecuteCommand) Run(args []string) int {
 		return 1
 	}
 
-	c.ApiMeta.Ui.Output(c.ApiMeta.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline execution started")))
+	executions := make([]interface{}, 0)
+	attempts := 0
+	for len(executions) == 0 && attempts < 5 {
+		executions, resp, err = c.queryExecution()
+		attempts += 1
+	}
+	if err != nil {
+		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
+		return 1
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		c.ApiMeta.Ui.Error(fmt.Sprintf("Encountered an error querying pipeline execution, status code: %d\n", resp.StatusCode))
+		return 1
+	}
+	if len(executions) == 0 {
+		c.ApiMeta.Ui.Error(fmt.Sprintf("Unable to start any executions, server response was: %v", resp))
+		return 1
+	}
+
+	refIds := make([]string, 0)
+	for _, execution := range executions {
+		refIds = append(refIds, execution.(map[string]interface{})["id"].(string))
+	}
+	c.ApiMeta.Ui.Output(fmt.Sprintf("%v", refIds))
 	return 0
 }
 

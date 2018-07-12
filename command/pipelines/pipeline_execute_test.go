@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/spinnaker/spin/command"
@@ -128,13 +129,27 @@ func TestPipelineExecute_missingapp(t *testing.T) {
 }
 
 // testGatePipelineExecuteSuccess spins up a local http server that we will configure the GateClient
-// to direct requests to. Responds with a 200 OK.
+// to direct requests to. Responds with successful responses to pipeline execute API calls.
 func testGatePipelineExecuteSuccess() *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// This is an HttpEntity.
-		resp := gate.ResponseEntity{StatusCode: "200 OK", StatusCodeValue: 200}
+	mux := http.NewServeMux()
+	mux.Handle("/pipelines/app/one", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := gate.ResponseEntity{StatusCode: "201 Accepted", StatusCodeValue: 201}
 		b, _ := json.Marshal(&resp)
+
 		w.WriteHeader(http.StatusAccepted)
-		fmt.Fprintln(w, string(b)) // Just write an empty 200 success on save.
+		fmt.Fprintln(w, string(b)) // Write empty 201.
 	}))
+	mux.Handle("/applications/app/executions/search", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, strings.TrimSpace(executions))
+	}))
+	return httptest.NewServer(mux)
 }
+
+const executions = `
+[
+  {
+    "id": "asdflkj"
+  }
+]
+`

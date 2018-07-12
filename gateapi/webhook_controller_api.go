@@ -97,13 +97,14 @@ func (a *WebhookControllerApiService) PreconfiguredWebhooksUsingGET(ctx context.
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xHubSignature" (string) X-Hub-Signature
      @param "xEventKey" (string) X-Event-Key
- @return */
-func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, type_ string, source string, event interface{}, localVarOptionals map[string]interface{}) ( *http.Response, error) {
+ @return interface{}*/
+func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, type_ string, source string, event interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
+	 	successPayload  interface{}
 	)
 
 	// create path and map variables
@@ -116,10 +117,10 @@ func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, typ
 	localVarFormParams := url.Values{}
 
 	if err := typeCheckParameter(localVarOptionals["xHubSignature"], "string", "xHubSignature"); err != nil {
-		return nil, err
+		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["xEventKey"], "string", "xEventKey"); err != nil {
-		return nil, err
+		return successPayload, nil, err
 	}
 
 	// to determine the Content-Type header
@@ -151,19 +152,24 @@ func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, typ
 	localVarPostBody = &event
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
-		return nil, err
+		return successPayload, nil, err
 	}
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {
-		return localVarHttpResponse, err
+		return successPayload, localVarHttpResponse, err
 	}
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
-	return localVarHttpResponse, err
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
 }
 
