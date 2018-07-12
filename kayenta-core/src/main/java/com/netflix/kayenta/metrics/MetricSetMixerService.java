@@ -55,22 +55,18 @@ public class MetricSetMixerService {
         " do not match experiment metric set tags " + experimentTags + ".");
     }
 
-    if (controlValues.size() != experimentValues.size()) {
-      List<Double> smallerList;
-
-      if (controlValues.size() > experimentValues.size()) {
-        smallerList = experimentValues = new ArrayList<>(experimentValues);
-      } else {
-        smallerList = controlValues = new ArrayList<>(controlValues);
+    // If we know how many data points we should expect, pad the array to contain that number.
+    // This typically only happens when one side (control or experiment) have no data at all.
+    if (controlMetricSet.expectedDataPoints() > controlValues.size()) {
+      controlValues = new ArrayList<>(controlValues);
+      while (controlMetricSet.expectedDataPoints() > controlValues.size()) {
+        controlValues.add(Double.NaN);
       }
-
-      long maxSize = Math.max(controlValues.size(), experimentValues.size());
-
-      // As an optimization, we don't backfill completely empty arrays with NaNs.
-      if (smallerList.size() > 0) {
-        while (smallerList.size() < maxSize) {
-          smallerList.add(Double.NaN);
-        }
+    }
+    if (experimentMetricSet.expectedDataPoints() > experimentValues.size()) {
+      experimentValues = new ArrayList<>(experimentValues);
+      while (experimentMetricSet.expectedDataPoints() > experimentValues.size()) {
+        experimentValues.add(Double.NaN);
       }
     }
 

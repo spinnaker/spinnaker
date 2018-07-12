@@ -91,6 +91,8 @@ public class DatadogMetricsService implements MetricsService {
           .name(canaryMetricConfig.getName())
           .startTimeMillis(series.getStart())
           .startTimeIso(Instant.ofEpochMilli(series.getStart()).toString())
+          .endTimeMillis(series.getEnd())
+          .endTimeIso(Instant.ofEpochMilli(series.getEnd()).toString())
           .stepMillis(series.getInterval() * 1000)
           .values(series.getDataPoints().collect(Collectors.toList()))
           .build()

@@ -110,10 +110,13 @@ public class InfluxDbMetricsService implements MetricsService {
     List<MetricSet> metricSets = new ArrayList<MetricSet>();
     if (influxDbResults != null) {
       for (InfluxDbResult influxDbResult : influxDbResults) {
+        Instant endtime = Instant.ofEpochMilli(influxDbResult.getStartTimeMillis() + influxDbResult.getStepMillis() * influxDbResult.getValues().size());
         MetricSetBuilder metricSetBuilder = MetricSet.builder()
             .name(metricSetName)
             .startTimeMillis(influxDbResult.getStartTimeMillis())
             .startTimeIso(Instant.ofEpochMilli(influxDbResult.getStartTimeMillis()).toString())
+            .endTimeMillis(endtime.toEpochMilli())
+            .endTimeIso(endtime.toString())
             .stepMillis(influxDbResult.getStepMillis())
             .values(influxDbResult.getValues())
             .tag("field", influxDbResult.getId());

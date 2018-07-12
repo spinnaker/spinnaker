@@ -51,6 +51,14 @@ public class MetricSet {
 
   @NotNull
   @Getter
+  private long endTimeMillis;
+
+  @NotNull
+  @Getter
+  private String endTimeIso;
+
+  @NotNull
+  @Getter
   private long stepMillis;
 
   @NotNull
@@ -69,6 +77,8 @@ public class MetricSet {
                    Map<String, String> tags,
                    long startTimeMillis,
                    String startTimeIso,
+                   long endTimeMillis,
+                   String endTimeIso,
                    long stepMillis,
                    List<Double> values,
                    Map<String, String> attributes,
@@ -77,6 +87,8 @@ public class MetricSet {
     this.tags = tags;
     this.startTimeMillis = startTimeMillis;
     this.startTimeIso = startTimeIso;
+    this.endTimeMillis = endTimeMillis;
+    this.endTimeIso = endTimeIso;
     this.stepMillis = stepMillis;
     this.values = values;
     this.attributes = attributes;
@@ -101,5 +113,12 @@ public class MetricSet {
     }
 
     return metricSetKey;
+  }
+
+  public long expectedDataPoints() {
+    if (stepMillis == 0) {
+      return 0;
+    }
+    return (endTimeMillis - startTimeMillis) / stepMillis;
   }
 }

@@ -270,6 +270,8 @@ public class PrometheusMetricsService implements MetricsService {
           .name(canaryMetricConfig.getName())
           .startTimeMillis(prometheusCanaryScope.getStart().toEpochMilli())
           .startTimeIso(prometheusCanaryScope.getStart().toString())
+          .endTimeMillis(prometheusCanaryScope.getEnd().toEpochMilli())
+          .endTimeIso(prometheusCanaryScope.getEnd().toString())
           .stepMillis(TimeUnit.SECONDS.toMillis(prometheusCanaryScope.getStep()))
           .values(Collections.emptyList());
 

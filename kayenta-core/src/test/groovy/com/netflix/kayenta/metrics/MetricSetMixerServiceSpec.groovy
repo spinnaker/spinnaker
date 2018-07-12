@@ -144,41 +144,39 @@ class MetricSetMixerServiceSpec extends Specification {
     !metricSetPair.id.empty
   }
 
-  void "missing values should be backfilled with trailing NaNs"() {
+  void "Mixing data sets with no data should back-fill both to all NaNs, with appropriate length"() {
     setup:
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
+    MetricSet controlCpuMetricSetWithTimes =
+      MetricSet.builder()
+        .name('cpu')
+        .values([])
+        .startTimeMillis(0)
+        .endTimeMillis(60000 * 4)
+        .stepMillis(60000)
+        .tag("tagName", "tagValue")
+        .attribute("attributeName", "attributeValue")
+        .build()
+
+    MetricSet experimentCpuMetricSetWithTimes =
+      MetricSet.builder()
+        .name('cpu')
+        .values([])
+        .startTimeMillis(0)
+        .endTimeMillis(60000 * 4)
+        .stepMillis(60000)
+        .tag("tagName", "tagValue")
+        .attribute("attributeName", "attributeValue")
+        .build()
 
     when:
-    MetricSetPair metricSetPair = metricSetMixerService.mixOne(controlCpuMetricSet, experimentCpuMissingValuesMetricSet)
+    MetricSetPair metricSetPair = metricSetMixerService.mixOne(controlCpuMetricSetWithTimes, experimentCpuMetricSetWithTimes)
 
     then:
-    metricSetPair.name == 'cpu'
     metricSetPair.values == [
-      control: [1, 3, 5, 7],
-      experiment: [2, 4, Double.NaN, Double.NaN]
+      control: [ Double.NaN, Double.NaN, Double.NaN, Double.NaN ],
+      experiment: [ Double.NaN, Double.NaN, Double.NaN, Double.NaN ]
     ]
-    metricSetPair.tags == [tagName: "tagValue"]
-  }
-
-  @Unroll
-  // TODO(duftler/mgraff): Consider this case carefully. We may want to in fact backfill the entire list.
-  void "null or empty values list should not be backfilled with NaNs, since it is implicitly treated as filled with NaNs by the analysis engine"() {
-    setup:
-    MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
-
-    when:
-    MetricSetPair metricSetPair = metricSetMixerService.mixOne(controlCpuMetricSet, experimentMetricSet)
-
-    then:
-    metricSetPair.name == 'cpu'
-    metricSetPair.values == [
-      control: [1, 3, 5, 7],
-      experiment: []
-    ]
-    metricSetPair.tags == [tagName: "tagValue"]
-
-    where:
-    experimentMetricSet << [experimentCpuNullValuesMetricSet, experimentCpuEmptyValuesMetricSet]
   }
 
   @Unroll

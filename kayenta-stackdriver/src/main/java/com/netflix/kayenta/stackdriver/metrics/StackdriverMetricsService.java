@@ -304,6 +304,11 @@ public class StackdriverMetricsService implements MetricsService {
         : stackdriverCanaryScope.getStart();
       long responseStartTimeMillis = responseStartTimeInstant.toEpochMilli();
 
+      Instant responseEndTimeInstant =
+        points.size() > 0
+          ? Instant.parse(points.get(points.size() - 1).getInterval().getEndTime())
+          : stackdriverCanaryScope.getEnd();
+
       // TODO(duftler): What if there are no data points?
       List<Double> pointValues =
         points
@@ -316,6 +321,8 @@ public class StackdriverMetricsService implements MetricsService {
           .name(canaryMetricConfig.getName())
           .startTimeMillis(responseStartTimeMillis)
           .startTimeIso(responseStartTimeInstant.toString())
+          .endTimeMillis(responseEndTimeInstant.toEpochMilli())
+          .endTimeIso(responseEndTimeInstant.toString())
           .stepMillis(alignmentPeriodSec * 1000)
           .values(pointValues);
 
