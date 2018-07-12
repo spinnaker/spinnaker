@@ -338,6 +338,9 @@ public class S3StorageService implements StorageService {
       String bucket = credentials.getBucket();
       String group = objectType.getGroup();
       String prefix = buildTypedFolder(credentials, group);
+
+      ensureBucketExists(accountName);
+
       int skipToOffset = prefix.length() + 1;  // + Trailing slash
       List<Map<String, Object>> result = new ArrayList<>();
 

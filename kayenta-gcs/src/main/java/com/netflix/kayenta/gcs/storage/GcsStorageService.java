@@ -373,6 +373,9 @@ public class GcsStorageService implements StorageService {
       Storage storage = credentials.getStorage();
       String bucketName = credentials.getBucket();
       String rootFolder = daoRoot(credentials, objectType.getGroup());
+
+      ensureBucketExists(accountName);
+
       int skipToOffset = rootFolder.length() + 1;  // + Trailing slash
       List<Map<String, Object>> result = new ArrayList<>();
 
