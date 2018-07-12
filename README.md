@@ -15,6 +15,7 @@ Echo is also able to send events within Spinnaker to a predefined url, which is 
 
 You can extend the way in which Echo events are sent by implementing the `EchoEventListener` interface.
 
+
 ## Event Types
 
 Currently, echo receives build events from igor and orchestration events from orca. 
