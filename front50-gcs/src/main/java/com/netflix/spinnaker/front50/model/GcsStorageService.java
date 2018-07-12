@@ -517,16 +517,16 @@ GcsStorageService implements StorageService {
             }
             long modifiedTime = service.getLastModifiedOfTypeName(daoTypeName);
             if (modifiedTime <= storedTime) {
-              log.info("Retrying defered writeLastModified for {}", daoTypeName);
+              log.info("Retrying deferred writeLastModified for {}", daoTypeName);
               service.writeLastModified(daoTypeName);
             } else {
-              log.info("Canceling defered writeLastModified because timestamp already updated.");
+              log.info("Canceling deferred writeLastModified because timestamp already updated.");
             }
           }
         };
         when.setSeconds(when.getSeconds() + 1);
 
-        log.info("Scheduling defered update {} timestamp.", daoTypeName);
+        log.info("Scheduling deferred update {} timestamp.", daoTypeName);
         taskScheduler.schedule(task, when);
       } else {
         log.info("Already scheduled update {} timestamp.", daoTypeName);
