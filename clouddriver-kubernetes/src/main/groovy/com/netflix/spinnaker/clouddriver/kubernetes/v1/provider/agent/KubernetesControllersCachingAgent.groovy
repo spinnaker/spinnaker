@@ -409,7 +409,7 @@ class KubernetesControllersCachingAgent extends KubernetesV1CachingAgent impleme
     }
 
     Map<String, String> getSelector() {
-      statefulController ? statefulController.spec.selector.matchLabels : daemonController.spec.selector.matchLabels
+      statefulController ? statefulController.spec.selector?.matchLabels : daemonController.spec.selector?.matchLabels
     }
 
     boolean exists() {

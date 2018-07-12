@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.model
 
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesModelUtil
 import io.fabric8.kubernetes.api.model.HorizontalPodAutoscaler
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class KubernetesAutoscalerStatus {
   Integer currentCpuUtilization
   Integer currentReplicas
@@ -28,9 +30,13 @@ class KubernetesAutoscalerStatus {
   KubernetesAutoscalerStatus() { }
 
   KubernetesAutoscalerStatus(HorizontalPodAutoscaler autoscaler) {
-    this.currentCpuUtilization = autoscaler.status.currentCPUUtilizationPercentage
-    this.currentReplicas = autoscaler.status.currentReplicas
-    this.desiredReplicas = autoscaler.status.desiredReplicas
-    this.lastScaleTime = KubernetesModelUtil.translateTime(autoscaler.status.lastScaleTime)
+    if (autoscaler.status == null) {
+      log.warn("Autoscaler on ${autoscaler.metadata.name} has a null status. The replicaset may be missing a CPU request.")
+    } else {
+      this.currentCpuUtilization = autoscaler.status.currentCPUUtilizationPercentage
+      this.currentReplicas = autoscaler.status.currentReplicas
+      this.desiredReplicas = autoscaler.status.desiredReplicas
+      this.lastScaleTime = KubernetesModelUtil.translateTime(autoscaler.status.lastScaleTime)
+    }
   }
 }

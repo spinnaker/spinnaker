@@ -427,7 +427,7 @@ class KubernetesServerGroupCachingAgent extends KubernetesV1CachingAgent impleme
     }
 
     Map<String, String> getSelector() {
-      replicaSet ? replicaSet.spec.selector.matchLabels : replicationController.spec.selector
+      replicaSet ? replicaSet.spec.selector?.matchLabels : replicationController.spec.selector
     }
 
     boolean exists() {
