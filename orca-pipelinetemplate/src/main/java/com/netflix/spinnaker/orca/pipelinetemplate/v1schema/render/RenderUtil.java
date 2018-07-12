@@ -17,15 +17,10 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 public class RenderUtil {
@@ -72,7 +67,10 @@ public class RenderUtil {
     if (obj instanceof Map) {
       Map<String, Object> objMap = new LinkedHashMap<>();
       for (Entry<Object, Object> e : ((Map<Object, Object>) obj).entrySet()) {
-        objMap.put((String) e.getKey(), deepRender(renderer, e.getValue(), context, depth));
+        objMap.put(
+          (String) deepRender(renderer, e.getKey(), context, depth),
+          deepRender(renderer, e.getValue(), context, depth)
+        );
       }
       return objMap;
     }

@@ -119,7 +119,9 @@ class RenderTransformSpec extends Specification {
           ],
           definition: [
             provider: 'aws',
-            region: '{{ region }}',
+            availabilityZones: [
+              "{{ region }}": ["{{ region }}a"]
+            ],
             securityGroups: ['{{ application }}']
           ]
         )
@@ -147,12 +149,16 @@ class RenderTransformSpec extends Specification {
     findStage(template, 'deploy').config['clusters'] == [
       [
         provider: 'aws',
-        region: 'us-west-2',
+        availabilityZones: [
+          'us-west-2': ["us-west-2a"]
+        ],
         securityGroups: ['gate']
       ],
       [
         provider: 'aws',
-        region: 'us-east-1',
+        availabilityZones: [
+          'us-east-1': ['us-east-1a']
+        ],
         securityGroups: ['gate']
       ]
     ]
@@ -284,7 +290,7 @@ class RenderTransformSpec extends Specification {
 
     when:
     new RenderTransform(configuration, renderer, registry, [:]).visitPipelineTemplate(template)
-    
+
     then:
     noExceptionThrown()
     template.stages.size() == 0
