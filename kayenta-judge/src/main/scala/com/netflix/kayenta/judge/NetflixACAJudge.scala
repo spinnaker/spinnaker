@@ -27,7 +27,6 @@ import com.netflix.kayenta.judge.preprocessing.Transforms
 import com.netflix.kayenta.judge.scorers.{ScoreResult, WeightedSumScorer}
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics
 import com.netflix.kayenta.judge.utils.MapUtils
-import com.netflix.kayenta.mannwhitney.MannWhitneyException
 import com.netflix.kayenta.metrics.MetricSetPair
 import com.typesafe.scalalogging.StrictLogging
 import org.springframework.stereotype.Component
@@ -165,8 +164,8 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       .id(metric.getId)
       .tags(metric.getTags)
       .groups(metricConfig.getGroups)
-      .experimentMetadata(Map("stats" -> DescriptiveStatistics.toMap(experimentStats).asJava.asInstanceOf[Object]).asJava)
-      .controlMetadata(Map("stats" -> DescriptiveStatistics.toMap(controlStats).asJava.asInstanceOf[Object]).asJava)
+      .experimentMetadata(Map("stats" -> experimentStats.toMap.asJava.asInstanceOf[Object]).asJava)
+      .controlMetadata(Map("stats" -> controlStats.toMap.asJava.asInstanceOf[Object]).asJava)
       .critical(critical)
 
     try {

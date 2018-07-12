@@ -31,17 +31,18 @@ import scala.collection.JavaConverters._
 
 @Component
 class RandomDummyJudge extends CanaryJudge {
-  private final val _judgeName = "dredd-v1.0"
+  private final val judgeName = "dredd-v1.0"
 
-  override def getName: String = _judgeName
+  override def getName: String = judgeName
 
   val random = new scala.util.Random()
 
   override def judge(canaryConfig: CanaryConfig,
                      scoreThresholds: CanaryClassifierThresholdsConfig,
                      metricSetPairList: util.List[MetricSetPair]): CanaryJudgeResult = {
-    val metricResults = metricSetPairList.asScala.toList.map { metricPair =>
-      val metricConfig = canaryConfig.getMetrics.asScala.find(m => m.getName == metricPair.getName) match {
+
+      val metricResults = metricSetPairList.asScala.toList.map { metricPair =>
+        val metricConfig = canaryConfig.getMetrics.asScala.find(m => m.getName == metricPair.getName) match {
         case Some(config) => config
         case None => throw new IllegalArgumentException(s"Could not find metric config for ${metricPair.getName}")
       }
@@ -74,8 +75,8 @@ class RandomDummyJudge extends CanaryJudge {
         .tags(metricPair.getTags)
         .classification(classification)
         .groups(metricConfig.getGroups)
-        .experimentMetadata(Map("stats" -> DescriptiveStatistics.toMap(experimentStats).asJava.asInstanceOf[Object]).asJava)
-        .controlMetadata(Map("stats" -> DescriptiveStatistics.toMap(controlStats).asJava.asInstanceOf[Object]).asJava)
+        .experimentMetadata(Map("stats" -> experimentStats.toMap.asJava.asInstanceOf[Object]).asJava)
+        .controlMetadata(Map("stats" -> controlStats.toMap.asJava.asInstanceOf[Object]).asJava)
         .build()
     }
 
@@ -110,7 +111,7 @@ class RandomDummyJudge extends CanaryJudge {
 
     val results = metricResults.asJava
     CanaryJudgeResult.builder()
-      .judgeName(_judgeName)
+      .judgeName(judgeName)
       .score(summaryScore)
       .results(results)
       .groupScores(groupScores.asJava)

@@ -21,7 +21,11 @@ import org.apache.commons.math3.stat.StatUtils
 import org.apache.commons.math3.stat.descriptive.rank.Percentile
 import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType
 
-case class MetricStatistics(min: Double, max: Double, mean: Double, median: Double, count: Int)
+case class MetricStatistics(min: Double, max: Double, mean: Double, median: Double, count: Int){
+  def toMap:  Map[String, Any] = {
+    Map("min" -> min, "max" -> max, "mean" -> mean, "median" -> median, "count" -> count)
+  }
+}
 
 object DescriptiveStatistics {
 
@@ -71,14 +75,5 @@ object DescriptiveStatistics {
     val max = this.max(metric)
     val count = metric.values.length
     MetricStatistics(min, max, mean, median, count)
-  }
-
-  def toMap(metricStatistics: MetricStatistics): Map[String, Any] = {
-    Map(
-      "min" -> metricStatistics.min,
-      "max" -> metricStatistics.max,
-      "mean" -> metricStatistics.mean,
-      "median" -> metricStatistics.median,
-      "count" -> metricStatistics.count)
   }
 }
