@@ -127,7 +127,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
         description.runtimeLimitSecs = description.runtimeLimitSecs ?: sourceJob.runtimeLimitSecs
         description.securityGroups = description.securityGroups ?: sourceJob.securityGroups
-        description.imageId = description.imageId ?: (sourceJob.applicationName + ":" + (sourceJob.version ?: sourceJob.digest ))
+        description.imageId = description.imageId ?: (sourceJob.applicationName + ":" + (sourceJob.version ?: sourceJob.digest))
 
         if (description.source.useSourceCapacity) {
           description.capacity.min = sourceJob.instancesMin
@@ -236,7 +236,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withCredentials(description.credentials.name)
         .withContainerAttributes(description.containerAttributes.collectEntries { [(it.key): it.value?.toString()] })
 
-      if(dockerImage.imageDigest!=null){
+      if (dockerImage.imageDigest != null) {
         submitJobRequest = submitJobRequest.withDockerDigest(dockerImage.imageDigest)
       } else {
         submitJobRequest = submitJobRequest.withDockerImageVersion(dockerImage.imageVersion)
@@ -326,8 +326,8 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
           jobUri = titusClient.submitJob(submitJobRequest)
         } catch (io.grpc.StatusRuntimeException e) {
           task.updateStatus BASE_PHASE, "Error encountered submitting job request to Titus ${e.message} for ${nextServerGroupName}"
-          if ((e.status.code == Status.RESOURCE_EXHAUSTED.code && e.status.description.contains("Constraint violation - job with group sequence")) || (e.status.code == Status.INVALID_ARGUMENT.code && e.status.description.contains("Job sequence id reserved by another pending job"))) {
-            if (e.status.code == Status.INVALID_ARGUMENT) {
+          if ((e.status.code == Status.RESOURCE_EXHAUSTED.code || e.status.code == Status.INVALID_ARGUMENT.code) && (e.status.description.contains("Job sequence id reserved by another pending job") || e.status.description.contains("Constraint violation - job with group sequence"))) {
+            if (e.status.description.contains("Job sequence id reserved by another pending job")) {
               sleep 1000 ^ pow(2, retryCount)
               retryCount++
             }
