@@ -88,9 +88,7 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.GET)
   public UserPermission.View getUserPermission(@PathVariable String userId) {
-    return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
-        .getView();
+    return getUserPermissionView(userId);
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts", method = RequestMethod.GET)
