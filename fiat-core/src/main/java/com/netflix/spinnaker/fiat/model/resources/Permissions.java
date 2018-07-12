@@ -84,6 +84,10 @@ public class Permissions {
     return !getAuthorizations(userRoles).isEmpty();
   }
 
+  public boolean isEmpty() {
+    return permissions.isEmpty();
+  }
+
   public Set<Authorization> getAuthorizations(Set<Role> userRoles) {
     val r = userRoles.stream().map(Role::getName).collect(Collectors.toList());
     return getAuthorizations(r);

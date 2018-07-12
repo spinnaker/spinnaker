@@ -227,6 +227,15 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       case ACCOUNT:
         return containsAuth.apply(permission.getAccounts());
       case APPLICATION:
+        boolean applicationHasPermissions = permission
+            .getApplications()
+            .stream().anyMatch(a -> a.getName().equalsIgnoreCase(resourceName));
+
+        if (!applicationHasPermissions && permission.isAllowAccessToUnknownApplications()) {
+          // allow access to any applications w/o explicit permissions
+          return true;
+        }
+
         return permission.isLegacyFallback() || containsAuth.apply(permission.getApplications());
       case SERVICE_ACCOUNT:
         return permission.getServiceAccounts()

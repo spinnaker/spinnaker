@@ -31,7 +31,7 @@ class DefaultApplicationProviderSpec extends Specification {
   @Subject DefaultApplicationProvider provider
 
   @Unroll
-  def "should prefer front50 applications over clouddriver ones"() {
+  def "should #action applications with empty permissions when allowAccessToUnknownApplications = #allowAccessToUnknownApplications"() {
     setup:
     Front50Service front50Service = Mock(Front50Service) {
       getAllApplicationPermissions() >> [
@@ -39,6 +39,7 @@ class DefaultApplicationProviderSpec extends Specification {
           new Application().setName("app1")
                            .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
       ]
+
     }
     ClouddriverService clouddriverService = Mock(ClouddriverService) {
       getApplications() >> [
@@ -47,15 +48,21 @@ class DefaultApplicationProviderSpec extends Specification {
       ]
     }
 
-    provider = new DefaultApplicationProvider(front50Service, clouddriverService)
+    provider = new DefaultApplicationProvider(front50Service, clouddriverService, allowAccessToUnknownApplications)
 
     when:
     def result = provider.getAll()
     List<String> accountNames = result*.name
-    List<String> expected = ["onlyKnownToFront50", "app1", "onlyKnownToClouddriver"]
 
     then:
-    CollectionUtils.disjunction(accountNames, expected).isEmpty()
+    CollectionUtils.disjunction(accountNames, expectedApplicatioNames).isEmpty()
     result.find { it.name == "app1"}.getPermissions().isRestricted()
+
+    where:
+    allowAccessToUnknownApplications || expectedApplicatioNames
+    false                            || ["onlyKnownToFront50", "app1", "onlyKnownToClouddriver"]
+    true                             || ["app1"]
+
+    action = allowAccessToUnknownApplications ? "exclude" : "include"
   }
 }

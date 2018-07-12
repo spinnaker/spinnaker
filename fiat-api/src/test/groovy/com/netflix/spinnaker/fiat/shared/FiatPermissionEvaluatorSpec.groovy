@@ -25,7 +25,6 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.security.core.Authentication
@@ -35,9 +34,6 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 class FiatPermissionEvaluatorSpec extends Specification {
-  DynamicConfigService dynamicConfigService = Mock(DynamicConfigService) {
-    _ * isEnabled('fiat', true) >> { return true }
-  }
   FiatService fiatService = Mock(FiatService)
   Registry registry = new NoopRegistry()
   FiatStatus fiatStatus = Mock(FiatStatus) {
@@ -178,6 +174,29 @@ class FiatPermissionEvaluatorSpec extends Specification {
     legacyFallbackEnabled || expectedToHavePermission || expectedName || expectedAccounts
     true                  || true                     || "fallback"   || ["account1", "account2"]
     false                 || false                    || null         || null
+  }
+
+  @Unroll
+  def "should allow access to unknown applications"() {
+    given:
+    def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
+
+    when:
+    def hasPermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "READ")
+
+    then:
+    1 * fiatService.getUserPermission("testUser") >> {
+      return new UserPermission.View()
+          .setAllowAccessToUnknownApplications(allowAccessToUnknownApplications)
+          .setApplications(Collections.emptySet())
+    }
+
+    hasPermission == expectedToHavePermission
+
+    where:
+    allowAccessToUnknownApplications || expectedToHavePermission
+    false                            || false
+    true                             || true
   }
 
   private static FiatClientConfigurationProperties buildConfigurationProperties() {

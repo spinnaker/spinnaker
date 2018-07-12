@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,18 +30,21 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Component
 public class DefaultApplicationProvider extends BaseProvider<Application> implements ResourceProvider<Application> {
 
   private final Front50Service front50Service;
-
   private final ClouddriverService clouddriverService;
 
-  @Autowired
-  public DefaultApplicationProvider(Front50Service front50Service, ClouddriverService clouddriverService) {
+  private final boolean allowAccessToUnknownApplications;
+
+  public DefaultApplicationProvider(Front50Service front50Service,
+                                    ClouddriverService clouddriverService,
+                                    boolean allowAccessToUnknownApplications) {
     super();
+
     this.front50Service = front50Service;
     this.clouddriverService = clouddriverService;
+    this.allowAccessToUnknownApplications = allowAccessToUnknownApplications;
   }
 
   @Override
@@ -57,6 +61,15 @@ public class DefaultApplicationProvider extends BaseProvider<Application> implem
           .stream()
           .filter(app -> !appByName.containsKey(app.getName()))
           .forEach(app -> appByName.put(app.getName(), app));
+
+      if (allowAccessToUnknownApplications) {
+        // no need to include applications w/o explicit permissions if we're allowing access to unknown applications by default
+        return appByName
+            .values()
+            .stream()
+            .filter(a -> !a.getPermissions().isEmpty())
+            .collect(Collectors.toSet());
+      }
 
       return new HashSet<>(appByName.values());
     } catch (Exception e) {

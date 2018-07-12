@@ -107,6 +107,7 @@ public class UserPermission {
     Set<Role.View> roles;
     boolean admin;
     boolean legacyFallback = false;
+    boolean allowAccessToUnknownApplications = false;
 
     public View(UserPermission permission) {
       this.name = permission.id;

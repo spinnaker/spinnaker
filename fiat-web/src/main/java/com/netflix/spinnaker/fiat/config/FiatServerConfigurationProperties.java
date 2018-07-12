@@ -30,6 +30,8 @@ public class FiatServerConfigurationProperties {
 
   private boolean defaultToUnrestrictedUser = false;
 
+  private boolean allowAccessToUnknownApplications = false;
+
   private WriteMode writeMode = new WriteMode();
 
   @Data

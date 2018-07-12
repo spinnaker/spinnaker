@@ -31,7 +31,6 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -83,6 +82,7 @@ public class AuthorizeController {
         .values()
         .stream()
         .map(UserPermission::getView)
+        .map(u -> u.setAllowAccessToUnknownApplications(configProps.isAllowAccessToUnknownApplications()))
         .collect(Collectors.toSet());
   }
 
@@ -95,29 +95,17 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/accounts", method = RequestMethod.GET)
   public Set<Account.View> getUserAccounts(@PathVariable String userId) {
-    return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
-        .getView()
-        .getAccounts()
-        .stream()
-        .collect(Collectors.toSet());
+    return new HashSet<>(getUserPermissionView(userId).getAccounts());
   }
 
   @RequestMapping(value = "/{userId:.+}/roles", method = RequestMethod.GET)
   public Set<Role.View> getUserRoles(@PathVariable String userId) {
-    return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
-        .getView()
-        .getRoles()
-        .stream()
-        .collect(Collectors.toSet());
+    return new HashSet<>(getUserPermissionView(userId).getRoles());
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts/{accountName:.+}", method = RequestMethod.GET)
   public Account.View getUserAccount(@PathVariable String userId, @PathVariable String accountName) {
-    return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
-        .getView()
+    return getUserPermissionView(userId)
         .getAccounts()
         .stream()
         .filter(account -> accountName.equalsIgnoreCase(account.getName()))
@@ -127,19 +115,12 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/applications", method = RequestMethod.GET)
   public Set<Application.View> getUserApplications(@PathVariable String userId) {
-    return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
-        .getView()
-        .getApplications()
-        .stream()
-        .collect(Collectors.toSet());
+    return new HashSet<>(getUserPermissionView(userId).getApplications());
   }
 
   @RequestMapping(value = "/{userId:.+}/applications/{applicationName:.+}", method = RequestMethod.GET)
   public Application.View getUserApplication(@PathVariable String userId, @PathVariable String applicationName) {
-    return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
-        .getView()
+    return getUserPermissionView(userId)
         .getApplications()
         .stream()
         .filter(application -> applicationName.equalsIgnoreCase(application.getName()))
@@ -149,12 +130,9 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}/serviceAccounts", method = RequestMethod.GET)
   public Set<ServiceAccount.View> getServiceAccounts(@PathVariable String userId) {
-    return getUserPermissionOrDefault(userId)
-        .orElseThrow(NotFoundException::new)
-        .getView()
-        .getServiceAccounts()
-        .stream()
-        .collect(Collectors.toSet());
+    return new HashSet<>(
+        getUserPermissionView(userId).getServiceAccounts()
+    );
   }
 
   @RequestMapping(value = "/{userId:.+}/serviceAccounts/{serviceAccountName:.+}", method = RequestMethod.GET)
@@ -250,5 +228,12 @@ public class AuthorizeController {
     ).increment();
 
     return Optional.ofNullable(userPermission);
+  }
+
+  private UserPermission.View getUserPermissionView(String userId) {
+    return getUserPermissionOrDefault(userId)
+        .orElseThrow(NotFoundException::new)
+        .getView()
+        .setAllowAccessToUnknownApplications(configProps.isAllowAccessToUnknownApplications());
   }
 }
