@@ -93,19 +93,26 @@ class KubernetesUtil {
     image
   }
 
+  private static void populateFieldsFromUri(KubernetesImageDescription image) {
+    def uri = image.uri
+    if (uri) {
+      uri = extractRegistry(uri, image)
+      uri = extractDigestOrTag(uri, image)
+      // The repository is what's left after extracting the registry, and digest/tag
+      image.repository = uri
+    }
+  }
+
   static KubernetesImageDescription buildImageDescription(String image) {
     def result = new KubernetesImageDescription()
-
-    image = extractRegistry(image, result)
-    image = extractDigestOrTag(image, result)
-    // The repository is what's left after extracting the registry, and digest/tag
-    result.repository = image
-
+    result.uri = image
     normalizeImageDescription(result)
     result
   }
 
   static Void normalizeImageDescription(KubernetesImageDescription image) {
+    populateFieldsFromUri(image)
+
     if (!image.registry) {
       image.registry = DEFAULT_REGISTRY
     }
