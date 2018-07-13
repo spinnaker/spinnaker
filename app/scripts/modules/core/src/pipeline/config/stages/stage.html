@@ -60,7 +60,7 @@
     </page-section>
     <page-section key="execution" label="Execution Options">
       <override-failure stage="stage"></override-failure>
-      <execution-windows stage="stage" ng-if="!pipeline.strategy"></execution-windows>
+      <execution-windows stage="stage" ng-if="!pipeline.strategy && stage"></execution-windows>
       <override-timeout stage="stage"></override-timeout>
       <fail-on-failed-expressions stage="stage"></fail-on-failed-expressions>
       <optional-stage stage="stage"></optional-stage>
