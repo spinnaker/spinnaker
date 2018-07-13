@@ -49,7 +49,7 @@ if [ "$DISTRO" = "Ubuntu" ]; then
   fi
 else
   echo_err "Not a supported operating system: " $DISTRO
-  echo_err "It's recommended you use Ubuntu 14.04."
+  echo_err "It's recommended you use Ubuntu 14.04 or greater."
   echo_err ""
   echo_err "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
   echo_err "if you'd like to see support for your OS and version"

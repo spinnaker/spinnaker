@@ -16,7 +16,7 @@ pre-start script
   done
 end script
 EOL
-elif [ "$VERSION_ID" = "16.04" ]; then
+else
   cat > /lib/systemd/system/spinnaker.service <<EOL
 [Unit]
 Description=All Spinnaker services
