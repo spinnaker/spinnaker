@@ -1,10 +1,19 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
+import { $q } from 'ngimport';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
 import { difference, flatten, get, uniq } from 'lodash';
 import { FormikErrors, FormikProps } from 'formik';
 
-import { Application, HelpField, IWizardPageProps, Tooltip, ValidationMessage, wizardPage } from '@spinnaker/core';
+import {
+  Application,
+  HelpField,
+  IWizardPageProps,
+  ReactInjector,
+  Tooltip,
+  ValidationMessage,
+  wizardPage,
+} from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
@@ -66,7 +75,9 @@ class ALBListenersImpl extends React.Component<
   public static LABEL = 'Listeners';
   public protocols = ['HTTP', 'HTTPS'];
 
-  private removedAuthActions: { [key: number]: IListenerAction } = {};
+  private initialActionsWithAuth: Set<IListenerAction[]> = new Set();
+  private initialListenersWithDefaultAuth: Set<IListenerDescription> = new Set();
+  private removedAuthActions: Map<IListenerDescription, { [key: number]: IListenerAction }> = new Map();
 
   constructor(props: IALBListenersProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>) {
     super(props);
@@ -75,6 +86,18 @@ class ALBListenersImpl extends React.Component<
       certificateTypes: get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']),
       oidcConfigs: undefined,
     };
+
+    this.props.initialValues.listeners.forEach(l => {
+      const hasDefaultAuth = l.defaultActions[0].type === 'authenticate-oidc';
+      if (hasDefaultAuth) {
+        this.initialListenersWithDefaultAuth.add(l);
+      }
+      l.rules.forEach(r => {
+        if (r.actions[0].type === 'authenticate-oidc') {
+          this.initialActionsWithAuth.add(r.actions);
+        }
+      });
+    });
   }
 
   private getAllTargetGroupsFromListeners(listeners: IListenerDescription[]): string[] {
@@ -186,26 +209,27 @@ class ALBListenersImpl extends React.Component<
   private removeAuthActions(listener: IListenerDescription): void {
     const authIndex = listener.defaultActions.findIndex(a => a.type === 'authenticate-oidc');
     if (authIndex !== -1) {
-      this.removeAuthAction(listener.defaultActions, authIndex, -1);
+      this.removeAuthAction(listener, listener.defaultActions, authIndex, -1);
     }
     listener.rules.forEach((rule, ruleIndex) => {
       const index = rule.actions.findIndex(a => a.type === 'authenticate-oidc');
       if (index !== -1) {
-        this.removeAuthAction(rule.actions, index, ruleIndex);
+        this.removeAuthAction(listener, rule.actions, index, ruleIndex);
       }
     });
     this.updateListeners();
   }
 
   private reenableAuthActions(listener: IListenerDescription): void {
-    const existingDefaultAuthAction = this.removedAuthActions[-1];
-    this.removedAuthActions[-1] = undefined;
+    const removedAuthActions = this.removedAuthActions.has(listener) ? this.removedAuthActions.get(listener) : [];
+    const existingDefaultAuthAction = removedAuthActions[-1];
     if (existingDefaultAuthAction) {
+      removedAuthActions[-1] = undefined;
       listener.defaultActions.unshift({ ...existingDefaultAuthAction });
     }
     listener.rules.forEach((rule, ruleIndex) => {
-      const existingAuthAction = this.removedAuthActions[ruleIndex];
-      this.removedAuthActions[ruleIndex] = undefined;
+      const existingAuthAction = removedAuthActions[ruleIndex];
+      removedAuthActions[ruleIndex] = undefined;
       if (existingAuthAction) {
         rule.actions.unshift({ ...existingAuthAction });
       }
@@ -335,9 +359,50 @@ class ALBListenersImpl extends React.Component<
       .catch(() => {});
   };
 
-  private removeAuthAction(actions: IListenerAction[], authIndex: number, ruleIndex: number): void {
+  private removeAuthActionInternal(
+    listener: IListenerDescription,
+    actions: IListenerAction[],
+    authIndex: number,
+    ruleIndex = -1,
+  ): void {
     const removedAuthAction = actions.splice(authIndex, 1)[0];
-    this.removedAuthActions[ruleIndex || -1] = removedAuthAction;
+    if (!this.removedAuthActions.has(listener)) {
+      this.removedAuthActions.set(listener, []);
+    }
+    this.removedAuthActions.get(listener)[ruleIndex || -1] = removedAuthAction;
+    this.updateListeners();
+  }
+
+  private removeAuthAction(
+    listener: IListenerDescription,
+    actions: IListenerAction[],
+    authIndex: number,
+    ruleIndex = -1,
+  ): void {
+    // TODO: Check if initial is true.
+    const confirmDefaultRemove = ruleIndex === -1 && this.initialListenersWithDefaultAuth.has(listener);
+    const confirmRemove = ruleIndex > -1 && this.initialActionsWithAuth.has(actions);
+
+    if (confirmDefaultRemove || confirmRemove) {
+      // TODO: Confirmation Dialog first.
+      ReactInjector.confirmationModalService.confirm({
+        header: 'Really remove authentication?',
+        buttonText: `Remove Auth`,
+        submitMethod: () => {
+          this.removeAuthActionInternal(listener, actions, authIndex, ruleIndex);
+          if (confirmDefaultRemove) {
+            this.initialListenersWithDefaultAuth.delete(listener);
+          }
+          if (confirmRemove) {
+            this.initialActionsWithAuth.delete(actions);
+          }
+          return $q.resolve();
+        },
+        windowClass: 'zindex-top',
+      });
+    } else {
+      this.removeAuthActionInternal(listener, actions, authIndex, ruleIndex);
+    }
   }
 
   private authenticateRuleToggle = (listener: IListenerDescription, ruleIndex: number) => {
@@ -346,9 +411,12 @@ class ALBListenersImpl extends React.Component<
     if (actions) {
       const authIndex = actions.findIndex(a => a.type === 'authenticate-oidc');
       if (authIndex !== -1) {
-        this.removeAuthAction(actions, authIndex, ruleIndex);
+        this.removeAuthAction(listener, actions, authIndex, ruleIndex);
       } else {
-        const newAuthAction = this.removedAuthActions[ruleIndex || -1] || { ...defaultAuthAction };
+        const removedAction = this.removedAuthActions.has(listener)
+          ? this.removedAuthActions.get(listener)[ruleIndex || -1]
+          : undefined;
+        const newAuthAction = removedAction || { ...defaultAuthAction };
         actions.unshift({ ...newAuthAction });
       }
       this.updateListeners();

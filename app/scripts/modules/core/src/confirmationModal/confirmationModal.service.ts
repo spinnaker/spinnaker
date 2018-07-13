@@ -22,6 +22,7 @@ export interface IConfirmationModalParams {
   taskMonitors?: any[];
   textToVerify?: string;
   verificationLabel?: string;
+  windowClass?: string;
 }
 
 export class ConfirmationModalService {
@@ -49,6 +50,10 @@ export class ConfirmationModalService {
 
     if (params.size) {
       modalArgs.size = params.size;
+    }
+
+    if (params.windowClass) {
+      modalArgs.windowClass = params.windowClass;
     }
 
     const result = this.$uibModal.open(modalArgs).result;
