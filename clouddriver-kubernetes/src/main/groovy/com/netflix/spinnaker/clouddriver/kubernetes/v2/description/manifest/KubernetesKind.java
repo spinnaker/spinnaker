@@ -55,6 +55,7 @@ public class KubernetesKind {
   public static KubernetesKind SERVICE = new KubernetesKind("service", "svc");
   public static KubernetesKind SERVICE_ACCOUNT = new KubernetesKind("serviceAccount", "sa");
   public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet", null, true, true);
+  public static KubernetesKind STORAGE_CLASS = new KubernetesKind("storageClass", "sc", false, false);
 
   // special kind that should never be assigned to a manifest, used only to represent objects whose kind is not in spinnaker's registry
   public static KubernetesKind NONE = new KubernetesKind("none", null, true, false);
