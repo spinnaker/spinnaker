@@ -207,7 +207,8 @@ class BuildHalyardCommand(GradleCommandProcessor):
     if not self.options.run_unit_tests:
       args.append('-x test')
 
-    args.extend(self.gradle.get_debian_args('trusty-nightly,xenial-nightly'))
+    args.extend(self.gradle.get_debian_args(
+        'trusty-nightly,xenial-nightly,bionic-nightly'))
     build_number = source_info.build_number
     version = source_info.summary.version
     self.gradle.check_run(args, self, repository, 'candidate', 'debian-build',
@@ -425,7 +426,7 @@ class PublishHalyardCommand(CommandProcessor):
     [*] Safety because the candidate was tested whereas this build was not.
     """
     # Ideally we would just modify the existing bintray version to add
-    # trusty-stable to the distributions, however it does not appear possible
+    # *-stable to the distributions, however it does not appear possible
     # to patch the debian attributes of a bintray version, only the
     # version metadata. Therefore, we'll rebuild it.
     # Alternatively we could download the existing and push a new one,
@@ -436,7 +437,8 @@ class PublishHalyardCommand(CommandProcessor):
     summary = self.__scm.git.collect_repository_summary(git_dir)
 
     args = self.__gradle.get_common_args()
-    args.extend(self.__gradle.get_debian_args('trusty-stable,xenial-stable'))
+    args.extend(self.__gradle.get_debian_args(
+        'trusty-stable,xenial-stable,bionic-stable'))
     build_number = self.options.build_number
     self.__gradle.check_run(
         args, self, repository, 'candidate', 'build-release',
