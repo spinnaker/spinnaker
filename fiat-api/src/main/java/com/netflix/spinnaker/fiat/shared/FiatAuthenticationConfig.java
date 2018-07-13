@@ -18,8 +18,11 @@ package com.netflix.spinnaker.fiat.shared;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttpClientConfiguration;
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
+import com.squareup.okhttp.OkHttpClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -57,17 +60,22 @@ public class FiatAuthenticationConfig {
 
   @Bean
   @ConditionalOnMissingBean(FiatService.class) // Allows for override
-  public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties,
+  public FiatService fiatService(Registry registry,
+                                 FiatClientConfigurationProperties fiatConfigurationProperties,
                                  SpinnakerRequestInterceptor interceptor,
                                  OkHttpClientConfiguration okHttpClientConfiguration) {
     // New role providers break deserialization if this is not enabled.
     val objectMapper = new ObjectMapper();
     objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+    OkHttpClient okHttpClient = okHttpClientConfiguration.create();
+    okHttpClient.interceptors().add(new OkHttpMetricsInterceptor(registry));
+
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
         .setRequestInterceptor(interceptor)
-        .setClient(new OkClient(okHttpClientConfiguration.create()))
+        .setClient(new OkClient(okHttpClient))
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(FiatService.class))
