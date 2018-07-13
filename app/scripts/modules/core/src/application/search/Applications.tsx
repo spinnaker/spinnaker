@@ -27,6 +27,7 @@ export interface IApplicationPagination {
 export interface IApplicationsState {
   accounts: IAccount[];
   applications: IApplicationSummary[];
+  errorState: boolean;
   pagination: IApplicationPagination;
 }
 
@@ -89,17 +90,22 @@ export class Applications extends React.Component<{}, IApplicationsState> {
         const currentPage = Math.min(pagination.currentPage, lastPage);
         const maxSize = applications.length;
         const validatedPagination = { ...pagination, currentPage, maxSize } as IApplicationPagination;
-
         return { applications, pagination: validatedPagination };
       })
 
       .takeUntil(this.destroy$)
-      .subscribe(({ applications, pagination }) => {
-        const { currentPage, itemsPerPage } = pagination;
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        this.setState({ applications: applications.slice(start, end), pagination });
-      });
+      .subscribe(
+        ({ applications, pagination }) => {
+          const { currentPage, itemsPerPage } = pagination;
+          const start = (currentPage - 1) * itemsPerPage;
+          const end = start + itemsPerPage;
+          this.setState({ applications: applications.slice(start, end), pagination });
+        },
+        error => {
+          this.setState({ errorState: true });
+          throw error;
+        },
+      );
   }
 
   private toggleSort(column: string): void {
@@ -127,9 +133,12 @@ export class Applications extends React.Component<{}, IApplicationsState> {
   }
 
   public render() {
-    const { applications, pagination } = this.state;
+    const { applications, pagination, errorState } = this.state;
     const { maxSize, currentPage, itemsPerPage } = pagination;
     const currentSort = this.sort$.value;
+    const changePage: SelectCallback = (page: any) => {
+      return this.pagination$.next({ ...pagination, currentPage: page });
+    };
 
     const LoadingSpinner = () => (
       <div className="horizontal middle center" style={{ marginBottom: '250px', height: '150px' }}>
@@ -137,8 +146,43 @@ export class Applications extends React.Component<{}, IApplicationsState> {
       </div>
     );
 
-    const changePage: SelectCallback = (page: any) => {
-      return this.pagination$.next({ ...pagination, currentPage: page });
+    const ErrorIndicator = () => (
+      <div className="horizontal middle center heading-4" style={{ marginBottom: '250px', height: '150px' }}>
+        <i className="fa fa-exclamation-triangle" style={{ paddingRight: '8px' }} />
+        <span>
+          Error fetching applications. Check that your gate endpoint is accessible. Further information on
+          troubleshooting this error is available <a href="https://www.spinnaker.io/setup/quickstart/faq/">here</a>.
+        </span>
+      </div>
+    );
+
+    const ApplicationData = () => {
+      if (errorState) {
+        return <ErrorIndicator />;
+      }
+
+      if (!applications) {
+        return <LoadingSpinner />;
+      }
+
+      if (applications.length === 0) {
+        return <h4>No matches found for '{this.filter$.value}'</h4>;
+      }
+
+      return (
+        <div className="infrastructure-section">
+          <ApplicationTable
+            currentSort={currentSort}
+            applications={applications}
+            toggleSort={column => this.toggleSort(column)}
+          />
+          <PaginationControls
+            onPageChanged={changePage}
+            activePage={currentPage}
+            totalPages={Math.ceil(maxSize / itemsPerPage)}
+          />
+        </div>
+      );
     };
 
     return (
@@ -163,24 +207,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
         </div>
 
         <div className="infrastructure-section container">
-          {!applications && <LoadingSpinner />}
-
-          {applications && applications.length === 0 && <h4>No matches found for '{this.filter$.value}'</h4>}
-          {applications &&
-            applications.length > 0 && (
-              <div className="infrastructure-section">
-                <ApplicationTable
-                  currentSort={currentSort}
-                  applications={applications}
-                  toggleSort={column => this.toggleSort(column)}
-                />
-                <PaginationControls
-                  onPageChanged={changePage}
-                  activePage={currentPage}
-                  totalPages={Math.ceil(maxSize / itemsPerPage)}
-                />
-              </div>
-            )}
+          <ApplicationData />
         </div>
       </div>
     );

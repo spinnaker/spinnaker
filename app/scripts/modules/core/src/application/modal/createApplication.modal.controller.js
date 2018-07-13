@@ -27,10 +27,17 @@ module.exports = angular
     let providerLoader = AccountService.listProviders();
     providerLoader.then(providers => (this.data.cloudProviders = providers));
 
-    $q.all([applicationLoader, providerLoader]).then(() => (this.state.initializing = false));
+    $q
+      .all([applicationLoader, providerLoader])
+      .catch(error => {
+        this.state.initializeFailed = true;
+        throw error;
+      })
+      .finally(() => (this.state.initializing = false));
 
     this.state = {
       initializing: true,
+      initializeFailed: false,
       submitting: false,
       errorMessages: [],
       permissionsInvalid: false,
