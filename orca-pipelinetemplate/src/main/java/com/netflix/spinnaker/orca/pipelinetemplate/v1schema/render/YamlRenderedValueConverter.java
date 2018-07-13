@@ -68,8 +68,10 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
   }
 
   private static boolean containsYamlParsingExceptions(String renderedValue) {
-    return renderedValue != null &&
-      renderedValue.startsWith("*"); // A markdown list or bold: YAML will parse this as an alias and fail.
+    return renderedValue != null && (
+      renderedValue.startsWith("*") || // A markdown list or bold: YAML will parse this as an alias and fail.
+      renderedValue.startsWith("@class") // Jackson annotations, a YAML document cannot start with an @ symbol
+    );
   }
 
   private static boolean containsNoExpandMarker(String renderedValue) {
