@@ -46,31 +46,31 @@ public class ExpectedArtifact {
   public boolean matches(Artifact other) {
     String thisType = matchArtifact.getType();
     String otherType = other.getType();
-    if (StringUtils.isNotEmpty(thisType) && (otherType == null || !matches(thisType, otherType))) {
+    if (!matches(thisType, otherType)) {
       return false;
     }
 
     String thisName = matchArtifact.getName();
     String otherName = other.getName();
-    if (StringUtils.isNotEmpty(thisName) && (otherName == null || !matches(thisName, otherName))) {
+    if (!matches(thisName, otherName)) {
       return false;
     }
 
     String thisVersion = matchArtifact.getVersion();
     String otherVersion = other.getVersion();
-    if (StringUtils.isNotEmpty(thisVersion) && (otherVersion == null || !matches(thisVersion, otherVersion))) {
+    if (!matches(thisVersion, otherVersion)) {
       return false;
     }
 
     String thisLocation = matchArtifact.getLocation();
     String otherLocation = other.getLocation();
-    if (StringUtils.isNotEmpty(thisLocation) && (otherLocation == null || !matches(thisLocation, otherLocation))) {
+    if (!matches(thisLocation, otherLocation)) {
       return false;
     }
 
     String thisReference = matchArtifact.getReference();
     String otherReference = other.getReference();
-    if (StringUtils.isNotEmpty(thisReference) && (otherReference == null || !matches(thisReference, otherReference))) {
+    if (!matches(thisReference, otherReference)) {
       return false;
     }
 
@@ -80,6 +80,10 @@ public class ExpectedArtifact {
   }
 
   private boolean matches(String us, String other) {
-    return Pattern.compile(us).asPredicate().test(other);
+    return StringUtils.isEmpty(us) || (other != null && patternMatches(us, other));
+  }
+
+  private boolean patternMatches(String us, String other) {
+    return Pattern.compile(us).matcher(other).matches();
   }
 }
