@@ -134,6 +134,48 @@ class KubeV2GcsTestScenario(sk.SpinnakerTestScenario):
       'id': id_
     }
 
+  def deploy_spel_deployment_from_gcs(self, image):
+    """Creates OperationContract for deploying and substituting one image into
+    a Deployment object using a SpEL expression.
+
+    To verify the operation, we just check that the deployment was created with
+    the correct image.
+    """
+    bindings = self.bindings
+    name = self.TEST_APP + '-deployment'
+    manifest = self.mf.deployment(name, '${image}')
+    manifest_artifact = self.__gcs_manifest_expected_artifact(json.dumps(manifest), 'manifest-spel.yaml')
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'cloudProvider': 'kubernetes',
+            'moniker': {
+                'app': self.TEST_APP
+            },
+            'account': bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+            'source': 'artifact',
+            'type': 'deployManifest',
+            'user': '[anonymous]',
+            'image': image,
+            'manifestArtifactAccount': self.ARTIFACT_ACCOUNT,
+            'manifestArtifactId': manifest_artifact['id'],
+            'resolvedExpectedArtifacts': [manifest_artifact]
+        }],
+        description='Deploy manifest',
+        application=self.TEST_APP)
+
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('Deployment created',
+                                retryable_for_secs=15)
+     .get_resources(
+         'deploy',
+         extra_args=[name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(self.mp.deployment_image_predicate(image)))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='deploy_manifest', data=payload, path='tasks'),
+        contract=builder.build())
+
   def deploy_deployment_from_gcs(self, image):
     """Creates OperationContract for deploying and substituting one image into
     a Deployment object
@@ -238,6 +280,12 @@ class KubeV2GcsTest(st.AgentTestCase):
     self.run_test_case(self.scenario.deploy_deployment_from_gcs('library/nginx'))
 
   def test_b2_delete_deployment(self):
+    self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
+
+  def test_c1_spel_deploy_from_gcs(self):
+    self.run_test_case(self.scenario.deploy_spel_deployment_from_gcs('library/nginx'))
+
+  def test_c2_delete_deployment(self):
     self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
 
   def test_z_delete_app(self):
