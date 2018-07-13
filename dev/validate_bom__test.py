@@ -799,7 +799,7 @@ class ValidateBomTestController(object):
         '--native_port', str(self.__forwarded_ports[microservice_api].port)
     ]
     if options.test_stack:
-      command.extend(['--test_stack', options.test_stack])
+      command.extend(['--test_stack', str(options.test_stack)])
 
     self.add_extra_arguments(test_name, args, command)
     return command
