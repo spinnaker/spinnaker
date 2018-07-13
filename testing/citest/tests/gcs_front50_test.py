@@ -34,7 +34,7 @@ import spinnaker_testing as sk
 import spinnaker_testing.front50 as front50
 
 
-class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
+class GcsFront50TestScenario(sk.SpinnakerTestScenario):
   @classmethod
   def new_agent(cls, bindings):
     """Implements citest.service_testing.AgentTestScenario.new_agent."""
@@ -57,7 +57,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
         '--gcs_base_path', default='',
         help="The root folder in the specified Google Cloud Storage bucket to place all of Spinnaker's persistent data.")
 
-    super(GoogleFront50TestScenario, cls).initArgumentParser(
+    super(GcsFront50TestScenario, cls).initArgumentParser(
         parser, defaults=defaults)
 
   def _do_init_bindings(self):
@@ -100,7 +100,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
           Front50
     """
     self.logger = logging.getLogger(__name__)
-    super(GoogleFront50TestScenario, self).__init__(bindings, agent)
+    super(GcsFront50TestScenario, self).__init__(bindings, agent)
     self.app_history = []
     self.pipeline_history = []
 
@@ -403,11 +403,11 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
         contract=contract)
 
 
-class GoogleFront50Test(st.AgentTestCase):
+class GcsFront50Test(st.AgentTestCase):
   @property
   def scenario(self):
     return citest.base.TestRunner.global_runner().get_shared_data(
-        GoogleFront50TestScenario)
+        GcsFront50TestScenario)
 
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
@@ -429,13 +429,13 @@ def main():
   """Implements the main method running this smoke test."""
 
   defaults = {
-      'TEST_APP': 'gcpfront50test' + GoogleFront50TestScenario.DEFAULT_TEST_ID
+      'TEST_APP': 'gcsfront50test' + GcsFront50TestScenario.DEFAULT_TEST_ID
   }
 
   return citest.base.TestRunner.main(
-      parser_inits=[GoogleFront50TestScenario.initArgumentParser],
+      parser_inits=[GcsFront50TestScenario.initArgumentParser],
       default_binding_overrides=defaults,
-      test_case_list=[GoogleFront50Test])
+      test_case_list=[GcsFront50Test])
 
 
 if __name__ == '__main__':
