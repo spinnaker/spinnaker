@@ -45,7 +45,7 @@ tests:
       jenkins_master: $jenkins_master_name
       jenkins_master_user: $jenkins_master_user
 
-  google_front50_test:
+  gcs_front50_test:
     requires:
       configuration:
         spinnaker_storage: gcs
