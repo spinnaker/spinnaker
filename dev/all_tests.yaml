@@ -270,7 +270,6 @@ tests:
       services: [clouddriver, front50, gate, orca, echo]
     quota:
       appengine_deployment: 1
-    path: citest/tests/gcs_pubsub_gae_test.py
     api: gate
     args:
       alias: [standard_appengine_provider_params]
