@@ -1,6 +1,6 @@
 import { IController, module } from 'angular';
 import { PageNavigationState } from './PageNavigationState';
-import { throttle } from 'lodash';
+import { isFunction, throttle } from 'lodash';
 import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 import { PAGE_SECTION_COMPONENT } from './pageSection.component';
 import { UUIDGenerator } from 'core/utils/uuid.service';
@@ -25,12 +25,16 @@ class PageNavigatorController implements IController {
     this.id = UUIDGenerator.generateUuid();
     PageNavigationState.reset();
     this.container = this.$element.closest(this.scrollableContainer);
-    this.container.bind(this.getEventKey(), throttle(() => this.handleScroll(), 20));
+    if (isFunction(this.container.bind)) {
+      this.container.bind(this.getEventKey(), throttle(() => this.handleScroll(), 20));
+    }
     this.navigator = this.$element.find('.page-navigation');
   }
 
   public $onDestroy(): void {
-    this.container.unbind(this.getEventKey());
+    if (isFunction(this.container.unbind)) {
+      this.container.unbind(this.getEventKey());
+    }
   }
 
   public setCurrentSection(key: string): void {
