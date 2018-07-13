@@ -235,8 +235,6 @@ tests:
       configuration:
         appengine_account_enabled: true
       services: [clouddriver, front50, gate, orca]
-    quota:
-      appengine_deployment: 1
     path: citest/tests/appengine_smoke_test.py
     api: gate
     args:
@@ -250,8 +248,6 @@ tests:
       configuration:
         appengine_account_enabled: true
       services: [clouddriver, front50, gate, orca]
-    quota:
-      appengine_deployment: 1
     path: citest/tests/appengine_smoke_test.py
     api: gate
     args:
@@ -268,8 +264,6 @@ tests:
         gcs_pubsub_enabled: true
         pubsub_google_enabled: true
       services: [clouddriver, front50, gate, orca, echo]
-    quota:
-      appengine_deployment: 1
     path: citest/tests/gcs_pubsub_gae_test.py
     api: gate
     args:
