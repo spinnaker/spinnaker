@@ -261,7 +261,7 @@ tests:
       test_gcs_bucket: $storage_gcs_bucket
       branch: master
 
-  gcs_pubsub_gae_test:
+  appengine_gcs_pubsub_test:
     requires:
       configuration:
         appengine_account_enabled: true

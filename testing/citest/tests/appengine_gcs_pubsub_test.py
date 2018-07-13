@@ -73,7 +73,7 @@ import spinnaker_testing.frigga as frigga
 
 ov_factory = jc.ObservationPredicateFactory()
 
-class GcsPubsubGaeTestScenario(sk.SpinnakerTestScenario):
+class AppengineGcsPubsubTestScenario(sk.SpinnakerTestScenario):
   """
   Scenario for testing GAE deploys of GCS artifacts via pub/sub triggers.
   """
@@ -88,7 +88,7 @@ class GcsPubsubGaeTestScenario(sk.SpinnakerTestScenario):
     Args:
     parser: argparse.ArgumentParser
     """
-    super(GcsPubsubGaeTestScenario, cls).initArgumentParser(
+    super(AppengineGcsPubsubTestScenario, cls).initArgumentParser(
       parser, defaults=defaults)
 
     defaults = defaults or {}
@@ -113,7 +113,7 @@ class GcsPubsubGaeTestScenario(sk.SpinnakerTestScenario):
       help='Google pub/sub subscription name configured in Echo.')
 
   def __init__(self, bindings, agent=None):
-    super(GcsPubsubGaeTestScenario, self).__init__(bindings, agent)
+    super(AppengineGcsPubsubTestScenario, self).__init__(bindings, agent)
     self.logger = logging.getLogger(__name__)
 
     bindings = self.bindings
@@ -380,11 +380,11 @@ class GcsPubsubGaeTestScenario(sk.SpinnakerTestScenario):
         status_class=st.SynchronousHttpOperationStatus),
       contract=builder.build())
 
-class GcsPubsubGaeTest(st.AgentTestCase):
+class AppengineGcsPubsubTest(st.AgentTestCase):
   @classmethod
   def setUpClass(cls):
     runner = citest.base.TestRunner.global_runner()
-    scenario = runner.get_shared_data(GcsPubsubGaeTestScenario)
+    scenario = runner.get_shared_data(AppengineGcsPubsubTestScenario)
     bindings = scenario.bindings
 
     branch = bindings['BRANCH']
@@ -406,13 +406,13 @@ class GcsPubsubGaeTest(st.AgentTestCase):
   @classmethod
   def tearDownClass(cls):
     runner = citest.base.TestRunner.global_runner()
-    scenario = runner.get_shared_data(GcsPubsubGaeTestScenario)
+    scenario = runner.get_shared_data(AppengineGcsPubsubTestScenario)
     bindings = scenario.bindings
     shutil.rmtree(scenario.temp)
 
   @property
   def scenario(self):
-    return citest.base.TestRunner.global_runner().get_shared_data(GcsPubsubGaeTestScenario)
+    return citest.base.TestRunner.global_runner().get_shared_data(AppengineGcsPubsubTestScenario)
 
   @property
   def testing_agent(self):
@@ -452,14 +452,14 @@ class GcsPubsubGaeTest(st.AgentTestCase):
 
 def main():
   defaults = {
-    'TEST_STACK': 'gcspubsubgaetest' + GcsPubsubGaeTestScenario.DEFAULT_TEST_ID,
-    'TEST_APP': 'gcspubsubgaetest' + GcsPubsubGaeTestScenario.DEFAULT_TEST_ID
+    'TEST_STACK': 'appenginegcspubsubtest' + AppengineGcsPubsubTestScenario.DEFAULT_TEST_ID,
+    'TEST_APP': 'appenginegcspubsubgaetest' + AppengineGcsPubsubTestScenario.DEFAULT_TEST_ID
   }
 
   return citest.base.TestRunner.main(
-    parser_inits=[GcsPubsubGaeTestScenario.initArgumentParser],
+    parser_inits=[AppengineGcsPubsubTestScenario.initArgumentParser],
     default_binding_overrides=defaults,
-    test_case_list=[GcsPubsubGaeTest])
+    test_case_list=[AppengineGcsPubsubTest])
 
 
 if __name__ == '__main__':
