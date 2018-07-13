@@ -26,8 +26,8 @@ const helpContents: {[key: string]: string} = {
   'pipeline.config.canary.baselineLocation': '<p>The location (could be a region, a namespace, or something else) of the server group to treat as the <em>control</em> in the canary analysis.</p>',
   'pipeline.config.canary.canaryGroup': '<p>The server group to treat as the <em>experiment</em> in the canary analysis.</p>',
   'pipeline.config.canary.canaryLocation': '<p>The location (could be a region, a namespace, or something else) of the server group to treat as the <em>experiment</em> in the canary analysis.</p>',
-  'pipeline.config.canary.startTimeIso': '<p>The overall start time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a></p>',
-  'pipeline.config.canary.endTimeIso': '<p>The overall end time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a></p>',
+  'pipeline.config.canary.startTimeIso': '<p>The overall start time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a> For example, `2018-07-12T20:28:29Z`.</p>',
+  'pipeline.config.canary.endTimeIso': '<p>The overall end time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a> For example, `2018-07-12T22:28:29Z`.</p>',
   'pipeline.config.canary.extendedScopeParams': `
         <p>Metric source specific parameters which may be used to further alter the canary scope.</p>
         <p>Also used to provide variable bindings for use in the expansion of custom filter templates within the canary config.</p>`,
