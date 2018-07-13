@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.front50.config
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import com.squareup.okhttp.Interceptor
 import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
@@ -36,7 +38,7 @@ class RetrofitConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkClient okClient(OkHttpClientConfiguration okHttpClientConfig) {
+  OkClient okClient(Registry registry, OkHttpClientConfiguration okHttpClientConfig) {
     final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
     def cfg = okHttpClientConfig.create()
     cfg.networkInterceptors().add(new Interceptor() {
@@ -46,6 +48,7 @@ class RetrofitConfig {
         chain.proceed(req)
       }
     })
+    cfg.interceptors().add(new OkHttpMetricsInterceptor(registry))
 
     new OkClient(cfg)
   }
