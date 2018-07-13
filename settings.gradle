@@ -41,10 +41,6 @@ include 'clouddriver-core',
   'cats:cats-dynomite',
   'cats:cats-test'
 
-if (!Boolean.parseBoolean(System.getProperty('skip.loadtest'))) {
-  include "clouddriver-loadtest"
-}
-
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
   project.children.each {

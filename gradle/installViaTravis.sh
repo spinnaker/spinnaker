@@ -6,15 +6,15 @@ export GRADLE_OPTS="-Xmx1g -Xms1g"
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   echo -e "Assemble Pull Request #$TRAVIS_PULL_REQUEST => Branch [$TRAVIS_BRANCH]"
-  $GRADLE -Pskip.loadtest=true assemble
+  $GRADLE assemble
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" == "" ]; then
   echo -e 'Assemble Branch with Snapshot => Branch ['$TRAVIS_BRANCH']'
-  $GRADLE -Prelease.travisci=true -Pskip.loadtest=true -x test assemble
+  $GRADLE -Prelease.travisci=true -x test assemble
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
   echo -e 'Assemble Branch for Release => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']'
-  $GRADLE -Prelease.travisci=true -Prelease.useLastTag=true -Pskip.loadtest=true -x test assemble
+  $GRADLE -Prelease.travisci=true -Prelease.useLastTag=true -x test assemble
 else
   echo -e 'WARN: Should not be here => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']  Pull Request ['$TRAVIS_PULL_REQUEST']'
-  $GRADLE -Pskip.loadtest=true assemble
+  $GRADLE assemble
 fi
 
