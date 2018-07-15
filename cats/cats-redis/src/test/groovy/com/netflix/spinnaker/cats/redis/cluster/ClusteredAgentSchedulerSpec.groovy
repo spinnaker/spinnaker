@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.cats.test.TestAgent
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -38,6 +39,9 @@ class ClusteredAgentSchedulerSpec extends Specification {
     ManualRunnableScheduler agentExecutionScheduler
     AgentExecution exec = Mock(AgentExecution)
     ExecutionInstrumentation inst = Mock(ExecutionInstrumentation)
+    DynamicConfigService dcs = Stub(DynamicConfigService) {
+      getConfig(Integer, _ as String, 1000) >> 1000
+    }
 
     def setup() {
         def interval = new DefaultAgentIntervalProvider(6000000)
@@ -57,7 +61,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
           agentExecutionScheduler,
           ".*",
           null,
-          null
+          dcs
         )
     }
 

@@ -24,7 +24,6 @@ import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider;
-import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler;
 import com.netflix.spinnaker.cats.redis.cluster.NodeIdentity;
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
@@ -50,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Temporary clustered agent scheduler while we're waiting for Dyno client support of evalsha and loadscript.
  *
- * Shares a similiar strategy as ClusteredAgentScheduler, but doesn't use Lua, is slower and less safe. Dynomite
+ * Shares a similar strategy as ClusteredAgentScheduler, but doesn't use Lua, is slower and less safe. Dynomite
  * support for Lua is in-progress, so this class is rather temporary, then we can move to ClusteredSortAgentScheduler.
  */
 public class DynoClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock>, Runnable {
@@ -76,7 +75,7 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
   private final NodeStatusProvider nodeStatusProvider;
 
   public DynoClusteredAgentScheduler(DynomiteClientDelegate redisClientDelegate, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider, NodeStatusProvider nodeStatusProvider) {
-    this(redisClientDelegate, nodeIdentity, intervalProvider, nodeStatusProvider, Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(ClusteredAgentScheduler.class.getSimpleName())), Executors.newCachedThreadPool(new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())));
+    this(redisClientDelegate, nodeIdentity, intervalProvider, nodeStatusProvider, Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(DynoClusteredAgentScheduler.class.getSimpleName())), Executors.newCachedThreadPool(new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())));
   }
 
   public DynoClusteredAgentScheduler(DynomiteClientDelegate redisClientDelegate, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider, NodeStatusProvider nodeStatusProvider, ScheduledExecutorService lockPollingScheduler, ExecutorService agentExecutionPool) {

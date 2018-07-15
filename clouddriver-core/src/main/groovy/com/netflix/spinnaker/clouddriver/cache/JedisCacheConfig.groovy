@@ -27,6 +27,7 @@ import com.netflix.spinnaker.cats.redis.cluster.ClusteredSortAgentScheduler
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -61,7 +62,8 @@ class JedisCacheConfig {
                                 RedisClientDelegate redisClientDelegate,
                                 JedisPool jedisPool,
                                 AgentIntervalProvider agentIntervalProvider,
-                                NodeStatusProvider nodeStatusProvider) {
+                                NodeStatusProvider nodeStatusProvider,
+                                DynamicConfigService dynamicConfigService) {
     if (redisConfigurationProperties.scheduler.equalsIgnoreCase("default")) {
       URI redisUri = URI.create(redisConfigurationProperties.connection)
       String redisHost = redisUri.host
@@ -75,9 +77,8 @@ class JedisCacheConfig {
         agentIntervalProvider,
         nodeStatusProvider,
         redisConfigurationProperties.agent.enabledPattern,
-        redisConfigurationProperties.agent.maxConcurrentAgents,
-        redisConfigurationProperties.agent.agentLockAcquisitionIntervalSeconds
-      );
+        redisConfigurationProperties.agent.agentLockAcquisitionIntervalSeconds,
+        dynamicConfigService)
     } else if (redisConfigurationProperties.scheduler.equalsIgnoreCase("sort")) {
       new ClusteredSortAgentScheduler(jedisPool, nodeStatusProvider, agentIntervalProvider, redisConfigurationProperties.parallelism ?: -1);
     } else {

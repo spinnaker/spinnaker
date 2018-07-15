@@ -24,9 +24,9 @@ import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,15 +57,15 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
   private final Map<String, AgentExecutionAction> agents = new ConcurrentHashMap<>();
   private final Map<String, NextAttempt> activeAgents = new ConcurrentHashMap<>();
   private final NodeStatusProvider nodeStatusProvider;
-  private final Integer maxConcurrentAgents;
+  private final DynamicConfigService dynamicConfigService;
 
   public ClusteredAgentScheduler(RedisClientDelegate redisClientDelegate,
                                  NodeIdentity nodeIdentity,
                                  AgentIntervalProvider intervalProvider,
                                  NodeStatusProvider nodeStatusProvider,
                                  String enabledAgentPattern,
-                                 Integer maxConcurrentAgents,
-                                 Integer agentLockAcquisitionIntervalSeconds) {
+                                 Integer agentLockAcquisitionIntervalSeconds,
+                                 DynamicConfigService dynamicConfigService) {
     this(
       redisClientDelegate,
       nodeIdentity,
@@ -74,8 +74,8 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
       Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(ClusteredAgentScheduler.class.getSimpleName())),
       Executors.newCachedThreadPool(new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())),
       enabledAgentPattern,
-      maxConcurrentAgents,
-      agentLockAcquisitionIntervalSeconds
+      agentLockAcquisitionIntervalSeconds,
+      dynamicConfigService
     );
   }
 
@@ -86,15 +86,15 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
                                  ScheduledExecutorService lockPollingScheduler,
                                  ExecutorService agentExecutionPool,
                                  String enabledAgentPattern,
-                                 Integer maxConcurrentAgents,
-                                 Integer agentLockAcquisitionIntervalSeconds) {
+                                 Integer agentLockAcquisitionIntervalSeconds,
+                                 DynamicConfigService dynamicConfigService) {
     this.redisClientDelegate = redisClientDelegate;
     this.nodeIdentity = nodeIdentity;
     this.intervalProvider = intervalProvider;
     this.nodeStatusProvider = nodeStatusProvider;
     this.agentExecutionPool = agentExecutionPool;
     this.enabledAgentPattern = Pattern.compile(enabledAgentPattern);
-    this.maxConcurrentAgents = maxConcurrentAgents == null ? 1000 : maxConcurrentAgents;
+    this.dynamicConfigService = dynamicConfigService;
     Integer lockInterval = agentLockAcquisitionIntervalSeconds == null ? 1 : agentLockAcquisitionIntervalSeconds;
 
     lockPollingScheduler.scheduleAtFixedRate(this, 0, lockInterval, TimeUnit.SECONDS);
@@ -102,9 +102,11 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
 
   private Map<String, NextAttempt> acquire() {
     Set<String> skip = new HashSet<>(activeAgents.keySet());
+    Integer maxConcurrentAgents = dynamicConfigService.getConfig(Integer.class, "redis.agent.maxConcurrentAgents", 1000);
     Integer availableAgents = maxConcurrentAgents - skip.size();
     if (availableAgents <= 0) {
-      logger.debug("Not acquiring more locks (activeAgents: {}, runningAgents: {}",
+      logger.debug("Not acquiring more locks (maxConcurrentAgents: {} activeAgents: {}, runningAgents: {})",
+        maxConcurrentAgents,
         skip.size(),
         skip.stream().sorted().collect(Collectors.joining(","))
       );
