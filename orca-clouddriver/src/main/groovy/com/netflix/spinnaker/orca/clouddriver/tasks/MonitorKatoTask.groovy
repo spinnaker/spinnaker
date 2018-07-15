@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
@@ -42,7 +43,8 @@ class MonitorKatoTask implements RetryableTask {
    *
    * Allows for replication lag if reading tasks from a read-replica of the clouddriver main redis.
    */
-  static final long TASK_NOT_FOUND_TIMEOUT = TimeUnit.MINUTES.toMillis(2)
+  @Value('${tasks.monitorKatoTask.taskNotFoundTimeoutMs:120000}')
+  long taskNotFoundTimeoutMs
 
   private final Clock clock
   private final Registry registry
@@ -87,7 +89,7 @@ class MonitorKatoTask implements RetryableTask {
           firstNotFoundRetry = now
         }
 
-        if (now - firstNotFoundRetry > TASK_NOT_FOUND_TIMEOUT) {
+        if (now - firstNotFoundRetry > taskNotFoundTimeoutMs) {
           if (skipReplica) {
             // immediately fail the first time it gets a 404 directly from the master
             throw re

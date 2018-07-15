@@ -37,9 +37,13 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class MonitorKatoTaskSpec extends Specification {
+  static final long TASK_NOT_FOUND_TIMEOUT = 120000
 
   def now = Instant.now()
-  @Subject task = new MonitorKatoTask(new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")))
+
+  @Subject task = new MonitorKatoTask(new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC"))) {{
+    taskNotFoundTimeoutMs = TASK_NOT_FOUND_TIMEOUT
+  }}
 
   @Unroll("result is #expectedResult if kato task is #katoStatus")
   def "result depends on Kato task status"() {
@@ -145,13 +149,13 @@ class MonitorKatoTaskSpec extends Specification {
     "first failure"      | 0                                          |  false        | null
     "first failure w -1" | 0                                          |  false        | -1
     "first retry"        | 1                                          |  true         | 'N/A'
-    "about to fail"      | MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT     |  true         | 'N/A'
+    "about to fail"      | TASK_NOT_FOUND_TIMEOUT                     |  true         | 'N/A'
   }
 
   def "should set kato.task.skipReplica=true when getting a task from clouddriver times out"() {
     given:
     def taskId = "katoTaskId"
-    def elapsed = MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT + 1
+    def elapsed = task.TASK_NOT_FOUND_TIMEOUT + 1
     task.kato = Mock(KatoService)
 
     def stage = stage {
@@ -177,7 +181,7 @@ class MonitorKatoTaskSpec extends Specification {
   def "should get task from master when kato.task.skipReplica=true"() {
     given:
     def taskId = "katoTaskId"
-    def elapsed = MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT + 1
+    def elapsed = TASK_NOT_FOUND_TIMEOUT + 1
     task.kato = Mock(KatoService)
     def stage = stage {
       context = [
@@ -220,7 +224,7 @@ class MonitorKatoTaskSpec extends Specification {
     thrown(RetrofitError)
 
     where:
-    elapsed = MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT + 1
+    elapsed = TASK_NOT_FOUND_TIMEOUT + 1
   }
 
   def retrofit404() {
