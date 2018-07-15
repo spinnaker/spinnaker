@@ -22,16 +22,18 @@ let decorateFn = function($delegate, spelAutocomplete) {
       // the textcomplete plugin needs input texts to marked as 'contenteditable'
       el.attr('contenteditable', true);
       spelAutocomplete.addPipelineInfo(scope.pipeline).then(textcompleteConfig => {
-        el.textcomplete(textcompleteConfig, {
-          maxCount: 1000,
-          zIndex: 5000,
-          dropdownClassName: 'dropdown-menu textcomplete-dropdown spel-dropdown',
-        });
+        el.textcomplete &&
+          el.textcomplete(textcompleteConfig, {
+            maxCount: 1000,
+            zIndex: 5000,
+            dropdownClassName: 'dropdown-menu textcomplete-dropdown spel-dropdown',
+          });
       });
 
       function listener(evt) {
         let hasSpelPrefix = evt.target.value.includes('$');
-        let hasLink = el.parent().nextAll('.spelLink');
+        let parent = el.parent();
+        let hasLink = parent && parent.nextAll && parent.nextAll('.spelLink');
 
         if (hasSpelPrefix) {
           if (hasLink.length < 1) {
