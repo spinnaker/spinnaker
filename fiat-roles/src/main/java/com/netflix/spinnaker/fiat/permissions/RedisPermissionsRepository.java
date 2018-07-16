@@ -102,6 +102,13 @@ public class RedisPermissionsRepository implements PermissionsRepository {
         });
 
     try {
+      Set<Role> existingRoles = redisClientDelegate.withCommandsClient(client -> {
+        return client.hgetAll(userKey(permission.getId(), ResourceType.ROLE)).values().stream()
+          .map((ThrowingFunction<String, Role>) serialized ->
+            objectMapper.readValue(serialized, Role.class))
+          .collect(Collectors.toSet());
+      });
+
       redisClientDelegate.withMultiKeyPipeline(pipeline -> {
         String userId = permission.getId();
         pipeline.sadd(allUsersKey(), userId);
@@ -113,6 +120,9 @@ public class RedisPermissionsRepository implements PermissionsRepository {
         }
 
         permission.getRoles().forEach(role -> pipeline.sadd(roleKey(role), userId));
+        existingRoles.stream()
+          .filter(it -> !permission.getRoles().contains(it))
+          .forEach(role -> pipeline.srem(roleKey(role), userId));
 
         for (ResourceType r : ResourceType.values()) {
           String userResourceKey = userKey(userId, r);

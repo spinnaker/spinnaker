@@ -103,8 +103,8 @@ class RedisPermissionsRepositorySpec extends Specification {
 
   def "should remove permission that has been revoked"() {
     setup:
-    jedis.sadd("unittest:users", "testUser");
-    jedis.sadd("unittest:roles:role1", "testUser")
+    jedis.sadd("unittests:users", "testUser");
+    jedis.sadd("unittests:roles:role1", "testUser")
     jedis.hset("unittests:permissions:testUser:accounts",
                "account",
                '{"name":"account","requiredGroupMembership":[]}')
@@ -114,6 +114,9 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.hset("unittests:permissions:testUser:service_accounts",
                "serviceAccount",
                '{"name":"serviceAccount"}')
+    jedis.hset("unittests:permissions:testUser:roles",
+               "role1",
+               '{"name":"role1"}')
 
     when:
     repo.put(new UserPermission()

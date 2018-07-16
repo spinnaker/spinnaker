@@ -25,9 +25,9 @@ dependencies {
   compile spinnaker.dependency("bootWeb")
   compile spinnaker.dependency("korkHystrix")
   compile spinnaker.dependency("korkJedis")
+  compile spinnaker.dependency("korkDynomite")
   compile spinnaker.dependency("kork")
 
-  compile "redis.clients:jedis:${spinnaker.version('jedis')}"
   compile "com.google.api-client:google-api-client:1.21.0"
   compile "com.google.apis:google-api-services-admin-directory:directory_v1-rev65-1.21.0"
   compile "com.squareup.retrofit:converter-simplexml:1.9.0"
