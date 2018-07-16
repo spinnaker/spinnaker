@@ -31,6 +31,8 @@ public class FiatStatus {
   private final Logger log = LoggerFactory.getLogger(FiatStatus.class);
 
   private final DynamicConfigService dynamicConfigService;
+  private final FiatClientConfigurationProperties fiatClientConfigurationProperties;
+
   private final AtomicBoolean enabled;
   private final AtomicBoolean legacyFallbackEnabled;
 
@@ -39,6 +41,8 @@ public class FiatStatus {
                     DynamicConfigService dynamicConfigService,
                     FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     this.dynamicConfigService = dynamicConfigService;
+    this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
+
     this.enabled = new AtomicBoolean(
         dynamicConfigService.isEnabled("fiat", fiatClientConfigurationProperties.isEnabled())
     );
@@ -61,9 +65,10 @@ public class FiatStatus {
   @Scheduled(fixedDelay = 30000L)
   void refreshStatus() {
     try {
-      enabled.set(dynamicConfigService.isEnabled("fiat", enabled.get()));
-      legacyFallbackEnabled.set(dynamicConfigService.isEnabled("fiat.legacyFallback", legacyFallbackEnabled.get()));
-
+      enabled.set(dynamicConfigService.isEnabled("fiat", fiatClientConfigurationProperties.isEnabled()));
+      legacyFallbackEnabled.set(
+          dynamicConfigService.isEnabled("fiat.legacyFallback", fiatClientConfigurationProperties.isLegacyFallback())
+      );
     } catch (Exception e) {
       log.warn("Unable to refresh fiat status, reason: {}", e.getMessage());
     }
