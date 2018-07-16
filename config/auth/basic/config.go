@@ -1,4 +1,4 @@
-// Copyright (c) 2018, Google, Inc.
+// Copyright (c) 2018, Armory, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,13 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package auth
+package basic
 
-import (
-	"github.com/spinnaker/spin/config/auth/basic"
-	"github.com/spinnaker/spin/config/auth/oauth2"
-	"github.com/spinnaker/spin/config/auth/x509"
-)
+type BasicConfig struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
 
-// AuthConfig is the CLI's authentication configuration.
-type AuthConfig struct {
-	Enabled bool                 `yaml:"enabled"`
-	X509    *x509.X509Config     `yaml:"x509,omitempty"`
-	OAuth2  *oauth2.OAuth2Config `yaml:"oauth2,omitempty"`
-	Basic   *basic.BasicConfig   `yaml:"basic,omitempty"`
+func (b *BasicConfig) IsValid() bool {
+	return (b.Username != "" && b.Password != "")
 }
