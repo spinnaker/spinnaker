@@ -83,6 +83,18 @@ public class SavePipelineTask implements RetryableTask {
       }
     }
 
+    if (stage.getContext().containsKey("pipeline.serviceAccount")) {
+      String serviceAccount = (String) stage.getContext().get("pipeline.serviceAccount");
+      pipeline.put("serviceAccount", serviceAccount);
+
+      // Each trigger contains a runAsUser field.
+      // We'll update each one with the pipelineServiceAccount if not already set.
+      if (pipeline.containsKey("triggers")) {
+        List<Map<String, Object>> triggers = (List<Map<String, Object>>) pipeline.get("triggers");
+        triggers.forEach(trigger -> trigger.putIfAbsent("runAsUser", serviceAccount));
+      }
+    }
+
     pipelineModelMutators.stream().filter(m -> m.supports(pipeline)).forEach(m -> m.mutate(pipeline));
 
     Response response = front50Service.savePipeline(pipeline);

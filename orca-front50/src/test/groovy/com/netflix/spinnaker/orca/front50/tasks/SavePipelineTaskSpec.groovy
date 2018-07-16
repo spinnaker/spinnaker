@@ -126,4 +126,67 @@ class SavePipelineTaskSpec extends Specification {
     then:
     receivedIndex == newIndex
   }
+
+  def "should update runAsUser with service account in each trigger where it is not set "() {
+    given:
+    String runAsUser
+    def expectedRunAsUser = 'my-pipeline@managed-service-account'
+    def pipeline = [
+      application: 'orca',
+      name: 'my pipeline',
+      stages: [],
+      triggers: [
+        [
+          type: 'cron',
+          enabled: true
+        ]
+      ]
+    ]
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+    ])
+
+    when:
+    stage.getContext().put('pipeline.serviceAccount', expectedRunAsUser)
+    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+      runAsUser = newPipeline.triggers[0].runAsUser
+      new Response('http://front50', 200, 'OK', [], null)
+    }
+    task.execute(stage)
+
+    then:
+    runAsUser == expectedRunAsUser
+  }
+
+  def "should not update runAsUser in a trigger if it is already set"() {
+    given:
+    String runAsUser
+    def expectedRunAsUser = 'someServiceAccount'
+    def pipeline = [
+      application: 'orca',
+      name: 'my pipeline',
+      stages: [],
+      triggers: [
+        [
+          type: 'cron',
+          enabled: true,
+          runAsUser: expectedRunAsUser
+        ]
+      ]
+    ]
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+    ])
+
+    when:
+    stage.getContext().put('pipeline.serviceAccount', 'my-pipeline@managed-service-account')
+    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+      runAsUser = newPipeline.get("triggers")[0]?.runAsUser
+      new Response('http://front50', 200, 'OK', [], null)
+    }
+    task.execute(stage)
+
+    then:
+    runAsUser == expectedRunAsUser
+  }
 }

@@ -18,6 +18,7 @@ apply from: "$rootDir/gradle/groovy.gradle"
 
 dependencies {
   compile project(":orca-retrofit")
+  compileOnly spinnaker.dependency("lombok")
   spinnaker.group("fiat")
 
   testCompile project(":orca-test-groovy")

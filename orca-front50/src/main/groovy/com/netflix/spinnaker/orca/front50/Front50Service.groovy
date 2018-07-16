@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.front50
 
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
@@ -102,6 +103,9 @@ interface Front50Service {
 
   @GET("/notifications/application/{applicationName}")
   ApplicationNotifications getApplicationNotifications(@Path("applicationName") String applicationName)
+
+  @POST("/serviceAccounts")
+  Response saveServiceAccount(@Body ServiceAccount serviceAccount)
 
   static class Project {
     String id
