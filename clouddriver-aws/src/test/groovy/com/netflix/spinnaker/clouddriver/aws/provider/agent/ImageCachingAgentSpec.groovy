@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -85,10 +86,13 @@ class ImageCachingAgentSpec extends Specification {
       getAccountId() >> accountId
       getEddaEnabled() >> eddaEnabled
     }
+    def dcs = Stub(DynamicConfigService) {
+      isEnabled(_ as String, true) >> true
+    }
     def acp = Stub(AmazonClientProvider) {
       getAmazonEC2(creds, region, _) >> ec2
     }
-    new ImageCachingAgent(acp, creds, region, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), publicImages)
+    new ImageCachingAgent(acp, creds, region, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), publicImages, dcs)
   }
 
   void "should include only private images"() {

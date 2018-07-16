@@ -36,7 +36,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
-
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -63,14 +63,16 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
   final Registry registry
   final boolean includePublicImages
   final long pollIntervalMillis
+  final DynamicConfigService dynamicConfigService
 
-  ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry, boolean includePublicImages) {
+  ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry, boolean includePublicImages, DynamicConfigService dynamicConfigService) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
     this.includePublicImages = includePublicImages
+    this.dynamicConfigService = dynamicConfigService
     if (includePublicImages) {
       this.pollIntervalMillis = TimeUnit.MINUTES.toMillis(60)
     } else {
@@ -114,6 +116,10 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    if (includePublicImages && !dynamicConfigService.isEnabled("aws.defaults.publicImages", true)) {
+      log.info("short-circuiting with empty result set for public images in ${agentType}")
+      return new DefaultCacheResult((IMAGES.ns): [], (NAMED_IMAGES.ns): [])
+    }
     log.info("Describing items in ${agentType}")
     //we read public images directly from AWS instead of having edda cache them:
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region, includePublicImages)

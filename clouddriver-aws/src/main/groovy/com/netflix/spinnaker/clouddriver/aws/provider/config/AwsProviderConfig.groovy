@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
@@ -70,7 +71,8 @@ class AwsProviderConfig {
                           Registry registry,
                           ExecutorService reservationReportPool,
                           Optional<Collection<AgentProvider>> agentProviders,
-                          EddaTimeoutConfig eddaTimeoutConfig) {
+                          EddaTimeoutConfig eddaTimeoutConfig,
+                          DynamicConfigService dynamicConfigService) {
     def awsProvider =
       new AwsProvider(accountCredentialsRepository, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
@@ -85,7 +87,8 @@ class AwsProviderConfig {
                            registry,
                            reservationReportPool,
                            agentProviders.orElse(Collections.emptyList()),
-                           eddaTimeoutConfig)
+                           eddaTimeoutConfig,
+                           dynamicConfigService)
 
     awsProvider
   }
@@ -122,7 +125,8 @@ class AwsProviderConfig {
                                                  Registry registry,
                                                  ExecutorService reservationReportPool,
                                                  Collection<AgentProvider> agentProviders,
-                                                 EddaTimeoutConfig eddaTimeoutConfig) {
+                                                 EddaTimeoutConfig eddaTimeoutConfig,
+                                                 DynamicConfigService dynamicConfigService) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
     Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
@@ -138,9 +142,9 @@ class AwsProviderConfig {
         if (!scheduledAccounts.contains(credentials.name)) {
           newlyAddedAgents << new ClusterCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry, eddaTimeoutConfig)
           newlyAddedAgents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, false)
+          newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, false, dynamicConfigService)
           if (!publicRegions.contains(region.name)) {
-            newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, true)
+            newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, true, dynamicConfigService)
             publicRegions.add(region.name)
           }
           newlyAddedAgents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
