@@ -161,8 +161,10 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       stepPolicy.stepAdjustmentsList?.each {
         com.amazonaws.services.applicationautoscaling.model.StepAdjustment adjustment = new AwsStepAdjustment()
         adjustment.scalingAdjustment = it.scalingAdjustment.value
-        adjustment.metricIntervalLowerBound = it.metricIntervalLowerBound?.value
-        if (it.metricIntervalUpperBound.value > 0) {
+        if (it.hasMetricIntervalLowerBound()) {
+          adjustment.metricIntervalLowerBound = it.metricIntervalLowerBound?.value
+        }
+        if (it.hasMetricIntervalUpperBound()) {
           adjustment.metricIntervalUpperBound = it.metricIntervalUpperBound?.value
         }
         step.stepAdjustments << adjustment
