@@ -64,6 +64,8 @@ type ApiMeta struct {
 	// This is the set of flags global to the command parser.
 	gateEndpoint string
 
+        ignoreCertErrors bool
+
 	// Location of the spin config.
 	configLocation string
 }
@@ -75,6 +77,8 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 
 	f.StringVar(&m.gateEndpoint, "gate-endpoint", "http://localhost:8084",
 		"Gate (API server) endpoint")
+
+        f.BoolVar(&m.ignoreCertErrors, "insecure", false, "Ignore Certificate Errors")
 
 	f.Usage = func() {}
 
@@ -171,6 +175,10 @@ func (m *ApiMeta) InitializeClient() (*http.Client, error) {
 		Jar: cookieJar,
 	}
 
+	if m.ignoreCertErrors {
+             http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+        }
+
 	if auth != nil && auth.Enabled && auth.X509 != nil {
 		X509 := auth.X509
 		client.Transport = &http.Transport{
@@ -228,8 +236,9 @@ func (m *ApiMeta) initializeX509Config(client http.Client, clientCA []byte, cert
 	client.Transport.(*http.Transport).TLSClientConfig.MinVersion = tls.VersionTLS12
 	client.Transport.(*http.Transport).TLSClientConfig.PreferServerCipherSuites = true
 	client.Transport.(*http.Transport).TLSClientConfig.Certificates = []tls.Certificate{cert}
-	client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true // TODO(jacobkiefer): Add a flag for this.
-
+ 	if m.ignoreCertErrors {
+           client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true
+        }
 	return &client
 }
 
@@ -304,8 +313,9 @@ func (m *ApiMeta) Help() string {
 	help := `
 Global Options:
 
-	--gate-endpoint         Gate (API server) endpoint.
-        --no-color              Removes color from CLI output.
+	--gate-endpoint               Gate (API server) endpoint.
+        --no-color                    Removes color from CLI output.
+        --insecure=false              Ignore certificate errors during connection to endpoints.
 	`
 
 	return strings.TrimSpace(help)
