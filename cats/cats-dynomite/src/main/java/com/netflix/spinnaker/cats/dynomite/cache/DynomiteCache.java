@@ -166,8 +166,6 @@ public class DynomiteCache extends AbstractRedisCache {
             expireOperations.incrementAndGet();
           }
 
-          p.sadd(allOfTypeReindex(type), item.getId());
-          saddOperations.incrementAndGet();
           p.sadd(allOfTypeId(type), item.getId());
           saddOperations.incrementAndGet();
 
@@ -214,8 +212,6 @@ public class DynomiteCache extends AbstractRedisCache {
         for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
           String[] ids = idPartition.toArray(new String[idPartition.size()]);
           pipeline.srem(allOfTypeId(type), ids);
-          sremOperations.incrementAndGet();
-          pipeline.srem(allOfTypeReindex(type), ids);
           sremOperations.incrementAndGet();
         }
 
@@ -453,10 +449,5 @@ public class DynomiteCache extends AbstractRedisCache {
   @Override
   protected String allOfTypeId(String type) {
     return format("{%s:%s}:members", prefix, type);
-  }
-
-  @Override
-  protected String allOfTypeReindex(String type) {
-    return format("{%s:%s}:members.2", prefix, type);
   }
 }

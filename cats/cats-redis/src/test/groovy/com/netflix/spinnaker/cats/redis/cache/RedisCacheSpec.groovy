@@ -136,7 +136,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
         ((WriteableCache) cache).merge('foo', data)
 
         then:
-        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0, )
+        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, )
 
         when: //second write, hash matches
         ((WriteableCache) cache).merge('foo', data)
@@ -149,7 +149,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
         ((WriteableCache) cache).merge('foo', data)
 
         then:
-        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0)
+        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 1, 1, 1, 1, 0)
     }
 
     def 'should not write an item if it is unchanged'() {
@@ -160,7 +160,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
         ((WriteableCache) cache).merge('foo', data)
 
         then:
-        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0)
+        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 1, 1, 1, 1, 0)
 
         when:
         ((WriteableCache) cache).merge('foo', data)
@@ -183,8 +183,8 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
         then:
 
-        fullMerges * cacheMetrics.merge('test', 'foo', mergeCount, mergeCount, 0, 0, 0, 2, 1, 0, 1, 0)
-        finalMergeCount * cacheMetrics.merge('test', 'foo', finalMerge, finalMerge, 0, 0, 0, 2, 1, 0, 1, 0)
+        fullMerges * cacheMetrics.merge('test', 'foo', mergeCount, mergeCount, 0, 0, 0, 1, 1, 0, 1, 0)
+        finalMergeCount * cacheMetrics.merge('test', 'foo', finalMerge, finalMerge, 0, 0, 0, 1, 1, 0, 1, 0)
 
         where:
         mergeCount << [ 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 100, 101, 131 ]

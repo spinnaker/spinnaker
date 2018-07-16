@@ -133,8 +133,6 @@ public class RedisCache extends AbstractRedisCache {
       redisClientDelegate.withMultiKeyPipeline(pipeline -> {
         for (List<String> idPart : Iterables.partition(idSet, options.getMaxSaddSize())) {
           final String[] ids = idPart.toArray(new String[idPart.size()]);
-          pipeline.sadd(allOfTypeReindex(type), ids);
-          saddOperations.incrementAndGet();
           pipeline.sadd(allOfTypeId(type), ids);
           saddOperations.incrementAndGet();
         }
@@ -213,8 +211,6 @@ public class RedisCache extends AbstractRedisCache {
       for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
         String[] ids = idPartition.toArray(new String[idPartition.size()]);
         pipeline.srem(allOfTypeId(type), ids);
-        sremOperations.incrementAndGet();
-        pipeline.srem(allOfTypeReindex(type), ids);
         sremOperations.incrementAndGet();
       }
 

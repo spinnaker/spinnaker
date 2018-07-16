@@ -232,10 +232,6 @@ public abstract class AbstractRedisCache implements WriteableCache {
     return String.format("%s:%s:members", prefix, type);
   }
 
-  protected String allOfTypeReindex(String type) {
-    return String.format("%s:%s:members.2", prefix, type);
-  }
-
   protected TypeReference getRelationshipsTypeReference() {
     return options.isTreatRelationshipsAsSet() ? RELATIONSHIPS_SET : RELATIONSHIPS_LIST;
   }
