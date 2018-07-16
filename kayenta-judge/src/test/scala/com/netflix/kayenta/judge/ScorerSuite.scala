@@ -17,10 +17,9 @@
 package com.netflix.kayenta.judge
 
 import com.netflix.kayenta.canary.results.CanaryAnalysisResult
+import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Nodata, Pass}
 import com.netflix.kayenta.judge.scorers.WeightedSumScorer
-import com.netflix.kayenta.judge.classifiers.metric.{Pass, High, Low, Nodata}
 import org.scalatest.FunSuite
-import org.scalatest.Matchers._
 
 import scala.collection.JavaConverters._
 
@@ -98,7 +97,7 @@ class ScorerSuite extends FunSuite {
 
     assert(scores.groupScores.isDefined)
     val groupScores = scores.groupScores.get
-    assert(groupScores.size == 2)
+    assert(groupScores.lengthCompare(2) == 0)
     val justScores = groupScores.map { group => group.score }
     assert(justScores.sorted == List(0.0, 100.0))
 
@@ -148,7 +147,7 @@ class ScorerSuite extends FunSuite {
       .build()
 
     val scores = weightedSumScorer.score(List(passMetric, highMetric, lowMetric))
-    assert(scores.summaryScore === (33.33 +- 1.0e-2))
+    assert(scores.summaryScore === 33.33)
   }
 
   test("Weighted Sum Group Scorer: Two Groups, Three Metrics") {
@@ -229,7 +228,7 @@ class ScorerSuite extends FunSuite {
     assert(scores.summaryScore == 50.0)
   }
 
-  test("Weighted Sum Group Scorer: Two metrics, one good (normal), one fail (critical)") {
+  test("Weighted Sum Group Scorer: Two Metrics, one good (normal), one fail (critical)") {
     val groupWeights = Map[String, Double]()
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -250,7 +249,7 @@ class ScorerSuite extends FunSuite {
     assert(scores.summaryScore == 0.0)
   }
 
-  test("Weighted Sum Group Scorer: Two metrics, one low (normal), one good (critical)") {
+  test("Weighted Sum Group Scorer: Two Metrics, one low (normal), one good (critical)") {
     val groupWeights = Map[String, Double]()
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -270,6 +269,42 @@ class ScorerSuite extends FunSuite {
 
     val scores = weightedSumScorer.score(List(passMetric, highMetric))
     assert(scores.summaryScore == 50.0)
+  }
+
+  test("Weighted Sum Group Scorer: Two Groups (Unequal Weight), Four Metrics") {
+    val groupWeights = Map[String, Double]("group1" -> 15.0, "group2" -> 85.0)
+    val weightedSumScorer = new WeightedSumScorer(groupWeights)
+
+    val highMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-high")
+      .critical(false)
+      .classification(High.toString)
+      .groups(List[String]("group1").asJava)
+      .build()
+
+    val lowMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-low")
+      .critical(false)
+      .classification(Low.toString)
+      .groups(List[String]("group1").asJava)
+      .build()
+
+    val passMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-pass")
+      .critical(false)
+      .classification(Pass.toString)
+      .groups(List[String]("group1").asJava)
+      .build()
+
+    val failMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-pass2")
+      .critical(false)
+      .classification(High.toString)
+      .groups(List[String]("group2").asJava)
+      .build()
+
+    val scores = weightedSumScorer.score(List(highMetric, lowMetric, passMetric, failMetric))
+    assert(scores.summaryScore == 5.0)
   }
 
 }
