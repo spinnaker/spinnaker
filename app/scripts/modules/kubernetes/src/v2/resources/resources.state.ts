@@ -1,6 +1,5 @@
 import { module } from 'angular';
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
-import { INestedState } from 'core/navigation';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, INestedState } from '@spinnaker/core';
 import { KubernetesResourceDetails } from './ResourceDetails';
 
 export interface IKubernetesResourceStateParams {
