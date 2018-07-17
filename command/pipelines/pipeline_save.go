@@ -16,10 +16,12 @@ package pipelines
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/spinnaker/spin/command"
@@ -47,11 +49,23 @@ func (c *PipelineSaveCommand) flagSet() *flag.FlagSet {
 	return f
 }
 
-// parsePipelineFile reads and deserializes the input pipeline file.
+// parsePipelineFile reads and deserializes the pipeline input from Stdin or a file.
 func (c *PipelineSaveCommand) parsePipelineFile() (map[string]interface{}, error) {
-	dat, err := ioutil.ReadFile(c.pipelineFile)
+	var dat []byte
+	var err error
+	if c.pipelineFile != "" {
+		dat, err = ioutil.ReadFile(c.pipelineFile)
+	} else { // Stdin
+		fmt.Println("Reading stdin yo")
+		dat, err = ioutil.ReadAll(os.Stdin)
+	}
+
 	if err != nil {
 		return nil, err
+	}
+
+	if c.pipelineFile == "" && len(dat) == 0 {
+		return nil, errors.New("No pipeline input received from '--file' or Stdin, exiting...")
 	}
 
 	var pipelineJson map[string]interface{}
@@ -105,6 +119,11 @@ func (c *PipelineSaveCommand) Run(args []string) int {
 	args, err = c.ApiMeta.Process(args)
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
+		return 1
+	}
+
+	if len(args) == 0 {
+		c.ApiMeta.Ui.Error("No pipeline input received from '--file' or Stdin, exiting...")
 		return 1
 	}
 

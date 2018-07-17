@@ -46,6 +46,33 @@ func TestPipelineSave_basic(t *testing.T) {
 	}
 }
 
+func TestPipelineSave_stdin(t *testing.T) {
+	ts := GateServerSuccess()
+	defer ts.Close()
+
+	meta := command.ApiMeta{}
+	tempFile := tempPipelineFile(testPipelineJsonStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp pipeline file.")
+	}
+	defer os.Remove(tempFile.Name())
+
+	// Prepare Stdin for test reading.
+	tempFile.Seek(0, 0)
+	oldStdin := os.Stdin
+	defer func() { os.Stdin = oldStdin }()
+	os.Stdin = tempFile
+
+	args := []string{"--gate-endpoint", ts.URL}
+	cmd := PipelineSaveCommand{
+		ApiMeta: meta,
+	}
+	ret := cmd.Run(args)
+	if ret != 0 {
+		t.Fatalf("Command failed with: %d", ret)
+	}
+}
+
 func TestPipelineSave_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
