@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import java.time.Clock
-import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
@@ -26,9 +24,15 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import java.time.Clock
+import java.util.concurrent.TimeUnit
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import static java.net.HttpURLConnection.HTTP_ACCEPTED
+import static java.net.HttpURLConnection.HTTP_OK
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
@@ -118,6 +122,37 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     ["s-v001", "s-v002"] | ["s-v001"]            || RUNNING         || ["s-v002"]                    || ["s-v001", "s-v002"]
     ["s-v001"]           | ["s-v001"]            || null            || []                            || ["s-v001"]
   }
+
+  @Unroll
+  void "force cache refresh should return SUCCEEDED iff all results succeeded"() {
+    given:
+    def stageData = new ServerGroupCacheForceRefreshTask.StageData(
+      deployServerGroups: [
+        "us-west-1": ["s-v001", "s-v002", "s-v003"] as Set<String>
+      ],
+      refreshedServerGroups: []
+    )
+
+    when:
+    def optionalTaskResult = task.performForceCacheRefresh("test", "aws", stageData)
+
+    then:
+    3 * task.cacheService.forceCacheUpdate("aws", "ServerGroup", _) >>> responseCodes.collect { responseCode ->
+      new Response('', responseCode, 'ok', [], new TypedString(""))
+    }
+    0 * task.cacheService._
+    0 * task.cacheStatusService._
+
+    optionalTaskResult.present
+    optionalTaskResult.get().status == executionStatus
+
+    where:
+    responseCodes                                   || executionStatus
+    [HTTP_OK      , HTTP_OK      , HTTP_OK      ]   || SUCCEEDED
+    [HTTP_ACCEPTED, HTTP_ACCEPTED, HTTP_ACCEPTED]   || RUNNING
+    [HTTP_OK      , HTTP_ACCEPTED, HTTP_OK      ]   || RUNNING
+  }
+
 
   @Unroll
   void "should only complete when all deployed server groups have been processed"() {
