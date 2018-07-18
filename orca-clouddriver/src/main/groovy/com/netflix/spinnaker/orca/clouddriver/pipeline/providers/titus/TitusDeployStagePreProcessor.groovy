@@ -15,7 +15,7 @@
  */
 
 
-package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.titan
+package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.titus
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask
@@ -50,6 +50,22 @@ class TitusDeployStagePreProcessor implements DeployStagePreProcessor {
   boolean supports(Stage stage) {
     def stageData = stage.mapTo(StageData)
     return stageData.cloudProvider == "titus" // && stageData.useSourceCapacity
+  }
+
+  @Override
+  List<StageDefinition> afterStageDefinitions(Stage stage) {
+    def stageData = stage.mapTo(StageData)
+    def stageDefinitions = []
+    if (stageData.strategy != "rollingredblack") {
+      // rolling red/black has no need to apply a snapshotted capacity (on the newly created server group)
+      stageDefinitions << new StageDefinition(
+        name: "restoreMinCapacityFromSnapshot",
+        stageDefinitionBuilder: applySourceServerGroupSnapshotStage,
+        context: [:]
+      )
+    }
+
+    return stageDefinitions
   }
 
 }
