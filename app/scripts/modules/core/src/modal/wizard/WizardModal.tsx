@@ -4,6 +4,7 @@ import { Formik, Form, FormikProps, FormikValues } from 'formik';
 import { Modal } from 'react-bootstrap';
 
 import { TaskMonitor } from 'core';
+import { IModalComponentProps } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
 
 import { ModalClose } from '../buttons/ModalClose';
@@ -18,16 +19,15 @@ export interface IWizardPageData {
   validate: IWizardPageValidate;
 }
 
-export interface IWizardModalProps {
-  dismiss: () => void;
+export interface IWizardModalProps extends IModalComponentProps {
   heading: string;
   hideSections?: Set<string>;
   initialValues: FormikValues;
-  show: boolean;
-  submit: (values: FormikValues) => void;
   submitButtonLabel: string;
   taskMonitor: TaskMonitor;
   validate: IWizardPageValidate;
+  closeModal?(result?: any): void; // provided by ReactModal
+  dismissModal?(rejection?: any): void; // provided by ReactModal
 }
 
 export interface IWizardModalState {
@@ -61,10 +61,6 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
       this.stepsElement.scrollTop = pageState.element.offsetTop;
     }
     this.setState({ currentPage: pageState });
-  };
-
-  private onHide = (): void => {
-    // noop
   };
 
   private onMount = (element: any): void => {
@@ -161,7 +157,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
   };
 
   public render(): React.ReactElement<WizardModal<T>> {
-    const { dismiss, heading, hideSections, initialValues, show, submitButtonLabel, taskMonitor } = this.props;
+    const { heading, hideSections, initialValues, submitButtonLabel, taskMonitor } = this.props;
     const { currentPage, dirtyPages, errorPages, formInvalid, pages, waiting } = this.state;
     const { TaskMonitorWrapper } = NgReact;
 
@@ -170,15 +166,15 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     const submitting = taskMonitor && taskMonitor.submitting;
 
     return (
-      <Modal show={show} onHide={this.onHide} dialogClassName="wizard-modal modal-lg">
+      <>
         {taskMonitor && <TaskMonitorWrapper monitor={taskMonitor} />}
         <Formik
           initialValues={initialValues}
-          onSubmit={this.props.submit}
+          onSubmit={this.props.closeModal}
           validate={this.validate}
           render={(props: FormikProps<T>) => (
             <Form className="form-horizontal">
-              <ModalClose dismiss={dismiss} />
+              <ModalClose dismiss={this.props.dismissModal} />
               <Modal.Header>{heading && <h3>{heading}</h3>}</Modal.Header>
               <Modal.Body>
                 <div className="row">
@@ -214,7 +210,12 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
                 </div>
               </Modal.Body>
               <Modal.Footer>
-                <button className="btn btn-default" disabled={submitting} onClick={dismiss} type="button">
+                <button
+                  className="btn btn-default"
+                  disabled={submitting}
+                  onClick={this.props.dismissModal}
+                  type="button"
+                >
                   Cancel
                 </button>
                 <SubmitButton
@@ -227,7 +228,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
             </Form>
           )}
         />
-      </Modal>
+      </>
     );
   }
 }

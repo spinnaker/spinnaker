@@ -5,36 +5,25 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ILoadBalancer } from 'core/domain';
 import { ILoadBalancerUpsertCommand } from 'core/loadBalancer';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
-import { Tooltip } from 'core/presentation';
+import { IModalComponentProps, Tooltip } from 'core/presentation';
 
-export interface ILoadBalancerModalProps {
+export interface ILoadBalancerModalProps extends IModalComponentProps {
+  className?: string;
+  dialogClassName?: string;
   app: Application;
   forPipelineConfig?: boolean;
   loadBalancer: ILoadBalancer;
-  show: boolean;
-  showCallback: (show: boolean) => void;
-  onComplete?: (loadBalancerCommand: ILoadBalancerUpsertCommand) => void;
+  closeModal?(loadBalancerCommand: ILoadBalancerUpsertCommand): void; // provided by ReactModal
+  dismissModal?(rejectReason?: any): void; // provided by ReactModal
 }
 
 export interface ICreateLoadBalancerButtonProps {
   app: Application;
 }
 
-export interface ICreateLoadBalancerButtonState {
-  Modal: React.ComponentType<any>;
-  showModal: boolean;
-}
-
-export class CreateLoadBalancerButton extends React.Component<
-  ICreateLoadBalancerButtonProps,
-  ICreateLoadBalancerButtonState
-> {
+export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalancerButtonProps> {
   constructor(props: ICreateLoadBalancerButtonProps) {
     super(props);
-    this.state = {
-      Modal: null,
-      showModal: false,
-    };
   }
 
   private createLoadBalancer = (): void => {
@@ -45,8 +34,7 @@ export class CreateLoadBalancerButton extends React.Component<
         const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedSkin);
 
         if (provider.CreateLoadBalancerModal) {
-          // react
-          this.setState({ Modal: provider.CreateLoadBalancerModal, showModal: true });
+          provider.CreateLoadBalancerModal.show({ app: app, forPipelineConfig: false, loadBalancer: null });
         } else {
           // angular
           ModalInjector.modalService
@@ -67,14 +55,7 @@ export class CreateLoadBalancerButton extends React.Component<
     });
   };
 
-  private showModal = (show: boolean): void => {
-    this.setState({ showModal: show });
-  };
-
   public render() {
-    const { app } = this.props;
-    const { Modal, showModal } = this.state;
-
     return (
       <div>
         <button className="btn btn-sm btn-default" onClick={this.createLoadBalancer}>
@@ -84,15 +65,6 @@ export class CreateLoadBalancerButton extends React.Component<
           </Tooltip>
           <span className="visible-lg-inline"> Create Load Balancer</span>
         </button>
-        {Modal && (
-          <Modal
-            app={app}
-            forPipelineConfig={false}
-            loadBalancer={null}
-            show={showModal}
-            showCallback={this.showModal}
-          />
-        )}
       </div>
     );
   }
