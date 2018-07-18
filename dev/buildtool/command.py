@@ -158,7 +158,13 @@ class CommandProcessor(object):
   def get_output_dir(self, command=None):
     """Return the output dir for persistent build output from this command."""
     command = command or self.__options.command
-    return os.path.join(self.__options.output_dir, command)
+    output_command_path = os.path.join(self.__options.output_dir, command)
+    # FIXME: We manually ensure the output dir is there if it doesn't exist.
+    # This should be created before the command is run.
+    if not os.path.isdir(output_command_path):
+      logging.debug('making dir %s', output_command_path)
+      os.makedirs(output_command_path)
+    return output_command_path
 
   def get_input_dir(self, command=None):
     """Return the output dir for persistent build output from this command."""

@@ -50,6 +50,8 @@ function run_build_flow() {
   start_command_unless NO_HALYARD "build_halyard" \
       $EXTRA_BUILD_HALYARD_ARGS
 
+  start_command_unless NO_SPIN "build_spin"
+
   start_command_unless NO_CHANGELOG "build_changelog" \
       $EXTRA_BOM_COMMAND_ARGS \
 
@@ -114,6 +116,9 @@ function process_args() {
           ;;
         --no_halyard)
           NO_HALYARD=true
+          ;;
+        --no_spin)
+          NO_SPIN=true
           ;;
         --no_changelog)
           NO_CHANGELOG=true
