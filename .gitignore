@@ -11,9 +11,6 @@ Thumbs.db
 *.iml
 .idea/
 .vscode/
-.classpath
-.project
-.settings/
 
 # Node Files #
 npm-debug.log
@@ -36,4 +33,3 @@ yarn-error.log
 
 # Test Results
 test-results.xml
-/bin/

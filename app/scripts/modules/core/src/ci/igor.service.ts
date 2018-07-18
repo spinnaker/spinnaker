@@ -5,22 +5,19 @@ import { API } from 'core/api/ApiService';
 import { IBuild, IJobConfig } from 'core/domain';
 
 export enum BuildServiceType {
-  Jenkins = 'jenkins',
-  Travis  = 'travis',
-  Wercker = 'wercker',
+  Jenkins,
+  Travis,
 }
 
 export class IgorService {
-
-  public static listMasters(buildType: BuildServiceType = null): IPromise<string[]> {
+  public static listMasters(type: BuildServiceType = null): IPromise<string[]> {
     const allMasters: IPromise<string[]> = API.one('v2')
       .one('builds')
-      .withParams({ type: buildType })
       .get();
     if (!allMasters) {
       return $q.reject('An error occurred when retrieving build masters');
     }
-    switch (buildType) {
+    switch (type) {
       case BuildServiceType.Jenkins:
         return allMasters.then(masters => masters.filter(master => !/^travis-/.test(master)));
       case BuildServiceType.Travis:
