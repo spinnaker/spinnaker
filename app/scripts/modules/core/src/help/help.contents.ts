@@ -257,6 +257,12 @@ const helpContents: { [key: string]: string } = {
       If Travis reports the build status as UNSTABLE,
       Spinnaker will mark the stage as TERMINAL; subsequent execution will be determined based on the configuration of the
       <b>If build fails</b> option for this stage.`,
+  'pipeline.config.wercker.markUnstableAsSuccessful.true':
+    'If Wercker reports the build status as UNSTABLE, Spinnaker will mark the stage as SUCCEEDED and continue execution of the pipeline.',
+  'pipeline.config.wercker.markUnstableAsSuccessful.false': `
+      If Wercker reports the build status as UNSTABLE,
+      Spinnaker will mark the stage as FAILED; subsequent execution will be determined based on the configuration of the
+      <b>If build fails</b> option for this stage.`,
   'pipeline.config.cron.expression':
     '<strong>Format (Year is optional)</strong><p><samp>Seconds  Minutes  Hour  DayOfMonth  Month  DayOfWeek  (Year)</samp></p>' +
     '<p><strong>Example: every 30 minutes</strong></p><samp>0 0/30 * * * ?</samp>' +
@@ -373,6 +379,8 @@ const helpContents: { [key: string]: string } = {
     'if unchecked, marks the stage as successful right away without waiting for the jenkins job to complete',
   'travis.waitForCompletion':
     'if unchecked, marks the stage as successful right away without waiting for the Travis job to complete',
+  'wercker.waitForCompletion':
+    'if unchecked, marks the stage as successful right away without waiting for the Wercker job to complete',
   'script.waitForCompletion':
     'if unchecked, marks the stage as successful right away without waiting for the script to complete',
   'markdown.examples':

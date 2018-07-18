@@ -155,7 +155,7 @@ window.spinnakerSettings = {
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket', 'gitlab'],
   pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
-  triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub'],
+  triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'wercker', 'travis', 'pubsub'],
   searchVersion: 1,
   useClassicFirewallLabels: useClassicFirewallLabels,
   canary: {

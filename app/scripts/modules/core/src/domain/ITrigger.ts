@@ -21,8 +21,9 @@ export interface IBuildTrigger extends ITrigger {
   buildInfo?: any;
   buildNumber?: number;
   job: string;
+  project: string;
   master: string;
-  type: 'jenkins' | 'travis';
+  type: 'jenkins' | 'travis' | 'wercker';
 }
 
 export interface IDockerTrigger extends ITrigger {
@@ -53,4 +54,10 @@ export interface IPubsubTrigger extends ITrigger {
 export interface IWebhookTrigger extends ITrigger {
   source: string;
   payloadConstraints: { [key: string]: string };
+}
+
+export interface IWerckerTrigger extends IBuildTrigger {
+  app: string;
+  pipeline: string;
+  type: 'wercker';
 }
