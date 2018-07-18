@@ -1,5 +1,7 @@
 import { ILoadBalancerModalProps } from '@spinnaker/core';
 
+import { IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
+
 import { CreateApplicationLoadBalancer } from './application/CreateApplicationLoadBalancer';
 import { CreateClassicLoadBalancer } from './classic/CreateClassicLoadBalancer';
 import { CreateNetworkLoadBalancer } from './network/CreateNetworkLoadBalancer';
@@ -9,7 +11,9 @@ export interface IAmazonLoadBalancerConfig {
   label: string;
   sublabel: string;
   description: string;
-  component: React.ComponentClass<ILoadBalancerModalProps>;
+  component: React.ComponentClass<ILoadBalancerModalProps> & {
+    show: (props: ILoadBalancerModalProps) => Promise<IAmazonLoadBalancerUpsertCommand>;
+  };
 }
 
 export const LoadBalancerTypes: IAmazonLoadBalancerConfig[] = [

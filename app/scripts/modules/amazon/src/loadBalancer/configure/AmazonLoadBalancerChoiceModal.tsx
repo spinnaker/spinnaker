@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import { ILoadBalancerModalProps } from '@spinnaker/core';
+import { ILoadBalancerModalProps, ModalClose, ReactModal, noop } from '@spinnaker/core';
 
 import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
 
 export interface IAmazonLoadBalancerChoiceModalState {
   choices: IAmazonLoadBalancerConfig[];
-  configuring: boolean;
   selectedChoice: IAmazonLoadBalancerConfig;
 }
 
@@ -15,11 +14,22 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
   ILoadBalancerModalProps,
   IAmazonLoadBalancerChoiceModalState
 > {
+  public static defaultProps: Partial<ILoadBalancerModalProps> = {
+    closeModal: noop,
+    dismissModal: noop,
+  };
+
+  public static show(props: ILoadBalancerModalProps): Promise<void> {
+    return ReactModal.show(AmazonLoadBalancerChoiceModal, {
+      ...props,
+      className: 'create-pipeline-modal-overflow-visible',
+    });
+  }
+
   constructor(props: ILoadBalancerModalProps) {
     super(props);
     this.state = {
       choices: LoadBalancerTypes,
-      configuring: false,
       selectedChoice: LoadBalancerTypes[0],
     };
   }
@@ -29,40 +39,24 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
   }
 
   private choose = (): void => {
-    this.setState({ configuring: true });
+    const { children, ...loadBalancerProps } = this.props;
+    this.close();
+    this.state.selectedChoice.component.show(loadBalancerProps).then(loadBalancer => {
+      this.props.closeModal(loadBalancer);
+    });
   };
 
   public close = (): void => {
-    this.setState({ configuring: false, selectedChoice: this.state.choices[0] });
-    this.props.showCallback(false);
+    this.props.dismissModal.apply(null, arguments);
   };
 
   public render() {
-    const { choices, configuring, selectedChoice } = this.state;
-
-    if (configuring) {
-      const { app, forPipelineConfig, loadBalancer, onComplete } = this.props;
-      const ConfigureLoadBalancerModal = selectedChoice.component;
-      return (
-        <ConfigureLoadBalancerModal
-          app={app}
-          forPipelineConfig={forPipelineConfig}
-          loadBalancer={loadBalancer}
-          onComplete={onComplete}
-          show={true}
-          showCallback={this.close}
-        />
-      );
-    }
+    const { choices, selectedChoice } = this.state;
 
     return (
-      <Modal
-        show={this.props.show}
-        onHide={this.close}
-        className="create-pipeline-modal-overflow-visible"
-        backdrop="static"
-      >
-        <Modal.Header closeButton={true}>
+      <>
+        <ModalClose dismiss={this.close} />
+        <Modal.Header>
           <Modal.Title>Select Type of Load Balancer</Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -88,7 +82,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
             Configure Load Balancer <span className="glyphicon glyphicon-chevron-right" />
           </Button>
         </Modal.Footer>
-      </Modal>
+      </>
     );
   }
 }

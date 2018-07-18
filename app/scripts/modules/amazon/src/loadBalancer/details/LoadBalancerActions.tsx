@@ -17,7 +17,6 @@ export interface ILoadBalancerActionsProps {
 
 export interface ILoadBalancerActionsState {
   application: Application;
-  showEditModal: boolean;
 }
 
 export class LoadBalancerActions extends React.Component<ILoadBalancerActionsProps, ILoadBalancerActionsState> {
@@ -46,12 +45,13 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
 
     this.state = {
       application,
-      showEditModal: false,
     };
   }
 
   public editLoadBalancer = (): void => {
-    this.setState({ showEditModal: true });
+    const { app, loadBalancer } = this.props;
+    const LoadBalancerModal = LoadBalancerTypes.find(t => t.type === loadBalancer.loadBalancerType).component;
+    LoadBalancerModal.show({ app, loadBalancer });
   };
 
   public deleteLoadBalancer = (): void => {
@@ -94,17 +94,11 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     this.props.app.loadBalancers.refresh();
   };
 
-  private showEditCallback = (show: boolean): void => {
-    this.setState({ showEditModal: show });
-  };
-
   public render() {
     const { app, loadBalancer } = this.props;
-    const { application, showEditModal } = this.state;
+    const { application } = this.state;
 
     const { AddEntityTagLinks } = NgReact;
-
-    const LoadBalancerModal = LoadBalancerTypes.find(t => t.type === loadBalancer.loadBalancerType).component;
 
     return (
       <div style={{ display: 'inline-block' }}>
@@ -146,15 +140,6 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
               )}
           </Dropdown.Menu>
         </Dropdown>
-        {application &&
-          showEditModal && (
-            <LoadBalancerModal
-              app={application}
-              loadBalancer={loadBalancer}
-              show={showEditModal}
-              showCallback={this.showEditCallback}
-            />
-          )}
       </div>
     );
   }
