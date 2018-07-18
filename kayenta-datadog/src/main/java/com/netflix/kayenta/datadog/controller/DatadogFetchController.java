@@ -19,7 +19,7 @@ package com.netflix.kayenta.datadog.controller;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.providers.DatadogCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.DatadogCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.datadog.config.DatadogConfigurationTestControllerDefaultProperties;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;

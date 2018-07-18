@@ -1,5 +1,6 @@
 package com.netflix.kayenta.atlas;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
@@ -7,7 +8,7 @@ import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.atlas.model.TimeseriesData;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.AtlasCanaryMetricSetQueryConfig;
 import lombok.*;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -58,7 +59,11 @@ public class IntegrationTest {
     private ResourceLoader resourceLoader;
 
     @Autowired
-    ObjectMapper kayentaObjectMapper;
+    ObjectMapper objectMapper;
+
+    private void configureObjectMapper(ObjectMapper objectMapper) {
+      objectMapper.registerSubtypes(AtlasCanaryMetricSetQueryConfig.class);
+    }
 
     private String getFileContent(String filename) throws IOException {
         try (InputStream inputStream = resourceLoader.getResource("classpath:" + filename).getInputStream()) {
@@ -68,7 +73,8 @@ public class IntegrationTest {
 
     private CanaryConfig getConfig(String filename) throws IOException {
         String contents = getFileContent(filename);
-        return kayentaObjectMapper.readValue(contents, CanaryConfig.class);
+        configureObjectMapper(objectMapper);
+        return objectMapper.readValue(contents, CanaryConfig.class);
     }
 
     private CanaryMetricConfigWithResults queryMetric(CanaryMetricConfig metric, AtlasCanaryScope scope) {

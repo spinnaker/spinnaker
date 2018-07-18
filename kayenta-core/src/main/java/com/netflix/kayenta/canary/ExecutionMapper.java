@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.netflix.kayenta.canary.orca.CanaryStageNames;
-import com.netflix.kayenta.canary.providers.QueryConfigUtils;
+import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -67,7 +67,7 @@ public class ExecutionMapper {
   @Autowired
   public ExecutionMapper(StorageServiceRepository storageServiceRepository,
                          AccountCredentialsRepository accountCredentialsRepository,
-                         ObjectMapper kayentaObjectMapper,
+                         ObjectMapper objectMapper,
                          Registry registry,
                          String currentInstanceId,
                          Optional<List<CanaryScopeFactory>> canaryScopeFactories,
@@ -75,7 +75,7 @@ public class ExecutionMapper {
                          ExecutionRepository executionRepository) {
     this.storageServiceRepository = storageServiceRepository;
     this.accountCredentialsRepository = accountCredentialsRepository;
-    this.objectMapper = kayentaObjectMapper;
+    this.objectMapper = objectMapper;
     this.registry = registry;
     this.currentInstanceId = currentInstanceId;
     this.canaryScopeFactories = canaryScopeFactories.orElseGet(Collections::emptyList);

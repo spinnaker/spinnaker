@@ -25,7 +25,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.netflix.kayenta.canary.providers.InfluxdbCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.influxdb.canary.InfluxDbCanaryScope;
 import com.netflix.kayenta.influxdb.metrics.InfluxDbQueryBuilder;
 

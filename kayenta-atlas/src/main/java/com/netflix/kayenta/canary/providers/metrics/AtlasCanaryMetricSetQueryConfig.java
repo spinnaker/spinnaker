@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Joseph Motha
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,37 +14,27 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary.providers;
+package com.netflix.kayenta.canary.providers.metrics;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
+import lombok.*;
 
 import javax.validation.constraints.NotNull;
-
-import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class InfluxdbCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
-  
-  public static final String SERVICE_TYPE = "influxdb";
+@JsonTypeName("atlas")
+public class AtlasCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
   @NotNull
   @Getter
-  private String metricName;
-  
-  @Getter
-  private List<String> fields;
-  
+  private String q;
+
   @Override
   public String getServiceType() {
-    return SERVICE_TYPE;
+    return "atlas";
   }
 }

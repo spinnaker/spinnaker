@@ -23,8 +23,7 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 
 @Configuration
-@ComponentScan({
-  "com.netflix.kayenta.retrofit.config"
+@ComponentScan({"com.netflix.kayenta.retrofit.config"
 })
 class BackendsConfig {}
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary.providers;
+package com.netflix.kayenta.canary.providers.metrics;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.kayenta.canary.CanaryConfig;

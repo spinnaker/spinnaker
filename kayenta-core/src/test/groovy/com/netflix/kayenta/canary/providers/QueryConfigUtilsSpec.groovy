@@ -17,6 +17,7 @@
 package com.netflix.kayenta.canary.providers
 
 import com.netflix.kayenta.canary.CanaryConfig
+import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils
 import spock.lang.Specification
 import spock.lang.Unroll
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Armory, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,40 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary.providers;
+package com.netflix.kayenta.canary.providers.metrics;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class DatadogCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+@JsonTypeName("prometheus")
+public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+
   @NotNull
   @Getter
   private String metricName;
 
+  @Getter
+  private List<String> labelBindings;
+
+  @Getter
+  private List<String> groupByFields;
+
+  @Getter
+  private String customFilter;
+
+  @Getter
+  private String customFilterTemplate;
+
   @Override
   public String getServiceType() {
-    return "datadog";
+    return "prometheus";
   }
 }

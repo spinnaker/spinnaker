@@ -18,7 +18,7 @@ package com.netflix.kayenta.stackdriver.canary;
 
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
-import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.StackdriverCanaryMetricSetQueryConfig;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

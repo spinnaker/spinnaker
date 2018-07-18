@@ -14,26 +14,40 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary.providers;
+package com.netflix.kayenta.canary.providers.metrics;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-// TODO(duftler): Figure out how to move this into the kayenta-atlas module? Doing so as-is would introduce a circular dependency.
-public class AtlasCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+@JsonTypeName("stackdriver")
+public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+
+  public static final String SERVICE_TYPE = "stackdriver";
 
   @NotNull
   @Getter
-  private String q;
+  private String metricType;
+
+  @NotNull
+  @Getter
+  private List<String> groupByFields;
+
+  @Getter
+  private String customFilter;
+
+  @Getter
+  private String customFilterTemplate;
 
   @Override
   public String getServiceType() {
-    return "atlas";
+    return SERVICE_TYPE;
   }
 }

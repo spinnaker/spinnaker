@@ -19,7 +19,7 @@ package com.netflix.kayenta.stackdriver.controllers;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.StackdriverCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;

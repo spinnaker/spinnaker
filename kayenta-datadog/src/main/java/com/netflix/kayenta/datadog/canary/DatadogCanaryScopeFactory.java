@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 public class DatadogCanaryScopeFactory implements CanaryScopeFactory {
   @Override
   public boolean handles(String serviceType) {
-    return serviceType.equals("datadog");
+    return "datadog".equals(serviceType);
   }
 
   @Override

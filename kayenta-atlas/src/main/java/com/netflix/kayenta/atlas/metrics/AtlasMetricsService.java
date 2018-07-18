@@ -26,7 +26,7 @@ import com.netflix.kayenta.atlas.service.AtlasRemoteService;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.AtlasCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.retrofit.config.RemoteService;

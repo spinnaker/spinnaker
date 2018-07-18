@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.providers.InfluxdbCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.influxdb.model.InfluxDbResult;
 import com.netflix.kayenta.influxdb.security.InfluxDbNamedAccountCredentials;
 import com.netflix.kayenta.influxdb.service.InfluxDbRemoteService;

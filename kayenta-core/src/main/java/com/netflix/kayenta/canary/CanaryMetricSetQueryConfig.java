@@ -17,21 +17,10 @@
 package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
-import com.netflix.kayenta.canary.providers.DatadogCanaryMetricSetQueryConfig;
-import com.netflix.kayenta.canary.providers.InfluxdbCanaryMetricSetQueryConfig;
-import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
-import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 import lombok.NonNull;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({@JsonSubTypes.Type(value = AtlasCanaryMetricSetQueryConfig.class, name = "atlas"),
-               @JsonSubTypes.Type(value = DatadogCanaryMetricSetQueryConfig.class, name = "datadog"),
-               @JsonSubTypes.Type(value = InfluxdbCanaryMetricSetQueryConfig.class, name = "influxdb"),
-               @JsonSubTypes.Type(value = PrometheusCanaryMetricSetQueryConfig.class, name = "prometheus"),
-               @JsonSubTypes.Type(value = StackdriverCanaryMetricSetQueryConfig.class, name = "stackdriver")})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface CanaryMetricSetQueryConfig {
 

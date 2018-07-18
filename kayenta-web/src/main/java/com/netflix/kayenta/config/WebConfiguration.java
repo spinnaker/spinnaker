@@ -16,10 +16,18 @@
 
 package com.netflix.kayenta.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
+@Slf4j
 @ComponentScan({"com.netflix.kayenta.controllers"})
 public class WebConfiguration {
 }

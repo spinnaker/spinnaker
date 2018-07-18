@@ -17,7 +17,7 @@
 package com.netflix.kayenta.influxdb.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.kayenta.canary.providers.InfluxdbCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.influxdb.service.InfluxDbRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;

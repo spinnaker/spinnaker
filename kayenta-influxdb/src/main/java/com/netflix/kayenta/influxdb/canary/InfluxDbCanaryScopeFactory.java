@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
-import com.netflix.kayenta.canary.providers.InfluxdbCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQueryConfig;
 
 @Component
 public class InfluxDbCanaryScopeFactory implements CanaryScopeFactory {

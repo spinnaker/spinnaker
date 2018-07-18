@@ -18,7 +18,9 @@ package com.netflix.kayenta.metrics
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.kayenta.canary.CanaryScope
+import com.netflix.kayenta.config.KayentaConfiguration
 import com.netflix.kayenta.retrofit.config.RetrofitClientConfiguration
+import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -51,11 +53,18 @@ class CanaryScopeSpec extends Specification {
     }
   """
 
+  @Shared
+  ObjectMapper objectMapper = myObjectMapper();
+
+  private ObjectMapper myObjectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    KayentaConfiguration.configureObjectMapperFeatures(objectMapper);
+    return objectMapper;
+  }
+
   @Unroll
   void "should parse json"() {
     when:
-    ObjectMapper objectMapper = new RetrofitClientConfiguration().kayentaObjectMapper()
-
     CanaryScope scope = objectMapper.readValue(scope1Json, CanaryScope)
 
     then:
@@ -65,8 +74,6 @@ class CanaryScopeSpec extends Specification {
   @Unroll
   void "should render as json and come back again"() {
     when:
-    ObjectMapper objectMapper = new RetrofitClientConfiguration().kayentaObjectMapper()
-
     StringWriter jsonStream = new StringWriter()
     objectMapper.writeValue(jsonStream, scope1)
     String json = jsonStream.toString()

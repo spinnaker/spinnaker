@@ -37,8 +37,8 @@ public class RetrofitClientFactory {
   String retrofitLogLevel;
 
   @Bean
-  JacksonConverter jacksonConverterWithMapper(ObjectMapper kayentaObjectMapper) {
-    return new JacksonConverter(kayentaObjectMapper);
+  JacksonConverter jacksonConverterWithMapper(ObjectMapper objectMapper) {
+    return new JacksonConverter(objectMapper);
   }
 
   public <T> T createClient(Class<T> type, Converter converter, RemoteService remoteService, OkHttpClient okHttpClient) {

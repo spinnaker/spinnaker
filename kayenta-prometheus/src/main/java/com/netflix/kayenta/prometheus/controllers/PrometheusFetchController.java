@@ -18,7 +18,7 @@ package com.netflix.kayenta.prometheus.controllers;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.metrics.PrometheusCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
 import com.netflix.kayenta.prometheus.config.PrometheusConfigurationTestControllerDefaultProperties;

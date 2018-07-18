@@ -93,4 +93,3 @@ public class Main extends SpringBootServletInitializer {
     return application.properties(DEFAULT_PROPS).sources(Main.class);
   }
 }
-

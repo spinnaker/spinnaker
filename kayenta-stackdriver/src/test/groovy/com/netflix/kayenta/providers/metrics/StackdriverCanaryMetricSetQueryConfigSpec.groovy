@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.providers
+package com.netflix.kayenta.providers.metrics
 
 import com.netflix.kayenta.canary.CanaryConfig
-import com.netflix.kayenta.canary.providers.QueryConfigUtils
-import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig
+import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils
+import com.netflix.kayenta.canary.providers.metrics.StackdriverCanaryMetricSetQueryConfig
 import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope
 import spock.lang.Specification
 import spock.lang.Unroll

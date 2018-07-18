@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Joseph Motha
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,39 +14,39 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary.providers;
+package com.netflix.kayenta.canary.providers.metrics;
 
-import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import lombok.*;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-// TODO(duftler): Figure out how to move this into the kayenta-prometheus module? Doing so as-is would introduce a circular dependency.
-public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+@JsonTypeName("influxdb")
+public class InfluxdbCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+  
+  public static final String SERVICE_TYPE = "influxdb";
 
   @NotNull
   @Getter
   private String metricName;
-
+  
   @Getter
-  private List<String> labelBindings;
-
-  @Getter
-  private List<String> groupByFields;
-
-  @Getter
-  private String customFilter;
-
-  @Getter
-  private String customFilterTemplate;
-
+  private List<String> fields;
+  
   @Override
   public String getServiceType() {
-    return "prometheus";
+    return SERVICE_TYPE;
   }
 }
