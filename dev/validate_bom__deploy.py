@@ -701,7 +701,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
         ' {user}@{ip}'
         ' "if [[ -f /var/log/spinnaker/{service_dir}/{service_name}.log ]];'
         '  then cat /var/log/spinnaker/{service_dir}/{service_name}.log;'
-        '  else journalctl -u {service_name}; fi"'
+        '  else command -v journalctl >/dev/null && journalctl -u {service_name}; fi"'
         .format(user=self.hal_user,
                 ip=self.instance_ip,
                 ssh_key=self.ssh_key_path,
@@ -710,7 +710,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
                 log_dir=log_dir))
     if retcode != 0:
       logging.warning('Failed obtaining %s.log: %s', service, stdout)
-      write_to_path(stdout, os.path.join(log_dir, service + '.log'))
+    write_to_path(stdout, os.path.join(log_dir, service + '.log'))
 
 
 class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
