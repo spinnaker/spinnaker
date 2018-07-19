@@ -138,7 +138,9 @@ public class SaveServiceAccountTask implements RetryableTask {
 
     String pipelineName = (String) pipeline.get("name");
     // Pipeline name can have spaces. Replace them with "-"
-    return pipelineName.replaceAll("\\s", "-") + SERVICE_ACCOUNT_SUFFIX;
+    pipelineName= pipelineName.replaceAll("\\s", "-") + SERVICE_ACCOUNT_SUFFIX;
+    // Fiat service account names are always lower case.
+    return pipelineName.toLowerCase();
   }
 
   private boolean isUserAuthorized(String user, List<String> pipelineRoles) {

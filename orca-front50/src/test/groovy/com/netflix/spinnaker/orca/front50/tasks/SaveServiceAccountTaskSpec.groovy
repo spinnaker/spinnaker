@@ -69,7 +69,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     given:
     def pipeline = [
       application: 'orca',
-      name: 'my pipeline',
+      name: 'My pipeline',
       stages: [],
       roles: ['foo']
     ]
