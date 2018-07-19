@@ -15,10 +15,4 @@ If you're interested in a detailed walkthrough of the Spinnaker systems, check t
 
 These instructions cover pulling Spinnaker from source and setting up to run locally against any of the https://www.spinnaker.io/setup/install/providers/supported[Cloud Providers].
 
-To build from source and run on localhost follow the https://www.spinnaker.io/community/contributing/#how-to-run-spinnaker-locally-for-development[Development instructions]
-
-These instructions are tested on:
-
-* Ubuntu 14.04 LTS
-* Ubuntu 16.04 LTS
-* Mac OS X 10.11
+To build from source and run on localhost follow the https://spinnaker.io/guides/developer/getting-set-up/[Developer Setup Guide]
