@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.titus.caching.providers;
 
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonTargetGroup;
@@ -38,77 +40,76 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*;
 public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGroupProvider {
 
   private final Cache cacheView;
+  AwsLookupUtil awsLookupUtil;
+  private final Registry registry;
+
+  private final Id inconsistentCacheId;
 
   @Autowired
-  public TitusTargetGroupServerGroupProvider(Cache cacheView) {
+  public TitusTargetGroupServerGroupProvider(Cache cacheView,
+                                             AwsLookupUtil awsLookupUtil,
+                                             Registry registry) {
     this.cacheView = cacheView;
+    this.awsLookupUtil = awsLookupUtil;
+    this.registry = registry;
+
+    inconsistentCacheId = registry.createId("cache.inconsistentData")
+      .withTag("location", TitusTargetGroupServerGroupProvider.class.getSimpleName());
   }
 
-  @Autowired
-  AwsLookupUtil awsLookupUtil;
-
   @Override
-  public Map<String, AmazonTargetGroup> getServerGroups(String applicationName, Map<String, AmazonTargetGroup> allTargetGroups, Collection<CacheData> targetGroupData) {
+  public Map<String, AmazonTargetGroup> getServerGroups(String applicationName,
+                                                        Map<String, AmazonTargetGroup> allTargetGroups,
+                                                        Collection<CacheData> targetGroupData) {
 
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName));
-    if (application == null || allTargetGroups.isEmpty() || !application.getRelationships().containsKey(TARGET_GROUPS.ns) || application.getRelationships().get(TARGET_GROUPS.ns).isEmpty()) {
+    if (application == null ||
+      allTargetGroups.isEmpty() ||
+      !application.getRelationships().containsKey(TARGET_GROUPS.ns) ||
+      application.getRelationships().get(TARGET_GROUPS.ns).isEmpty()) {
       return allTargetGroups;
     }
+
     Collection<CacheData> applicationServerGroups = resolveRelationshipData(application, SERVER_GROUPS.ns);
     Set<String> instanceKeys = new HashSet<>();
-    Set<String> instanceHealths = new HashSet<>();
     for (CacheData serverGroup : applicationServerGroups) {
-      if (serverGroup.getRelationships().containsKey(TARGET_GROUPS.ns) && !serverGroup.getRelationships().get(TARGET_GROUPS.ns).isEmpty() && serverGroup.getRelationships().containsKey(INSTANCES.ns) && !serverGroup.getRelationships().get(INSTANCES.ns).isEmpty()) {
-        for (String instanceKey : serverGroup.getRelationships().get(INSTANCES.ns)) {
-          instanceKeys.add(instanceKey);
-        }
+      Map<String, Collection<String>> relationships = serverGroup.getRelationships();
+      if (relationships.containsKey(TARGET_GROUPS.ns) &&
+        !relationships.get(TARGET_GROUPS.ns).isEmpty() &&
+        relationships.containsKey(INSTANCES.ns) &&
+        !relationships.get(INSTANCES.ns).isEmpty()) {
+        instanceKeys.addAll(relationships.get(INSTANCES.ns));
       }
     }
-    Map<String, Map> instances = cacheView.getAll(INSTANCES.ns, instanceKeys).stream().collect(Collectors.toMap(CacheData::getId, CacheData::getAttributes));
+
+    Map<String, Map> instances = cacheView.getAll(INSTANCES.ns, instanceKeys)
+      .stream()
+      .collect(Collectors.toMap(CacheData::getId, CacheData::getAttributes));
+
     for (CacheData serverGroup : applicationServerGroups) {
       if (serverGroup.getRelationships().containsKey(TARGET_GROUPS.ns)) {
         for (String targetGroup : serverGroup.getRelationships().get(TARGET_GROUPS.ns)) {
-          Map targetGroupDetails = com.netflix.spinnaker.clouddriver.aws.data.Keys.parse(targetGroup);
+          Map<String, String> targetGroupDetails = com.netflix.spinnaker.clouddriver.aws.data.Keys.parse(targetGroup);
+
           Set<LoadBalancerInstance> targetGroupInstances = new HashSet<>();
           if (serverGroup.getRelationships().containsKey(INSTANCES.ns)) {
             for (String instanceKey : serverGroup.getRelationships().get(INSTANCES.ns)) {
               Map instanceDetails = instances.get(instanceKey);
-              String healthKey = com.netflix.spinnaker.clouddriver.aws.data.Keys.getInstanceHealthKey(((Map) instanceDetails.get("task")).get("containerIp").toString(), targetGroupDetails.get("account").toString(), targetGroupDetails.get("region").toString(), "aws-load-balancer-v2-target-group-instance-health");
-              CacheData healthData = cacheView.get(HEALTH.ns, healthKey);
-              Map health = Collections.EMPTY_MAP;
-              try {
-                if (healthData != null
-                  && healthData.getAttributes().containsKey("targetGroups")
-                  && !((ArrayList) healthData.getAttributes().get("targetGroups")).isEmpty()) {
-                  Map targetGroupHealth = (Map) ((ArrayList) healthData.getAttributes().get("targetGroups")).stream().filter(tgh ->
-                    ((Map) tgh).get("targetGroupName").toString().equals(targetGroupDetails.get("targetGroup")
-                    )).findFirst().orElse(Collections.EMPTY_MAP);
-                  if (!targetGroupHealth.isEmpty()) {
-                    health = new HashMap<String, String>() {
-                      {
-                        put("targetGroupName", targetGroupHealth.get("targetGroupName").toString());
-                        put("state", targetGroupHealth.get("state").toString());
-                        if (targetGroupHealth.containsKey("reasonCode")) {
-                          put("reasonCode", targetGroupHealth.get("reasonCode").toString());
-                        }
-                        if (targetGroupHealth.containsKey("description")) {
-                          put("description", targetGroupHealth.get("description").toString());
-                        }
-                      }
-                    };
-                  }
-                }
-              } catch (Exception e) {
-                log.error("failed to load health for " + instanceKey, e);
+
+              Optional<LoadBalancerInstance> instance = getInstanceHealth(instanceKey, instanceDetails, targetGroupDetails);
+              if (instance.isPresent()) {
+                targetGroupInstances.add(instance.get());
+              } else {
+                registry.counter(inconsistentCacheId).increment();
+                log.error(
+                  "Detected potentially inconsistent instance cache data (targetGroup: {}, serverGroup: {})",
+                  targetGroup,
+                  serverGroup.getId()
+                );
               }
-              LoadBalancerInstance instance = new LoadBalancerInstance(
-                ((Map) instanceDetails.get("task")).get("id").toString(),
-                null,
-                health
-              );
-              targetGroupInstances.add(instance);
             }
           }
+
           Map attributes = serverGroup.getAttributes();
           Map job = (Map) attributes.get("job");
           LoadBalancerServerGroup loadBalancerServerGroup = new LoadBalancerServerGroup(
@@ -116,9 +117,10 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
             attributes.get("account").toString(),
             attributes.get("region").toString(),
             !(Boolean) job.get("inService"),
-            Collections.EMPTY_SET,
+            Collections.emptySet(),
             targetGroupInstances
           );
+
           if (allTargetGroups.containsKey(targetGroup)) {
             allTargetGroups.get(targetGroup).getServerGroups().add(loadBalancerServerGroup);
             allTargetGroups.get(targetGroup).set("instances", targetGroupInstances.stream().map(LoadBalancerInstance::getId).collect(Collectors.toSet()));
@@ -133,4 +135,75 @@ public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGro
     return source.getRelationships().get(relationship) != null ? cacheView.getAll(relationship, source.getRelationships().get(relationship)) : Collections.emptyList();
   }
 
+  private Optional<LoadBalancerInstance> getInstanceHealth(String instanceKey,
+                                                          Map instanceDetails,
+                                                          Map<String, String> targetGroupDetails) {
+    String healthKey;
+    try {
+      healthKey = com.netflix.spinnaker.clouddriver.aws.data.Keys.getInstanceHealthKey(
+        ((Map) instanceDetails.get("task")).get("containerIp").toString(),
+        targetGroupDetails.get("account"),
+        targetGroupDetails.get("region"),
+        "aws-load-balancer-v2-target-group-instance-health"
+      );
+    } catch (NullPointerException e) {
+      return Optional.empty();
+    }
+
+    CacheData healthData = cacheView.get(HEALTH.ns, healthKey);
+
+    Map<String, Object> health = getTargetGroupHealth(instanceKey, targetGroupDetails, healthData);
+
+    return Optional.of(new LoadBalancerInstance(
+      ((Map) instanceDetails.get("task")).get("id").toString(),
+      null,
+      health
+    ));
+  }
+
+  private static Map<String, Object> getTargetGroupHealth(String instanceKey,
+                                                   Map<String, String> targetGroupDetails,
+                                                   CacheData healthData) {
+    try {
+      if (healthDataContainsTargetGroups(healthData)) {
+        Map targetGroupHealth = getTargetGroupHealthData(targetGroupDetails, healthData);
+
+        if (!targetGroupHealth.isEmpty()) {
+          Map<String, Object> health = new HashMap<>();
+          health.put("targetGroupName", targetGroupHealth.get("targetGroupName").toString());
+          health.put("state", targetGroupHealth.get("state").toString());
+
+          if (targetGroupHealth.containsKey("reasonCode")) {
+            health.put("reasonCode", targetGroupHealth.get("reasonCode").toString());
+          }
+
+          if (targetGroupHealth.containsKey("description")) {
+            health.put("description", targetGroupHealth.get("description").toString());
+          }
+
+          return health;
+        }
+      }
+    } catch (Exception e) {
+      log.error("failed to load health for " + instanceKey, e);
+    }
+
+    return Collections.emptyMap();
+  }
+
+  private static boolean healthDataContainsTargetGroups(CacheData healthData) {
+    return healthData != null
+      && healthData.getAttributes().containsKey("targetGroups")
+      && !((ArrayList) healthData.getAttributes().get("targetGroups")).isEmpty();
+  }
+
+  private static Map getTargetGroupHealthData(Map<String, String> targetGroupDetails, CacheData healthData) {
+    List targetGroups = (List) healthData.getAttributes().get("targetGroups");
+    return (Map) targetGroups.stream()
+      .filter(tgh ->
+        ((Map) tgh).get("targetGroupName").toString().equals(targetGroupDetails.get("targetGroup")
+      ))
+      .findFirst()
+      .orElse(Collections.EMPTY_MAP);
+  }
 }
