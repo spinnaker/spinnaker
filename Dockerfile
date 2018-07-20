@@ -2,7 +2,7 @@ FROM openjdk:8
 
 MAINTAINER delivery-engineering@netflix.com
 
-ENV KUBECTL_RELEASE=v1.10.3
+ENV KUBECTL_RELEASE=1.10.3
 ENV HEPTIO_BINARY_RELEASE_DATE=2018-06-05
 
 COPY . workdir/
@@ -19,7 +19,7 @@ RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
 
 RUN chmod +x /usr/local/bin/hal
 
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
