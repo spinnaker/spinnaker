@@ -20,18 +20,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.net.URL;
+import java.util.Optional;
+
+import static java.lang.String.format;
 
 @Component
 public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
@@ -39,6 +43,7 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
 
   private final ObjectMapper jsonObjectMapper;
   private final ObjectMapper yamlObjectMapper;
+  private final OkHttpClient okHttpClient;
 
   @Autowired
   public HttpTemplateSchemeLoader(ObjectMapper pipelineTemplateObjectMapper) {
@@ -47,6 +52,8 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
     this.yamlObjectMapper = new ObjectMapper(new YAMLFactory())
       .setConfig(jsonObjectMapper.getSerializationConfig())
       .setConfig(jsonObjectMapper.getDeserializationConfig());
+
+    this.okHttpClient = new OkHttpClient();
   }
 
   @Override
@@ -57,16 +64,32 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
 
   @Override
   public PipelineTemplate load(URI uri) {
-    try (InputStream is = uri.toURL().openConnection().getInputStream();
-         BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-         Stream<String> stream = reader.lines()) {
+    log.debug("Resolving pipeline template: {}", uri.toString());
+
+    Request request = new Request.Builder().url(convertToUrl(uri)).build();
+    try (Response response = okHttpClient.newCall(request).execute()) {
+      if (!response.isSuccessful()) {
+        throw new FileNotFoundException(format(
+          "Received unsuccessful status code from template (code: %s, url: %s)", response.code(), uri.toString()
+        ));
+      }
+      ResponseBody body = Optional.ofNullable(response.body())
+        .orElseThrow(() -> new TemplateLoaderException("Endpoint returned an empty body"));
+      String strBody = body.string();
+
+      log.debug("Loaded Template ({}):\n{}", uri, strBody);
       ObjectMapper objectMapper = isJson(uri) ? jsonObjectMapper : yamlObjectMapper;
 
-      String template = stream.collect(Collectors.joining("\n"));
-      log.debug("Loaded Template ({}):\n{}", uri, template);
-
-      return objectMapper.readValue(template, PipelineTemplate.class);
+      return objectMapper.readValue(strBody, PipelineTemplate.class);
     } catch (Exception e) {
+      throw new TemplateLoaderException(e);
+    }
+  }
+
+  private URL convertToUrl(URI uri) {
+    try {
+      return uri.toURL();
+    } catch (MalformedURLException e) {
       throw new TemplateLoaderException(e);
     }
   }

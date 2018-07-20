@@ -23,7 +23,7 @@ import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Subject;
+import spock.lang.Subject
 
 class HttpTemplateSchemeLoaderSpec extends Specification {
   @Subject
