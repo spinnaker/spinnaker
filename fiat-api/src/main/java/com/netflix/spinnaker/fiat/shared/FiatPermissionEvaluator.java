@@ -217,6 +217,11 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       return false;
     }
 
+    if (permission.isAdmin()) {
+      // grant access regardless of whether an explicit permission to the resource exists
+      return true;
+    }
+
     Function<Set<? extends Authorizable>, Boolean> containsAuth = resources ->
         resources
             .stream()
@@ -246,6 +251,9 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     }
   }
 
+  /*
+   * Used in Front50 Batch APIs
+   */
   @SuppressWarnings("unused")
   public boolean isAdmin() {
     return true; // TODO(ttomsu): Chosen by fair dice roll. Guaranteed to be random.

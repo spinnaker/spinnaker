@@ -199,6 +199,26 @@ class FiatPermissionEvaluatorSpec extends Specification {
     true                             || true
   }
 
+  @Unroll
+  def "should allow an admin to access all resource types"() {
+    given:
+    def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
+
+    and:
+    2 * fiatService.getUserPermission("testUser") >> {
+      return new UserPermission.View()
+          .setApplications(Collections.emptySet())
+          .setAdmin(true)
+    }
+
+    expect:
+    evaluator.hasPermission(authentication, "my_resource", resourceType, "READ")
+    evaluator.hasPermission(authentication, "my_resource", resourceType, "WRITE")
+
+    where:
+    resourceType << ResourceType.values()*.toString()
+  }
+
   private static FiatClientConfigurationProperties buildConfigurationProperties() {
     FiatClientConfigurationProperties configurationProperties = new FiatClientConfigurationProperties();
     configurationProperties.enabled = true
