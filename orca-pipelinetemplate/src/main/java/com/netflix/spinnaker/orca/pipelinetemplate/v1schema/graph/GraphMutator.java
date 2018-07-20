@@ -17,15 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ConditionalStanzaTransform;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ConfigModuleReplacementTransform;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ConfigPartialReplacementTransform;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ConfigStageInjectionTransform;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.DefaultVariableAssignmentTransform;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.PipelineConfigInheritanceTransform;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.RenderTransform;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.StageInheritanceControlTransform;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.TrimConditionalsTransform;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.*;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;

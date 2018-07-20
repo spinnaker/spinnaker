@@ -55,6 +55,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
   @Override
   public void visitPipelineTemplate(PipelineTemplate pipelineTemplate) {
+    expandStageLoops(pipelineTemplate);
     expandStagePartials(pipelineTemplate);
     replaceStages(pipelineTemplate);
     injectStages(pipelineTemplate);
@@ -67,10 +68,52 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
       for (int i = 0; i < templateStages.size(); i++) {
         if (templateStages.get(i).getId().equals(confStage.getId())) {
           templateStages.set(i, confStage);
-          log.debug(String.format("Template '%s' stage '%s' replaced by config %s", pipelineTemplate.getId(), confStage.getId(), templateConfiguration.getRuntimeId()));
+          log.debug("Template '{}' stage '{}' replaced by config {}", pipelineTemplate.getId(), confStage.getId(), templateConfiguration.getRuntimeId());
         }
       }
     }
+  }
+
+  private void expandStageLoops(PipelineTemplate pipelineTemplate) {
+    List<StageDefinition> addStages = new ArrayList<>();
+    List<StageDefinition> templateStages = pipelineTemplate.getStages();
+
+    // For each looped stage in the graph, inject its internal stage graph into the main template, then delete
+    // the container stages.
+    templateStages.stream().filter(StageDefinition::isLooping).forEach(loopingPlaceholder -> {
+      List<StageDefinition> stages = loopingPlaceholder.getLoopedStages();
+
+      createGraph(stages);
+
+      Map<String, StageDefinition> graph = stages.stream().collect(Collectors.toMap(StageDefinition::getId, i -> i));
+      Set<String> leafNodes = getLeafNodes(graph);
+
+      stages.stream()
+        .filter(s -> s.getDependsOn().isEmpty())
+        .forEach(s -> {
+          s.setDependsOn(loopingPlaceholder.getDependsOn());
+          s.setRequisiteStageRefIds(loopingPlaceholder.getRequisiteStageRefIds());
+        });
+
+      templateStages.stream()
+        .filter(s -> s.getDependsOn().contains(loopingPlaceholder.getId()))
+        .forEach(s -> {
+          s.getDependsOn().remove(loopingPlaceholder.getId());
+          s.getDependsOn().addAll(leafNodes);
+        });
+
+      templateStages.stream()
+        .filter(s -> s.getRequisiteStageRefIds().contains(loopingPlaceholder.getId()))
+        .forEach(s -> {
+          s.getRequisiteStageRefIds().remove(loopingPlaceholder.getId());
+          s.getRequisiteStageRefIds().addAll(leafNodes);
+        });
+
+      addStages.addAll(stages);
+    });
+
+    templateStages.addAll(addStages);
+    templateStages.removeIf(StageDefinition::isLooping);
   }
 
   private void expandStagePartials(PipelineTemplate pipelineTemplate) {

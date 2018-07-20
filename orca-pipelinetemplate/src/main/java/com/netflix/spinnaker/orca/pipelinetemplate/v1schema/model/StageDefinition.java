@@ -17,16 +17,9 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.LinkedHashSet;
+import java.util.*;
 
 public class StageDefinition implements Identifiable, Conditional, Cloneable {
   private static final Splitter ON_DOTS = Splitter.on(".");
@@ -41,6 +34,13 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
   private List<String> when = new ArrayList<>();
   private InheritanceControl inheritanceControl;
   private Set<String> requisiteStageRefIds = new LinkedHashSet<>();
+  private String loopWith;
+
+  @JsonIgnore
+  private List<StageDefinition> loopedStages = new ArrayList<>();
+
+  @JsonIgnore
+  private Map<String, Object> loopContext = new HashMap<>();
 
   @JsonIgnore
   private Boolean removed = false;
@@ -278,7 +278,6 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     return removed;
   }
 
-
   public void setWhen(List<String> when) {
     this.when = when;
   }
@@ -299,9 +298,30 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     this.requisiteStageRefIds = requisiteStageRefIds;
   }
 
+  public String getLoopWith() {
+    return loopWith;
+  }
+
+  public void setLoopWith(String loopWith) {
+    this.loopWith = loopWith;
+  }
+
+  public Map<String, Object> getLoopContext() {
+    return loopContext;
+  }
+
+  public List<StageDefinition> getLoopedStages() {
+    return loopedStages;
+  }
+
   @JsonIgnore
   public boolean isPartialType() {
     return type != null && type.startsWith("partial.");
+  }
+
+  @JsonIgnore
+  public boolean isLooping() {
+    return !Strings.isNullOrEmpty(loopWith);
   }
 
   @JsonIgnore
@@ -333,6 +353,7 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     }
     Collections.copy(stage.getNotifications(), getNotifications());
     Collections.copy(stage.getWhen(), getWhen());
+    stage.loopContext = new LinkedHashMap<>(getLoopContext());
     return stage;
   }
 

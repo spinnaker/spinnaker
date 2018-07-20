@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
-import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -86,6 +85,7 @@ class JinjaRendererSpec extends Specification {
 '''                   || String       | '"${ false }".equalsIgnoreCase("True")'
     '#stage("First Wait")["status"].toString() == "SUCCESS"' || String | '#stage("First Wait")["status"].toString() == "SUCCESS"'
     '${ #stage("First Wait")["status"].toString() == "SUCCESS" }' || String | '${ #stage("First Wait")["status"].toString() == "SUCCESS" }'
+    '${ #stage(\'Build Lambda\')[\'context\'][\'VERSION_PREFIX\'] }' || String | '${ #stage(\'Build Lambda\')[\'context\'][\'VERSION_PREFIX\'] }'
     '${ parameters.CONFIG_FOLDER ?: \'\' }' || String | '${ parameters.CONFIG_FOLDER ?: \'\' }'
     ''                || String       | null
     '* markdown list' || String       | '* markdown list'

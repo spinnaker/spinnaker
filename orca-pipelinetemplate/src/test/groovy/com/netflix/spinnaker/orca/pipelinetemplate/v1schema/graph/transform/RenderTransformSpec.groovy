@@ -300,6 +300,51 @@ class RenderTransformSpec extends Specification {
     template.partials[0].renderedPartials['bar']*.config == [[waitTime: 10], [waitTime: 20]]
   }
 
+  def 'should expand and render looped stages'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate()
+    TemplateConfiguration configuration = new TemplateConfiguration(
+      schema: '1',
+      pipeline: new PipelineDefinition(
+        application: 'orca',
+        name: 'Wait',
+        variables: [
+          waitTime: 10,
+          waitTimes: [2, 5]
+        ]
+      ),
+      stages: [
+        new StageDefinition(
+          id: 'wait',
+          type: 'wait',
+          config: [
+            waitTime: '{{ waitTime }}'
+          ],
+        ),
+        new StageDefinition(
+          id: 'wait2',
+          type: 'wait',
+          config: [
+            waitTime: '{{ templateLoop.value }}'
+          ],
+          dependsOn: ['wait'],
+          loopWith: "{{ waitTimes }}"
+        )
+      ],
+      configuration: new PipelineConfiguration()
+    )
+
+    when:
+    new RenderTransform(configuration, renderer, registry, [:]).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    // Loops are not injected to the graph at this point, just rendered
+    configuration.stages.size() == 2
+    configuration.stages[0].config.waitTime == 10
+    configuration.stages[1].loopedStages*.config.waitTime == [2, 5]
+  }
+
   StageDefinition findStage(PipelineTemplate template, String id) {
     return template.stages.find { it.id == id }
   }

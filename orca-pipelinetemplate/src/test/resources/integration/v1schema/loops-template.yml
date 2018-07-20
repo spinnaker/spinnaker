@@ -1,0 +1,42 @@
+---
+schema: "1"
+id: loops
+metadata:
+  name: Loops
+  description: Stage and partial looping with variables
+variables:
+- name: waitTimes
+  description: A list of wait times
+  type: list
+stages:
+- id: loopedPartial
+  type: partial.waitGraph
+  config:
+    waitTime: "{{ templateLoop.value }}"
+  loopWith: "{{ waitTimes }}"
+- id: joinWait
+  type: wait
+  config:
+    waitTime: 3
+  dependsOn:
+  - loopedPartial
+- id: stageLoop
+  type: wait
+  name: "Wait {{ templateLoop.value }} seconds"
+  config:
+    waitTime: "{{ templateLoop.value }}"
+  loopWith: "{{ waitTimes }}"
+  dependsOn:
+  - joinWait
+partials:
+- id: waitGraph
+  usage: Builds a graph of wait stages.
+  variables:
+  - name: waitTime
+    description: The amount of time to wait
+  stages:
+  - id: dynamicWait
+    type: wait
+    name: Wait with loop variable
+    config:
+      waitTime: "{{ waitTime }}"

@@ -1,0 +1,56 @@
+{
+  "id": "unknown",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "application": "orca",
+  "name": "Unnamed Execution",
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "Wait with loop variable",
+      "group": "waitGraph: loopedPartial",
+      "id": null,
+      "refId": "loopedPartial0.dynamicWait",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": [],
+      "name": "Wait with loop variable",
+      "group": "waitGraph: loopedPartial",
+      "id": null,
+      "refId": "loopedPartial1.dynamicWait",
+      "type": "wait",
+      "waitTime": 10
+    },
+    {
+      "requisiteStageRefIds": [
+        "loopedPartial0.dynamicWait",
+        "loopedPartial1.dynamicWait"
+      ],
+      "name": "joinWait",
+      "id": null,
+      "refId": "joinWait",
+      "type": "wait",
+      "waitTime": 3
+    },
+    {
+      "requisiteStageRefIds": ["joinWait"],
+      "name": "Wait 5 seconds",
+      "id": null,
+      "refId": "stageLoop0",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["joinWait"],
+      "name": "Wait 10 seconds",
+      "id": null,
+      "refId": "stageLoop1",
+      "type": "wait",
+      "waitTime": 10
+    }
+  ],
+  "notifications": [],
+  "parameterConfig": []
+}
