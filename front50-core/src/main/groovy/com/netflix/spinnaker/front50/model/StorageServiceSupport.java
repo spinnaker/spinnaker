@@ -60,6 +60,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final Counter updateCounter;   // Updates discovered during refresh
 
   private final AtomicLong lastRefreshedTime = new AtomicLong();
+  private final AtomicLong lastSeenStorageTime = new AtomicLong();
 
   public StorageServiceSupport(ObjectType objectType,
                                StorageService service,
@@ -146,11 +147,12 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     }
 
     long lastModified = readLastModified();
-    if (lastModified > lastRefreshedTime.get() || allItemsCache.get() == null) {
+    if (lastModified > lastSeenStorageTime.get() || allItemsCache.get() == null) {
       // only refresh if there was a modification since our last refresh cycle
-      log.debug("all() forcing refresh (lastModified: {}, lastRefreshed: {})",
+      log.debug("all() forcing refresh (lastModified: {}, lastRefreshed: {}, lastSeenStorageTime: {})",
         value("lastModified", new Date(lastModified)),
-        value("lastRefreshed", new Date(lastRefreshedTime.get())));
+        value("lastRefreshed", new Date(lastRefreshedTime.get())),
+        value("lastSeenStorageTime", new Date(lastSeenStorageTime.get())));
       long startTime = System.nanoTime();
       refresh();
       long elapsed = System.nanoTime() - startTime;
@@ -284,6 +286,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     }
 
     Long refreshTime = System.currentTimeMillis();
+    Long storageLastModified = readLastModified();
     Map<String, Long> keyUpdateTime = objectKeyLoader.listObjectKeys(objectType);
 
     // Expanded from a stream collector to avoid DuplicateKeyExceptions
@@ -363,6 +366,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
     Set<T> result = resultMap.values().stream().collect(Collectors.toSet());
     this.lastRefreshedTime.set(refreshTime);
+    this.lastSeenStorageTime.set(storageLastModified);
 
     int resultSize = result.size();
     addCounter.increment(numAdded.get());
