@@ -74,7 +74,7 @@ class GetCommitsTask implements DiffTask {
 
     try {
       // get app config to see if it has repo info
-      repoInfo = getRepoInfo(stage.context.account, stage.context.application)
+      repoInfo = getRepoInfo(stage.context.application)
 
       if (!repoInfo?.repoType || !repoInfo?.projectKey || !repoInfo?.repositorySlug) {
         log.info("not enough info to query igor for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug}]")
@@ -123,7 +123,12 @@ class GetCommitsTask implements DiffTask {
 
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
     } catch (RetrofitError e) {
-      if (e.response?.status == 404) { // just give up on 404
+      if (e.kind == RetrofitError.Kind.UNEXPECTED) {
+        // give up on internal errors
+        log.error("internal error while talking to igor : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:$sourceInfo targetCommit: $targetInfo]")
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+      } else if (e.response?.status == 404) {
+        // just give up on 404
         log.error("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]")
         return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
       } else { // retry on other status codes
@@ -211,9 +216,7 @@ class GetCommitsTask implements DiffTask {
     }
   }
 
-  Map getRepoInfo(String account, String application) {
-    def globalAccount = front50Service.credentials.find { it.global }
-    def applicationAccount = globalAccount?.name ?: account
+  Map getRepoInfo(String application) {
     Application app = front50Service.get(application)
     return [repoType: app?.details()?.repoType, projectKey: app?.details()?.repoProjectKey, repositorySlug: app?.details()?.repoSlug]
   }

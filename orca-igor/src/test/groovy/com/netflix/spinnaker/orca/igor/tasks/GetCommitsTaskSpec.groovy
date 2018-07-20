@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
@@ -35,6 +34,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
 class GetCommitsTaskSpec extends Specification {
@@ -63,30 +63,6 @@ class GetCommitsTaskSpec extends Specification {
     then:
     0 * _
     result.status == SUCCEEDED
-  }
-
-  def "global credential is preferred to the stage account for application lookup"() {
-    given:
-    def stage = new Stage(pipeline, "stash", [application: app, account: account])//, "kato.tasks" : katoMap])
-    task.buildService = buildService
-    task.front50Service = front50Service
-
-    when:
-    task.execute(stage)
-
-    then:
-
-    1 * front50Service.getCredentials() >> credentials
-    1 * front50Service.get(app) >> new Application(repoSlug: null, repoProjectKey: null)
-    0 * _
-
-    where:
-    credentials                                           | account | expectedAccount
-    []                                                    | 'test'  | 'test'
-    [new Front50Credential(global: true, name: 'global')] | 'test'  | 'global'
-    [new Front50Credential(global: false, name: 'prod')]  | 'test'  | 'test'
-
-    app = "myapp"
   }
 
   @Unroll
@@ -312,7 +288,6 @@ class GetCommitsTaskSpec extends Specification {
     and:
     task.buildService = buildService
     task.front50Service = front50Service
-    1 * front50Service.getCredentials() >> []
     1 * front50Service.get(app) >> new Application()
 
     when:

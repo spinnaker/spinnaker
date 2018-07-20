@@ -27,6 +27,7 @@ import static java.net.HttpURLConnection.*
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE
 import static retrofit.RetrofitError.Kind.HTTP
 import static retrofit.RetrofitError.Kind.NETWORK
+import static retrofit.RetrofitError.Kind.UNEXPECTED
 
 @Order(HIGHEST_PRECEDENCE)
 class RetrofitExceptionHandler implements ExceptionHandler {
@@ -65,7 +66,9 @@ class RetrofitExceptionHandler implements ExceptionHandler {
       responseDetails.kind = e.kind
       responseDetails.status = properties.status ?: null
       responseDetails.url = properties.url ?: null
-      boolean shouldRetry = ((isNetworkError(e) || isGatewayTimeout(e) || isThrottle(e)) && isIdempotentRequest(e))
+      boolean shouldRetry = !isMalformedRequest(e) &&
+        (isNetworkError(e) || isGatewayTimeout(e) || isThrottle(e)) &&
+        isIdempotentRequest(e)
       return new ExceptionHandler.Response(e.class.simpleName, stepName, responseDetails, shouldRetry)
     }
   }
@@ -82,6 +85,11 @@ class RetrofitExceptionHandler implements ExceptionHandler {
 
   private boolean isNetworkError(RetrofitError e) {
     e.kind == NETWORK
+  }
+
+  private boolean isMalformedRequest(RetrofitError e) {
+    // We never want to retry errors like "Path parameter "blah" value must not be null.
+    return e.kind == UNEXPECTED && e.message.contains("Path parameter")
   }
 
   private static boolean isIdempotentRequest(RetrofitError e) {
