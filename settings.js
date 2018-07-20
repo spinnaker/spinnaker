@@ -11,6 +11,7 @@ var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
 var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
 var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
 var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
+var atlasWebComponentsPolyfillUrl = process.env.ATLAS_WEB_COMPONENTS_POLYFILL_URL;
 var canaryAccount = process.env.CANARY_ACCOUNT || 'my-google-account';
 
 window.spinnakerSettings = {
@@ -86,6 +87,7 @@ window.spinnakerSettings = {
     metricStore: defaultMetricStore,
     stagesEnabled: canaryStagesEnabled,
     atlasWebComponentsUrl: atlasWebComponentsUrl,
+    atlasWebComponentsPolyfillUrl: atlasWebComponentsPolyfillUrl,
     templatesEnabled: templatesEnabled,
     showAllConfigs: true,
   },

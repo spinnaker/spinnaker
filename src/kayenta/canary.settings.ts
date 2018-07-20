@@ -11,6 +11,7 @@ export interface ICanarySettings {
   featureDisabled: boolean;
   optInAll: boolean;
   atlasWebComponentsUrl: string;
+  atlasWebComponentsPolyfillUrl: string;
   atlasGraphBaseUrl: string;
   templatesEnabled: boolean;
 }

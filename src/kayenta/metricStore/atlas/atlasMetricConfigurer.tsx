@@ -40,10 +40,16 @@ if (CanarySettings.atlasWebComponentsUrl) {
   const global = window as any;
   global['React'] = React;
   global['ReactDOM'] = ReactDOM;
+
+  if (CanarySettings.atlasWebComponentsPolyfillUrl) {
+    const polyfillScript = document.createElement('script');
+    polyfillScript.src = CanarySettings.atlasWebComponentsPolyfillUrl;
+    document.head.appendChild(polyfillScript);
+  }
   // download components; they will register when the script executes
-  const script = document.createElement('script');
-  script.src = CanarySettings.atlasWebComponentsUrl;
-  document.head.appendChild(script);
+  const componentScript = document.createElement('script');
+  componentScript.src = CanarySettings.atlasWebComponentsUrl;
+  document.head.appendChild(componentScript);
 }
 
 // Add <atlas-query-selector> to the elements allowed in TSX, using the AtlasQuerySelector interface.
