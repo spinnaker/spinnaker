@@ -3,26 +3,87 @@
 set -e
 set -x
 
-if [ ! -d ${HOME}/google-cloud-sdk ]; then
-  wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-206.0.0-linux-x86_64.tar.gz -O install.tar.gz
-  tar -xvzf install.tar.gz
+PROD_SPIN_GCS_BUCKET_PATH="gs://spinnaker-artifacts/spin"
 
-  ./google-cloud-sdk/install.sh -q
+KEY_FILE=
+SPIN_GCS_BUCKET_PATH=
+VERSION=
+
+
+function process_args() {
+  while [[ $# > 0 ]]
+  do
+    local key="$1"
+    shift
+    case $key in
+      --gcs_bucket_path)
+        SPIN_GCS_BUCKET_PATH="$1"
+        shift
+        ;;
+      --key_file)
+        KEY_FILE="$1"
+        shift
+        ;;
+      --version)
+        VERSION="$1"
+        shift
+        ;;
+      --help|-help|-h)
+        print_usage
+        exit 0
+        ;;
+      *)
+        echo "ERROR: Unknown argument '$key'"
+        exit -1
+    esac
+  done
+}
+
+
+function print_usage() {
+    cat <<EOF
+usage: $0 --key_file <key file path> --version <version>
+      [--gcs_bucket_path <path>]
+
+
+    If run with no arguments you will be prompted for cloud provider and region
+
+    --gcs_bucket_path <arg>      Path to the GCS bucket to write the `spin` binaries to.
+
+    --key_file <arg>             Service account JSON key file to use to upload `spin`
+                                       binaries.
+
+    --version <arg>              Version to tag the `spin` binaries with.
+EOF
+}
+
+
+process_args "$@"
+
+# Google cloud sdk installation from
+# https://cloud.google.com/sdk/docs/downloads-interactive.
+if ! command -v gcloud > /dev/null; then
+  curl https://sdk.cloud.google.com | bash -s --disable-prompts
 fi
 
 export PATH=$PATH:`pwd`/google-cloud-sdk/bin
 
-gcloud auth activate-service-account --key-file key.json
+if [ -z "$KEY_FILE" ]; then
+    echo "No key file specified with --key_file, exiting"
+    exit 1
+fi
+
+gcloud auth activate-service-account --key-file ${KEY_FILE}
 gcloud components install gsutil -q
 
 if [ -z "$VERSION" ]; then
-  echo -e "No version to release specified with the \$VERSION env var, exiting"
+  echo -e "No version to release specified with --version, exiting"
   exit 1
 fi
 
-if [ -z "$GCS_BUCKET_PATH" ]; then
-  echo "No GCS bucket specified using \$GCS_BUCKET_PATH, using gs://spinnaker-artifacts/spin"
-  GCS_BUCKET_PATH="gs://spinnaker-artifacts/spin"
+if [ -z "$SPIN_GCS_BUCKET_PATH" ]; then
+  echo "No GCS bucket specified using ${PROD_SPIN_GCS_BUCKET_PATH}, using gs://spinnaker-artifacts/spin"
+  SPIN_GCS_BUCKET_PATH=$PROD_SPIN_GCS_BUCKET_PATH
 fi
 
 for elem in darwin,amd64 linux,amd64; do
@@ -30,7 +91,7 @@ for elem in darwin,amd64 linux,amd64; do
   echo "Building for $os $arch"
   env CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build .
 
-  path=${GCS_BUCKET_PATH}/${VERSION}/${os}/${arch}/
+  path=${SPIN_GCS_BUCKET_PATH}/${VERSION}/${os}/${arch}/
   echo "Copying to $path"
 
   gsutil cp spin $path
@@ -38,4 +99,4 @@ for elem in darwin,amd64 linux,amd64; do
 done
 
 echo $VERSION > latest
-gsutil cp latest ${GCS_BUCKET_PATH}/
+gsutil cp latest ${SPIN_GCS_BUCKET_PATH}/
