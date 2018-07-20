@@ -15,12 +15,10 @@
  */
 
 dependencies {
-  compile project(":keel-core")
+  compile "com.squareup.retrofit:retrofit:$retrofitVersion"
+  compile "com.squareup.okhttp:okhttp-urlconnection:$okHttpVersion"
+  compile "com.squareup.okhttp:okhttp-apache:$okHttpVersion"
+  compile "com.squareup.retrofit:converter-jackson:$retrofitVersion"
 
-  compile "com.squareup.retrofit:retrofit:1.+"
-  compile "com.squareup.okhttp:okhttp-urlconnection:2.+"
-  compile "com.squareup.okhttp:okhttp-apache:2.+"
-  compile "com.squareup.retrofit:converter-jackson:1.+"
-
-  compile "com.netflix.spinnaker.kork:kork-web:+"
+  compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
 }

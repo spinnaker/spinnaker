@@ -1,7 +1,13 @@
 dependencies {
   compile project(":keel-retrofit")
-  compile "com.netflix.spinnaker.moniker:moniker:+"
+  compile "com.netflix.spinnaker.moniker:moniker:$monikerVersion"
 
-  testCompile project(":keel-test")
-  testCompile "com.squareup.retrofit:retrofit-mock:1.9.+"
+  compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+  compile "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+
+  compile "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+  compile "com.github.jonpeterson:jackson-module-model-versioning:1.2.2"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+
+  testCompile "com.squareup.retrofit:retrofit-mock:$retrofitVersion"
 }

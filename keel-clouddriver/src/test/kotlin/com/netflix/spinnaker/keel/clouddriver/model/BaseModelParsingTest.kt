@@ -1,11 +1,14 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.natpryce.hamkrest.equalTo
+import com.natpryce.hamkrest.should.shouldMatch
 import com.natpryce.hamkrest.should.shouldNotMatch
-import com.netflix.spinnaker.config.KeelProperties
-import com.netflix.spinnaker.config.configureObjectMapper
-import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
@@ -24,11 +27,14 @@ import java.net.URL
 
 abstract class BaseModelParsingTest<out T> {
 
-  private val mapper = configureObjectMapper(
-    ObjectMapper(),
-    KeelProperties(),
-    listOf()
-  )
+  private val mapper = ObjectMapper()
+    .enable(SerializationFeature.INDENT_OUTPUT)
+    .registerModule(KotlinModule())
+    .registerModule(VersioningModule())
+    .registerModule(JavaTimeModule())
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+
   private val client = mock<Client>()
   private val cloudDriver = RestAdapter.Builder()
     .setEndpoint(newFixedEndpoint("https://spinnaker.💩"))
@@ -52,7 +58,7 @@ abstract class BaseModelParsingTest<out T> {
     val response = cloudDriver.call()
 
     response shouldNotMatch equalTo<T?>(null)
-    response shouldEqual expected
+    response shouldMatch equalTo(expected)
   }
 }
 

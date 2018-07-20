@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package com.netflix.spinnaker.keel.api;
+
+option java_multiple_files = true;
+option java_package = "com.netflix.spinnaker.keel.api";
+
+import "Asset.proto";
+
+service VetoPlugin {
+  rpc allow (Asset) returns (AllowResponse);
+}
+
+message AllowResponse {
+  Decision decision = 1;
+}
+
+enum Decision {
+  proceed = 0;
+  halt = 1;
+}

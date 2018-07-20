@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package com.netflix.spinnaker.keel.aws;
+
+option java_multiple_files = true;
+option java_package = "com.netflix.spinnaker.keel.aws";
+
+import "google/protobuf/duration.proto";
+
+message ClassicLoadBalancer {
+  string application = 1;
+  string name = 2;
+  string accountName = 3;
+  string region = 4;
+  repeated string securityGroupNames = 5;
+  string vpcName = 6;
+  string subnets = 7;
+  AvailabilityZoneConfig availabilityZones = 8;
+  Scheme scheme = 9;
+  repeated ClassicListener listeners = 10;
+  HealthCheckSpec healthCheck = 11;
+}
+
+message AvailabilityZoneConfig {
+  oneof config {
+    AutomaticAvailabilityZoneConfig automatic = 1;
+    ManualAvailabilityZoneConfig manual = 2;
+  }
+}
+
+message AutomaticAvailabilityZoneConfig {
+}
+
+message ManualAvailabilityZoneConfig {
+  repeated string availabilityZones = 1;
+}
+
+enum Scheme {
+  internal = 0;
+  external = 1;
+}
+
+message ClassicListener {
+  Protocol protocol = 1;
+  int32 loadBalancerPort = 2;
+  Protocol instanceProtocol = 3;
+  int32 instancePort = 4;
+  string sslCertificateId = 5;
+}
+
+enum Protocol {
+  HTTP = 0;
+  HTTPS = 1;
+  TCP = 2;
+  SSL = 3;
+}
+
+message HealthCheckSpec {
+  HealthEndpoint target = 1;
+  google.protobuf.Duration interval = 2;
+  google.protobuf.Duration timeout = 3;
+  int32 unhealthyThreshold = 4;
+  int32 healthyThreshold = 5;
+}
+
+message HealthEndpoint {
+  Protocol protocol = 1;
+  int32 port = 2;
+}

@@ -31,21 +31,15 @@ class AmazonSecurityGroupLoader(
 
   fun load(spec: AmazonSecurityGroupSpec): SecurityGroup? {
     try {
-      return if (spec.vpcName == null) {
-        cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, spec.region)
-      } else {
-        cloudDriverService.getSecurityGroup(
-          spec.accountName,
-          "aws",
-          spec.name,
-          spec.region,
-          cloudDriverCache.networkBy(
-            spec.vpcName,
-            spec.accountName,
-            spec.region
-          ).id
-        )
-      }
+      return cloudDriverService.getSecurityGroup(
+        spec.accountName,
+        "aws",
+        spec.name,
+        spec.region,
+        spec.vpcName?.let {
+          cloudDriverCache.networkBy(it, spec.accountName, spec.region).id
+        }
+      )
     } catch (e: RetrofitError) {
       if (e.notFound()) {
         return null

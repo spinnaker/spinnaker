@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package com.netflix.spinnaker.keel.api;
+
+option java_multiple_files = true;
+option java_package = "com.netflix.spinnaker.keel.api";
+
+import "Asset.proto";
+
+service AssetPlugin {
+  rpc supports(TypeMetadata) returns (SupportsResponse);
+
+  rpc current(Asset) returns (Asset);
+
+  rpc plan(Asset) returns (PlanResponse);
+
+  rpc converge(Asset) returns (ConvergeResponse);
+}
+
+message SupportsResponse {
+  bool supports = 1;
+}
+
+message PlanResponse {
+
+}
+
+message ConvergeResponse {
+  bool success = 1;
+}

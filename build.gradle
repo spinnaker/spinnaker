@@ -21,8 +21,10 @@ buildscript {
   }
   dependencies {
     classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.1.2"
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.10.RELEASE"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:$bootVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
+    classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+    classpath "com.google.protobuf:protobuf-gradle-plugin:$protobufVersion"
   }
 }
 
@@ -35,10 +37,6 @@ allprojects {
     exclude group: "javax.servlet", module: "servlet-api"
     exclude group: "org.slf4j", module: "slf4j-log4j12"
     exclude group: "org.slf4j", module: "slf4j-simple"
-  }
-
-  dependencyLocking {
-    lockAllConfigurations()
   }
 }
 

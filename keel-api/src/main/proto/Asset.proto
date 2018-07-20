@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package com.netflix.spinnaker.keel.api;
+
+option java_multiple_files = true;
+option java_package = "com.netflix.spinnaker.keel.api";
+
+import "google/protobuf/any.proto";
+
+message Asset {
+  // TODO: needs an id and dependsOn
+  TypeMetadata typeMetadata = 1;
+  google.protobuf.Any spec = 2;
+}
+
+message TypeMetadata {
+  string apiVersion = 1;
+  string kind = 2;
+}

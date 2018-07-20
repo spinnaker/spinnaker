@@ -1,0 +1,11 @@
+dependencies {
+  testCompile "org.jetbrains.spek:spek-api:$spekVersion"
+  testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spekVersion"
+  testRuntime "org.junit.platform:junit-platform-launcher:$junitVersion"
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines "spek"
+  }
+}

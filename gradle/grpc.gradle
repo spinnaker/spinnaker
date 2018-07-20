@@ -1,0 +1,26 @@
+apply plugin: "com.google.protobuf"
+
+dependencies {
+  implementation "io.grpc:grpc-netty:$grpcVersion"
+  api "io.grpc:grpc-protobuf:$grpcVersion"
+  api "io.grpc:grpc-stub:$grpcVersion"
+  api "org.lognet:grpc-spring-boot-starter:2.4.0"
+}
+
+protobuf {
+  protoc {
+    artifact = "com.google.protobuf:protoc:$protocVersion"
+  }
+  plugins {
+    grpc {
+      artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
+    }
+  }
+  generateProtoTasks {
+    all().each { task ->
+      task.plugins {
+        grpc {}
+      }
+    }
+  }
+}

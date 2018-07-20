@@ -29,7 +29,6 @@ import kotlin.reflect.KClass
  * @param status The current status of the asset (active or deleted).
  * @param labels A user-defined key/value string pair used for indexing & filtering.
  * @param attributes User-land specific metadata and extension data.
- * @param policies User-defined behavioral policies specific to the asset.
  * @param cas An optional ID-granular pessimistic lock.
  * @param createdAt Timestamp of when the asset was created.
  * @param updatedAt Timestamp of when the asset was last updated.

@@ -1,10 +1,7 @@
 package com.netflix.spinnaker.keel.clouddriver
 
-import com.natpryce.hamkrest.isA
-import com.natpryce.hamkrest.isEmpty
+import com.natpryce.hamkrest.*
 import com.natpryce.hamkrest.should.shouldMatch
-import com.netflix.spinnaker.hamkrest.shouldEqual
-import com.netflix.spinnaker.hamkrest.shouldThrow
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
@@ -13,6 +10,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Test
+import kotlin.reflect.KClass
 
 object MemoryCloudDriverCacheTest {
 
@@ -116,4 +114,13 @@ object MemoryCloudDriverCacheTest {
 
     subject.availabilityZonesBy("test", "vpc-2", "ew-west-1") shouldMatch isEmpty
   }
+}
+
+infix fun <T> T.shouldEqual(expected: T) {
+  shouldMatch(equalTo(expected))
+}
+
+@Suppress("UNCHECKED_CAST")
+inline infix fun <reified T : Throwable> (() -> Any?).shouldThrow(matcher: Matcher<T>) {
+  (this as () -> Unit) shouldMatch throws(matcher)
 }

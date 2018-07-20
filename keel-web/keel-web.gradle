@@ -26,9 +26,9 @@ run {
 }
 
 dependencies {
-  compile "org.springframework.boot:spring-boot-starter-actuator:1.5.+"
-  compile "org.springframework.boot:spring-boot-starter-web:1.5.+"
-  compile "org.springframework.boot:spring-boot-starter-data-rest:1.5.+"
+  compile "org.springframework.boot:spring-boot-starter-actuator:$bootVersion"
+  compile "org.springframework.boot:spring-boot-starter-web:$bootVersion"
+  compile "org.springframework.boot:spring-boot-starter-data-rest:$bootVersion"
 
   compile project(":keel-core")
   compile project(":keel-eureka")

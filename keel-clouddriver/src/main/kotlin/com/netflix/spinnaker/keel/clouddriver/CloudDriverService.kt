@@ -23,17 +23,13 @@ import retrofit.http.Query
 interface CloudDriverService {
 
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
-  fun getSecurityGroup(@Path("account") account: String,
-                       @Path("type") type: String,
-                       @Path("securityGroupName") securityGroupName: String,
-                       @Path("region") region: String): SecurityGroup?
-
-  @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
-  fun getSecurityGroup(@Path("account") account: String,
-                       @Path("type") type: String,
-                       @Path("securityGroupName") securityGroupName: String,
-                       @Path("region") region: String,
-                       @Query("vpcId") vpcId: String): SecurityGroup?
+  fun getSecurityGroup(
+    @Path("account") account: String,
+    @Path("type") type: String,
+    @Path("securityGroupName") securityGroupName: String,
+    @Path("region") region: String,
+    @Query("vpcId") vpcId: String? = null
+  ): SecurityGroup
 
   @GET("/securityGroups/{account}/{provider}")
   fun getSecurityGroupSummaries(

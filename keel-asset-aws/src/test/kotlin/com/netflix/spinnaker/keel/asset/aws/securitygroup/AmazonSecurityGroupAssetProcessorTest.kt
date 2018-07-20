@@ -75,7 +75,13 @@ object AmazonSecurityGroupAssetProcessorTest {
 
   @Test
   fun `should upsert security group when missing`() {
-    whenever(clouddriverService.getSecurityGroup(any(), any(), any(), any(), any())) doReturn null as SecurityGroup?
+    whenever(clouddriverService.getSecurityGroup(any(), any(), any(), any(), any())) doThrow RetrofitError
+      .httpError(
+        "http://example.com",
+        Response("http://example.com", 404, "Not Found", listOf(), null),
+        null,
+        null
+      )
 
     whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn
       Network(

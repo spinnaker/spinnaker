@@ -1,0 +1,19 @@
+repositories {
+  maven { url "https://dl.bintray.com/spekframework/spek-dev"}
+}
+
+dependencies {
+  testImplementation ("org.spekframework.spek2:spek-dsl-jvm:$spek2Version")  {
+    exclude group: "org.jetbrains.kotlin"
+  }
+  testRuntimeOnly ("org.spekframework.spek2:spek-runner-junit5:$spek2Version") {
+    exclude group: "org.junit.platform"
+    exclude group: "org.jetbrains.kotlin"
+  }
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines "spek2"
+  }
+}

@@ -15,9 +15,9 @@
  */
 dependencies {
   compile project(":keel-core")
-  compile "com.netflix.spinnaker.kork:kork-jedis:+"
-  compile "com.netflix.spinnaker.kork:kork-dynomite:+"
+  compile "com.netflix.spinnaker.kork:kork-jedis:$korkVersion"
+  compile "com.netflix.spinnaker.kork:kork-dynomite:$korkVersion"
 
-  testCompile "com.netflix.spinnaker.kork:kork-jedis-test:+"
+  testCompile "com.netflix.spinnaker.kork:kork-jedis-test:$korkVersion"
   testCompile project(":keel-test")
 }

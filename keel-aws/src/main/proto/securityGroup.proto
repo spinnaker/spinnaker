@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package com.netflix.spinnaker.keel.aws;
+
+option java_multiple_files = true;
+option java_package = "com.netflix.spinnaker.keel.aws";
+
+message SecurityGroup {
+  string application = 1;
+  string name = 2;
+  string accountName = 3;
+  string region = 4;
+  string vpcName = 5;
+  repeated SecurityGroupRule inboundRules = 6;
+  repeated SecurityGroupRule outboundRules = 7;
+  string description = 8;
+  string sourceApplication = 9;
+  string targetApplication = 10;
+}
+
+message SecurityGroupRule {
+  oneof rule {
+    ReferenceRule referenceRule = 1;
+    SelfReferencingRule selfReferencingRule = 2;
+    HttpRule httpRule = 3;
+    CidrRule cidrRule = 4;
+  }
+}
+
+message ReferenceRule {
+  repeated PortRange portRanges = 1;
+  string protocol = 2;
+  string name = 3;
+}
+
+message SelfReferencingRule {
+  repeated PortRange portRanges = 1;
+  string protocol = 2;
+}
+
+message HttpRule {
+  repeated string paths = 1;
+  string host = 2;
+}
+
+message CidrRule {
+  string protocol = 1;
+  repeated PortRange portRanges = 2;
+  string blockRange = 3;
+}
+
+message PortRange {
+  int32 startPort = 1;
+  int32 endPort = 2;
+}
