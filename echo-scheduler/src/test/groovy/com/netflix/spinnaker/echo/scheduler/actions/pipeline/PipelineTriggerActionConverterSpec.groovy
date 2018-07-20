@@ -49,6 +49,7 @@ class PipelineTriggerActionConverterSpec extends Specification {
             .id(triggerId)
             .type('cron')
             .cronExpression('* 0/30 * * * ? *')
+            .rebake(triggerRebake)
             .build()
 
         when:
@@ -61,11 +62,14 @@ class PipelineTriggerActionConverterSpec extends Specification {
         parameters.triggerCronExpression == trigger.cronExpression
         parameters.triggerTimeZoneId == 'America/New_York'
         parameters.triggerEnabled == Boolean.toString(trigger.enabled)
+        parameters.triggerRebake == Boolean.toString(trigger.rebake)
 
         where:
         triggerId << ['123-456', null]
+        triggerRebake << [true, false]
     }
 
+    @Unroll
     void 'fromParameters() should return an equivalent valid Pipeline instance'() {
         setup:
         def pipelineCache = Mock(PipelineCache) {
@@ -77,7 +81,8 @@ class PipelineTriggerActionConverterSpec extends Specification {
             triggerId: '123-456',
             triggerType: 'cron',
             triggerCronExpression: '* 0/30 * * * ? *',
-            triggerEnabled: 'true'
+            triggerEnabled: 'true',
+            triggerRebake: triggerRebake
         ]
 
         when:
@@ -91,6 +96,10 @@ class PipelineTriggerActionConverterSpec extends Specification {
         pipelineWithTrigger.trigger.type == parameters.triggerType
         pipelineWithTrigger.trigger.cronExpression == parameters.triggerCronExpression
         pipelineWithTrigger.trigger.enabled == Boolean.valueOf(parameters.triggerEnabled)
+        pipelineWithTrigger.trigger.rebake == Boolean.valueOf(parameters.triggerRebake)
+
+        where:
+        triggerRebake << ['true', 'false']
     }
 
     @Unroll

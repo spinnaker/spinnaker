@@ -62,6 +62,10 @@ public class Trigger {
   private static final Logger log = LoggerFactory.getLogger(Trigger.class);
 
   boolean enabled;
+
+  @Builder.Default
+  boolean rebake = false;
+
   String id;
   String type;
   String master;
