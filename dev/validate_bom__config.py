@@ -1451,6 +1451,7 @@ class MonitoringConfigurator(Configurator):
 
   def add_init(self, options, script):
     """Implements interface."""
+    script.append('ntpq -p || true')
     if not options.monitoring_install_which:
       return
 
