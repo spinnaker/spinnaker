@@ -22,6 +22,7 @@ import com.netflix.kayenta.canary.results._
 import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfig, CanaryJudge}
 import com.netflix.kayenta.judge.classifiers.metric._
 import com.netflix.kayenta.judge.classifiers.score.{ScoreClassification, ThresholdScoreClassifier}
+import com.netflix.kayenta.judge.config.NetflixJudgeConfigurationProperties
 import com.netflix.kayenta.judge.detectors.IQRDetector
 import com.netflix.kayenta.judge.preprocessing.Transforms
 import com.netflix.kayenta.judge.scorers.{ScoreResult, WeightedSumScorer}
@@ -29,6 +30,7 @@ import com.netflix.kayenta.judge.stats.DescriptiveStatistics
 import com.netflix.kayenta.judge.utils.MapUtils
 import com.netflix.kayenta.metrics.MetricSetPair
 import com.typesafe.scalalogging.StrictLogging
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import scala.collection.JavaConverters._
@@ -37,6 +39,10 @@ case class Metric(name: String, values: Array[Double], label: String)
 
 @Component
 class NetflixACAJudge extends CanaryJudge with StrictLogging {
+
+  @Autowired
+  var netflixJudgeConfigurationProperties: NetflixJudgeConfigurationProperties = null
+
   private final val judgeName = "NetflixACAJudge-v1.0"
 
   override def isVisible: Boolean = true
@@ -157,7 +163,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //=============================================
     // Metric Classification
     // ============================================
-    val mannWhitney = new MannWhitneyClassifier(tolerance = 0.25, confLevel = 0.98)
+    val mannWhitney = new MannWhitneyClassifier(tolerance = netflixJudgeConfigurationProperties.getTolerance, netflixJudgeConfigurationProperties.getConfLevel)
 
     val resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)

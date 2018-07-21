@@ -71,7 +71,6 @@ class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) exte
   }
 
   override def classify(control: Metric, experiment: Metric, direction: MetricDirection, nanStrategy: NaNStrategy): MetricClassification = {
-
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
       if (nanStrategy == NaNStrategy.Remove) {

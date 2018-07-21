@@ -24,17 +24,26 @@ import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
 import com.netflix.kayenta.storage.MapBackedStorageServiceRepository;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties
 @ComponentScan({
   "com.netflix.kayenta.judge",
   "com.netflix.kayenta.judge.config"
 })
 
 public class NetflixJudgeConfiguration {
+
+  @Bean
+  @ConfigurationProperties("kayenta.netflix.judge")
+  NetflixJudgeConfigurationProperties netflixJudgeConfigurationProperties() {
+    return new NetflixJudgeConfigurationProperties();
+  }
 
   @Bean
   @ConditionalOnMissingBean(AccountCredentialsRepository.class)
