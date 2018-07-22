@@ -64,6 +64,7 @@ class WebhooksController {
     event.content = postedEvent
     event.payload = new HashMap(postedEvent)
 
+    // TODO: refactor this large if/else block
     if (type == 'git') {
       if (source == 'stash') {
         event.content.hash = postedEvent.refChanges?.first().toHash
@@ -102,6 +103,11 @@ class WebhooksController {
           sendEvent = false
         }
         log.info('Webhook event received {} {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('repository', event.content.repository.full_name), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
+      } else if (source == 'gitlab') {
+        event.content.hash = postedEvent.after;
+        event.content.branch = postedEvent.ref.replace('refs/heads/', '')
+        event.content.repoProject = postedEvent.project.namespace
+        event.content.slug = postedEvent.project.name
       }
     }
 
