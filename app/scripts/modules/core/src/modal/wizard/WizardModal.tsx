@@ -119,7 +119,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
       if (!child || !child.type || !child.type.label) {
         return false;
       }
-      return !this.props.hideSections.has(child.type.label);
+      return !this.props.hideSections || !this.props.hideSections.has(child.type.label);
     });
   }
 
@@ -161,7 +161,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     const { currentPage, dirtyPages, errorPages, formInvalid, pages, waiting } = this.state;
     const { TaskMonitorWrapper } = NgReact;
 
-    const pagesToShow = pages.filter(page => !hideSections.has(page) && this.pages[page]);
+    const pagesToShow = pages.filter(page => !hideSections || (!hideSections.has(page) && this.pages[page]));
 
     const submitting = taskMonitor && taskMonitor.submitting;
 
