@@ -177,14 +177,14 @@ class AutoScalingWorker {
     def invalidSubnetIds = (this.subnetIds ?: []).findAll { !subnetIds.contains(it) }
     if (invalidSubnetIds) {
       throw new IllegalStateException(
-        "One or more subnet ids are not valid (invalidSubnetIds: ${invalidSubnetIds.join(", ")}, subnetType: ${subnetType}, availabilityZones: ${availabilityZones})"
+        "One or more subnet ids are not valid (invalidSubnetIds: ${invalidSubnetIds.join(", ")}, availabilityZones: ${availabilityZones})"
       )
     }
 
     return this.subnetIds ?: subnetIds
   }
 
-  private List<Subnet> getSubnets() {
+  private List<Subnet> getSubnets(boolean filterForSubnetPurposeTags = true) {
     if (!subnetType) {
       return []
     }
@@ -195,8 +195,12 @@ class AutoScalingWorker {
       if (availabilityZones && !availabilityZones.contains(subnet.availabilityZone)) {
         continue
       }
-      SubnetData sd = SubnetData.from(subnet)
-      if (sd.purpose == subnetType && (sd.target == null || sd.target == SubnetTarget.EC2)) {
+      if (filterForSubnetPurposeTags) {
+        SubnetData sd = SubnetData.from(subnet)
+        if (sd.purpose == subnetType && (sd.target == null || sd.target == SubnetTarget.EC2)) {
+          mySubnets << subnet
+        }
+      } else {
         mySubnets << subnet
       }
     }
@@ -231,8 +235,10 @@ class AutoScalingWorker {
                         .withPropagateAtLaunch(true))
     }
 
+    // if we have explicitly specified subnetIds, don't require that they are tagged with a subnetType/purpose
+    boolean filterForSubnetPurposeTags = !this.subnetIds
     // Favor subnetIds over availability zones
-    def subnetIds = getSubnetIds(getSubnets())?.join(',')
+    def subnetIds = getSubnetIds(getSubnets(filterForSubnetPurposeTags))?.join(',')
     if (subnetIds) {
       task.updateStatus AWS_PHASE, " > Deploying to subnetIds: $subnetIds"
       request.withVPCZoneIdentifier(subnetIds)
