@@ -1,6 +1,6 @@
 import { IStage } from './IStage';
 import { IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
-import { IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
+import { IExecutionContext, IExecutionStageLabelComponentProps, IExecutionStageSummary } from './IExecutionStage';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 
 export type IExecutionDetailsSection = (
@@ -11,7 +11,7 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   accountExtractor?: (stage: IStage) => string;
   addAliasToConfig?: boolean;
   alias?: string;
-  artifactFields?: string[];
+  artifactExtractor?: (stageContext: IExecutionContext) => string[];
   cloudProvider?: string;
   cloudProviders?: string[];
   configAccountExtractor?: any;

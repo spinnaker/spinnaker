@@ -7,13 +7,19 @@ import { NameUtils } from 'core/naming';
 import { FilterModelService } from 'core/filterModel';
 import { ICluster, IClusterSummary, IExecution, IExecutionStage, IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
+import { ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
 
 import { taskMatcher } from './task.matcher';
+import { IArtifactExtractor } from '../../../kubernetes/src/serverGroup/artifactExtractor';
 
 export class ClusterService {
   public static ON_DEMAND_THRESHOLD = 350;
 
-  constructor(private $q: IQService, private serverGroupTransformer: any) {
+  constructor(
+    private $q: IQService,
+    private serverGroupTransformer: any,
+    private providerServiceDelegate: ProviderServiceDelegate,
+  ) {
     'ngInject';
   }
 
@@ -186,6 +192,22 @@ export class ClusterService {
 
   public isDeployingArtifact(cluster: ICluster): boolean {
     return cluster.imageSource === 'artifact';
+  }
+
+  public defaultArtifactExtractor(): IArtifactExtractor {
+    return {
+      extractArtifacts: (cluster: ICluster) => (this.isDeployingArtifact(cluster) ? [cluster.imageArtifactId] : []),
+    };
+  }
+
+  public getArtifactExtractor(cloudProvider: string): IArtifactExtractor {
+    return this.providerServiceDelegate.hasDelegate(cloudProvider, 'serverGroup.artifactExtractor')
+      ? this.providerServiceDelegate.getDelegate<IArtifactExtractor>(cloudProvider, 'serverGroup.artifactExtractor')
+      : this.defaultArtifactExtractor();
+  }
+
+  public extractArtifacts(cluster: ICluster): string[] {
+    return this.getArtifactExtractor(cluster.cloudProvider).extractArtifacts(cluster);
   }
 
   private getClusters(application: string): IPromise<IClusterSummary[]> {

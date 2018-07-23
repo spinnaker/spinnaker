@@ -50,6 +50,7 @@ module(KUBERNETES_V1_MODULE, [
   require('../serverGroup/configure/CommandBuilder.js').name,
   require('../serverGroup/configure/configure.kubernetes.module.js').name,
   require('../serverGroup/details/details.kubernetes.module.js').name,
+  require('../serverGroup/artifactExtractor.ts').name,
   require('../serverGroup/paramsMixin.js').name,
   require('../serverGroup/transformer.js').name,
   require('../validation/applicationName.validator.js').name,
@@ -91,6 +92,7 @@ module(KUBERNETES_V1_MODULE, [
       createSecurityGroupController: 'kubernetesUpsertSecurityGroupController',
     },
     serverGroup: {
+      artifactExtractor: 'kubernetesServerGroupArtifactExtractor',
       skipUpstreamStageCheck: true,
       transformer: 'kubernetesServerGroupTransformer',
       detailsTemplateUrl: require('../serverGroup/details/details.html'),

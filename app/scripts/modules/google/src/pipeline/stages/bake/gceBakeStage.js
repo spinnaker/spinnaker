@@ -18,7 +18,6 @@ module.exports = angular
   .module('spinnaker.gce.pipeline.stage..bakeStage', [require('./bakeExecutionDetails.controller.js').name])
   .config(function() {
     Registry.pipeline.registerStage({
-      artifactFields: ['packageArtifactIds'],
       provides: 'bake',
       cloudProvider: 'gce',
       label: 'Bake',
@@ -41,6 +40,7 @@ module.exports = angular
         },
       ],
       restartable: true,
+      artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['packageArtifactIds']),
     });
     ArtifactReferenceService.registerReference('stage', () => [['packageArtifactIds']]);
   })

@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { get, has, includes, uniq } from 'lodash';
+import { get, has } from 'lodash';
 import { IExpectedArtifact, IExecution, IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core';
 import { ArtifactIconList } from './ArtifactIconList';
 
 import '../artifactTab.less';
+import { Registry } from 'core/registry';
 
 export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'artifactStatus';
@@ -20,22 +21,17 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
 
   private artifactLists() {
     const { stage, execution } = this.props;
-    const accumulateArtifacts = (artifacts: string[], field: string): string[] => {
-      // fieldValue will be either a string with a single artifact id, or an array of artifact ids
-      // In either case, concatenate the value(s) onto the array of artifacts; the one exception
-      // is that we don't want to include an empty string in the artifact list, so concatenate
-      // an empty array (ie, no-op) if fieldValue is falsey.
-      const fieldValue: string | string[] = get(stage, ['context', field], []);
-      return artifacts.concat(fieldValue || []);
-    };
+    const stageConfig = Registry.pipeline.getStageConfig(stage);
+    const stageContext = get(stage, ['context'], {});
 
-    const artifactFields = get(this.props, ['config', 'artifactFields'], []);
-    const inputArtifactIds = get(stage, ['context', 'inputArtifacts'], []).map(a => a.id);
-    const consumedIds = uniq(artifactFields.reduce(accumulateArtifacts, []).concat(inputArtifactIds));
+    const consumedIds = new Set(
+      stageConfig && stageConfig.artifactExtractor ? stageConfig.artifactExtractor(stageContext) : []
+    );
+
     const boundArtifacts = this.extractBoundArtifactsFromExecution(execution);
 
     const consumedArtifacts = boundArtifacts
-      .filter(rea => includes(consumedIds, rea.id))
+      .filter(rea => consumedIds.has(rea.id))
       .map(rea => rea.boundArtifact)
       .filter(({ name, type }) => name && type);
 

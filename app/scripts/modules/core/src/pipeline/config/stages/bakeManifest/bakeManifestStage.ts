@@ -1,7 +1,15 @@
 import { module } from 'angular';
 import { get } from 'lodash';
 
-import { ArtifactReferenceService, Registry, SETTINGS, ExecutionDetailsTasks, ExecutionArtifactTab } from 'core';
+import {
+  ArtifactReferenceService,
+  Registry,
+  SETTINGS,
+  ExecutionDetailsTasks,
+  ExecutionArtifactTab,
+  ExpectedArtifactService,
+  IArtifact,
+} from 'core';
 
 import { BakeManifestConfigCtrl } from './bakeManifestConfig.controller';
 
@@ -20,6 +28,10 @@ module(BAKE_MANIFEST_STAGE, [])
         cloudProvider: 'kubernetes',
         controllerAs: 'ctrl',
         executionDetailsSections: [ExecutionDetailsTasks, ExecutionArtifactTab],
+        artifactExtractor: (fields: string[]) =>
+          ExpectedArtifactService.accumulateArtifacts<IArtifact>(['inputArtifacts'])(fields).map(
+            (a: IArtifact) => a.id,
+          ),
       });
 
       ArtifactReferenceService.registerReference('stage', stage => {

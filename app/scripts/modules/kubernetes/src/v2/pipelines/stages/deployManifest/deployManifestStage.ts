@@ -3,6 +3,7 @@ import { module } from 'angular';
 import {
   ArtifactReferenceService,
   ExecutionDetailsTasks,
+  ExpectedArtifactService,
   EXECUTION_ARTIFACT_TAB,
   Registry,
   SETTINGS,
@@ -27,13 +28,13 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [EXECUTION_ARTIFACT_TAB])
         templateUrl: require('./deployManifestConfig.html'),
         controller: 'KubernetesV2DeployManifestConfigCtrl',
         controllerAs: 'ctrl',
-        artifactFields: ['manifestArtifactId', 'requiredArtifactIds'],
         executionDetailsSections: [DeployStatus, ExecutionDetailsTasks, ExecutionArtifactTab],
         producesArtifacts: true,
         defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
         validators: [],
         accountExtractor: (stage: IStage): string => (stage.account ? stage.account : ''),
         configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
+        artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['manifestArtifactId', 'requiredArtifactIds']),
       });
 
       ArtifactReferenceService.registerReference('stage', () => [['manifestArtifactId'], ['requiredArtifactIds']]);

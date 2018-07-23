@@ -8,7 +8,10 @@ export interface IClusterSummary {
 
 export interface ICluster extends IClusterSummary {
   category: string;
+  containers?: any[];
+  initContainers?: any[];
   cloudProvider: string;
+  imageArtifactId?: string;
   imageSource?: string;
   instanceCounts?: IInstanceCounts;
   serverGroups: IServerGroup[];

@@ -13,7 +13,6 @@ module.exports = angular
   .module('spinnaker.core.pipeline.stage.deployStage', [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CLUSTER_SERVICE])
   .config(function(clusterServiceProvider) {
     Registry.pipeline.registerStage({
-      artifactFields: ['imageArtifactId'],
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
       strategyDescription: 'Deploys the image specified',
@@ -39,6 +38,16 @@ module.exports = angular
       ],
       accountExtractor: stage => (stage.context.clusters || []).map(c => c.account),
       configAccountExtractor: stage => (stage.clusters || []).map(c => c.account),
+      artifactExtractor: stageContext => {
+        const clusterService = clusterServiceProvider.$get();
+        // We'll either be in the context of the entire stage, and have an array of clusters,
+        // or will be in the context of a single cluster, in which case relevant fields will be
+        // directly on stageContext
+        const clusters = stageContext.clusters || [stageContext];
+        return clusters
+          .map(clusterService.extractArtifacts, clusterService)
+          .reduce((array, items) => array.concat(items), []);
+      },
       strategy: true,
     });
   })
