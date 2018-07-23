@@ -36,6 +36,11 @@ export interface IServerGroupCommandViewState {
   disableImageSelection: boolean;
   imageId?: string;
   instanceProfile: string;
+  disableStrategySelection?: boolean;
+  hideClusterNamePreview?: boolean;
+  readOnlyFields: { [field: string]: boolean };
+  requiresTemplateSelection?: boolean;
+  submitButtonLabel?: string;
   showImageSourceSelector: true;
   useAllImageSelection: boolean;
   useSimpleCapacity: boolean;
@@ -89,6 +94,7 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
   instanceType: string;
   loadBalancers: string[];
   vpcLoadBalancers: string[];
+  reason?: string;
   region: string;
   securityGroups: string[];
   selectedProvider: string;
