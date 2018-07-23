@@ -6,6 +6,7 @@ import { AccountSelectFieldWrapperComponent } from '../account/accountSelectFiel
 import { AddEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
 import { ButtonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
 import { CopyToClipboardComponent } from '../utils/clipboard/copyToClipboard.component';
+import { DeploymentStrategySelectorWrapper } from 'core/deploymentStrategy/deploymentStrategySelector.component';
 import { IDiffViewProps } from '../pipeline/config/actions/history/DiffView';
 import { EntitySourceComponent } from 'core/entityTag/entitySource.component';
 import { HelpFieldWrapperComponent } from '../help/helpField.component';
@@ -13,6 +14,7 @@ import { IAccountSelectFieldProps } from 'core/account/AccountSelectField';
 import { IAddEntityTagLinksProps } from 'core/entityTag/AddEntityTagLinks';
 import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
 import { ICopyToClipboardProps } from '../utils/clipboard/CopyToClipboard';
+import { IDeploymentStrategySelectorProps } from 'core/deploymentStrategy/DeploymentStrategySelector';
 import { IEntitySourceProps } from 'core/entityTag/EntitySource';
 import { IHelpFieldProps } from '../help/HelpField';
 import { IInsightLayoutProps } from 'core/insight/InsightLayout';
@@ -42,7 +44,8 @@ export class NgReactInjector extends ReactInject {
   public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps>                     = angular2react('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent(), this.$injectorProxy) as any;
   public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps>                 = angular2react('buttonBusyIndicator', new ButtonBusyIndicatorComponent(), this.$injectorProxy) as any;
   public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps>                         = angular2react('copyToClipboard', new CopyToClipboardComponent(), this.$injectorProxy) as any;
-  public DiffView: React.ComponentClass<IDiffViewProps>                                        = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;
+  public DeploymentStrategySelector: React.ComponentClass<IDeploymentStrategySelectorProps>   = angular2react('deploymentStrategySelectorWrapper', new DeploymentStrategySelectorWrapper(), this.$injectorProxy) as any;
+  public DiffView: React.ComponentClass<IDiffViewProps>                                       = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;
   public EntitySource: React.ComponentClass<IEntitySourceProps>                               = angular2react('entitySource', new EntitySourceComponent(), this.$injectorProxy) as any;
   public HelpField: React.ComponentClass<IHelpFieldProps>                                     = angular2react('helpFieldWrapper', new HelpFieldWrapperComponent(), this.$injectorProxy) as any;
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                             = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;

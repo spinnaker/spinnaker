@@ -11,8 +11,8 @@ export interface IDeploymentCommand {
 
 export class DeploymentStrategySelectorController implements IController {
   public command: IDeploymentCommand;
-  public labelColumns = 3;
-  public fieldColumns = 6;
+  public labelColumns = '3';
+  public fieldColumns = '6';
   public strategies: IDeploymentStrategy[];
   public currentStrategy: string;
   public additionalFieldsTemplateUrl: string;
@@ -49,20 +49,20 @@ export class DeploymentStrategySelectorController implements IController {
     this.currentStrategy = this.command.strategy;
 
     if (this.onStrategyChange && newStrategy) {
-      this.onStrategyChange(newStrategy);
+      this.onStrategyChange(this.command, newStrategy);
     }
   }
 }
 
-const deploymentStrategySelector: IComponentOptions = {
-  bindings: {
+export class DeploymentStrategySelector implements IComponentOptions {
+  public bindings = {
     command: '<',
     onStrategyChange: '<',
     labelColumns: '@',
     fieldColumns: '@',
-  },
-  controller: DeploymentStrategySelectorController,
-  template: `
+  };
+  public controller: any = DeploymentStrategySelectorController;
+  public template = `
     <div class="form-group" ng-if="$ctrl.strategies.length">
       <div class="col-md-{{$ctrl.labelColumns}} sm-label-right" style="padding-left: 13px">
         Strategy
@@ -81,8 +81,27 @@ const deploymentStrategySelector: IComponentOptions = {
         <div ng-include src="$ctrl.additionalFieldsTemplateUrl"></div>
       </div>
     </div>
-  `,
-};
+  `;
+}
+
+export class DeploymentStrategySelectorWrapper implements IComponentOptions {
+  public bindings: any = {
+    command: '<',
+    onStrategyChange: '<',
+    labelColumns: '<',
+    fieldColumns: '<',
+  };
+  public template = `
+    <deployment-strategy-selector
+      command="$ctrl.command"
+      on-strategy-change="$ctrl.onStrategyChange"
+      label-columns="{{!$ctrl.labelColumns ? '3' : $ctrl.labelColumns}}"
+      field-columns="{{!$ctrl.fieldColumns ? '6' : $ctrl.fieldColumns}}"
+    ></deployment-strategy-selector>
+  `;
+}
 
 export const DEPLOYMENT_STRATEGY_SELECTOR_COMPONENT = 'spinnaker.core.deploymentStrategy.deploymentStrategySelector';
-module(DEPLOYMENT_STRATEGY_SELECTOR_COMPONENT, []).component('deploymentStrategySelector', deploymentStrategySelector);
+module(DEPLOYMENT_STRATEGY_SELECTOR_COMPONENT, [])
+  .component('deploymentStrategySelector', new DeploymentStrategySelector())
+  .component('deploymentStrategySelectorWrapper', new DeploymentStrategySelectorWrapper());
