@@ -17,13 +17,15 @@
 package com.netflix.kayenta.judge.stats
 
 import com.netflix.kayenta.judge.Metric
+import org.apache.commons.math.util.FastMath
 import org.apache.commons.math3.stat.StatUtils
 import org.apache.commons.math3.stat.descriptive.rank.Percentile
 import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType
 
-case class MetricStatistics(min: Double, max: Double, mean: Double, median: Double, count: Int){
+
+case class MetricStatistics(min: Double, max: Double, mean: Double, std: Double, count: Int){
   def toMap:  Map[String, Any] = {
-    Map("min" -> min, "max" -> max, "mean" -> mean, "median" -> median, "count" -> count)
+    Map("min" -> min, "max" -> max, "mean" -> mean, "std" -> std, "count" -> count)
   }
 }
 
@@ -43,6 +45,10 @@ object DescriptiveStatistics {
 
   def max(metric: Metric): Double = {
     if (metric.values.isEmpty) 0.0 else StatUtils.max(metric.values)
+  }
+
+  def std(metric: Metric): Double = {
+    if (metric.values.isEmpty) 0.0 else FastMath.sqrt(StatUtils.variance(metric.values))
   }
 
   /**
@@ -68,12 +74,15 @@ object DescriptiveStatistics {
     percentile.evaluate(values, p)
   }
 
+  /**
+    * Calculate a set of descriptive statistics for the input metric
+    */
   def summary(metric: Metric): MetricStatistics = {
     val mean = this.mean(metric)
-    val median = this.median(metric)
     val min = this.min(metric)
     val max = this.max(metric)
+    val std = this.std(metric)
     val count = metric.values.length
-    MetricStatistics(min, max, mean, median, count)
+    MetricStatistics(min, max, mean, std, count)
   }
 }

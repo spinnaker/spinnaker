@@ -55,7 +55,7 @@ object NaNStrategy {
   }
 }
 
-case class MetricClassification(classification: MetricClassificationLabel, reason: Option[String], ratio: Double)
+case class MetricClassification(classification: MetricClassificationLabel, reason: Option[String], deviation: Double)
 
 abstract class BaseMetricClassifier {
   def classify(control: Metric, experiment: Metric,

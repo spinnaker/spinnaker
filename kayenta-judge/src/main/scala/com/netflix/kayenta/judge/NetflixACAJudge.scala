@@ -148,6 +148,10 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
 
     val critical = MapUtils.getAsBooleanWithDefault(false, metricConfig.getAnalysisConfigurations, "canary", "critical")
 
+    //Effect Size Parameters
+    val allowedIncrease = MapUtils.getAsDoubleWithDefault(1.0, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "allowedIncrease")
+    val allowedDecrease = MapUtils.getAsDoubleWithDefault(1.0, metricConfig.getAnalysisConfigurations, "canary", "effectSize", "allowedDecrease")
+
     //=============================================
     // Metric Transformation (Remove NaN values, etc.)
     // ============================================
@@ -163,7 +167,8 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //=============================================
     // Metric Classification
     // ============================================
-    val mannWhitney = new MannWhitneyClassifier(tolerance = netflixJudgeConfigurationProperties.getTolerance, netflixJudgeConfigurationProperties.getConfLevel)
+    val thresholds = (allowedDecrease, allowedIncrease)
+    val mannWhitney = new MannWhitneyClassifier(tolerance = 0.25, confLevel = 0.98, effectSizeThresholds = thresholds)
 
     val resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)
@@ -179,7 +184,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
       resultBuilder
         .classification(metricClassification.classification.toString)
         .classificationReason(metricClassification.reason.orNull)
-        .resultMetadata(Map("ratio" -> metricClassification.ratio.asInstanceOf[Object]).asJava)
+        .resultMetadata(Map("ratio" -> metricClassification.deviation.asInstanceOf[Object]).asJava)
         .build()
 
     } catch {

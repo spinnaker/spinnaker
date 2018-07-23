@@ -48,4 +48,7 @@ object MapUtils {
     get(data, path: _*).getOrElse(default).asInstanceOf[Boolean]
   }
 
+  def getAsDoubleWithDefault(default: Double, data: Any, path: String*): Double = {
+    get(data, path: _*).getOrElse(default).asInstanceOf[Double]
+  }
 }

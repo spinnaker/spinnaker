@@ -18,12 +18,15 @@ package com.netflix.kayenta.judge.classifiers.metric
 
 import com.netflix.kayenta.judge.Metric
 import com.netflix.kayenta.judge.preprocessing.Transforms
+import com.netflix.kayenta.judge.stats.EffectSizes
 import com.netflix.kayenta.mannwhitney.{MannWhitney, MannWhitneyParams}
 import org.apache.commons.math3.stat.StatUtils
 
-case class MannWhitneyResult(lowerConfidence: Double, upperConfidence: Double, estimate: Double)
+case class MannWhitneyResult(lowerConfidence: Double, upperConfidence: Double, estimate: Double, deviation: Double)
 
-class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) extends BaseMetricClassifier {
+class MannWhitneyClassifier(tolerance: Double=0.25,
+                            confLevel: Double=0.95,
+                            effectSizeThresholds: (Double, Double) = (1.0, 1.0)) extends BaseMetricClassifier {
 
   /**
     * Mann-Whitney U Test
@@ -43,7 +46,10 @@ class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) exte
     val confInterval = testResult.confidenceInterval
     val estimate = testResult.estimate
 
-    MannWhitneyResult(confInterval(0), confInterval(1), estimate)
+    //Calculate the deviation (Effect Size) between the experiment and control
+    val effectSize = calculateDeviation(experiment, control)
+
+    MannWhitneyResult(confInterval(0), confInterval(1), estimate, effectSize)
   }
 
   /**
@@ -61,7 +67,7 @@ class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) exte
     * Calculate the upper and lower bounds for classifying the metric.
     * The bounds are calculated as a fraction of the Hodges–Lehmann estimator
     */
-  def calculateBounds(testResult: MannWhitneyResult): (Double, Double) = {
+  private def calculateBounds(testResult: MannWhitneyResult): (Double, Double) = {
     val estimate = math.abs(testResult.estimate)
     val criticalValue = tolerance * estimate
 
@@ -70,11 +76,43 @@ class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) exte
     (lowerBound, upperBound)
   }
 
-  override def classify(control: Metric, experiment: Metric, direction: MetricDirection, nanStrategy: NaNStrategy): MetricClassification = {
+  /**
+    * Calculate the deviation (Effect Size) between the experiment and control
+    */
+  private def calculateDeviation(experiment: Array[Double], control: Array[Double]): Double = {
+    if(StatUtils.mean(control) == 0.0) 1.0 else EffectSizes.meanRatio(control, experiment)
+  }
+
+  /**
+    * Compare the experiment to the control using the Mann-Whitney U Test
+    */
+  private def compare(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification = {
+
+    //Perform the Mann-Whitney U Test
+    val mwResult = MannWhitneyUTest(experiment.values, control.values)
+    val (lowerBound, upperBound) = calculateBounds(mwResult)
+
+    if((direction == MetricDirection.Increase || direction == MetricDirection.Either) && mwResult.lowerConfidence > upperBound){
+      val reason = s"The metric was classified as $High"
+      return MetricClassification(High, Some(reason), mwResult.deviation)
+
+    }else if((direction == MetricDirection.Decrease || direction == MetricDirection.Either) && mwResult.upperConfidence < lowerBound){
+      val reason = s"The metric was classified as $Low"
+      return MetricClassification(Low, Some(reason), mwResult.deviation)
+    }
+
+    MetricClassification(Pass, None, mwResult.deviation)
+  }
+
+  override def classify(control: Metric,
+                        experiment: Metric,
+                        direction: MetricDirection,
+                        nanStrategy: NaNStrategy): MetricClassification = {
+
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
       if (nanStrategy == NaNStrategy.Remove) {
-        return MetricClassification(Nodata, None, 0.0)
+        return MetricClassification(Nodata, None, 1.0)
       } else {
         return MetricClassification(Pass, None, 1.0)
       }
@@ -91,21 +129,18 @@ class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) exte
       return MetricClassification(Pass, None, 1.0)
     }
 
-    //Perform the Mann-Whitney U Test
-    val mwResult = MannWhitneyUTest(experiment.values, control.values)
-    val meanRatio = StatUtils.mean(experiment.values)/StatUtils.mean(control.values)
-    val (lowerBound, upperBound) = calculateBounds(mwResult)
+    //Compare the experiment to the control using the Mann-Whitney U Test
+    val comparisonResult = compare(control, experiment, direction)
 
-    if((direction == MetricDirection.Increase || direction == MetricDirection.Either) && mwResult.lowerConfidence > upperBound){
-      val reason = s"The metric was classified as $High"
-      return MetricClassification(High, Some(reason), meanRatio)
+    //Check the Effect Size between the experiment and control
+    if(comparisonResult.classification == High && comparisonResult.deviation < effectSizeThresholds._2){
+      return MetricClassification(Pass, None, comparisonResult.deviation)
 
-    }else if((direction == MetricDirection.Decrease || direction == MetricDirection.Either) && mwResult.upperConfidence < lowerBound){
-      val reason = s"The metric was classified as $Low"
-      return MetricClassification(Low, Some(reason), meanRatio)
+    }else if(comparisonResult.classification == Low && comparisonResult.deviation > effectSizeThresholds._1) {
+      return MetricClassification(Pass, None, comparisonResult.deviation)
     }
 
-    MetricClassification(Pass, None, meanRatio)
+    comparisonResult
   }
 
 }

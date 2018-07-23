@@ -27,7 +27,10 @@ import org.apache.commons.math3.stat.StatUtils
   */
 class MeanInequalityClassifier extends BaseMetricClassifier {
 
-  override def classify(control: Metric, experiment: Metric, direction: MetricDirection, nanStrategy: NaNStrategy): MetricClassification = {
+  override def classify(control: Metric,
+                        experiment: Metric,
+                        direction: MetricDirection,
+                        nanStrategy: NaNStrategy): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {

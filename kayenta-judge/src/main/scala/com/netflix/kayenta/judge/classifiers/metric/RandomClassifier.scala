@@ -34,7 +34,10 @@ class RandomClassifier(labels: List[MetricClassificationLabel] = List(Pass, High
     */
   def getRandomLabel(list: List[MetricClassificationLabel]): MetricClassificationLabel = Random.shuffle(list).head
 
-  override def classify(control: Metric, experiment: Metric, direction: MetricDirection, nanStrategy: NaNStrategy): MetricClassification = {
+  override def classify(control: Metric,
+                        experiment: Metric,
+                        direction: MetricDirection,
+                        nanStrategy: NaNStrategy): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
