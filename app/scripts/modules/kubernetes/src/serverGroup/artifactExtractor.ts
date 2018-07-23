@@ -20,10 +20,6 @@ import { ICluster } from '../../../core/src/domain';
 
 const angular = require('angular');
 
-export interface IArtifactExtractor {
-  extractArtifacts: (cluster: ICluster) => string[];
-}
-
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroup.artifactExtractor', [])
   .factory('kubernetesServerGroupArtifactExtractor', function() {

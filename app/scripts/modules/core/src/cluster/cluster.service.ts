@@ -5,12 +5,11 @@ import { API } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import { NameUtils } from 'core/naming';
 import { FilterModelService } from 'core/filterModel';
-import { ICluster, IClusterSummary, IExecution, IExecutionStage, IServerGroup } from 'core/domain';
+import { IArtifactExtractor, ICluster, IClusterSummary, IExecution, IExecutionStage, IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
 
 import { taskMatcher } from './task.matcher';
-import { IArtifactExtractor } from '../../../kubernetes/src/serverGroup/artifactExtractor';
 
 export class ClusterService {
   public static ON_DEMAND_THRESHOLD = 350;
