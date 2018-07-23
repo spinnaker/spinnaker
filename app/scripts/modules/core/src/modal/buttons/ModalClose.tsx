@@ -8,7 +8,7 @@ export class ModalClose extends React.Component<IModalCloseProps> {
   public render() {
     return (
       <div className="modal-close close-button pull-right">
-        <button className="link" onClick={this.props.dismiss}>
+        <button className="link" type="button" onClick={this.props.dismiss}>
           <span className="glyphicon glyphicon-remove" />
         </button>
       </div>
