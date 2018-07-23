@@ -610,8 +610,8 @@ module.exports = angular
       });
     }
 
-    function attachEventHandlers(command) {
-      command.regionalChanged = function regionalChanged() {
+    function attachEventHandlers(cmd) {
+      cmd.regionalChanged = function regionalChanged(command) {
         var result = { dirty: {} };
         var filteredData = command.backingData.filtered;
         var defaults = GCEProviderSettings.defaults;
@@ -632,7 +632,7 @@ module.exports = angular
         return result;
       };
 
-      command.regionChanged = function regionChanged() {
+      cmd.regionChanged = function regionChanged(command) {
         var result = { dirty: {} };
         var filteredData = command.backingData.filtered;
         angular.extend(result.dirty, configureSubnets(command).dirty);
@@ -652,7 +652,7 @@ module.exports = angular
         return result;
       };
 
-      command.credentialsChanged = function credentialsChanged() {
+      cmd.credentialsChanged = function credentialsChanged(command) {
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
@@ -667,7 +667,7 @@ module.exports = angular
             command.region = null;
             result.dirty.region = true;
           } else {
-            angular.extend(result.dirty, command.regionChanged().dirty);
+            angular.extend(result.dirty, command.regionChanged(command).dirty);
           }
 
           backingData.filtered.networks = getNetworkNames(command);
@@ -675,7 +675,7 @@ module.exports = angular
             command.network = null;
             result.dirty.network = true;
           } else {
-            angular.extend(result.dirty, command.networkChanged().dirty);
+            angular.extend(result.dirty, command.networkChanged(command).dirty);
           }
 
           angular.extend(result.dirty, configureHealthChecks(command).dirty);
@@ -690,7 +690,7 @@ module.exports = angular
         return result;
       };
 
-      command.networkChanged = function networkChanged() {
+      cmd.networkChanged = function networkChanged(command) {
         var result = { dirty: {} };
 
         command.viewState.autoCreateSubnets = _.chain(command.backingData.networks)
@@ -716,7 +716,7 @@ module.exports = angular
         return result;
       };
 
-      command.zoneChanged = function zoneChanged() {
+      cmd.zoneChanged = function zoneChanged(command) {
         var result = { dirty: {} };
         if (command.zone === undefined && !command.regional) {
           result.dirty.zone = true;
@@ -728,7 +728,7 @@ module.exports = angular
         return result;
       };
 
-      command.customInstanceChanged = function customInstanceChanged() {
+      cmd.customInstanceChanged = function customInstanceChanged(command) {
         var result = { dirty: {} };
 
         command.viewState.dirty = command.viewState.dirty || {};

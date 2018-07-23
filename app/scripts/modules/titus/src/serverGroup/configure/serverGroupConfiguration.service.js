@@ -42,29 +42,29 @@ module.exports = angular
       );
     }
 
-    function attachEventHandlers(command) {
-      command.viewState.removedGroups = [];
-      command.credentialsChanged = function credentialsChanged() {
+    function attachEventHandlers(cmd) {
+      cmd.viewState.removedGroups = [];
+      cmd.credentialsChanged = function credentialsChanged() {
         var result = { dirty: {} };
-        var backingData = command.backingData;
-        configureZones(command);
-        if (command.credentials) {
-          command.registry = backingData.credentialsKeyedByAccount[command.credentials].registry;
-          backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
-          if (!backingData.filtered.regions.some(r => r.name === command.region)) {
-            command.region = null;
-            command.regionChanged();
+        var backingData = cmd.backingData;
+        configureZones(cmd);
+        if (cmd.credentials) {
+          cmd.registry = backingData.credentialsKeyedByAccount[cmd.credentials].registry;
+          backingData.filtered.regions = backingData.credentialsKeyedByAccount[cmd.credentials].regions;
+          if (!backingData.filtered.regions.some(r => r.name === cmd.region)) {
+            cmd.region = null;
+            cmd.regionChanged(cmd);
           }
         } else {
-          command.region = null;
+          cmd.region = null;
         }
-        command.viewState.dirty = command.viewState.dirty || {};
-        angular.extend(command.viewState.dirty, result.dirty);
-        command.viewState.accountChangedStream.next(null);
+        cmd.viewState.dirty = cmd.viewState.dirty || {};
+        angular.extend(cmd.viewState.dirty, result.dirty);
+        cmd.viewState.accountChangedStream.next(null);
         return result;
       };
 
-      command.regionChanged = () => {
+      cmd.regionChanged = command => {
         command.viewState.regionChangedStream.next();
       };
     }

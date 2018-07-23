@@ -1,6 +1,6 @@
 <div class="container-fluid form-horizontal" ng-controller="awsServerGroupBasicSettingsCtrl as basicSettingsCtrl">
     <ng-form name="basicSettings">
-      <div class="form-group row" ng-if="command.regionIsDeprecated()">
+      <div class="form-group row" ng-if="command.regionIsDeprecated(command)">
         <div class="col-md-12 error-message">
           <div class="alert alert-danger">You are deploying into a deprecated region within the {{ command.credentials }} account!</div>
         </div>

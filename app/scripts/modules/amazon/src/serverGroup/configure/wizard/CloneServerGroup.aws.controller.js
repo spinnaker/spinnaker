@@ -165,9 +165,9 @@ module.exports = angular
         createResultProcessor($scope.command.usePreferredZonesChanged),
       );
       $scope.$watch('command.virtualizationType', createResultProcessor($scope.command.imageChanged));
-      $scope.$watch('command.stack', $scope.command.clusterChanged);
-      $scope.$watch('command.freeFormDetails', $scope.command.clusterChanged);
-      $scope.$watch('command.instanceType', $scope.command.instanceTypeChanged);
+      $scope.$watch('command.stack', () => $scope.command.clusterChanged($scope.command));
+      $scope.$watch('command.freeFormDetails', () => $scope.command.clusterChanged($scope.command));
+      $scope.$watch('command.instanceType', () => $scope.command.instanceTypeChanged($scope.command));
 
       // if any additional watches have been configured, add them
       serverGroupCommandRegistry.getCommandOverrides('aws').forEach(override => {
@@ -181,14 +181,14 @@ module.exports = angular
 
     // TODO: Move to service
     function initializeSelectOptions() {
-      processCommandUpdateResult($scope.command.credentialsChanged());
-      processCommandUpdateResult($scope.command.regionChanged());
+      processCommandUpdateResult($scope.command.credentialsChanged($scope.command));
+      processCommandUpdateResult($scope.command.regionChanged($scope.command));
       awsServerGroupConfigurationService.configureSubnetPurposes($scope.command);
     }
 
     function createResultProcessor(method) {
       return function() {
-        processCommandUpdateResult(method());
+        processCommandUpdateResult(method($scope.command));
       };
     }
 

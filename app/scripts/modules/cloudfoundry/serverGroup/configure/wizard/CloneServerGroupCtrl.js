@@ -109,14 +109,14 @@ module.exports = angular
     }
 
     function initializeSelectOptions() {
-      processCommandUpdateResult($scope.command.credentialsChanged());
-      processCommandUpdateResult($scope.command.regionChanged());
-      processCommandUpdateResult($scope.command.networkChanged());
+      processCommandUpdateResult($scope.command.credentialsChanged($scope.command));
+      processCommandUpdateResult($scope.command.regionChanged($scope.command));
+      processCommandUpdateResult($scope.command.networkChanged($scope.command));
     }
 
     function createResultProcessor(method) {
       return function() {
-        processCommandUpdateResult(method());
+        processCommandUpdateResult(method($scope.command));
       };
     }
 

@@ -4,7 +4,7 @@
       <b>Account</b>
     </div>
     <div class="col-md-7">
-      <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'titus'" on-change="command.credentialsChanged()"></account-select-field>
+      <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'titus'" on-change="command.credentialsChanged(command)"></account-select-field>
       <div class="small" ng-if="command.credentials !== undefined">Uses resources from the Amazon account <account-tag account="command.backingData.credentialsKeyedByAccount[command.credentials].awsAccount" pad="right"></account-tag></div>
     </div>
   </div>
@@ -13,7 +13,7 @@
                        field="region"
                        account="command.credentials"
                        regions="command.backingData.filtered.regions"
-                       on-change="command.regionChanged()"
+                       on-change="command.regionChanged(command)"
                        provider="'titus'"></region-select-field>
   <div class="form-group">
     <div class="col-md-2 sm-label-right">

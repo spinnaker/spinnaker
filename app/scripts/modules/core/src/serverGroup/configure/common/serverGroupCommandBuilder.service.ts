@@ -114,15 +114,14 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
   virtualizationType: string;
   vpcId: string;
 
-  processIsSuspended: (process: string) => boolean;
-  toggleSuspendedProcess: (process: string) => void;
-  onStrategyChange: (strategy: IDeploymentStrategy) => void;
-  regionIsDeprecated: () => boolean;
-  subnetChanged: () => IServerGroupCommandResult;
-  regionChanged: () => IServerGroupCommandResult;
-  credentialsChanged: () => IServerGroupCommandResult;
-  imageChanged: () => IServerGroupCommandResult;
-  instanceTypeChanged: () => void;
+  processIsSuspended: (command: IServerGroupCommand, process: string) => boolean;
+  toggleSuspendedProcess: (command: IServerGroupCommand, process: string) => void;
+  onStrategyChange: (command: IServerGroupCommand, strategy: IDeploymentStrategy) => void;
+  subnetChanged: (command: IServerGroupCommand) => IServerGroupCommandResult;
+  regionChanged: (command: IServerGroupCommand) => IServerGroupCommandResult;
+  credentialsChanged: (command: IServerGroupCommand) => IServerGroupCommandResult;
+  imageChanged: (command: IServerGroupCommand) => IServerGroupCommandResult;
+  instanceTypeChanged: (command: IServerGroupCommand) => void;
 }
 
 export class ServerGroupCommandBuilderService {

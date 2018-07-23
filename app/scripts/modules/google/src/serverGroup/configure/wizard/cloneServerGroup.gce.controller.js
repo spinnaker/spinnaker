@@ -154,7 +154,7 @@ module.exports = angular
       $scope.$watch(
         'command.viewState.customInstance',
         () => {
-          $scope.command.customInstanceChanged();
+          $scope.command.customInstanceChanged($scope.command);
           setInstanceTypeFromCustomChoices();
         },
         true,
@@ -162,18 +162,18 @@ module.exports = angular
     }
 
     function initializeSelectOptions() {
-      processCommandUpdateResult($scope.command.credentialsChanged());
-      processCommandUpdateResult($scope.command.regionalChanged());
-      processCommandUpdateResult($scope.command.regionChanged());
-      processCommandUpdateResult($scope.command.networkChanged());
-      processCommandUpdateResult($scope.command.zoneChanged());
-      processCommandUpdateResult($scope.command.customInstanceChanged());
+      processCommandUpdateResult($scope.command.credentialsChanged($scope.command));
+      processCommandUpdateResult($scope.command.regionalChanged($scope.command));
+      processCommandUpdateResult($scope.command.regionChanged($scope.command));
+      processCommandUpdateResult($scope.command.networkChanged($scope.command));
+      processCommandUpdateResult($scope.command.zoneChanged($scope.command));
+      processCommandUpdateResult($scope.command.customInstanceChanged($scope.command));
       gceServerGroupConfigurationService.configureSubnets($scope.command);
     }
 
     function createResultProcessor(method) {
       return function() {
-        processCommandUpdateResult(method());
+        processCommandUpdateResult(method($scope.command));
       };
     }
 

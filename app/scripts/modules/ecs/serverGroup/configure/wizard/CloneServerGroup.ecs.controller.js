@@ -155,8 +155,8 @@ module.exports = angular
         'command.placementStrategyName',
         createResultProcessor($scope.command.placementStrategyNameChanged),
       );
-      $scope.$watch('command.stack', $scope.command.clusterChanged);
-      $scope.$watch('command.freeFormDetails', $scope.command.clusterChanged);
+      $scope.$watch('command.stack', () => $scope.command.clusterChanged($scope.command));
+      $scope.$watch('command.freeFormDetails', () => $scope.command.clusterChanged($scope.command));
 
       // if any additional watches have been configured, add them
       serverGroupCommandRegistry.getCommandOverrides('ecs').forEach(override => {
@@ -169,13 +169,13 @@ module.exports = angular
     }
 
     function initializeSelectOptions() {
-      processCommandUpdateResult($scope.command.credentialsChanged());
-      processCommandUpdateResult($scope.command.regionChanged());
+      processCommandUpdateResult($scope.command.credentialsChanged(serverGroupCommand));
+      processCommandUpdateResult($scope.command.regionChanged(serverGroupCommand));
     }
 
     function createResultProcessor(method) {
       return function() {
-        processCommandUpdateResult(method());
+        processCommandUpdateResult(method(serverGroupCommand));
       };
     }
 

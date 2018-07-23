@@ -155,8 +155,8 @@ module.exports = angular
       });
     }
 
-    function attachEventHandlers(command) {
-      command.regionChanged = function regionChanged() {
+    function attachEventHandlers(cmd) {
+      cmd.regionChanged = function regionChanged(command) {
         var result = { dirty: {} };
         if (command.region) {
           angular.extend(result.dirty, configureInstanceTypes(command).dirty);
@@ -169,7 +169,7 @@ module.exports = angular
         return result;
       };
 
-      command.credentialsChanged = function credentialsChanged() {
+      cmd.credentialsChanged = function credentialsChanged(command) {
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
@@ -180,7 +180,7 @@ module.exports = angular
             command.region = null;
             result.dirty.region = true;
           } else {
-            angular.extend(result.dirty, command.regionChanged().dirty);
+            angular.extend(result.dirty, command.regionChanged(command).dirty);
           }
         } else {
           command.region = null;
@@ -192,7 +192,7 @@ module.exports = angular
         return result;
       };
 
-      command.networkChanged = function networkChanged() {
+      cmd.networkChanged = function networkChanged(command) {
         var result = { dirty: {} };
 
         angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);

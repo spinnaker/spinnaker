@@ -191,8 +191,8 @@ module.exports = angular
       return result;
     }
 
-    function attachEventHandlers(command) {
-      command.regionChanged = function regionChanged() {
+    function attachEventHandlers(cmd) {
+      cmd.regionChanged = function regionChanged(command) {
         var result = { dirty: {} };
         if (command.region && command.credentials) {
           angular.extend(result.dirty, configureLoadBalancers(command).dirty);
@@ -213,7 +213,7 @@ module.exports = angular
         return result;
       };
 
-      command.credentialsChanged = function credentialsChanged() {
+      cmd.credentialsChanged = function credentialsChanged(command) {
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
@@ -230,7 +230,7 @@ module.exports = angular
             command.region = null;
             result.dirty.region = true;
           } else {
-            angular.extend(result.dirty, command.regionChanged().dirty);
+            angular.extend(result.dirty, command.regionChanged(command).dirty);
           }
           if (command.region) {
             angular.extend(result.dirty, configureLoadBalancers(command).dirty);

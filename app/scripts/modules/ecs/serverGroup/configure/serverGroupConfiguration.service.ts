@@ -61,7 +61,8 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   placementStrategyName: string;
   placementStrategySequence: IPlacementStrategy[];
 
-  placementStrategyNameChanged: () => IServerGroupCommandResult;
+  placementStrategyNameChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
+  regionIsDeprecated: (command: IEcsServerGroupCommand) => boolean;
 }
 
 export class EcsServerGroupConfigurationService {
@@ -89,9 +90,9 @@ export class EcsServerGroupConfigurationService {
   }
 
   // TODO (Bruno Carrier): Why do we need to inject an Application into this constructor so that the app works?  This is strange, and needs investigating
-  public configureCommand(command: IEcsServerGroupCommand): IPromise<void> {
-    this.applyOverrides('beforeConfiguration', command);
-    command.toggleSuspendedProcess = (process: string): void => {
+  public configureCommand(cmd: IEcsServerGroupCommand): IPromise<void> {
+    this.applyOverrides('beforeConfiguration', cmd);
+    cmd.toggleSuspendedProcess = (command: IEcsServerGroupCommand, process: string): void => {
       command.suspendedProcesses = command.suspendedProcesses || [];
       const processIndex = command.suspendedProcesses.indexOf(process);
       if (processIndex === -1) {
@@ -101,16 +102,17 @@ export class EcsServerGroupConfigurationService {
       }
     };
 
-    command.processIsSuspended = (process: string): boolean => command.suspendedProcesses.includes(process);
+    cmd.processIsSuspended = (command: IEcsServerGroupCommand, process: string): boolean =>
+      command.suspendedProcesses.includes(process);
 
-    command.onStrategyChange = (strategy: IDeploymentStrategy): void => {
+    cmd.onStrategyChange = (command: IEcsServerGroupCommand, strategy: IDeploymentStrategy): void => {
       // Any strategy other than None or Custom should force traffic to be enabled
       if (strategy.key !== '' && strategy.key !== 'custom') {
         command.suspendedProcesses = (command.suspendedProcesses || []).filter(p => p !== 'AddToLoadBalancer');
       }
     };
 
-    command.regionIsDeprecated = (): boolean => {
+    cmd.regionIsDeprecated = (command: IEcsServerGroupCommand): boolean => {
       return (
         has(command, 'backingData.filtered.regions') &&
         command.backingData.filtered.regions.some(region => region.name === command.region && region.deprecated)
@@ -130,23 +132,23 @@ export class EcsServerGroupConfigurationService {
         let loadBalancerReloader = this.$q.when();
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IEcsServerGroupCommandBackingDataFiltered;
-        command.backingData = backingData as IEcsServerGroupCommandBackingData;
-        this.configureVpcId(command);
-        this.configureAvailableIamRoles(command);
-        this.configureAvailableMetricAlarms(command);
-        this.configureAvailableEcsClusters(command);
+        cmd.backingData = backingData as IEcsServerGroupCommandBackingData;
+        this.configureVpcId(cmd);
+        this.configureAvailableIamRoles(cmd);
+        this.configureAvailableMetricAlarms(cmd);
+        this.configureAvailableEcsClusters(cmd);
 
-        if (command.loadBalancers && command.loadBalancers.length) {
+        if (cmd.loadBalancers && cmd.loadBalancers.length) {
           // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-          const loadBalancerNames = this.getLoadBalancerNames(command);
-          if (intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
-            loadBalancerReloader = this.refreshLoadBalancers(command, true);
+          const loadBalancerNames = this.getLoadBalancerNames(cmd);
+          if (intersection(loadBalancerNames, cmd.loadBalancers).length < cmd.loadBalancers.length) {
+            loadBalancerReloader = this.refreshLoadBalancers(cmd, true);
           }
         }
 
         return this.$q.all([loadBalancerReloader]).then(() => {
-          this.applyOverrides('afterConfiguration', command);
-          this.attachEventHandlers(command);
+          this.applyOverrides('afterConfiguration', cmd);
+          this.attachEventHandlers(cmd);
         });
       });
   }
@@ -341,8 +343,8 @@ export class EcsServerGroupConfigurationService {
     return result;
   }
 
-  public attachEventHandlers(command: IEcsServerGroupCommand): void {
-    command.subnetChanged = (): IServerGroupCommandResult => {
+  public attachEventHandlers(cmd: IEcsServerGroupCommand): void {
+    cmd.subnetChanged = (command: IEcsServerGroupCommand): IServerGroupCommandResult => {
       const result = this.configureVpcId(command);
       extend(result.dirty, this.configureLoadBalancerOptions(command).dirty);
       command.viewState.dirty = command.viewState.dirty || {};
@@ -350,11 +352,11 @@ export class EcsServerGroupConfigurationService {
       return result;
     };
 
-    command.regionChanged = (): IServerGroupCommandResult => {
+    cmd.regionChanged = (command: IEcsServerGroupCommand): IServerGroupCommandResult => {
       const result: IEcsServerGroupCommandResult = { dirty: {} };
       extend(result.dirty, this.configureSubnetPurposes(command).dirty);
       if (command.region) {
-        extend(result.dirty, command.subnetChanged().dirty);
+        extend(result.dirty, command.subnetChanged(command).dirty);
         this.configureAvailabilityZones(command);
         this.configureAvailableMetricAlarms(command);
         this.configureAvailableEcsClusters(command);
@@ -363,7 +365,7 @@ export class EcsServerGroupConfigurationService {
       return result;
     };
 
-    command.credentialsChanged = (): IServerGroupCommandResult => {
+    cmd.credentialsChanged = (command: IEcsServerGroupCommand): IServerGroupCommandResult => {
       const result: IEcsServerGroupCommandResult = { dirty: {} };
       const backingData = command.backingData;
       if (command.credentials) {
@@ -378,7 +380,7 @@ export class EcsServerGroupConfigurationService {
           command.region = null;
           result.dirty.region = true;
         } else {
-          extend(result.dirty, command.regionChanged().dirty);
+          extend(result.dirty, command.regionChanged(command).dirty);
         }
       } else {
         command.region = null;
@@ -386,7 +388,7 @@ export class EcsServerGroupConfigurationService {
       return result;
     };
 
-    command.placementStrategyNameChanged = (): IServerGroupCommandResult => {
+    cmd.placementStrategyNameChanged = (command: IEcsServerGroupCommand): IServerGroupCommandResult => {
       const result: IEcsServerGroupCommandResult = { dirty: {} };
       command.placementStrategySequence = this.placementStrategyService.getPredefinedStrategy(
         command.placementStrategyName,
@@ -394,7 +396,7 @@ export class EcsServerGroupConfigurationService {
       return result;
     };
 
-    this.applyOverrides('attachEventHandlers', command);
+    this.applyOverrides('attachEventHandlers', cmd);
   }
 }
 
