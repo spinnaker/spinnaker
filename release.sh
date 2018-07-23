@@ -63,14 +63,14 @@ process_args "$@"
 # Google cloud sdk installation from
 # https://cloud.google.com/sdk/docs/downloads-interactive.
 if ! command -v gcloud > /dev/null; then
-  curl https://sdk.cloud.google.com | bash -s --disable-prompts
+  curl https://sdk.cloud.google.com | bash -s -- --disable-prompts
 fi
 
 export PATH=$PATH:`pwd`/google-cloud-sdk/bin
 
 if [ -z "$KEY_FILE" ]; then
-    echo "No key file specified with --key_file, exiting"
-    exit 1
+  echo "No key file specified with --key_file, exiting"
+  exit 1
 fi
 
 gcloud auth activate-service-account --key-file ${KEY_FILE}
