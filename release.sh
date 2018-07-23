@@ -60,13 +60,15 @@ EOF
 
 process_args "$@"
 
+CURR_DIR=$(pwd)
+
 # Google cloud sdk installation from
 # https://cloud.google.com/sdk/docs/downloads-interactive.
 if ! command -v gcloud > /dev/null; then
-  curl https://sdk.cloud.google.com | bash -s -- --disable-prompts
+  curl https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=$CURR_DIR
 fi
 
-export PATH=$PATH:`pwd`/google-cloud-sdk/bin
+export PATH=$PATH:$CURR_DIR/google-cloud-sdk/bin
 
 if [ -z "$KEY_FILE" ]; then
   echo "No key file specified with --key_file, exiting"
