@@ -162,6 +162,60 @@ class KubeV2CacheTestScenario(sk.SpinnakerTestScenario):
         NoOpOperation('Has recorded a manifest'),
         contract=builder.build())
 
+  def check_applications_endpoint(self):
+    account = self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']
+    builder = HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has recorded an app for the deployed manifest')
+       .get_url_path('/applications')
+       .EXPECT(
+           ov_factory.value_list_contains(jp.DICT_MATCHES({
+               'name': jp.STR_EQ(self.TEST_APP),
+               'accounts': jp.STR_SUBSTR(account),
+           }))
+    ))
+
+    return st.OperationContract(
+        NoOpOperation('Has recorded an application'),
+        contract=builder.build())
+
+  def check_server_groups_endpoint(self, kind, image):
+    name = self.TEST_APP + '-' + kind
+    account = self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']
+    builder = HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has recorded a server group for the deployed manifest')
+       .get_url_path('/applications/{}/serverGroups'.format(self.TEST_APP))
+       .EXPECT(
+           ov_factory.value_list_contains(jp.DICT_MATCHES({
+               'name': jp.STR_SUBSTR(name),
+               'cluster': jp.STR_EQ(kind + ' ' + name),
+               'account': jp.STR_EQ(account),
+               'cloudProvider': jp.STR_EQ('kubernetes'),
+               'buildInfo': jp.DICT_MATCHES({
+                   'images': jp.LIST_MATCHES([jp.STR_EQ(image)]),
+               })
+           }))
+    ))
+
+    return st.OperationContract(
+        NoOpOperation('Has recorded a server group'),
+        contract=builder.build())
+
+  def check_clusters_endpoint(self, kind):
+    name = kind + ' ' + self.TEST_APP + '-' + kind
+    account = self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']
+    builder = HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has recorded a cluster for the deployed manifest')
+       .get_url_path('/applications/{}/clusters'.format(self.TEST_APP))
+       .EXPECT(
+           ov_factory.value_list_contains(jp.DICT_MATCHES({
+               account: jp.LIST_MATCHES([jp.STR_EQ(name)]),
+           }))
+    ))
+
+    return st.OperationContract(
+        NoOpOperation('Has recorded a cluster'),
+        contract=builder.build())
+
   def delete_kind(self, kind, version=None):
     """Creates OperationContract for deleteManifest
 
@@ -227,7 +281,16 @@ class KubeV2CacheTest(st.AgentTestCase):
   def test_b2_check_manifest_endpoint(self):
     self.run_test_case(self.scenario.check_manifest_endpoint_exists('deployment'))
 
-  def test_b3_delete_deployment(self):
+  def test_b3_check_applications_endpoint(self):
+    self.run_test_case(self.scenario.check_applications_endpoint())
+
+  def test_b4_check_clusters_endpoint(self):
+    self.run_test_case(self.scenario.check_clusters_endpoint('deployment'))
+
+  def test_b4_check_server_groups_endpoint(self):
+    self.run_test_case(self.scenario.check_server_groups_endpoint('deployment', 'library/nginx'))
+
+  def test_b9_delete_deployment(self):
     self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
 
   def test_z_delete_app(self):
