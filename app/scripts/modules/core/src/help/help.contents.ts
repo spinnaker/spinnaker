@@ -402,6 +402,17 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.parameter.description': `(Optional): if supplied, will be displayed to users as a tooltip
       when triggering the pipeline manually. You can include HTML in this field.`,
   'pipeline.config.failOnFailedExpressions': `When this option is enabled, the stage will be marked as failed if it contains any failed expressions`,
+  'pipeline.config.roles.help': `
+    <p> When the pipeline is triggered using an automated trigger, these roles will be used to decide if the pipeline has permissions to access a protected application or account.</p>
+    <ul>
+    <li>
+    To read from a protected application or account, the pipeline must have at least one role that has read access to the application or account.
+    </li>
+    <li>
+    To write to a protected application or account, the pipeline must have at least one role that has write access to the application or account.
+    </li>
+    </ul>
+    <p><strong>Note:</strong> To prevent privilege escalation vulnerabilities, a user must be a member of <strong>all</strong> of the groups specified here in order to view, modify, and execute the pipeline.</p>`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

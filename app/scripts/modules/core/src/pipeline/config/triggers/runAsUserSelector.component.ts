@@ -1,25 +1,41 @@
-import { module } from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
+import { SETTINGS } from 'core/config/settings';
 
-class RunAsUserSelectorComponent implements ng.IComponentOptions {
+class RunAsUserSelectorController implements IController {
+  public enabled = true;
+  public serviceAccounts: string[];
+  public component: string;
+  public field: string;
+
+  public $onInit(): void {
+    this.enabled = SETTINGS.feature.fiatEnabled && !SETTINGS.feature.managedServiceAccounts;
+  }
+}
+
+class RunAsUserSelectorComponent implements IComponentOptions {
   public bindings: any = {
     serviceAccounts: '<',
     component: '=',
     field: '@',
   };
   public template = `
-    <div class="col-md-3 sm-label-right">
-      Run As User
-      <help-field key="pipeline.config.trigger.runAsUser"></help-field>
-    </div>
-    <div class="col-md-9">
-      <select
-        class="form-control input-sm"
-        ng-options="svcAcct for svcAcct in $ctrl.serviceAccounts"
-        ng-model="$ctrl.component[$ctrl.field]">
-        <option value="">Select Run As User</option>
-      </select>
+    <div ng-if="$ctrl.enabled">
+      <div class="col-md-3 sm-label-right">
+        Run As User
+        <help-field key="pipeline.config.trigger.runAsUser"></help-field>
+      </div>
+      <div class="col-md-9">
+        <select
+          class="form-control input-sm"
+          ng-options="svcAcct for svcAcct in $ctrl.serviceAccounts"
+          ng-model="$ctrl.component[$ctrl.field]">
+          <option value="">Select Run As User</option>
+        </select>
+      </div>
     </div>
   `;
+  public controller = RunAsUserSelectorController;
+  public controllerAs = '$ctrl';
 }
 
 export const RUN_AS_USER_SELECTOR_COMPONENT = 'spinnaker.core.runAsUser.selector.component';

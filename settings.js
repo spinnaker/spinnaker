@@ -23,6 +23,7 @@ var canaryAccount = process.env.CANARY_ACCOUNT || '';
 var canaryFeatureDisabled = process.env.CANARY_FEATURE_ENABLED !== 'true';
 var useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
 var artifactsEnabled = process.env.ARTIFACTS_ENABLED === 'true';
+var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -193,5 +194,6 @@ window.spinnakerSettings = {
     travis: false,
     versionedProviders: true,
     vpcMigrator: true,
+    managedServiceAccounts: managedServiceAccountsEnabled,
   },
 };

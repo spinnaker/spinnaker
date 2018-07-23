@@ -28,7 +28,6 @@ module.exports = angular
   .controller('TriggerCtrl', function($scope, $element, $compile, $controller, $templateCache) {
     var triggerTypes = Registry.pipeline.getTriggerTypes();
     $scope.options = triggerTypes;
-
     this.disableAutoTriggering = SETTINGS.disableAutoTriggering || [];
 
     this.removeTrigger = function(trigger) {

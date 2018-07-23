@@ -19,6 +19,13 @@
     </div>
   </page-section>
   <page-section key="triggers" label="Automated Triggers" badge="pipeline.triggers.length" no-wrapper="true">
+    <render-if-feature feature="managedServiceAccounts">
+      <div class="row" ng-if="pipeline.triggers.length">
+        <div class="col-md-12">
+          <pipeline-roles pipeline="pipeline"></pipeline-roles>
+        </div>
+      </div>
+    </render-if-feature>
     <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application"></trigger>
     <div class="row" ng-if="!pipeline.triggers.length">
       <p class="col-md-12">
