@@ -1,7 +1,7 @@
 import { IAccount } from 'core/account';
 
 export interface IAccountSelectFieldProps {
-  accounts: IAccount[];
+  accounts: IAccount[] | string[];
   component: Object;
   field: string;
   provider: string;
