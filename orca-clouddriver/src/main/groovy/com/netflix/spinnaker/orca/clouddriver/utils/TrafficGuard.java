@@ -16,19 +16,23 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableMap;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
-import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import static java.lang.String.format;
 
 @Component
@@ -37,13 +41,17 @@ public class TrafficGuard {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final OortHelper oortHelper;
-
   private final Front50Service front50Service;
+  private final Registry registry;
+
+  private final Id savesId;
 
   @Autowired
-  public TrafficGuard(OortHelper oortHelper, Optional<Front50Service> front50Service) {
+  public TrafficGuard(OortHelper oortHelper, Optional<Front50Service> front50Service, Registry registry) {
     this.oortHelper = oortHelper;
     this.front50Service = front50Service.orElse(null);
+    this.registry = registry;
+    this.savesId = registry.createId("trafficGuard.saves");
   }
 
   public void verifyInstanceTermination(String serverGroupNameFromStage,
@@ -53,6 +61,7 @@ public class TrafficGuard {
                                         Location location,
                                         String cloudProvider,
                                         String operationDescriptor) {
+    // TODO rz - Expose a single `instance server groups` endpoint in clouddriver; returns a map<instanceid, servergroup>.
     Map<String, List<String>> instancesPerServerGroup = new HashMap<>();
     for (String instanceId : instanceIds) {
       String serverGroupName = serverGroupNameFromStage;
@@ -74,7 +83,9 @@ public class TrafficGuard {
         moniker = MonikerHelper.friggaToMoniker(serverGroupName);
       }
 
+      // TODO rz - `hasDisableLock` should only be called once for each `app` value, not every instance.
       if (hasDisableLock(moniker, account, location)) {
+        // TODO rz - Remove: No longer needed since all data is retrieved in above clouddriver call @L64
         Optional<TargetServerGroup> targetServerGroup = oortHelper.getTargetServerGroup(account, serverGroupName, location.getValue(), cloudProvider);
 
         targetServerGroup.ifPresent(serverGroup -> {
@@ -106,10 +117,11 @@ public class TrafficGuard {
   }
 
   private void verifyOtherServerGroupsAreTakingTraffic(String serverGroupName, Moniker serverGroupMoniker, Location location, String account, String cloudProvider, String operationDescriptor) {
+    // TODO rz - Expose traffic guards endpoint in clouddriver
     Optional<Map> cluster = oortHelper.getCluster(serverGroupMoniker.getApp(), account, serverGroupMoniker.getCluster(), cloudProvider);
 
     if (!cluster.isPresent()) {
-      throw new IllegalStateException(format("Could not find cluster '%s' in %s/%s with traffic guard configured.", serverGroupMoniker.getCluster(), account, location.getValue()));
+      throw new TrafficGuardException(format("Could not find cluster '%s' in %s/%s with traffic guard configured.", serverGroupMoniker.getCluster(), account, location.getValue()));
     }
     List<TargetServerGroup> targetServerGroups = ((List<Map<String, Object>>) cluster.get().get("serverGroups"))
       .stream()
@@ -127,6 +139,7 @@ public class TrafficGuard {
       .anyMatch(tsg -> (tsg.getInstances().stream().filter(i -> "Up".equals(i.get("healthState"))).count()) > 0);
 
     if (!hasOtherEnabledServerGroups) {
+      // TODO rz - Context can be empty; could use a stand-in message in log
       List<Map> context = otherTargetServerGroups.stream().map(tsg -> ImmutableMap.builder()
         .put("name", tsg.getName())
         .put("disabled", tsg.isDisabled())
@@ -134,15 +147,20 @@ public class TrafficGuard {
         .build()
       ).collect(Collectors.toList());
 
-      log.debug(
-        "Traffic guard check has failed (cluster: {}, account: {}, context: {})",
-        serverGroupMoniker.getCluster(),
-        account,
-        context
+      String message = format(
+        "This cluster ('%s' in %s/%s) has traffic guards enabled. " +
+        "%s %s would leave the cluster with no instances taking traffic.",
+        serverGroupMoniker.getCluster(), account, location.getValue(), operationDescriptor, serverGroupName
       );
 
-      throw new IllegalStateException(format("This cluster ('%s' in %s/%s) has traffic guards enabled. " +
-        "%s %s would leave the cluster with no instances taking traffic.", serverGroupMoniker.getCluster(), account, location.getValue(), operationDescriptor, serverGroupName));
+      log.debug("{} Context: {}", message, context);
+
+      registry.counter(savesId.withTags(
+        "application", serverGroupMoniker.getApp(),
+        "account", account
+      )).increment();
+
+      throw new TrafficGuardException(message);
     }
   }
 

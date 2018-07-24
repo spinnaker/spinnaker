@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils
 
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location.Type
@@ -35,6 +37,8 @@ class TrafficGuardSpec extends Specification {
 
   Front50Service front50Service = Mock(Front50Service)
 
+  Registry registry = new NoopRegistry()
+
   Application application = Stub(Application) {
     details() >> applicationDetails
   }
@@ -48,7 +52,7 @@ class TrafficGuardSpec extends Specification {
   Map<String, Object> applicationDetails = [:]
 
   @Subject
-  TrafficGuard trafficGuard = new TrafficGuard(oortHelper, new Optional<>(front50Service))
+  TrafficGuard trafficGuard = new TrafficGuard(oortHelper, new Optional<>(front50Service), registry)
 
   void setup() {
     targetServerGroup = [
@@ -77,7 +81,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyTrafficRemoval("app-foo-v001", moniker, "test", location, "aws", "x")
 
     then:
-    thrown(IllegalStateException)
+    thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [targetServerGroup, otherServerGroup]
@@ -92,7 +96,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyTrafficRemoval("app-foo-v001", moniker, "test", location, "aws", "x")
 
     then:
-    thrown(IllegalStateException)
+    thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [targetServerGroup]
@@ -109,7 +113,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyTrafficRemoval("app-foo-v001", moniker, "test", location, "aws", "x")
 
     then:
-    thrown(IllegalStateException)
+    thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [targetServerGroup, otherServerGroup]
@@ -124,7 +128,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyTrafficRemoval("app-foo-v001", moniker, "test", location, "aws", "x")
 
     then:
-    thrown(IllegalStateException)
+    thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> Optional.empty()
   }
@@ -139,7 +143,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyTrafficRemoval("app-foo-v001", moniker, "test", location, "aws", "x")
 
     then:
-    notThrown(IllegalStateException)
+    notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [targetServerGroup, otherServerGroup]
@@ -156,7 +160,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyTrafficRemoval("app-foo-v001", moniker, "test", location, "aws", "x")
 
     then:
-    thrown(IllegalStateException)
+    thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [targetServerGroup, otherServerGroup]
@@ -241,7 +245,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyInstanceTermination(null, moniker, ["i-1"], "test", location, "aws", "x")
 
     then:
-    thrown(IllegalStateException)
+    thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
     1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
@@ -260,7 +264,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyInstanceTermination(null, MonikerHelper.friggaToMoniker(null), ["i-1"], "test", location, "aws", "x")
 
     then:
-    thrown(IllegalStateException)
+    thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
     1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
@@ -279,7 +283,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyInstanceTermination(null, moniker, ["i-1"], "test", location, "aws", "x")
 
     then:
-    notThrown(IllegalStateException)
+    notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
     1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
@@ -298,7 +302,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyInstanceTermination(null, moniker, ["i-1", "i-2"], "test", location, "aws", "x")
 
     then:
-    thrown(IllegalStateException)
+    thrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
     1 * oortHelper.getSearchResults("i-2", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
@@ -317,7 +321,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyInstanceTermination(null, moniker, ["i-1"], "test", location, "aws", "x")
 
     then:
-    notThrown(IllegalStateException)
+    notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [[results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
     1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
@@ -333,7 +337,7 @@ class TrafficGuardSpec extends Specification {
     trafficGuard.verifyInstanceTermination("app-foo-v001", moniker, ["i-1"], "test", location, "aws", "x")
 
     then:
-    notThrown(IllegalStateException)
+    notThrown(TrafficGuardException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
     0 * _
