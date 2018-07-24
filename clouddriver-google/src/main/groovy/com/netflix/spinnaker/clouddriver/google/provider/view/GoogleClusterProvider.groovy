@@ -125,7 +125,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
   GoogleServerGroup.View getServerGroup(String account, String region, String name, boolean includeDetails) {
     def cacheData = cacheView.get(SERVER_GROUPS.ns,
                                   Keys.getServerGroupKey(name, account, region),
-                                  RelationshipCacheFilter.include(LOAD_BALANCERS.ns))
+                                  RelationshipCacheFilter.include(LOAD_BALANCERS.ns, INSTANCES.ns))
 
     if (!cacheData) {
       // No regional server group was found, so attempt to query for all zonal server groups in the region.
