@@ -120,7 +120,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       }
 
       getTask().updateStatus(OP_NAME, "Swapping out artifacts in " + manifest.getFullResourceName() + " from context...");
-      ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, artifacts);
+      ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, artifacts, description.getAccount());
       deployManifests.add(replaceResult.getManifest());
       boundArtifacts.addAll(replaceResult.getBoundArtifacts());
     }
@@ -151,7 +151,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
         moniker.setCluster(manifest.getFullResourceName());
       }
 
-      Artifact artifact = converter.toArtifact(provider, manifest);
+      Artifact artifact = converter.toArtifact(provider, manifest, description.getAccount());
 
       String version = artifact.getVersion();
       if (StringUtils.isNotEmpty(version) && version.startsWith("v")) {
@@ -169,7 +169,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       manifest.setName(converter.getDeployedName(artifact));
 
       getTask().updateStatus(OP_NAME, "Swapping out artifacts in " + manifest.getFullResourceName() + " from other deployments...");
-      ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, new ArrayList<>(result.getCreatedArtifacts()));
+      ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, new ArrayList<>(result.getCreatedArtifacts()), description.getAccount());
       boundArtifacts.addAll(replaceResult.getBoundArtifacts());
       manifest = replaceResult.getManifest();
 

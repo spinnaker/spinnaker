@@ -95,7 +95,7 @@ metadata:
     replicaSetDeployer.kind() >> KIND
     def versionedArtifactConverterMock = Mock(KubernetesVersionedArtifactConverter)
     versionedArtifactConverterMock.getDeployedName(_) >> "$NAME-$VERSION"
-    versionedArtifactConverterMock.toArtifact(_, _) >> new Artifact()
+    versionedArtifactConverterMock.toArtifact(_, _, _) >> new Artifact()
     def registry = new KubernetesResourcePropertyRegistry(Collections.singletonList(replicaSetDeployer),
         new KubernetesSpinnakerKindMap())
 

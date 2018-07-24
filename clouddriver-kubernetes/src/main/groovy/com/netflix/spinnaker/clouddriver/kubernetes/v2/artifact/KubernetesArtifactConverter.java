@@ -24,8 +24,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 
+import java.util.Map;
+
 public abstract class KubernetesArtifactConverter {
-  abstract public Artifact toArtifact(ArtifactProvider artifactProvider, KubernetesManifest manifest);
+  abstract public Artifact toArtifact(ArtifactProvider artifactProvider, KubernetesManifest manifest, String account);
   abstract public KubernetesCoordinates toCoordinates(Artifact artifact);
   abstract public String getDeployedName(Artifact artifact);
 
@@ -51,5 +53,15 @@ public abstract class KubernetesArtifactConverter {
 
   protected String getNamespace(Artifact artifact) {
     return artifact.getLocation();
+  }
+
+  public static String getAccount(Artifact artifact) {
+    String account = "";
+    Map<String, Object> metadata = artifact.getMetadata();
+    if (metadata != null) {
+      account = (String) metadata.getOrDefault("account", "");
+    }
+
+    return account;
   }
 }

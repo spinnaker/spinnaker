@@ -24,7 +24,9 @@ import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,17 +36,20 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
   final private static ObjectMapper objectMapper = new ObjectMapper();
 
   @Override
-  public Artifact toArtifact(ArtifactProvider provider, KubernetesManifest manifest) {
+  public Artifact toArtifact(ArtifactProvider provider, KubernetesManifest manifest, String account) {
     String type = getType(manifest);
     String name = manifest.getName();
     String location = manifest.getNamespace();
     String version = getVersion(provider, type, name, location, manifest);
+    Map<String, Object> metadata = new HashMap<>();
+    metadata.put("account", account);
     return Artifact.builder()
         .type(type)
         .name(name)
         .location(location)
         .version(version)
         .reference(getDeployedName(name, version))
+        .metadata(metadata)
         .build();
   }
 

@@ -30,6 +30,7 @@ class KubernetesHorizontalPodAutoscalerHandlerSpec extends Specification {
   def objectMapper = new ObjectMapper()
   def yaml = new Yaml()
   def handler = new KubernetesHorizontalPodAutoscalerHandler()
+  def ACCOUNT = "my-account"
   @Shared
   def namespace = "default"
 
@@ -60,7 +61,7 @@ spec:
         .location(namespace)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(String.format(BASIC_HPA, kind, name)), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(String.format(BASIC_HPA, kind, name)), [artifact], ACCOUNT)
 
     result.manifest.spec.scaleTargetRef.name == reference
     result.boundArtifacts.size() == 1
@@ -84,7 +85,7 @@ spec:
         .location(location)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(String.format(BASIC_HPA, kind, name)), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(String.format(BASIC_HPA, kind, name)), [artifact], ACCOUNT)
 
     result.boundArtifacts.size() == 0
 

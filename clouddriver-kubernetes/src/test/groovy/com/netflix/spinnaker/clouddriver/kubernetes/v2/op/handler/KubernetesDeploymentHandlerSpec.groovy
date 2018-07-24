@@ -33,6 +33,7 @@ class KubernetesDeploymentHandlerSpec extends Specification {
   def CONFIG_MAP_VOLUME = "my-config-map"
   def SECRET_ENV = "my-secret-env"
   def CONFIG_MAP_ENV_KEY = "my-config-map-env"
+  def ACCOUNT = "my-account"
 
   def BASIC_DEPLOYMENT = """
 apiVersion: apps/v1beta2
@@ -83,7 +84,7 @@ spec:
         .reference(target)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
 
     then:
     result.manifest.spec.template.spec.containers[0].image == target
@@ -100,7 +101,7 @@ spec:
         .reference(target)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
 
     then:
     result.manifest.spec.template.spec.containers[0].image == IMAGE
@@ -115,7 +116,7 @@ spec:
     result.findAll { a -> a.getReference() == IMAGE && a.getType() == ArtifactTypes.DOCKER_IMAGE.toString() }.size() == 1
   }
 
-  void "check that configmap volume is replaced by the artifact replacer"() {
+  void "check that configmap volume is replaced by the artifact replacer without an account specified"() {
     when:
     def target = "$CONFIG_MAP_VOLUME-version-1.2.3"
     def artifact = Artifact.builder()
@@ -124,7 +125,23 @@ spec:
         .reference(target)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[0].configMap.name == target
+  }
+
+  void "check that configmap volume is replaced by the artifact replacer"() {
+    when:
+    def target = "$CONFIG_MAP_VOLUME-version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP.toString())
+        .name(CONFIG_MAP_VOLUME)
+        .reference(target)
+        .metadata(["account": ACCOUNT])
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
 
     then:
     result.manifest.spec.template.spec.volumes[0].configMap.name == target
@@ -139,10 +156,26 @@ spec:
         .reference(target)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
 
     then:
     result.manifest.spec.template.spec.volumes[0].configMap.name == CONFIG_MAP_VOLUME
+  }
+
+  void "check that configmap volume is not replaced by the artifact replacer in the wrong account"() {
+    when:
+    def target = "$CONFIG_MAP_VOLUME:version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP.toString())
+        .name("$CONFIG_MAP_VOLUME")
+        .reference(target)
+        .metadata(["account": "not-$ACCOUNT".toString()])
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
+
+    then:
+    result.manifest.spec.template.spec.volumes[0].configMap.name != target
   }
 
   void "check that configmap volume is found"() {
@@ -161,9 +194,10 @@ spec:
         .type(ArtifactTypes.KUBERNETES_SECRET.toString())
         .name(SECRET_ENV)
         .reference(target)
+        .metadata(["account": ACCOUNT])
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
 
     then:
     result.manifest.spec.template.spec.containers[0].envFrom[0].secretRef.name == target
@@ -178,7 +212,7 @@ spec:
         .reference(target)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
 
     then:
     result.manifest.spec.template.spec.containers[0].envFrom[0].secretRef.name == SECRET_ENV
@@ -201,7 +235,7 @@ spec:
         .reference(target)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
 
     then:
     result.manifest.spec.template.spec.containers[0].env[0].valueFrom.configMapKeyRef.name == target
@@ -216,7 +250,7 @@ spec:
         .reference(target)
         .build()
 
-    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact], ACCOUNT)
 
     then:
     result.manifest.spec.template.spec.containers[0].env[0].valueFrom.configMapKeyRef.name == CONFIG_MAP_ENV_KEY

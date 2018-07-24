@@ -64,12 +64,12 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
     artifactReplacer.addReplacer(replacer);
   }
 
-  public ReplaceResult replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts) {
-    return artifactReplacer.replaceAll(manifest, artifacts, manifest.getNamespace());
+  public ReplaceResult replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts, String account) {
+    return artifactReplacer.replaceAll(manifest, artifacts, manifest.getNamespace(), account);
   }
 
-  public ReplaceResult replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts, String namespace) {
-    return artifactReplacer.replaceAll(manifest, artifacts, namespace);
+  public ReplaceResult replaceArtifacts(KubernetesManifest manifest, List<Artifact> artifacts, String namespace, String account) {
+    return artifactReplacer.replaceAll(manifest, artifacts, namespace, account);
   }
 
   protected Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
