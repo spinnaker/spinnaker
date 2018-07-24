@@ -142,6 +142,41 @@ class KubeV2CacheTestScenario(sk.SpinnakerTestScenario):
             title='deploy_manifest', data=payload, path='tasks'),
         contract=builder.build())
 
+  def deploy_service(self):
+    """Creates an OperationContract for deploying a service object
+
+    To verify the operation, we just check that the service was created.
+    """
+    name = self.TEST_APP + '-service'
+    account = self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'cloudProvider': 'kubernetes',
+            'moniker': {
+                'app': self.TEST_APP
+            },
+            'account': account,
+            'source': 'text',
+            'type': 'deployManifest',
+            'user': '[anonymous]',
+            'manifests': [self.mf.service(name)],
+        }],
+        description='Deploy manifest',
+        application=self.TEST_APP)
+
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('Service created',
+                                retryable_for_secs=15)
+     .get_resources(
+         'service',
+         extra_args=[name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(self.mp.service_selector_predicate('app', self.TEST_APP)))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='deploy_manifest', data=payload, path='tasks'),
+        contract=builder.build())
+
   def check_manifest_endpoint_exists(self, kind):
     name = self.TEST_APP + '-' + kind
     account = self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']
@@ -192,12 +227,40 @@ class KubeV2CacheTestScenario(sk.SpinnakerTestScenario):
                'cloudProvider': jp.STR_EQ('kubernetes'),
                'buildInfo': jp.DICT_MATCHES({
                    'images': jp.LIST_MATCHES([jp.STR_EQ(image)]),
-               })
+               }),
+               'loadBalancers': jp.LIST_MATCHES(
+                 [jp.STR_EQ('service {}-service'.format(self.TEST_APP))]
+               ),
            }))
     ))
 
     return st.OperationContract(
         NoOpOperation('Has recorded a server group'),
+        contract=builder.build())
+
+  def check_load_balancers_endpoint(self, kind):
+    name = kind + ' ' + self.TEST_APP + '-' + kind
+    account = self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']
+    builder = HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has recorded a load balancer')
+       .get_url_path('/applications/{}/loadBalancers'.format(self.TEST_APP))
+       .EXPECT(
+           ov_factory.value_list_contains(jp.DICT_MATCHES({
+               'name': jp.STR_EQ(name),
+               'kind': jp.STR_EQ(kind),
+               'account': jp.STR_EQ(account),
+               'cloudProvider': jp.STR_EQ('kubernetes'),
+               'serverGroups': jp.LIST_MATCHES([
+                 jp.DICT_MATCHES({
+                   'account': jp.STR_EQ(account),
+                   'name': jp.STR_SUBSTR(self.TEST_APP),
+                 }),
+               ]),
+           }))
+    ))
+
+    return st.OperationContract(
+        NoOpOperation('Has recorded a load balancer'),
         contract=builder.build())
 
   def check_clusters_endpoint(self, kind):
@@ -275,23 +338,32 @@ class KubeV2CacheTest(st.AgentTestCase):
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
-  def test_b1_deploy(self):
+  def test_b1_deploy_deployment(self):
     self.run_test_case(self.scenario.deploy_deployment('library/nginx'))
+
+  def test_b1_deploy_service(self):
+    self.run_test_case(self.scenario.deploy_service())
 
   def test_b2_check_manifest_endpoint(self):
     self.run_test_case(self.scenario.check_manifest_endpoint_exists('deployment'))
 
-  def test_b3_check_applications_endpoint(self):
+  def test_b2_check_applications_endpoint(self):
     self.run_test_case(self.scenario.check_applications_endpoint())
 
-  def test_b4_check_clusters_endpoint(self):
+  def test_b2_check_clusters_endpoint(self):
     self.run_test_case(self.scenario.check_clusters_endpoint('deployment'))
 
-  def test_b4_check_server_groups_endpoint(self):
+  def test_b2_check_server_groups_endpoint(self):
     self.run_test_case(self.scenario.check_server_groups_endpoint('deployment', 'library/nginx'))
+
+  def test_b2_check_load_balancers_endpoint(self):
+    self.run_test_case(self.scenario.check_load_balancers_endpoint('service'))
 
   def test_b9_delete_deployment(self):
     self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
+
+  def test_b9_delete_service(self):
+    self.run_test_case(self.scenario.delete_kind('service'), max_retries=2)
 
   def test_z_delete_app(self):
     # Give a total of a minute because it might also need

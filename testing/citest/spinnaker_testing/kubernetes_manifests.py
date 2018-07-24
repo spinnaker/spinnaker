@@ -27,6 +27,29 @@ class KubernetesManifestFactory(object):
   def __init__(self, scenario):
     self.scenario = scenario
 
+  def service(self, name):
+    return {
+        'apiVersion': 'v1',
+        'kind': 'Service',
+        'metadata': {
+            'name': name,
+            'namespace': self.scenario.TEST_NAMESPACE,
+            'labels': {
+                'app': self.scenario.TEST_APP,
+                'owner': 'citest',
+            }
+        },
+        'spec': {
+            'selector': {
+                'app': self.scenario.TEST_APP,
+            },
+            'ports': [{
+                'protocol': 'TCP',
+                'port': 80
+            }]
+        }
+    }
+
   def deployment(self, name, image):
     return {
         'apiVersion': 'apps/v1beta2',
@@ -100,7 +123,7 @@ class KubernetesManifestPredicateFactory(object):
            'template': jp.DICT_MATCHES({
              'spec': jp.DICT_MATCHES({
                'volumes': jp.LIST_MATCHES([jp.DICT_MATCHES({
-                  'configMap': jp.DICT_MATCHES({ 
+                  'configMap': jp.DICT_MATCHES({
                     'name': jp.STR_SUBSTR(configmap_name)
                    })
                  })
@@ -111,6 +134,15 @@ class KubernetesManifestPredicateFactory(object):
          'status': jp.DICT_MATCHES({
            'availableReplicas': jp.NUM_GE(1)
          })
+     }))
+
+  def service_selector_predicate(self, key, value):
+    return ov_factory.value_list_contains(jp.DICT_MATCHES({
+         'spec': jp.DICT_MATCHES({
+           'selector': jp.DICT_MATCHES({
+             key: jp.STR_EQ(value)
+           })
+         }),
      }))
 
   def deployment_image_predicate(self, image):
