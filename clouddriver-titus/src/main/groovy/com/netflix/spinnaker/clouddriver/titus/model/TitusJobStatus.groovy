@@ -55,7 +55,7 @@ class TitusJobStatus implements com.netflix.spinnaker.clouddriver.model.JobStatu
     name = job.name
     createdTime = job.submittedAt ? job.submittedAt.time : null
     application = Names.parseName(job.name).app
-    Task task = job.tasks.sort { it.startedAt }?.last()
+    Task task = job.tasks?.sort { it.startedAt }?.last()
     jobState = convertTaskStateToJobState(job, task)
     completionDetails = convertCompletionDetails(task)
   }
