@@ -3,12 +3,13 @@ import { get } from 'lodash';
 
 import {
   ArtifactReferenceService,
-  Registry,
-  SETTINGS,
-  ExecutionDetailsTasks,
   ExecutionArtifactTab,
+  ExecutionDetailsTasks,
   ExpectedArtifactService,
   IArtifact,
+  IStage,
+  Registry,
+  SETTINGS,
 } from 'core';
 
 import { BakeManifestConfigCtrl } from './bakeManifestConfig.controller';
@@ -32,22 +33,13 @@ module(BAKE_MANIFEST_STAGE, [])
           ExpectedArtifactService.accumulateArtifacts<IArtifact>(['inputArtifacts'])(fields).map(
             (a: IArtifact) => a.id,
           ),
-      });
+        artifactRemover: (stage: IStage, artifactId: string) => {
+          ArtifactReferenceService.removeArtifactFromFields(['expectedArtifactId'])(stage, artifactId);
 
-      ArtifactReferenceService.registerReference('stage', stage => {
-        if (stage.type !== 'bakeManifest') {
-          return [];
-        }
-        const paths = [['expectedArtifactId']];
-        const expected = get(stage, 'expectedArtifacts', []);
-        const inputs = get(stage, 'inputArtifacts', []);
-        expected.forEach((_e, i) => {
-          paths.push(['expectedArtifacts', String(i), 'id']);
-        });
-        inputs.forEach((_in, i) => {
-          paths.push(['inputArtifacts', String(i), 'id']);
-        });
-        return paths;
+          const artifactMatches = (artifact: IArtifact) => artifact.id === artifactId;
+          stage.expectedArtifacts = get(stage, 'expectedArtifacts', []).filter(a => !artifactMatches(a));
+          stage.inputArtifacts = get(stage, 'inputArtifacts', []).filter(a => !artifactMatches(a));
+        },
       });
     }
   })

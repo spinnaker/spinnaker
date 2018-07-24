@@ -55,9 +55,11 @@ module(KUBERNETES_PATCH_MANIFEST_STAGE, [KUBERNETES_PATCH_MANIFEST_OPTIONS_FORM,
           } as ICustomValidator,
         ],
         artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['manifestArtifactId', 'requiredArtifactIds']),
+        artifactRemover: ArtifactReferenceService.removeArtifactFromFields([
+          'manifestArtifactId',
+          'requiredArtifactIds',
+        ]),
       });
-
-      ArtifactReferenceService.registerReference('stage', () => [['manifestArtifactId'], ['requiredArtifactIds']]);
     }
   })
   .controller('KubernetesV2PatchManifestConfigCtrl', KubernetesV2PatchManifestConfigCtrl);

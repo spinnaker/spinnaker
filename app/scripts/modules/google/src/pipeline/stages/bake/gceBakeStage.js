@@ -41,8 +41,8 @@ module.exports = angular
       ],
       restartable: true,
       artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['packageArtifactIds']),
+      artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['packageArtifactIds']),
     });
-    ArtifactReferenceService.registerReference('stage', () => [['packageArtifactIds']]);
   })
   .controller('gceBakeStageCtrl', function($scope, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};

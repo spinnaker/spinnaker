@@ -18,6 +18,8 @@
 
 import { ICluster } from '../../../core/src/domain';
 
+import { get } from 'lodash';
+
 const angular = require('angular');
 
 module.exports = angular
@@ -30,7 +32,14 @@ module.exports = angular
         .map(c => c.imageDescription.artifactId);
     }
 
-    return {
-      extractArtifacts: extractArtifacts,
-    };
+    function removeArtifact(cluster: ICluster, reference: string): void {
+      const artifactMatches = (container: any) =>
+        container.imageDescription &&
+        container.imageDescription.fromArtifact &&
+        container.imageDescription.artifactId === reference;
+      cluster.containers = get(cluster, 'containers', []).filter(c => !artifactMatches(c));
+      cluster.initContainers = get(cluster, 'initContainers', []).filter(c => !artifactMatches(c));
+    }
+
+    return { extractArtifacts, removeArtifact };
   });

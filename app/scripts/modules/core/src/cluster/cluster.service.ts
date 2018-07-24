@@ -8,8 +8,8 @@ import { FilterModelService } from 'core/filterModel';
 import { IArtifactExtractor, ICluster, IClusterSummary, IExecution, IExecutionStage, IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
-
 import { taskMatcher } from './task.matcher';
+import { ArtifactReferenceService } from 'core';
 
 export class ClusterService {
   public static ON_DEMAND_THRESHOLD = 350;
@@ -196,6 +196,9 @@ export class ClusterService {
   public defaultArtifactExtractor(): IArtifactExtractor {
     return {
       extractArtifacts: (cluster: ICluster) => (this.isDeployingArtifact(cluster) ? [cluster.imageArtifactId] : []),
+      removeArtifact: (cluster: ICluster, artifactId: string) => {
+        ArtifactReferenceService.removeArtifactFromField('imageArtifactId', cluster, artifactId);
+      },
     };
   }
 
@@ -207,6 +210,10 @@ export class ClusterService {
 
   public extractArtifacts(cluster: ICluster): string[] {
     return this.getArtifactExtractor(cluster.cloudProvider).extractArtifacts(cluster);
+  }
+
+  public removeArtifact(cluster: ICluster, artifactId: string): void {
+    this.getArtifactExtractor(cluster.cloudProvider).removeArtifact(cluster, artifactId);
   }
 
   private getClusters(application: string): IPromise<IClusterSummary[]> {

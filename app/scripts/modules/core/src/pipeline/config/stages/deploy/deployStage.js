@@ -48,6 +48,12 @@ module.exports = angular
           .map(clusterService.extractArtifacts, clusterService)
           .reduce((array, items) => array.concat(items), []);
       },
+      artifactRemover: (stage, artifactId) => {
+        const clusterService = clusterServiceProvider.$get();
+        (stage.clusters || []).forEach(cluster =>
+          clusterService.getArtifactExtractor(cluster.cloudProvider).removeArtifact(cluster, artifactId),
+        );
+      },
       strategy: true,
     });
   })

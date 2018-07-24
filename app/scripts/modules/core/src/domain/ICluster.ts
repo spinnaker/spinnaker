@@ -7,6 +7,7 @@ export interface IClusterSummary {
 }
 
 export interface ICluster extends IClusterSummary {
+  [key: string]: any;
   category: string;
   containers?: any[];
   initContainers?: any[];
