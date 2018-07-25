@@ -82,6 +82,7 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
 
     self.mf = sk.KubernetesManifestFactory(self)
     self.mp = sk.KubernetesManifestPredicateFactory()
+    self.ps = sk.PipelineSupport(self)
 
   def create_app(self):
     """Creates OperationContract that creates a new Spinnaker Application."""
@@ -267,33 +268,8 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
         'source': 'text',
         'manifests': [self.mf.deployment(name, image)],
     }
-    job = {
-        'keepWaitingPipelines': 'false',
-        'application': self.TEST_APP,
-        'name': 'deploy-manifest-pipeline',
-        'lastModifiedBy': 'anonymous',
-        'limitConcurrent': 'true',
-        'parallel': 'true',
-        'stages': [stage]
-    }
-    payload = self.agent.make_json_payload_from_kwargs(**job)
-    expect_match = {key: jp.EQUIVALENT(value)
-                    for key, value in job.items()}
-    expect_match['stages'] = jp.LIST_MATCHES(
-        [jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
-                         for key, value in stage.items()})])
 
-    builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline',
-                                retryable_for_secs=15)
-     .get_url_path(
-        'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
-     .contains_match(expect_match))
-    return st.OperationContract(
-        self.new_post_operation(title='save_deploy_manifest_operation',
-                                data=payload, path='pipelines',
-                                status_class=st.SynchronousHttpOperationStatus),
-        contract=builder.build())
+    return self.ps.submit_pipeline_contract('deploy-manifest-pipeline', [stage])
 
   def execute_deploy_manifest_pipeline(self, image):
     name = self.TEST_APP + '-deployment'
