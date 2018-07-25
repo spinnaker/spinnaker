@@ -1,0 +1,77 @@
+<div ng-controller="WerckerExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'werckerConfig'">
+    <div class="row">
+      <div class="col-md-{{stage.context.buildInfo.testResults ? 6 : 12}}">
+        <h5>Wercker Stage Configuration</h5>
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Master</dt>
+          <dd>{{stage.context.master}}</dd>
+          <dt>Job</dt>
+          <dd>{{stage.context.job}}</dd>
+          <dt>Build</dt>
+          <dd>
+            <span ng-if="!stage.context.buildInfo">{{stage.context.buildNumber}}</span>
+            <a ng-if="stage.context.buildInfo.url"
+               href="{{stage.context.buildInfo.url}}"
+               target="_blank">#{{stage.context.buildInfo.number}}</a>
+          </dd>
+        </dl>
+      </div>
+      <div class="col-md-6" ng-if="stage.context.buildInfo.testResults">
+        <h5>Test Results</h5>
+        <div class="row" ng-repeat="result in stage.context.buildInfo.testResults">
+          <div class="col-md-6">
+            <p>
+              <a target="_blank" href="{{stage.context.buildInfo.url}}{{result.urlName}}" class="pad-left">
+                {{result.urlName | robotToHuman }}
+              </a>
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p class="test-results">
+              <span class="test-result-section">
+                {{result.totalCount - result.failCount - result.skipCount}} <span
+                class="small fa fa-check"></span>
+              </span>
+              <span class="test-result-section">
+                {{result.failCount}} <span class="small glyphicon glyphicon-remove informational"></span>
+              </span>
+              <span class="test-result-section" ng-if="result.skipCount">
+                {{result.skipCount}} <span class="small glyphicon glyphicon-minus"></span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row" ng-if="stage.context.parameters">
+      <div class="col-md-12">
+      <h5 style="margin-bottom: 0; padding-bottom: 5px;">Parameters</h5>
+      <dl>
+        <dt ng-repeat-start="(key, val) in stage.context.parameters">{{key}}</dt>
+        <dd ng-repeat-end>{{val}}</dd>
+      </dl>
+      </div>
+    </div>
+
+    <div class="row" ng-if="stage.context.propertyFileContents">
+      <div class="col-md-12">
+        <h5 style="margin-bottom: 0; padding-bottom: 5px;">Property File</h5>
+        <dl>
+          <dt ng-repeat-start="(key, val) in stage.context.propertyFileContents">{{key}}</dt>
+          <dd ng-repeat-end>{{val}}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <stage-failure-message stage="stage" ng-if="stage.isFailed" message="ctrl.getException(stage) || failureMessage"></stage-failure-message>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+
+</div>
