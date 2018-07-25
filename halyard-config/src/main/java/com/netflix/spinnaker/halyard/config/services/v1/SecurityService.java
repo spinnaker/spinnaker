@@ -239,6 +239,9 @@ public class SecurityService {
       case FILE:
         groupMembership.setFile((FileRoleProvider) roleProvider);
         break;
+      case LDAP:
+        groupMembership.setLdap((LdapRoleProvider) roleProvider);
+        break;
       default:
         throw new RuntimeException("Unknown Role Provider " + roleProvider.getRoleProviderType());
     }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.file.FileRoleProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.github.GithubRoleProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.google.GoogleRoleProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.ldap.LdapRoleProviderCommand;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -48,5 +49,6 @@ public class AuthzCommand extends AbstractConfigCommand {
     registerSubcommand(new GoogleRoleProviderCommand());
     registerSubcommand(new GithubRoleProviderCommand());
     registerSubcommand(new FileRoleProviderCommand());
+    registerSubcommand(new LdapRoleProviderCommand());
   }
 }

@@ -40,6 +40,7 @@ public class GroupMembership extends Node {
   private GoogleRoleProvider google = new GoogleRoleProvider();
   private GithubRoleProvider github = new GithubRoleProvider();
   private FileRoleProvider file = new FileRoleProvider();
+  private LdapRoleProvider ldap = new LdapRoleProvider();
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

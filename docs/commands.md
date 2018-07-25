@@ -334,6 +334,8 @@
  * [**hal config security authz github edit**](#hal-config-security-authz-github-edit)
  * [**hal config security authz google**](#hal-config-security-authz-google)
  * [**hal config security authz google edit**](#hal-config-security-authz-google-edit)
+ * [**hal config security authz ldap**](#hal-config-security-authz-ldap)
+ * [**hal config security authz ldap edit**](#hal-config-security-authz-ldap-edit)
  * [**hal config security ui**](#hal-config-security-ui)
  * [**hal config security ui edit**](#hal-config-security-ui-edit)
  * [**hal config security ui ssl**](#hal-config-security-ui-ssl)
@@ -6348,6 +6350,7 @@ hal config security authz [parameters] [subcommands]
  * `file`: Configure the file role provider.
  * `github`: Configure the github role provider.
  * `google`: Configure the google role provider.
+ * `ldap`: Configure the ldap role provider.
 
 ---
 ## hal config security authz disable
@@ -6496,6 +6499,47 @@ hal config security authz google edit [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--domain`: The domain your role provider is configured for e.g. myorg.net.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config security authz ldap
+
+Configure the ldap role provider.
+
+#### Usage
+```
+hal config security authz ldap [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `edit`: Edit the ldap role provider.
+
+---
+## hal config security authz ldap edit
+
+Edit the ldap role provider.
+
+#### Usage
+```
+hal config security authz ldap edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--group-role-attributes`: The attribute which contains the name of the authority defined by the group entry. Defaults to 'cn'.
+ * `--group-search-base`: The part of the directory tree under which group searches should be performed. 
+ * `--group-search-filter`: The filter which is used to search for group membership. The default is 'uniqueMember={0}', corresponding to the groupOfUniqueMembers LDAP class. In this case, the substituted parameter is the full distinguished name of the user. The parameter '{1}' can be used if you want to filter on the login name.
+ * `--manager-dn`: The manager user's distinguished name (principal) to use for querying ldap groups.
+ * `--manager-password`: (*Sensitive data* - user will be prompted on standard input) The manager user's password to use for querying ldap groups.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--url`: ldap:// or ldaps:// url of the LDAP server
+ * `--user-dn-pattern`: The pattern for finding a user's DN using simple pattern matching. For example, if your LDAP server has the URL ldap://mysite.com/dc=spinnaker,dc=org, and you have the pattern 'uid={0},ou=members', 'me' will map to a DN uid=me,ou=members,dc=spinnaker,dc=org. If no match is found, will try to find the user using --user-search-filter, if set.
+ * `--user-search-base`: The part of the directory tree under which user searches should be performed. If --user-search-base isn't supplied, the search will be performed from the root.
+ * `--user-search-filter`: The filter to use when searching for a user's DN. Will search either from --user-search-base (if specified) or root for entires matching the filter.
 
 
 ---
