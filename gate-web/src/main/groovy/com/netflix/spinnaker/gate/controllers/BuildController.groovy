@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Netflix, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +15,19 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.BuildService
+
 import groovy.transform.CompileStatic
+
 import io.swagger.annotations.ApiOperation
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 
@@ -41,8 +45,8 @@ class BuildController {
 
   @ApiOperation(value = "Get build masters", response = List.class)
   @RequestMapping(value = "v2/builds", method = RequestMethod.GET)
-  List<String> getBuildMasters() {
-    buildService.getBuildMasters()
+  List<String> getBuildMasters(@RequestParam(value = "type", defaultValue = "") String type) {
+    buildService.getBuildMasters(type)
   }
 
   @ApiOperation(value = "Get jobs for build master", response = List.class)

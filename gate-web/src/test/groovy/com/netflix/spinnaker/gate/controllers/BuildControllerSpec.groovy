@@ -1,5 +1,6 @@
 /*
  * Copyright 2015 Netflix, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +20,7 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.BuildService
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import com.squareup.okhttp.mockwebserver.MockWebServer
+import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
@@ -61,6 +63,38 @@ class BuildControllerSpec extends Specification {
 
     then:
     response.contentAsString == "[\"${MASTER}\",\"master2\"]"
+  }
+
+  void 'should get a list of jenkins masters'() {
+	def masterType = 'jenkins'
+	def jenkinsMasters = ['jenkinsX', 'jenkinsY']
+    given:
+    1 * igorService.getBuildMasters(masterType) >> jenkinsMasters
+    0 * igorService.getBuildMasters('wercker') >> _
+    0 * igorService.getBuildMasters() >> _
+
+    when:
+    MockHttpServletResponse response = mockMvc.perform(get("/v2/builds").param('type', masterType)
+      .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+    then:
+    new JsonSlurper().parseText(response.contentAsString) == jenkinsMasters
+  }
+
+  void 'should get a list of wercker masters'() {
+	def masterType = 'wercker'
+	def werckerMasters = ['wercker-prod', 'wercker-staging']
+    given:
+    1 * igorService.getBuildMasters(masterType) >> werckerMasters
+    0 * igorService.getBuildMasters('jenkins') >> _
+    0 * igorService.getBuildMasters() >> _
+
+    when:
+    MockHttpServletResponse response = mockMvc.perform(get("/v2/builds").param('type', masterType)
+      .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+    then:
+    new JsonSlurper().parseText(response.contentAsString) == werckerMasters
   }
 
   void 'should get a list of jobs for a master'() {

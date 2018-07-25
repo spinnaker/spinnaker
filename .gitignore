@@ -11,3 +11,4 @@ out/
 .project
 .settings
 swagger.json
+bin/

@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Netflix, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ package com.netflix.spinnaker.gate.services.internal
 import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.Path
+import retrofit.http.Query
 
 interface IgorService {
   /*
@@ -29,6 +31,14 @@ interface IgorService {
 
   @GET('/masters')
   List<String> getBuildMasters()
+
+  /**
+   * Get build masters
+   * @param type - optional parameter the (non-case-sensitive) build service type name (e.g. Jenkins)
+   * @return
+   */
+  @GET('/masters')
+  List<String> getBuildMasters(@Query("type") String type)
 
   @GET('/jobs/{buildMaster}')
   List<String> getJobsForBuildMaster(@Path("buildMaster") String buildMaster)

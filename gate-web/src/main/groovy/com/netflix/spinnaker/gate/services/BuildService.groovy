@@ -1,5 +1,6 @@
 /*
  * Copyright 2014 Netflix, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +40,19 @@ class BuildService {
 
   private String encode(uri) {
     return UriUtils.encodeFragment(uri.toString(), "UTF-8")
+  }
+
+  List<String> getBuildMasters(String buildServiceType) {
+    if (!igorService) {
+      return []
+    }
+    HystrixFactory.newListCommand(GROUP, "masters") { 
+      if(buildServiceType) {
+        igorService.getBuildMasters(buildServiceType)
+      } else {
+        igorService.getBuildMasters()
+      }
+    } execute()
   }
 
   List<String> getBuildMasters() {
