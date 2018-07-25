@@ -10,3 +10,7 @@ classes
 data
 /echo-web/data
 /echo-elasticsearch/data/
+.classpath
+.project
+.settings/
+bin/

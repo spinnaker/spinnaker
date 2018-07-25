@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 Netflix, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -46,7 +47,7 @@ import rx.functions.Action1;
 @Component
 public class BuildEventMonitor extends TriggerMonitor {
 
-  public static final String[] BUILD_TRIGGER_TYPES = {"jenkins", "travis"};
+  public static final String[] BUILD_TRIGGER_TYPES = {"jenkins", "travis", "wercker"};
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 

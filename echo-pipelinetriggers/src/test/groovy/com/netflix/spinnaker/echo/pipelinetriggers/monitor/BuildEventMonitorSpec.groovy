@@ -41,6 +41,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     event                         | trigger               | triggerType
     createBuildEventWith(SUCCESS) | enabledJenkinsTrigger | 'jenkins'
     createBuildEventWith(SUCCESS) | enabledTravisTrigger | 'travis'
+    createBuildEventWith(SUCCESS) | enabledWerckerTrigger | 'wercker'
   }
 
   @Unroll
@@ -63,6 +64,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     event                         | pipeline                                                     | triggerType
     createBuildEventWith(SUCCESS) | createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger) | 'jenkins'
     createBuildEventWith(SUCCESS) | createPipelineWith(enabledTravisTrigger, nonJenkinsTrigger)  | 'travis'
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledWerckerTrigger, nonJenkinsTrigger)  | 'wercker'
   }
 
   def "an event can trigger multiple pipelines"() {
@@ -125,6 +127,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     trigger                                 | description
     disabledJenkinsTrigger                  | "disabled jenkins"
     disabledTravisTrigger                   | "disabled travis"
+    disabledWerckerTrigger                  | "disabled wercker"
     nonJenkinsTrigger                       | "non-Jenkins"
     enabledStashTrigger                     | "stash"
     enabledBitBucketTrigger                 | "bitbucket"
@@ -153,6 +156,8 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     enabledJenkinsTrigger.withJob(null)    | "job"    | "jenkins"
     enabledTravisTrigger.withMaster(null)  | "master" | "travis"
     enabledTravisTrigger.withJob(null)     | "job"    | "travis"
+    enabledWerckerTrigger.withMaster(null) | "master" | "wercker"
+    enabledWerckerTrigger.withJob(null)    | "job"    | "wercker"
 
     event = createBuildEventWith(SUCCESS)
     goodPipeline = createPipelineWith(enabledJenkinsTrigger)
