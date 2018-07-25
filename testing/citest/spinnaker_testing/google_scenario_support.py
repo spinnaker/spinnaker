@@ -233,7 +233,7 @@ class GcpResourceUsageAnalyzer(object):
         now=datetime.datetime.now(),
         decorator='*' * 5,
         scenario=scenario.__class__.__name__,
-        main=os.path.splitext(os.path.basename(__main__.__file__)))[0])
+        main=os.path.splitext(os.path.basename(__main__.__file__))[0]))
     atexit.register(self.__log_quota_summary)
 
   def __log_quota_summary(self):
