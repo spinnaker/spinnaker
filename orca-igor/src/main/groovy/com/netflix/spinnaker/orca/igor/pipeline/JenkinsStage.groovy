@@ -38,17 +38,29 @@ public class JenkinsStage implements StageDefinitionBuilder, RestartableStage, C
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
-      .withTask("start${getType().capitalize()}Job", StartJenkinsJobTask.class)
-      .withTask("waitFor${getType().capitalize()}JobStart", MonitorQueuedJenkinsJobTask.class)
+      .withTask("start${getType().capitalize()}Job", startJobTaskClass())
+      .withTask("waitFor${getType().capitalize()}JobStart", waitForJobStartTaskClass())
 
     if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
-      builder.withTask("monitor${getType().capitalize()}Job", MonitorJenkinsJobTask.class)
+      builder.withTask("monitor${getType().capitalize()}Job", waitForCompletionTaskClass())
     }
 
     if (stage.context.containsKey("expectedArtifacts")) {
       builder
         .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class)
     }
+  }
+
+  Class startJobTaskClass() {
+    return StartJenkinsJobTask.class
+  }
+
+  Class waitForJobStartTaskClass() {
+    return MonitorQueuedJenkinsJobTask.class
+  }
+
+  Class waitForCompletionTaskClass() {
+    return MonitorJenkinsJobTask.class
   }
 
   @Override

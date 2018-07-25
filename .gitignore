@@ -11,3 +11,7 @@ out/
 /json/
 *.rdb
 /.shelf/
+.classpath
+.project
+.settings/
+bin/
