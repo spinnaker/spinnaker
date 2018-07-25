@@ -32,3 +32,5 @@ from gcs_pubsub_trigger_agent import(
 from kubernetes_manifests import (
     KubernetesManifestFactory,
     KubernetesManifestPredicateFactory)
+
+from pipeline_support import PipelineSupport
