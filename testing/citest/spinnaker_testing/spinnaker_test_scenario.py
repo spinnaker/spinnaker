@@ -37,6 +37,7 @@ from spinnaker_testing import openstack_scenario_support
 from spinnaker_testing import azure_scenario_support
 from spinnaker_testing import dcos_scenario_support
 
+
 PLATFORM_SUPPORT_CLASSES = [
     aws_scenario_support.AwsScenarioSupport,
     # appengine depends on google so order it after
@@ -265,6 +266,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       agent: [SpinnakerAgent] The Spinnaker agent to bind to the scenario.
     """
     super(SpinnakerTestScenario, self).__init__(bindings, agent)
+    self.__google_resource_analyzer = None
     agent = self.agent
     bindings = self.bindings
 
@@ -303,3 +305,38 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
   def _do_init_bindings(self):
     """Hook for specific tests to add additional bindings."""
     pass
+
+  def pre_run_hook(self, test_case, context):
+    if not self.bindings.get('RECORD_GCP_RESOURCE_USAGE'):
+      return None
+
+    if self.__google_resource_analyzer is None:
+      from google_scenario_support import GcpResourceUsageAnalyzer
+      self.__google_resource_analyzer = GcpResourceUsageAnalyzer(self)
+    analyzer = self.__google_resource_analyzer
+
+    scanner = analyzer.make_gcp_api_scanner(
+        self.bindings.get('GOOGLE_ACCOUNT_PROJECT'),
+        self.bindings.get('GOOGLE_CREDENTIALS_PATH'),
+        include_apis=['compute'],
+        exclude_apis=['compute.*Operations'])
+    JournalLogger.begin_context('Capturing initial quota usage')
+    try:
+      usage = analyzer.collect_resource_usage(self.gcp_observer, scanner)
+    finally:
+      JournalLogger.end_context()
+    return (scanner, usage)
+
+  def post_run_hook(self, info, test_case, context):
+    if not info:
+      return
+
+    scanner, before_usage = info
+    analyzer = self.__google_resource_analyzer
+    JournalLogger.begin_context('Capturing final quota usage')
+    try:
+      after_usage = analyzer.collect_resource_usage(self.gcp_observer, scanner)
+    finally:
+      JournalLogger.end_context()
+    analyzer.log_delta_resource_usage(
+        test_case, scanner, before_usage, after_usage)
