@@ -28,6 +28,7 @@ public class Manifest {
   private Map<String, Object> manifest;
   private List<Artifact> artifacts;
   private Status status;
+  private List warnings;
 
   @Data
   public static class Status {

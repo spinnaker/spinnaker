@@ -69,6 +69,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
     List<String> failureMessages = new ArrayList<>();
     List<Map<String, String>> stableManifests = new ArrayList<>();
     List<Map<String, String>> failedManifests = new ArrayList<>();
+    List warnings = new ArrayList<>();
     boolean allStable = true;
     boolean anyFailed = false;
     boolean anyUnknown = false;
@@ -114,6 +115,10 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
           && (status.getFailed() == null || !status.getFailed().isState())) {
           stableManifests.add(manifestNameAndLocation);
         }
+
+        if (manifest.getWarnings() != null && !manifest.getWarnings().isEmpty()) {
+          warnings.addAll(manifest.getWarnings());
+        }
       }
     }
 
@@ -124,6 +129,9 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
 
     if (!failureMessages.isEmpty()) {
       builder.put("exception", buildExceptions(failureMessages));
+    }
+    if (!warnings.isEmpty()) {
+      builder.put("warnings", warnings);
     }
 
     Map<String, Object> context = builder.build();
