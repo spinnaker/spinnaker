@@ -21,13 +21,18 @@ import com.google.api.client.googleapis.testing.json.GoogleJsonResponseException
 import com.google.api.client.testing.json.MockJsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
+import com.google.api.services.compute.model.Operation
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -43,11 +48,28 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   private static final ORIG_TARGET_TAG = "some-other-target-tag"
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
+  private static final INSERT_FIREWALL_OP_NAME = "insert-firewall-op"
+  private static final DONE = "DONE"
 
   def registry = new DefaultRegistry()
 
+  @Shared
+  SafeRetry safeRetry
+
+  @Shared
+  def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+
+  @Shared
+  GoogleOperationPoller googleOperationPoller
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
+    googleOperationPoller = new GoogleOperationPoller(
+      googleConfigurationProperties: new GoogleConfigurationProperties(),
+      threadSleeper: threadSleeperMock,
+      registry: new DefaultRegistry(),
+      safeRetry: safeRetry)
   }
 
   void "should insert new firewall rule with generated target tag"() {
@@ -57,6 +79,9 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
       def firewallsInsertMock = Mock(Compute.Firewalls.Insert)
+      def globalOperationsMock = Mock(Compute.GlobalOperations)
+      def globalOperationsGet = Mock(Compute.GlobalOperations.Get)
+
       GoogleJsonResponseException notFoundException =
         GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found");
 
@@ -76,9 +101,14 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials
       )
+      def firewallsInsertOperation = new Operation(targetLink: "firewall",
+        name: INSERT_FIREWALL_OP_NAME,
+        status: DONE)
+
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
       operation.registry = registry
       operation.googleNetworkProvider = googleNetworkProviderMock
+      operation.googleOperationPoller = googleOperationPoller
 
     when:
       operation.operate([])
@@ -101,6 +131,11 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&
           it.targetTags?.get(0).startsWith("$SECURITY_GROUP_NAME-")
       }) >> firewallsInsertMock
+      1 * firewallsInsertMock.execute() >> firewallsInsertOperation
+
+      1 * computeMock.globalOperations() >> globalOperationsMock
+      1 * globalOperationsMock.get(PROJECT_NAME, INSERT_FIREWALL_OP_NAME) >> globalOperationsGet
+      1 * globalOperationsGet.execute() >> firewallsInsertOperation
   }
 
   void "should insert new firewall rule with specified target tag"() {
@@ -110,6 +145,9 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
       def firewallsInsertMock = Mock(Compute.Firewalls.Insert)
+      def globalOperationsMock = Mock(Compute.GlobalOperations)
+      def globalOperationsGet = Mock(Compute.GlobalOperations.Get)
+
       GoogleJsonResponseException notFoundException =
         GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found");
 
@@ -128,9 +166,14 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           targetTags: [TARGET_TAG],
           accountName: ACCOUNT_NAME,
           credentials: credentials)
+      def firewallsInsertOperation = new Operation(targetLink: "firewall",
+        name: INSERT_FIREWALL_OP_NAME,
+        status: DONE)
+
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
       operation.registry = registry
       operation.googleNetworkProvider = googleNetworkProviderMock
+      operation.googleOperationPoller = googleOperationPoller
 
     when:
       operation.operate([])
@@ -152,6 +195,11 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&
           it.targetTags == [TARGET_TAG]
       }) >> firewallsInsertMock
+      1 * firewallsInsertMock.execute() >> firewallsInsertOperation
+
+      1 * computeMock.globalOperations() >> globalOperationsMock
+      1 * globalOperationsMock.get(PROJECT_NAME, INSERT_FIREWALL_OP_NAME) >> globalOperationsGet
+      1 * globalOperationsGet.execute() >> firewallsInsertOperation
   }
 
   void "should update existing firewall rule and leave target tag unset"() {

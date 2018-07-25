@@ -20,6 +20,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,6 +36,9 @@ class UpsertGoogleSecurityGroupAtomicOperation extends GoogleAtomicOperation<Voi
 
   @Autowired
   GoogleNetworkProvider googleNetworkProvider
+
+  @Autowired
+  private GoogleOperationPoller googleOperationPoller
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -97,10 +101,12 @@ class UpsertGoogleSecurityGroupAtomicOperation extends GoogleAtomicOperation<Voi
           firewall.targetTags = ["$firewallRuleName-${System.currentTimeMillis()}".toString()]
         }
 
-        timeExecute(
+        def insertSecurityGroupOperation = timeExecute(
             compute.firewalls().insert(project, firewall),
             "compute.firewalls.insert",
             TAG_SCOPE, SCOPE_GLOBAL)
+        googleOperationPoller.waitForGlobalOperation(compute, project, insertSecurityGroupOperation.getName(),
+          null, task, "insert security group $firewallRuleName", BASE_PHASE)
       } else {
         throw e;
       }
