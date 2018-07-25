@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.security
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.module.DefaultCatsModule
@@ -119,7 +120,7 @@ class ProviderUtilsSpec extends Specification {
       def executionInstrumentation = new NoopExecutionInstrumentation()
 
     when:
-      new DefaultCatsModule([agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation)
+      new DefaultCatsModule([agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation, new NoopRegistry())
 
     then:
       scheduler.scheduled.collect { it.agent } == [testAgent1]
@@ -162,7 +163,7 @@ class ProviderUtilsSpec extends Specification {
       def catsModule
 
     when:
-      catsModule = new DefaultCatsModule([agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation)
+      catsModule = new DefaultCatsModule([agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation, new NoopRegistry())
 
     then:
       scheduler.scheduled.collect { it.agent } == [testAgent1, testAgent2, testAgent3, testAgent4, testAgent5]

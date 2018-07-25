@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.cats.provider;
 
+import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,15 +44,19 @@ import java.util.Set;
  */
 public class DefaultProviderCache implements ProviderCache {
 
+    private final Logger log = LoggerFactory.getLogger(DefaultProviderCache.class);
+
     private static final String ALL_ID = "_ALL_"; //dirty = true
     private static final Map<String, Object> ALL_ATTRIBUTE = Collections.unmodifiableMap(new HashMap<String, Object>(1) {{
         put("id", ALL_ID);
     }});
 
     private final WriteableCache backingStore;
+    private final Registry registry;
 
-    public DefaultProviderCache(WriteableCache backingStore) {
+    public DefaultProviderCache(WriteableCache backingStore, Registry registry) {
         this.backingStore = backingStore;
+        this.registry = registry;
     }
 
     @Override
@@ -133,28 +141,119 @@ public class DefaultProviderCache implements ProviderCache {
         Map<String, Collection<String>> evictions = new HashMap<>();
 
         for (String type : allTypes) {
-            final Collection<String> previousSet;
-            if (authoritativeTypes.contains(type)) {
-                previousSet = getExistingSourceIdentifiers(type, sourceAgentType);
-            } else {
-                previousSet = new HashSet<>();
-            }
+            final boolean authoritative = authoritativeTypes.contains(type);
+            final Set<String> previousIdentifiers = getExistingSourceIdentifiers(type, sourceAgentType);
+            final int originalSetSize = previousIdentifiers.size();
+            int newItems = 0;
+            final int cacheResultSize;
             if (cacheResult.getCacheResults().containsKey(type)) {
-                cacheDataType(type, sourceAgentType, cacheResult.getCacheResults().get(type));
-                for (CacheData data : cacheResult.getCacheResults().get(type)) {
-                    previousSet.remove(data.getId());
+                final Collection<CacheData> cacheResultsForType = cacheResult.getCacheResults().get(type);
+                cacheResultSize = cacheResultsForType.size();
+                cacheDataType(type, sourceAgentType, cacheResultsForType);
+                for (CacheData data : cacheResultsForType) {
+                    if (!previousIdentifiers.remove(data.getId())) {
+                      newItems++;
+                    }
                 }
+            } else {
+              cacheResultSize = 0;
             }
+            final Set<String> evictionsForType = new HashSet<>();
+            final int explicitEvictionSize;
             if (cacheResult.getEvictions().containsKey(type)) {
-              previousSet.addAll(cacheResult.getEvictions().get(type));
+                evictionsForType.addAll(cacheResult.getEvictions().get(type));
+                explicitEvictionSize = evictions.size();
+            } else {
+                explicitEvictionSize = 0;
             }
-            if (!previousSet.isEmpty()) {
-              evictions.put(type, previousSet);
+
+            final int noLongerPresentItemsCount;
+            if (authoritative) {
+                noLongerPresentItemsCount = previousIdentifiers.size();
+                evictionsForType.addAll(previousIdentifiers);
+            } else {
+                noLongerPresentItemsCount = -1;
+            }
+
+            if (!evictionsForType.isEmpty()) {
+                evictions.put(type, evictionsForType);
+            }
+
+            final int totalEvictions = evictionsForType.size();
+            final int changedItems = totalEvictions + newItems;
+            final int changedPercentage = originalSetSize > 0 ? (int) Math.round(((double) changedItems / (double) originalSetSize) * 100d) : -1;
+            final boolean highChangePercentage = changedPercentage > 5;
+            final String authoritativeLabel = authoritative ? "authoritative" : "informative";
+
+            Object[] params = {
+                authoritativeLabel,
+                sourceAgentType,
+                type,
+                originalSetSize,
+                cacheResultSize,
+                newItems,
+                explicitEvictionSize,
+                noLongerPresentItemsCount,
+                totalEvictions,
+                changedItems,
+                changedPercentage
+            };
+
+            Map<String, String> metricTags = new HashMap<>();
+            metricTags.put("authoritative", authoritativeLabel);
+            metricTags.put("sourceAgentType", sourceAgentType);
+            metricTags.put("type", type);
+            metricTags.put("highChangePercentage", Boolean.toString(highChangePercentage));
+
+            MetricBuilder mb = new MetricBuilder(registry, metricTags, "cats.defaultProviderCache.putCacheResult.");
+
+            mb.counter("cacheResultSize").increment(cacheResultSize);
+            mb.counter("newItems").increment(newItems);
+            mb.counter("explicitEvictions").increment(explicitEvictionSize);
+            if (authoritative) {
+                mb.counter("noLongerPresentItems").increment(noLongerPresentItemsCount);
+            }
+            mb.counter("totalEvictions").increment(totalEvictions);
+            mb.counter("changedItems").increment(changedItems);
+
+            if (changedItems > 0) {
+                if (highChangePercentage) {
+                    mb.counter("highChangePercentage").increment();
+                    log.warn("High changed percentage. " + DEBUG_METRICS, params);
+                } else {
+                    log.debug(DEBUG_METRICS, params);
+                }
             }
         }
 
         for (Map.Entry<String, Collection<String>> eviction : evictions.entrySet()) {
           evictDeletedItems(eviction.getKey(), eviction.getValue());
+        }
+    }
+
+    private static final String DEBUG_METRICS = "{} cache results for sourceAgentType {} type {}. " +
+        "originalDataSetSize={}," +
+        "cacheResultSize={}," +
+        "newItems={}," +
+        "explicitEvictions={}," +
+        "noLongerPresentItems={}," +
+        "totalEvictions={}," +
+        "changedItems={}," +
+        "changedPercentage={}";
+
+    private static class MetricBuilder {
+        private final Registry registry;
+        private final Map<String, String> baseTags;
+        private final String metricPrefix;
+
+        public MetricBuilder(Registry registry, Map<String, String> baseTags, String metricPrefix) {
+            this.registry = registry;
+            this.baseTags = baseTags;
+            this.metricPrefix = metricPrefix;
+        }
+
+        public Counter counter(String metricName) {
+            return registry.counter(registry.createId(metricPrefix + metricName, baseTags));
         }
     }
 
@@ -193,7 +292,7 @@ public class DefaultProviderCache implements ProviderCache {
         return Collections.unmodifiableCollection(response);
     }
 
-    private Collection<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
+    private Set<String> getExistingSourceIdentifiers(String type, String sourceAgentType) {
         CacheData all = backingStore.get(type, ALL_ID);
         if (all == null) {
             return new HashSet<>();
@@ -202,7 +301,10 @@ public class DefaultProviderCache implements ProviderCache {
         if (relationship == null) {
             return new HashSet<>();
         }
-        return relationship;
+        if (relationship instanceof Set) {
+          return (Set<String>) relationship;
+        }
+        return new HashSet<>(relationship);
     }
 
     private void cacheDataType(String type, String sourceAgentType, Collection<CacheData> items) {
