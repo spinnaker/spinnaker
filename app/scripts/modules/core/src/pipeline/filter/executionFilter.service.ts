@@ -221,7 +221,7 @@ export class ExecutionFilterService {
           executions: groupExecutions,
           runningExecutions: groupExecutions.filter((execution: IExecution) => execution.isActive),
           targetAccounts: this.extractAccounts(config),
-          fromTemplate: config.type === 'templatedPipeline',
+          fromTemplate: (config && config.type === 'templatedPipeline') || false,
         });
       });
       this.addEmptyPipelines(groups, application);
