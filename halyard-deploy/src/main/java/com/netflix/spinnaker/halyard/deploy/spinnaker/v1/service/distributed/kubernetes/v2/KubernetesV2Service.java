@@ -181,7 +181,9 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     CustomSizing customSizing = details.getDeploymentConfiguration().getDeploymentEnvironment().getCustomSizing();
     TemplatedResource resources = new JinjaJarResource("/kubernetes/manifests/resources.yml");
     if (customSizing != null) {
-      Map componentSizing = customSizing.getOrDefault(getService().getServiceName(), new HashMap());
+      // Look for container specific sizing otherwise fall back to service sizing
+      Map componentSizing = customSizing.getOrDefault(name,
+          customSizing.getOrDefault(getService().getServiceName(), new HashMap()));
       resources.addBinding("requests", componentSizing.getOrDefault("requests", new HashMap()));
       resources.addBinding("limits", componentSizing.getOrDefault("limits", new HashMap()));
     }
