@@ -50,7 +50,8 @@ function run_build_flow() {
   start_command_unless NO_HALYARD "build_halyard" \
       $EXTRA_BUILD_HALYARD_ARGS
 
-  start_command_unless NO_SPIN "build_spin"
+  start_command_unless NO_SPIN "build_spin" \
+      $EXTRA_BOM_COMMAND_ARGS
 
   start_command_unless NO_CHANGELOG "build_changelog" \
       $EXTRA_BOM_COMMAND_ARGS \

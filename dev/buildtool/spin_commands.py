@@ -75,6 +75,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
                           .format(dist_arch.dist, dist_arch.arch))
 
       logging.info('Building spin binary for %s', dist_arch)
+      check_subprocess('go get -d -v', cwd=config_root)
       check_subprocess('env CGO_ENABLED=0 GOOS={} GOARCH={} go build .'
                        .format(dist_arch.dist, dist_arch.arch),
                        cwd=config_root)
