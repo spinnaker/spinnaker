@@ -41,6 +41,7 @@ class JenkinsCacheSpec extends Specification {
         embeddedRedis.pool.resource.withCloseable {
             it.flushDB()
         }
+        embeddedRedis.destroy()
     }
 
     void 'new build numbers get overridden'() {

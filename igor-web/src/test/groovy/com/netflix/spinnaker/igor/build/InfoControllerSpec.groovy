@@ -148,6 +148,20 @@ class InfoControllerSpec extends Specification {
 
     }
 
+    void 'is able to get jobs for a wercker master'() {
+        def werckerJob = 'myOrg/myApp/myTarget'
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/wercker-master')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.WERCKER) >> ['wercker-master': []]
+        1 * buildMasters.map >> ['wercker-master': []]
+        1 * cache.getJobNames('wercker-master') >> [werckerJob]
+        response.contentAsString == '["' + werckerJob + '"]'
+
+    }
+
     private void setResponse(String body) {
         server.enqueue(
             new MockResponse()

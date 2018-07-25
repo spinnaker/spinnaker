@@ -59,7 +59,10 @@ class DockerRegistryCacheV2KeysMigrationSpec extends Specification {
             keyFactory, igorConfigurationProperties, Schedulers.immediate())
     }
 
-    def tearDown() {
+    void cleanup() {
+        embeddedRedis.pool.resource.withCloseable { Jedis resource ->
+            resource.flushDB()
+        }
         jedis.close()
         embeddedRedis.destroy()
     }

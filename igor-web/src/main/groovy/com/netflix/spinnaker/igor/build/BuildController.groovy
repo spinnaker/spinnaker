@@ -1,5 +1,6 @@
 /*
  * Copyright 2015 Netflix, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +112,7 @@ class BuildController {
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
         if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
             buildMasters.map[master].getBuilds(job).list
-        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
+        } else if (buildMasters.map.containsKey(master)) {
             buildMasters.map[master].getBuilds(job)
         } else {
             throw new MasterNotFoundException("Master '${master}' not found")
@@ -129,19 +130,22 @@ class BuildController {
             throw new MasterNotFoundException("Master '${master}' not found")
         }
 
-        def jenkinsService = buildMasters.map[master]
+        def buildService = buildMasters.map[master]
 
         // Jobs that haven't been started yet won't have a buildNumber
         // (They're still in the queue). We use 0 to denote that case
-        if (buildNumber != 0) {
-            jenkinsService.stopRunningBuild(jobName, buildNumber)
+        if (buildNumber != 0 &&
+            buildService.metaClass.respondsTo(buildService, 'stopRunningBuild')) {
+            buildService.stopRunningBuild(jobName, buildNumber)
         }
 
         // The jenkins api for removing a job from the queue (http://<Jenkins_URL>/queue/cancelItem?id=<queuedBuild>)
         // always returns a 404. This try catch block insures that the exception is eaten instead
         // of being handled by the handleOtherException handler and returning a 500 to orca
         try {
-            jenkinsService.stopQueuedBuild(queuedBuild)
+            if (buildService.metaClass.respondsTo(buildService, 'stopQueuedBuild')) {
+                buildService.stopQueuedBuild(queuedBuild)
+            }
         } catch (RetrofitError e) {
             if (e.response?.status != HttpStatus.NOT_FOUND.value()) {
                 throw e
@@ -192,7 +196,7 @@ class BuildController {
             def queuedLocation = locationHeader.value
 
             queuedLocation.split('/')[-1]
-        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
+        } else if (buildMasters.map.containsKey(master)) {
             return buildMasters.map[master].triggerBuildWithParameters(job, requestParams)
         } else {
             throw new MasterNotFoundException("Master '${master}' not found")

@@ -43,6 +43,7 @@ class BuildCacheSpec extends Specification {
         embeddedRedis.pool.resource.withCloseable { Jedis resource ->
             resource.flushDB()
         }
+        embeddedRedis.destroy()
     }
 
     void 'new build numbers get overridden'() {
