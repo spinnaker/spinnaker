@@ -83,6 +83,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
 
     self.mf = sk.KubernetesManifestFactory(self)
     self.mp = sk.KubernetesManifestPredicateFactory()
+    self.ps = sk.PipelineSupport(self)
 
   def create_app(self):
     """Creates OperationContract that creates a new Spinnaker Application."""
@@ -231,6 +232,71 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
             title='deploy_manifest', data=payload, path='tasks'),
         contract=builder.build())
 
+  def save_configmap_deployment_pipeline(self, pipeline_name, versioned=True):
+    deployment_name = self.TEST_APP + '-deployment'
+    deployment = self.mf.deployment(deployment_name, 'library/nginx')
+    configmap_name = self.TEST_APP + '-configmap'
+    configmap = self.mf.config_map(configmap_name, {'key': 'value'})
+
+    if not versioned:
+      configmap['metadata']['annotations'] = {'strategy.spinnaker.io/versioned': 'false'}
+
+    self.mf.add_configmap_volume(deployment, configmap_name)
+    configmap_stage = {
+        'refId': 'configmap',
+        'name': 'Deploy configmap',
+        'type': 'deployManifest',
+        'cloudProvider': 'kubernetes',
+        'moniker': {
+            'app': self.TEST_APP
+        },
+        'account': self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+        'source': 'text',
+        'manifests': [configmap],
+    }
+
+    deployment_stage = {
+        'refId': 'deployment',
+        'name': 'Deploy deployment',
+        'requisiteStageRefIds': ['configmap'],
+        'type': 'deployManifest',
+        'cloudProvider': 'kubernetes',
+        'moniker': {
+            'app': self.TEST_APP
+        },
+        'account': self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+        'source': 'text',
+        'manifests': [deployment],
+    }
+
+    return self.ps.submit_pipeline_contract(pipeline_name, [configmap_stage, deployment_stage])
+
+  def execute_deploy_manifest_pipeline(self, pipeline_name):
+    deployment_name = self.TEST_APP + '-deployment'
+    configmap_name = self.TEST_APP + '-configmap'
+    bindings = self.bindings
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=[{
+            'type': 'manual',
+            'user': '[anonymous]'
+        }],
+        description='Deploy manifest in ' + self.TEST_APP,
+        application=self.TEST_APP)
+    builder = kube.KubeContractBuilder(self.kube_v2_observer)
+    (builder.new_clause_builder('Deployment created',
+                                retryable_for_secs=60)
+     .get_resources(
+         'deploy',
+         extra_args=[deployment_name, '--namespace', self.TEST_NAMESPACE])
+     .EXPECT(self.mp.deployment_configmap_mounted_predicate(configmap_name)))
+
+    return st.OperationContract(
+        self.new_post_operation(
+            title='Deploy manifest', data=payload,
+            path='pipelines/' + self.TEST_APP + '/' + pipeline_name,
+            status_class=st.SynchronousHttpOperationStatus),
+        contract=builder.build())
+
   def deploy_deployment_with_docker_artifact(self, image):
     """Creates OperationContract for deploying and substituting one image into
     a Deployment object
@@ -367,6 +433,18 @@ class KubeV2ArtifactTest(st.AgentTestCase):
     self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
 
   def test_e3_delete_configmap(self):
+    self.run_test_case(self.scenario.delete_kind('configmap', version='v000'), max_retries=2)
+
+  def test_f1_create_configmap_deployment_pipeline(self):
+    self.run_test_case(self.scenario.save_configmap_deployment_pipeline('deploy-configmap-deployment'))
+
+  def test_f2_execute_configmap_deployment_pipeline(self):
+    self.run_test_case(self.scenario.execute_deploy_manifest_pipeline('deploy-configmap-deployment'))
+
+  def test_f3_delete_deployment(self):
+    self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
+
+  def test_f4_delete_configmap(self):
     self.run_test_case(self.scenario.delete_kind('configmap', version='v000'), max_retries=2)
 
   def test_z_delete_app(self):
