@@ -7,4 +7,5 @@ mock
 # This is to satisfy gsutil
 google_compute_engine
 
-
+# This is to support Spin CLI publishing
+google-cloud-storage>=1.7
