@@ -99,6 +99,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .status(handler.status(manifest))
         .artifacts(handler.listArtifacts(manifest))
         .events(events)
+        .warnings(handler.listWarnings(manifest))
         .build();
   }
 }

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.model;
 
 import com.netflix.spinnaker.moniker.Moniker;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,7 @@ public interface Manifest {
   String getAccount();
   String getLocation();
   Status getStatus();
+  List<Warning> getWarnings();
 
   @Data
   class Status {
@@ -79,5 +81,12 @@ public interface Manifest {
       boolean state;
       String message;
     }
+  }
+
+  @Data
+  @Builder
+  public static class Warning {
+    private String type;
+    private String message;
   }
 }

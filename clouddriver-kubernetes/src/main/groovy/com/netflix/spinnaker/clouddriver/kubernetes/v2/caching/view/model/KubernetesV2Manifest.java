@@ -43,4 +43,5 @@ public class KubernetesV2Manifest implements Manifest {
   private Status status;
   private Set<Artifact> artifacts = new HashSet<>();
   private List<KubernetesManifest> events = new ArrayList<>();
+  private List<Warning> warnings = new ArrayList<>();
 }
