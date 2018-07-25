@@ -213,10 +213,14 @@ class KubeV2CacheTestScenario(sk.SpinnakerTestScenario):
         NoOpOperation('Has recorded an application'),
         contract=builder.build())
 
-  def check_server_groups_endpoint(self, kind, image):
+  def check_server_groups_endpoint(self, kind, image, has_lb=True):
     name = self.TEST_APP + '-' + kind
     account = self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']
     builder = HttpContractBuilder(self.agent)
+    lb_pred = (
+        jp.LIST_MATCHES([jp.STR_EQ('service {}-service'.format(self.TEST_APP))])
+        if has_lb else jp.LIST_EQ([])
+    )
     (builder.new_clause_builder('Has recorded a server group for the deployed manifest')
        .get_url_path('/applications/{}/serverGroups'.format(self.TEST_APP))
        .EXPECT(
@@ -228,9 +232,7 @@ class KubeV2CacheTestScenario(sk.SpinnakerTestScenario):
                'buildInfo': jp.DICT_MATCHES({
                    'images': jp.LIST_MATCHES([jp.STR_EQ(image)]),
                }),
-               'loadBalancers': jp.LIST_MATCHES(
-                 [jp.STR_EQ('service {}-service'.format(self.TEST_APP))]
-               ),
+               'loadBalancers': lb_pred,
            }))
     ))
 
@@ -272,6 +274,30 @@ class KubeV2CacheTestScenario(sk.SpinnakerTestScenario):
        .EXPECT(
            ov_factory.value_list_contains(jp.DICT_MATCHES({
                account: jp.LIST_MATCHES([jp.STR_EQ(name)]),
+           }))
+    ))
+
+    return st.OperationContract(
+        NoOpOperation('Has recorded a cluster'),
+        contract=builder.build())
+
+  def check_detailed_clusters_endpoint(self, kind):
+    name = kind + ' ' + self.TEST_APP + '-' + kind
+    url_name = name.replace(' ', '%20')
+    account = self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']
+    builder = HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has recorded a cluster for the deployed manifest')
+       .get_url_path('/applications/{app}/clusters/{account}/{name}'.format(
+         app=self.TEST_APP, account=account, name=url_name))
+       .EXPECT(
+           ov_factory.value_list_contains(jp.DICT_MATCHES({
+               'accountName': jp.STR_EQ(account),
+               'name': jp.STR_EQ(name),
+               'serverGroups': jp.LIST_MATCHES([
+                 jp.DICT_MATCHES({
+                   'account': jp.STR_EQ(account),
+                 })
+               ]),
            }))
     ))
 
@@ -353,17 +379,23 @@ class KubeV2CacheTest(st.AgentTestCase):
   def test_b2_check_clusters_endpoint(self):
     self.run_test_case(self.scenario.check_clusters_endpoint('deployment'))
 
+  def test_b2_check_detailed_clusters_endpoint(self):
+    self.run_test_case(self.scenario.check_detailed_clusters_endpoint('deployment'))
+
   def test_b2_check_server_groups_endpoint(self):
     self.run_test_case(self.scenario.check_server_groups_endpoint('deployment', 'library/nginx'))
 
   def test_b2_check_load_balancers_endpoint(self):
     self.run_test_case(self.scenario.check_load_balancers_endpoint('service'))
 
+  def test_b3_delete_service(self):
+    self.run_test_case(self.scenario.delete_kind('service'), max_retries=2)
+
+  def test_b4_check_server_groups_endpoint_no_load_balancer(self):
+    self.run_test_case(self.scenario.check_server_groups_endpoint('deployment', 'library/nginx', has_lb=False))
+
   def test_b9_delete_deployment(self):
     self.run_test_case(self.scenario.delete_kind('deployment'), max_retries=2)
-
-  def test_b9_delete_service(self):
-    self.run_test_case(self.scenario.delete_kind('service'), max_retries=2)
 
   def test_z_delete_app(self):
     # Give a total of a minute because it might also need
