@@ -14,7 +14,23 @@
 
 """Google Compute Engine platform and test support for SpinnakerTestScenario."""
 
+import __main__
+import atexit
+import collections
+import datetime
+import json
+import logging
+import os
+
+from citest.base import ExecutionContext
+from citest.base import JournalLogger
 import citest.gcp_testing as gcp
+
+
+from citest.gcp_testing.api_investigator import ApiInvestigatorBuilder
+from citest.gcp_testing.api_resource_scanner import ApiResourceScanner
+from citest.gcp_testing.api_resource_diff import ApiDiff
+
 from spinnaker_testing.base_scenario_support import BaseScenarioPlatformSupport
 
 
@@ -121,6 +137,23 @@ class GoogleScenarioSupport(BaseScenarioPlatformSupport):
         help='A path to the JSON file with credentials to use for observing'
              ' tests run against Google Cloud Platform.')
 
+    #
+    # Debugging Parameters
+    #
+    builder.add_argument(
+        '--record_gcp_resource_usage',
+        default=defaults.get(
+            'RECORD_GCP_RESOURCE_USAGE',
+            os.environ.get('RECORD_GCP_RESOURCE_USAGE', '').lower() == 'true'),
+        help='Record difference in GCP resources observed before and after'
+        ' test. Tests should be run in isolation to interpret literally.')
+    builder.add_argument(
+        '--gcp_resource_usage_log_path',
+        default=defaults.get(
+            'GCP_RESOURCE_USAGE_LOG_PATH',
+            os.environ.get('GCP_RESOURCE_USAGE_LOG_PATH', '') or None),
+        help='Append resource usage summaries into the file at path.')
+
   def _make_observer(self):
     """Implements BaseScenarioPlatformSupport interface."""
     bindings = self.scenario.bindings
@@ -160,3 +193,190 @@ class GoogleScenarioSupport(BaseScenarioPlatformSupport):
       if not bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID']:
         # But if that wasnt defined then default to the subsystem's project.
         bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = bindings['GCE_PROJECT']
+
+
+
+GcpApiResourceList = collections.namedtuple(
+    'GcpApiResourceList', ['resource_list', 'errors'])
+
+GcpResourceUsage = collections.namedtuple(
+    'GcpResourceUsage',
+    ['project_quota', 'region_quota', 'api_resource_list_map'])
+
+
+class GcpResourceUsageAnalyzer(object):
+  """A nonstandard class for inspecting Google Quota and Resources.
+
+     This isnt for testing, rather is for analyzing the tests to help
+     deterimine the quota requirements needed to run them so that we
+     can orchestrate their execution consistent with the quota available.
+  """
+
+  @property
+  def running_quota(self):
+    """Return map of cumulative sum of diffed quota values seen so far."""
+    return self.__running_quota
+
+  @property
+  def max_quota(self):
+    """Return map of max running quota values seen for each region."""
+    return self.__max_quota
+
+  def __init__(self, scenario):
+    self.__running_quota = {}
+    self.__max_quota = {}
+    self.__scenario = scenario
+    self.__log_path = None
+    if scenario.bindings.get('RECORD_GCP_RESOURCE_USAGE'):
+      self.__log_path = scenario.bindings.get('GCP_RESOURCE_USAGE_LOG_PATH')
+    self.__to_log_path('\n{now}\n{decorator}  {scenario} in {main}  {decorator}'.format(
+        now=datetime.datetime.now(),
+        decorator='*' * 5,
+        scenario=scenario.__class__.__name__,
+        main=os.path.splitext(os.path.basename(__main__.__file__)))[0])
+    atexit.register(self.__log_quota_summary)
+
+  def __log_quota_summary(self):
+    self.__to_log_path(
+        '--- FINAL RUNNING QUOTA --',
+        detail=json.JSONEncoder(
+            indent=2, separators=(',', ': ')).encode(self.__running_quota),
+        indent=2)
+    self.__to_log_path(
+        '--- MAX FIXTURE QUOTA --',
+        detail=json.JSONEncoder(
+            indent=2, separators=(',', ': ')).encode(self.__max_quota),
+        indent=2)
+
+  def __to_log_path(self, heading, detail=None, indent=0):
+    if self.__log_path:
+      padding = '  ' * indent
+      with open(self.__log_path, 'a') as fd:
+        fd.write('%s%s\n' % (padding, heading))
+        if detail:
+          padding += '  '
+          fd.write('%s%s\n' % (padding, detail.replace('\n', '\n' + padding)))
+
+  def make_gcp_api_scanner(self, project, credentials_path,
+                           include_apis=None, exclude_apis=None):
+    """Create a GcpApiScanner for the given project and credentials."""
+    builder = ApiInvestigatorBuilder()
+    builder.include_apis = include_apis or ['compute']
+    builder.exclude_apis = exclude_apis or ['compute.*Operations']
+    investigator = builder.build()
+
+    default_variables = {'project': project}
+    return ApiResourceScanner(investigator, credentials_path,
+                              default_variables=default_variables)
+
+  def collect_resource_usage(self, gcp_agent, scanner, apis=None):
+    """Returns current GcpResourceUsage"""
+
+    def extract_quota(region_info):
+      return {info['metric']: info['usage'] for info in region_info['quotas']}
+
+    apis = apis or ['compute']
+    item_filter = lambda item: True
+    context = ExecutionContext()
+
+    project_quota = extract_quota(gcp_agent.invoke_resource(
+        context, 'get', 'projects'))
+
+    region_info = gcp_agent.invoke_resource(context, 'list', 'regions')
+    region_quota = {elem['name']: extract_quota(elem)
+                    for elem in region_info['items']}
+
+    api_resource_list_map = {}
+    for api in apis:
+      resources, errs = scanner.list_api(api, item_filter=item_filter)
+      api_resource_list_map[api] = GcpApiResourceList(resources, errs)
+
+    return GcpResourceUsage(project_quota, region_quota, api_resource_list_map)
+
+  def log_delta_resource_usage(self, test_case, scanner, before, after):
+    """Log quota usage and instances affected."""
+    before_region = dict(before.region_quota)
+    before_region['global'] = before.project_quota
+
+    after_region = dict(after.region_quota)
+    after_region['global'] = after.project_quota
+
+    before_resources = {}
+    after_resources = {}
+    for api in before.api_resource_list_map.keys():
+      before_resources[api] = before.api_resource_list_map[api].resource_list
+      after_resources[api] = after.api_resource_list_map[api].resource_list
+
+    api_diff = ApiDiff.make_api_resources_diff_map(
+        scanner, before_resources, after_resources)
+
+    self.__to_log_path('\nTEST: %s' % test_case.title, indent=1)
+    self.__log_delta_quota(before_region, after_region)
+    self.__log_api_diff(api_diff)
+
+  def __update_running_quota(self, diff):
+    for region, delta in diff.items():
+      max_region = self.__max_quota.get(region, {})
+      running_region = self.__running_quota.get(region, {})
+      for name, value in delta.items():
+        before = running_region.get(name, 0)
+        after = before + value
+        running_region[name] = after
+        max_region[name] = max(after, max_region.get(name, 0))
+      self.__running_quota[region] = running_region
+      self.__max_quota[region] = max_region
+
+  def __log_delta_quota(self, before, after):
+    if before == after:
+      logging.info('No GCP quota impact.')
+      return
+
+    diff = {}
+    for region in after.keys():
+      before_quota = before.get(region, {})
+      after_quota = after.get(region, {})
+      if before_quota == after_quota:
+        continue
+      delta = {metric: after_quota[metric] - before_quota[metric]
+               for metric in after_quota.keys()
+               if after_quota.get(metric) != before_quota.get(metric)}
+      if delta:
+        diff[region] = delta
+
+    self.__update_running_quota(diff)
+    self.__to_log_path(
+        '--- QUOTA ---',
+        detail=json.JSONEncoder(indent=2, separators=(',', ': ')).encode(diff),
+        indent=2)
+    JournalLogger.journal_or_log_detail('GCP Quota Impact',
+                                        str(diff), format='json')
+
+  def __log_api_diff(self, api_diff):
+    text_list = []
+    for api, diff in api_diff.items():
+      added = diff.to_instances_added()
+      removed = diff.to_instances_removed()
+      if not (added or removed):
+        continue
+      text_list.append(api + ' Changes:')
+      if added:
+        text_list.append('+ ADDED:')
+        for resource, instances in added.items():
+          text_list.append('  %s' % resource)
+          text_list.extend(['  - {!r}'.format(name) for name in instances])
+
+      if removed:
+        text_list.append('- REMOVED:')
+        for resource, instances in removed.items():
+          text_list.append('  %s' % resource)
+          text_list.extend(['  - {!r}'.format(name) for name in instances])
+
+    self.__to_log_path('--- RESOURCES ---',
+                       detail='\n'.join(text_list) if text_list else 'None',
+                       indent=2)
+
+    if text_list:
+      JournalLogger.journal_or_log_detail(
+          'GCP Resource Impact', '\n'.join(text_list), format='pre')
+    else:
+      logging.info('No GCP resource impact')
