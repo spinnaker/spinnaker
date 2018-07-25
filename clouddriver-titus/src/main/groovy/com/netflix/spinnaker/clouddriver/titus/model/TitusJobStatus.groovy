@@ -55,22 +55,32 @@ class TitusJobStatus implements com.netflix.spinnaker.clouddriver.model.JobStatu
     name = job.name
     createdTime = job.submittedAt ? job.submittedAt.time : null
     application = Names.parseName(job.name).app
-    Task task = job.tasks?.sort { it.startedAt }?.last()
+
+    def sortedTasks = job.tasks?.sort { it.startedAt }
+    Task task = sortedTasks ? sortedTasks.last() : null
+
     jobState = convertTaskStateToJobState(job, task)
     completionDetails = convertCompletionDetails(task)
   }
 
-  Map<String, String> convertCompletionDetails(Task task) {
-    [
+  static Map<String, String> convertCompletionDetails(Task task) {
+    if (!task) {
+      return [:]
+    }
+
+    return [
       message   : task.message,
       taskId    : task.id,
       instanceId: task.instanceId
     ]
   }
 
-  JobState convertTaskStateToJobState(Job job, Task task) {
+  static JobState convertTaskStateToJobState(Job job, Task task) {
 
     if (job.getJobState() in ["Accepted", "KillInitiated"]) {
+      return JobState.Running
+    } else if (task == null) {
+      // unexpected to have no task _and_ a job in an unexpected state
       return JobState.Running
     } else {
       switch (task.state) {
