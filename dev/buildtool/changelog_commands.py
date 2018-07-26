@@ -22,8 +22,13 @@ import os
 import re
 import shutil
 import textwrap
-import urllib2
 import yaml
+
+try:
+  from urllib2 import urlopen, HTTPError
+except ImportError:
+  from urllib.request import urlopen
+  from urllib.error import HTTPError
 
 
 from buildtool import (
@@ -137,7 +142,7 @@ class ChangelogRepositoryData(
     def get_thing_list(title_line):
       """Return bucket for title_line, adding new one if needed."""
       match = TITLE_LINE_MATCHER.match(title_line)
-      thing = match.group(1) if match else None
+      thing = match.group(1) if match else ''
       if not thing in thing_dict:
         thing_dict[thing] = []
       return thing_dict[thing]
@@ -397,8 +402,8 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
     try:
       logging.debug('Verifying changelog gist exists at "%s"',
                     options.changelog_gist_url)
-      urllib2.urlopen(options.changelog_gist_url)
-    except urllib2.HTTPError as error:
+      urlopen(options.changelog_gist_url)
+    except HTTPError as error:
       raise_and_log_error(
           ConfigError(
               'Changelog gist "{url}": {error}'.format(

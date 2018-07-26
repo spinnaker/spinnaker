@@ -54,8 +54,15 @@ import json
 import logging
 import os
 import re
-import urllib2
+import sys
 import yaml
+
+try:
+  from urllib2 import urlopen, HTTPError, Request
+except ImportError:
+  from urllib.request import urlopen, Request
+  from urllib.error import HTTPError
+
 
 from buildtool import (
     CommandFactory,
@@ -64,6 +71,7 @@ from buildtool import (
     check_options_set,
     check_path_exists,
     check_subprocess,
+    exception_to_message,
     maybe_log_exception,
     raise_and_log_error,
     write_to_path,
@@ -75,7 +83,9 @@ from buildtool import (
 def my_unicode_representer(self, data):
   return self.represent_str(data.encode('utf-8'))
 
-yaml.representer.Representer.add_representer(unicode, my_unicode_representer)
+if sys.version_info[0] == 2:
+  yaml.representer.Representer.add_representer(unicode, my_unicode_representer)
+
 yaml.Dumper.ignore_aliases = lambda *args: True
 
 
@@ -146,7 +156,7 @@ class CollectBomVersions(CommandProcessor):
       text = check_subprocess('gsutil cat ' + url)
       return yaml.load(text)
     except Exception as ex:
-      self.__bad_files[self.url_to_bom_name(url)] = ex.message
+      self.__bad_files[self.url_to_bom_name(url)] = exception_to_message(ex)
       maybe_log_exception('load_from_from_url', ex,
                           action_msg='Skipping %s' % url)
       return None
@@ -236,7 +246,8 @@ class CollectBomVersions(CommandProcessor):
         raise_and_log_error(UnexpectedError(message))
       self.analyze_bom(bom)
     except Exception as ex:
-      self.__bad_files[self.url_to_bom_name(line.strip())] = ex.message
+      self.__bad_files[self.url_to_bom_name(line.strip())] = (
+          exception_to_message(ex))
       maybe_log_exception('analyze_bom', ex,
                           action_msg='Skipping %s' % line)
 
@@ -462,19 +473,19 @@ class CollectArtifactVersions(CommandProcessor):
       self.__basic_auth = None
 
   def fetch_bintray_url(self, bintray_url):
-    request = urllib2.Request(bintray_url)
+    request = Request(bintray_url)
     if self.__basic_auth:
       request.add_header('Authorization', self.__basic_auth)
     try:
-      response = urllib2.urlopen(request)
+      response = urlopen(request)
       headers = response.info()
       payload = response.read()
       content = json.JSONDecoder(encoding='utf-8').decode(payload)
-    except urllib2.HTTPError as ex:
+    except HTTPError as ex:
       raise_and_log_error(
           ResponseError('Bintray failure: {}'.format(ex),
                         server='bintray.api'),
-          'Failed on url=%s: %s' % (bintray_url, ex.message))
+          'Failed on url=%s: %s' % (bintray_url, exception_to_message(ex)))
     except Exception as ex:
       raise
     return headers, content

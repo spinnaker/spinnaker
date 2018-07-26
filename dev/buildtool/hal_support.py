@@ -29,8 +29,13 @@ unless the builds explicitly asked for the production repositories.
 
 import logging
 import os
-import urllib2
 import yaml
+
+try:
+  from urllib2 import urlopen, HTTPError
+except ImportError:
+  from urllib.request import urlopen
+  from urllib.error import HTTPError
 
 from buildtool import (
     add_parser_argument,
@@ -84,8 +89,8 @@ class HalRunner(object):
     logging.debug('Retrieving halyard runtime configuration.')
     url = 'http://' + options.halyard_daemon + '/resolvedEnv'
     try:
-      response = urllib2.urlopen(url)
-    except urllib2.HTTPError as error:
+      response = urlopen(url)
+    except HTTPError as error:
       raise_and_log_error(
           ResponseError(
               '{url}: {code}\n{body}'.format(

@@ -18,7 +18,13 @@ import base64
 import logging
 import os
 import re
-import urllib2
+
+try:
+  from urllib2 import urlopen, Request
+  from urllib2 import HTTPError
+except ImportError:
+  from urllib.request import urlopen, Request
+  from urllib.error import HTTPError
 
 from buildtool import (
     RepositoryCommandFactory,
@@ -28,6 +34,7 @@ from buildtool import (
     add_parser_argument,
     check_subprocesses_to_logfile,
     raise_and_log_error,
+    exception_to_message,
     ConfigError,
     ResponseError)
 
@@ -198,9 +205,9 @@ class GradleRunner(object):
     """Adds bintray authentication header to the request."""
     user = os.environ['BINTRAY_USER']
     password = os.environ['BINTRAY_KEY']
-    encoded_auth = base64.encodestring('{user}:{password}'.format(
-        user=user, password=password))[:-1]  # strip eoln
-    request.add_header('Authorization', 'Basic ' + encoded_auth)
+    encoded_auth = base64.encodestring(str.encode('{user}:{password}'.format(
+        user=user, password=password)))[:-1]  # strip eoln
+    request.add_header('Authorization', 'Basic ' + bytes.decode(encoded_auth))
 
   def bintray_repo_has_version(self, repo, package_name, repository,
                                build_version):
@@ -209,17 +216,17 @@ class GradleRunner(object):
       bintray_url = self.__to_bintray_url(repo, package_name, repository,
                                           build_version)
       logging.debug('Checking for %s', bintray_url)
-      request = urllib2.Request(url=bintray_url)
+      request = Request(url=bintray_url)
       self.__add_bintray_auth_header(request)
-      urllib2.urlopen(request)
+      urlopen(request)
       return True
-    except urllib2.HTTPError as ex:
+    except HTTPError as ex:
       if ex.code == 404:
         return False
       raise_and_log_error(
           ResponseError('Bintray failure: {}'.format(ex),
                         server='bintray.check'),
-          'Failed on url=%s: %s' % (bintray_url, ex.message))
+          'Failed on url=%s: %s' % (bintray_url, exception_to_message(ex)))
     except Exception as ex:
       raise
 
@@ -276,7 +283,7 @@ class GradleRunner(object):
       bintray_url = self.__to_bintray_url(repo, package_name, repository,
                                           build_version)
       logging.debug('Checking for %s', bintray_url)
-      request = urllib2.Request(url=bintray_url)
+      request = Request(url=bintray_url)
       request.get_method = lambda: 'DELETE'
       self.__add_bintray_auth_header(request)
 
@@ -286,15 +293,15 @@ class GradleRunner(object):
           'artifact': 'debian'
       }
       self.__metrics.count_call(
-          'DeleteArtifact', labels, urllib2.urlopen, request)
+          'DeleteArtifact', labels, urlopen, request)
       return True
-    except urllib2.HTTPError as ex:
+    except HTTPError as ex:
       if ex.code == 404:
         return True
       raise_and_log_error(
           ResponseError('Bintray failure: {}'.format(ex),
                         server='bintray.delete'),
-          'Failed on url=%s: %s' % (bintray_url, ex.message))
+          'Failed on url=%s: %s' % (bintray_url, exception_to_message(ex)))
 
   def get_common_args(self):
     """Return standard gradle args."""

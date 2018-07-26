@@ -120,11 +120,38 @@ class GitRepositorySpec(object):
         origin=self.__origin,
         upstream=self.__upstream)
 
+  def __lt__(self, other):
+    if self.__name != other.name:
+      return self.__name < other.name
+
+    # a partial ordering would be fine, but we want strict __eq__ for testing
+    self_hash = hash((self.__git_dir, self.__origin, self.__upstream))
+    other_hash = hash((other.git_dir, other.origin, other.upstream))
+    return  self_hash < other_hash
+
+  def __le__(self, other):
+    return self.__lt__(other) or self.__eq__(other)
+
   def __eq__(self, other):
     return (self.__name == other.name
             and self.__git_dir == other.git_dir_or_none()
             and self.__origin == other.origin_or_none()
             and self.__upstream == other.upstream_or_none())
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+  def __ge__(self, other):
+    return self.__gt__(other) or self.__eq__(other)
+
+  def __gt__(self, other):
+    if self.__name != other.name:
+      return self.__name > other.name
+
+    # a partial ordering would be fine, but we want strict __eq__ for testing
+    self_hash = hash((self.__git_dir, self.__origin, self.__upstream))
+    other_hash = hash((other.git_dir, other.origin, other.upstream))
+    return  self_hash > other_hash
 
 
 class SemanticVersion(
@@ -507,6 +534,17 @@ class CommitMessage(
     data = dict(self._asdict())
     return yaml.dump(data, default_flow_style=False)
 
+  def _asdict(self):
+    """Override broken method in some Python3
+
+    https://bugs.python.org/issue24931
+    """
+    return collections.OrderedDict([
+        ('commit_id', self.commit_id),
+        ('author', self.author),
+        ('date', self.date),
+        ('message', self.message)
+    ])
 
 class RepositorySummary(collections.namedtuple(
     'RepositorySummary',
@@ -559,6 +597,19 @@ class RepositorySummary(collections.namedtuple(
       del data['commit_messages']
 
     return yaml.dump(data, default_flow_style=False)
+
+  def _asdict(self):
+    """Override broken method in some Python3
+
+    https://bugs.python.org/issue24931
+    """
+    return collections.OrderedDict([
+        ('commit_id', self.commit_id),
+        ('tag', self.tag),
+        ('version', self.version),
+        ('prev_versione', self.prev_version),
+        ('commit_messages', self.commit_messages)
+    ])
 
 
 class GitRunner(object):

@@ -33,7 +33,11 @@ To create a database:
 
 import datetime
 import logging
-import urllib2
+
+try:
+  from urllib2 import urlopen, Request
+except ImportError:
+  from urllib.request import urlopen, Request
 
 from buildtool import add_parser_argument
 from buildtool.inmemory_metrics import InMemoryMetricsRegistry
@@ -110,10 +114,10 @@ class InfluxDbMetricsRegistry(InMemoryMetricsRegistry):
     url = '{prefix}/write?db={db}'.format(
         prefix=self.options.influxdb_url, db=self.options.influxdb_database)
     payload_text = '\n'.join(payload)
-    request = urllib2.Request(url, data=payload_text)
+    request = Request(url, data=str.encode(payload_text))
     request.get_method = lambda: 'POST'
     try:
-      urllib2.urlopen(request)
+      urlopen(request)
       logging.debug('Updated %d metrics to %s', len(payload), url)
     except IOError as ioex:
       logging.error('Cannot write metrics to %s:\n%s', url, ioex)
