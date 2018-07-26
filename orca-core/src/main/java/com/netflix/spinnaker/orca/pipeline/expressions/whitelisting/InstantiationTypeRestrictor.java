@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.orca.pipeline.expressions.whitelisting;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 public interface InstantiationTypeRestrictor {
   Set<Class<?>> allowedTypes = Collections.unmodifiableSet(
@@ -35,7 +37,9 @@ public interface InstantiationTypeRestrictor {
         Random.class,
         UUID.class,
         Boolean.class,
-        LocalDate.class
+        LocalDate.class,
+        Instant.class,
+        ChronoUnit.class
       )
     )
   );
