@@ -177,6 +177,12 @@
 # halyard_version
 # docs_repo_owner:
 
+################################
+# Spin CLI Commands
+################################
+# spin_build_bucket:
+# spin_build_credentials_path:
+
 
 ################################
 # Image Commands
