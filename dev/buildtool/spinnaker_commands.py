@@ -17,8 +17,13 @@
 import copy
 import logging
 import os
-import urllib2
 import yaml
+
+try:
+  from urllib2 import urlopen, HTTPError
+except ImportError:
+  from urllib.request import urlopen
+  from urllib.error import HTTPError
 
 from buildtool import (
     SPINNAKER_BOM_REPOSITORY_NAMES,
@@ -32,6 +37,7 @@ from buildtool import (
     GitRunner,
     HalRunner,
 
+    exception_to_message,
     check_options_set,
     write_to_path,
     raise_and_log_error,
@@ -245,9 +251,9 @@ class PublishSpinnakerCommand(CommandProcessor):
     # If it does not then fail.
     try:
       logging.debug('Verifying changelog ready at %s', changelog_gist_url)
-      urllib2.urlopen(changelog_gist_url)
-    except urllib2.HTTPError as error:
-      logging.error(error.message)
+      urlopen(changelog_gist_url)
+    except HTTPError as error:
+      logging.error(exception_to_message)
       raise_and_log_error(
           ConfigError(
               'Changelog gist "{url}" must exist before publising a release.'

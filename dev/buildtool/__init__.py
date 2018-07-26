@@ -33,6 +33,7 @@ from buildtool.errors import (
     TimeoutError,
     UnexpectedError,
 
+    exception_to_message,
     maybe_log_exception,
     raise_and_log_error,
 

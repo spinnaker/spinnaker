@@ -256,7 +256,7 @@ class BaseMetricsRegistry(object):
   def __make_context_labels(options):
     if not hasattr(options, 'monitoring_context_labels'):
       return {}
-    
+
     labels = {}
     matcher = re.compile(r'(\w+)=(.*)')
     for binding in (options.monitoring_context_labels or '').split(','):

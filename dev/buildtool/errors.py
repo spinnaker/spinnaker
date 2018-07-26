@@ -60,6 +60,11 @@ class UnexpectedError(BuildtoolError):
                                           cause=cause or 'unexpected')
 
 
+def exception_to_message(ex):
+  """Get the message from an exception."""
+  return ex.args[0]
+
+
 def maybe_log_exception(where, ex, action_msg='propagating exception'):
   """Log the exception and stacktrace if it hasnt been logged already."""
   if not hasattr(ex, 'loggedit'):
@@ -73,7 +78,7 @@ def maybe_log_exception(where, ex, action_msg='propagating exception'):
 def raise_and_log_error(error, *pos_args):
   if len(pos_args) > 1:
     raise ValueError('Too many positional args: {}'.format(pos_args))
-  message = pos_args[0] if pos_args else error.message
+  message = pos_args[0] if pos_args else exception_to_message(error)
   logging.debug(''.join(traceback.format_stack()))
   logging.error('*** ERROR ***: %s', message)
   error.loggedit = True
@@ -109,9 +114,9 @@ def scan_logs_for_install_errors(path):
   """Scan logfile at path and count specific errors of interest."""
   content = open(path, 'r').read()
   match = re.search(
-       "^E:.* Version '([^']+)' for '([^']+)' was not found",
-       content,
-       re.MULTILINE)
+      "^E:.* Version '([^']+)' for '([^']+)' was not found",
+      content,
+      re.MULTILINE)
 
   component = ''
   cause = 'Unknown'
@@ -124,16 +129,12 @@ def scan_logs_for_install_errors(path):
                   component, version)
   if not match:
     match = re.search(
-       '.*: No such file or directory$', content, re.MULTILINE)
+        '.*: No such file or directory$', content, re.MULTILINE)
     if match:
       cause = 'FileNotFound'
 
   labels = {
-    'component': component,
-    'cause': cause
+      'component': component,
+     'cause': cause
   }
   MetricsManager.singleton().inc_counter('InstallSpinnakerError', labels)
-
-  
-  
-  

@@ -19,7 +19,13 @@ import logging
 import os
 import shutil
 import time
-import urllib2
+
+try:
+  from urllib2 import urlopen
+  from urllib2 import URLError
+except ImportError:
+  from urllib.request import urlopen
+  from urllib.error import URLError
 
 from buildtool import (
     SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
@@ -122,11 +128,11 @@ class BuildApiDocsCommand(RepositoryCommandProcessor):
     logging.info('Waiting for %s', url)
     for _ in range(timeout_secs):
       try:
-        code = urllib2.urlopen(url).getcode()
+        code = urlopen(url).getcode()
         if code >= 200 and code < 300:
           logging.info('%s is ready', url)
           return
-      except urllib2.URLError:
+      except URLError:
         time.sleep(1)
 
     raise_and_log_error(

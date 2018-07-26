@@ -29,14 +29,13 @@ from buildtool import (
     timedelta_string,
     ExecutionError)
 
-from base_metrics import BaseMetricsRegistry
+from buildtool.base_metrics import BaseMetricsRegistry
 
 
 # Directory where error logfiles are copied to.
 # This is exposed so it can be configured externally since
 # this module does not offer encapsulated configuration.
 ERROR_LOGFILE_DIR = 'errors'
-
 
 def start_subprocess(cmd, stream=None, stdout=None, echo=False, **kwargs):
   """Starts a subprocess and returns handle to it."""
@@ -81,11 +80,16 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
   if process.stdout is not None:
     # stdout isnt going to another stream; collect it from the pipe.
     for line in iter(process.stdout.readline, ''):
-      stdout_lines.append(line)
+      if not line:
+        break
+      decoded_line = bytes.decode(line)
+      stdout_lines.append(decoded_line)
       if stream:
-        stream.write(line)
+        stream.write(decoded_line)
         stream.flush()
+   
   process.wait()
+
   if hasattr(process, 'start_date'):
     end_date = datetime.datetime.now()
     delta_time_str = timedelta_string(end_date - process.start_date)
