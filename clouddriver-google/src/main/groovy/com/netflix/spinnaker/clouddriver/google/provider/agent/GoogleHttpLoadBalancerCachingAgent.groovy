@@ -227,7 +227,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
           compute.targetHttpsProxies().get(project, targetProxyName).queue(targetProxyRequest, targetHttpsProxyCallback)
           break
         default:
-          log.info("Non-Http target type found for global forwarding rule ${forwardingRule.name}")
+          log.warn("Non-Http target type found for global forwarding rule ${forwardingRule.name}")
           break
       }
     }
@@ -256,6 +256,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
         def urlMapCallback = new UrlMapCallback(
             googleLoadBalancer: googleLoadBalancer,
             groupHealthRequest: groupHealthRequest,
+            subject: googleLoadBalancer.name,
+            failedSubjects: failedSubjects,
             projectBackendServices: projectBackendServices,
             projectHttpHealthChecks: projectHttpHealthChecks,
             projectHttpsHealthChecks: projectHttpsHealthChecks,
