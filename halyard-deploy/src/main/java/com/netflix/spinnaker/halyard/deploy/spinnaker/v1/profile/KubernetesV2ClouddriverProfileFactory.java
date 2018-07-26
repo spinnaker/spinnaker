@@ -100,6 +100,10 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
         .map(u -> u.get("user"))
         .orElse(null);
 
+    if (userProperties == null) {
+      throw new HalException(Problem.Severity.FATAL, "No user named '" + user + "' exists in your kubeconfig file.");
+    }
+
     Map<String, Object> authProvider = (Map<String, Object>) userProperties.get("auth-provider");
 
     if (authProvider == null || !authProvider.getOrDefault("name", "").equals("gcp")) {
