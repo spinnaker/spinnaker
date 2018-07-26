@@ -26,14 +26,16 @@ class OpenstackImageV2Provider implements OpenstackImageProvider, OpenstackReque
   }
 
   static OpenstackImage buildImage(Image image, String region) {
+    def properties = new HashMap()
+    image.properties.each { properties[it.key] = it.value.toString() }
     OpenstackImage.builder()
       .id(image.id)
       .status(image.status?.value())
       .size(image.size)
-      .location(image.locations.get(0)?.toString())
+      .location(image.locations?.get(0)?.toString())
       .createdAt(image.createdAt?.time)
       .updatedAt(image.updatedAt?.time)
-      .properties(image.properties)
+      .properties(properties)
       .name(image.name)
       .region(region)
       .build()
