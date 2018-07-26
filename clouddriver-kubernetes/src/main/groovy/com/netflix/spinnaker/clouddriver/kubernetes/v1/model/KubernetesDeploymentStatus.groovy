@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.model
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiAdaptor
-import io.fabric8.kubernetes.api.model.extensions.Deployment
+import io.fabric8.kubernetes.api.model.apps.Deployment
 
 
 class KubernetesDeploymentStatus {

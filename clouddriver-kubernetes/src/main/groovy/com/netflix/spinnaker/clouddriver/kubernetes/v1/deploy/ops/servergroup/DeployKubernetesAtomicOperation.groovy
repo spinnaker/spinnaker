@@ -32,10 +32,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Cred
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.HasMetadata
 import io.fabric8.kubernetes.api.model.HorizontalPodAutoscalerBuilder
-import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
-import io.fabric8.kubernetes.api.model.extensions.DeploymentFluentImpl
-import io.fabric8.kubernetes.api.model.extensions.DoneableDeployment
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
+import io.fabric8.kubernetes.api.model.apps.DeploymentFluentImpl
+import io.fabric8.kubernetes.api.model.apps.DoneableDeployment
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder
 import io.kubernetes.client.models.V1Pod
 
 class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {

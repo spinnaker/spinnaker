@@ -25,8 +25,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.Kubernet
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.extensions.Deployment
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.apps.Deployment
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet
 
 class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "RESIZE"

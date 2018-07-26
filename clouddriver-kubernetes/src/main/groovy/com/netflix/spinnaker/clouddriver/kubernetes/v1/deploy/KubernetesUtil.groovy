@@ -21,10 +21,10 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesIllegalArgumentException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
-import io.fabric8.kubernetes.api.model.Job
+import io.fabric8.kubernetes.api.model.batch.Job
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet
 import org.springframework.beans.factory.annotation.Value
 
 class KubernetesUtil {

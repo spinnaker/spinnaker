@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesDeploymentStatus
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
-import io.fabric8.kubernetes.api.model.extensions.Deployment
+import io.fabric8.kubernetes.api.model.apps.Deployment
 
 class KubernetesProviderUtils {
   static Set<CacheData> getAllMatchingKeyPattern(Cache cacheView, String namespace, String pattern) {

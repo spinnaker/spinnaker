@@ -30,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Cred
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.*
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet
 import io.fabric8.kubernetes.client.dsl.internal.ReplicationControllerOperationsImpl
 import io.fabric8.kubernetes.client.dsl.internal.ServiceOperationsImpl
 import spock.lang.Specification

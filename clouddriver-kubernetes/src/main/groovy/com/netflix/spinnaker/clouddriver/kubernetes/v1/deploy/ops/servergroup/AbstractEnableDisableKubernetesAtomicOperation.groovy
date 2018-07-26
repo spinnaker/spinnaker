@@ -30,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.util.concurrent.Executors

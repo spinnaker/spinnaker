@@ -105,11 +105,11 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder
 import io.fabric8.kubernetes.api.model.Toleration
 import io.fabric8.kubernetes.api.model.Volume
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder
-import io.fabric8.kubernetes.api.model.extensions.Deployment
-import io.fabric8.kubernetes.api.model.extensions.DeploymentFluentImpl
+import io.fabric8.kubernetes.api.model.apps.Deployment
+import io.fabric8.kubernetes.api.model.apps.DeploymentFluentImpl
 import io.fabric8.kubernetes.api.model.extensions.Ingress
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder
 
 class KubernetesApiConverter {
   static KubernetesSecurityGroupDescription fromIngress(Ingress ingress) {
@@ -1165,7 +1165,7 @@ class KubernetesApiConverter {
     podTemplateSpecBuilder = podTemplateSpecBuilder.withInitContainers(initContainers)
 
 
-    def tolerations = description.tolerations.collect { toleration -> 
+    def tolerations = description.tolerations.collect { toleration ->
       toToleration(toleration)
     }
 

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesModelUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet
 
 class KubernetesServerGroupNameResolver extends AbstractServerGroupNameResolver {
 

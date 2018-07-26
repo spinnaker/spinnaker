@@ -30,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1LoadBal
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import io.fabric8.kubernetes.api.model.extensions.Deployment
+import io.fabric8.kubernetes.api.model.apps.Deployment
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
