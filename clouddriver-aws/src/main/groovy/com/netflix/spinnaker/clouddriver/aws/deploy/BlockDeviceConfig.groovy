@@ -152,6 +152,13 @@ class BlockDeviceConfig {
       "r5.12xlarge" : sizedBlockDevicesForEbs(120),
       "r5.24xlarge" : sizedBlockDevicesForEbs(120),
 
+      "r5d.large"    : enumeratedBlockDevicesWithVirtualName(1),
+      "r5d.xlarge"   : enumeratedBlockDevicesWithVirtualName(1),
+      "r5d.2xlarge"  : enumeratedBlockDevicesWithVirtualName(1),
+      "r5d.4xlarge"  : enumeratedBlockDevicesWithVirtualName(2),
+      "r5d.12xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "r5d.24xlarge" : enumeratedBlockDevicesWithVirtualName(4),
+
       "p2.xlarge"   : sizedBlockDevicesForEbs(80),
       "p2.8xlarge"  : sizedBlockDevicesForEbs(120),
       "p2.16xlarge" : sizedBlockDevicesForEbs(120),
