@@ -66,6 +66,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     self.source_code_manager.ensure_local_repository(repository)
     config_root = repository.git_dir
 
+    check_subprocess('go get -d -v', cwd=config_root)
     for dist_arch in DIST_ARCH_LIST:
       # Sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.

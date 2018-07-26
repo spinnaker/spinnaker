@@ -27,6 +27,9 @@ from buildtool import (
     ConfigError)
 
 
+NON_DEBIAN_BOM_REPOSITORIES = ['spin']
+
+
 class BuildDebianCommand(GradleCommandProcessor):
   def __init__(self, factory, options, **kwargs):
     options.github_disable_upstream_push = True
@@ -42,6 +45,9 @@ class BuildDebianCommand(GradleCommandProcessor):
                   'bintray_debian_repository'])
 
   def _do_can_skip_repository(self, repository):
+    if repository.name in NON_DEBIAN_BOM_REPOSITORIES:
+      return True
+
     build_version = self.scm.get_repository_service_build_version(repository)
     return self.gradle.consider_debian_on_bintray(repository, build_version)
 
