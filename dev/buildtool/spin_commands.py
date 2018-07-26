@@ -23,7 +23,8 @@ from buildtool import (
     BomSourceCodeManager,
     RepositoryCommandFactory,
     RepositoryCommandProcessor,
-    check_subprocess)
+    check_subprocess,
+    check_subprocesses_to_logfile)
 
 from google.cloud import storage
 
@@ -75,10 +76,21 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       nightly_bin_path = ('spin/nightly/{}/{}/spin'
                           .format(dist_arch.dist, dist_arch.arch))
 
+      context = '%s-%s' % (dist_arch.dist, dist_arch.arch)
+      logfile = self.get_logfile_path(
+          repository.name + '-build-' + context)
       logging.info('Building spin binary for %s', dist_arch)
-      check_subprocess('env CGO_ENABLED=0 GOOS={} GOARCH={} go build .'
-                       .format(dist_arch.dist, dist_arch.arch),
-                       cwd=config_root)
+      labels = {'repository': repository.name,
+                'dist': dist_arch.dist,
+                'arch': dist_arch.arch}
+      env = dict(os.environ)
+      env.update({'CGO_ENABLED': '0',
+                  'GOOS': dist_arch.dist,
+                  'GOARCH': dist_arch.arch})
+      self.metrics.time_call(
+          'GoBuild', labels, self.metrics.default_determine_outcome_labels,
+          check_subprocesses_to_logfile, 'Building spin ' + context, logfile,
+          ['go build .'], cwd=config_root, env=env)
 
       spin_path = '{}/spin'.format(config_root)
       self.__gcs_uploader.upload_from_filename(
