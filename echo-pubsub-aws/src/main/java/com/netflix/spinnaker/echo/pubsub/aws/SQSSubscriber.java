@@ -23,6 +23,7 @@ import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
@@ -150,6 +151,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
           .withMaxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
           .withVisibilityTimeout(subscription.getVisibilityTimeout())
           .withWaitTimeSeconds(subscription.getWaitTimeSeconds())
+          .withMessageAttributeNames("All")
       );
 
       if (receiveMessageResult.getMessages().isEmpty()) {
@@ -181,11 +183,15 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       AmazonMessageAcknowledger acknowledger = new AmazonMessageAcknowledger(amazonSQS, queueId, message, registry, getName());
 
       if (subscription.getMessageFormat() != AmazonPubsubProperties.MessageFormat.NONE) {
-        description.setArtifacts(parseArtifacts(description.getMessagePayload(), messageId));
+        try {
+          description.setArtifacts(parseArtifacts(description.getMessagePayload(), messageId));
+        } catch (FatalTemplateErrorsException e) {
+          log.error("Template failed to process artifacts for message {}", message, e);
+        }
       }
       pubsubMessageHandler.handleMessage(description, acknowledger, identity.getIdentity(), messageId);
     } catch (Exception e) {
-      log.error("Message {} from queue {} failed to be handled", message, queueId);
+      log.error("Message {} from queue {} failed to be handled", message, queueId, e);
       // Todo emjburns: add dead-letter queue policy
     }
   }

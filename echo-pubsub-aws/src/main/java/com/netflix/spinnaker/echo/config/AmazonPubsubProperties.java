@@ -24,10 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.validation.Valid;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.List;
 
 @Data
@@ -91,11 +88,16 @@ public class AmazonPubsubProperties {
 
       try {
         if (messageFormat == MessageFormat.CUSTOM) {
-            return new FileInputStream(new File(templatePath));
+            try {
+              return new FileInputStream(new File(templatePath));
+            } catch (FileNotFoundException e) {
+              // Check if custom jar path was provided before failing
+              return getClass().getResourceAsStream(templatePath);
+            }
         } else if (messageFormat.jarPath != null){
           return getClass().getResourceAsStream(messageFormat.jarPath);
         }
-      } catch (IOException e) {
+      } catch (Exception e) {
         throw new RuntimeException("Failed to read template in subscription " + name, e);
       }
       return null;
