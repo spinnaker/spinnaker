@@ -66,6 +66,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     self.source_code_manager.ensure_local_repository(repository)
     config_root = repository.git_dir
 
+    check_subprocess('go get -d -v', cwd=config_root)
     for dist_arch in DIST_ARCH_LIST:
       # Sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.
@@ -75,7 +76,6 @@ class BuildSpinCommand(RepositoryCommandProcessor):
                           .format(dist_arch.dist, dist_arch.arch))
 
       logging.info('Building spin binary for %s', dist_arch)
-      check_subprocess('go get -d -v', cwd=config_root)
       check_subprocess('env CGO_ENABLED=0 GOOS={} GOARCH={} go build .'
                        .format(dist_arch.dist, dist_arch.arch),
                        cwd=config_root)
