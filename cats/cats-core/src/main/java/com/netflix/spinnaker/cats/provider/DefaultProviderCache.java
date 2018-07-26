@@ -142,17 +142,19 @@ public class DefaultProviderCache implements ProviderCache {
 
         for (String type : allTypes) {
             final boolean authoritative = authoritativeTypes.contains(type);
-            final Set<String> previousIdentifiers = getExistingSourceIdentifiers(type, sourceAgentType);
-            final int originalSetSize = previousIdentifiers.size();
+            final Set<String> previousIdentifiers = authoritative ? getExistingSourceIdentifiers(type, sourceAgentType) : Collections.emptySet();
+            final int originalSetSize = authoritative ? previousIdentifiers.size() : -1;
             int newItems = 0;
             final int cacheResultSize;
             if (cacheResult.getCacheResults().containsKey(type)) {
                 final Collection<CacheData> cacheResultsForType = cacheResult.getCacheResults().get(type);
                 cacheResultSize = cacheResultsForType.size();
                 cacheDataType(type, sourceAgentType, cacheResultsForType);
-                for (CacheData data : cacheResultsForType) {
-                    if (!previousIdentifiers.remove(data.getId())) {
-                      newItems++;
+                if (authoritative) {
+                    for (CacheData data : cacheResultsForType) {
+                        if (!previousIdentifiers.remove(data.getId())) {
+                            newItems++;
+                        }
                     }
                 }
             } else {
