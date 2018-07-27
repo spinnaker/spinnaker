@@ -74,17 +74,8 @@ class CacheConfig {
 
   @Bean
   @ConditionalOnMissingBean(CatsModule)
-  CatsModule catsModule(List<Provider> providers,
-                        List<ExecutionInstrumentation> executionInstrumentation,
-                        NamedCacheFactory cacheFactory,
-                        AgentScheduler agentScheduler,
-                        Registry registry) {
-    return new CatsModule.Builder()
-      .cacheFactory(cacheFactory)
-      .scheduler(agentScheduler)
-      .instrumentation(executionInstrumentation)
-      .registry(registry)
-      .build(providers)
+  CatsModule catsModule(List<Provider> providers, List<ExecutionInstrumentation> executionInstrumentation, NamedCacheFactory cacheFactory, AgentScheduler agentScheduler) {
+    new CatsModule.Builder().cacheFactory(cacheFactory).scheduler(agentScheduler).instrumentation(executionInstrumentation).build(providers)
   }
 
   @Bean

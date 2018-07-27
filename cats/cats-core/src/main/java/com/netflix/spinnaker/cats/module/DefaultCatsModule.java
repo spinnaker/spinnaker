@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.cats.module;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentController;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
@@ -36,9 +35,9 @@ public class DefaultCatsModule implements CatsModule {
     private final Cache view;
     private final ExecutionInstrumentation executionInstrumentation;
 
-    public DefaultCatsModule(Collection<Provider> providers, NamedCacheFactory namedCacheFactory, AgentScheduler agentScheduler, ExecutionInstrumentation executionInstrumentation, Registry registry) {
+    public DefaultCatsModule(Collection<Provider> providers, NamedCacheFactory namedCacheFactory, AgentScheduler agentScheduler, ExecutionInstrumentation executionInstrumentation) {
         this.namedCacheFactory = namedCacheFactory;
-        providerRegistry = new DefaultProviderRegistry(providers, namedCacheFactory, registry);
+        providerRegistry = new DefaultProviderRegistry(providers, namedCacheFactory);
         this.agentScheduler = agentScheduler;
 
         if (agentScheduler instanceof CatsModuleAware) {

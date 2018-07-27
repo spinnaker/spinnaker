@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.cats.module;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.CompositeExecutionInstrumentation;
 import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler;
@@ -55,7 +53,6 @@ public interface CatsModule {
         private NamedCacheFactory cacheFactory;
         private AgentScheduler scheduler;
         private Collection<ExecutionInstrumentation> instrumentations = new LinkedList<>();
-        private Registry registry = new NoopRegistry();
 
         public Builder scheduler(AgentScheduler agentScheduler) {
             if (this.scheduler != null) {
@@ -90,11 +87,6 @@ public interface CatsModule {
             return this;
         }
 
-        public Builder registry(Registry registry) {
-            this.registry = registry;
-            return this;
-        }
-
         public CatsModule build(Provider... providers) {
             return build(Arrays.asList(providers));
         }
@@ -114,7 +106,7 @@ public interface CatsModule {
             if (cacheFactory == null) {
                 cacheFactory = new InMemoryNamedCacheFactory();
             }
-            return new DefaultCatsModule(providers, cacheFactory, scheduler, instrumentation, registry);
+            return new DefaultCatsModule(providers, cacheFactory, scheduler, instrumentation);
         }
     }
 

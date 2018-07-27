@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.cats.provider
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.*
@@ -29,7 +28,7 @@ class DefaultProviderCacheSpec extends CacheSpec {
     @Override
     Cache getSubject() {
         backingStore = new InMemoryCache()
-        new DefaultProviderCache(backingStore, new NoopRegistry())
+        new DefaultProviderCache(backingStore)
     }
 
     void populateOne(String type, String id, CacheData cacheData = createData(id)) {

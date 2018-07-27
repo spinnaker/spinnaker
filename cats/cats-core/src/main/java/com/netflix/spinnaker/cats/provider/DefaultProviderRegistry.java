@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.cats.provider;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 
@@ -29,10 +28,10 @@ public class DefaultProviderRegistry implements ProviderRegistry {
     private final ConcurrentMap<String, ProviderCache> providerCaches = new ConcurrentHashMap<>();
     private final Collection<Provider> providers;
 
-    public DefaultProviderRegistry(Collection<Provider> providers, NamedCacheFactory cacheFactory, Registry registry) {
+    public DefaultProviderRegistry(Collection<Provider> providers, NamedCacheFactory cacheFactory) {
         this.providers = Collections.unmodifiableCollection(providers);
         for (Provider provider : providers) {
-            providerCaches.put(provider.getProviderName(), new DefaultProviderCache(cacheFactory.getCache(provider.getProviderName()), registry));
+            providerCaches.put(provider.getProviderName(), new DefaultProviderCache(cacheFactory.getCache(provider.getProviderName())));
         }
     }
 
