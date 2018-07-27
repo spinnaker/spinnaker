@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.lang.Double;
 
 public class KubernetesManifest extends HashMap<String, Object> {
   private static ObjectMapper mapper = new ObjectMapper();
@@ -137,6 +138,33 @@ public class KubernetesManifest extends HashMap<String, Object> {
     }
 
     return result;
+  }
+
+  @JsonIgnore
+  public Double getReplicas() {
+    if (!containsKey("spec")) {
+      return null; 
+    }
+
+    Map<String, Object> spec = (Map<String, Object>) get("spec");
+    if (!spec.containsKey("replicas")) {
+      return null;
+    }
+    Double replicas = (Double) spec.get("replicas");
+    return replicas;
+  }
+
+  @JsonIgnore
+  public void setReplicas(Double replicas) {
+    if (!containsKey("spec")) {
+      return;
+    }
+
+    Map<String, Object> spec = (Map<String, Object>) get("spec");
+    if (!spec.containsKey("replicas")) {
+      return;
+    } 
+    spec.put("replicas", replicas);
   }
 
   @JsonIgnore

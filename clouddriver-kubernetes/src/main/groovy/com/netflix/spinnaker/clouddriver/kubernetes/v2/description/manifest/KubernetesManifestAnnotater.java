@@ -52,6 +52,7 @@ public class KubernetesManifestAnnotater {
   private static final String IGNORE_CACHING = CACHING_ANNOTATION_PREFIX + "/ignore";
   private static final String VERSIONED = STRATEGY_ANNOTATION_PREFIX + "/versioned";
   private static final String MAX_VERSION_HISTORY = STRATEGY_ANNOTATION_PREFIX + "/max-version-history";
+  private static final String USE_SOURCE_CAPACITY = STRATEGY_ANNOTATION_PREFIX + "/use-source-capacity";
 
   private static final String KUBERNETES_ANNOTATION = "kubernetes.io";
   private static final String KUBECTL_ANNOTATION_PREFIX = "kubectl." + KUBERNETES_ANNOTATION;
@@ -234,6 +235,7 @@ public class KubernetesManifestAnnotater {
     return KubernetesManifestStrategy.builder()
         .versioned(getAnnotation(annotations, VERSIONED, new TypeReference<Boolean>() {}))
         .maxVersionHistory(getAnnotation(annotations, MAX_VERSION_HISTORY, new TypeReference<Integer>() {}))
+        .useSourceCapacity(getAnnotation(annotations, USE_SOURCE_CAPACITY, new TypeReference<Boolean>() {}))
         .build();
   }
 

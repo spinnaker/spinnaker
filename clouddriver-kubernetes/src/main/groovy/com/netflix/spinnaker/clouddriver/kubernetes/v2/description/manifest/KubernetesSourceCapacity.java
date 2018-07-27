@@ -18,16 +18,20 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.lang.Double;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class KubernetesManifestStrategy {
-  Boolean versioned;
-  Integer maxVersionHistory;
-  Boolean useSourceCapacity;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+
+public class KubernetesSourceCapacity {
+
+  public static Double getSourceCapacity(KubernetesManifest manifest, KubernetesV2Credentials credentials) {
+    KubernetesManifest currentManifest = credentials.get(manifest.getKind(), manifest.getNamespace(), manifest.getName());
+    if (currentManifest != null) {
+      return currentManifest.getReplicas();
+    }
+    return null;
+  }
 }
