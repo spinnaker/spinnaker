@@ -51,7 +51,7 @@ class TestRunner(unittest.TestCase):
     content = 'First Line\nSecond Line'
     write_to_path(content, path)
     with open(path, 'r') as f:
-      self.assertEquals(content, f.read())
+      self.assertEqual(content, f.read())
 
   def test_deltatime_string(self):
     timedelta = datetime.timedelta
@@ -64,7 +64,7 @@ class TestRunner(unittest.TestCase):
         (timedelta(0, 2, 123456), '2.123 secs')
     ]
     for test in tests:
-      self.assertEquals(test[1], timedelta_string(test[0]))
+      self.assertEqual(test[1], timedelta_string(test[0]))
 
 
 if __name__ == '__main__':

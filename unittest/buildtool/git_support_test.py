@@ -137,8 +137,8 @@ class TestGitRunner(unittest.TestCase):
         self.run_git('checkout ' + branch)
         commit_id = git.query_local_repository_commit_id(self.git_dir)
         tag, messages = test_method(self.git_dir, commit_id, all_tags)
-        self.assertEquals([], messages)
-        self.assertEquals(version, tag)
+        self.assertEqual([], messages)
+        self.assertEqual(version, tag)
 
   def test_is_same_repo(self):
     variants = [
@@ -173,8 +173,8 @@ class TestGitRunner(unittest.TestCase):
     commit_id = git.query_local_repository_commit_id(self.git_dir)
     all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
     tag, messages = test_method(self.git_dir, commit_id, all_tags)
-    self.assertEquals(VERSION_B, tag)
-    self.assertEquals(2, len(messages))
+    self.assertEqual(VERSION_B, tag)
+    self.assertEqual(2, len(messages))
     self.assertTrue(messages[0].message.find('added c_file'))
     self.assertTrue(messages[1].message.find('added master_file'))
 
@@ -204,10 +204,10 @@ class TestGitRunner(unittest.TestCase):
       # The pending change shows up for the old tag (and are most recent first)
       all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
       tag, messages = test_method(self.git_dir, commit_id, all_tags)
-      self.assertEquals(version, tag)
-      self.assertEquals(len(pending_messages), len(messages))
-      self.assertEquals(sorted(pending_messages, reverse=True),
-                        [m.message for m in messages])
+      self.assertEqual(version, tag)
+      self.assertEqual(len(pending_messages), len(messages))
+      self.assertEqual(sorted(pending_messages, reverse=True),
+                       [m.message for m in messages])
 
       # When we re-tag at this change,
       # the new tag shows up without pending change.
@@ -215,8 +215,8 @@ class TestGitRunner(unittest.TestCase):
       all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
 
       tag, messages = test_method(self.git_dir, commit_id, all_tags)
-      self.assertEquals(new_version, tag)
-      self.assertEquals([], messages)
+      self.assertEqual(new_version, tag)
+      self.assertEqual([], messages)
 
   def test_clone_upstream(self):
     git = self.git
@@ -231,12 +231,12 @@ class TestGitRunner(unittest.TestCase):
 
     want_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
     have_tags = git.query_tag_commits(test_dir, TAG_VERSION_PATTERN)
-    self.assertEquals(want_tags, have_tags)
+    self.assertEqual(want_tags, have_tags)
 
     got = check_subprocess('git -C "{dir}" remote -v'.format(dir=test_dir))
     # Disable pushes to the origni
     # No upstream since origin is upstream
-    self.assertEquals(
+    self.assertEqual(
         '\n'.join([
             'origin\t{origin} (fetch)'.format(origin=self.git_dir),
             'origin\tdisabled (push)']),
@@ -245,7 +245,7 @@ class TestGitRunner(unittest.TestCase):
     reference = git.determine_git_repository_spec(test_dir)
     expect = GitRepositorySpec(os.path.basename(self.git_dir),
                                origin=self.git_dir, git_dir=test_dir)
-    self.assertEquals(expect, reference)
+    self.assertEqual(expect, reference)
 
   def test_clone_origin(self):
     git = self.git
@@ -272,12 +272,12 @@ class TestGitRunner(unittest.TestCase):
 
     want_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
     have_tags = git.query_tag_commits(test_dir, TAG_VERSION_PATTERN)
-    self.assertEquals(want_tags, have_tags)
+    self.assertEqual(want_tags, have_tags)
 
     got = check_subprocess('git -C "{dir}" remote -v'.format(dir=test_dir))
 
     # Upstream repo is configured for pulls, but not for pushes.
-    self.assertEquals(
+    self.assertEqual(
         '\n'.join([
             'origin\t{origin} (fetch)'.format(origin=origin_dir),
             'origin\t{origin} (push)'.format(origin=origin_dir),
@@ -290,7 +290,7 @@ class TestGitRunner(unittest.TestCase):
     expect = GitRepositorySpec(
         os.path.basename(origin_dir),
         upstream=self.git_dir, origin=origin_dir, git_dir=test_dir)
-    self.assertEquals(expect, reference)
+    self.assertEqual(expect, reference)
 
   def test_clone_branch(self):
     test_parent = os.path.join(self.base_temp_dir, 'test_clone_branch')
@@ -300,8 +300,8 @@ class TestGitRunner(unittest.TestCase):
     repository = GitRepositorySpec(
         TEST_REPO_NAME, git_dir=test_dir, origin=self.git_dir)
     self.git.clone_repository_to_path(repository, branch=BRANCH_A)
-    self.assertEquals(BRANCH_A,
-                      self.git.query_local_repository_branch(test_dir))
+    self.assertEqual(BRANCH_A,
+                     self.git.query_local_repository_branch(test_dir))
 
   def test_branch_not_found_exception(self):
     test_parent = os.path.join(self.base_temp_dir, 'test_bad_branch')
@@ -341,14 +341,14 @@ class TestGitRunner(unittest.TestCase):
         TEST_REPO_NAME, git_dir=test_dir, origin=self.git_dir)
     self.git.clone_repository_to_path(
         repository, branch='Bogus', default_branch=BRANCH_B)
-    self.assertEquals(BRANCH_B,
-                      self.git.query_local_repository_branch(test_dir))
+    self.assertEqual(BRANCH_B,
+                     self.git.query_local_repository_branch(test_dir))
 
   def test_commit_at_tag(self):
     self.run_git('checkout ' + VERSION_A)
     want = self.git.query_local_repository_commit_id(self.git_dir)
     self.run_git('checkout master')
-    self.assertEquals(
+    self.assertEqual(
         want, self.git.query_commit_at_tag(self.git_dir, VERSION_A))
     self.assertIsNone(
         self.git.query_commit_at_tag(self.git_dir, 'BogusTag'))
@@ -362,12 +362,12 @@ class TestGitRunner(unittest.TestCase):
     for branch, tag in tests:
       self.run_git('checkout ' + branch)
       summary = self.git.collect_repository_summary(self.git_dir)
-      self.assertEquals(self.git.query_local_repository_commit_id(self.git_dir),
-                        summary.commit_id)
-      self.assertEquals(tag, summary.tag)
-      self.assertEquals(tag.split('-')[1], summary.version)
-      self.assertEquals(tag.split('-')[1], summary.prev_version)
-      self.assertEquals([], summary.commit_messages)
+      self.assertEqual(self.git.query_local_repository_commit_id(self.git_dir),
+                       summary.commit_id)
+      self.assertEqual(tag, summary.tag)
+      self.assertEqual(tag.split('-')[1], summary.version)
+      self.assertEqual(tag.split('-')[1], summary.prev_version)
+      self.assertEqual([], summary.commit_messages)
 
 
 class TestSemanticVersion(unittest.TestCase):
@@ -376,9 +376,9 @@ class TestSemanticVersion(unittest.TestCase):
              ('another-10.11.12', SemanticVersion('another', 10, 11, 12))]
     for tag, expect in tests:
       semver = SemanticVersion.make(tag)
-      self.assertEquals(semver, expect)
-      self.assertEquals(tag, semver.to_tag())
-      self.assertEquals(tag[tag.rfind('-') + 1:], semver.to_version())
+      self.assertEqual(semver, expect)
+      self.assertEqual(tag, semver.to_tag())
+      self.assertEqual(tag[tag.rfind('-') + 1:], semver.to_version())
 
   def test_semver_next(self):
     semver = SemanticVersion('A', 1, 2, 3)
@@ -399,10 +399,10 @@ class TestSemanticVersion(unittest.TestCase):
          SemanticVersion('A', 1, 2, 4)),  # next patch index to semver
     ]
     for expect_index, test, next_semver in tests:
-      self.assertEquals(expect_index, semver.most_significant_diff_index(test))
-      self.assertEquals(expect_index, test.most_significant_diff_index(semver))
+      self.assertEqual(expect_index, semver.most_significant_diff_index(test))
+      self.assertEqual(expect_index, test.most_significant_diff_index(semver))
       if expect_index is not None and expect_index > SemanticVersion.TAG_INDEX:
-        self.assertEquals(next_semver, semver.next(expect_index))
+        self.assertEqual(next_semver, semver.next(expect_index))
 
 
 class TestCommitMessage(unittest.TestCase):
@@ -447,7 +447,7 @@ class TestCommitMessage(unittest.TestCase):
             minor_branch=cls.MINOR_BRANCH)),
         'touch "{dir}/minor_file"'.format(dir=git_dir),
         gitify('add "{dir}/minor_file"'.format(dir=git_dir)),
-        gitify('commit -a -m "chore(testB): added minor_file"'),
+        gitify('commit -a -m "feat(testB): added minor_file"'),
 
         # For testing major versions
         gitify('checkout -b {major_branch}'.format(
@@ -495,24 +495,26 @@ class TestCommitMessage(unittest.TestCase):
   def test_summarize(self):
     expect_messages = ['feat(testC): added major_file\n'
                        '\nInterestingly enough, this is a BREAKING CHANGE.',
-                       'chore(testB): added minor_file',
+                       'feat(testB): added minor_file',
                        'fix(testA): added patch_file']
 
     all_tests = [(self.PATCH_BRANCH, '0.1.1'),
                  (self.MINOR_BRANCH, '0.2.0'),
                  (self.MAJOR_BRANCH, '1.0.0')]
     for changes, spec in enumerate(all_tests):
+      import logging
+      logging.info('*** TESTING %s, %s' % (changes, spec))
       branch, version = spec
       # CommitMessage fixture for more interesting cases.
       self.run_git('checkout ' + branch)
       summary = self.git.collect_repository_summary(self.git_dir)
-      self.assertEquals('version-' + version, summary.tag)
-      self.assertEquals(version, summary.version)
-      self.assertEquals('0.1.0', summary.prev_version)
+      self.assertEqual('version-' + version, summary.tag)
+      self.assertEqual(version, summary.version)
+      self.assertEqual('0.1.0', summary.prev_version)
       clean_messages = ['\n'.join([line.strip() for line in lines])
                         for lines in [m.message.split('\n')
                                       for m in summary.commit_messages]]
-      self.assertEquals(expect_messages[-changes - 1:], clean_messages)
+      self.assertEqual(expect_messages[-changes - 1:], clean_messages)
 
   @classmethod
   def tearDownClass(cls):
@@ -535,7 +537,7 @@ class TestCommitMessage(unittest.TestCase):
     expected_messages = [
         (' '*4 + 'feat(testC): added major_file\n'
          '\n' + ' '*4 + 'Interestingly enough, this is a BREAKING CHANGE.'),
-        ' '*4 + 'chore(testB): added minor_file',
+        ' '*4 + 'feat(testB): added minor_file',
         ' '*4 + 'fix(testA): added patch_file'
     ]
 
@@ -565,9 +567,9 @@ class TestCommitMessage(unittest.TestCase):
       commit_id = git.query_local_repository_commit_id(self.git_dir)
       _, messages = git.query_local_repository_commits_to_existing_tag_from_id(
           self.git_dir, commit_id, all_tags, base_commit_id=baseline_commit)
-      self.assertEquals(2, len(messages))
-      self.assertEquals('fix(test): Second Fix', messages[0].message.strip())
-      self.assertEquals('fix(test): First Fix', messages[1].message.strip())
+      self.assertEqual(2, len(messages))
+      self.assertEqual('fix(test): Second Fix', messages[0].message.strip())
+      self.assertEqual('fix(test): First Fix', messages[1].message.strip())
 
   def test_message_analysis_with_branch_baseline(self):
     # pylint: disable=line-too-long
@@ -582,14 +584,14 @@ class TestCommitMessage(unittest.TestCase):
       commit_id = git.query_local_repository_commit_id(self.git_dir)
       _, messages = git.query_local_repository_commits_to_existing_tag_from_id(
           self.git_dir, commit_id, all_tags)
-      self.assertEquals(
+      self.assertEqual(
           expect,
           CommitMessage.determine_semver_implication_on_list(
               messages,
               major_regexs=CommitMessage.DEFAULT_MAJOR_REGEXS,
               minor_regexs=CommitMessage.DEFAULT_MINOR_REGEXS,
               patch_regexs=CommitMessage.DEFAULT_PATCH_REGEXS))
-      self.assertEquals(
+      self.assertEqual(
           expect,
           CommitMessage.determine_semver_implication_on_list(
               sorted(messages, reverse=True),
@@ -610,7 +612,7 @@ tag: {tag}
 version: {version}
 """.format(id=summary.commit_id, tag=summary.tag, version=summary.version,
            prev=summary.prev_version)
-    self.assertEquals(expect, summary.to_yaml(with_commit_messages=False))
+    self.assertEqual(expect, summary.to_yaml(with_commit_messages=False))
 
   def test_patchable_true(self):
     tests = [('1.2.3', '1.2.2'),
@@ -638,11 +640,11 @@ version: {version}
             CommitMessage('commitA', 'authorA', 'dateA', 'messageA')
         ])
     yamlized = yaml.load(summary.to_yaml())
-    self.assertEquals(summary.commit_id, yamlized['commit_id'])
-    self.assertEquals(summary.tag, yamlized['tag'])
-    self.assertEquals(summary.version, yamlized['version'])
-    self.assertEquals(summary.prev_version, yamlized['prev_version'])
-    self.assertEquals(
+    self.assertEqual(summary.commit_id, yamlized['commit_id'])
+    self.assertEqual(summary.tag, yamlized['tag'])
+    self.assertEqual(summary.version, yamlized['version'])
+    self.assertEqual(summary.prev_version, yamlized['prev_version'])
+    self.assertEqual(
         [{
             'commit_id': 'commit' + x,
             'author': 'author' + x,
@@ -650,7 +652,7 @@ version: {version}
             'message': 'message' + x}
          for x in ['B', 'A']],
         yamlized['commit_messages'])
-    self.assertEquals(summary, RepositorySummary.from_dict(yamlized))
+    self.assertEqual(summary, RepositorySummary.from_dict(yamlized))
 
 
 if __name__ == '__main__':

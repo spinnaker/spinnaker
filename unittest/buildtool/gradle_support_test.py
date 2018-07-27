@@ -51,9 +51,9 @@ class TestGradleMetricsUpdater(unittest.TestCase):
   def test_ok(self):
     updater = GradleMetricsUpdater(self.metrics, REPOSITORY, 'TestWhatThing')
     counter = updater(0, BINTRAY_ERROR_OUTPUT)
-    self.assertEquals(1, counter.count)
-    self.assertEquals('GradleOutcome', counter.family.name)
-    self.assertEquals({
+    self.assertEqual(1, counter.count)
+    self.assertEqual('GradleOutcome', counter.family.name)
+    self.assertEqual({
         'repository': 'testRepo',
         'context': 'TestWhatThing',
         'success': True,
@@ -65,9 +65,9 @@ class TestGradleMetricsUpdater(unittest.TestCase):
   def test_bintray_error(self):
     updater = GradleMetricsUpdater(self.metrics, REPOSITORY, 'TestWhatThing')
     counter = updater(-1, BINTRAY_ERROR_OUTPUT)
-    self.assertEquals(1, counter.count)
-    self.assertEquals('GradleOutcome', counter.family.name)
-    self.assertEquals({
+    self.assertEqual(1, counter.count)
+    self.assertEqual('GradleOutcome', counter.family.name)
+    self.assertEqual({
         'repository': 'testRepo',
         'context': 'TestWhatThing',
         'success': False,

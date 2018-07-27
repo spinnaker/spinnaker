@@ -66,14 +66,14 @@ class TestBomRepositoryCommandProcessor(BaseGitRepoTestFixture):
     command = factory.make_command(options)
 
     for repository in command.source_repositories:
-      self.assertEquals(repository.origin,
-                        self.repo_commit_map[repository.name]['ORIGIN'])
-      self.assertEquals(repository.git_dir,
-                        os.path.join(options.input_dir, options.command,
+      self.assertEqual(repository.origin,
+                       self.repo_commit_map[repository.name]['ORIGIN'])
+      self.assertEqual(repository.git_dir,
+                       os.path.join(options.input_dir, options.command,
                                      repository.name))
       self.assertFalse(os.path.exists(repository.git_dir))
-    self.assertEquals(set(ALL_STANDARD_TEST_BOM_REPO_NAMES),
-                      set([repo.name for repo in command.source_repositories]))
+    self.assertEqual(set(ALL_STANDARD_TEST_BOM_REPO_NAMES),
+                     set([repo.name for repo in command.source_repositories]))
 
     # Now run the command and verify it instantiated the working dir
     # as expected.
@@ -81,7 +81,7 @@ class TestBomRepositoryCommandProcessor(BaseGitRepoTestFixture):
 
     for repository in command.source_repositories:
       self.assertTrue(os.path.exists(repository.git_dir))
-      self.assertEquals(
+      self.assertEqual(
           command.summary_info[repository.name].commit_id,
           self.repo_commit_map[repository.name][PATCH_BRANCH])
 

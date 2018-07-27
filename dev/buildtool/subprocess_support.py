@@ -89,6 +89,10 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
         stream.flush()
    
   process.wait()
+  if stream is None:
+    # Close stdout pipe if we didnt give a stream.
+    # Otherwise caller owns the stream.
+    process.stdout.close()
 
   if hasattr(process, 'start_date'):
     end_date = datetime.datetime.now()

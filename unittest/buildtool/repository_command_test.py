@@ -53,9 +53,9 @@ class TestRepositoryCommand(RepositoryCommandProcessor):
   def ensure_local_repository(self, repository):
     assert(self.preprocessed)
     assert(not self.postprocess_dict)
-    assert(repository not in self.ensured)
-    assert(repository not in self.repositories)
-    self.ensured.add(repository)
+    assert(repository.name not in self.ensured)
+    assert(repository.name not in self.repositories)
+    self.ensured.add(repository.name)
 
   def _do_preprocess(self):
     assert(not self.preprocessed)
@@ -70,9 +70,9 @@ class TestRepositoryCommand(RepositoryCommandProcessor):
   def _do_repository(self, repository):
     assert(self.preprocessed)
     assert(not self.postprocess_dict)
-    assert(repository in self.ensured)
-    assert(repository not in self.repositories)
-    self.repositories.add(repository)
+    assert(repository.name in self.ensured)
+    assert(repository.name not in self.repositories)
+    self.repositories.add(repository.name)
     time.sleep(0.1)  # Encourage threads to be different
     self.test_repo_threadid.append(threading.current_thread().ident)
     if self.name == FAILURE_COMMAND_NAME:
@@ -101,7 +101,7 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
 
     expected_repo_names = list(ALL_STANDARD_TEST_BOM_REPO_NAMES)
     command = factory.make_command(options)
-    self.assertEquals(
+    self.assertEqual(
       expected_repo_names,
       [repository.name for repository in command.source_repositories])
 
@@ -109,7 +109,7 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
                            if name != OUTLIER_REPO]
     options.exclude_repositories=OUTLIER_REPO
     command = factory.make_command(options)
-    self.assertEquals(
+    self.assertEqual(
       expected_repo_names,
       [repository.name for repository in command.source_repositories])
 
@@ -117,7 +117,7 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
     options.only_repositories=OUTLIER_REPO
     options.exclude_repositories=None
     command = factory.make_command(options)
-    self.assertEquals(
+    self.assertEqual(
       expected_repo_names,
       [repository.name for repository in command.source_repositories])
 
@@ -131,18 +131,18 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
 
     # Test construction
     command = factory.make_command(options)
-    self.assertEquals((factory, options, 123, init_dict),
-                      command.test_init_args)
+    self.assertEqual((factory, options, 123, init_dict),
+                     command.test_init_args)
     self.assertFalse(command.preprocessed)
-    self.assertEquals(factory, command.factory)
-    self.assertEquals(factory.name, command.name)
+    self.assertEqual(factory, command.factory)
+    self.assertEqual(factory.name, command.name)
     key_func = lambda repo: repo.name
     expect_list = [command.source_code_manager.make_repository_spec(name)
                    for name in ALL_STANDARD_TEST_BOM_REPO_NAMES]
-    self.assertEquals(sorted(expect_list, key=key_func),
-                      sorted(command.source_repositories, key=key_func))
-    self.assertEquals(os.path.join(options.input_dir, options.command),
-                      command.source_code_manager.root_source_dir)
+    self.assertEqual(sorted(expect_list, key=key_func),
+                     sorted(command.source_repositories, key=key_func))
+    self.assertEqual(os.path.join(options.input_dir, options.command),
+                     command.source_code_manager.root_source_dir)
 
     # Test invocation
     if command_name == FAILURE_COMMAND_NAME:
@@ -150,14 +150,15 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
         command()
       self.assertIsNone(command.postprocess_dict)
     else:
-      self.assertEquals({'foo': 'bar'}, command())
-      self.assertEquals(command.postprocess_dict,
-                        {name: 'TEST ' + name
-                         for name in ALL_STANDARD_TEST_BOM_REPO_NAMES})
+      self.assertEqual({'foo': 'bar'}, command())
+      self.assertEqual(command.postprocess_dict,
+                       {name: 'TEST ' + name
+                        for name in ALL_STANDARD_TEST_BOM_REPO_NAMES})
 
     self.assertTrue(command.preprocessed)
-    self.assertEquals(set(command.source_repositories), command.ensured)
-    self.assertEquals(set(command.source_repositories), command.repositories)
+    self.assertEqual(set([repo.name for repo in command.source_repositories]),
+                     command.ensured)
+    self.assertEqual(command.ensured, command.repositories)
 
     return command
 
@@ -166,36 +167,36 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
     options = self.options
     options.command = test_command_name
     command = self.do_test_command(options, test_command_name)
-    self.assertNotEquals(command.test_repo_threadid[0],
-                         command.test_repo_threadid[1])
+    self.assertNotEqual(command.test_repo_threadid[0],
+                        command.test_repo_threadid[1])
 
     outcome_name = 'RunCommand_Outcome'
     family = command.metrics.lookup_family_or_none(outcome_name)
     self.assertIsNotNone(family)
-    self.assertEquals(family.family_type, family.TIMER)
-    self.assertEquals(family.name, outcome_name)
-    self.assertEquals(1, len(family.instance_list))
-    metric = family.instance_list[0]
-    self.assertEquals(1, metric.count)
-    self.assertEquals(True, metric.labels.get('success'))
-    self.assertEquals(test_command_name, metric.labels.get('command'))
+    self.assertEqual(family.family_type, family.TIMER)
+    self.assertEqual(family.name, outcome_name)
+    self.assertEqual(1, len(family.instance_list))
+    metric = next(iter(family.instance_list), None)
+    self.assertEqual(1, metric.count)
+    self.assertEqual(True, metric.labels.get('success'))
+    self.assertEqual(test_command_name, metric.labels.get('command'))
 
     outcome_name = 'RunRepositoryCommand_Outcome'
     family = command.metrics.lookup_family_or_none(outcome_name)
     self.assertIsNotNone(family)
-    self.assertEquals(family.family_type, family.TIMER)
-    self.assertEquals(family.name, outcome_name)
+    self.assertEqual(family.family_type, family.TIMER)
+    self.assertEqual(family.name, outcome_name)
     repository_names = set(
         [metric.labels.get('repository')
          for metric in family.instance_list
          if metric.labels.get('command') == test_command_name])
-    self.assertEquals(2, len(repository_names))
-    self.assertEquals(repository_names, set(ALL_STANDARD_TEST_BOM_REPO_NAMES))
+    self.assertEqual(2, len(repository_names))
+    self.assertEqual(repository_names, set(ALL_STANDARD_TEST_BOM_REPO_NAMES))
     for metric in family.instance_list:
-      self.assertEquals(family, metric.family)
-      self.assertEquals(outcome_name, metric.name)
-      self.assertEquals(1, metric.count)
-      self.assertEquals(True, metric.labels.get('success'))
+      self.assertEqual(family, metric.family)
+      self.assertEqual(outcome_name, metric.name)
+      self.assertEqual(1, metric.count)
+      self.assertEqual(True, metric.labels.get('success'))
 
   def test_serialized_command(self):
     test_command_name = 'serialized_command'
@@ -203,16 +204,16 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
     options.one_at_a_time = True
     options.command = test_command_name
     command = self.do_test_command(options, test_command_name)
-    self.assertEquals(command.test_repo_threadid[0],
-                      command.test_repo_threadid[1])
+    self.assertEqual(command.test_repo_threadid[0],
+                     command.test_repo_threadid[1])
 
   def test_failed_command(self):
     test_command_name = FAILURE_COMMAND_NAME
     options = self.options
     options.command = test_command_name
     command = self.do_test_command(options, test_command_name)
-    self.assertNotEquals(command.test_repo_threadid[0],
-                         command.test_repo_threadid[1])
+    self.assertNotEqual(command.test_repo_threadid[0],
+                        command.test_repo_threadid[1])
 
     for test_repository_command in [True, False]:
       outcome_name = ('RunRepositoryCommand_Outcome'
@@ -220,26 +221,26 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
                       else 'RunCommand_Outcome')
       family = command.metrics.lookup_family_or_none(outcome_name)
       self.assertIsNotNone(family)
-      self.assertEquals(family.family_type, family.TIMER)
-      self.assertEquals(family.name, outcome_name)
+      self.assertEqual(family.family_type, family.TIMER)
+      self.assertEqual(family.name, outcome_name)
       if test_repository_command:
         repository_names = set([
             metric.labels.get('repository')
             for metric in family.instance_list
             if metric.labels.get('command') == test_command_name])
-        self.assertEquals(2, len(repository_names))
-        self.assertEquals(repository_names,
-                          set(ALL_STANDARD_TEST_BOM_REPO_NAMES))
+        self.assertEqual(2, len(repository_names))
+        self.assertEqual(repository_names,
+                         set(ALL_STANDARD_TEST_BOM_REPO_NAMES))
 
       found = False
       for metric in family.instance_list:
         if metric.labels.get('command') != test_command_name:
           continue  # Metric was from a different test
         found = True
-        self.assertEquals(family, metric.family)
-        self.assertEquals(outcome_name, metric.name)
-        self.assertEquals(1, metric.count)
-        self.assertEquals(False, metric.labels.get('success'))
+        self.assertEqual(family, metric.family)
+        self.assertEqual(outcome_name, metric.name)
+        self.assertEqual(1, metric.count)
+        self.assertEqual(False, metric.labels.get('success'))
       self.assertTrue(found)
 
 
