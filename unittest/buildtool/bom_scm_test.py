@@ -55,23 +55,23 @@ class TestBomSourceCodeManager(BaseGitRepoTestFixture):
 
       git_dir = repository.git_dir
       spec = scm.git.determine_git_repository_spec(git_dir)
-      self.assertEquals(repository.name, spec.name)
-      self.assertEquals(repository.git_dir, spec.git_dir)
-      self.assertEquals(repository.origin, spec.origin)
+      self.assertEqual(repository.name, spec.name)
+      self.assertEqual(repository.git_dir, spec.git_dir)
+      self.assertEqual(repository.origin, spec.origin)
       self.assertIsNone(spec.upstream_or_none())
 
       repo_name = repository.name
       at_commit = scm.git.query_local_repository_commit_id(git_dir)
-      self.assertEquals(
+      self.assertEqual(
           self.repo_commit_map[repo_name]['ORIGIN'], repository.origin)
-      self.assertEquals(
+      self.assertEqual(
           self.repo_commit_map[repo_name][PATCH_BRANCH], at_commit)
 
       summary = scm.git.collect_repository_summary(git_dir)
       semver = SemanticVersion.make(BASE_VERSION_TAG)
       expect_version = semver.next(
           SemanticVersion.PATCH_INDEX).to_version()
-      self.assertEquals(expect_version, summary.version)
+      self.assertEqual(expect_version, summary.version)
 
 
 if __name__ == '__main__':

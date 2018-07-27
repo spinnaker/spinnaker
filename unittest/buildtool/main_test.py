@@ -45,12 +45,12 @@ class TestMain(unittest.TestCase):
   def setUpClass(cls):
     # pylint: disable=invalid-name
     fd, cls.defaults_file = tempfile.mkstemp(prefix='main_test_c')
-    os.write(fd, yaml.dump(CUSTOM_DEFAULTS))
+    os.write(fd, str.encode(yaml.dump(CUSTOM_DEFAULTS)))
     os.close(fd)
     OVERRIDE_CUSTOM_DEFAULTS['default_args_file'] = cls.defaults_file
 
     fd, cls.override_defaults_file = tempfile.mkstemp(prefix='main_test_d')
-    os.write(fd, yaml.dump(OVERRIDE_CUSTOM_DEFAULTS))
+    os.write(fd, str.encode(yaml.dump(OVERRIDE_CUSTOM_DEFAULTS)))
     os.close(fd)
 
 
@@ -65,29 +65,29 @@ class TestMain(unittest.TestCase):
     modules = [custom_test_command]
     args = [COMMAND]
     options = self.get_options(args, modules)
-    self.assertEquals('source_code', options.input_dir)
+    self.assertEqual('source_code', options.input_dir)
     self.assertFalse(options.one_at_a_time)
-    self.assertEquals(custom_test_command.CUSTOM_ARG_DEFAULT_VALUE,
-                      vars(options)[custom_test_command.CUSTOM_ARG_NAME])
+    self.assertEqual(custom_test_command.CUSTOM_ARG_DEFAULT_VALUE,
+                     vars(options)[custom_test_command.CUSTOM_ARG_NAME])
 
   def test_override_file_options(self):
     modules = [custom_test_command]
     args = ['--default_args_file', self.defaults_file, COMMAND]
     options = self.get_options(args, modules)
-    self.assertEquals(CUSTOM_DEFAULTS['input_dir'], options.input_dir)
+    self.assertEqual(CUSTOM_DEFAULTS['input_dir'], options.input_dir)
     self.assertTrue(options.one_at_a_time)
-    self.assertEquals(CUSTOM_DEFAULTS[custom_test_command.CUSTOM_ARG_NAME],
-                      vars(options)[custom_test_command.CUSTOM_ARG_NAME])
+    self.assertEqual(CUSTOM_DEFAULTS[custom_test_command.CUSTOM_ARG_NAME],
+                     vars(options)[custom_test_command.CUSTOM_ARG_NAME])
 
   def test_nested_override_file_options(self):
     modules = [custom_test_command]
     args = ['--default_args_file', self.override_defaults_file, COMMAND]
     options = self.get_options(args, modules)
-    self.assertEquals(
+    self.assertEqual(
         OVERRIDE_CUSTOM_DEFAULTS['input_dir'], options.input_dir)
     self.assertTrue(options.one_at_a_time)
-    self.assertEquals(CUSTOM_DEFAULTS[custom_test_command.CUSTOM_ARG_NAME],
-                      vars(options)[custom_test_command.CUSTOM_ARG_NAME])
+    self.assertEqual(CUSTOM_DEFAULTS[custom_test_command.CUSTOM_ARG_NAME],
+                     vars(options)[custom_test_command.CUSTOM_ARG_NAME])
 
   def test_cli_override_defaults_options(self):
     modules = [custom_test_command]
@@ -98,9 +98,9 @@ class TestMain(unittest.TestCase):
             '--' + custom_test_command.CUSTOM_ARG_NAME,
             'XYZ']
     options = self.get_options(args, modules)
-    self.assertEquals(override, options.input_dir)
+    self.assertEqual(override, options.input_dir)
     self.assertTrue(options.one_at_a_time)
-    self.assertEquals('XYZ', vars(options)[custom_test_command.CUSTOM_ARG_NAME])
+    self.assertEqual('XYZ', vars(options)[custom_test_command.CUSTOM_ARG_NAME])
 
 if __name__ == '__main__':
   import logging

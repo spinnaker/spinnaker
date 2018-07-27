@@ -56,9 +56,9 @@ class TestRunner(unittest.TestCase):
         output = check_subprocess(cmd)
       else:
         code, output = run_subprocess(cmd)
-        self.assertEquals(0, code)
+        self.assertEqual(0, code)
 
-      self.assertEquals(expect, output)
+      self.assertEqual(expect, output)
 
   def test_run_subprocess_ok(self):
     self.do_run_subprocess_ok(False)
@@ -75,10 +75,10 @@ class TestRunner(unittest.TestCase):
       raise NotImplementedError('Unsupported test platform.')
 
     got, output = run_subprocess(false_path)
-    self.assertEquals((1, ''), (got, output))
+    self.assertEqual((1, ''), (got, output))
 
     got, output = run_subprocess('/bin/ls /abc/def')
-    self.assertNotEquals(0, got)
+    self.assertNotEqual(0, got)
     self.assertTrue(output.find('No such file or directory') >= 0)
 
   def test_check_subprocess_fail(self):
@@ -99,13 +99,13 @@ class TestRunner(unittest.TestCase):
     # See if we can run a job by looking up our job
     # This is also testing parsing command lines.
     code, output = run_subprocess('/bin/ps -x')
-    self.assertEquals(0, code)
+    self.assertEqual(0, code)
     my_pid = '%d ' % os.getpid()
     candidates = [line for line in output.split('\n')
                   if line.find(my_pid) >= 0 and line.find('python') > 0]
     if len(candidates) != 1:
       logging.error('Unexpected output\n%s', output)
-    self.assertEquals(1, len(candidates))
+    self.assertEqual(1, len(candidates))
     self.assertTrue(candidates[0].find(' python ') > 0)
 
 

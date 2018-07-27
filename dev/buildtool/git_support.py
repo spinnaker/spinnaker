@@ -607,7 +607,7 @@ class RepositorySummary(collections.namedtuple(
         ('commit_id', self.commit_id),
         ('tag', self.tag),
         ('version', self.version),
-        ('prev_versione', self.prev_version),
+        ('prev_version', self.prev_version),
         ('commit_messages', self.commit_messages)
     ])
 

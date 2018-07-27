@@ -68,8 +68,8 @@ def timedelta_string(delta):
     delta: [datetime.timedelta] The time difference
   """
   delta_secs = int(delta.total_seconds())
-  delta_mins = delta_secs / 60
-  delta_hours = (delta_mins / 60 % 24)
+  delta_mins = delta_secs // 60
+  delta_hours = (delta_mins // 60 % 24)
   delta_days = delta.days
 
   day_str = '' if not delta_days else ('days=%d + ' % delta_days)
@@ -80,7 +80,7 @@ def timedelta_string(delta):
     return day_str + '%02d:%02d:%02d' % (delta_hours, delta_mins, delta_secs)
   elif delta_mins:
     return '%02d:%02d' % (delta_mins, delta_secs)
-  return '%d.%03d secs' % (delta_secs, delta.microseconds / 1000)
+  return '%d.%03d secs' % (delta_secs, delta.microseconds // 1000)
 
 
 def log_embedded_output(log_level, title, output, line_prefix='    >>>  '):
