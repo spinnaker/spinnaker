@@ -19,6 +19,5 @@
 # Run with --help usage information.
 
 export PYTHONPATH=$(dirname $0)/../testing/citest
-export PYTHONPATH=${PYTHONPATH}:$(dirname $0)/../pylib
 
 python $(dirname $0)/validate_bom__main.py "$@"

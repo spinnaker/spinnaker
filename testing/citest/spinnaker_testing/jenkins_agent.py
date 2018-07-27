@@ -129,7 +129,7 @@ class JenkinsAgent(base_agent.BaseAgent):
               ' or JENKINS_USER and JENKINS_PASSWORD environment variables.')
     else:
         with open(auth_path, 'r') as f:
-          auth_info = f.read().split()
+          auth_info = bytes.decode(f.read()).split()
 
           if len(auth_info) != 2:
             raise ValueError(

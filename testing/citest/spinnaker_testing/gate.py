@@ -106,7 +106,9 @@ class BaseGateStatus(sk.SpinnakerStatus):
       relation = self._export_stage_summary_to_json_snapshot(
           stage, base_time, builder, snapshot, stage_entity)
       score = self._RELATION_SCORE.get(relation)
-      if worst_relation_score < score:
+      if score is not None and (
+          worst_relation_score is None
+          or worst_relation_score < score):
         worst_relation_score = score
       decorator = '(*) ' if stage.get('status') == 'RUNNING' else ''
       builder.make(stage_list_entity,
@@ -150,7 +152,9 @@ class BaseGateStatus(sk.SpinnakerStatus):
       task_entity = snapshot.new_entity()
       relation = self._export_status(task, builder, task_entity)
       score = self._RELATION_SCORE.get(relation)
-      if worst_relation_score < score:
+      if score is not None and (
+          worst_relation_score is None
+          or worst_relation_score < score):
         worst_relation_score = score
       self._export_time_info(task, base_time, builder, task_entity)
       builder.make(task_entity, 'Task Name', task_name)

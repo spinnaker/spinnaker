@@ -62,7 +62,7 @@ import re
 import sys
 import tarfile
 from json import JSONDecoder
-from StringIO import StringIO
+from io import BytesIO
 
 import citest.gcp_testing.gce_util as gce_util
 import citest.service_testing as service_testing
@@ -586,7 +586,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
     if not got:
       return None
 
-    tar = tarfile.open(mode='r', fileobj=StringIO(base64.b64decode(got)))
+    tar = tarfile.open(mode='r', fileobj=BytesIO(base64.b64decode(got)))
 
     try:
       entry = tar.extractfile('etc/default/spinnaker')

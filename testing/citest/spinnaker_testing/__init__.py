@@ -13,24 +13,24 @@
 # limitations under the License.
 
 
-from spinnaker import SpinnakerAgent
-from spinnaker_test_scenario import SpinnakerTestScenario
+from .spinnaker import SpinnakerAgent
+from .spinnaker_test_scenario import SpinnakerTestScenario
 
 # The jenkins_agent implementes Jenkins build triggers
-from jenkins_agent import(
+from .jenkins_agent import(
     JenkinsOperationStatus,
     JenkinsAgent,
     BaseJenkinsOperation,
     JenkinsTriggerOperation)
 
-from gcs_pubsub_trigger_agent import(
+from .gcs_pubsub_trigger_agent import(
     GcsFileUploadAgent,
     BaseGcsPubsubTriggerOperation,
     GcsPubsubUploadTriggerOperation,
     GcsPubsubTriggerOperationStatus)
 
-from kubernetes_manifests import (
+from .kubernetes_manifests import (
     KubernetesManifestFactory,
     KubernetesManifestPredicateFactory)
 
-from pipeline_support import PipelineSupport
+from .pipeline_support import PipelineSupport
