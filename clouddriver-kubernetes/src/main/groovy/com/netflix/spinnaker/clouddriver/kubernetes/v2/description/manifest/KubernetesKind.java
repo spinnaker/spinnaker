@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class KubernetesKind {
+  public static KubernetesKind API_SERVICE = new KubernetesKind("apiService", false);
   public static KubernetesKind CLUSTER_ROLE = new KubernetesKind("clusterRole", false);
   public static KubernetesKind CLUSTER_ROLE_BINDING = new KubernetesKind("clusterRoleBinding", false);
   public static KubernetesKind CONFIG_MAP = new KubernetesKind("configMap", "cm");
