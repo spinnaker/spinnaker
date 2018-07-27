@@ -51,7 +51,6 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
     """Uploads a local file to a bucket at a relative upload path.
     """
     logging.info('Uploading local file %s to bucket %s at path %s', local_filename, bucket_name, upload_path)
-    print 'Uploading local file {} to bucket {} at path {}'.format(local_filename, bucket_name, upload_path)
     bucket = self.__client.get_bucket(bucket_name)
     upload_blob = bucket.blob(upload_path)
     upload_blob.upload_from_filename(filename=local_filename)

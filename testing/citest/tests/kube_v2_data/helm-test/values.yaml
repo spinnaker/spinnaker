@@ -1,0 +1,5 @@
+replicaCount: 1
+
+name: "nginx-deployment"
+
+image: library/nginx
