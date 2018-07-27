@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
@@ -36,14 +35,23 @@ import java.util.Map;
  * Translates pub/sub messages into Spinnaker Artifacts via user-supplied Jinja templates.
  */
 @Slf4j
-@NoArgsConstructor
 public class MessageArtifactTranslator {
 
   private String jinjaTemplate;
 
+  private JinjavaFactory jinjavaFactory;
+
   private static final TypeReference<List<Artifact>> artifactListReference = new TypeReference<List<Artifact>>() {};
 
+  public MessageArtifactTranslator() {
+    this.jinjavaFactory = new DefaultJinjavaFactory();
+  }
+
   public MessageArtifactTranslator(InputStream templateStream) {
+    this(templateStream, new DefaultJinjavaFactory());
+  }
+
+  public MessageArtifactTranslator(InputStream templateStream, JinjavaFactory jinjavaFactory) {
     if (templateStream == null) {
       this.jinjaTemplate = "";
     } else {
@@ -53,6 +61,7 @@ public class MessageArtifactTranslator {
         throw new RuntimeException(ioe);
       }
     }
+    this.jinjavaFactory = jinjavaFactory;
   }
 
   public List<Artifact> parseArtifacts(String messagePayload) {
@@ -68,7 +77,7 @@ public class MessageArtifactTranslator {
     if (StringUtils.isEmpty(jinjaTemplate)) {
       return messagePayload;
     } else {
-      Jinjava jinja = new Jinjava();
+      Jinjava jinja = jinjavaFactory.create();
       Map context = readMapValue(mapper, messagePayload);
       return jinja.render(jinjaTemplate, context);
     }

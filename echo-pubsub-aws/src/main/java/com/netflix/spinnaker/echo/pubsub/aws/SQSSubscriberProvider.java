@@ -22,6 +22,7 @@ import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.echo.artifacts.JinjavaFactory;
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.echo.discovery.DiscoveryActivated;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
@@ -55,6 +56,7 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   private final PubsubSubscribers pubsubSubscribers;
   private final PubsubMessageHandler pubsubMessageHandler;
   private final Registry registry;
+  private final JinjavaFactory jinjavaFactory;
 
   @Autowired
   SQSSubscriberProvider(ObjectMapper objectMapper,
@@ -62,13 +64,15 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
                         AmazonPubsubProperties properties,
                         PubsubSubscribers pubsubSubscribers,
                         PubsubMessageHandler pubsubMessageHandler,
-                        Registry registry) {
+                        Registry registry,
+                        JinjavaFactory jinjavaFactory) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.properties = properties;
     this.pubsubSubscribers = pubsubSubscribers;
     this.pubsubMessageHandler = pubsubMessageHandler;
     this.registry = registry;
+    this.jinjavaFactory = jinjavaFactory;
   }
 
   @PostConstruct
@@ -108,7 +112,8 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
           .withRegion(queueArn.getRegion())
           .build(),
         () -> enabled.get(),
-        registry
+        registry,
+        jinjavaFactory
       );
 
       try {

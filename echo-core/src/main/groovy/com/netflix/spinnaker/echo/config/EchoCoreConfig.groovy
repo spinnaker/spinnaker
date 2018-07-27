@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.echo.artifacts.DefaultJinjavaFactory
+import com.netflix.spinnaker.echo.artifacts.JinjavaFactory
 import com.netflix.spinnaker.echo.discovery.DiscoveryPollingConfiguration
 import com.netflix.spinnaker.echo.events.EchoEventListener
 import com.netflix.spinnaker.echo.events.EventPropagator
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -46,5 +49,11 @@ class EchoCoreConfig {
             instance.addListener(it)
         }
         instance
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    JinjavaFactory jinjavaFactory() {
+      return new DefaultJinjavaFactory()
     }
 }
