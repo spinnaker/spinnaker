@@ -43,23 +43,9 @@ ospackage {
   postInstall = file('pkg_scripts/postInstall.sh')
   postUninstall = file('pkg_scripts/postUninstall.sh')
 
-// files to put in the meta package
-  from('pylib') {
-    into spinnakerHome + '/pylib'
-  }
-
-  from('cassandra') {
-    into spinnakerHome + '/cassandra'
-  }
-
   from('install') {
     into spinnakerHome + '/install'
   }
-
-  from('runtime') {
-    into spinnakerHome + '/bin'
-    fileMode = 0755
-  }  
 
   from(file('etc/init/spinnaker.conf')) {
     into('/etc/init')
