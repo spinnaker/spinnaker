@@ -193,6 +193,19 @@ tests:
       test_gcs_bucket: $artifact_gcs_bucket
       test_gcs_credentials_path: $artifact_gcs_credentials
 
+  kube_v2_helm_test:
+    requires:
+      configuration:
+        k8s_v2_account_enabled: true
+      services: [clouddriver, front50, gate, orca]
+    api: gate
+    args:
+      spinnaker_kubernetes_v2_account: $k8s_v2_account_name
+      test_namespace: $k8s_v2_account_namespaces
+      test_gcs_artifact_account: $artifact_gcs_account_name
+      test_gcs_bucket: $artifact_gcs_bucket
+      test_gcs_credentials_path: $artifact_gcs_credentials
+
   kube_v2_artifact_test:
     requires:
       configuration:

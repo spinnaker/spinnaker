@@ -24,7 +24,7 @@ class PipelineSupport(object):
   def __init__(self, scenario):
     self.scenario = scenario
 
-  def submit_pipeline_contract(self, name, stages):
+  def submit_pipeline_contract(self, name, stages, expectedArtifacts=[]):
     s = self.scenario
     job = {
         'keepWaitingPipelines': 'false',
@@ -34,6 +34,7 @@ class PipelineSupport(object):
         'limitConcurrent': 'true',
         'parallel': 'true',
         'stages': stages,
+        'expectedArtifacts': expectedArtifacts,
     }
     payload = s.agent.make_json_payload_from_kwargs(**job)
     expect_match = {key: jp.EQUIVALENT(value)
