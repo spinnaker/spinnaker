@@ -17,14 +17,12 @@
 
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Data
@@ -48,6 +46,46 @@ public class Versions {
       }
 
       return result;
+    }
+
+    public static Comparator<Version> comparator() {
+      return Comparator.comparing(Version::getVersion, orderBySemVer());
+    }
+  }
+
+  @Data
+  @AllArgsConstructor
+  public static class SemVer {
+    int major;
+    int minor;
+    int patch;
+
+    private static String truncateToHyphen(String version) {
+      int firstHyphen = version.indexOf("-");
+      if (firstHyphen < 0) {
+        return version;
+      }
+      return version.substring(0, firstHyphen);
+    }
+
+    static SemVer fromString(String version) {
+      if (isBranch(version)) {
+        return null;
+      }
+
+      String[] parts = truncateToHyphen(version).split(Pattern.quote("."));
+      if (parts.length != 3) {
+        throw new IllegalArgumentException("Versions must satisfy the X.Y.Z naming convention");
+      }
+
+      List<Integer> intParts = Arrays.stream(parts).map(Integer::parseInt).collect(Collectors.toList());
+      return new SemVer(intParts.get(0), intParts.get(1), intParts.get(2));
+    }
+
+    static Comparator<SemVer> comparator() {
+      return Comparator.comparing(SemVer::getMajor)
+              .thenComparing(SemVer::getMinor)
+              .thenComparing(SemVer::getPatch);
     }
   }
 
@@ -90,9 +128,8 @@ public class Versions {
     }
 
     StringBuilder result = new StringBuilder();
-    for (Version version : versions) {
-      result.append(String.format(" - %s\n", version.toString()));
-    }
+    versions.stream().sorted(Version.comparator()).forEach(version ->
+            result.append(String.format(" - %s\n", version.toString())));
 
     return result.toString();
   }
@@ -115,36 +152,12 @@ public class Versions {
     return fullVersion.substring(0, lastDash);
   }
 
+  public static Comparator<String> orderBySemVer() {
+    Comparator<SemVer> comparator = Comparator.nullsLast(SemVer.comparator());
+    return Comparator.comparing(SemVer::fromString, comparator).thenComparing(Comparator.naturalOrder());
+  }
+
   public static boolean lessThan(String v1, String v2) {
-    // TODO(lwander): This is pretty ugly. Non total comparison operator.
-    if (isBranch(v1)) {
-      return false;
-    }
-    if (isBranch(v2)) {
-      return true;
-    }
-
-    v1 = toMajorMinorPatch(v1);
-    v2 = toMajorMinorPatch(v2);
-
-    List<Integer> split1 = Arrays.stream(v1.split("\\.")).map(Integer::valueOf).collect(Collectors.toList());
-    List<Integer> split2 = Arrays.stream(v2.split("\\.")).map(Integer::valueOf).collect(Collectors.toList());
-
-    if (split1.size() != split2.size() || split1.size() != 3) {
-      throw new IllegalArgumentException("Both versions must satisfy the X.Y.Z naming convention");
-    }
-
-    for (int i = 0; i < split1.size(); i++) {
-      if (split1.get(i) == split2.get(i)) {
-        continue;
-      } else if (split1.get(i) < split2.get(i)) {
-        return true;
-      } else if (split1.get(i) > split2.get(i)) {
-        return false;
-      }
-    }
-
-    // all 3 points are equal
-    return false;
+    return orderBySemVer().compare(v1, v2) < 0;
   }
 }
