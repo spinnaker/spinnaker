@@ -91,7 +91,7 @@ def write_data_to_secure_path(data, path=None, is_script=False):
   maybe_executable = stat.S_IXUSR if is_script else 0
   flags = stat.S_IRUSR | stat.S_IWUSR | maybe_executable
   os.fchmod(fd, flags)
-  os.write(fd, data)
+  os.write(fd, str.encode(data))
   os.close(fd)
   return path
 
@@ -706,8 +706,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
                 ip=self.instance_ip,
                 ssh_key=self.ssh_key_path,
                 service_dir=service_dir,
-                service_name=service,
-                log_dir=log_dir))
+                service_name=service))
     if retcode != 0:
       logging.warning('Failed obtaining %s.log: %s', service, stdout)
     write_to_path(stdout, os.path.join(log_dir, service + '.log'))

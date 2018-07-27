@@ -67,8 +67,10 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
 
     return {
       'name': name,
-      'privateKey': crypto.dump_privatekey(crypto.FILETYPE_PEM, key),
-      'certificate': crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
+      'privateKey': bytes.decode(
+          crypto.dump_privatekey(crypto.FILETYPE_PEM, key)),
+      'certificate': bytes.decode(
+          crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
     }
 
 

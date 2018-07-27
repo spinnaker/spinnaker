@@ -87,8 +87,14 @@ import socket
 import threading
 import time
 import traceback
-import urllib2
 import yaml
+
+try:
+  from urllib2 import urlopen, HTTPError, URLError
+except ImportError:
+  from urllib.request import urlopen
+  from urllib.error import HTTPError, URLError
+
 
 from buildtool import (
     add_parser_argument,
@@ -335,7 +341,8 @@ class ValidateBomTestController(object):
     self.__passed = []  # Resulted in success
     self.__failed = []  # Resulted in failure
     self.__skipped = []  # Will not run at all
-    self.__test_suite = yaml.safe_load(file(options.test_profiles, 'r'))
+    with open(options.test_profiles, 'r') as fd:
+      self.__test_suite = yaml.safe_load(fd)
     self.__extra_test_bindings = (
         self.__load_bindings(options.test_extra_profile_bindings)
         if options.test_extra_profile_bindings
@@ -405,8 +412,8 @@ class ValidateBomTestController(object):
         while True:
           try:
             logging.info('KeepAlive %s polling', service_name)
-            got = urllib2.urlopen('http://localhost:{port}/health'
-                                  .format(port=local_port))
+            got = urlopen('http://localhost:{port}/health'
+                          .format(port=local_port))
             logging.info('KeepAlive %s -> %s', service_name, got.getcode())
           except Exception as ex:
             logging.info('KeepAlive %s -> %s', service_name, ex)
@@ -504,18 +511,18 @@ class ValidateBomTestController(object):
         # localhost is hardcoded here because we are port forwarding.
         # timeout=20 is to appease kubectl port forwarding, which will close
         #            if left idle for 30s
-        urllib2.urlopen('http://localhost:{port}/health'
-                        .format(port=forwarding.port),
-                        timeout=20)
+        urlopen('http://localhost:{port}/health'
+                .format(port=forwarding.port),
+                timeout=20)
         logging.info('"%s" is ready on port %d | %s',
                      service_name, forwarding.port, threadid)
         return forwarding
-      except urllib2.HTTPError as error:
+      except HTTPError as error:
         logging.warning('%s got %s. Ignoring that for now.',
                         service_name, error)
         return forwarding
 
-      except (urllib2.URLError, Exception) as error:
+      except (URLError, Exception) as error:
         if time.time() >= end_time:
           logging.error(
               'Timing out waiting for %s | %s', service_name, threadid)

@@ -30,7 +30,8 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
   def __init__(self, credentials_path=None, logger=None):
     super(GcsFileUploadAgent, self).__init__(logger=logger)
     if credentials_path:
-      self.__client = storage.Client.from_service_account_json(credentials_path)
+      self.__client = storage.Client.from_service_account_json(
+          credentials_path)
     else:
       self.__client = storage.Client()
 
@@ -50,7 +51,8 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
   def upload_file(self, bucket_name, upload_path, local_filename):
     """Uploads a local file to a bucket at a relative upload path.
     """
-    logging.info('Uploading local file %s to bucket %s at path %s', local_filename, bucket_name, upload_path)
+    logging.info('Uploading local file %s to bucket %s at path %s',
+                 local_filename, bucket_name, upload_path)
     bucket = self.__client.get_bucket(bucket_name)
     upload_blob = bucket.blob(upload_path)
     upload_blob.upload_from_filename(filename=local_filename)
@@ -58,10 +60,12 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
   def export_to_json_snapshot(self, snapshot, entity):
     super(GcsFileUploadAgent, self).export_to_json_snapshot(snapshot, entity)
 
-  def new_gcs_pubsub_trigger_operation(self, gate_agent, title, bucket_name, upload_path,
-                                       local_filename, status_class, status_path):
-    return GcsPubsubUploadTriggerOperation(title, self, gate_agent, bucket_name, upload_path,
-                                    local_filename, status_class, status_path)
+  def new_gcs_pubsub_trigger_operation(
+        self, gate_agent, title, bucket_name, upload_path,
+        local_filename, status_class, status_path):
+    return GcsPubsubUploadTriggerOperation(
+        title, self, gate_agent, bucket_name, upload_path,
+        local_filename, status_class, status_path)
 
 
 class BaseGcsPubsubTriggerOperation(base_agent.AgentOperation):
@@ -70,13 +74,18 @@ class BaseGcsPubsubTriggerOperation(base_agent.AgentOperation):
   def __init__(self, title, gcs_pubsub_agent, max_wait_secs=None):
     self.__title = title
     self.__agent = gcs_pubsub_agent
-    super(BaseGcsPubsubTriggerOperation, self).__init__(title, gcs_pubsub_agent, max_wait_secs=max_wait_secs)
-    if not gcs_pubsub_agent or not isinstance(gcs_pubsub_agent, GcsFileUploadAgent):
-      raise TypeError('agent is not a GcsFileUploadAgent: ' + gcs_pubsub_agent.__class__.__name__)
+    super(BaseGcsPubsubTriggerOperation, self).__init__(
+        title, gcs_pubsub_agent, max_wait_secs=max_wait_secs)
+    if (not gcs_pubsub_agent
+        or not isinstance(gcs_pubsub_agent, GcsFileUploadAgent)):
+      raise TypeError('agent is not a GcsFileUploadAgent: '
+                      + gcs_pubsub_agent.__class__.__name__)
 
   def export_to_json_snapshot(self, snapshot, entity):
-    snapshot.edge_builder.make_mechanism(entity, 'Gcs Pubsub Agent', self.agent)
-    super(BaseGcsPubsubTriggerOperation, self).export_to_json_snapshot(snapshot, entity)
+    snapshot.edge_builder.make_mechanism(
+        entity, 'Gcs Pubsub Agent', self.agent)
+    super(BaseGcsPubsubTriggerOperation, self).export_to_json_snapshot(
+        snapshot, entity)
 
   def execute(self, agent=None):
     status = self._do_execute(self.agent)
@@ -90,9 +99,11 @@ class BaseGcsPubsubTriggerOperation(base_agent.AgentOperation):
 class GcsPubsubUploadTriggerOperation(BaseGcsPubsubTriggerOperation):
   """Specialization for main logic of gcs pubsub trigger operations.
   """
-  def __init__(self, title, gcs_pubsub_agent, gate_agent, bucket_name, upload_path,
-               local_filename, status_class, status_path):
-    super(GcsPubsubUploadTriggerOperation, self).__init__(title, gcs_pubsub_agent)
+  def __init__(
+        self, title, gcs_pubsub_agent, gate_agent, bucket_name, upload_path,
+        local_filename, status_class, status_path):
+    super(GcsPubsubUploadTriggerOperation, self).__init__(
+        title, gcs_pubsub_agent)
     self.__bucket_name = bucket_name
     self.__upload_path = upload_path
     self.__local_filename = local_filename
@@ -152,7 +163,7 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
     """Constructs a GcsPubsubTriggerOperationStatus object.
 
     Args:
-    operation [BaseGcsPubsubTriggerOperation]: The GCS operation that this is for.
+    operation [BaseGcsPubsubTriggerOperation]: The GCS operation this is for.
     """
     self.__gate_agent = gate_agent
     operation.bind_agent(gate_agent)
@@ -165,7 +176,8 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
 
   def export_summary_to_json_snapshot(self, snapshot, entity):
     """Implements JsonSnapshotableEntity interface."""
-    super(GcsPubsubTriggerOperationStatus, self).export_summary_to_json_snapshot(
+    super(GcsPubsubTriggerOperationStatus,
+          self).export_summary_to_json_snapshot(
         snapshot, entity)
     trigger_status = self.__trigger_response
     trigger_status_summary = snapshot.make_entity_for_object_summary(

@@ -18,8 +18,13 @@ import logging
 import re
 import time
 import socket
-import urllib2
 from json import JSONDecoder
+
+try:
+  from urllib2 import urlopen, Request, HTTPError, URLError
+except ImportError:
+  from urllib.request import urlopen, Request
+  from urllib.error import HTTPError, URLError
 
 from .expression_dict import ExpressionDict
 
@@ -87,17 +92,17 @@ def scrape_spring_config(url, timeout=60, empty_if_404=True):
   Raises:
     urlib2.URLError if url is bad.
   """
-  request = urllib2.Request(url=url)
+  request = Request(url=url)
   final_time = time.time() + timeout
   while True:
     # Sometimes this is not yet ready, so allow retries
     try:
-      response = urllib2.urlopen(request, timeout=min(10, timeout))
+      response = urlopen(request, timeout=min(10, timeout))
       break
     except socket.timeout as ex:
       logging.info('Failed to scrape %s -- try again in 1s: %s', url, ex)
       time.sleep(1)
-    except urllib2.HTTPError as ex:
+    except HTTPError as ex:
       if ex.code == 404 and empty_if_404:
         logging.warning('Could not scrape config from url=%s: %s'
                         '\n  Suppressing this error and returning empty results.',
@@ -109,7 +114,7 @@ def scrape_spring_config(url, timeout=60, empty_if_404=True):
                           ' management.security.enabled: false',
                           url, ex)
         raise
-    except urllib2.URLError as ex:
+    except URLError as ex:
       if empty_if_404:
         logging.warning('Could not scrape config from url=%s: %s'
                         '\n  Suppressing this error and returning empty results.',
@@ -127,4 +132,4 @@ def scrape_spring_config(url, timeout=60, empty_if_404=True):
   if http_code < 200 or http_code >= 300:
     raise ValueError('Invalid HTTP={code} from {url}:\n{msg}'.format(
         code=http_code, url=url, msg=content))
-  return JSONDecoder().decode(content)
+  return JSONDecoder().decode(bytes.decode(content))

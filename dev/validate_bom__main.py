@@ -65,14 +65,14 @@ from buildtool.__main__ import (
     preprocess_args,
     add_standard_parser_args)
 from buildtool.metrics import MetricsManager
-from buildtool import add_parser_argument
+from buildtool import (
+    add_parser_argument,
+    run_subprocess)
 
 
 import validate_bom__config
 import validate_bom__deploy
 import validate_bom__test
-
-from spinnaker.run import run_quick
 
 
 def build_report(test_controller):
@@ -83,12 +83,13 @@ def build_report(test_controller):
     logging.warning('%s does not exist -- no citest logs.', citest_log_dir)
     return None
 
-  response = run_quick(
-      'cd {log_dir}'
-      '; python -m citest.reporting.generate_html_report --index *.journal'
-      .format(log_dir=citest_log_dir))
-  if response.returncode != 0:
-    logging.error('Error building report: %s', response.stdout)
+  retcode, stdout = run_subprocess(
+      'python -m citest.reporting.generate_html_report --index *.journal',
+      shell=True,
+      cwd=citest_log_dir)
+
+  if retcode != 0:
+    logging.error('Error building report: %s', stdout)
   logging.info('Logging information is in %s', options.log_dir)
 
   return test_controller.build_summary()
@@ -173,7 +174,7 @@ def main(options, metrics):
 
     summary = build_report(test_controller)
     if summary:
-      print summary
+      print(summary)
 
     if options.testing_enabled or not outcome_success:
       # Only record the outcome if we were testing

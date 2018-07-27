@@ -18,7 +18,12 @@
 import json
 import logging
 import sys
-import urllib
+
+if sys.version_info[0] > 2:
+  basestring = str
+  from urllib.parse import quote as UrlQuote
+else:
+  from urllib import quote as UrlQuote
 
 from citest.base import ExecutionContext
 
@@ -369,7 +374,7 @@ class GcsFront50TestScenario(sk.SpinnakerTestScenario):
 
     app_url_path = 'pipelines/{app}/{pipeline}'.format(
         app=self.TEST_APP,
-        pipeline=urllib.quote(self.TEST_PIPELINE_NAME))
+        pipeline=UrlQuote(self.TEST_PIPELINE_NAME))
 
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
     (f50_builder.new_clause_builder('Global Unlists Pipeline',

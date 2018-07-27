@@ -502,8 +502,6 @@ class TestCommitMessage(unittest.TestCase):
                  (self.MINOR_BRANCH, '0.2.0'),
                  (self.MAJOR_BRANCH, '1.0.0')]
     for changes, spec in enumerate(all_tests):
-      import logging
-      logging.info('*** TESTING %s, %s' % (changes, spec))
       branch, version = spec
       # CommitMessage fixture for more interesting cases.
       self.run_git('checkout ' + branch)

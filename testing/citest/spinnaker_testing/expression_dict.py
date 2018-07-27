@@ -15,6 +15,9 @@
 """A dictionary that can resolve values from other keys."""
 
 import re
+import sys
+if sys.version_info[0] > 2:
+  basestring = str
 
 
 class ExpressionDict(dict):
