@@ -54,9 +54,6 @@ public class BitbucketArtifactConfiguration {
   ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Autowired
-  OkHttpClient bitbucketOkHttpClient;
-
-  @Autowired
   ObjectMapper objectMapper;
 
   @Bean
@@ -65,7 +62,7 @@ public class BitbucketArtifactConfiguration {
   }
 
   @Bean
-  List<? extends BitbucketArtifactCredentials> bitbucketArtifactCredentials() {
+  List<? extends BitbucketArtifactCredentials> bitbucketArtifactCredentials(OkHttpClient bitbucketOkHttpClient) {
     return bitbucketArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {

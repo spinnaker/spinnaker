@@ -19,11 +19,13 @@ package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactProvider;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class HttpArtifactProviderProperties extends ArtifactProvider<HttpArtifactAccount> {
   private boolean enabled;
   private List<HttpArtifactAccount> accounts = new ArrayList<>();

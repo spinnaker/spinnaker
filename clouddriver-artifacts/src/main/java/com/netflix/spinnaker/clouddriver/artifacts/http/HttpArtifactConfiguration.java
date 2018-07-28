@@ -51,16 +51,13 @@ public class HttpArtifactConfiguration {
   @Autowired
   ArtifactCredentialsRepository artifactCredentialsRepository;
 
-  @Autowired
-  OkHttpClient httpOkHttpClient;
-
   @Bean
   OkHttpClient httpOkHttpClient() {
     return new OkHttpClient();
   }
 
   @Bean
-  List<? extends HttpArtifactCredentials> httpArtifactCredentials() {
+  List<? extends HttpArtifactCredentials> httpArtifactCredentials(OkHttpClient httpOkHttpClient) {
     List<HttpArtifactCredentials> result = httpArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {

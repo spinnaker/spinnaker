@@ -54,9 +54,6 @@ public class GitHubArtifactConfiguration {
   ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Autowired
-  OkHttpClient gitHubOkHttpClient;
-
-  @Autowired
   ObjectMapper objectMapper;
 
   @Bean
@@ -65,7 +62,7 @@ public class GitHubArtifactConfiguration {
   }
 
   @Bean
-  List<? extends GitHubArtifactCredentials> gitHubArtifactCredentials() {
+  List<? extends GitHubArtifactCredentials> gitHubArtifactCredentials(OkHttpClient gitHubOkHttpClient) {
     return gitHubArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {

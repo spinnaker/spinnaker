@@ -53,9 +53,6 @@ public class GitlabArtifactConfiguration {
   ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Autowired
-  OkHttpClient gitlabOkHttpClient;
-
-  @Autowired
   ObjectMapper objectMapper;
 
   @Bean
@@ -64,7 +61,7 @@ public class GitlabArtifactConfiguration {
   }
 
   @Bean
-  List<? extends GitlabArtifactCredentials> gitlabArtifactCredentials() {
+  List<? extends GitlabArtifactCredentials> gitlabArtifactCredentials(OkHttpClient gitlabOkHttpClient) {
     return gitlabArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
