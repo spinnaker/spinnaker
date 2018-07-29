@@ -2,6 +2,7 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: "{{ .Values.name }}"
+  namespace: "{{ .Values.namespace }}"
   labels:
     app: {{ template "helm_test.name" . }}
     chart: {{ template "helm_test.chart" . }}
