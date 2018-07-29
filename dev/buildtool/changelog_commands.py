@@ -249,15 +249,15 @@ class ChangelogBuilder(object):
         clean_text = self.clean_message(first_line)
         match = one_liner.match(clean_text)
         if match:
-          text = '**{thing}:**  {message}'.format(
+          text = u'**{thing}:**  {message}'.format(
               thing=match.group(1), message=match.group(2))
         else:
           text = clean_text
 
-        link = '[{short_hash}]({base_url}/commit/{full_hash})'.format(
+        link = u'[{short_hash}]({base_url}/commit/{full_hash})'.format(
             short_hash=msg.commit_id[:8], full_hash=msg.commit_id,
             base_url=base_url)
-        report.append('* {text} ({link})'.format(text=text, link=link))
+        report.append(u'* {text} ({link})'.format(text=text, link=link))
       report.append('')
     return report
 
@@ -278,11 +278,11 @@ class ChangelogBuilder(object):
     base_url = entry.repository.origin
     for msg in entry.normalized_messages:
       clean_text = self.clean_message(msg.message)
-      link = '[{short_hash}]({base_url}/commit/{full_hash})'.format(
+      link = u'[{short_hash}]({base_url}/commit/{full_hash})'.format(
           short_hash=msg.commit_id[:8], full_hash=msg.commit_id,
           base_url=base_url)
       level = msg.determine_semver_implication()
-      report.append('**{level}** ({link})\n{detail}\n'.format(
+      report.append(u'**{level}** ({link})\n{detail}\n'.format(
           level=level_name[level], link=link, detail=clean_text))
     return report
 
@@ -406,7 +406,7 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
     except HTTPError as error:
       raise_and_log_error(
           ConfigError(
-              'Changelog gist "{url}": {error}'.format(
+              u'Changelog gist "{url}": {error}'.format(
                   url=options.changelog_gist_url,
                   error=error.message)))
 

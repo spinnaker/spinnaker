@@ -108,5 +108,5 @@ def write_to_path(content, path):
   This will create the parent directory if needed.
   """
   ensure_dir_exists(os.path.dirname(os.path.abspath(path)))
-  with open(path, 'w') as f:
-    f.write(content)
+  with open(path, 'wb') as f:
+    f.write(content.encode('utf-8'))

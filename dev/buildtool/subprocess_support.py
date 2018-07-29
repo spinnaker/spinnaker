@@ -82,7 +82,7 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
     for line in iter(process.stdout.readline, ''):
       if not line:
         break
-      decoded_line = bytes.decode(line)
+      decoded_line = bytes.decode(line, encoding='utf-8')
       stdout_lines.append(decoded_line)
       if stream:
         stream.write(decoded_line)
