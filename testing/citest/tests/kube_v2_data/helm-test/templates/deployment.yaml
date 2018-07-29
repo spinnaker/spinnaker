@@ -4,7 +4,7 @@ metadata:
   name: "{{ .Values.name }}"
   namespace: "{{ .Values.namespace }}"
   labels:
-    app: {{ template "helm_test.name" . }}
+    app: "{{ .Values.app }}"
     chart: {{ template "helm_test.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
