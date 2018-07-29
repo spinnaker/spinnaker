@@ -169,8 +169,9 @@ class KubeV2HelmTestScenario(sk.SpinnakerTestScenario):
     chart_expected_artifact = self.__gcs_helm_chart_expected_artifact('helm-test.tgz')
     values_expected_artifact = self.__gcs_file_expected_artifact("""
     image: {image}
+    namespace: {namespace}
     name: {name}
-    """.format(image=image, name=name),
+    """.format(image=image, namespace=self.TEST_NAMESPACE, name=name),
     'helm-values.yml')
     bake_artifact_id = 'bake-artifact'
     bake_artifact_name = 'demo'
