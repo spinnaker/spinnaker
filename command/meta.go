@@ -315,7 +315,7 @@ func (m *ApiMeta) Prompt() string {
 	reader := bufio.NewReader(os.Stdin)
 	m.Ui.Output(fmt.Sprintf("Paste authorization code:"))
 	text, _ := reader.ReadString('\n')
-	return text
+	return strings.TrimSpace(text)
 }
 
 func (m *ApiMeta) Help() string {
