@@ -151,7 +151,7 @@ EOF
 # Start script
 
 # Install node
-NODE_VERSION=7.0.0
+NODE_VERSION=8.9.0
 . /etc/profile.d/nvm.sh
 nvm install $NODE_VERSION
 nvm alias default $NODE_VERSION
@@ -178,8 +178,17 @@ if [[ ! $have_packer ]]; then
 fi
 
 
+# setup Halyard
+curl -q -O \
+    https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
+chmod +x InstallHalyard.sh
+if prompt_YN "Y" "Install Halyard (as user $LOGNAME)?"; then
+    sudo ./InstallHalyard.sh --user $LOGNAME
+fi
+
 # Setup git
 prepare_git
+prepare_python
 
 
 # setup Google SDK
@@ -240,41 +249,39 @@ if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" != "none" ]]; then
 
   # This is a bootstrap pull of the development scripts.
   if [[ ! -e "spinnaker" ]]; then
+    existing_spinnaker=false
     git_clone $CONFIRMED_GITHUB_REPOSITORY_OWNER "spinnaker" "spinnaker"
   else
+    existing_spinnaker=true
     echo "spinnaker/ already exists. Don't clone it."
   fi
 
+  echo "Setting up buildtool virtual environment in $PWD/venv"
+  virtualenv venv
+  source venv/bin/activate
+  pip install --upgrade pip
+
   # Pull the spinnaker source into a fresh build directory.
-  ./spinnaker/dev/refresh_source.sh --pull_origin \
-      --github_user $CONFIRMED_GITHUB_REPOSITORY_OWNER
+  pip install -r ./spinnaker/dev/requirements.txt
+  pip install -r ./spinnaker/dev/buildtool/requirements.txt
+  ./spinnaker/dev/buildtool.sh --input_dir=tmp.in --output_dir=tmp.out \
+      fetch_source \
+      --github_disable_upstream_push true \
+      --github_owner $CONFIRMED_GITHUB_REPOSITORY_OWNER
+
+  if [[ "$existing_spinnaker" == "true" ]]; then
+     rm -rf tmp.in/fetch_source/spinnaker
+  else
+     # Remove the bootstrap repo
+     rm -rf spinnaker
+  fi
+
+  # These are all the fetched git repos for spinnaker
+  mv tmp.in/fetch_source/* .
+
+  # Cleanup from our build script
+  rm -rf tmp.in tmp.out
 fi
-
-# Prepare spinnaker-local.yml
-if [[ ! -f $HOME/.spinnaker/spinnaker-local.yml ]]; then
-    # This has a side effect in which it will produce a spinnaker-local if
-    # it did not already exist. Since there is no "bogus" microservice, this
-    # will not actually do anything other than produce the spinnaker-local.
-    # The default spinnaker-local will be configured for this machine as
-    # a better starting point than otherwise.
-    ./spinnaker/dev/stop_dev.sh bogus >& /dev/null || true
-fi
-
-# Some dependencies of Deck rely on Bower to manage their dependencies. Bower
-# annoyingly prompts the user to collect some stats, so this disables that.
-echo "{\"interactive\":false}" > ~/.bowerrc
-
-
-if [[ -f $HOME/.spinnaker/spinnaker-local.yml ]]; then
-  echo "Forcing cassandra off."
-  ./spinnaker/install/change_cassandra.sh --echo=inMemory --front50=gcs --change_defaults=false --change_local=true
-  chmod 600 $HOME/.spinnaker/spinnaker-local.yml
-
-  # Note that dev_runner will create a default spinnaker-local and disable cassandra
-  # when first run from source if there is no spinnaker-local.
-  # It does more initialization so we'll defer to that rather than doing it here.
-fi
-
 
 # If this script was run in a different shell then we
 # don't have the environment variables we set, and aren't in the build directory.
@@ -292,9 +299,8 @@ EOF
 fi
 
 cat <<EOF
-To initiate a build and run spinnaker:
-  cd build
-  ./spinnaker/dev/run_dev.sh
+For more information,
+see https://www.spinnaker.io/guides/developer/getting-set-up/
 EOF
 }
 
@@ -303,9 +309,8 @@ EOF
 function print_source_instructions() {
 cat <<EOF
 
-
-To initiate a build and run spinnaker:
-  ./spinnaker/dev/run_dev.sh
+For more information,
+see https://www.spinnaker.io/guides/developer/getting-set-up/
 EOF
 }
 
@@ -319,22 +324,7 @@ EOF
 }
 
 
-# The /bogus prefix here is because eval seems to make $0 -bash,
-# which basename thinks are flags. So since basename ignores the
-# leading path, we'll just add a bogus one in.
-if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" == "none" ]]; then
-    cat <<EOF
-NOTE: You chose not to download the Spinnaker source code at this time.
-To download them in the future, execute the following:
-    mkdir build
-    cd build
-    git clone https://github.com/spinnaker/spinnaker.git
-    ./spinnaker/dev/refresh_source.sh --github_user=upstream --pull_origin
-
-Then, to initiate a build and run spinnaker:
-  ./spinnaker/dev/run_dev.sh
-EOF
-elif [[ $(basename "/bogus/$0") == "bootstrap_dev.sh" ]]; then
+if [[ $(basename "/bogus/$0") == "bootstrap_dev.sh" ]]; then
   print_invoke_instructions
 else
   print_source_instructions
