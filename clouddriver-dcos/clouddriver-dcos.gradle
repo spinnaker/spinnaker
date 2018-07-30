@@ -2,5 +2,5 @@ dependencies {
   compile project(":clouddriver-core")
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
-  compile 'com.cerner.marathon:marathon-client:0.6.2'
+  compile 'com.cerner.marathon:marathon-client:0.6.3'
 }

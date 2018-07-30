@@ -29,13 +29,19 @@ class RunDcosJobDescription extends AbstractDcosCredentialsDescription implement
   Schedule schedule
   Docker docker
   Map<String, String> labels
-  Map<String, String> env
+  Map<String, Object> env
+  Map<String, SecretSource> secrets
   String user
   Integer maxLaunchDelay
   List<Constraint> constraints
   RestartPolicy restartPolicy
   List<Artifact> artifacts
   List<Volume> volumes
+
+  @Canonical
+  static class SecretSource {
+    String source
+  }
 
   @Canonical
   static class GeneralSettings {

@@ -172,7 +172,14 @@ class RunDcosJobAtomicOperation implements AtomicOperation<DeploymentResult> {
         }
 
         if (jobDescription.env) {
-          env = jobDescription.env.clone() as Map<String, String>
+          env = jobDescription.env.clone()
+          env.each { key, value ->
+            if (!(value instanceof Map)) env[key] = value.toString()
+          }
+        }
+
+        if (jobDescription.secrets) {
+          secrets = jobDescription.secrets.clone()
         }
 
         it
