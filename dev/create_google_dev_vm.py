@@ -21,11 +21,19 @@ import sys
 import tempfile
 import time
 
-from spinnaker.fetch import fetch
-from spinnaker.fetch import GOOGLE_INSTANCE_METADATA_URL
-from spinnaker.run import run_quick
-from spinnaker.run import check_run_quick
-from spinnaker.yaml_util import YamlBindings
+try:
+  from urllib2 import urlopen, Request, HTTPError, URLError
+except ImportError:
+  from urllib.request import urlopen, Request
+  from urllib.error import HTTPError, URLError
+
+from buildtool import (
+    run_subprocess,
+    check_subprocess)
+
+
+GOOGLE_METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
+GOOGLE_INSTANCE_METADATA_URL = GOOGLE_METADATA_URL + '/instance'
 
 
 __NEXT_STEP_INSTRUCTIONS = """
@@ -62,8 +70,8 @@ def get_project(options):
     The default project name is the gcloud configured default project.
     """
     if not options.project:
-      result = check_run_quick('gcloud config list', echo=False)
-      options.project = re.search('project = (.*)\n', result.stdout).group(1)
+      stdout = check_subprocess('gcloud config list')
+      options.project = re.search('project = (.*)\n', stdout).group(1)
     return options.project
 
 
@@ -73,11 +81,12 @@ def get_zone(options):
     The default zone is the current zone if on GCE or an arbitrary zone.
     """
     if not options.zone:
-      result = fetch(os.path.join(GOOGLE_INSTANCE_METADATA_URL, 'zone'),
-                                  google=True)
-      if result.ok():
-        options.zone = os.path.basename(result.content)
-      else:
+      request = Request(GOOGLE_INSTANCE_METADATA_URL + '/zone')
+      request.add_header('Metadata-Flavor', 'Google')
+      try:
+        response = urlopen(request)
+        options.zone = os.path.basename(bytes.decode(response.read()))
+      except (HTTPError, URLError):
         options.zone = 'us-central1-f'
 
     return options.zone
@@ -114,6 +123,9 @@ def init_argument_parser(parser):
         action='store_false', help='Do not copy personal files.')
 
     parser.add_argument(
+        '--copy_home_spinnaker', default=False, action='store_true',
+      help='Copy ~/.spinnaker directory.')
+    parser.add_argument(
         '--copy_git_credentials', default=False, action='store_true',
         help='Copy git credentials (.git-credentials)')
     parser.add_argument(
@@ -131,9 +143,6 @@ def init_argument_parser(parser):
     parser.add_argument(
         '--aws_credentials', default=None,
         help='If specified, the path to the aws credentials file.')
-    parser.add_argument(
-        '--master_yml', default=None,
-        help='If specified, the path to the master spinnaker-local.yml file.')
 
     parser.add_argument(
         '--address', default=None,
@@ -148,26 +157,27 @@ def init_argument_parser(parser):
 
 def try_until_ready(command):
     while True:
-        result = run_quick(command, echo=False)
-        if not result.returncode:
+        retcode, stdout = run_subprocess(command)
+        if not retcode:
             break
-        msg = result.stderr or result.stdout
-        if msg.find('refused') > 0:
-            print 'New instance does not seem ready yet...retry in 5s.'
+
+        if stdout.find('refused') > 0:
+            print('New instance does not seem ready yet...retry in 5s.')
         else:
-            print msg.strip()
-            print 'Retrying in 5s.'
+            print(stdout.strip())
+            print('Retrying in 5s.')
         time.sleep(5)
 
 
 def make_remote_directories(options):
     all = []
+    if options.copy_home_spinnaker:
+        all.append('.hal')
+        all.append('.spinnaker')
     if options.copy_personal_files:
         all.append('.gradle')
     if options.aws_credentials:
         all.append('.aws')
-    if options.master_yml:
-        all.append('.spinnaker')
     if options.copy_gcloud_config:
         all.append('.config/gcloud')
 
@@ -181,8 +191,18 @@ def make_remote_directories(options):
 
         try_until_ready(command)
 
-
-
+def copy_dir(options, source, target):
+    print('Copying dir %s to %s' % (source, target))
+    command = ' '.join([
+        'gcloud compute scp',
+        '--project', get_project(options),
+        '--zone', get_zone(options),
+        '--recurse',
+        source,
+        '{instance}:{target}'.format(instance=options.instance,
+                                     target=target)])
+    try_until_ready(command)
+  
 def copy_custom_file(options, source, target):
     command = ' '.join([
         'gcloud compute copy-files',
@@ -203,24 +223,24 @@ def copy_home_file_list(options, type, base_dir, sources):
             have.append('"{0}"'.format(full_path))
 
     if have:
-        print 'Copying {type}...'.format(type=type)
+        print('Copying {type}...'.format(type=type))
         source_list = ' '.join(have)
         # gcloud will copy permissions as well, however it won't create
         # directories. Assume make_remote_directories was called already.
         copy_custom_file(options, source_list, base_dir)
     else:
-        print 'Skipping {type} because there are no files.'.format(type=type)
+        print('Skipping {type} because there are no files.'.format(type=type))
 
 
 def maybe_inform(type, test_path, option_to_enable):
     if os.path.exists(os.path.join(os.environ['HOME'], test_path)):
-        print 'Skipping {type} because missing {option}.'.format(
-            type=type, option=option_to_enable)
+        print('Skipping {type} because missing {option}.'.format(
+            type=type, option=option_to_enable))
 
 
 def maybe_copy_aws_credentials(options):
     if options.aws_credentials:
-      print 'Copying aws credentials...'
+      print('Copying aws credentials...')
       copy_custom_file(options, options.aws_credentials, '.aws/credentials')
     else:
       maybe_inform('aws credentials', '.aws/credentials', '--aws_credentials')
@@ -248,6 +268,15 @@ def maybe_copy_git_credentials(options):
                      '.git-credentials', '--copy_git_credentials')
 
 
+def maybe_copy_home_spinnaker(options):
+  if not options.copy_home_spinnaker:
+    return
+
+  home_path = os.environ['HOME']
+  copy_dir(options, os.path.join(home_path, '.spinnaker'), '.')
+  copy_dir(options, os.path.join(home_path, '.hal'), '.')
+
+
 def copy_personal_files(options):
    copy_home_file_list(options, 'personal configuration files',
                        '.',
@@ -260,10 +289,10 @@ def copy_personal_files(options):
 def create_instance(options):
     """Creates new GCE VM instance for development."""
     project = get_project(options)
-    print 'Creating instance {project}/{zone}/{instance}'.format(
-        project=project, zone=get_zone(options), instance=options.instance)
-    print ('  with --machine_type={type} and --disk_size={disk_size}...'
-           .format(type=options.machine_type, disk_size=options.disk_size))
+    print('Creating instance {project}/{zone}/{instance}'.format(
+        project=project, zone=get_zone(options), instance=options.instance))
+    print('  with --machine_type={type} and --disk_size={disk_size}...'
+          .format(type=options.machine_type, disk_size=options.disk_size))
 
     google_dev_dir = os.path.join(os.path.dirname(__file__), '../google/dev')
     dev_dir = os.path.dirname(__file__)
@@ -271,17 +300,14 @@ def create_instance(options):
 
     install_dir = '{dir}/../install'.format(dir=dev_dir)
 
-    startup_command = ['/opt/spinnaker/install/install_spinnaker.sh'
-                           ' --dependencies_only',
-                       '/opt/spinnaker/install/install_development.sh']
+    startup_command = ['/opt/spinnaker/install/install_development.sh']
     fd, temp_startup = tempfile.mkstemp()
-    os.write(fd, ';'.join(startup_command))
+    os.write(fd, str.encode(';'.join(startup_command)))
     os.close(fd)
 
     metadata_files = [
         'startup-script={google_dev_dir}/google_install_loader.py'
         ',sh_bootstrap_dev={dev_dir}/bootstrap_dev.sh'
-        ',sh_install_spinnaker={project_dir}/InstallSpinnaker.sh'
         ',sh_install_development={dev_dir}/install_development.sh'
         ',startup_command={temp_startup}'
         .format(google_dev_dir=google_dev_dir,
@@ -291,8 +317,7 @@ def create_instance(options):
 
     metadata = ','.join([
         'startup_loader_files='
-        'sh_install_spinnaker'
-        '+sh_install_development'
+        'sh_install_development'
         '+sh_bootstrap_dev'])
 
     command = ['gcloud', 'compute', 'instances', 'create',
@@ -311,75 +336,12 @@ def create_instance(options):
     if options.address:
         command.extend(['--address', options.address])
 
-    check_run_quick(' '.join(command), echo=False)
-
-
-def maybe_copy_master_yml(options):
-    """Copy the specified master spinnaker-local.yml, and credentials.
-
-    This will look for paths to credentials within the spinnaker-local.yml, and
-    copy those as well. The paths to the credentials (and the reference
-    in the config file) will be changed to reflect the filesystem on the
-    new instance, which may be different than on this instance.
-
-    Args:
-      options [Namespace]: The parser namespace options contain information
-        about the instance we're going to copy to, as well as the source
-        of the master spinnaker-local.yml file.
-    """
-    if not options.master_yml:
-        maybe_inform('custom spinnaker-local.yml',
-                     '.spinnaker/spinnaker-local.yml', '--copy_master_yml')
-        return
-
-    bindings = YamlBindings()
-    bindings.import_path(options.master_yml)
-
-    try:
-      json_credential_path = bindings.get(
-          'providers.google.primaryCredentials.jsonPath')
-    except KeyError:
-      json_credential_path = None
-
-    gcp_home = os.path.join('/home', os.environ['LOGNAME'], '.spinnaker')
-
-    # If there are credentials, write them to this path
-    gcp_credential_path = os.path.join(gcp_home, 'google-credentials.json')
-
-    with open(options.master_yml, 'r') as f:
-        content = f.read()
-
-    # Replace all the occurrences of the original credentials path with the
-    # path that we are going to place the file in on the new instance.
-    if json_credential_path:
-        if not os.path.exists(json_credential_path):
-            raise ValueError('{0} specifies google credentials in {1},'
-                             ' which does not exist.'
-                                 .format(options.master_yml,
-                                         json_credential_path))
-
-        content = content.replace(json_credential_path, gcp_credential_path)
-
-    fd, temp_path = tempfile.mkstemp()
-    os.fchmod(fd, os.stat(options.master_yml).st_mode)  # Copy original mode
-    os.write(fd, content)
-    os.close(fd)
-    actual_path = temp_path
-
-    # Copy the credentials here. The cfg file will be copied after.
-    copy_custom_file(options, actual_path, '.spinnaker/spinnaker-local.yml')
-
-    if json_credential_path:
-        copy_custom_file(options, json_credential_path,
-                         '.spinnaker/google-credentials.json')
-
-    if temp_path:
-      os.remove(temp_path)
+    check_subprocess(' '.join(command))
 
 
 def check_gcloud():
-    result = run_quick('gcloud --version', echo=False)
-    if not result.returncode:
+    retcode, _ = run_subprocess('gcloud --version')
+    if not retcode:
         return
 
     sys.stderr.write('ERROR: This program requires gcloud. To obtain gcloud:\n'
@@ -389,7 +351,7 @@ def check_gcloud():
 
 def check_args(options):
     """Fail fast if paths we explicitly want to copy do not exist."""
-    for path in [options.aws_credentials, options.master_yml]:
+    for path in [options.aws_credentials]:
         if path and not os.path.exists(path):
            sys.stderr.write('ERROR: {path} not found.\n'.format(path=path))
            sys.exit(-1)
@@ -412,10 +374,10 @@ if __name__ == '__main__':
 
     maybe_copy_git_credentials(options)
     maybe_copy_aws_credentials(options)
+    maybe_copy_home_spinnaker(options)
     maybe_copy_gcloud_config(options)
-    maybe_copy_master_yml(options)
 
-    print __NEXT_STEP_INSTRUCTIONS.format(
+    print(__NEXT_STEP_INSTRUCTIONS.format(
         project=get_project(options),
         zone=get_zone(options),
-        instance=options.instance)
+        instance=options.instance))

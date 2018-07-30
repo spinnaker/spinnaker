@@ -17,4 +17,4 @@
 # There could be a flag here for the provider to create the instance on
 # but for now this is specialized for Google.
 SCRIPT_DIR=$(dirname $0)
-PYTHONPATH=$SCRIPT_DIR/../pylib python $SCRIPT_DIR/create_google_dev_vm.py "$@"
+PYTHONPATH=$SCRIPT_DIR/../dev python $SCRIPT_DIR/create_google_dev_vm.py "$@"
