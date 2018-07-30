@@ -27,7 +27,7 @@ module.exports = angular
         resources: {
           cpu: 1,
           networkMbps: 128,
-          disk: 512,
+          disk: 10000,
           memory: 512,
           gpu: 0,
         },
