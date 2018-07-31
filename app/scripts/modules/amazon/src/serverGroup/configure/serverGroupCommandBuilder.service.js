@@ -72,6 +72,8 @@ module.exports = angular
             keyPair: keyPair,
             suspendedProcesses: [],
             securityGroups: [],
+            stack: '',
+            freeFormDetails: '',
             spotPrice: '',
             tags: {},
             useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
@@ -84,6 +86,7 @@ module.exports = angular
               mode: defaults.mode || 'create',
               disableStrategySelection: true,
               dirty: {},
+              submitButtonLabel: getSubmitButtonLabel(defaults.mode || 'create'),
             },
           };
 
@@ -150,6 +153,19 @@ module.exports = angular
           requiresTemplateSelection: true,
         },
       });
+    }
+
+    function getSubmitButtonLabel(mode) {
+      switch (mode) {
+        case 'createPipeline':
+          return 'Add';
+        case 'editPipeline':
+          return 'Done';
+        case 'clone':
+          return 'Clone';
+        default:
+          return 'Create';
+      }
     }
 
     function buildUpdateServerGroupCommand(serverGroup) {

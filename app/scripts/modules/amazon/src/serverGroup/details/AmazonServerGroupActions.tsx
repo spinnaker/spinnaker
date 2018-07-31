@@ -15,7 +15,9 @@ import {
 } from '@spinnaker/core';
 
 import { IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
+import { AmazonCloneServerGroupModal } from 'amazon/serverGroup/configure/wizard/AmazonCloneServerGroupModal';
 import { AwsReactInjector } from 'amazon/reactShims';
+import { IAmazonServerGroupCommand } from '../configure';
 
 export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: IAmazonServerGroupView;
@@ -268,17 +270,12 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
 
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
-    ModalInjector.modalService.open({
-      templateUrl: require('../configure/wizard/serverGroupWizard.html'),
-      controller: 'awsCloneServerGroupCtrl as ctrl',
-      size: 'lg',
-      resolve: {
-        title: () => 'Clone ' + serverGroup.name,
-        application: () => app,
-        serverGroupCommand: () =>
-          AwsReactInjector.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
-      },
-    });
+    AwsReactInjector.awsServerGroupCommandBuilder
+      .buildServerGroupCommandFromExisting(app, serverGroup)
+      .then((command: IAmazonServerGroupCommand) => {
+        const title = `Clone ${serverGroup.name}`;
+        AmazonCloneServerGroupModal.show({ title, application: app, command });
+      });
   };
 
   public render(): JSX.Element {

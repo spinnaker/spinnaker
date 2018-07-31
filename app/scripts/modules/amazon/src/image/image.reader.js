@@ -7,7 +7,7 @@ import { API } from '@spinnaker/core';
 module.exports = angular.module('spinnaker.amazon.image.reader', []).factory('awsImageReader', function($q) {
   function findImages(params) {
     if (!params.q || params.q.length < 3) {
-      return $q.when([{ message: 'Please enter at least 3 characters...' }]);
+      return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]);
     }
     return API.one('images/find')
       .withParams(params)
