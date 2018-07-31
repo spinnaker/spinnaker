@@ -103,20 +103,30 @@ module.exports = angular
     };
 
     this.createServerGroup = function createServerGroup() {
-      providerSelectionService.selectProvider(app, 'serverGroup').then(function(selectedProvider) {
-        skinSelectionService.selectSkin(selectedProvider).then(function(selectedVersion) {
-          let provider = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup', selectedVersion);
-          $uibModal.open({
-            templateUrl: provider.cloneServerGroupTemplateUrl,
-            controller: `${provider.cloneServerGroupController} as ctrl`,
-            size: 'lg',
-            resolve: {
-              title: () => 'Create New Server Group',
-              application: () => app,
-              serverGroup: () => null,
-              serverGroupCommand: () => serverGroupCommandBuilder.buildNewServerGroupCommand(app, selectedProvider),
-              provider: () => selectedProvider,
-            },
+      providerSelectionService.selectProvider(app, 'serverGroup').then(function(provider) {
+        skinSelectionService.selectSkin(provider).then(function(selectedVersion) {
+          serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider).then(command => {
+            let providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup', selectedVersion);
+            const title = 'Create New Server Group';
+            const serverGroup = null;
+            if (providerConfig.CloneServerGroupModal) {
+              // React
+              providerConfig.CloneServerGroupModal.show({ title, application: app, serverGroup, command, provider });
+            } else {
+              // angular
+              $uibModal.open({
+                templateUrl: providerConfig.cloneServerGroupTemplateUrl,
+                controller: `${providerConfig.cloneServerGroupController} as ctrl`,
+                size: 'lg',
+                resolve: {
+                  title: () => title,
+                  application: () => app,
+                  serverGroup: () => serverGroup,
+                  serverGroupCommand: () => command,
+                  provider: () => provider,
+                },
+              });
+            }
           });
         });
       });
