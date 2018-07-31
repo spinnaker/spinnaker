@@ -1,21 +1,19 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .modal-backdrop {
-  z-index: 10002;
-}
-.modal {
-  z-index: 10002;
+  z-index: 8999;
 }
 
-.modal-backdrop {
-  z-index: 10002;
-}
 .modal {
-  z-index: 10002;
-  h2, h3, h4, h5 {
+  z-index: 8999;
+  h2,
+  h3,
+  h4,
+  h5 {
     font-weight: 600;
   }
-  .modal-close, modal-close {
+  .modal-close,
+  modal-close {
     display: block;
     position: absolute;
     right: 0;
@@ -38,7 +36,7 @@
 }
 
 .modal-fullscreen {
-  height: calc(~"100% - 60px");
+  height: calc(~'100% - 60px');
   .modal-content {
     min-height: 100%;
     display: flex;
@@ -57,7 +55,8 @@
 }
 
 .modal-body {
-  h3, h4 {
+  h3,
+  h4 {
     margin-top: 0;
   }
   .section-heading {
@@ -74,7 +73,9 @@
 /* Fixes an unfortunate Chrome bug where a single selection on a multi-select select2 field
    causes the backwards navigation animation to hang. */
 select.select2 {
-  option { display: none !important }
+  option {
+    display: none !important;
+  }
 }
 
 .select2-results {
@@ -180,7 +181,7 @@ abbr.select2-search-choice-close {
     box-shadow: none;
     background-image: none;
     .select2-search-field {
-      width: calc(~"100% - 40px");
+      width: calc(~'100% - 40px');
       float: none;
       border: 1px dashed var(--color-concrete);
       color: var(--color-concrete);
@@ -213,11 +214,12 @@ abbr.select2-search-choice-close {
       background-image: none;
       background-color: transparent;
       box-shadow: none;
-      div, span {
+      div,
+      span {
         cursor: text;
         user-select: auto;
         padding: 5px;
-        width: calc(~"100% - 40px");
+        width: calc(~'100% - 40px');
         display: inline-block;
         border: 1px solid var(--color-alto);
         background-color: var(--color-white);
@@ -231,7 +233,7 @@ abbr.select2-search-choice-close {
         display: inline-block;
         margin-top: 4px;
         &:before {
-          content: "\e020";
+          content: '\e020';
           font-size: 12px;
           font-family: 'Glyphicons Halflings';
           width: 13px;
@@ -292,7 +294,8 @@ abbr.select2-search-choice-close {
     padding-top: 20px;
     height: ~'calc(100% - 145px)';
   }
-  .modal-header, .modal-footer {
+  .modal-header,
+  .modal-footer {
     position: relative;
     width: 100%;
     background-color: var(--color-white);
