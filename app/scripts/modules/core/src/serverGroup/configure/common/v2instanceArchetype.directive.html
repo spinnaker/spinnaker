@@ -1,21 +1,22 @@
 <h4 class="col-md-12" style="margin-top: 10px">This application is:</h4>
 <div class="archetype-columns archetype-columns-{{columns}}" ng-repeat="instanceProfile in instanceProfiles">
   <button class="instance-profile"
-          ng-class="{active: command.viewState.instanceProfile === instanceProfile.type}"
+          type="button"
+          ng-class="{active: instanceArchetypeCtrl.command.viewState.instanceProfile === instanceProfile.type}"
           ng-click="instanceArchetypeCtrl.selectInstanceType(instanceProfile.type)">
-        <span is-visible="command.viewState.instanceProfile === instanceProfile.type"
+        <span is-visible="instanceArchetypeCtrl.command.viewState.instanceProfile === instanceProfile.type"
               class="far fa-check-circle selected-indicator"></span>
     <div class="panel-heading">
       <h4><span class="glyphicon glyphicon-{{instanceProfile.icon}}"></span><br/> {{instanceProfile.label}}</h4>
     </div>
   </button>
 </div>
-<div class="clearfix" ng-if="command.viewState.instanceProfile === 'custom'">
-  <dirty-instance-type-notification command="command"></dirty-instance-type-notification>
+<div class="clearfix" ng-if="instanceArchetypeCtrl.command.viewState.instanceProfile === 'custom'">
+  <dirty-instance-type-notification command="instanceArchetypeCtrl.command"></dirty-instance-type-notification>
   <div class="col-md-8">
     <select class="form-control input-sm"
-            ng-model="command.instanceType"
-            ng-options="customType for customType in command.backingData.filtered.instanceTypes"
+            ng-model="instanceArchetypeCtrl.command.instanceType"
+            ng-options="customType for customType in instanceArchetypeCtrl.command.backingData.filtered.instanceTypes"
             ng-change="instanceArchetypeCtrl.updateInstanceTypeDetails()"
             required>
       <option value="">Select an instance type...</option>
@@ -37,5 +38,5 @@
 </div>
 <ng-include
   src="instanceArchetypeCtrl.getInstanceBuilderTemplate()"
-  ng-if="command.viewState.instanceProfile === 'buildCustom'">
+  ng-if="instanceArchetypeCtrl.command.viewState.instanceProfile === 'buildCustom'">
 </ng-include>
