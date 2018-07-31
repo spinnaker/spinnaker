@@ -5,14 +5,14 @@ import { overrideRegistrationQueue } from './Overrides';
 
 export class OverrideRegistry {
   private templateOverrides: Map<string, string> = new Map();
-  private componentOverrides: Map<string, React.ComponentType> = new Map();
+  private componentOverrides: Map<string, React.ComponentClass> = new Map();
   private controllerOverrides: Map<string, string> = new Map();
 
   public overrideTemplate(key: string, val: string) {
     this.templateOverrides.set(key, val);
   }
 
-  public overrideComponent(key: string, val: React.ComponentType) {
+  public overrideComponent(key: string, val: React.ComponentClass) {
     this.componentOverrides.set(key, val);
   }
 
@@ -25,7 +25,7 @@ export class OverrideRegistry {
   }
 
   public getComponent<T>(key: string) {
-    return this.componentOverrides.get(key) as React.ComponentType<T>;
+    return this.componentOverrides.get(key) as React.ComponentClass<T>;
   }
 
   public getController(key: string, defaultVal: string = key) {
