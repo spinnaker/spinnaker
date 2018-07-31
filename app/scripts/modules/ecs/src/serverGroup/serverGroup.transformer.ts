@@ -1,16 +1,16 @@
 import { module, IPromise } from 'angular';
 import { defaults } from 'lodash';
 
-import { IVpc } from '@spinnaker/core';
+import { IVpc, IInstance } from '@spinnaker/core';
 
 import {
-  IScalingAdjustmentView,
-  IScalingPolicyView,
-  IScalingPolicyAlarmView,
   IAmazonServerGroup,
-  IStepAdjustmentView,
-  IScalingPolicy,
   IAmazonServerGroupView,
+  IScalingAdjustmentView,
+  IScalingPolicyAlarmView,
+  IScalingPolicyView,
+  IStepAdjustment,
+  IStepAdjustmentView,
   VpcReader,
 } from '@spinnaker/amazon';
 
@@ -19,6 +19,7 @@ export class EcsServerGroupTransformer {
     if (!alarm.comparisonOperator) {
       return;
     }
+
     switch (alarm.comparisonOperator) {
       case 'LessThanThreshold':
         alarm.comparator = '&lt;';
@@ -40,22 +41,22 @@ export class EcsServerGroupTransformer {
     policyOrStepAdjustment.absAdjustment = Math.abs(policyOrStepAdjustment.scalingAdjustment);
   }
 
-  private transformScalingPolicy(policy: IScalingPolicy): IScalingPolicyView {
-    const view: IScalingPolicyView = { ...policy } as IScalingPolicyView;
+  private transformScalingPolicy(policy: IScalingPolicyView): IScalingPolicyView {
+    const view: IScalingPolicyView = { ...policy };
     const upperBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) =>
         b.metricIntervalUpperBound - a.metricIntervalUpperBound,
       lowerBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) =>
         a.metricIntervalLowerBound - b.metricIntervalLowerBound;
 
     view.alarms = policy.alarms || [];
-    view.alarms.forEach(alarm => this.addComparator(alarm));
+    view.alarms.forEach((alarm: IScalingPolicyAlarmView) => this.addComparator(alarm));
     this.addAdjustmentAttributes(view); // simple policies
     if (view.stepAdjustments && view.stepAdjustments.length) {
-      view.stepAdjustments.forEach(sa => this.addAdjustmentAttributes(sa)); // step policies
-      const sorter = policy.stepAdjustments.every(a => a.metricIntervalUpperBound !== undefined)
+      view.stepAdjustments.forEach((sa: IStepAdjustmentView) => this.addAdjustmentAttributes(sa)); // step policies
+      const sorter = policy.stepAdjustments.every((a: IStepAdjustment) => a.metricIntervalUpperBound !== undefined)
         ? upperBoundSorter
         : lowerBoundSorter;
-      view.stepAdjustments.sort((a, b) => sorter(a, b));
+      view.stepAdjustments.sort((a: IStepAdjustmentView, b: IStepAdjustmentView) => sorter(a, b));
     }
     return view;
   }
@@ -63,16 +64,20 @@ export class EcsServerGroupTransformer {
   public normalizeServerGroupDetails(serverGroup: IAmazonServerGroup): IAmazonServerGroupView {
     const view: IAmazonServerGroupView = { ...serverGroup } as IAmazonServerGroupView;
     if (serverGroup.scalingPolicies) {
-      view.scalingPolicies = serverGroup.scalingPolicies.map(policy => this.transformScalingPolicy(policy));
+      view.scalingPolicies = serverGroup.scalingPolicies.map((policy: IScalingPolicyView) =>
+        this.transformScalingPolicy(policy),
+      );
     }
     return view;
   }
 
   public normalizeServerGroup(serverGroup: IAmazonServerGroup): IPromise<IAmazonServerGroup> {
-    serverGroup.instances.forEach(instance => {
+    serverGroup.instances.forEach((instance: IInstance) => {
       instance.vpcId = serverGroup.vpcId;
     });
-    return VpcReader.listVpcs().then(vpc => this.addVpcNameToServerGroup(serverGroup)(vpc));
+    return VpcReader.listVpcs().then((vpc: IVpc[]): IAmazonServerGroup =>
+      this.addVpcNameToServerGroup(serverGroup)(vpc),
+    );
   }
 
   private addVpcNameToServerGroup(serverGroup: IAmazonServerGroup): (vpc: IVpc[]) => IAmazonServerGroup {

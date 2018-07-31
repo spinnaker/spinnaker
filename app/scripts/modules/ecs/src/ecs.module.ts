@@ -19,13 +19,14 @@ import './logo/ecs.logo.less';
 require('./ecs.settings.ts');
 
 // load all templates into the $templateCache
-let templates = require.context('./', true, /\.html$/);
+const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
   templates(key);
 });
 
-module.exports = angular
-  .module('spinnaker.ecs', [
+export const ECS_MODULE = 'spinnaker.ecs';
+angular
+  .module(ECS_MODULE, [
     require('./serverGroup/configure/wizard/CloneServerGroup.ecs.controller').name,
     SERVER_GROUP_DETAILS_MODULE,
     IAM_ROLE_READ_SERVICE,

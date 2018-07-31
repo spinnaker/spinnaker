@@ -1,4 +1,4 @@
-import { IScalingPolicy, IScalingPolicyAlarm, IStepAdjustment } from 'amazon/domain';
+import { IScalingPolicy, IScalingPolicyAlarm, IStepAdjustment } from './IScalingPolicy';
 
 export interface IScalingAdjustmentView extends IStepAdjustment {
   operator: string;

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { API } from 'core/api/ApiService';
+import { API } from '@spinnaker/core';
 import { IEcsClusterDescriptor } from './IEcsCluster';
 
 export class EscClusterReader {

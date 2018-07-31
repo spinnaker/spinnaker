@@ -64,6 +64,8 @@ function configure(env, webpackOpts) {
         '@spinnaker/kubernetes': path.join(__dirname, 'app', 'scripts', 'modules', 'kubernetes', 'src'),
         openstack: path.join(__dirname, 'app', 'scripts', 'modules', 'openstack', 'src'),
         '@spinnaker/openstack': path.join(__dirname, 'app', 'scripts', 'modules', 'openstack', 'src'),
+        ecs: path.join(__dirname, 'app', 'scripts', 'modules', 'ecs', 'src'),
+        '@spinnaker/ecs': path.join(__dirname, 'app', 'scripts', 'modules', 'ecs', 'src'),
         coreImports: path.resolve(
           __dirname,
           'app',

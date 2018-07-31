@@ -21,7 +21,7 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-import { IAmazonLoadBalancer } from 'amazon/domain';
+import { IAmazonLoadBalancer } from '@spinnaker/amazon';
 import { IamRoleReader } from '../../iamRoles/iamRole.read.service';
 import { EscClusterReader } from '../../ecsCluster/ecsCluster.read.service';
 import { MetricAlarmReader } from '../../metricAlarm/metricAlarm.read.service';

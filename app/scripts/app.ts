@@ -11,12 +11,13 @@ import { CANARY_MODULE } from './modules/canary/canary.module';
 import { KUBERNETES_V1_MODULE, KUBERNETES_V2_MODULE } from '@spinnaker/kubernetes';
 import { KAYENTA_MODULE } from '@spinnaker/kayenta';
 import { TITUS_MODULE } from '@spinnaker/titus';
+import { ECS_MODULE } from '@spinnaker/ecs';
 
 module('netflix.spinnaker', [
   CORE_MODULE,
   AMAZON_MODULE,
   GOOGLE_MODULE,
-  require('./modules/ecs/ecs.module.js').name,
+  ECS_MODULE,
   require('./modules/cloudfoundry/cf.module.js').name,
   require('./modules/azure/azure.module.js').name,
   KUBERNETES_V1_MODULE,

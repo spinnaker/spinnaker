@@ -1,6 +1,6 @@
 import { IPromise, module } from 'angular';
 
-import { API } from 'core/api/ApiService';
+import { API } from '@spinnaker/core';
 import { IRoleDescriptor } from './IRole';
 
 export class IamRoleReader {
