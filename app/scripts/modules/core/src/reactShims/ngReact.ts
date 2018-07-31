@@ -34,6 +34,8 @@ import { TaskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.direc
 import { ViewChangesLinkWrapper } from 'core/diffs/viewChangesLink.component';
 import { ViewScalingActivitiesLink } from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
 import { diffViewComponent } from '../pipeline/config/actions/history/diffView.component';
+import { IInstanceTypeSelectorProps } from 'core/serverGroup/configure/common/InstanceTypeSelector';
+import { V2InstanceTypeSelector } from 'core/serverGroup/configure/common/v2InstanceTypeSelector.component';
 
 // prettier-ignore
 export class NgReactInjector extends ReactInject {
@@ -50,6 +52,7 @@ export class NgReactInjector extends ReactInject {
   public HelpField: React.ComponentClass<IHelpFieldProps>                                     = angular2react('helpFieldWrapper', new HelpFieldWrapperComponent(), this.$injectorProxy) as any;
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                             = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
   public InstanceList: React.ComponentClass<IInstanceListProps>                               = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;
+  public InstanceTypeSelector: React.ComponentClass<IInstanceTypeSelectorProps>               = angular2react('v2InstanceTypeSelector', new V2InstanceTypeSelector(), this.$injectorProxy);
   public LegacySpinner: React.ComponentClass<ILegacySpinnerProps>                             = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
   public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps>                         = angular2react('runningTasksTag', { bindings: runningTasksTagBindings }, this.$injectorProxy) as any;
   public StageSummaryWrapper: React.ComponentClass<IStageSummaryWrapperProps>                 = angular2react('stageSummary', new StageSummaryComponent(), this.$injectorProxy) as any;

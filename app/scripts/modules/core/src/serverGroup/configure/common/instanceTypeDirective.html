@@ -18,12 +18,12 @@
       </thead>
       <tbody>
       <tr ng-repeat="instanceType in family.instanceTypes"
-          ng-class="{info: command.instanceType === instanceType.name, clickable: !instanceType.unavailable, unavailable: instanceType.unavailable}"
+          ng-class="{info: instanceTypeCtrl.command.instanceType === instanceType.name, clickable: !instanceType.unavailable, unavailable: instanceType.unavailable}"
           ng-click="instanceTypeCtrl.selectInstanceType(instanceType)">
         <td>
           <help-field ng-if="instanceType.unavailable" key="instanceType.unavailable"></help-field>
           <help-field ng-if="instanceType.helpFieldKey" key="{{instanceType.helpFieldKey}}"></help-field>
-          <input type="radio" ng-value="instanceType.name" ng-model="command.instanceType" ng-disabled="instanceType.unavailable"/>
+          <input type="radio" ng-value="instanceType.name" ng-model="instanceTypeCtrl.command.instanceType" ng-disabled="instanceType.unavailable"/>
         </td>
         <td>{{instanceType.label}}</td>
         <td>{{instanceType.cpu}}</td>
