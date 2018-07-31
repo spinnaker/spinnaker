@@ -2,26 +2,27 @@ import * as React from 'react';
 
 import { AccountService, Checklist } from '@spinnaker/core';
 
-export interface ILoadBalancerAvailabilityZoneSelectorProps {
+export interface IAvailabilityZoneSelectorProps {
   region: string;
   credentials: string;
   onChange: (zones: string[]) => void;
   allZones: string[];
+  usePreferredZones?: boolean;
   selectedZones: string[];
 }
 
-export interface ILoadBalancerAvailabilityZoneSelectorState {
+export interface IAvailabilityZoneSelectorState {
   usePreferredZones: boolean;
 }
 
-export class LoadBalancerAvailabilityZoneSelector extends React.Component<
-  ILoadBalancerAvailabilityZoneSelectorProps,
-  ILoadBalancerAvailabilityZoneSelectorState
+export class AvailabilityZoneSelector extends React.Component<
+  IAvailabilityZoneSelectorProps,
+  IAvailabilityZoneSelectorState
 > {
-  constructor(props: ILoadBalancerAvailabilityZoneSelectorProps) {
+  constructor(props: IAvailabilityZoneSelectorProps) {
     super(props);
     this.state = {
-      usePreferredZones: !props.selectedZones || props.selectedZones.length === 0,
+      usePreferredZones: props.usePreferredZones || (!props.selectedZones || props.selectedZones.length === 0),
     };
   }
 
@@ -29,13 +30,13 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<
     this.setDefaultZones(this.props);
   }
 
-  public componentWillReceiveProps(nextProps: ILoadBalancerAvailabilityZoneSelectorProps): void {
+  public componentWillReceiveProps(nextProps: IAvailabilityZoneSelectorProps): void {
     if (nextProps.region !== this.props.region || nextProps.credentials !== this.props.credentials) {
       this.setDefaultZones(nextProps);
     }
   }
 
-  private setDefaultZones(props: ILoadBalancerAvailabilityZoneSelectorProps) {
+  private setDefaultZones(props: IAvailabilityZoneSelectorProps) {
     const { credentials, onChange, region } = props;
 
     AccountService.getAvailabilityZonesForAccountAndRegion('aws', credentials, region).then(preferredZones =>
@@ -56,7 +57,7 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<
     this.props.onChange([...zones]);
   };
 
-  public render(): React.ReactElement<LoadBalancerAvailabilityZoneSelector> {
+  public render(): React.ReactElement<AvailabilityZoneSelector> {
     const { region, allZones, selectedZones } = this.props;
     const { usePreferredZones } = this.state;
 
@@ -78,7 +79,7 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<
             {usePreferredZones && (
               <div>
                 <p className="form-control-static">Server group will be available in:</p>
-                <ul>{allZones.map(zone => <li key={zone}>{zone}</li>)}</ul>
+                <ul>{selectedZones.map(zone => <li key={zone}>{zone}</li>)}</ul>
               </div>
             )}
             {!usePreferredZones && (
