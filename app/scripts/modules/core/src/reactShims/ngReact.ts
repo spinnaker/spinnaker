@@ -18,7 +18,6 @@ import { IDeploymentStrategySelectorProps } from 'core/deploymentStrategy/Deploy
 import { IEntitySourceProps } from 'core/entityTag/EntitySource';
 import { IHelpFieldProps } from '../help/HelpField';
 import { IInsightLayoutProps } from 'core/insight/InsightLayout';
-import { IInstanceListProps, instanceListBindings } from '../instance/InstanceList';
 import { ILegacySpinnerProps, SpinnerWrapperComponent } from '../widgets/Spinner';
 import { IRunningTasksTagProps, runningTasksTagBindings } from '../serverGroup/pod/RunningTasksTag';
 import { IStageSummaryWrapperProps } from 'core/pipeline/details/StageSummaryWrapper';
@@ -53,7 +52,6 @@ export class NgReactInjector extends ReactInject {
   public EntitySource: React.ComponentClass<IEntitySourceProps>                               = angular2react('entitySource', new EntitySourceComponent(), this.$injectorProxy) as any;
   public HelpField: React.ComponentClass<IHelpFieldProps>                                     = angular2react('helpFieldWrapper', new HelpFieldWrapperComponent(), this.$injectorProxy) as any;
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                             = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
-  public InstanceList: React.ComponentClass<IInstanceListProps>                               = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;
   public InstanceArchetypeSelector: React.ComponentClass<IInstanceArchetypeSelectorProps>     = angular2react('v2InstanceArchetypeSelector', new V2InstanceArchetypeSelector(), this.$injectorProxy) as any;
   public InstanceTypeSelector: React.ComponentClass<IInstanceTypeSelectorProps>               = angular2react('v2InstanceTypeSelector', new V2InstanceTypeSelector(), this.$injectorProxy);
   public LegacySpinner: React.ComponentClass<ILegacySpinnerProps>                             = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
