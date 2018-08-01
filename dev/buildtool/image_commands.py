@@ -204,7 +204,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
     command = ' '.join(command_line)
     logfile = self.get_logfile_path(name + '-gce-image')
 
-    what = '{name} component image'.format(name=name)
+    what = u'{name} component image'.format(name=name)
     check_subprocesses_to_logfile(what, logfile, [command])
     return what
 
