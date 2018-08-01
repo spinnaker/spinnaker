@@ -83,4 +83,7 @@ public final class AtomicOperations {
 
   // Artifact operations
   public static final String CLEANUP_ARTIFACTS = "cleanupArtifacts";
+
+  // Image operations
+  public static final String DEREGISTER_IMAGE = "deleteImage";
 }
