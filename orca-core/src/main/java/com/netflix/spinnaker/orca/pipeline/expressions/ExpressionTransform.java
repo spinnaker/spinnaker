@@ -108,6 +108,7 @@ public class ExpressionTransform {
                                  EvaluationContext evaluationContext,
                                  ExpressionEvaluationSummary summary,
                                  Map<String, Object> additionalContext) {
+    boolean hasUnresolvedExpressions = false;
     if (isExpression(source)) {
       String literalExpression = includeExecutionParameter(source.toString());
       Object result = null;
@@ -123,6 +124,7 @@ public class ExpressionTransform {
             String value = e.getValue(evaluationContext, String.class);
             if (value == null) {
               value = String.format("${%s}", e.getExpressionString());
+              hasUnresolvedExpressions = true;
             }
             sb.append(value);
           }
@@ -155,7 +157,7 @@ public class ExpressionTransform {
           );
 
           result = source;
-        } else if (result == null || isExpression(result)) {
+        } else if (result == null || hasUnresolvedExpressions) {
           summary.add(
             escapedExpressionString,
             ExpressionEvaluationSummary.Result.Level.INFO,
@@ -163,7 +165,7 @@ public class ExpressionTransform {
             null
           );
 
-          if (!isExpression(result)) {
+          if (result == null) {
             result = source;
           }
         }

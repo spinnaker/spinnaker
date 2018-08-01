@@ -91,10 +91,11 @@ class ContextParameterProcessorSpec extends Specification {
 
 
     where:
-    value                             | evaluatedValue          | errorCount
-    'a.${ENV1}.b.${ENV2}'             | 'a.${ENV1}.b.${ENV2}'   | 1
-    'a.${ENV1}.b.${replaceMe}'        | 'a.${ENV1}.b.newValue'  | 1
-    'a.${replaceMe}.b.${replaceMe}'   | 'a.newValue.b.newValue' | 0
+    value                                        | evaluatedValue                    | errorCount
+    'a.${ENV1}.b.${ENV2}'                        | 'a.${ENV1}.b.${ENV2}'             | 1
+    'a.${ENV1}.b.${replaceMe}'                   | 'a.${ENV1}.b.newValue'            | 1
+    'a.${replaceMe}.b.${replaceMe}'              | 'a.newValue.b.newValue'           | 0
+    'a.${\'${ESCAPED_LITERAL}\'}.b.${replaceMe}' | 'a.${ESCAPED_LITERAL}.b.newValue' | 0
   }
 
   @Unroll
