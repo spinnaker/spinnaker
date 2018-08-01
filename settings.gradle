@@ -16,30 +16,93 @@
 
 rootProject.name = "clouddriver"
 
-include 'clouddriver-core',
-  'clouddriver-security',
-  'clouddriver-web',
-  'clouddriver-aws',
-  'clouddriver-ecs',
-  'clouddriver-google',
-  'clouddriver-google-common',
-  'clouddriver-azure',
-  'clouddriver-kubernetes',
-  'clouddriver-dcos',
-  'clouddriver-docker',
-  'clouddriver-eureka',
-  'clouddriver-consul',
-  'clouddriver-elasticsearch',
-  'clouddriver-elasticsearch-aws',
-  'clouddriver-openstack',
-  'clouddriver-appengine',
-  'clouddriver-artifacts',
-  'clouddriver-oracle',
-  'clouddriver-titus',
-  'cats:cats-core',
-  'cats:cats-redis',
-  'cats:cats-dynomite',
-  'cats:cats-test'
+enum Platform {
+  ALL,
+  APPENGINE,
+  AWS, // Any thoughts on renaming this provider to EC2?
+  AZURE,
+  DCOS,
+  GCE,
+  GCP,
+  KUBERNETES,
+  OPENSTACK,
+  ORACLE,
+  TITUS,
+}
+
+// Core requirements.
+include 'cats:cats-core',
+        'cats:cats-redis',
+        'cats:cats-dynomite',
+        'cats:cats-test',
+        'clouddriver-artifacts', // Will need to be detangled.
+        'clouddriver-core',
+        'clouddriver-elasticsearch',
+        'clouddriver-security', // Detangle.
+        'clouddriver-web'
+
+def includePlatform(Platform platform) {
+  switch(platform) {
+    case Platform.APPENGINE:
+      include 'clouddriver-appengine',
+              'clouddriver-google-common'
+      break
+    case Platform.AWS:
+      include 'clouddriver-aws',
+              'clouddriver-ecs',
+              'clouddriver-eureka', // Pull into separate "Discover" platform, along with cd-consul?
+              'clouddriver-elasticsearch-aws'
+      break
+    case Platform.AZURE:
+      include 'clouddriver-azure'
+      break
+    case Platform.DCOS:
+      include 'clouddriver-dcos'
+      break
+    case Platform.GCE:
+      include 'clouddriver-consul',
+              'clouddriver-google',
+              'clouddriver-google-common'
+      break
+    case Platform.GCP:
+      includePlatform(Platform.APPENGINE)
+      includePlatform(Platform.GCE)
+      includePlatform(Platform.KUBERNETES)
+      break
+    case Platform.KUBERNETES:
+      include 'clouddriver-kubernetes',
+              'clouddriver-docker'
+      break
+    case  Platform.OPENSTACK:
+      include 'clouddriver-openstack'
+      break
+    case Platform.ORACLE:
+      include 'clouddriver-oracle'
+      break
+    case Platform.TITUS:
+      includePlatform(Platform.AWS)
+      include 'clouddriver-titus'
+      break
+    case Platform.ALL: // fallthrough
+    default:
+      includePlatform(Platform.APPENGINE)
+      includePlatform(Platform.AWS)
+      includePlatform(Platform.AZURE)
+      includePlatform(Platform.DCOS)
+      includePlatform(Platform.GCE)
+      includePlatform(Platform.GCP)
+      includePlatform(Platform.KUBERNETES)
+      includePlatform(Platform.OPENSTACK)
+      includePlatform(Platform.ORACLE)
+      includePlatform(Platform.TITUS)
+      break
+  }
+}
+
+includePlatforms.split(",").each {
+  includePlatform(it)
+}
+
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
