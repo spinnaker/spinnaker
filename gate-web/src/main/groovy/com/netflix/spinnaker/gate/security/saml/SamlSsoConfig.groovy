@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -165,6 +166,10 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
     configurers?.each {
       it.configure(http)
     }
+  }
+
+  void configure(WebSecurity web) throws Exception {
+    authConfig.configure(web)
   }
 
   @Bean

@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.SecurityBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
@@ -60,6 +61,9 @@ class AuthConfig {
 
   @Autowired
   FiatPermissionEvaluator permissionEvaluator
+
+  @Value('${security.debug:false}')
+  boolean securityDebug
 
   @Value('${fiat.sessionFilter.enabled:true}')
   boolean fiatSessionFilterEnabled
@@ -97,6 +101,10 @@ class AuthConfig {
     if (securityProperties.basic.enabled) {
       securityBuilder.httpBasic()
     }
+  }
+
+  void configure(WebSecurity web) throws Exception {
+    web.debug(securityDebug)
   }
 
   @Component

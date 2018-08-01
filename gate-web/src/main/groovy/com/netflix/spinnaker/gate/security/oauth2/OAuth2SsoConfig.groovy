@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.AuthenticationException
@@ -91,6 +92,10 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
     configurers?.each {
       it.configure(http)
     }
+  }
+
+  void configure(WebSecurity web) throws Exception {
+    authConfig.configure(web)
   }
 
   /**
