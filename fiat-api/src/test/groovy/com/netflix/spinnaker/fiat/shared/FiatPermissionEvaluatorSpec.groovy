@@ -45,7 +45,8 @@ class FiatPermissionEvaluatorSpec extends Specification {
       registry,
       fiatService,
       buildConfigurationProperties(),
-      fiatStatus
+      fiatStatus,
+      FiatPermissionEvaluator.RetryHandler.NOOP
   )
 
   def cleanup() {
@@ -147,6 +148,26 @@ class FiatPermissionEvaluatorSpec extends Specification {
     then:
     1 * fiatService.getUserPermission("testUser") >> upv
     hasPermission
+  }
+
+  @Unroll
+  def "should retry fiat requests"() {
+    given:
+    FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(
+            registry,
+            fiatService,
+            buildConfigurationProperties(),
+            fiatStatus,
+            new FiatPermissionEvaluator.ExponentialBackoffRetryHandler(10, 15, 1)
+    )
+
+    when:
+    def view = evaluator.getPermission("testUser")
+
+    then:
+    2 * fiatService.getUserPermission("testUser") >> { throw new IllegalStateException("something something something")}
+
+    view == null
   }
 
   @Unroll
