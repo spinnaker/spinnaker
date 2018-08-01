@@ -116,7 +116,10 @@ export class DeckCacheFactory {
     // but the data did not, we need to remove the data or the cache will always return the old stale data
     const basekey: string = DeckCacheFactory.buildCacheKey(namespace, cacheId);
     const indexKey = `${DeckCacheFactory.getStoragePrefix(basekey, currentVersion)}${basekey}`;
-    if (!window.localStorage[`${indexKey}.keys`] || window.localStorage[`${indexKey}.keys`] === '[]') {
+    if (
+      !(window.localStorage as any)[`${indexKey}.keys`] ||
+      (window.localStorage as any)[`${indexKey}.keys`] === '[]'
+    ) {
       Object.keys(window.localStorage)
         .filter((key: string) => key.includes(indexKey))
         .forEach((key: string) => window.localStorage.removeItem(key));

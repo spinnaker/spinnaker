@@ -51,7 +51,7 @@ class KubernetesServerGroupDetailsController implements IController {
       .catch(() => this.autoClose());
   }
 
-  private ownerReferences(): [any] {
+  private ownerReferences(): any[] {
     const manifest = this.serverGroup.manifest;
     if (
       manifest != null &&
@@ -61,7 +61,7 @@ class KubernetesServerGroupDetailsController implements IController {
     ) {
       return manifest.metadata.ownerReferences;
     } else {
-      return [] as [any];
+      return [] as any[];
     }
   }
 

@@ -1,4 +1,5 @@
 export const now = performance ? performance.now.bind(performance) : Date.now.bind(Date);
+// tslint:disable-next-line:no-console
 const log = console.log.bind(console);
 import { padStart } from 'lodash';
 
