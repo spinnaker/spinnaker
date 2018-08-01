@@ -25,9 +25,6 @@ import com.netflix.spinnaker.cats.test.TestAgent
 import com.netflix.spinnaker.cats.test.TestAgentSchedulerAwareProvider
 import com.netflix.spinnaker.cats.test.TestProvider
 import com.netflix.spinnaker.cats.test.TestScheduler
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -41,38 +38,38 @@ class ProviderUtilsSpec extends Specification {
   AccountCredentialsRepository accountCredentialsRepository
 
   @Shared
-  def awsAccount1 = buildNetflixAmazonCredentials("aws-account-1")
+  def awsAccount1 = new TestAccountCredentials1(name: "aws-account-1")
 
   @Shared
-  def awsAccount2 = buildNetflixAmazonCredentials("aws-account-2")
+  def awsAccount2 = new TestAccountCredentials1(name: "aws-account-2")
 
   @Shared
-  def awsAccount3 = buildNetflixAmazonCredentials("aws-account-3")
+  def awsAccount3 = new TestAccountCredentials1(name: "aws-account-3")
 
   @Shared
-  def awsAccount4 = buildNetflixAmazonCredentials("aws-account-4")
+  def awsAccount4 = new TestAccountCredentials1(name: "aws-account-4")
 
   @Shared
-  def googleAccount1 = buildGoogleNamedAccountCredentials("google-account-1")
+  def googleAccount1 = new TestAccountCredentials2(name: "google-account-1")
 
   @Shared
-  def googleAccount2 = buildGoogleNamedAccountCredentials("google-account-2")
+  def googleAccount2 = new TestAccountCredentials2(name: "google-account-2")
 
   @Shared
-  def googleAccount3 = buildGoogleNamedAccountCredentials("google-account-3")
+  def googleAccount3 = new TestAccountCredentials2(name: "google-account-3")
 
   @Shared
-  def googleAccount4 = buildGoogleNamedAccountCredentials("google-account-4")
+  def googleAccount4 = new TestAccountCredentials2(name: "google-account-4")
 
   @Shared
-  def googleAccount5 = buildGoogleNamedAccountCredentials("google-account-5")
+  def googleAccount5 = new TestAccountCredentials2(name: "google-account-5")
 
   def setupSpec() {
     def agents = [
-      new TestAgent(),
-      new TestAccountAwareAgent(accountName: "some-account-1"),
-      new TestAgent(),
-      new TestAccountAwareAgent(accountName: "some-account-2")
+        new TestAgent(),
+        new TestAccountAwareAgent(accountName: "some-account-1"),
+        new TestAgent(),
+        new TestAccountAwareAgent(accountName: "some-account-2")
     ]
 
     provider = new TestProvider(agents)
@@ -103,9 +100,9 @@ class ProviderUtilsSpec extends Specification {
       accountSet.collect { it.name } as Set == accountNameSet
 
     where:
-      credentialsType               | accountNameSet
-      GoogleNamedAccountCredentials | ["google-account-1", "google-account-2", "google-account-3"] as Set
-      NetflixAmazonCredentials      | ["aws-account-1", "aws-account-2", "aws-account-3"] as Set
+      credentialsType         | accountNameSet
+      TestAccountCredentials2 | ["google-account-1", "google-account-2", "google-account-3"] as Set
+      TestAccountCredentials1 | ["aws-account-1", "aws-account-2", "aws-account-3"] as Set
   }
 
   void "should reschedule specified agents"() {
@@ -134,17 +131,17 @@ class ProviderUtilsSpec extends Specification {
   @Unroll
   void "should calculate account deltas for specified credentials type"() {
     when:
-      def (ArrayList<NetflixAmazonCredentials> accountsToAdd, List<String> namesOfDeletedAccounts) =
-        ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, credentialsType, desiredAccounts)
+      def (ArrayList<TestAccountCredentials1> accountsToAdd, List<String> namesOfDeletedAccounts) =
+      ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, credentialsType, desiredAccounts)
 
     then:
       accountsToAdd as Set == expectedAccountsToAdd
       namesOfDeletedAccounts as Set == expectedNamesOfDeletedAccounts
 
     where:
-      credentialsType               | desiredAccounts                                                  | expectedAccountsToAdd                   | expectedNamesOfDeletedAccounts
-      NetflixAmazonCredentials      | [awsAccount2, awsAccount4]                                       | [awsAccount4] as Set                    | ["aws-account-1", "aws-account-3"] as Set
-      GoogleNamedAccountCredentials | [googleAccount1, googleAccount2, googleAccount4, googleAccount5] | [googleAccount4, googleAccount5] as Set | ["google-account-3"] as Set
+      credentialsType         | desiredAccounts                                                  | expectedAccountsToAdd                   | expectedNamesOfDeletedAccounts
+      TestAccountCredentials1 | [awsAccount2, awsAccount4]                                       | [awsAccount4] as Set                    | ["aws-account-1", "aws-account-3"] as Set
+      TestAccountCredentials2 | [googleAccount1, googleAccount2, googleAccount4, googleAccount5] | [googleAccount4, googleAccount5] as Set | ["google-account-3"] as Set
   }
 
   void "should unschedule and deregister agents associated with deleted accounts"() {
@@ -155,7 +152,7 @@ class ProviderUtilsSpec extends Specification {
       def testAgent4 = new TestAccountAwareAgent(accountName: "some-account-4")
       def testAgent5 = new TestAccountAwareAgent(accountName: "some-account-5")
       def agentSchedulerAwareProvider =
-        new TestAgentSchedulerAwareProvider(agents: [testAgent1, testAgent2, testAgent3, testAgent4, testAgent5])
+          new TestAgentSchedulerAwareProvider(agents: [testAgent1, testAgent2, testAgent3, testAgent4, testAgent5])
       def namedCacheFactory = new InMemoryNamedCacheFactory()
       def scheduler = new TestScheduler()
       def executionInstrumentation = new NoopExecutionInstrumentation()
@@ -165,7 +162,9 @@ class ProviderUtilsSpec extends Specification {
       catsModule = new DefaultCatsModule([agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation)
 
     then:
-      scheduler.scheduled.collect { it.agent } == [testAgent1, testAgent2, testAgent3, testAgent4, testAgent5]
+      scheduler.scheduled.collect {
+        it.agent
+      } == [testAgent1, testAgent2, testAgent3, testAgent4, testAgent5]
 
     when:
       ProviderUtils.unscheduleAndDeregisterAgents(["some-account-2", "some-account-3", "some-account-5"], catsModule)
@@ -175,30 +174,29 @@ class ProviderUtilsSpec extends Specification {
       agentSchedulerAwareProvider.agents == [testAgent1, testAgent4]
   }
 
-  private static NetflixAmazonCredentials buildNetflixAmazonCredentials(String accountName) {
-    new NetflixAmazonCredentials(accountName,
-                                 "some-env",
-                                 "some-account-type",
-                                 "account-id-123",
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 false,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null)
+  static class TestAccountCredentials1 implements AccountCredentials<TestCredentials1> {
+    String name
+    String environment = "some-env"
+    String accountType = "testCredentials1"
+    String accountId = "account-id-123"
+    TestCredentials1 credentials
+    String cloudProvider = "testCloudProvider"
+    List<String> requiredGroupMembership
   }
 
-  private static GoogleNamedAccountCredentials buildGoogleNamedAccountCredentials(String accountName) {
-    new GoogleNamedAccountCredentials.Builder().name(accountName).credentials(new FakeGoogleCredentials()).build()
+  static class TestCredentials1 {
+  }
+
+  static class TestAccountCredentials2 implements AccountCredentials<TestCredentials2> {
+    String name
+    String environment = "some-env"
+    String accountType = "testCredentials2"
+    String accountId = "account-id-123"
+    TestCredentials2 credentials
+    String cloudProvider = "testCloudProvider"
+    List<String> requiredGroupMembership
+  }
+
+  static class TestCredentials2 {
   }
 }

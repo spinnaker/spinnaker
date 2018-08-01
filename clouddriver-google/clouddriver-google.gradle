@@ -12,15 +12,3 @@ dependencies {
   compile "com.google.apis:google-api-services-iam:v1-rev225-1.23.0"
   compile 'org.slf4j:jul-to-slf4j:1.7.25'
 }
-
-// export tests for use in clouddriver-security
-configurations {
-    testArtifacts.extendsFrom testRuntime
-}
-task testJar(type: Jar) {
-    classifier "test"
-    from sourceSets.test.output
-}
-artifacts {
-    testArtifacts testJar
-}

@@ -8,8 +8,5 @@ dependencies {
   compile spinnaker.dependency('fiat')
   compile spinnaker.dependency('frigga')
 
-  testCompile project(':clouddriver-aws')
-  testCompile project(':clouddriver-google')
-  testCompile project(path: ':clouddriver-google', configuration: 'testArtifacts')
   testCompile project(':cats:cats-test')
 }
