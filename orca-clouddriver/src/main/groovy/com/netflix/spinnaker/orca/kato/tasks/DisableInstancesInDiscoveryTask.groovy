@@ -17,14 +17,42 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class DisableInstancesInDiscoveryTask extends AbstractDiscoveryTask {
+class DisableInstancesInDiscoveryTask extends AbstractDiscoveryTask implements CloudProviderAware {
+  @Autowired
+  TrafficGuard trafficGuard
+
   @Override
   String getAction() {
     return "disableInstancesInDiscovery"
+  }
+
+  @Override
+  TaskResult execute(Stage stage) {
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+    String serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
+
+    trafficGuard.verifyInstanceTermination(
+      serverGroupName,
+      MonikerHelper.monikerFromStage(stage, serverGroupName),
+      stage.context.instanceIds as List<String>,
+      account,
+      Location.region(stage.context.region as String),
+      cloudProvider,
+      "Disabling the requested instances in")
+
+    return super.execute(stage)
   }
 }
