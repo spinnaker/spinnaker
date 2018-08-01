@@ -852,25 +852,38 @@ class AuditArtifactVersions(CommandProcessor):
     return result
 
   def __init__(self, factory, options, **kwargs):
+    if options.prune_min_buildnum_prefix is not None:
+      # Typically numeric so is interpreted as number from yaml
+      options.prune_min_buildnum_prefix = str(options.prune_min_buildnum_prefix)
+
     super(AuditArtifactVersions, self).__init__(factory, options, **kwargs)
     base_path = os.path.dirname(self.get_output_dir())
     self.__init_bintray_versions_helper(base_path)
 
-    min_version = options.min_bom_version or '0.0.0'
+    min_version = options.min_audit_bom_version or '0.0.0'
     min_parts = min_version.split('.')
     if len(min_parts) < 3:
       min_version += '.0' * (3 - len(min_parts))
-    min_semver = SemanticVersion.make('ignored-' + min_version)
+    self.__min_semver = SemanticVersion.make('ignored-' + min_version)
 
     bom_data_dir = os.path.join(base_path, 'collect_bom_versions')
     path = os.path.join(bom_data_dir, 'released_bom_service_map.yml')
     check_path_exists(path, 'released bom analysis')
     with open(path, 'r') as stream:
-      self.__released_boms = {}
+      self.__all_released_boms = {}      # forever
+      self.__current_released_boms = {}  # since min_version to audit
       for service, versions in yaml.load(stream.read()).items():
-        stripped_versions = self.__remove_old_bom_versions(min_semver, versions)
+        if not versions:
+          # e.g. this service has not yet been released.
+          logging.info('No versions for service=%s', service)
+          continue
+
+        self.__all_released_boms[service] = versions
+        self.__current_released_boms[service] = versions
+        stripped_versions = self.__remove_old_bom_versions(
+            self.__min_semver, versions)
         if stripped_versions:
-          self.__released_boms[service] = stripped_versions
+          self.__current_released_boms[service] = stripped_versions
 
     path = os.path.join(bom_data_dir, 'unreleased_bom_service_map.yml')
     check_path_exists(path, 'unreleased bom analysis')
@@ -879,7 +892,7 @@ class AuditArtifactVersions(CommandProcessor):
 
     self.__only_bad_and_invalid_boms = False
     self.__all_bom_versions = self.__extract_all_bom_versions(
-        self.__released_boms)
+        self.__all_released_boms)
     self.__all_bom_versions.update(
         self.__extract_all_bom_versions(self.__unreleased_boms))
 
@@ -905,7 +918,7 @@ class AuditArtifactVersions(CommandProcessor):
     self.__invalid_versions = {}
 
   def audit_artifacts(self):
-    self.audit_bom_services(self.__released_boms, 'released')
+    self.audit_bom_services(self.__all_released_boms, 'released')
     self.audit_bom_services(self.__unreleased_boms, 'unreleased')
     self.audit_package(
         'jar', self.__jar_versions, self.__unused_jars)
@@ -927,14 +940,26 @@ class AuditArtifactVersions(CommandProcessor):
           path)
 
     confirmed_boms = self.__all_bom_versions - set(self.__invalid_boms.keys())
+    unchecked_releases = [
+        key
+        for key in self.__all_bom_versions
+        if (CollectBomVersions.RELEASED_VERSION_MATCHER.match(key)
+            and SemanticVersion.compare(SemanticVersion.make('ignored-' + key),
+                                        self.__min_semver) < 0)]
+
     invalid_releases = {
         key: bom
         for key, bom in self.__invalid_boms.items()
-        if CollectBomVersions.RELEASED_VERSION_MATCHER.match(key)}
+        if (CollectBomVersions.RELEASED_VERSION_MATCHER.match(key)
+            and SemanticVersion.compare(SemanticVersion.make('ignored-' + key),
+                                        self.__min_semver) >= 0)}
     confirmed_releases = [
         key
         for key in confirmed_boms
-        if CollectBomVersions.RELEASED_VERSION_MATCHER.match(key)]
+        if (CollectBomVersions.RELEASED_VERSION_MATCHER.match(key)
+            and SemanticVersion.compare(SemanticVersion.make('ignored-' + key),
+                                        self.__min_semver) >= 0)]
+
     maybe_write_log('missing_debians', self.__missing_debians)
     maybe_write_log('missing_jars', self.__missing_jars)
     maybe_write_log('missing_containers', self.__missing_containers)
@@ -952,6 +977,7 @@ class AuditArtifactVersions(CommandProcessor):
     maybe_write_log('confirmed_releases', sorted(list(confirmed_releases)))
     maybe_write_log('invalid_versions', self.__invalid_versions)
     maybe_write_log('invalid_releases', invalid_releases)
+    maybe_write_log('unchecked_releases', unchecked_releases)
 
   def most_recent_version(self, name, versions):
     """Find the most recent version built."""
@@ -1181,7 +1207,7 @@ class AuditArtifactVersions(CommandProcessor):
     return False
 
   def audit_package_helper(self, package, version, buildnum, which):
-    if package in self.__released_boms or package in self.__unreleased_boms:
+    if package in self.__all_released_boms or package in self.__unreleased_boms:
       name = package
     elif package.startswith('spinnaker-'):
       name = package[package.find('-') + 1:]
@@ -1189,7 +1215,7 @@ class AuditArtifactVersions(CommandProcessor):
       return False
 
     is_released = self.package_in_bom_map(
-        name, version, buildnum, self.__released_boms)
+        name, version, buildnum, self.__all_released_boms)
     is_unreleased = self.package_in_bom_map(
         name, version, buildnum, self.__unreleased_boms)
     if is_released or is_unreleased:
@@ -1264,7 +1290,7 @@ class AuditArtifactVersionsFactory(CommandFactory):
 
   def init_argparser(self, parser, defaults):
     super(AuditArtifactVersionsFactory, self).init_argparser(parser, defaults)
-    self.add_argument(parser, 'min_bom_version', defaults, None,
+    self.add_argument(parser, 'min_audit_bom_version', defaults, None,
                       help='Minimum released bom version to audit.')
     self.add_argument(
         parser, 'prune_min_buildnum_prefix', defaults, None,
