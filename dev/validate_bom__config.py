@@ -1296,12 +1296,17 @@ class MonitoringConfigurator(Configurator):
              ' configure to use the gateway server at thsi URL.')
     add_parser_argument(
         parser, 'monitoring_install_which', defaults, None,
-        help='If provided, install monitoring with these params.')
+        help='If provided, install monitoring with these params.'
+             'This can be a comma-delimited list of services to use.')
+    add_parser_argument(
+        parser, 'monitoring_filter_dir', defaults, None,
+        help='If provided, use the metric fitlers in filter_dir.')
 
   def validate_options(self, options):
     """Implements interface."""
+    options.monitoring_which_list = options.monitoring_install_which.split(',')
     if (options.monitoring_prometheus_gateway
-        and (options.monitoring_install_which != 'prometheus')):
+        and 'prometheus' not in options.monitoring_which_list):
       raise ValueError('gateway is only applicable to '
                        ' --monitoring_install_which="prometheus"')
 
@@ -1346,9 +1351,16 @@ class MonitoringConfigurator(Configurator):
       return
 
     # Start up monitoring now so we can monitor these VMs
-    if (options.monitoring_install_which == 'prometheus'
+    if ('prometheus' in options.monitoring_which_list
         and options.deploy_spinnaker_type == 'localdebian'):
       self.__inject_prometheus_node_exporter(options, script)
+
+  def add_files_to_upload(self, options, file_set):
+    if options.monitoring_filter_dir:
+      logging.info('Taring %s', options.monitoring_filter_dir)
+      os.system('tar cf monitoring_filter.tz -C %s .'
+                % options.monitoring_filter_dir)
+      file_set.add('monitoring_filter.tz')
 
   def add_config(self, options, script):
     """Implements interface."""
@@ -1359,12 +1371,17 @@ class MonitoringConfigurator(Configurator):
     script.append('echo "host: 0.0.0.0"'
                   ' > ~/.hal/default/service-settings/monitoring-daemon.yml')
 
-    script.append('hal -q --log=info config metric-stores {which} enable'
-                  .format(which=options.monitoring_install_which))
+    for which in options.monitoring_which_list:
+      script.append('hal -q --log=info config metric-stores {which} enable'
+                    .format(which=which))
     if options.monitoring_prometheus_gateway:
       script.append('hal -q --log=info config metric-stores prometheus edit'
                     ' --push-gateway {gateway}'
                     .format(gateway=options.monitoring_prometheus_gateway))
+    if options.monitoring_filter_dir:
+      script.append('sudo mkdir -p /opt/spinnaker-monitoring/filters')
+      script.append('cat monitoring_filter.tz'
+                    ' | (cd /opt/spinnaker-monitoring/filters; sudo tar xf -)')
 
 
 class NotificationConfigurator(Configurator):
