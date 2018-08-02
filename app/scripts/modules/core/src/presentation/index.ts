@@ -1,3 +1,4 @@
+export * from './CustomLabels';
 export * from './FormElements';
 export * from './HoverablePopover';
 export * from './LabelComponent';

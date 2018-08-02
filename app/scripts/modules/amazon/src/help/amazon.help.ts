@@ -52,6 +52,7 @@ const helpContents: { [key: string]: string } = {
         <li>? (matches exactly 1 character)</li>
       </ul>
       <p>Note that the path pattern is used to route requests but does not alter them. For example, if a rule has a path pattern of <em>/img/*</em>, the rule would forward a request for <em>/img/picture.jpg</em> to the specified target group as a request for <em>/img/picture.jpg</em>.</p>`,
+  'aws.loadBalancer.oidcAuthentication': 'Authentication requires a configured OIDC client.',
   'aws.serverGroup.stack':
     '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
   'aws.serverGroup.detail':

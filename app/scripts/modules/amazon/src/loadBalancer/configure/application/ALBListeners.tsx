@@ -7,6 +7,7 @@ import { FormikErrors, FormikProps } from 'formik';
 
 import {
   Application,
+  CustomLabels,
   HelpField,
   IWizardPageProps,
   ReactInjector,
@@ -718,7 +719,7 @@ const Action = (props: {
       (!clientId || props.oidcConfigs.find(c => c.clientId === clientId));
     return (
       <div className="horizontal middle" style={{ height: '30px' }}>
-        <span style={{ whiteSpace: 'pre' }}>auth with OIDC client </span>
+        <span style={{ whiteSpace: 'pre' }}>auth with {CustomLabels.get('OIDC client')} </span>
 
         {showOidcConfigs && (
           <select
@@ -761,15 +762,18 @@ const RuleActions = (props: {
   return (
     <span>
       {allowAuth && (
-        <a
-          className="btn btn-sm btn-link clickable"
-          onClick={() => props.authenticateRuleToggle(props.listener, props.ruleIndex)}
-          style={{ padding: '0' }}
-        >
-          <Tooltip value={tooltip}>
-            <i className={icon} />
-          </Tooltip>
-        </a>
+        <>
+          <a
+            className="btn btn-sm btn-link clickable"
+            onClick={() => props.authenticateRuleToggle(props.listener, props.ruleIndex)}
+            style={{ padding: '0' }}
+          >
+            <Tooltip value={tooltip}>
+              <i className={icon} />
+            </Tooltip>
+          </a>
+          <HelpField id="aws.loadBalancer.oidcAuthentication" />
+        </>
       )}
       {props.ruleIndex !== undefined &&
         props.ruleIndex >= 0 &&
