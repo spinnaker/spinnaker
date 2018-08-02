@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.providers
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import org.apache.commons.collections4.CollectionUtils
@@ -51,17 +52,24 @@ class DefaultApplicationProviderSpec extends Specification {
     provider = new DefaultApplicationProvider(front50Service, clouddriverService, allowAccessToUnknownApplications)
 
     when:
-    def result = provider.getAll()
-    List<String> accountNames = result*.name
+    def restrictedResult = provider.getAllRestricted([new Role(role)] as Set<Role>, false)
+    List<String> restrictedApplicationNames = restrictedResult*.name
+
+    def unrestrictedResult = provider.getAllUnrestricted()
+    List<String> unrestrictedApplicationNames = unrestrictedResult*.name
 
     then:
-    CollectionUtils.disjunction(accountNames, expectedApplicatioNames).isEmpty()
-    result.find { it.name == "app1"}.getPermissions().isRestricted()
+    CollectionUtils.disjunction(
+        new HashSet(restrictedApplicationNames + unrestrictedApplicationNames),
+        expectedApplicatioNames
+    ).isEmpty()
 
     where:
-    allowAccessToUnknownApplications || expectedApplicatioNames
-    false                            || ["onlyKnownToFront50", "app1", "onlyKnownToClouddriver"]
-    true                             || ["app1"]
+    allowAccessToUnknownApplications | role       || expectedApplicatioNames
+    false                            | "role"     || ["onlyKnownToFront50", "app1", "onlyKnownToClouddriver"]
+    false                            | "bad_role" || ["onlyKnownToFront50", "onlyKnownToClouddriver"]
+    true                             | "role"     || ["app1"]
+    true                             | "bad_role" || ["app1"]
 
     action = allowAccessToUnknownApplications ? "exclude" : "include"
   }

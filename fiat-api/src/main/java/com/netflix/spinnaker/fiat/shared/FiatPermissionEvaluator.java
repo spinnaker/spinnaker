@@ -42,6 +42,8 @@ import org.springframework.util.backoff.ExponentialBackOff;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -289,8 +291,13 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     Function<Set<? extends Authorizable>, Boolean> containsAuth = resources ->
         resources
             .stream()
-            .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName) &&
-                view.getAuthorizations().contains(authorization));
+            .anyMatch(view -> {
+              Set<Authorization> authorizations = Optional.ofNullable(
+                  view.getAuthorizations()
+              ).orElse(Collections.emptySet());
+
+              return view.getName().equalsIgnoreCase(resourceName) && authorizations.contains(authorization);
+            });
 
     switch (resourceType) {
       case ACCOUNT:

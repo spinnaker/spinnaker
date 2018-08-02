@@ -27,8 +27,8 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
-import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -39,6 +39,9 @@ class FiatPermissionEvaluatorSpec extends Specification {
   FiatStatus fiatStatus = Mock(FiatStatus) {
     _ * isEnabled() >> { return true }
   }
+
+  @Shared
+  def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
 
   @Subject
   FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(
@@ -55,11 +58,6 @@ class FiatPermissionEvaluatorSpec extends Specification {
 
   @Unroll
   def "should parse application name"() {
-    setup:
-    Authentication authentication = new PreAuthenticatedAuthenticationToken("testUser",
-                                                                            null,
-                                                                            new ArrayList<>())
-
     when:
     def result = evaluator.hasPermission(authentication,
                                          resource,
@@ -97,9 +95,6 @@ class FiatPermissionEvaluatorSpec extends Specification {
 
   def "should grant or deny permission"() {
     setup:
-    Authentication authentication = new PreAuthenticatedAuthenticationToken("testUser",
-                                                                            null,
-                                                                            new ArrayList<>())
     String resource = "readable"
     String svcAcct = "svcAcct"
 
@@ -173,9 +168,6 @@ class FiatPermissionEvaluatorSpec extends Specification {
   @Unroll
   def "should support legacy fallback when fiat is unavailable"() {
     given:
-    def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
-
-    and:
     MDC.put(AuthenticatedRequest.SPINNAKER_USER, "fallback")
     MDC.put(AuthenticatedRequest.SPINNAKER_ACCOUNTS, "account1,account2")
 
@@ -198,10 +190,32 @@ class FiatPermissionEvaluatorSpec extends Specification {
   }
 
   @Unroll
-  def "should allow access to unknown applications"() {
-    given:
-    def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
+  def "should deny access to an application that has an empty set of authorizations"() {
+    when:
+    def hasReadPermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "READ")
+    def hasWritePermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "WRITE")
 
+    then:
+    2 * fiatService.getUserPermission("testUser") >> {
+      return new UserPermission.View()
+          .setApplications(
+          [
+              new Application.View()
+                  .setName("my_application")
+                  .setAuthorizations(authorizations as Set<Authorization>)
+          ] as Set<Application.View>
+      )
+    }
+
+    !hasReadPermission
+    !hasWritePermission
+
+    where:
+    authorizations << [null, [] as Set]
+  }
+
+  @Unroll
+  def "should allow access to unknown applications"() {
     when:
     def hasPermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "READ")
 
@@ -223,9 +237,6 @@ class FiatPermissionEvaluatorSpec extends Specification {
   @Unroll
   def "should allow an admin to access all resource types"() {
     given:
-    def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
-
-    and:
     2 * fiatService.getUserPermission("testUser") >> {
       return new UserPermission.View()
           .setApplications(Collections.emptySet())
