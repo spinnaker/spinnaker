@@ -232,6 +232,7 @@ public interface LockManager {
     private Duration failureInterval = Duration.ZERO;
     private long version;
     private List<String> attributes = new ArrayList<>(); // the list will be joined with a ';' delimiter for brevity
+    private boolean reuseVersion;
 
     public LockOptions withLockName(String name) {
       this.lockName = name;
@@ -258,8 +259,9 @@ public interface LockManager {
       return this;
     }
 
-    public LockOptions withVersion(long version) {
+    public LockOptions withVersion(Long version) {
       this.version = version;
+      this.reuseVersion = true;
       return this;
     }
 
@@ -283,8 +285,12 @@ public interface LockManager {
       return attributes;
     }
 
-    public long getVersion() {
+    public Long getVersion() {
       return version;
+    }
+
+    public boolean isReuseVersion() {
+      return reuseVersion;
     }
 
     public void validateInputs() {

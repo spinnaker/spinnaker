@@ -36,16 +36,19 @@ public interface RefreshableLockManager extends LockManager {
     private final Duration heartbeatDuration;
     private final Instant startedAt;
     private final Clock clock;
+    private final boolean reuseLockVersion;
 
     public HeartbeatLockRequest(Lock lock,
                                 AtomicInteger retriesOnFailure,
                                 Clock clock,
-                                Duration heartbeatDuration) {
+                                Duration heartbeatDuration,
+                                boolean reuseLockVersion) {
       this.lock = new AtomicReference<>(lock);
       this.retriesOnFailure = retriesOnFailure;
       this.clock = clock;
       this.startedAt = clock.instant();
       this.heartbeatDuration = heartbeatDuration;
+      this.reuseLockVersion = reuseLockVersion;
     }
 
     public Lock getLock() {
@@ -84,6 +87,7 @@ public interface RefreshableLockManager extends LockManager {
         ", heartbeatDuration=" + heartbeatDuration +
         ", startedAt=" + startedAt +
         ", clock=" + clock +
+        ", reuseLockVersion=" + reuseLockVersion +
         '}';
     }
 
@@ -102,6 +106,10 @@ public interface RefreshableLockManager extends LockManager {
     @Override
     public int hashCode() {
       return Objects.hash(lock, retriesOnFailure, heartbeatDuration, startedAt, clock);
+    }
+
+    public boolean reuseVersion() {
+      return reuseLockVersion;
     }
   }
 

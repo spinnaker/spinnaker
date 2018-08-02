@@ -165,7 +165,7 @@ public class RedisLockManager implements RefreshableLockManager {
 
   @Override
   public HeartbeatResponse heartbeat(HeartbeatLockRequest heartbeatLockRequest) {
-    return heartbeat(heartbeatLockRequest.getLock());
+    return doHeartbeat(heartbeatLockRequest);
   }
 
   @Override
@@ -184,7 +184,10 @@ public class RedisLockManager implements RefreshableLockManager {
     R workResult = null;
     LockStatus status = LockStatus.TAKEN;
     HeartbeatLockRequest heartbeatLockRequest = null;
-    lockOptions.setVersion(clock.millis());
+    if (lockOptions.getVersion() == null || !lockOptions.isReuseVersion()) {
+      lockOptions.setVersion(clock.millis());
+    }
+
     try {
       lock = tryCreateLock(lockOptions);
       if (!matchesLock(lockOptions, lock)) {
@@ -212,7 +215,8 @@ public class RedisLockManager implements RefreshableLockManager {
         lock,
         heartbeatRetriesOnFailure,
         clock,
-        lockOptions.getMaximumLockDuration()
+        lockOptions.getMaximumLockDuration(),
+        lockOptions.isReuseVersion()
       );
 
       queueHeartbeat(heartbeatLockRequest);
@@ -294,7 +298,7 @@ public class RedisLockManager implements RefreshableLockManager {
       ).increment();
     } else {
       try {
-        HeartbeatResponse heartbeatResponse = heartbeat(heartbeatLockRequest.getLock());
+        HeartbeatResponse heartbeatResponse = heartbeat(heartbeatLockRequest);
         switch (heartbeatResponse.getLockStatus()) {
           case EXPIRED:
           case ERROR:
@@ -320,12 +324,14 @@ public class RedisLockManager implements RefreshableLockManager {
    * version stored in Redis. If a heartbeat is accepted, a new version value will
    * be stored with the lock along side a renewed lease and the system timestamp.
    */
-  private HeartbeatResponse heartbeat(final Lock lock) {
+  private HeartbeatResponse doHeartbeat(final HeartbeatLockRequest heartbeatLockRequest) {
     // we are aware that the cardinality can get high. To revisit if concerns arise.
+    final Lock lock = heartbeatLockRequest.getLock();
+    long nextVersion = heartbeatLockRequest.reuseVersion() ? lock.getVersion() : lock.nextVersion();
     Id lockHeartbeat = heartbeatId.withTag("lockName", lock.getName());
     Lock extendedLock = lock;
     try {
-      extendedLock = tryUpdateLock(lock, lock.nextVersion());
+      extendedLock = tryUpdateLock(lock, nextVersion);
       registry.counter(lockHeartbeat.withTag("status", LockHeartbeatStatus.SUCCESS.toString())).increment();
       return new HeartbeatResponse(extendedLock, LockHeartbeatStatus.SUCCESS);
     } catch (Exception e) {
