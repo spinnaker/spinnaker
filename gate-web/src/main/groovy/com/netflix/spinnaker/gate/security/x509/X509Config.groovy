@@ -18,6 +18,8 @@ package com.netflix.spinnaker.gate.security.x509
 
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
+import com.netflix.spinnaker.gate.security.iap.IAPSsoConfig
+import com.netflix.spinnaker.gate.security.iap.IAPSsoConfigurer
 import com.netflix.spinnaker.gate.security.ldap.LdapSsoConfig
 import com.netflix.spinnaker.gate.security.ldap.LdapSsoConfigurer
 import com.netflix.spinnaker.gate.security.oauth2.OAuth2SsoConfig
@@ -110,7 +112,7 @@ class X509Config {
   /**
    * See {@link OAuth2SsoConfig} for why these classes and conditionals exist!
    */
-  @ConditionalOnMissingBean([OAuth2SsoConfig, SamlSsoConfig, LdapSsoConfig])
+  @ConditionalOnMissingBean([OAuth2SsoConfig, SamlSsoConfig, LdapSsoConfig, IAPSsoConfig])
   @Bean
   X509StandaloneAuthConfig standaloneConfig() {
     new X509StandaloneAuthConfig()
@@ -174,6 +176,20 @@ class X509Config {
   }
 
   class X509LDAPConfig implements LdapSsoConfigurer {
+    @Override
+    void configure(HttpSecurity http) throws Exception {
+      X509Config.this.configure(http)
+      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
+    }
+  }
+
+  @ConditionalOnBean(IAPSsoConfig)
+  @Bean
+  X509IAPConfig withIAPConfig() {
+    new X509IAPConfig()
+  }
+
+  class X509IAPConfig implements IAPSsoConfigurer {
     @Override
     void configure(HttpSecurity http) throws Exception {
       X509Config.this.configure(http)

@@ -60,7 +60,7 @@ import retrofit.RetrofitError;
  */
 public class IAPAuthenticationFilter implements Filter {
 
-  private IAPConfig.IAPSecurityConfigProperties configProperties;
+  private IAPSsoConfig.IAPSecurityConfigProperties configProperties;
 
   private PermissionService permissionService;
 
@@ -73,7 +73,7 @@ public class IAPAuthenticationFilter implements Filter {
   private Logger logger = LoggerFactory.getLogger(IAPAuthenticationFilter.class);
 
   public IAPAuthenticationFilter(
-    IAPConfig.IAPSecurityConfigProperties configProperties,
+    IAPSsoConfig.IAPSecurityConfigProperties configProperties,
     PermissionService permissionService,
     Front50Service front50Service) {
     this.configProperties = configProperties;

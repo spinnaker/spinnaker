@@ -58,7 +58,7 @@ class IAPAuthenticationFilterSpec extends Specification {
     def chain = Mock(FilterChain)
     def permissionService = Mock(PermissionService)
     def front50Service = Mock(Front50Service)
-    def config = new IAPConfig.IAPSecurityConfigProperties()
+    def config = new IAPSsoConfig.IAPSecurityConfigProperties()
     config.audience = "test_audience"
 
     // Create key to sign JWT Token
@@ -100,7 +100,7 @@ class IAPAuthenticationFilterSpec extends Specification {
     def chain = Mock(FilterChain)
     def permissionService = Mock(PermissionService)
     def front50Service = Mock(Front50Service)
-    def config = new IAPConfig.IAPSecurityConfigProperties()
+    def config = new IAPSsoConfig.IAPSecurityConfigProperties()
     config.audience = "test_audience"
 
     // Create key to sign JWT Token
@@ -154,7 +154,7 @@ class IAPAuthenticationFilterSpec extends Specification {
     def chain = Mock(FilterChain)
     def permissionService = Mock(PermissionService)
     def front50Service = Mock(Front50Service)
-    def config = new IAPConfig.IAPSecurityConfigProperties()
+    def config = new IAPSsoConfig.IAPSecurityConfigProperties()
     config.audience = "test_audience"
 
     // Create key to sign JWT Token

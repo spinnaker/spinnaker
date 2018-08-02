@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.security.iap;
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.gate.security.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
-import com.netflix.spinnaker.gate.security.iap.IAPConfig.IAPSecurityConfigProperties;
+import com.netflix.spinnaker.gate.security.iap.IAPSsoConfig.IAPSecurityConfigProperties;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import lombok.Data;
@@ -45,7 +45,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @ConditionalOnExpression("${google.iap.enabled:false}")
 @EnableConfigurationProperties(IAPSecurityConfigProperties.class)
-public class IAPConfig extends WebSecurityConfigurerAdapter {
+public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
   AuthConfig authConfig;
@@ -69,7 +69,7 @@ public class IAPConfig extends WebSecurityConfigurerAdapter {
     String iapVerifyKeyUrl = "https://www.gstatic.com/iap/verify/public_key-jwk";
   }
 
-  private final Logger logger = LoggerFactory.getLogger(IAPConfig.class);
+  private final Logger logger = LoggerFactory.getLogger(IAPSsoConfig.class);
 
   @Override
   public void configure(HttpSecurity http) throws Exception {
