@@ -90,16 +90,18 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
   private final int chunkSize;
   private final Scheduler queryAllScheduler;
   private final Scheduler queryByAppScheduler;
-  private final Logger log = LoggerFactory.getLogger(getClass());
-
   private final Registry registry;
+  private static String bufferedPrefix;
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   public RedisExecutionRepository(
     Registry registry,
     RedisClientSelector redisClientSelector,
     Scheduler queryAllScheduler,
     Scheduler queryByAppScheduler,
-    Integer threadPoolChunkSize
+    Integer threadPoolChunkSize,
+    String bufferedPrefix
   ) {
     this.registry = registry;
     this.redisClientDelegate = redisClientSelector.primary(EXECUTION_REPOSITORY);
@@ -107,6 +109,7 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
     this.queryAllScheduler = queryAllScheduler;
     this.queryByAppScheduler = queryByAppScheduler;
     this.chunkSize = threadPoolChunkSize;
+    this.bufferedPrefix = bufferedPrefix;
   }
 
   public RedisExecutionRepository(
@@ -1018,7 +1021,11 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
   }
 
   protected static String allBufferedExecutionsKey(ExecutionType type) {
-    return format("buffered:%s", type);
+    if (bufferedPrefix == null || bufferedPrefix.isEmpty()) {
+      return format("buffered:%s", type);
+    } else {
+      return format("%s:buffered:%s", bufferedPrefix, type);
+    }
   }
 
   protected static String executionKeyPattern(@Nullable ExecutionType type) {

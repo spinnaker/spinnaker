@@ -67,14 +67,16 @@ public class RedisConfiguration {
                                                       RedisClientSelector redisClientSelector,
                                                       @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
                                                       @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
-                                                      @Value("${chunkSize.executionRepository:75}") Integer threadPoolChunkSize) {
+                                                      @Value("${chunkSize.executionRepository:75}") Integer threadPoolChunkSize,
+                                                      @Value("${keiko.queue.redis.queueName:}") String bufferedPrefix) {
     return new RedisInstrumentedExecutionRepository(
       new RedisExecutionRepository(
         registry,
         redisClientSelector,
         queryAllScheduler,
         queryByAppScheduler,
-        threadPoolChunkSize
+        threadPoolChunkSize,
+        bufferedPrefix
       ),
       registry
     );
