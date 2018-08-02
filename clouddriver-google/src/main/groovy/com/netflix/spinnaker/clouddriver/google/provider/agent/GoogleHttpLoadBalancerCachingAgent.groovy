@@ -227,7 +227,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
           compute.targetHttpsProxies().get(project, targetProxyName).queue(targetProxyRequest, targetHttpsProxyCallback)
           break
         default:
-          log.warn("Non-Http target type found for global forwarding rule ${forwardingRule.name}")
+          log.info("Non-Http target type found for global forwarding rule ${forwardingRule.name}")
           break
       }
     }

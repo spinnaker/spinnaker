@@ -270,7 +270,7 @@ class Utils {
     def httpLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
     def backendServicesFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
     List<List<GoogleLoadBalancedBackend>> serviceBackends = getBackendServicesFromHttpLoadBalancerView(loadBalancer.view)
-        .findAll { it.name in backendServicesFromMetadata }
+        .findAll { it && it.name in backendServicesFromMetadata }
         .collect { it.backends }
     List<String> backendGroupNames = serviceBackends.flatten()
         .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }

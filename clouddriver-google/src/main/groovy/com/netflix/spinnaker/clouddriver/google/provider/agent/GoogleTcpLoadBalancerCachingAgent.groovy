@@ -199,7 +199,13 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
     void onSuccess(TargetTcpProxy targetTcpProxy, HttpHeaders responseHeaders) throws IOException {
       String backendServiceName = GCEUtil.getLocalName(targetTcpProxy.service)
       BackendService backendService = projectBackendServices?.find { BackendService bs -> bs.getName() == backendServiceName }
-      handleBackendService(backendService, googleLoadBalancer, projectHealthChecks, groupHealthRequest)
+      if (backendService == null) {
+        log.warn("Failed to read a component of subject ${googleLoadBalancer.name}. Could not find BackendService ${backendServiceName}.\n"
+          + "Reporting it as 'Failed' to the caching agent.")
+        failedSubjects << googleLoadBalancer.name
+      } else {
+        handleBackendService(backendService, googleLoadBalancer, projectHealthChecks, groupHealthRequest)
+      }
     }
   }
 
@@ -207,10 +213,6 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
                                     GoogleTcpLoadBalancer googleLoadBalancer,
                                     List<HealthCheck> healthChecks,
                                     BatchRequest groupHealthRequest) {
-    if (!backendService) {
-      return
-    }
-
     def groupHealthCallback = new GroupHealthCallback(backendServiceName: backendService.name)
 
     GoogleBackendService newService = new GoogleBackendService(

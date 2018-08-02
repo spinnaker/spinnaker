@@ -182,7 +182,13 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
       def backendServiceName = Utils.getLocalName(forwardingRule.backendService)
       BackendService backendService = projectRegionBackendServices?.find { BackendService bs -> bs.getName() == backendServiceName }
-      handleBackendService(backendService, newLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
+      if (backendService == null) {
+        log.warn("Failed to read a component of subject ${newLoadBalancer.name}. Could not find BackendService ${backendServiceName}.\n"
+          + "Reporting it as 'Failed' to the caching agent.")
+        failedLoadBalancers << newLoadBalancer.name
+      } else {
+        handleBackendService(backendService, newLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
+      }
     }
   }
 
@@ -192,10 +198,6 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
                                     List<HttpsHealthCheck> httpsHealthChecks,
                                     List<HealthCheck> healthChecks,
                                     BatchRequest groupHealthRequest) {
-    if (!backendService) {
-      return
-    }
-
     def groupHealthCallback = new GroupHealthCallback(backendServiceName: backendService.name)
 
     GoogleBackendService newService = new GoogleBackendService(
