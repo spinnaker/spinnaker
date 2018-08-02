@@ -29,6 +29,10 @@ function process_args() {
   done
 }
 
+function get_home() {
+  getent passwd $HAL_USER | cut -d: -f6
+}
+
 function configure_defaults() {
   if [ -z "$HALYARD_VERSION" ]; then
     HALYARD_VERSION="stable"
@@ -49,6 +53,20 @@ usage: $0 [-y] [--version=<version>] [--user=<user>]
     --version <version>             Specify the exact verison of Halyard to
                                     install. Default is 'stable'.
 EOF
+}
+
+function configure_bash_completion() {
+  completion_script="/etc/bash_completion.d/hal"
+
+  if [ -f $completion_script ]; then
+    hal --print-bash-completion | tee $completion_script  > /dev/null
+
+    echo "Bash auto-completion updated."
+    echo "$(tput bold)To use the updated auto-completion restart your shell.$(tput sgr0)"
+  else
+    echo "No completion file found at '/etc/bash_completion.d/hal'."
+    echo "Assuming no bash completion is configured, skipping."
+  fi
 }
 
 function install_halyard() {
@@ -76,3 +94,5 @@ configure_defaults
 install_halyard
 
 su -c "hal -v" -s /bin/bash $HAL_USER
+
+configure_bash_completion

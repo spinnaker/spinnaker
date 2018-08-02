@@ -91,6 +91,10 @@ function get_user() {
   echo $user
 }
 
+function get_home() {
+  getent passwd $HAL_USER | cut -d: -f6
+}
+
 function configure_defaults() {
   if [ -z "$HAL_USER" ]; then
     HAL_USER=$(get_user)
@@ -134,7 +138,7 @@ function configure_defaults() {
 
   echo "$(tput bold)Halyard config will come from bucket gs://$CONFIG_BUCKET $(tput sgr0)"
 
-  home=$(getent passwd $HAL_USER | cut -d: -f6)
+  home=$(get_home)
   local halconfig_dir="$home/.hal"
 
   echo "$(tput bold)Halconfig will be stored at $halconfig_dir/config$(tput sgr0)"
@@ -274,6 +278,43 @@ function install_java() {
   fi
 }
 
+function configure_bash_completion() {
+  local yes
+  echo ""
+  if [ -z "$YES" ]; then
+    read -p "Would you like to configure halyard to use bash auto-completion? [default=Y]: " yes
+  else
+    yes="y"
+  fi
+
+  if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ] || [ "$yes" = "" ]; then
+    local home=$(get_home)
+    completion_script="/etc/bash_completion.d/hal"
+
+    mkdir -p $(dirname $completion_script)
+    hal --print-bash-completion | tee $completion_script  > /dev/null
+
+    local bashrc
+    if [ -z "$YES" ]; then
+      echo ""
+      read -p "Where is your bash RC? [default=$home/.bashrc]: " bashrc
+    fi
+
+    if [ -z "$bashrc" ]; then
+      bashrc="$home/.bashrc"
+    fi
+
+    if [ -z "$(grep $completion_script $bashrc)" ]; then
+      echo "# configure hal auto-complete " >> $bashrc
+      echo ". /etc/bash_completion.d/hal" >> $bashrc
+    fi
+
+    echo "Bash auto-completion configured."
+    echo "$(tput bold)To use the auto-completion either restart your shell, or run$(tput sgr0)"
+    echo "$(tput bold). $bashrc$(tput sgr0)"
+  fi
+}
+
 function install_halyard() {
   TEMPDIR=$(mktemp -d installhalyard.XXXX)
   pushd $TEMPDIR
@@ -328,3 +369,5 @@ install_java
 install_halyard
 
 su -c "hal -v" -s /bin/bash $HAL_USER
+
+configure_bash_completion
