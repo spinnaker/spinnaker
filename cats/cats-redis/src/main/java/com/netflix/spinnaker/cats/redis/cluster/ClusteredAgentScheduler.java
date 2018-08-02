@@ -26,7 +26,6 @@ import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@SuppressFBWarnings
 public class ClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock>, Runnable {
   private static enum Status {
     SUCCESS,
