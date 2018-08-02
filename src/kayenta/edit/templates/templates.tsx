@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
+import { Tooltip } from '@spinnaker/core';
 
 import { ICanaryState } from 'kayenta/reducers';
 import { Table, ITableColumn } from 'kayenta/layout/table';
@@ -35,17 +36,22 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
       width: 1,
       getContent: t => (
         <div className="horizontal center">
-          <i
-            className="fa fa-edit"
-            data-name={t.name}
-            data-value={t.value}
-            onClick={edit}
-          />
-          <i
-            className="fa fa-trash"
-            data-name={t.name}
-            onClick={remove}
-          />
+          <Tooltip value="Edit Template">
+            <i
+              className="fa fa-edit"
+              data-name={t.name}
+              data-value={t.value}
+              onClick={edit}
+              style={{marginTop: '1px'}}
+            />
+          </Tooltip>
+          <Tooltip value="Delete Template">
+            <i
+              className="fa fa-trash"
+              data-name={t.name}
+              onClick={remove}
+            />
+          </Tooltip>
         </div>
       ),
     }

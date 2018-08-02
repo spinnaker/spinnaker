@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
-import { noop } from '@spinnaker/core';
+import { noop, Tooltip } from '@spinnaker/core';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
@@ -48,23 +48,29 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
       width: 1,
       getContent: metric => (
         <div className="horizontal center">
-          <i
-            className="fa fa-edit"
-            data-id={metric.id}
-            onClick={editMetric}
-          />
-          <i
-            className="far fa-folder"
-            data-id={metric.id}
-            onClick={openChangeMetricGroupModal}
-          />
-          <i
-            className={classNames('fa', 'fa-trash', {
-              disabled: disableEdit,
-            })}
-            data-id={metric.id}
-            onClick={disableEdit ? noop : removeMetric}
-          />
+          <Tooltip value="Edit Metric">
+            <i
+              className="fa fa-edit"
+              data-id={metric.id}
+              onClick={editMetric}
+            />
+          </Tooltip>
+          <Tooltip value="Change Metric Group">
+            <i
+              className="far fa-folder"
+              data-id={metric.id}
+              onClick={openChangeMetricGroupModal}
+            />
+          </Tooltip>
+          <Tooltip value="Delete Metric">
+            <i
+              className={classNames('fa', 'fa-trash', {
+                disabled: disableEdit,
+              })}
+              data-id={metric.id}
+              onClick={disableEdit ? noop : removeMetric}
+            />
+          </Tooltip>
         </div>
       ),
     }
