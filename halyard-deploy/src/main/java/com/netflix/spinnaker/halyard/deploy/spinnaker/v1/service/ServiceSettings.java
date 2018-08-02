@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -92,6 +93,9 @@ public class ServiceSettings {
         m.setAccessible(false);
       }
     });
+    Map<String, String> fullEnvironment = new HashMap<>(other.getEnv());
+    fullEnvironment.putAll(this.getEnv());
+    this.setEnv(fullEnvironment);
   }
 
   private URIBuilder buildBaseUri() {
