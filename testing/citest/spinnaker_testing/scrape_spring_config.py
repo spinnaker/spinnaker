@@ -103,7 +103,7 @@ def scrape_spring_config(url, timeout=60, empty_if_404=True):
       logging.info('Failed to scrape %s -- try again in 1s: %s', url, ex)
       time.sleep(1)
     except HTTPError as ex:
-      if ex.code == 404 and empty_if_404:
+      if (ex.code == 401 or ex.code == 404) and empty_if_404:
         logging.warning('Could not scrape config from url=%s: %s'
                         '\n  Suppressing this error and returning empty results.',
                         url, ex)
