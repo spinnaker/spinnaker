@@ -278,6 +278,16 @@ public class Execution implements Serializable {
     this.pipelineConfigId = pipelineConfigId;
   }
 
+  private PipelineSource source;
+
+  public @Nullable PipelineSource getSource() {
+    return source;
+  }
+
+  public void setSource(@Nullable PipelineSource source) {
+    this.source = source;
+  }
+
   private final List<Map<String, Object>> notifications = new ArrayList<>();
 
   public @Nonnull List<Map<String, Object>> getNotifications() {
@@ -455,6 +465,28 @@ public class Execution implements Serializable {
 
     @Override public String toString() {
       return name().toLowerCase();
+    }
+  }
+
+  public static class PipelineSource implements Serializable {
+    private String id;
+
+    public @Nonnull String getId() {
+      return id;
+    }
+
+    public void setId(@Nonnull String id) {
+      this.id = id;
+    }
+
+    private String type;
+
+    public @Nonnull String getType() {
+      return type;
+    }
+
+    public void setType(@Nonnull String type) {
+      this.type = type;
     }
   }
 }
