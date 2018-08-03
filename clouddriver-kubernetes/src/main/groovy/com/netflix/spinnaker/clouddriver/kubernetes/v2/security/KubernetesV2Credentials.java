@@ -101,9 +101,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   public boolean isValidKind(KubernetesKind kind) {
     if (kind == KubernetesKind.NONE) {
       return false;
-    }
-
-    if (!this.kinds.isEmpty()) {
+    } else if (!this.kinds.isEmpty()) {
       return kinds.contains(kind);
     } else if (!this.omitKinds.isEmpty()) {
       return !omitKinds.contains(kind);
@@ -314,6 +312,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         .stream()
         .map(KubernetesManifest::getName)
         .collect(Collectors.toList()), namespaceExpirySeconds, TimeUnit.SECONDS);
+
+    determineOmitKinds();
   }
 
   @Override
@@ -338,6 +338,39 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
 
     return result;
+  }
+
+  private void determineOmitKinds() {
+    List<String> namespaces = getDeclaredNamespaces();
+
+    if (namespaces.isEmpty()) {
+      throw new IllegalArgumentException("There are no namespaces configured -- please check that the list of 'omitNamespaces' for account '"
+          + accountName +"' doesn't prevent access from all namespaces in this cluster.");
+    }
+
+    // we are making the assumption that the roles granted to spinnaker for this account in all namespaces are identical.
+    // otherwise, checking all namespaces for all kinds is too expensive in large clusters (imagine a cluster with 100s of namespaces).
+    String checkNamespace = namespaces.get(0);
+    List<KubernetesKind> allKinds = KubernetesKind.getValues();
+
+    log.info("Checking permissions on configured kinds... {}", allKinds);
+    for (KubernetesKind kind : allKinds) {
+      if (kind == KubernetesKind.NONE) {
+        continue;
+      }
+
+      try {
+        if (kind.isNamespaced()) {
+          list(kind, checkNamespace);
+        } else {
+          list(kind, null);
+        }
+      } catch (Exception e) {
+        log.info("Kind '{}' will not be cached in account '{}' for reason: '{}'", kind, accountName, e.getMessage());
+        log.debug("Reading kind '{}' failed with exception: ", kind, e);
+        omitKinds.add(kind);
+      }
+    }
   }
 
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
