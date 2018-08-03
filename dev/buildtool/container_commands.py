@@ -153,7 +153,7 @@ class BuildContainerCommand(GradleCommandProcessor):
       shutil.rmtree(gradle_cache)
 
     # Note this command assumes a cwd of git_dir
-    command = ('gcloud container builds submit '
+    command = ('gcloud builds submit '
                ' --account={account} --project={project}'
                ' --config="{config_path}" .'
                .format(account=options.gcb_service_account,

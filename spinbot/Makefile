@@ -7,7 +7,7 @@ init:
 	python3 -m pip install -r requirements.txt
 
 docker:
-	gcloud container builds submit . \
+	gcloud builds submit . \
 		--project ${PROJECT} \
 		-t ${IMAGE}:${HASH} \
 		-t ${IMAGE}:latest
