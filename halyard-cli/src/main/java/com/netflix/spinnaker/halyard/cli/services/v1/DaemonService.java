@@ -45,6 +45,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
 import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
@@ -768,4 +769,7 @@ public interface DaemonService {
   DaemonTask<Halconfig, Void> publishLatestSpinnaker(
       @Query("latestSpinnaker") String latestSpinnaker,
       @Body String _ignore);
+
+  @GET("/v1/spin/install/latest")
+  DaemonTask<Halconfig, Object> installSpin();
 }

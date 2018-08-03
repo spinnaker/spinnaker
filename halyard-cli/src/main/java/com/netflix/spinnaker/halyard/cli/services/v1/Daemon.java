@@ -835,6 +835,13 @@ public class Daemon {
     };
   }
 
+  public static Supplier<RemoteAction> installSpin() {
+    return () -> {
+      Object rawRemoteAction = ResponseUnwrapper.get(getService().installSpin());
+      return getObjectMapper().convertValue(rawRemoteAction, RemoteAction.class);
+    };
+  }
+
   static <C, T> DaemonTask<C, T> getTask(String uuid) {
     return getService().getTask(uuid);
   }
