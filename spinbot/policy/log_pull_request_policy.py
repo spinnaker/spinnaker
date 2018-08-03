@@ -1,13 +1,13 @@
-from gh import ObjectType, IssueRepo
+from gh import ObjectType, PullRequestRepo
 from datetime import datetime
 from .policy import Policy
 
-class LogIssuePolicy(Policy):
+class LogPullRequestPolicy(Policy):
     def __init__(self):
         super().__init__()
 
     def applies(self, o):
-        return ObjectType(o) == 'issue'
+        return ObjectType(o) == 'pull_request'
 
     def apply(self, g, o):
         days_since_created = None
@@ -19,15 +19,23 @@ class LogIssuePolicy(Policy):
         if o.updated_at is not None:
             days_since_updated = (now - o.updated_at).days
 
-        repo = IssueRepo(o)
+        repo = PullRequestRepo(o)
 
-        self.monitoring_db.write('issue', { 
+        reviews = 0
+        for r in o.get_reviews():
+            reviews += 1
+
+        self.monitoring_db.write('pull_request', { 
             'days_since_created': days_since_created,
             'days_since_updated': days_since_updated,
+            'review_comments': o.review_comments,
+            'reviews': reviews,
             'count': 1
         }, tags={ 
             'repo': repo, 
-            'user': o.user.login 
+            'user': o.user.login,
+            'mergable_state': o.mergeable_state,
+            'state': o.state
         })
 
-LogIssuePolicy()
+LogPullRequestPolicy()
