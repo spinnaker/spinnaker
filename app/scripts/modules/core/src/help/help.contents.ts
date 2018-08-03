@@ -420,7 +420,7 @@ const helpContents: { [key: string]: string } = {
     To write to a protected application or account, the pipeline must have at least one role that has write access to the application or account.
     </li>
     </ul>
-    <p><strong>Note:</strong> To prevent privilege escalation vulnerabilities, a user must be a member of <strong>all</strong> of the groups specified here in order to view, modify, and execute the pipeline.</p>`,
+    <p><strong>Note:</strong> To prevent privilege escalation vulnerabilities, a user must be a member of <strong>all</strong> of the groups specified here in order to modify, and execute the pipeline.</p>`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));
