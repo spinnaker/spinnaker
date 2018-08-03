@@ -47,5 +47,6 @@
       "type": "email"
     }
   ],
-  "parameterConfig": []
+  "parameterConfig": [],
+  "triggers": []
 }

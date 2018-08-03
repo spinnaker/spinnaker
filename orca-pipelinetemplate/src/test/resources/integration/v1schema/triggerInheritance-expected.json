@@ -7,5 +7,12 @@
   "stages": [],
   "notifications": [],
   "parameterConfig": [],
-  "triggers": []
+  "triggers": [
+    {
+      "name": "mytrigger",
+      "type": "jenkins",
+      "master": "mymaster",
+      "job": "myjob"
+    }
+  ]
 }

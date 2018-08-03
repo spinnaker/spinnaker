@@ -15,13 +15,14 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 
-import java.util.*;
-import java.util.stream.Collectors;
 import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest;
 import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class V1SchemaExecutionGenerator implements ExecutionGenerator {
 
@@ -49,6 +50,7 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
 
     addNotifications(pipeline, template, configuration);
     addParameters(pipeline, template, configuration);
+    addTriggers(pipeline, template, configuration);
 
     pipeline.put("stages", template.getStages()
       .stream()
@@ -106,6 +108,25 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
       pipeline.put(
         "parameterConfig",
         Optional.ofNullable(configuration.getConfiguration().getParameters()).orElse(Collections.emptyList())
+      );
+    }
+  }
+
+  private void addTriggers(Map<String, Object> pipeline,
+                           PipelineTemplate template,
+                           TemplateConfiguration configuration) {
+    if (configuration.getConfiguration().getInherit().contains("triggers")) {
+      pipeline.put(
+        "triggers",
+        TemplateMerge.mergeNamedContent(
+          template.getConfiguration().getTriggers(),
+          configuration.getConfiguration().getTriggers()
+        )
+      );
+    } else {
+      pipeline.put(
+        "triggers",
+        Optional.ofNullable(configuration.getConfiguration().getTriggers()).orElse(Collections.emptyList())
       );
     }
   }

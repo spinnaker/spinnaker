@@ -16,7 +16,11 @@
 package com.netflix.spinnaker.orca.pipelinetemplate
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.*
+import com.netflix.spectator.api.Clock
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateErrorHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
@@ -28,7 +32,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter
 import org.unitils.reflectionassert.ReflectionComparatorMode
-import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -164,7 +167,8 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         master: "master",
         job: "job",
         buildNumber: 1111
-      ]
+      ],
+      triggers: []
     ]
     assertReflectionEquals(expected, result, ReflectionComparatorMode.IGNORE_DEFAULTS)
   }

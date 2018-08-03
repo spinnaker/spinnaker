@@ -1,0 +1,8 @@
+---
+schema: "1"
+pipeline:
+  application: orca
+configuration:
+  inherit:
+  - triggers
+stages: []

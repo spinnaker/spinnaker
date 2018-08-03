@@ -47,5 +47,6 @@
   "limitConcurrent": true,
   "notifications": [],
   "parameterConfig": [],
-  "id": "unknown"
+  "id": "unknown",
+  "triggers": []
 }

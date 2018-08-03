@@ -12,5 +12,6 @@
       "description": "Number of instances to start per region",
       "default": 9000
     }
-  ]
+  ],
+  "triggers": []
 }

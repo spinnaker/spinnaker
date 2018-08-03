@@ -41,5 +41,6 @@
     }
   ],
   "notifications": [],
-  "parameterConfig": []
+  "parameterConfig": [],
+  "triggers": []
 }
