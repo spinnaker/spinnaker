@@ -19,11 +19,13 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
+import com.amazonaws.services.ec2.model.CreateTagsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
+import com.amazonaws.services.ec2.model.Tag
 import com.google.common.collect.ImmutableSet
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -115,6 +117,13 @@ class SecurityGroupLookupFactory {
         groupName: description.name, description: description.description, vpcId: description.vpcId)
       securityGroupById.put(result.groupId, newSecurityGroup)
       securityGroupByName.put(description.name, newSecurityGroup)
+
+      List<Tag> tags = new ArrayList<Tag>()
+      tags.add(new Tag("Name", description.name))
+      CreateTagsRequest createTagRequest = new CreateTagsRequest()
+      createTagRequest.withResources(result.groupId).withTags(tags)
+      amazonEC2.createTags(createTagRequest)
+
       if (!skipEdda) {
         getEddaSecurityGroups(amazonEC2, description.credentialAccount, region).add(newSecurityGroup)
       }
