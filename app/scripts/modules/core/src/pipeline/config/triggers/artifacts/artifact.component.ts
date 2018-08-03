@@ -59,7 +59,8 @@ class ArtifactCtrl implements IController {
   }
 
   public getOptions(): IArtifactKindConfig[] {
-    return this.options.filter(o => o.isDefault === this.isDefault || o.isMatch === this.isMatch);
+    const options = this.options.filter(o => o.isDefault === this.isDefault || o.isMatch === this.isMatch);
+    return options.sort((a, b) => a.label.localeCompare(b.label));
   }
 
   public loadArtifactKind(): void {
