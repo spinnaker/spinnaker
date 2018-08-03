@@ -141,18 +141,18 @@ public class DeploymentController extends DeploymentsGrpc.DeploymentsImplBase{
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/generate/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> generateConfig(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, String> generateConfig(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestParam(required = false) List<String> serviceNames) {
     List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
     Supplier buildResponse = () -> {
-      generateService.generateConfig(deploymentName, finalServiceNames.stream()
+      GenerateService.ResolvedConfiguration configuration = generateService.generateConfigWithOptionalServices(deploymentName, finalServiceNames.stream()
           .map(SpinnakerService.Type::fromCanonicalName)
           .collect(Collectors.toList()));
-      return null;
+      return configuration.getStagingDirectory();
     };
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>(buildResponse);
+    StaticRequestBuilder<String> builder = new StaticRequestBuilder<>(buildResponse);
     builder.setSeverity(severity);
 
     if (validate) {

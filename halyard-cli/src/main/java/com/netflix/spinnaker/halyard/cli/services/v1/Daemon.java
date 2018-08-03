@@ -504,10 +504,9 @@ public class Daemon {
     };
   }
 
-  public static Supplier<Void> generateDeployment(String deploymentName, boolean validate) {
+  public static Supplier<String> generateDeployment(String deploymentName, boolean validate) {
     return () -> {
-      ResponseUnwrapper.get(getService().generateDeployment(deploymentName, validate, ""));
-      return null;
+      return ResponseUnwrapper.get(getService().generateDeployment(deploymentName, validate, ""));
     };
   }
 

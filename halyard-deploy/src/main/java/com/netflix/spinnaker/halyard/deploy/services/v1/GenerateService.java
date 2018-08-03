@@ -72,6 +72,21 @@ public class GenerateService {
   @Autowired
   private ConfigParser configParser;
 
+  public ResolvedConfiguration generateConfigWithOptionalServices(String deploymentName, List<SpinnakerService.Type> serviceTypes) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+
+    if (serviceTypes.isEmpty()) {
+      serviceTypes = serviceProvider
+          .getServices()
+          .stream()
+          .map(SpinnakerService::getType)
+          .collect(Collectors.toList());
+    }
+
+    return generateConfig(deploymentName, serviceTypes);
+  }
+
   /**
    * Generate config for a given deployment.
    *
@@ -144,6 +159,7 @@ public class GenerateService {
     }
 
     return new ResolvedConfiguration()
+        .setStagingDirectory(spinnakerStaging.toString())
         .setServiceProfiles(serviceProfiles)
         .setRuntimeSettings(runtimeSettings);
   }
@@ -195,6 +211,7 @@ public class GenerateService {
   public static class ResolvedConfiguration {
     private Map<SpinnakerService.Type, Map<String, Profile>> serviceProfiles = new HashMap<>();
     SpinnakerRuntimeSettings runtimeSettings;
+    private String stagingDirectory;
 
     @JsonIgnore
     public ServiceSettings getServiceSettings(SpinnakerService service) {

@@ -617,7 +617,7 @@ hal config [parameters] [subcommands]
  * `deploy`: Display the configured Spinnaker deployment.
  * `edit`: Configure top-level, global configuration parameters.
  * `features`: Display the state of Spinnaker's feature flags.
- * `generate`: Generate the full Spinnaker config for your current deployment.
+ * `generate`: Generate the full Spinnaker config for your current deployment. This does _not_ apply that configuration to your running Spinnaker installation. That either needs to be done manually, or with `hal deploy apply`.
  * `metric-stores`: Configure Spinnaker's metric stores. Metrics stores are used to store metrics for the various Spinnaker micro-services. These metrics are not related in any way to canary deployments. The technologies backing both are similar, but metrics stores are places to push metrics regarding Spinnaker metrics, whereas canary metrics stores are used to pull metrics to analyze deployments. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
  * `notification`: Display the state of Spinnaker's notification settings.
  * `provider`: Configure, validate, and view the specified provider.
@@ -2931,7 +2931,7 @@ hal config features edit [parameters]
 ---
 ## hal config generate
 
-Generate the full Spinnaker config for your current deployment.
+Generate the full Spinnaker config for your current deployment. This does _not_ apply that configuration to your running Spinnaker installation. That either needs to be done manually, or with `hal deploy apply`.
 
 #### Usage
 ```

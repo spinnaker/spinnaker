@@ -110,7 +110,7 @@ public interface DaemonService {
       @Body DeploymentConfiguration deploymentConfiguration);
 
   @POST("/v1/config/deployments/{deploymentName}/generate/")
-  DaemonTask<Halconfig, Void> generateDeployment(
+  DaemonTask<Halconfig, String> generateDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body String _ignore);
