@@ -14,7 +14,7 @@ def ApplyPolicies(g):
     monitoring_db = monitoring.GetDatabase('spinbot')
 
     logging.info('Processing issues, repos')
-    for i in itertools.chain(*[g.issues(), g.repos()]):
+    for i in itertools.chain(*[g.issues(), g.pull_requests(), g.repos()]):
         for p in policy.Policies():
             if p.applies(i):
                 err = None

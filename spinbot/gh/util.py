@@ -3,6 +3,9 @@ import github
 def IssueRepo(issue):
     return '/'.join(issue.url.split('/')[-4:-2])
 
+def PullRequestRepo(issue):
+    return '/'.join(issue.url.split('/')[-4:-2])
+
 def HasLabel(issue, name):
     label = next((l for l in issue.get_labels() if l.name == name), None)
     return label is not None
@@ -21,8 +24,10 @@ def AddLabel(gh, issue, name, create=True):
     issue.add_to_labels(label)
 
 def ObjectType(o):
-    if isinstance(o, github.Issue.Issue):
+    if isinstance(o, github.Issue.Issue) and o.html_url.split('/')[-2] == 'issues':
         return 'issue'
+    if isinstance(o, github.PullRequest.PullRequest):
+        return 'pull_request'
     elif isinstance(o, github.Repository.Repository):
         return 'repository'
     else:

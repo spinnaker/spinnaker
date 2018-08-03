@@ -44,7 +44,15 @@ class Client(object):
         for r in self._repos:
             yield self.g.get_repo(r)
 
-        raise StopIteration
+    def pull_requests(self):
+        for r in self._repos:
+            pulls = 0
+            self.logging.info('Reading pull requests from {}'.format(r))
+            for i in self.g.get_repo(r).get_pulls():
+                pulls += 1
+                yield i
+
+            self.monitoring_db.write('pull_requests_count', { 'value': pulls }, tags={ 'repo': r })
 
     def issues(self):
         for r in self._repos:
@@ -55,8 +63,6 @@ class Client(object):
                 yield i
 
             self.monitoring_db.write('issues_count', { 'value': issues }, tags={ 'repo': r })
-
-        raise StopIteration
 
     def events_since(self, date):
         return heapq.merge(
@@ -75,7 +81,6 @@ class Client(object):
                 yield e
 
         self.monitoring_db.write('events_count', { 'value': events }, tags={ 'repo': repo })
-        raise StopIteration
 
     def get_branches(self, repo):
         return self.g.get_repo(repo).get_branches()
