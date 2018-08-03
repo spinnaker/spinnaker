@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -28,6 +25,18 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
 import static java.lang.String.format;
 
 @Component
@@ -47,9 +56,9 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
 
   @Override
   public ImageTagger.OperationContext getOperationContext(Stage stage) {
-    StageData stageData = (StageData) stage.mapTo(StageData.class);
+    StageData stageData = stage.mapTo(StageData.class);
 
-    Collection<MatchedImage> matchedImages = findImages(stageData.imageNames, stage, MatchedImage.class);
+    Collection<MatchedImage> matchedImages = findImages(stageData.imageNames, stageData.consideredStages, stage, MatchedImage.class);
     if (stageData.regions == null || stageData.regions.isEmpty()) {
       stageData.regions = matchedImages.stream()
         .flatMap(matchedImage -> matchedImage.amis.keySet().stream())
@@ -125,9 +134,10 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
    * Return true iff the tags on the current machine image match the desired.
    */
   @Override
-  public boolean areImagesTagged(Collection<Image> targetImages, Stage stage) {
+  public boolean areImagesTagged(Collection<Image> targetImages, Collection<String> consideredStageRefIds, Stage stage) {
     Collection<MatchedImage> matchedImages = findImages(
       targetImages.stream().map(targetImage -> targetImage.imageName).collect(Collectors.toSet()),
+      consideredStageRefIds,
       stage,
       MatchedImage.class
     );
@@ -169,6 +179,7 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
     public Set<String> imageNames;
     public Set<String> regions = new HashSet<>();
     public Map<String, String> tags = new HashMap<>();
+    public Set<String> consideredStages = new HashSet<>();
   }
 
   private static class MatchedImage {

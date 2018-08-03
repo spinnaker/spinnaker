@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
-import java.util.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +24,13 @@ import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -44,7 +50,7 @@ public abstract class ImageTagger {
   /**
    * @return true when, according to the underlying cloud provider, image tags have been updated to match the respective target
    */
-  abstract protected boolean areImagesTagged(Collection<Image> targetImages, Stage stage);
+  abstract protected boolean areImagesTagged(Collection<Image> targetImages, Collection<String> consideredStageRefIds, Stage stage);
 
   /**
    * @return The cloud provider type that this object supports.
@@ -56,12 +62,12 @@ public abstract class ImageTagger {
     this.objectMapper = objectMapper;
   }
 
-  protected Collection findImages(Collection<String> imageNames, Stage stage, Class matchedImageType) {
+  protected Collection findImages(Collection<String> imageNames, Collection<String> consideredStageRefIds, Stage stage, Class matchedImageType) {
     if (imageNames == null || imageNames.isEmpty()) {
       imageNames = new HashSet<>();
 
       // attempt to find upstream images in the event that one was not explicitly provided
-      Collection<String> upstreamImageIds = ImageTaggerSupport.upstreamImageIds(stage, getCloudProvider());
+      Collection<String> upstreamImageIds = upstreamImageIds(stage, consideredStageRefIds, getCloudProvider());
       if (upstreamImageIds.isEmpty()) {
         throw new IllegalStateException("Unable to determine source image(s)");
       }
@@ -96,11 +102,14 @@ public abstract class ImageTagger {
   }
 
   @VisibleForTesting
-  Collection<String> upstreamImageIds(Stage sourceStage, String cloudProviderType) {
-    Collection<Stage> imageProvidingAncestorStages = sourceStage.ancestors().stream().filter((Stage stage) -> {
-      String cloudProvider = (String) stage.getContext().getOrDefault("cloudProvider", stage.getContext().get("cloudProviderType"));
-      return (stage.getContext().containsKey("imageId") || stage.getContext().containsKey("amiDetails")) && cloudProviderType.equals(cloudProvider);
-    }).collect(toList());
+  Collection<String> upstreamImageIds(Stage sourceStage, Collection<String> consideredStageRefIds, String cloudProviderType) {
+    List<Stage> ancestors = sourceStage.ancestors();
+    List<Stage> imageProvidingAncestorStages = ancestors.stream()
+      .filter(stage -> {
+        String cloudProvider = (String) stage.getContext().getOrDefault("cloudProvider", stage.getContext().get("cloudProviderType"));
+        boolean consideredStageRefIdMatches = consideredStageRefIds == null || consideredStageRefIds.isEmpty() || consideredStageRefIds.contains(stage.getRefId()) || (stage.getParent() != null && consideredStageRefIds.contains(stage.getParent().getRefId()));
+        return consideredStageRefIdMatches && (stage.getContext().containsKey("imageId") || stage.getContext().containsKey("amiDetails")) && cloudProviderType.equals(cloudProvider);
+      }).collect(toList());
 
     return imageProvidingAncestorStages.stream().map(it -> {
       if (it.getContext().containsKey("imageId")) {

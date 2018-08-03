@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProviderAware {
@@ -46,9 +47,9 @@ public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProvide
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("ImageTagger not found for cloudProvider " + cloudProvider));
 
-    StageData stageData = (StageData) stage.mapTo(StageData.class);
+    StageData stageData = stage.mapTo(StageData.class);
     return new TaskResult(
-      tagger.areImagesTagged(stageData.targets, stage) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
+      tagger.areImagesTagged(stageData.targets, stageData.consideredStages, stage) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
     );
   }
 
@@ -65,5 +66,7 @@ public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProvide
   static class StageData {
     @JsonProperty
     Collection<ImageTagger.Image> targets;
+    @JsonProperty
+    Collection<String> consideredStages;
   }
 }
