@@ -7079,7 +7079,7 @@ This guarantees that no configuration will be generated for this deployment. Thi
 ---
 ## hal deploy clean
 
-This command destroys all Spinnaker artifacts in your target deployment environment. This cannot be undone, so use with care.
+This command destroys all Spinnaker artifacts in your target deployment environment. This cannot be undone, so use with care. This does not delete Halyard nor any of the configuration.
 
 #### Usage
 ```
