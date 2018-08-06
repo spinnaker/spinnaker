@@ -82,15 +82,15 @@ class RedisQueueShovelConfiguration {
 
   @Bean
   @ConditionalOnBean(name = arrayOf("previousQueueJedisPool")) fun redisQueueShovel(
-    queueImpl: RedisQueue,
+    queue: RedisQueue,
     @Qualifier("previousQueue") previousQueueImpl: RedisQueue,
     registry: Registry,
-    activator: Activator
+    discoveryActivator: Activator
   ) =
     QueueShovel(
-      queue = queueImpl,
+      queue = queue,
       previousQueue = previousQueueImpl,
       registry = registry,
-      activator = activator
+      activator = discoveryActivator
     )
 }

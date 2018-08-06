@@ -113,7 +113,7 @@ public class RedisConfiguration {
   @Deprecated // rz - Kept for backwards compat with old connection configs
   @Bean(name = "jedisPoolPrevious")
   @ConditionalOnProperty("redis.connectionPrevious")
-  @ConditionalOnExpression("${redis.connection} != ${redis.connectionPrevious}")
+  @ConditionalOnExpression("'${redis.connection}' != '${redis.connectionPrevious}'")
   JedisPool jedisPoolPrevious(
     @Value("${redis.connectionPrevious:#{null}}") String previousConnection,
     @Value("${redis.timeout:2000}") int timeout,
