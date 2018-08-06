@@ -76,16 +76,16 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
     Process exit code, stdout remaining in process prior to this invocation.
     Any previously read output from the process will not be included.
   """
-  stdout_lines = []
+  text_lines = []
   if process.stdout is not None:
     # stdout isnt going to another stream; collect it from the pipe.
-    for line in iter(process.stdout.readline, ''):
-      if not line:
+    for raw_line in iter(process.stdout.readline, ''):
+      if not raw_line:
         break
-      decoded_line = bytes.decode(line, encoding='utf-8')
-      stdout_lines.append(decoded_line)
+      decoded_line = raw_line.decode(encoding='utf-8')
+      text_lines.append(decoded_line)
       if stream:
-        stream.write(decoded_line)
+        stream.write(raw_line)
         stream.flush()
    
   process.wait()
@@ -101,7 +101,7 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
     delta_time_str = 'UNKNOWN'
 
   returncode = process.returncode
-  stdout = ''.join(stdout_lines)
+  stdout = ''.join(text_lines)
 
   if stream:
     stream.write(
@@ -196,18 +196,25 @@ def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
     try:
       check_subprocess_sequence(
           cmds, stream=stream, embed_errors=False, **kwargs)
-    except Exception:
+    except Exception as ex:
       logging.error('%s failed. Log file [%s] follows:', what, logfile)
-      with open(logfile, 'r') as readagain:
-        output = readagain.read()
+      import traceback
+      traceback.print_exc()
+
+      with open(logfile, 'rb') as readagain:
+        output = bytes.decode(readagain.read())
         log_embedded_output(logging.ERROR, logfile, output)
-      logging.error('%s failed. See embedded logfile above', what)
+      logging.error('Caught exception %s\n%s failed. See embedded logfile above',
+                    ex, what)
 
       ensure_dir_exists(ERROR_LOGFILE_DIR)
       error_path = os.path.join('errors', os.path.basename(logfile))
       logging.info('Copying error log file to %s', error_path)
       with open(error_path, 'w') as f:
-        f.write(output)
+        f.write(output);
+        f.write('\n--------\n')
+        f.write('Exeception caught in parent process:\n%s' % ex)
+
       raise
 
 
