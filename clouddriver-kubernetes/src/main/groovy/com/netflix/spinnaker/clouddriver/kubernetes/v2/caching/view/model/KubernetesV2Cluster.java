@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 public class KubernetesV2Cluster implements Cluster {
   String name;
   Moniker moniker;
-  String type;
+  String type = KubernetesCloudProvider.getID();
   String accountName;
   Set<ServerGroup> serverGroups = new HashSet<>();
   Set<LoadBalancer> loadBalancers = new HashSet<>();
