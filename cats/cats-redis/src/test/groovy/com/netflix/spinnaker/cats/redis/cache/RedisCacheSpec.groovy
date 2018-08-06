@@ -175,7 +175,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
             'test',
             new JedisClientDelegate(pool),
             new ObjectMapper(),
-            RedisCacheOptions.builder().maxMergeBatch(mergeCount).hashing(false).build(),
+            RedisCacheOptions.builder().maxMergeBatch(mergeCount).maxMset(MAX_MSET_SIZE).hashing(false).build(),
             cacheMetrics)
 
         when:
@@ -183,8 +183,8 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
         then:
 
-        fullMerges * cacheMetrics.merge('test', 'foo', mergeCount, mergeCount, 0, 0, 0, 1, 1, 0, 1, 0)
-        finalMergeCount * cacheMetrics.merge('test', 'foo', finalMerge, finalMerge, 0, 0, 0, 1, 1, 0, 1, 0)
+        fullMerges * cacheMetrics.merge('test', 'foo', mergeCount, mergeCount, 0, 0, 0, 1, mergeCount, 0, 1, 0)
+        finalMergeCount * cacheMetrics.merge('test', 'foo', finalMerge, finalMerge, 0, 0, 0, 1, finalMerge, 0, 1, 0)
 
         where:
         mergeCount << [ 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 100, 101, 131 ]

@@ -127,10 +127,10 @@ public class RedisCacheOptions {
     }
 
   public static class Builder {
-        public static final int DEFAULT_MULTI_OP_SIZE = 10000;
-        public static final int DEFAULT_BATCH_SIZE = 5000;
-        public static final int DEFAULT_SCAN_SIZE = 25000;
-        public static final int DEFAULT_MAX_PIPELINE_SIZE = 5000;
+        public static final int DEFAULT_MULTI_OP_SIZE = 200;
+        public static final int DEFAULT_BATCH_SIZE = 200;
+        public static final int DEFAULT_SCAN_SIZE = 200;
+        public static final int DEFAULT_MAX_PIPELINE_SIZE = 200;
         public static final boolean DEFAULT_HASHING_ENABLED = true;
         public static final boolean DEFAULT_TREAT_RELATIONSHIPS_AS_SET_DISABLED = false;
 
