@@ -22,6 +22,7 @@ import { ExecutionState } from 'core/state';
 import { ExecutionMarker } from './ExecutionMarker';
 import { PipelineGraph } from 'core/pipeline/config/graph/PipelineGraph';
 import { Tooltip } from 'core/presentation/Tooltip';
+import { CancelModal } from 'core/cancelModal/CancelModal';
 
 import './execution.less';
 
@@ -140,11 +141,11 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public cancelExecution(): void {
-    const { cancelModalService, executionService } = ReactInjector;
+    const { executionService } = ReactInjector;
     const hasDeployStage =
       this.props.execution.stages &&
       this.props.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
-    cancelModalService.confirm({
+    CancelModal.confirm({
       header: `Really stop execution of ${this.props.execution.name}?`,
       buttonText: `Stop running ${this.props.execution.name}`,
       body: hasDeployStage

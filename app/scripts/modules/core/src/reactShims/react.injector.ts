@@ -5,7 +5,6 @@ import { StateParams, StateService, UIRouter } from '@uirouter/core';
 
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
-import { CancelModalService } from '../cancelModal/cancelModal.service';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
 import { ExecutionService } from '../pipeline/service/execution.service';
@@ -50,7 +49,6 @@ export class CoreReactInject extends ReactInject {
   public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
   public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }
   public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }
-  public get cancelModalService() { return this.$injector.get('cancelModalService') as CancelModalService; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }
   public get executionService() { return this.$injector.get('executionService') as ExecutionService; }
