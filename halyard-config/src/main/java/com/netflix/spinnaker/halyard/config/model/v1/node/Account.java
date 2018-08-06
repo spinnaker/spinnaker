@@ -45,6 +45,7 @@ public abstract class Account extends Node implements Cloneable {
 
   // Override this method if your cloud provider account needs special settings enabled for it act as a bootstrapping account.
   public void makeBootstrappingAccount(ArtifactSourcesConfig artifactSourcesConfig) {
+    permissions.clear();
     requiredGroupMembership.clear();
   }
 
