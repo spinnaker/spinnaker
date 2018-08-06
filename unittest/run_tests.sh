@@ -12,7 +12,7 @@ failed_tests=()
 
 for test in `cd $TEST_DIR; find . -name \*_test.py -print`; do
   echo "Running $test"
-  PYTHONPATH=$TEST_DIR/../pylib:$TEST_DIR/../dev python $TEST_DIR/$test
+  PYTHONPATH=$TEST_DIR/../dev python $TEST_DIR/$test
   
   if [[ $? -eq 0 ]]; then
       passed_tests+=("$test")
