@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder(toBuilder = true)
 @Wither
-@ToString(of = {"id", "parent", "type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds", "payload", "status"}, includeFieldNames = false)
+@ToString(of = {"id", "parent", "type", "master", "job", "cronExpression", "source", "project", "slug", "account", "repository", "tag", "parameters", "payloadConstraints", "attributeConstraints", "branch", "runAsUser", "subscriptionName", "pubsubSystem", "expectedArtifactIds", "payload", "status", "artifactName"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
@@ -103,6 +103,11 @@ public class Trigger {
   String pubsubSystem;
   List<String> expectedArtifactIds;
   Map<String, ?> lastSuccessfulExecution;
+
+  /**
+   * Field to use for custom triggers involving artifacts
+   */
+  String artifactName;
 
   // this is set after deserialization, not in the json representation
   @JsonIgnore
