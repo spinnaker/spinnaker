@@ -4,6 +4,27 @@ import { isNil } from 'lodash';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+export const setNameAndVersionFromReference = (artifact: IArtifact) => {
+  const ref = artifact.reference;
+  if (isNil(ref)) {
+    return;
+  }
+
+  const atIndex: number = ref.indexOf('@');
+  const lastColonIndex: number = ref.lastIndexOf(':');
+
+  if (atIndex >= 0) {
+    const split = ref.split('@');
+    artifact.name = split[0];
+    artifact.version = split[1];
+  } else if (lastColonIndex > 0) {
+    artifact.name = ref.substring(0, lastColonIndex);
+    artifact.version = ref.substring(lastColonIndex + 1);
+  } else {
+    artifact.name = ref;
+  }
+};
+
 export const DEFAULT_DOCKER_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultDocker';
 module(DEFAULT_DOCKER_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
@@ -19,22 +40,7 @@ module(DEFAULT_DOCKER_ARTIFACT, []).config(() => {
       this.artifact.type = 'docker/image';
 
       this.onReferenceChange = () => {
-        const ref = this.artifact.reference;
-        if (isNil(ref)) {
-          return;
-        }
-
-        if (ref.indexOf('@') >= 0) {
-          const split = ref.split('@');
-          this.artifact.name = split[0];
-          this.artifact.version = split[1];
-        } else if (ref.indexOf(':') >= 0) {
-          const split = ref.split(':');
-          this.artifact.name = split[0];
-          this.artifact.version = split[1];
-        } else {
-          this.artifact.name = ref;
-        }
+        setNameAndVersionFromReference(this.artifact);
       };
     },
     controllerAs: 'ctrl',
