@@ -75,9 +75,19 @@ class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implem
             }
           }.flatten() :
           []
+
+        log.debug(
+          "Generated entity tags (executionId: {}, serverGroup: {}, tagCount: {}, tags: {})",
+          stage.execution.id,
+          serverGroup,
+          tags.size(),
+          tags
+        )
+
         if (!tags) {
           return []
         }
+
         operations <<
           [
             "upsertEntityTags": [
