@@ -24,15 +24,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/oidcConfigs")
 public class OidcConfigController {
   @Autowired
   OidcConfigService oidcConfigService;
 
-  @RequestMapping(method = RequestMethod.GET)
+  @RequestMapping(value = "/oidcConfigs", method = RequestMethod.GET)
   List byApp(@RequestParam(value = "app") String app) {
     return oidcConfigService.getOidcConfigs(app);
+  }
+
+  @RequestMapping(value = "/oidcConfig", method = RequestMethod.GET)
+  Map byId(@RequestParam(value = "id") String id) {
+    return oidcConfigService.getOidcConfig(id);
   }
 }

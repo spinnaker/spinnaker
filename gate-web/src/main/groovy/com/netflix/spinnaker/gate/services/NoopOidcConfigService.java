@@ -17,10 +17,15 @@
 package com.netflix.spinnaker.gate.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class NoopOidcConfigService implements OidcConfigService {
   public List getOidcConfigs(String app) {
     return new ArrayList<>();
+  }
+  public Map getOidcConfig(String id) {
+    return new HashMap<>();
   }
 }
