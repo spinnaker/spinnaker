@@ -392,7 +392,7 @@ class PublishBomCommand(RepositoryCommandProcessor):
     """Gets the component config files and writes them into the output_dir."""
     name = repository.name
     if (name not in SPINNAKER_BOM_REPOSITORY_NAMES
-        or name in ['spinnaker', 'spin']):
+        or name in ['spin']):
       logging.debug('%s does not use config files -- skipping', name)
       return
 
