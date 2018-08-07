@@ -33,7 +33,7 @@ from buildtool import (
 
 
 SPINNAKER_BOM_REPOSITORY_NAMES = list(SPINNAKER_RUNNABLE_REPOSITORY_NAMES)
-SPINNAKER_BOM_REPOSITORY_NAMES.extend(['spin', 'spinnaker', 'spinnaker-monitoring'])
+SPINNAKER_BOM_REPOSITORY_NAMES.extend(['spinnaker', 'spinnaker-monitoring'])
 
 
 def check_bom_service(bom, service_name):
