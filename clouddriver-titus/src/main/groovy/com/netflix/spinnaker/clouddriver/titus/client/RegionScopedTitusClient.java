@@ -236,7 +236,7 @@ public class RegionScopedTitusClient implements TitusClient {
               .build()
           );
         } catch (io.grpc.StatusRuntimeException e) {
-          if (e.getStatus() == Status.NOT_FOUND) {
+          if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
             log.warn("Titus task {} not found, continuing with terminate tasks and shrink job request.", id);
             return Empty.newBuilder().build();
           }
