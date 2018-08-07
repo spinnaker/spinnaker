@@ -31,7 +31,6 @@ import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
 import { ARTIFACT_MODULE } from './artifact/artifact.module';
 import { AUTHENTICATION_MODULE } from './authentication/authentication.module';
-import { CANCEL_MODAL_MODULE } from './cancelModal/cancelModal.module';
 import { CLOUD_PROVIDER_MODULE } from './cloudProvider/cloudProvider.module';
 import { CLUSTER_MODULE } from './cluster/cluster.module';
 
@@ -89,7 +88,6 @@ module(CORE_MODULE, [
   ARTIFACT_MODULE,
   AUTHENTICATION_MODULE,
 
-  CANCEL_MODAL_MODULE,
   CLOUD_PROVIDER_MODULE,
   CLUSTER_MODULE,
 

@@ -22,9 +22,7 @@ export interface IWizardPageState {
 }
 
 export type IWizardPageValidate = (values: { [key: string]: any }) => { [key: string]: string };
-export type IWrappedWizardPage = (React.ComponentClass<IWizardPageProps> | React.SFC<IWizardPageProps>) & {
-  LABEL: string;
-};
+export type IWrappedWizardPage = React.ComponentClass<IWizardPageProps> & { LABEL: string };
 
 export function wizardPage<P = {}>(
   WrappedComponent: IWrappedWizardPage,

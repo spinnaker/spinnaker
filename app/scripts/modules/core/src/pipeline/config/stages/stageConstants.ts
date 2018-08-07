@@ -13,6 +13,10 @@ export class StageConstants {
     return StageConstants.strategyTrafficOptions;
   }
 
+  public static get IMAGE_PRODUCING_STAGES(): string[] {
+    return ['bake', 'findImageFromTags', 'findImage', 'findAmi'];
+  }
+
   private static targetList: IStageConstant[] = [
     {
       label: 'Newest Server Group',

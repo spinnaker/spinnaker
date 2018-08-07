@@ -21,14 +21,6 @@ export interface IInstanceListState {
   allSelected: boolean;
 }
 
-export const instanceListBindings: Record<keyof IInstanceListProps, string> = {
-  hasDiscovery: '=',
-  hasLoadBalancers: '=',
-  instances: '=',
-  sortFilter: '=',
-  serverGroup: '=',
-};
-
 interface IColumnWidths {
   id: number;
   launchTime: number;

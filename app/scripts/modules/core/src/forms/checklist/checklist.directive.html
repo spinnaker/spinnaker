@@ -1,23 +1,23 @@
 <ul class="checklist" ng-if="!inline">
-  <li ng-repeat="item in items">
+  <li ng-repeat="item in itemsNormalized">
     <label>
-      <input ng-model="modelHolder[item]" type="checkbox" ng-change="updateModel()" ng-checked="!!modelHolder[item]"/> {{item}}
+      <input ng-model="modelHolder[item]" type="checkbox" ng-change="updateModel()" ng-checked="!!modelHolder[item]"/> {{values[item]}}
     </label>
   </li>
-  <li ng-if="includeSelectAllButton && items.length > 1">
+  <li ng-if="includeSelectAllButton && itemsNormalized.length > 1">
     <a href class="btn btn-default btn-xs push-left" type="button" ng-click="selectAllOrNone()">{{selectButtonText()}}</a>
   </li>
 </ul>
-<label ng-if="inline" class="checkbox-inline" ng-repeat="item in items">
+<label ng-if="inline" class="checkbox-inline" ng-repeat="item in itemsNormalized">
   <input
     type="checkbox"
     ng-checked="!!modelHolder[item]"
     ng-model="modelHolder[item]"
     ng-change="updateModel()">
-  {{item}}
+  {{values[item]}}
 </label>
 <a href
    class="btn btn-default btn-xs"
    style="margin: 8px 0 0 10px"
-   ng-if="inline && includeSelectAllButton && items.length > 1"
+   ng-if="inline && includeSelectAllButton && itemsNormalized.length > 1"
    ng-click="selectAllOrNone()">{{selectButtonText()}}</a>

@@ -3,6 +3,7 @@ export * from './application.model';
 export * from './applicationModel.builder';
 export * from './nav/defaultCategories';
 export * from './modal/validation/ApplicationNameValidator';
+export * from './modal/PlatformHealthOverride';
 export * from './listExtractor/AppListExtractor';
 export * from './service/ApplicationReader';
 export * from './service/ApplicationWriter';

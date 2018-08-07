@@ -38,6 +38,7 @@ import {
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   ServerGroupCommandRegistry,
   SubnetReader,
+  IServerGroupCommandViewState,
 } from '@spinnaker/core';
 
 import {
@@ -72,19 +73,26 @@ export interface IAmazonServerGroupCommandBackingData extends IServerGroupComman
   scalingProcesses: IScalingProcess[];
 }
 
+export interface IAmazonServerGroupCommandViewState extends IServerGroupCommandViewState {
+  dirty: IAmazonServerGroupCommandDirty;
+}
+
 export interface IAmazonServerGroupCommand extends IServerGroupCommand {
+  associatePublicIpAddress: boolean;
   backingData: IAmazonServerGroupCommandBackingData;
   copySourceCustomBlockDeviceMappings: boolean;
   ebsOptimized: boolean;
   healthCheckGracePeriod: number;
   instanceMonitoring: boolean;
   keyPair: string;
+  legacyUdf?: boolean;
   spotPrice: string;
   targetHealthyDeployPercentage: number;
   useAmiBlockDeviceMappings: boolean;
   targetGroups: string[];
   spelTargetGroups: string[];
   spelLoadBalancers: string[];
+  viewState: IAmazonServerGroupCommandViewState;
 
   getBlockDeviceMappingsSource: (command: IServerGroupCommand) => IBlockDeviceMappingSource;
   selectBlockDeviceMappingsSource: (command: IServerGroupCommand, selection: string) => void;

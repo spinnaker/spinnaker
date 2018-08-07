@@ -8,6 +8,7 @@ import { IDeploymentStrategy } from 'core/deploymentStrategy';
 import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityGroupReader.service';
 import { IRegion, IAggregatedAccounts } from 'core/account/AccountService';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';
+import { IPreferredInstanceType } from 'core/instance';
 
 export interface IServerGroupCommandBuilderOptions {
   account: string;
@@ -32,12 +33,18 @@ export interface IServerGroupCommandResult {
 }
 
 export interface IServerGroupCommandViewState {
+  customTemplateMessage: string;
   dirty?: IServerGroupCommandDirty;
   disableImageSelection: boolean;
+  expectedArtifacts: any[];
   imageId?: string;
   instanceProfile: string;
+  instanceTypeDetails?: IPreferredInstanceType;
+  disableNoTemplateSelection?: boolean;
   disableStrategySelection?: boolean;
   hideClusterNamePreview?: boolean;
+  overrides: any;
+  overriddenStorageDescription?: string;
   readOnlyFields: { [field: string]: boolean };
   requiresTemplateSelection?: boolean;
   submitButtonLabel?: string;
@@ -85,15 +92,19 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
   availabilityZones: string[];
   backingData: IServerGroupCommandBackingData;
   capacity: ICapacity;
+  cloudProvider: string;
   cooldown: number;
   credentials: string;
+  disableNoTemplateSelection?: boolean;
   enabledMetrics: string[];
   freeFormDetails?: string;
   healthCheckType: string;
   iamRole: string;
   instanceType: string;
+  interestingHealthProviderNames: string[];
   loadBalancers: string[];
   vpcLoadBalancers: string[];
+  preferSourceCapacity?: boolean;
   reason?: string;
   region: string;
   securityGroups: string[];
@@ -110,6 +121,7 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
   tags: IEntityTags;
   terminationPolicies: string[];
   type?: string;
+  useSourceCapacity?: boolean;
   viewState: IServerGroupCommandViewState;
   virtualizationType: string;
   vpcId: string;

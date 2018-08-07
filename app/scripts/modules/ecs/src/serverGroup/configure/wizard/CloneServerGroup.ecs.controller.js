@@ -157,15 +157,6 @@ module.exports = angular
       );
       $scope.$watch('command.stack', () => $scope.command.clusterChanged($scope.command));
       $scope.$watch('command.freeFormDetails', () => $scope.command.clusterChanged($scope.command));
-
-      // if any additional watches have been configured, add them
-      serverGroupCommandRegistry.getCommandOverrides('ecs').forEach(override => {
-        if (override.addWatches) {
-          override.addWatches($scope.command).forEach(watchConfig => {
-            $scope.$watch(watchConfig.property, watchConfig.method);
-          });
-        }
-      });
     }
 
     function initializeSelectOptions() {

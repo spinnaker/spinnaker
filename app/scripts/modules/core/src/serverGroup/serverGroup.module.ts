@@ -7,13 +7,15 @@ import './serverGroupSearchResultType';
 import { VIEW_SCALING_ACTIVITIES_LINK } from './details/scalingActivities/viewScalingActivitiesLink.component';
 import { DEPLOY_INITIALIZER_COMPONENT } from './configure/common/deployInitializer.component';
 import { HEALTH_PERCENT_SELECTOR } from './configure/common/targetHealthyPercentageSelector.component';
+import { V2_INSTANCE_ARCHETYPE_SELECTOR } from './configure/common/v2instanceArchetypeSelector.component';
+import { V2_INSTANCE_TYPE_SELECTOR } from './configure/common/v2InstanceTypeSelector.component';
 
 export const SERVERGROUP_MODULE = 'spinnaker.core.serverGroup';
 module(SERVERGROUP_MODULE, [
   require('./serverGroup.transformer').name,
   SERVER_GROUP_CONFIGURATION_SERVICE,
-  require('./configure/common/v2instanceArchetypeSelector.directive').name,
-  require('./configure/common/v2InstanceTypeSelector.directive').name,
+  V2_INSTANCE_ARCHETYPE_SELECTOR,
+  V2_INSTANCE_TYPE_SELECTOR,
   require('./pod/runningTasksTag.directive').name,
   require('./details/multipleServerGroups.controller').name,
   SERVER_GROUP_DATA_SOURCE,

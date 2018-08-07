@@ -124,4 +124,33 @@ describe('Directives: checklist', function() {
     $(selectButton).click();
     expect(selectButton.text).toBe('Select All'); // No items selected
   });
+
+  it('supports using Map (for key/value pairs) as items', function() {
+    const scope = this.scope,
+      compile = this.compile;
+
+    scope.model = {
+      selections: ['a', 'c'],
+    };
+
+    scope.items = new Map([['a', 'x'], ['b', 'y'], ['c', 'z']]);
+
+    const checklist = compile('<checklist model="model.selections" items="items"></checklist>')(scope);
+
+    scope.$digest();
+
+    expect(checklist.find('input').length).toBe(3);
+    expect(checklist.find('input:checked').length).toBe(2);
+    expect(
+      checklist
+        .find('input')
+        .parent()
+        .map((index, element) =>
+          $(element)
+            .text()
+            .trim(),
+        )
+        .get(),
+    ).toEqual(['x', 'y', 'z']);
+  });
 });

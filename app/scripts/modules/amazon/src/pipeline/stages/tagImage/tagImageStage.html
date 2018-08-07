@@ -2,4 +2,9 @@
   <stage-config-field label="Tags">
     <map-editor model="stage.tags" allow-empty="true"></map-editor>
   </stage-config-field>
+  <stage-config-field label="Stages (optional)" help-key="aws.tagImage.consideredStages" help-key-expand="true">
+    <div class="checkbox">
+      <checklist model="stage.consideredStages" items="consideredStages"></checklist>
+    </div>
+  </stage-config-field>
 </div>

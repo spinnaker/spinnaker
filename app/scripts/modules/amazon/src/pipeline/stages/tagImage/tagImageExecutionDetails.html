@@ -21,6 +21,10 @@
           <dd ng-repeat="(key, val) in stage.context.tags" ng-if="val !== null">
             {{key}} = {{val}}
           </dd>
+          <dt ng-if="stage.context.consideredStages">Stages</dt>
+          <dd ng-repeat="consideredStage in stage.context.consideredStages">
+            <stage-name stages="execution.stages" ref-id="consideredStage"></stage-name>
+          </dd>
         </dl>
       </div>
     </div>

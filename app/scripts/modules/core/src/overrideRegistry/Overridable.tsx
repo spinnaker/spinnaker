@@ -8,7 +8,8 @@ import { AccountService, IAccountDetails } from 'core/account/AccountService';
 
 export interface IOverridableProps {
   accountId?: string;
-  OriginalComponent?: React.ComponentType;
+  forwardedRef?: React.Ref<any>;
+  OriginalComponent?: React.ComponentClass;
 }
 
 /**
@@ -168,7 +169,7 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
       const isOverridden = Component && Component !== OriginalComponent;
       const props = { ...(this.props as any), ...(isOverridden ? { OriginalComponent } : {}) };
 
-      return Component ? <Component {...props} /> : <Spinner />;
+      return Component ? <Component {...props} ref={this.props.forwardedRef} /> : <Spinner />;
     }
   }
 
@@ -177,5 +178,5 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
     .filter(propName => propName !== 'constructor' && !OverridableComponent.hasOwnProperty(propName))
     .forEach(propName => ((OverridableComponent as any)[propName] = (OriginalComponent as any)[propName]));
 
-  return (OverridableComponent as any) as T;
+  return React.forwardRef((props, ref) => <OverridableComponent {...props} forwardedRef={ref} />) as T;
 }

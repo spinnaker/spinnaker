@@ -25,7 +25,7 @@ import {
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AwsNgReact } from 'amazon/reactShims';
 import { IAmazonLoadBalancer, IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
-import { LoadBalancerAvailabilityZoneSelector } from './LoadBalancerAvailabilityZoneSelector';
+import { AvailabilityZoneSelector } from 'amazon/serverGroup/AvailabilityZoneSelector';
 
 export interface ISubnetOption {
   availabilityZones: string[];
@@ -405,7 +405,7 @@ class LoadBalancerLocationImpl extends React.Component<
               )}
             </div>
 
-            <LoadBalancerAvailabilityZoneSelector
+            <AvailabilityZoneSelector
               credentials={values.credentials}
               region={values.region}
               onChange={this.handleAvailabilityZonesChanged}

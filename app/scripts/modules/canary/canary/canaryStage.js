@@ -417,56 +417,62 @@ module.exports = angular
     this.addClusterPair = function() {
       $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
       providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
-        let config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
-        $uibModal
-          .open({
-            templateUrl: config.cloneServerGroupTemplateUrl,
-            controller: `${config.cloneServerGroupController} as ctrl`,
-            size: 'lg',
-            resolve: {
-              title: function() {
-                return 'Add Cluster Pair';
-              },
-              application: function() {
-                return $scope.application;
-              },
-              serverGroupCommand: function() {
-                return serverGroupCommandBuilder
-                  .buildNewServerGroupCommandForPipeline(selectedProvider)
-                  .then(function(command) {
-                    configureServerGroupCommandForEditing(command);
-                    command.viewState.overrides = {
-                      capacity: {
-                        min: 1,
-                        max: 1,
-                        desired: 1,
-                      },
-                      useSourceCapacity: false,
-                    };
-                    command.viewState.disableNoTemplateSelection = true;
-                    command.viewState.customTemplateMessage =
-                      'Select a template to configure the canary and baseline ' +
-                      'cluster pair. If you want to configure the server groups differently, you can do so by clicking ' +
-                      '"Edit" after adding the pair.';
-                    return command;
-                  });
-              },
+        const config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
+
+        const handleResult = function(command) {
+          var baselineCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command),
+            canaryCluster = _.cloneDeep(baselineCluster);
+          cleanupClusterConfig(baselineCluster, 'baseline');
+          cleanupClusterConfig(canaryCluster, 'canary');
+          $scope.stage.clusterPairs.push({ baseline: baselineCluster, canary: canaryCluster });
+        };
+
+        const title = 'Add Cluster Pair';
+        const application = $scope.application;
+
+        serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider).then(function(command) {
+          configureServerGroupCommandForEditing(command);
+          command.viewState.overrides = {
+            capacity: {
+              min: 1,
+              max: 1,
+              desired: 1,
             },
-          })
-          .result.then(function(command) {
-            var baselineCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command),
-              canaryCluster = _.cloneDeep(baselineCluster);
-            cleanupClusterConfig(baselineCluster, 'baseline');
-            cleanupClusterConfig(canaryCluster, 'canary');
-            $scope.stage.clusterPairs.push({ baseline: baselineCluster, canary: canaryCluster });
-          })
-          .catch(() => {});
+            useSourceCapacity: false,
+          };
+          command.viewState.disableNoTemplateSelection = true;
+          command.viewState.customTemplateMessage =
+            'Select a template to configure the canary and baseline ' +
+            'cluster pair. If you want to configure the server groups differently, you can do so by clicking ' +
+            '"Edit" after adding the pair.';
+
+          if (config.CloneServerGroupModal) {
+            // react
+            config.CloneServerGroupModal.show({ title, application, command });
+          } else {
+            // angular
+            $uibModal
+              .open({
+                templateUrl: config.cloneServerGroupTemplateUrl,
+                controller: `${config.cloneServerGroupController} as ctrl`,
+                size: 'lg',
+                resolve: {
+                  title: () => title,
+                  application: () => application,
+                  serverGroupCommand: () => command,
+                },
+              })
+              .result.then(handleResult)
+              .catch(() => {});
+          }
+        });
       });
     };
 
     this.editCluster = function(cluster, index, type) {
       cluster.provider = cluster.provider || getCloudProvider() || 'aws';
       let config = CloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
+      // TODO: Show react modal if exists
       $uibModal
         .open({
           templateUrl: config.cloneServerGroupTemplateUrl,

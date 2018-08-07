@@ -1,11 +1,13 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .panel-default > .panel-heading {
   background-color: transparent;
   border-bottom: 0;
 }
 
-instance-archetype-selector, v2-instance-archetype-selector {
+instance-archetype-selector,
+v2-instance-archetype-selector,
+v-2-instance-archetype-selector {
   .archetype-columns {
     display: inline-block;
     button {
@@ -18,18 +20,18 @@ instance-archetype-selector, v2-instance-archetype-selector {
       padding: 0 0 0 0;
     }
     &.archetype-columns-3 {
-      width: calc(~"33% - 40px");
+      width: calc(~'33% - 40px');
       margin: 0 20px 20px;
     }
     &.archetype-columns-4 {
-      width: calc(~"25% - 30px");
+      width: calc(~'25% - 30px');
       margin: 0 15px 20px;
     }
     &.archetype-columns-5 {
       h4 {
         font-size: 16px;
       }
-      width: calc(~"20% - 12px");
+      width: calc(~'20% - 12px');
       margin: 0 5px 20px;
     }
   }
@@ -45,7 +47,8 @@ instance-archetype-selector, v2-instance-archetype-selector {
   color: var(--color-mineshaft);
   background-color: transparent;
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     color: var(--color-mineshaft);
     text-decoration: none;
   }
@@ -80,14 +83,17 @@ instance-archetype-selector, v2-instance-archetype-selector {
   .panel-body {
     padding-top: 0;
   }
-  &:hover, &:focus, &.active {
+  &:hover,
+  &:focus,
+  &.active {
     outline: 0;
   }
   &.active {
     box-shadow: inset 0 0 3px 2px var(--color-accent);
     border-color: var(--color-accent);
   }
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     box-shadow: 0 0 8px 2px var(--color-accent);
   }
 }

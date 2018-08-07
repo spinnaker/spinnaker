@@ -7,7 +7,6 @@ export interface IWatchConfig {
 }
 
 export interface IServerGroupCommandConfigurer {
-  addWatches: (command: any) => IWatchConfig[];
   beforeConfiguration: (command: any) => void;
   attachEventHandlers: (command: any) => void;
 }

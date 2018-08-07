@@ -8,6 +8,7 @@ import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudPr
 import { ServerGroupReader } from 'core/serverGroup';
 
 export interface IDeployTemplate {
+  key?: string;
   label?: string;
   serverGroup: IServerGroup;
   cluster: string;
@@ -126,7 +127,9 @@ export class DeployInitializerController implements IController {
   }
 
   public useTemplate(): void {
-    this.parentState.loaded = false;
+    if (this.parentState) {
+      this.parentState.loaded = false;
+    }
     this.selectTemplate().then(() => this.onTemplateSelected());
   }
 }

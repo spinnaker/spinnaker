@@ -13,11 +13,7 @@ module.exports = angular
       templateUrl: require('./findImageFromTagsStage.html'),
       executionDetailsUrl: require('./findImageFromTagsExecutionDetails.html'),
       executionConfigSections: ['findImageConfig', 'taskStatus'],
-      validators: [
-        { type: 'requiredField', fieldName: 'packageName' },
-        { type: 'requiredField', fieldName: 'regions' },
-        { type: 'requiredField', fieldName: 'tags' },
-      ],
+      validators: [{ type: 'requiredField', fieldName: 'packageName' }, { type: 'requiredField', fieldName: 'tags' }],
     });
   })
   .controller('gceFindImageFromTagsStageCtrl', function($scope) {

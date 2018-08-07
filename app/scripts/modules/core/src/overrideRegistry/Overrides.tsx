@@ -37,7 +37,7 @@ export class RegistrationQueue {
     this.flush();
   }
 
-  public register(component: React.ComponentType, key: string, cloudProvider?: string, cloudProviderVersion?: string) {
+  public register(component: React.ComponentClass, key: string, cloudProvider?: string, cloudProviderVersion?: string) {
     this.queue.push(() => {
       if (!cloudProvider) {
         this.overrideRegistry.overrideComponent(key, component);

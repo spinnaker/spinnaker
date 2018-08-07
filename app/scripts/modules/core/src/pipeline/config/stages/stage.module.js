@@ -9,6 +9,7 @@ import { API } from 'core/api';
 import { BASE_EXECUTION_DETAILS_CTRL } from './core/baseExecutionDetails.controller';
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { EDIT_STAGE_JSON_CONTROLLER } from './core/editStageJson.controller';
+import { STAGE_NAME } from './StageName';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Registry } from 'core/registry';
 
@@ -16,6 +17,7 @@ module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
     BASE_EXECUTION_DETAILS_CTRL,
     EDIT_STAGE_JSON_CONTROLLER,
+    STAGE_NAME,
     require('./overrideTimeout/overrideTimeout.directive.js').name,
     require('./overrideFailure/overrideFailure.component.js').name,
     require('./optionalStage/optionalStage.directive.js').name,
