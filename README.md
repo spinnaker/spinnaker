@@ -68,13 +68,7 @@ auth:
     certPath: ~/.spin/certfile
 ```
 
-# Usage
+# Installation
 
-Download the `spin` binary from a [release](https://github.com/spinnaker/spin/releases):
+Follow the instructions at [spinnaker.io](https://www.spinnaker.io/guides/spin/cli/#install-and-configure-spin-cli).
 
-```bash
-export VERSION=<desired spin version tag> # Select a tag from the released version, e.g. v0.1.0
-curl -L https://github.com/spinnaker/spin/releases/download/$VERSION/spin -o spin
-chmod +x ./spin
-./spin --help
-```
