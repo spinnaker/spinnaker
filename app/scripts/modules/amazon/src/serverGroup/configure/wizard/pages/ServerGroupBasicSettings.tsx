@@ -247,6 +247,11 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     this.props.setFieldValue('reason', reason);
   };
 
+  private strategyChanged = (values: IAmazonServerGroupCommand, strategy: any) => {
+    values.onStrategyChange(values, strategy);
+    this.props.setFieldValue('strategy', strategy.key);
+  };
+
   public render() {
     const { app, errors, values } = this.props;
     const { createsNewCluster, images, latestServerGroup, namePreview, showPreviewAsWarning } = this.state;
@@ -410,7 +415,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
         </div>
         {!values.viewState.disableStrategySelection &&
           values.selectedProvider && (
-            <DeploymentStrategySelector command={values} onStrategyChange={values.onStrategyChange} />
+            <DeploymentStrategySelector command={values} onStrategyChange={this.strategyChanged} />
           )}
         {!values.viewState.hideClusterNamePreview && (
           <div className="form-group">
