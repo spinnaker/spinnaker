@@ -23,7 +23,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
- * This is a top-level command for stoping the halyard daemon.
+ * This is a top-level command for stopping the halyard daemon.
  *
  * Usage is `$ hal shutdown`
  */

@@ -64,7 +64,7 @@ public abstract class AbstractPubsubEnableDisableCommand extends AbstractPubsubC
     boolean enable = isEnable();
     new OperationHandler<Void>()
         .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " " + pubsubName)
-        .setFailureMesssage("Failed to " + getCommandName() + " " + getPubsubName())
+        .setFailureMesssage("Failed to " + getCommandName() + " " + pubsubName)
         .setOperation(Daemon.setPubsubEnableDisable(currentDeployment, pubsubName, !noValidate, enable))
         .get();
   }

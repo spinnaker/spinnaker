@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,9 +41,7 @@ public class DeploymentEnvironment extends Node {
   }
 
   @Override
-  public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeEmptyIterator();
-  }
+  public NodeIterator getChildren() { return NodeIteratorFactory.makeReflectiveIterator(this); }
 
   public enum DeploymentType {
     Distributed("Deploy Spinnaker with one server group and load balancer "
@@ -101,6 +100,7 @@ public class DeploymentEnvironment extends Node {
   private String location;
   private CustomSizing customSizing = new CustomSizing();
   private GitConfig gitConfig = new GitConfig();
+  private HaServices haServices = new HaServices();
 
   public Boolean getUpdateVersions() {
     // default is true, even when unset
