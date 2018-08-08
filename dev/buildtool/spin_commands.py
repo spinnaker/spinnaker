@@ -12,15 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implements SpinCLI support commands for buildtool."""
+"""Implements Spin CLI support commands for buildtool."""
 
+import copy
 import logging
 import os
 
 from collections import namedtuple
 
 from buildtool import (
+    DEFAULT_BUILD_NUMBER,
+
     BomSourceCodeManager,
+    BranchSourceCodeManager,
+    CommandProcessor,
+    CommandFactory,
     RepositoryCommandFactory,
     RepositoryCommandProcessor,
     check_subprocess,
@@ -47,24 +53,26 @@ class BuildSpinCommand(RepositoryCommandProcessor):
     super(BuildSpinCommand, self).__init__(
       factory, options, source_repository_names=['spin'], **kwargs)
     self.__gcs_uploader = SpinGcsUploader(options)
+    self.__build_version = None  # recorded after build
 
   def _do_can_skip_repository(self, repository):
-    build_version = self.scm.get_repository_service_build_version(repository)
+    self.source_code_manager.ensure_local_repository(repository)
+    source_info = self.source_code_manager.refresh_source_info(
+      repository, self.options.build_number)
+    self.__build_version = source_info.to_build_version()
 
     version_exists = [
       self.__gcs_uploader.check_file_exists(
-        'spin/{}/{}/{}/spin'.format(build_version, d.dist, d.arch))
+        'spin/{}/{}/{}/spin'.format(self.__build_version, d.dist, d.arch))
       for d in DIST_ARCH_LIST
     ]
     return all(version_exists)
 
-  def _do_repository(self, repository):
-    """Implements RepositoryCommandProcessor interface."""
+  def build_all_distributions(self, repository):
     name = repository.name
-    build_version = self.scm.get_repository_service_build_version(repository)
-
-    # TODO(jacobkiefer): go version && go env?
-    self.source_code_manager.ensure_local_repository(repository)
+    source_info = self.source_code_manager.refresh_source_info(
+      repository, self.options.build_number)
+    self.__build_version = source_info.to_build_version()
     config_root = repository.git_dir
 
     check_subprocess('go get -d -v', cwd=config_root)
@@ -72,9 +80,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       # Sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.
       version_bin_path = ('spin/{}/{}/{}/spin'
-                          .format(build_version, dist_arch.dist, dist_arch.arch))
-      nightly_bin_path = ('spin/nightly/{}/{}/spin'
-                          .format(dist_arch.dist, dist_arch.arch))
+                          .format(self.__build_version, dist_arch.dist, dist_arch.arch))
 
       context = '%s-%s' % (dist_arch.dist, dist_arch.arch)
       logfile = self.get_logfile_path(
@@ -95,16 +101,20 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       spin_path = '{}/spin'.format(config_root)
       self.__gcs_uploader.upload_from_filename(
         version_bin_path, spin_path)
-      self.__gcs_uploader.upload_from_filename(
-        nightly_bin_path, spin_path)
       os.remove(spin_path)
 
     output_dir = self.get_output_dir()
     latest_path = os.path.join(output_dir, 'latest')
     with open(latest_path, 'w') as latest_file:
-      latest_file.write(build_version)
+      latest_file.write(self.__build_version)
     self.__gcs_uploader.upload_from_filename(
       'spin/latest', latest_path)
+
+  def _do_repository(self, repository):
+    """Implements RepositoryCommandProcessor interface."""
+    # TODO(jacobkiefer): Docker container publish
+    self.source_code_manager.ensure_local_repository(repository)
+    self.build_all_distributions(repository)
 
 
 class SpinGcsUploader(object):
@@ -133,6 +143,111 @@ class SpinGcsUploader(object):
     blob = bucket.get_blob(path)
     return bool(blob)
 
+  def read_file(self, path):
+    """Reads the contents of a GCS file."""
+    bucket = self.__client.get_bucket(self.__bucket)
+    blob = bucket.get_blob(path)
+    return blob.read_as_string()
+
+  def write_file(self, path, contents):
+    """Writes the contents to a GCS file."""
+    bucket = self.__client.get_bucket(self.__bucket)
+    blob = bucket.get_blob(path)
+    return blob.upload_from_string(contents)
+
+  def copy_file(self, source, dest):
+    """Copies the blob in GCS from source to dest."""
+    bucket = self.__client.get_bucket(self.__bucket)
+    blob = bucket.get_blob(source)
+    bucket.copy_blob(blob, bucket, new_name=dest)
+
+
+class PublishSpinCommand(CommandProcessor):
+  """Publish Spin CLI version to the public repository."""
+
+  def __init__(self, factory, options, **kwargs):
+    options_copy = copy.copy(options)
+    options_copy.bom_path = None
+    options_copy.bom_version = None
+    options_copy.git_branch = 'master'
+    options_copy.github_hostname = 'github.com'
+    super(PublishSpinCommand, self).__init__(factory, options_copy, **kwargs)
+
+    check_options_set(options, ['spin_version']) # Ensure we have a version to promote.
+    bom_contents = BomSourceCodeManager.load_bom(options_copy)
+    gate_entry = bom_contents.get('services', {}).get('gate', {})
+    if not gate_entry:
+      raise_and_log_error(
+          ConfigError('No gate service entry found in bom {}'.format(bom_contents)))
+
+    spinnaker_version = bom_contents['version']
+    gate_version = gate_entry['version']
+    match = re.match(r'(\d+)\.(\d+)\.(\d+)-\d+', gate_version)
+    if match is None:
+      raise_and_log_error(
+          ConfigError('gate version {version} is not X.Y.Z-<buildnum>'
+                      .format(version=gate_version)))
+    self.__stable_version = '{major}.{minor}.{patch}'.format(
+        major=match.group(1), minor=match.group(2), patch=match.group(3))
+    self.__scm = BranchSourceCodeManager(options_copy, self.get_input_dir())
+    # TODO(jacobkiefer): Add spin CLI autogenerated docs.
+
+    dash = spinnaker_version.find('-')
+    semver_str = spinnaker_version[0:dash]
+    semver_parts = semver_str.split('.')
+    if len(semver_parts) != 3:
+      raise_and_log_error(
+          ConfigError('Expected spinnaker version in the form X.Y.Z-N'))
+    self.__release_branch = 'release-{maj}.{min}.x'.format(
+        maj=semver_parts[0], min=semver_parts[1])
+    self.__release_tag = 'version-' + semver_str
+
+    self.__release_version = semver_str
+    self.__gcs_uploader = SpinGcsUploader(options)
+
+  def push_tag_and_branch(self, repository):
+    """Pushes a stable branch and git version tag to the origin repository."""
+    git_dir = repository.git_dir
+    git = self.__scm.git
+
+    release_url = repository.origin
+    logging.info('Pushing branch=%s and tag=%s to %s',
+                 self.__release_branch, self.__release_tag, release_url)
+
+    existing_commit = git.query_commit_at_tag(git_dir, self.__release_tag)
+    if existing_commit:
+      want_commit = git.query_local_repository_commit_id(git_dir)
+      if want_commit == existing_commit:
+        logging.debug('Already have "%s" at %s',
+                      self.__release_tag, want_commit)
+        return
+
+    git.check_run_sequence(
+        git_dir,
+        [
+            'checkout -b ' + self.__release_branch,
+            'remote add release ' + release_url,
+            'push release ' + self.__release_branch,
+            'tag ' + self.__release_tag,
+            'push release ' + self.__release_tag
+        ])
+
+  def _promote_spin(self, repository):
+    """Promote an existing build to become the spin CLI stable version."""
+    options = self.options
+    candidate = options.spin_version
+    stable = self.__stable_version
+    for d in DIST_ARCH_LIST:
+      source = 'spin/{}/{}/{}/spin'.format(candidate, d.dist, d.arch)
+      dest = 'spin/{}/{}/{}/spin'.format(stable, d.dist, d.arch)
+      self.__gcs_uploader.copy_file(source, dest)
+
+  def _do_command(self):
+    """Implements CommandProcessor interface."""
+    repository = self.__scm.make_repository_spec('spin')
+    self._promote_spin(repository)
+    self.push_tag_and_branch(repository)
+
 
 class BuildSpinCommandFactory(RepositoryCommandFactory):
   """Implements the build_spin command."""
@@ -142,12 +257,15 @@ class BuildSpinCommandFactory(RepositoryCommandFactory):
     super(BuildSpinCommandFactory, self).__init__(
       'build_spin', BuildSpinCommand,
       'Build spin cli from the local git repository.',
-      BomSourceCodeManager)
+      BranchSourceCodeManager)
 
   def init_argparser(self, parser, defaults):
     """Adds command-specific arguments."""
     super(BuildSpinCommandFactory, self).init_argparser(parser, defaults)
 
+    self.add_argument(
+        parser, 'build_number', defaults, DEFAULT_BUILD_NUMBER,
+        help='The the build number to use when building spin.')
     self.add_argument(
         parser, 'spin_build_bucket', defaults, None,
         help='The bucket to publish spin binaries to.')
@@ -156,5 +274,22 @@ class BuildSpinCommandFactory(RepositoryCommandFactory):
         help='The credentials to use to authenticate with the bucket.')
 
 
+class PublishSpinCommandFactory(CommandFactory):
+  def __init__(self):
+    super(PublishSpinCommandFactory, self).__init__(
+        'publish_spin', PublishSpinCommand,
+        'Publish a new spin CLI release.')
+
+  def init_argparser(self, parser, defaults):
+    super(PublishSpinCommandFactory, self).init_argparser(
+        parser, defaults)
+    self.add_argument(
+        parser, 'spin_version', defaults, None,
+        help='The semantic version of the release to publish.')
+    # BomSourceCodeManager adds bom_version and bom_path arguments to fetch BOMs.
+    BomSourceCodeManager.add_parser_args(parser, defaults)
+
+
 def register_commands(registry, subparsers, defaults):
   BuildSpinCommandFactory().register(registry, subparsers, defaults)
+  PublishSpinCommandFactory().register(registry, subparsers, defaults)
