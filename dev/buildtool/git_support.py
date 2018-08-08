@@ -964,6 +964,21 @@ class GitRunner(object):
     logging.debug('Pushing tag "%s" and pushing to origin in %s', tag, git_dir)
     self.check_run(git_dir, 'push origin ' + tag)
 
+  def fetch_tags(self, git_dir, remote_name='origin'):
+    """Fetches the tags in the given remote as a list.
+
+    Args:
+      git_dir: [string] Which local repository to update.
+      remote_name: [remote_name] Which remote repository to pull from.
+
+    Returns:
+      A list of tags.
+    """
+    logging.debug('Fetching tags for %s from remote %s', git_dir, remote_name)
+    self.check_run(git_dir, 'fetch --tags')
+    raw_tags = self.check_run(git_dir, 'tag')
+    return [s.strip() for s in raw_tags.split('\n')]
+
   def refresh_local_repository(self, git_dir, remote_name, branch):
     """Refreshes the given local repository from the remote one.
 
