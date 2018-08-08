@@ -38,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -101,7 +102,13 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Void
     }
 
     int maxVersionHistory = strategy.getMaxVersionHistory();
-    Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
+    Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest);
+    if (!optional.isPresent()) {
+      return new ArrayList<>();
+    }
+
+    Artifact artifact = optional.get();
+
     List<Artifact> artifacts = artifactProvider.getArtifacts(artifact.getType(), artifact.getName(), artifact.getLocation())
         .stream()
         .filter(a -> a.getMetadata() != null && accountName.equals(a.getMetadata().get("account")))

@@ -24,12 +24,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Optional;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class KubernetesManifestMetadata {
   KubernetesManifestSpinnakerRelationships relationships;
-  Artifact artifact;
+  Optional<Artifact> artifact;
   Moniker moniker;
 }

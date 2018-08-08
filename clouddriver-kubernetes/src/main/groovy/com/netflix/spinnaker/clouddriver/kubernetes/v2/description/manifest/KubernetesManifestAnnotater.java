@@ -196,15 +196,19 @@ public class KubernetesManifestAnnotater {
         .setSecurityGroups(getAnnotation(annotations, SECURITY_GROUPS, new TypeReference<List<String>>() {}));
   }
 
-  public static Artifact getArtifact(KubernetesManifest manifest) {
+  public static Optional<Artifact> getArtifact(KubernetesManifest manifest) {
     Map<String, String> annotations = manifest.getAnnotations();
+    String type = getAnnotation(annotations, TYPE, new TypeReference<String>() {});
+    if (StringUtils.isEmpty(type)) {
+      return Optional.empty();
+    }
 
-    return Artifact.builder()
-        .type(getAnnotation(annotations, TYPE, new TypeReference<String>() {}))
+    return Optional.of(Artifact.builder()
+        .type(type)
         .name(getAnnotation(annotations, NAME, new TypeReference<String>() {}))
         .location(getAnnotation(annotations, LOCATION, new TypeReference<String>() {}))
         .version(getAnnotation(annotations, VERSION, new TypeReference<String>() {}))
-        .build();
+        .build());
   }
 
   public static Moniker getMoniker(KubernetesManifest manifest) {

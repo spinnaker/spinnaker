@@ -75,7 +75,12 @@ public class KubernetesCacheDataConverter {
     logMalformedManifest(() -> "Converting " + manifest + " to a cached artifact", manifest);
 
     String namespace = manifest.getNamespace();
-    Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
+    Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest);
+    if (!optional.isPresent()) {
+      return null;
+    }
+
+    Artifact artifact = optional.get();
 
     try {
       KubernetesManifest lastAppliedConfiguration = KubernetesManifestAnnotater.getLastAppliedConfiguration(manifest);
@@ -185,11 +190,11 @@ public class KubernetesCacheDataConverter {
         .build();
 
     KubernetesManifestSpinnakerRelationships relationships = KubernetesManifestAnnotater.getManifestRelationships(manifest);
-    Artifact artifact = KubernetesManifestAnnotater.getArtifact(manifest);
+    Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest);
     KubernetesManifestMetadata metadata = KubernetesManifestMetadata.builder()
         .relationships(relationships)
         .moniker(moniker)
-        .artifact(artifact)
+        .artifact(optional)
         .build();
 
     Map<String, Collection<String>> cacheRelationships = new HashMap<>();
@@ -235,10 +240,14 @@ public class KubernetesCacheDataConverter {
       boolean hasClusterRelationship) {
     Moniker moniker = metadata.getMoniker();
     String application = moniker.getApp();
-    Artifact artifact = metadata.getArtifact();
+    Optional<Artifact> optional = metadata.getArtifact();
     Map<String, Collection<String>> cacheRelationships = new HashMap<>();
 
-    cacheRelationships.put(ARTIFACT.toString(), Collections.singletonList(Keys.artifact(artifact.getType(), artifact.getName(), artifact.getLocation(), artifact.getVersion())));
+    if (optional.isPresent()) {
+      Artifact artifact = optional.get();
+      cacheRelationships.put(ARTIFACT.toString(), Collections.singletonList(Keys.artifact(artifact.getType(), artifact.getName(), artifact.getLocation(), artifact.getVersion())));
+    }
+
     cacheRelationships.put(APPLICATIONS.toString(), Collections.singletonList(Keys.application(application)));
 
     String cluster = moniker.getCluster();
