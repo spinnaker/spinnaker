@@ -5,6 +5,7 @@ import { Subject, Observable } from 'rxjs';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ReactInjector, AngularJSAdapter } from 'core/reactShims';
 import { AccountService, IAccountDetails } from 'core/account/AccountService';
+import { get } from 'lodash';
 
 export interface IOverridableProps {
   accountId?: string;
@@ -169,7 +170,12 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
       const isOverridden = Component && Component !== OriginalComponent;
       const props = { ...(this.props as any), ...(isOverridden ? { OriginalComponent } : {}) };
 
-      return Component ? <Component {...props} ref={this.props.forwardedRef} /> : <Spinner />;
+      if (!Component) {
+        return <Spinner />;
+      }
+
+      const isClassComponent = ['render', 'prototype.render'].some(prop => typeof get(Component, prop) === 'function');
+      return isClassComponent ? <Component {...props} ref={this.props.forwardedRef} /> : <Component {...props} />;
     }
   }
 
