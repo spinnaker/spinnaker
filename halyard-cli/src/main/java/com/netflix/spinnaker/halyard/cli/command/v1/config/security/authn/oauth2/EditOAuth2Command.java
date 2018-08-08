@@ -150,7 +150,7 @@ public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
     userInfoMapping.setEmail(isSet(userInfoMappingEmail) ? userInfoMappingEmail : userInfoMapping.getEmail()); 
     userInfoMapping.setFirstName(isSet(userInfoMappingFirstName) ? userInfoMappingFirstName : userInfoMapping.getFirstName()); 
     userInfoMapping.setLastName(isSet(userInfoMappingLastName) ? userInfoMappingLastName : userInfoMapping.getLastName()); 
-    userInfoMapping.setUsername(isSet(userInfoMappingUsername) ? userInfoMappingLastName : userInfoMapping.getUsername()); 
+    userInfoMapping.setUsername(isSet(userInfoMappingUsername) ? userInfoMappingUsername : userInfoMapping.getUsername()); 
     
     authnMethod.setProvider(provider != null ? provider : authnMethod.getProvider());
 
