@@ -11,6 +11,7 @@ export interface ISearchParams {
   platform?: string;
   pageNumber?: number;
   pageSize?: number;
+  allowShortQuery?: 'true' | undefined;
 }
 
 export interface ISearchResults<T extends ISearchResult> {

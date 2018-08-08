@@ -53,7 +53,7 @@ export class InfrastructureSearchServiceV2 {
     };
 
     return Observable.from(types)
-      .mergeMap(type => {
+      .mergeMap((type: SearchResultType) => {
         return type
           .search(params, otherResults$)
           .map((searchResults: ISearchResults<any>) => makeResultSet(searchResults, type))

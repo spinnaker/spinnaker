@@ -41,8 +41,15 @@ export abstract class SearchResultType<T extends ISearchResult = ISearchResult> 
 
   /** Override this method as necessary */
   public search(params: ISearchParams, _otherResults?: Observable<ISearchResultSet>): Observable<ISearchResults<T>> {
-    const { key, ...otherParams } = params;
-    const searchParams = { ...otherParams, q: key, type: this.id };
+    const { cloudProvider, key, ...otherParams } = params;
+    const searchParams = { ...otherParams, q: key, cloudProvider, type: this.id };
+
+    // If filters other than 'q' (e.g., stack) are passed,
+    // tell clouddriver not to require at least 3 characters
+    if (Object.keys(otherParams).length > 0) {
+      searchParams.allowShortQuery = 'true';
+    }
+
     return Observable.fromPromise(SearchService.search(searchParams));
   }
 }
