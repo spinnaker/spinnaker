@@ -183,6 +183,36 @@ class StageSpec extends Specification {
     syntheticAfterStageAncestors*.refId == ["1<2", "1<1", "1"]
   }
 
+  def "ancestors should not include duplicate stages"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "1"
+        requisiteStageRefIds = []
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+      }
+      stage {
+        refId = "3"
+        requisiteStageRefIds = ["1"]
+      }
+      stage {
+        refId = "4"
+        requisiteStageRefIds = ["2", "3"]
+      }
+    }
+
+    def stage4 = pipeline.stages.find { it.refId == "4" }
+
+    when:
+    def ancestors = stage4.ancestors()
+
+    then:
+    ancestors*.refId == ["4", "2", "3", "1"]
+  }
+
   @Unroll
   def "should fetch stageTimeoutMs for a synthetic stage from the closest parent with it overridden"() {
     given:

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.support.RequisiteStageRefIdDeserializer;
@@ -362,18 +363,22 @@ public class Stage implements Serializable {
    * Gets all ancestor stages, including the current stage.
    */
   public List<Stage> ancestors() {
+    Set<String> visited = Sets.newHashSetWithExpectedSize(execution.getStages().size());
     return ImmutableList
       .<Stage>builder()
       .add(this)
-      .addAll(ancestorsOnly())
+      .addAll(ancestorsOnly(visited))
       .build();
   }
 
-  private List<Stage> ancestorsOnly() {
+  private List<Stage> ancestorsOnly(Set<String> visited) {
+    visited.add(this.refId);
+
     if (!requisiteStageRefIds.isEmpty()) {
-      List<Stage> previousStages = execution.getStages().stream().filter(it ->
-        requisiteStageRefIds.contains(it.refId)
-      ).collect(toList());
+      // Get parent stages, but exclude already visited ones.
+      List<Stage> previousStages = execution.getStages().stream()
+        .filter(it -> requisiteStageRefIds.contains(it.refId))
+        .filter(it -> !visited.contains(it.refId)).collect(toList());
       List<Stage> syntheticStages = execution.getStages().stream().filter(s ->
         previousStages.stream().map(Stage::getId).anyMatch(id -> id.equals(s.parentStageId))
       ).collect(toList());
@@ -381,9 +386,9 @@ public class Stage implements Serializable {
         .<Stage>builder()
         .addAll(previousStages)
         .addAll(syntheticStages)
-        .addAll(previousStages.stream().flatMap(it -> it.ancestorsOnly().stream()).collect(toList()))
+        .addAll(previousStages.stream().flatMap(it -> it.ancestorsOnly(visited).stream()).collect(toList()))
         .build();
-    } else if (parentStageId != null) {
+    } else if (parentStageId != null && !visited.contains(parentStageId)) {
       List<Stage> ancestors = new ArrayList<>();
       if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER) {
         ancestors.addAll(
@@ -402,7 +407,7 @@ public class Stage implements Serializable {
           .<List<Stage>>map(parent -> ImmutableList
             .<Stage>builder()
             .add(parent)
-            .addAll(parent.ancestorsOnly())
+            .addAll(parent.ancestorsOnly(visited))
             .build())
           .orElse(emptyList())
       );
