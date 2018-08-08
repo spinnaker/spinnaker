@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.DockerUserAgent
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
 import groovy.util.logging.Slf4j
+import org.apache.commons.io.IOUtils
 import retrofit.RestAdapter
 import retrofit.http.GET
 import retrofit.http.Headers
@@ -31,6 +32,7 @@ class DockerBearerTokenService {
   Map<String, DockerBearerToken> cachedTokens
   String username
   String password
+  String passwordCommand
   File passwordFile
   String authWarning
 
@@ -41,10 +43,11 @@ class DockerBearerTokenService {
     cachedTokens = new HashMap<String, DockerBearerToken>()
   }
 
-  DockerBearerTokenService(String username, String password) {
+  DockerBearerTokenService(String username, String password, String passwordCommand) {
     this()
     this.username = username
     this.password = password
+    this.passwordCommand = passwordCommand
   }
 
   DockerBearerTokenService(String username, File passwordFile) {
@@ -54,7 +57,7 @@ class DockerBearerTokenService {
   }
 
   String getBasicAuth() {
-    if (!(username || password || passwordFile)) {
+    if (!(username || password || passwordCommand || passwordFile)) {
       return null
     }
 
@@ -62,12 +65,22 @@ class DockerBearerTokenService {
 
     if (password) {
       resolvedPassword = password
+    } else if (passwordCommand) {
+      def pb = new ProcessBuilder("bash", "-c", passwordCommand)
+      def process = pb.start()
+      def errCode = process.waitFor()
+      log.debug("Full command is: ${pb.command()}")
+      if (errCode != 0) {
+        def err = IOUtils.toString(process.getErrorStream())
+        log.error("Password command returned a non 0 return code, stderr/stdout was: '${err}'")
+      }
+      resolvedPassword = IOUtils.toString(process.getInputStream()).trim()
+      log.debug("resolvedPassword is ${resolvedPassword}")
     } else if (passwordFile) {
       resolvedPassword = new BufferedReader(new FileReader(passwordFile)).getText()
     } else {
       resolvedPassword = "" // I'm assuming it's ok to have an empty password if the username is specified
     }
-
     if (resolvedPassword?.length() > 0) {
       def message = "Your registry password has %s whitespace, if this is unintentional authentication will fail."
       if (resolvedPassword.charAt(0).isWhitespace()) {

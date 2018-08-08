@@ -67,6 +67,7 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
           .accountType(managedAccount.accountType ?: managedAccount.name)
           .address(managedAccount.address)
           .password(managedAccount.password)
+          .passwordCommand(managedAccount.passwordCommand)
           .username(managedAccount.username)
           .email(managedAccount.email)
           .passwordFile(managedAccount.passwordFile)

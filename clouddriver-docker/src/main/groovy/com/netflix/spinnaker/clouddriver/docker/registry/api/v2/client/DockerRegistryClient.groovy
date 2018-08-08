@@ -52,6 +52,7 @@ class DockerRegistryClient {
     String email
     String username
     String password
+    String passwordCommand
     File passwordFile
     File dockerconfigFile
     long clientTimeoutMillis
@@ -79,6 +80,11 @@ class DockerRegistryClient {
       return this
     }
 
+    Builder passwordCommand(String passwordCommand) {
+      this.passwordCommand = passwordCommand
+      return this
+    }
+
     Builder passwordFile(File passwordFile) {
       this.passwordFile = passwordFile
       return this
@@ -103,7 +109,7 @@ class DockerRegistryClient {
       this.catalogFile = catalogFile
       return this
     }
-    
+
     Builder insecureRegistry(boolean insecureRegistry) {
       this.insecureRegistry = insecureRegistry
       return this
@@ -111,11 +117,11 @@ class DockerRegistryClient {
 
     DockerRegistryClient build() {
 
-      if (password && passwordFile) {
-        throw new IllegalArgumentException('Error, at most one of "password", "passwordFile", or "dockerconfigFile" can be specified')
+      if (password && passwordFile || password && passwordCommand || passwordFile && passwordCommand) {
+        throw new IllegalArgumentException('Error, at most one of "password", "passwordFile", "passwordCommand" or "dockerconfigFile" can be specified')
       }
-      if (password) {
-        return new DockerRegistryClient(address, email, username, password, clientTimeoutMillis, paginateSize, catalogFile, insecureRegistry)
+      if (password || passwordCommand) {
+        return new DockerRegistryClient(address, email, username, password, passwordCommand, clientTimeoutMillis, paginateSize, catalogFile, insecureRegistry)
       } else if (passwordFile) {
         return new DockerRegistryClient(address, email, username, passwordFile, clientTimeoutMillis, paginateSize, catalogFile, insecureRegistry)
       } else {
@@ -166,9 +172,9 @@ class DockerRegistryClient {
     this.catalogFile = catalogFile
   }
 
-  DockerRegistryClient(String address, String email, String username, String password, long clientTimeoutMillis, int paginateSize, String catalogFile, boolean insecureRegistry) {
+  DockerRegistryClient(String address, String email, String username, String password, String passwordCommand, long clientTimeoutMillis, int paginateSize, String catalogFile, boolean insecureRegistry) {
     this(address, clientTimeoutMillis, paginateSize, catalogFile, insecureRegistry)
-    this.tokenService = new DockerBearerTokenService(username, password)
+    this.tokenService = new DockerBearerTokenService(username, password, passwordCommand)
     this.email = email
   }
 
@@ -403,7 +409,7 @@ class DockerRegistryClient {
         }
       } catch (RetrofitError error) {
         def status = error.response?.status
-        // note, this is a workaround for registries that should be returning 
+        // note, this is a workaround for registries that should be returning
         // 401 when a token expires
         if ([400, 401].contains(status)) {
           String authenticateHeader = null

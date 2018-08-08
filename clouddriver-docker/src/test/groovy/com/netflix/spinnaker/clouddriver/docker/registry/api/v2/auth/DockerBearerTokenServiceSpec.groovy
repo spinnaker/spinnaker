@@ -121,4 +121,16 @@ class DockerBearerTokenServiceSpec extends Specification {
     then:
       new String(Base64.decoder.decode(fileTokenService.getBasicAuth().bytes)) == "$username:$passwordContents"
   }
+
+  void "should run a command to get password, and correctly prepare the basic auth string."() {
+    setup:
+      def passwordCommand = "echo hunter2"
+      def username = "username"
+      def password = ""
+      def actualPassword = "hunter2"
+    when:
+      def passwordCommandService = new DockerBearerTokenService(username, password, passwordCommand)
+    then:
+      new String(Base64.decoder.decode(passwordCommandService.getBasicAuth().bytes)) == "$username:$actualPassword"
+  }
 }

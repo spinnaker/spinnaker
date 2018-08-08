@@ -34,6 +34,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     String address
     String username
     String password
+    String passwordCommand
     File passwordFile
     File dockerconfigFile
     String email
@@ -77,6 +78,11 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
 
     Builder password(String address) {
       this.password = address
+      return this
+    }
+
+    Builder passwordCommand(String passwordCommand) {
+      this.passwordCommand = passwordCommand
       return this
     }
 
@@ -162,6 +168,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                                        address,
                                                        username,
                                                        password,
+                                                       passwordCommand,
                                                        passwordFile,
                                                        dockerconfigFile,
                                                        email,
@@ -184,6 +191,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         String address,
                                         String username,
                                         String password,
+                                        String passwordCommand,
                                         File passwordFile,
                                         File dockerconfigFile,
                                         String email,
@@ -203,6 +211,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
          address,
          username,
          password,
+         passwordCommand,
          passwordFile,
          dockerconfigFile,
          email,
@@ -225,6 +234,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         String address,
                                         String username,
                                         String password,
+                                        String passwordCommand,
                                         File passwordFile,
                                         File dockerconfigFile,
                                         String email,
@@ -250,6 +260,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     this.accountName = accountName
     this.environment = environment
     this.accountType = accountType
+    this.passwordCommand = passwordCommand
     this.passwordFile = passwordFile
     this.cacheThreads = cacheThreads ?: 1
     this.cacheIntervalSeconds = cacheIntervalSeconds ?: 30
@@ -338,6 +349,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
         .email(email)
         .username(username)
         .password(password)
+        .passwordCommand(passwordCommand)
         .passwordFile(passwordFile)
         .clientTimeoutMillis(clientTimeoutMillis)
         .paginateSize(paginateSize)
@@ -365,6 +377,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   final String username
   @JsonIgnore
   final String password
+  final String passwordCommand
   final File passwordFile
   final String email
   final boolean trackDigests

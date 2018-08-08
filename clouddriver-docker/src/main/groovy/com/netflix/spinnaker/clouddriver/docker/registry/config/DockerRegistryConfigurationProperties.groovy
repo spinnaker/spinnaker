@@ -31,6 +31,8 @@ class DockerRegistryConfigurationProperties {
     String password
     // File containing docker password in plaintext.
     String passwordFile
+    // Command to run to get a docker password
+    String passwordCommand
     // File containing docker's auth config (managed by docker-cli). Typically `~/.docker/config.json`.
     String dockerconfigFile
     // Docker registry user email address.
