@@ -58,7 +58,9 @@ class OortHelper {
                                                    String serverGroupName,
                                                    String location,
                                                    String cloudProvider) {
-    return new TargetServerGroup(convert(oortService.getServerGroup(account, location, serverGroupName) , Map))
+    return convertedResponse(Map) {
+      oortService.getServerGroup(account, location, serverGroupName)
+    }.map({ Map serverGroup -> new TargetServerGroup(serverGroup) })
   }
 
   public <T> Optional<T> convertedResponse(Class<T> type, Closure<Response> request) {

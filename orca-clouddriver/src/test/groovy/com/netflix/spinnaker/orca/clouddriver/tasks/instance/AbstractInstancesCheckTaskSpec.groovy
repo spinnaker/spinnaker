@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedInput
+import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -35,6 +39,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
   static class TestInstancesCheckTask extends AbstractInstancesCheckTask {
     HasSucceededSpy hasSucceededSpy
+    boolean waitForUpServerGroup = false
 
     @Override
     protected Map<String, List<String>> getServerGroups(Stage stage) {
@@ -47,9 +52,14 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
       hasSucceededSpy.hasSucceeded(asg, instances, interestingHealthProviderNames)
     }
+
+    @Override
+    boolean waitForUpServerGroup() {
+      return waitForUpServerGroup
+    }
   }
 
-  @Subject task = new TestInstancesCheckTask()
+  @Subject task = new TestInstancesCheckTask(oortService: Mock(OortService), objectMapper: new ObjectMapper())
 
   Closure<Response> constructResponse = { int status, String body ->
     new Response("", status, "", [], new TypedInput() {
@@ -201,5 +211,45 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     and:
     1 * task.hasSucceededSpy.hasSucceeded(_, _, _) >> false
+  }
+
+  @Unroll
+  def "should raise an exception when server group does not exist"() {
+    given:
+    task.waitForUpServerGroup = waitForUpServerGroup
+
+    when:
+    def serverGroups = []
+    def thrownException
+
+    try {
+      serverGroups = task.fetchServerGroups("test", "aws", ["us-west-2": [serverGroupName]], new Moniker())
+    } catch (Exception e) {
+      thrownException = e
+    }
+
+    then:
+    1 * task.oortService.getServerGroup("test", "us-west-2", serverGroupName) >> {
+      if (statusCode == 200) {
+        return new Response("http://clouddriver", statusCode, "OK", [], new TypedString("""{"name": "${serverGroupName}"}"""))
+      }
+
+      throw RetrofitError.httpError(
+        null,
+        new Response("http://clouddriver", statusCode, "", [], null),
+        null,
+        null
+      )
+    }
+
+    serverGroups.size() == expectedServerGroupCount
+    (thrownException != null) == shouldThrowException
+
+    where:
+    serverGroupName | statusCode | waitForUpServerGroup || expectedServerGroupCount || shouldThrowException
+    "app-v001"      | 200        | false                || 1                        || false
+    "app-v002"      | 404        | true                 || 0                        || true
+    "app-v002"      | 404        | false                || 0                        || true
+    "app-v003"      | 500        | false                || 0                        || true       // a non-404 should just rethrow the exception
   }
 }
