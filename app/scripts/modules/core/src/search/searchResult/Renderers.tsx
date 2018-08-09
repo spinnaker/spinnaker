@@ -52,8 +52,8 @@ export interface ICellRendererProps {
 
 export class BasicCell extends React.Component<ICellRendererProps> {
   public render() {
-    const { item, col, defaultValue } = this.props;
-    return <div className={colClass(col.key)}>{item[col.key] || defaultValue}</div>;
+    const { item, col, defaultValue, children } = this.props;
+    return <div className={colClass(col.key)}>{children || item[col.key] || defaultValue}</div>;
   }
 }
 
