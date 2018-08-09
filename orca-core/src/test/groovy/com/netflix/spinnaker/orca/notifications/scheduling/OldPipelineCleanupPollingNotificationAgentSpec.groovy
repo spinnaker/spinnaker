@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 
 import java.time.Clock
@@ -39,7 +40,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     }
     def filter = new OldPipelineCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
-      Mock(PollingAgentExecutionRepository),
+      Mock(ExecutionRepository),
       clock,
       new NoopRegistry(),
       5000,
@@ -76,7 +77,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     and:
     def mapper = new OldPipelineCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
-      Mock(PollingAgentExecutionRepository),
+      Mock(ExecutionRepository),
       Mock(Clock),
       new NoopRegistry(),
       5000,
@@ -104,7 +105,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     def clock = Mock(Clock) {
       millis() >> { Duration.ofDays(10).toMillis() }
     }
-    def executionRepository = Mock(PollingAgentExecutionRepository) {
+    def executionRepository = Mock(ExecutionRepository) {
       1 * retrieveAllApplicationNames(PIPELINE) >> ["orca"]
       1 * retrievePipelinesForApplication("orca") >> rx.Observable.from(pipelines)
     }

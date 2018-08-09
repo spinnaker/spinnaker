@@ -28,7 +28,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 
 public interface ExecutionRepository {
-  void store(@Nonnull Execution orchestration);
+  void store(@Nonnull Execution execution);
 
   void storeStage(@Nonnull Stage stage);
 
@@ -84,6 +84,16 @@ public interface ExecutionRepository {
 
   @Nonnull
   List<Execution> retrieveBufferedExecutions();
+
+  @Nonnull
+  List<String> retrieveAllApplicationNames(@Nullable ExecutionType executionType);
+
+  @Nonnull
+  List<String> retrieveAllApplicationNames(@Nullable ExecutionType executionType, int minExecutions);
+
+  boolean hasExecution(@Nonnull ExecutionType type, @Nonnull String id);
+  
+  List<String> retrieveAllExecutionIds(@Nonnull ExecutionType type);
 
   final class ExecutionCriteria {
     public int getLimit() {

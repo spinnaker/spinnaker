@@ -19,7 +19,6 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.notifications.scheduling.PollingAgentExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DelegatingExecutionRepository
@@ -31,8 +30,7 @@ import java.util.concurrent.TimeUnit
 class RedisInstrumentedExecutionRepository(
   private val executionRepository: RedisExecutionRepository,
   private val registry: Registry
-) : DelegatingExecutionRepository<RedisExecutionRepository>, PollingAgentExecutionRepository {
-
+) : DelegatingExecutionRepository<RedisExecutionRepository> {
   private fun invocationId(method: String) =
     registry.createId("redis.executionRepository.$method.invocations")
 
@@ -188,12 +186,6 @@ class RedisInstrumentedExecutionRepository(
     }
   }
 
-  override fun hasEntityTags(type: Execution.ExecutionType, id: String): Boolean {
-    return withMetrics("hasEntityTags") {
-      executionRepository.hasEntityTags(type, id)
-    }
-  }
-
   override fun retrieveAllApplicationNames(type: Execution.ExecutionType?): List<String> {
     return withMetrics("retrieveAllApplicationNames1") {
       executionRepository.retrieveAllApplicationNames(type)
@@ -215,6 +207,18 @@ class RedisInstrumentedExecutionRepository(
         buildTimeStartBoundary,
         buildTimeEndBoundary
       )
+    }
+  }
+
+  override fun hasExecution(type: Execution.ExecutionType, id: String): Boolean {
+    return withMetrics("hasExecution") {
+      executionRepository.hasExecution(type, id)
+    }
+  }
+
+  override fun retrieveAllExecutionIds(type: Execution.ExecutionType): MutableList<String> {
+    return withMetrics("retrieveAllExecutionIds") {
+      executionRepository.retrieveAllExecutionIds(type)
     }
   }
 }

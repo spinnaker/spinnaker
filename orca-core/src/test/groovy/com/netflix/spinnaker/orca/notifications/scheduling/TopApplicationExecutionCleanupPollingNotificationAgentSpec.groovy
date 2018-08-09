@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -36,7 +37,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     given:
     def filter = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
-      Mock(PollingAgentExecutionRepository),
+      Mock(ExecutionRepository),
       new NoopRegistry(),
       5000,
       2500
@@ -66,7 +67,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     and:
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent(
       Mock(NotificationClusterLock),
-      Mock(PollingAgentExecutionRepository),
+      Mock(ExecutionRepository),
       new NoopRegistry(),
       5000,
       2500
@@ -87,7 +88,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def orchestrations = buildExecutions(startTime, 3)
     def pipelines = buildExecutions(startTime, 3, "P1") + buildExecutions(startTime, 5, "P2")
 
-    def executionRepository = Mock(PollingAgentExecutionRepository) {
+    def executionRepository = Mock(ExecutionRepository) {
       1 * retrieveAllApplicationNames(_, _) >> ["app1"]
       1 * retrieveOrchestrationsForApplication("app1", _) >> rx.Observable.from(orchestrations)
     }

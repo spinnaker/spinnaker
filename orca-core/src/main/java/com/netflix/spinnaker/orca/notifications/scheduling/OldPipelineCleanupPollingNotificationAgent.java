@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
   };
 
   private final Clock clock;
-  private final PollingAgentExecutionRepository executionRepository;
+  private final ExecutionRepository executionRepository;
   private final Registry registry;
 
   private final long pollingIntervalMs;
@@ -95,7 +96,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
 
   @Autowired
   public OldPipelineCleanupPollingNotificationAgent(NotificationClusterLock clusterLock,
-                                                    PollingAgentExecutionRepository executionRepository,
+                                                    ExecutionRepository executionRepository,
                                                     Clock clock,
                                                     Registry registry,
                                                     @Value("${pollers.oldPipelineCleanup.intervalMs:3600000}") long pollingIntervalMs,
@@ -169,7 +170,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
     executions.subList(0, (executions.size() - minimumPipelineExecutions)).forEach(p -> {
       long startTime = p.startTime == null ? p.buildTime : p.startTime;
       long days = ChronoUnit.DAYS.between(Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(clock.millis()));
-      if (days > thresholdDays && !executionRepository.hasEntityTags(PIPELINE, p.id)) {
+      if (days > thresholdDays) {
         log.info("Deleting pipeline execution " + p.id + ": " + p.toString());
         registry.counter(deletedId.withTag("application", p.application)).increment();
         executionRepository.delete(PIPELINE, p.id);

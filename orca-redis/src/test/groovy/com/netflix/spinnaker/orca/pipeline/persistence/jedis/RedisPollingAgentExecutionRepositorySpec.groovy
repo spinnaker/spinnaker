@@ -21,13 +21,13 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
-import com.netflix.spinnaker.orca.pipeline.persistence.PollingAgentExecutionRepositoryTck
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepositoryTck
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
-class RedisPollingAgentExecutionRepositorySpec extends PollingAgentExecutionRepositoryTck<RedisExecutionRepository> {
+class RedisPollingAgentExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecutionRepository> {
 
   @Shared
   @AutoCleanup("destroy")

@@ -23,6 +23,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,7 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
     return builder;
   };
 
-  private final PollingAgentExecutionRepository executionRepository;
+  private final ExecutionRepository executionRepository;
   private final Registry registry;
   private final long pollingIntervalMs;
   private final int threshold;
@@ -76,7 +77,7 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
 
   @Autowired
   public TopApplicationExecutionCleanupPollingNotificationAgent(NotificationClusterLock clusterLock,
-                                                                PollingAgentExecutionRepository executionRepository,
+                                                                ExecutionRepository executionRepository,
                                                                 Registry registry,
                                                                 @Value("${pollers.topApplicationExecutionCleanup.intervalMs:3600000}") long pollingIntervalMs,
                                                                 @Value("${pollers.topApplicationExecutionCleanup.threshold:2500}") int threshold) {

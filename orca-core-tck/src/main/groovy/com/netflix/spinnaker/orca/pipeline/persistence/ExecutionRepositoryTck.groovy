@@ -534,5 +534,39 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     [RUNNING, SUCCEEDED] | 1     | PIPELINE      | 1
     [RUNNING, SUCCEEDED] | 1     | ORCHESTRATION | 1
   }
+
+  def "can retrieve all application names in database, type: #executionType, min: #minExecutions"() {
+    given:
+    def execution1 = pipeline {
+      application = "spindemo"
+    }
+    def execution2 = pipeline {
+      application = "orca"
+    }
+    def execution3 = orchestration {
+      application = "spindemo"
+    }
+    def execution4 = orchestration {
+      application = "spindemo"
+    }
+
+    when:
+    repository.store(execution1)
+    repository.store(execution2)
+    repository.store(execution3)
+    repository.store(execution4)
+    def apps = repository.retrieveAllApplicationNames(executionType, minExecutions)
+
+    then:
+    apps.sort() == expectedApps.sort()
+
+    where:
+    executionType | minExecutions || expectedApps
+    ORCHESTRATION | 0             || ["spindemo"]
+    PIPELINE      | 0             || ["spindemo", "orca"]
+    null          | 0             || ["spindemo", "orca"]
+    null          | 2             || ["spindemo"]
+    PIPELINE      | 2             || []
+  }
 }
 

@@ -10,14 +10,12 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import com.netflix.spinnaker.orca.notifications.scheduling.PollingAgentExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.model.*;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails;
 import com.netflix.spinnaker.orca.pipeline.persistence.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +53,7 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER;
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE;
 
-public class RedisExecutionRepository implements ExecutionRepository, PollingAgentExecutionRepository {
+public class RedisExecutionRepository implements ExecutionRepository {
 
   private static final TypeReference<List<Task>> LIST_OF_TASKS =
     new TypeReference<List<Task>>() {
@@ -649,11 +647,17 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
   }
 
   @Override
-  public boolean hasEntityTags(@Nonnull ExecutionType type, @NotNull String id) {
-    // TODO rz - This index exists only in Netflix-land. Should be added to OSS eventually
+  public boolean hasExecution(@Nonnull ExecutionType type, @Nonnull String id) {
     return redisClientDelegate.withCommandsClient(c -> {
-      return c.sismember("existingServerGroups:pipeline", "pipeline:" + id);
+      return c.exists(executionKey(type, id));
     });
+  }
+
+  @Override
+  public List<String> retrieveAllExecutionIds(@Nonnull ExecutionType type) {
+    return new ArrayList<>(redisClientDelegate.withCommandsClient(c -> {
+      return c.smembers(alljobsKey(type));
+    }));
   }
 
   private Map<String, String> buildExecutionMapFromRedisResponse(List<String> entries) {

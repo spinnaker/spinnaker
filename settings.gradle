@@ -43,7 +43,8 @@ include "orca-extensionpoint",
   "orca-queue-tck",
   "orca-pipelinetemplate",
   "orca-validation",
-  "orca-qos"
+  "orca-qos",
+  "orca-migration"
 
 rootProject.name = "orca"
 
