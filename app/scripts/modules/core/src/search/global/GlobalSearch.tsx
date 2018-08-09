@@ -125,28 +125,28 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     if (which === 27) {
       // escape
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'escape (from input)' });
-      return this.searchField.blur();
-    }
-    if (which === 40) {
+      this.searchField.blur();
+    } else if (which === 40) {
       // down
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'arrow down (from input)' });
       event.preventDefault();
-      return this.focusFirstSearchResult();
-    }
-    if (which === 38) {
+      this.focusFirstSearchResult();
+    } else if (which === 38) {
       // up
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'arrow up (from input)' });
       event.preventDefault();
-      return this.focusLastSearchResult();
-    }
-    if (which === 9) {
+      this.focusLastSearchResult();
+    } else if (which === 9) {
       // tab
       if (!shiftKey) {
         ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'tab (from input)' });
         event.preventDefault();
         this.focusFirstSearchResult();
       }
-      return;
+    } else if (which === 13) {
+      // enter
+      // do not submit the form and reload the page
+      event.preventDefault();
     }
   };
 
@@ -173,8 +173,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
         querying: false,
         categories: null,
       });
-    }
-    if (which === 9) {
+    } else if (which === 9) {
       // tab - let it navigate automatically, but close menu if on the last result
       const flattenedRefs = flatten(this.resultRefs);
       const lastResultRef = flattenedRefs[flattenedRefs.length - 1];
@@ -183,8 +182,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
         this.hideDropdown();
         return;
       }
-    }
-    if (which === 40) {
+    } else if (which === 40) {
       // down
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'down (from result)' });
       const flattenedRefs = flatten(this.resultRefs);
@@ -193,8 +191,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
 
       nextResultRef && nextResultRef.focus();
       event.preventDefault();
-    }
-    if (which === 38) {
+    } else if (which === 38) {
       // up
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'up (from result)' });
       const flattenedRefs = flatten(this.resultRefs);
@@ -203,6 +200,11 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
 
       prevResultRef && prevResultRef.focus();
       event.preventDefault();
+    } else if (which === 13) {
+      // enter
+      ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'enter (from result)' });
+      // Allow keyboard event to activate the href, then hide the drop down
+      setTimeout(() => this.hideDropdown(), 100);
     }
   };
 
@@ -364,16 +366,13 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
           this.clearFilters(result);
         }}
         onSeeMoreClick={() => {
-          ReactGA.event({ category: 'Global Search', action: 'See more results selected' });
+          ReactGA.event({ category: 'Global Search', action: 'See all results selected' });
+          this.hideDropdown();
         }}
         resultRef={(categoryIndex, resultIndex, ref) => {
           if (this.resultRefs[categoryIndex]) {
             this.resultRefs[categoryIndex][resultIndex] = ref;
           }
-        }}
-        seeMoreRef={ref => {
-          // Make sure keyboard handling works even though this isn't part of the actual results
-          this.resultRefs[categories.length] = [ref];
         }}
       />
     );

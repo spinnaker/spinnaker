@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 global-search {
   position: relative;
@@ -12,7 +12,7 @@ global-search {
       padding: 0 15px;
     }
 
-    input[type="search"] {
+    input[type='search'] {
       width: 200px;
     }
   }
@@ -37,11 +37,21 @@ global-search {
       strong {
         font-weight: 600;
       }
-      a, .category-heading {
+
+      &.category-heading {
+        padding: 10px 0 0 15px;
+        margin-top: 10px;
+        border-top: 1px solid var(--color-cirrus);
+        span {
+          text-transform: uppercase;
+          white-space: nowrap;
+          flex: 1;
+        }
+      }
+
+      a {
         padding-left: 15px;
         padding-right: 15px;
-      }
-      a {
         overflow: hidden;
         text-overflow: ellipsis;
         font-variant: normal;
@@ -50,7 +60,8 @@ global-search {
         .expand-results {
           font-weight: bold;
         }
-        &.sublinked, &.sublink {
+        &.sublinked,
+        &.sublink {
           display: inline-block;
           padding-right: 5px;
         }
@@ -63,19 +74,13 @@ global-search {
         padding: 3px 0;
         overflow: hidden;
       }
-      &.category-heading {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid var(--color-cirrus);
-        text-transform: uppercase;
-      }
       &:first-child {
         margin-top: 0;
         border: none;
       }
     }
 
-    @media(max-width: 480px) {
+    @media (max-width: 480px) {
       position: static;
       margin: 2px 4px;
     }

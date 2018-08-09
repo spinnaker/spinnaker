@@ -546,17 +546,17 @@
   version "5.0.20"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.20.tgz#9c27d8d14d50358040840fd00e9d38c36be1adc5"
 
-"@uirouter/react-hybrid@0.3.2", "@uirouter/react-hybrid@^0.1.0":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.3.2.tgz#c25fcc3f224e6515a2eb44f6588dd479b3b19854"
+"@uirouter/react-hybrid@0.3.3", "@uirouter/react-hybrid@^0.1.0":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.3.3.tgz#12c6f9cd0669ccc2df73a3623f9f171a754e2875"
   dependencies:
     "@uirouter/angularjs" "1.0.19"
     "@uirouter/core" "5.0.20"
-    "@uirouter/react" "0.8.4"
+    "@uirouter/react" "0.8.5"
 
-"@uirouter/react@0.8.4":
-  version "0.8.4"
-  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.8.4.tgz#ffd6fbe59d336f1a2cbab7c927ad7337669fb67b"
+"@uirouter/react@0.8.5":
+  version "0.8.5"
+  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.8.5.tgz#7328985e1abfb60921b1535e636349eeb0bdb085"
   dependencies:
     "@uirouter/core" "5.0.20"
     classnames "^2.2.5"
