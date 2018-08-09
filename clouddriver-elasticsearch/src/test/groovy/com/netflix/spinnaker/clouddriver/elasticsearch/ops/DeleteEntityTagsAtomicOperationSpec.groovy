@@ -43,13 +43,14 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  void 'should return immediately if tag not found'() {
+  void 'should remove entityTag from ElasticSearch if not found in Front50'() {
     when:
     description.id = 'abc'
     operation.operate([])
 
     then:
     1 * front50Service.getEntityTags('abc') >> { throw new RetrofitError("a", null, null, null, null, null, null) }
+    1 * entityTagsProvider.delete('abc')
     0 * _
   }
 
