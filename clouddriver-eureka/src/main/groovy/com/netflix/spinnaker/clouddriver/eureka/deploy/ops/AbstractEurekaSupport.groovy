@@ -198,7 +198,7 @@ abstract class AbstractEurekaSupport {
           throw re
         }
 
-        AbstractEurekaSupport.log.debug("[$phaseName] - Failed calling external service", re)
+        AbstractEurekaSupport.log.debug("[$phaseName] - Failed calling external service ${re.message}")
 
         if (re.kind == RetrofitError.Kind.NETWORK || re.response.status == 404 || re.response.status == 406) {
           retryCount++
