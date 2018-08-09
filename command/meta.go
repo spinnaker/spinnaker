@@ -64,7 +64,7 @@ type ApiMeta struct {
 	// This is the set of flags global to the command parser.
 	gateEndpoint string
 
-        ignoreCertErrors bool
+	ignoreCertErrors bool
 
 	// Location of the spin config.
 	configLocation string
@@ -78,7 +78,7 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 	f.StringVar(&m.gateEndpoint, "gate-endpoint", "http://localhost:8084",
 		"Gate (API server) endpoint")
 
-        f.BoolVar(&m.ignoreCertErrors, "insecure", false, "Ignore Certificate Errors")
+	f.BoolVar(&m.ignoreCertErrors, "insecure", false, "Ignore Certificate Errors")
 
 	f.Usage = func() {}
 
@@ -112,14 +112,23 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 	}
 
 	// CLI configuration.
+	userHome := ""
 	usr, err := user.Current()
 	if err != nil {
-		m.Ui.Error(fmt.Sprintf("Could not read current user from environment, failing."))
-		return args, err
+		// Fallback by trying to read $HOME
+		userHome = os.Getenv("HOME")
+		if userHome != "" {
+			err = nil
+		} else {
+			m.Ui.Error(fmt.Sprintf("Could not read current user from environment, failing."))
+			return args, err
+		}
+	} else {
+		userHome = usr.HomeDir
 	}
 
 	// TODO(jacobkiefer): Add flag for config location?
-	m.configLocation = filepath.Join(usr.HomeDir, ".spin", "config")
+	m.configLocation = filepath.Join(userHome, ".spin", "config")
 	yamlFile, err := ioutil.ReadFile(m.configLocation)
 	if err != nil {
 		m.Ui.Warn(fmt.Sprintf("Could not read configuration file from %s.", m.configLocation))
@@ -176,8 +185,8 @@ func (m *ApiMeta) InitializeClient() (*http.Client, error) {
 	}
 
 	if m.ignoreCertErrors {
-             http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-        }
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
 
 	if auth != nil && auth.Enabled && auth.X509 != nil {
 		X509 := auth.X509
@@ -245,9 +254,9 @@ func (m *ApiMeta) initializeX509Config(client http.Client, clientCA []byte, cert
 	client.Transport.(*http.Transport).TLSClientConfig.MinVersion = tls.VersionTLS12
 	client.Transport.(*http.Transport).TLSClientConfig.PreferServerCipherSuites = true
 	client.Transport.(*http.Transport).TLSClientConfig.Certificates = []tls.Certificate{cert}
- 	if m.ignoreCertErrors {
-           client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true
-        }
+	if m.ignoreCertErrors {
+		client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = true
+	}
 	return &client
 }
 
