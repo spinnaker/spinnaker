@@ -218,6 +218,40 @@ class KubernetesServerGroupCachingAgent extends KubernetesV1CachingAgent impleme
     credentials.apiAdaptor.getPods(serverGroup.namespace, serverGroup.selector)
   }
 
+  /**
+   * loaddata() need to load all pod in providers. So we load all pod in one request. That will decrease
+   * network io overhead.
+   * @param namespace
+   * @return
+   */
+  Map<String,List<Pod>> loadAllPods() {
+    def podsMap = [:]
+    namespaces.each { String namespace ->
+      def pods = credentials.apiAdaptor.getPods(namespace)
+      if (pods){
+        podsMap.put(namespace,pods)
+      }
+    }
+    return podsMap
+  }
+
+  /**
+   * If this pod is belong to specify server group return true
+   * @return
+   */
+  boolean isBelongToServerGroup(Map<String,String> podLabel, Map<String,String> serverGroupSelector) {
+    !serverGroupSelector.any {
+      def podLabelValue = podLabel.get(it.key)
+      if (!podLabelValue) {
+        return true
+      } else if(podLabelValue != it.value) {
+        return true
+      }
+    }
+  }
+
+
+
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     reloadNamespaces()
@@ -308,14 +342,13 @@ class KubernetesServerGroupCachingAgent extends KubernetesV1CachingAgent impleme
     } catch (Exception e) {
       log.warn "Failure fetching autoscalers for all server groups in $namespaces", e
     }
-
+    def podsInAllNamespace = loadAllPods()
     for (ReplicaSetOrController serverGroup: serverGroups) {
       if (!serverGroup.exists()) {
         continue
       }
 
       def onDemandData = onDemandKeep ? onDemandKeep[Keys.getServerGroupKey(accountName, serverGroup.namespace, serverGroup.name)] : null
-
       if (onDemandData && onDemandData.attributes.cacheTime >= start) {
         Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandData.attributes.cacheResults as String,
                                                                            new TypeReference<Map<String, List<MutableCacheData>>>() { })
@@ -325,7 +358,13 @@ class KubernetesServerGroupCachingAgent extends KubernetesV1CachingAgent impleme
         cache(cacheResults, Keys.Namespace.INSTANCES.ns, cachedInstances)
       } else {
         def serverGroupName = serverGroup.name
-        def pods = loadPods(serverGroup)
+        def pods = podsInAllNamespace.get(serverGroup.namespace)?.findAll {
+          if (it?.metadata?.labels && serverGroup.selector) {
+            if (isBelongToServerGroup(it.metadata.labels, serverGroup.selector)) {
+              return true
+            }
+          }
+        }
         def names = Names.parseName(serverGroupName)
         def applicationName = names.app
         def clusterName = names.cluster
