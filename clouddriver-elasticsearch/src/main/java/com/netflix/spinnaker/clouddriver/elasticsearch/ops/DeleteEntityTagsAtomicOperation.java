@@ -72,6 +72,10 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
       return null;
     }
 
+    getTask().updateStatus(
+      BASE_PHASE,
+      format("Removing tags from %s (tags: %s)", entityTagsDescription.getId(), entityTagsDescription.getTags())
+    );
     entityTagsDescription.getTags().forEach(currentTags::removeEntityTag);
 
     EntityTags durableEntityTags = front50Service.saveEntityTags(currentTags);
