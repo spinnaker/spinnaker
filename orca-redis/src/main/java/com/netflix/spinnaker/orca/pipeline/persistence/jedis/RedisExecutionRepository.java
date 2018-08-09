@@ -156,7 +156,10 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
       try {
         c.hset(key, contextKey, mapper.writeValueAsString(stage.getContext()));
       } catch (JsonProcessingException e) {
-        throw new StageSerializationException("Failed converting stage context to json", e);
+        throw new StageSerializationException(
+          format("Failed serializing stage, executionId: %s, stageId: %s", stage.getExecution().getId(), stage.getId()),
+          e
+        );
       }
     });
   }
@@ -753,7 +756,10 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
         stages.add(stage);
       } catch (IOException e) {
         registry.counter(serializationErrorId).increment();
-        throw new StageSerializationException("Failed serializing stage json", e);
+        throw new StageSerializationException(
+          format("Failed serializing stage json, executionId: %s, stageId: %s", execution.getId(), stageId),
+          e
+        );
       }
     });
 
@@ -841,7 +847,10 @@ public class RedisExecutionRepository implements ExecutionRepository, PollingAge
       map.put(prefix + "tasks", mapper.writeValueAsString(stage.getTasks()));
       map.put(prefix + "lastModified", (stage.getLastModified() != null ? mapper.writeValueAsString(stage.getLastModified()) : null));
     } catch (JsonProcessingException e) {
-      throw new StageSerializationException("Failed converting stage to json", e);
+      throw new StageSerializationException(
+        format("Failed converting stage to json, executionId: %s, stageId: %s", stage.getExecution().getId(), stage.getId()),
+        e
+      );
     }
     return map;
   }
