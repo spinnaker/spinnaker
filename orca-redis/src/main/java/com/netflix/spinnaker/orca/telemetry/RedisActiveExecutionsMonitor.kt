@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.StageSerializationException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -140,6 +141,9 @@ class RedisActiveExecutionsMonitor(
         try {
           execution = executionRepository.retrieve(it.type, it.id)
         } catch (e: ExecutionNotFoundException) {
+          return@map it.id
+        } catch (e: StageSerializationException) {
+          log.error("Failed to deserialize ${it.type}:${it.id}, removing from active execution index", e)
           return@map it.id
         }
         return@map if (execution.status.isComplete) it.id else null
