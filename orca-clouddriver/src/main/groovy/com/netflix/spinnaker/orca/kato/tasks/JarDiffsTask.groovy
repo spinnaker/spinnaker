@@ -139,7 +139,7 @@ class JarDiffsTask implements DiffTask {
         jarMap = objectMapper.readValue(instanceResponse.body.in().text, Map)
         return true
       } catch(Exception e) {
-        log.error("could not get a jar list from : ${key} (${hostName}:${platformPort})", e)
+        log.error("could not get a jar list from : ${key} (${hostName}:${platformPort}) - ${e.message}")
         // swallow it so we can try the next instance
         return false
       }

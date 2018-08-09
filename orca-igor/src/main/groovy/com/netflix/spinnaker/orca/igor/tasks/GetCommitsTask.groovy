@@ -132,7 +132,7 @@ class GetCommitsTask implements DiffTask {
         log.error("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]")
         return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
       } else { // retry on other status codes
-        log.error("retrofit error for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", e)
+        log.error("retrofit error (${e.message}) for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying")
         return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
       }
     } catch (Exception f) { // retry on everything else
@@ -162,10 +162,10 @@ class GetCommitsTask implements DiffTask {
     def buildInfo = [:]
     //Regex matches the last dot, some characters and then a slash
     if (appVersion && appVersion =~ /\.(?=[^.]*$)[a-z0-9]*\//) {
-      buildInfo << [commitHash: appVersion.substring(0, appVersion.indexOf('/')).substring(appVersion.lastIndexOf('.') + 1)]
+      def baseAppVersion = appVersion.substring(0, appVersion.indexOf('/'))
+      buildInfo << [commitHash: baseAppVersion.substring(baseAppVersion.lastIndexOf('.') + 1)]
       buildInfo << [build: getBuildFromAppVersion(appVersion)]
     }
-
     return buildInfo
   }
 

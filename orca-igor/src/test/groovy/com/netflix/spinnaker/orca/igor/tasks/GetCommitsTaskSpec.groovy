@@ -325,6 +325,7 @@ class GetCommitsTaskSpec extends Specification {
 
     appVersion | infoFromAmi
     "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" | [commitHash: "a86305d", build: "217"]
+    "myapp-1.144-h217.a86305d/MYAPP-package-myapp-2.0/217" | [commitHash: "a86305d", build: "217"]
     "myapp-1.144" | [:]
   }
 
