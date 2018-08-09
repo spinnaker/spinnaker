@@ -85,7 +85,7 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
         ]
       }
     } catch (Exception e) {
-      log.error(
+      log.warn(
         "Unable to determine whether server group is pinned (serverGroup: {}, account: {}, region: {})",
         stage.context.serverGroupName,
         stage.context.credentials,
@@ -98,6 +98,21 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
   }
 
   private static List<Map> fetchEntityTags(OortService oortService, RetrySupport retrySupport, Stage stage) {
+    def serverGroupName = stage.context.serverGroupName
+    def credentials = stage.context.credentials
+    def region = getRegion(stage)
+
+    if (!serverGroupName || !credentials || !region) {
+      log.warn(
+        "Unable to determine whether server group is pinned (serverGroup: {}, account: {}, region: {}, stageContext: {})",
+        serverGroupName,
+        credentials,
+        region,
+        stage.context
+      )
+      return []
+    }
+
     retrySupport.retry({
       return oortService.getEntityTags([
         ("tag:${PINNED_CAPACITY_TAG}".toString()): "*",

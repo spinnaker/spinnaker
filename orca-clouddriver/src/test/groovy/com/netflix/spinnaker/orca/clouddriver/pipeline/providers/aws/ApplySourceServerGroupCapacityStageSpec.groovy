@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.entitytags.DeleteEntityTa
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ApplySourceServerGroupCapacityStageSpec extends Specification {
@@ -87,6 +89,35 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     0 * oortService.getEntityTags(_)
 
     afterStages.isEmpty()
+  }
+
+  @Unroll
+  def "should not generate any stages when context does not contain serverGroupName/credentials/region"() {
+    given:
+    stage.context.clear()
+    stage.context.putAll(context)
+
+    when:
+    def graph = StageGraphBuilder.afterStages(stage)
+    stageBuilder.afterStages(stage, graph)
+    def afterStages = graph.build()
+
+    then:
+    notThrown(RuntimeException)
+
+    1 * featuresService.areEntityTagsAvailable() >> { return true }
+    0 * oortService.getEntityTags(_)
+
+    afterStages.isEmpty()
+
+    where:
+    context << [
+      [:],
+      [serverGroupName: "app-stack-details-v001", credentials: null, "deploy.server.groups": null],
+      [serverGroupName: null, credentials: "test", "deploy.server.groups": null],
+      [serverGroupName: null, credentials: null, "deploy.server.groups": ["us-east-1": ["app-stack-details-v001"]]],
+      [serverGroupName: null, credentials: null, "deploy.server.groups": null]
+    ]
   }
 
   def "should generate a delete entity tags stage when the server group has a `spinnaker:pinned_capacity` entity tag"() {
