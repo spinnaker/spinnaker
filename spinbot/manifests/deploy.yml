@@ -82,6 +82,13 @@ data:
       - name: log_event_handler
         config:
           payload: false
+      - name: filetype_check_pull_request_handler
+        config:
+          omit_repos: 
+          - spinnaker/spinnaker
+          - spinnaker/spinnaker.github.io
+          - spinnaker/deck
+          - spinnaker/spin
       - name: release_branch_pull_request_handler
         config:
           omit_repos: 

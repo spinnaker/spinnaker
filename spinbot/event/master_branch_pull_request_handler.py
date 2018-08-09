@@ -33,13 +33,13 @@ class MasterBranchPullRequestHandler(Handler):
 
         commits = pull_request.get_commits()
         bad_commits = []
-        
+
         for commit in commits:
             commit_message = commit.commit.message 
             parsed_message = ParseCommitMessage(commit_message)
             if parsed_message is None and not commit_message.startswith('Merge branch'):
                 bad_commits.append(commit.commit)
-        
+
         if len(bad_commits) > 0:
             pull_request.create_issue_comment(format_message.format(
                 '\n\n'.join(map(lambda c: '{}: {}'.format(c.sha, c.message), bad_commits))
