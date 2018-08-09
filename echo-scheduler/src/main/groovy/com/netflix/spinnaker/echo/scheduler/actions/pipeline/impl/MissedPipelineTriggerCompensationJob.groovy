@@ -36,6 +36,7 @@ import rx.Observable
 import rx.Scheduler
 import rx.Subscription
 
+import java.text.ParseException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -197,11 +198,16 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
         return
       }
 
-      def expr = new CronExpression(trigger.cronExpression)
-      expr.timeZone = dateContext.timeZone
+      try {
+        CronExpression expr = new CronExpression(trigger.cronExpression)
+        expr.timeZone = dateContext.timeZone
 
-      if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now, pipeline)) {
-        pipelineInitiator.call(pipeline)
+        if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now, pipeline)) {
+          pipelineInitiator.call(pipeline)
+        }
+      } catch (ParseException e) {
+        log.error("Error parsing cron expression (${trigger.cronExpression}) for pipeline ${pipeline.id}")
+        registry.counter("orca.errors", "exception", error.getClass().getName()).increment()
       }
     }
   }
