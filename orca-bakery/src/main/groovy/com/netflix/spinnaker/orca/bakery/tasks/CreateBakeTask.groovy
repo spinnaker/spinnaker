@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -131,7 +132,10 @@ class CreateBakeTask implements RetryableTask {
       packageType = new OperatingSystem(stage.context.baseOs as String).getPackageType()
     }
 
+    List<Artifact> artifacts = artifactResolver.getAllArtifacts(stage.getExecution())
+
     PackageInfo packageInfo = new PackageInfo(stage,
+      artifacts,
       packageType.packageType,
       packageType.versionDelimiter,
       extractBuildDetails,
@@ -140,6 +144,8 @@ class CreateBakeTask implements RetryableTask {
 
     Map requestMap = packageInfo.findTargetPackage(allowMissingPackageInstallation)
 
+    // if the field "packageArtifactIds" is present in the context, because it was set in the UI,
+    // this will resolve those ids into real artifacts and then put them in List<Artifact> packageArtifacts
     requestMap.packageArtifacts = stage.context.packageArtifactIds.collect { String artifactId ->
       artifactResolver.getBoundArtifactForId(stage, artifactId)
     }

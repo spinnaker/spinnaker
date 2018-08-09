@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.orca.pipeline.util
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+
 import java.util.regex.Pattern
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
@@ -72,7 +74,7 @@ class PackageInfoSpec extends Specification {
 
     def packageType = DEB
     def packageInfo =
-      new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, false, new ObjectMapper())
+      new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, false, new ObjectMapper())
 
     when:
     packageInfo.findTargetPackage(false)
@@ -112,7 +114,7 @@ class PackageInfoSpec extends Specification {
     def quipStage = pipeline.stages.last()
 
     PackageInfo packageInfo =
-      new PackageInfo(quipStage, DEB.packageType, DEB.versionDelimiter, true, false, new ObjectMapper())
+      new PackageInfo(quipStage, [], DEB.packageType, DEB.versionDelimiter, true, false, new ObjectMapper())
 
     when:
     def requestMap = packageInfo.findTargetPackage(true)
@@ -140,6 +142,7 @@ class PackageInfoSpec extends Specification {
     PackageType packageType = DEB
     boolean extractBuildDetails = false
     PackageInfo packageInfo = new PackageInfo(bakeStage,
+      [],
       packageType.packageType,
       packageType.versionDelimiter,
       extractBuildDetails,
@@ -184,6 +187,7 @@ class PackageInfoSpec extends Specification {
 
     when:
     PackageInfo packageInfo = new PackageInfo(bakeStage,
+      [],
       packageType.packageType,
       packageType.versionDelimiter,
       extractBuildDetails,
@@ -236,7 +240,7 @@ class PackageInfoSpec extends Specification {
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageInfo packageInfo = new PackageInfo(bakeStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(false)
@@ -258,7 +262,7 @@ class PackageInfoSpec extends Specification {
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageInfo packageInfo = new PackageInfo(bakeStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(false)
@@ -305,7 +309,7 @@ class PackageInfoSpec extends Specification {
     def bakeStage = pipeline.stageByRef("3")
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageInfo packageInfo = new PackageInfo(bakeStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
     def pattern = Pattern.compile("api.*")
 
     when:
@@ -341,7 +345,7 @@ class PackageInfoSpec extends Specification {
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(false)
@@ -376,7 +380,7 @@ class PackageInfoSpec extends Specification {
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(allowMissingPackageInstallation)
@@ -405,7 +409,7 @@ class PackageInfoSpec extends Specification {
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     expect:
     Map targetPkg
@@ -440,7 +444,7 @@ class PackageInfoSpec extends Specification {
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(false)
@@ -455,6 +459,7 @@ class PackageInfoSpec extends Specification {
     PackageType packageType = DEB
     boolean extractBuildDetails = false
     PackageInfo packageInfo = new PackageInfo(bakeStage,
+      [],
       packageType.packageType,
       packageType.versionDelimiter,
       extractBuildDetails,
@@ -478,10 +483,10 @@ class PackageInfoSpec extends Specification {
   def "getArtifactSourceBuildInfo: get buildInfo from nearest trigger with artifact"() {
     given:
     Stage stage = new Stage(context: [package: "package"])
-    PackageInfo packageInfo = new PackageInfo(stage, null, null, true, true, null)
+    PackageInfo packageInfo = new PackageInfo(stage, [], null, null, true, true, null)
 
     expect:
-    packageInfo.getArtifactSourceBuildInfo(trigger) == buildInfo
+    packageInfo.getBuildInfoFromTriggerOrParentTrigger(trigger) == buildInfo
 
     where:
     trigger                                                                                                                                                                      || buildInfo
@@ -504,7 +509,7 @@ class PackageInfoSpec extends Specification {
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageInfo packageInfo = new PackageInfo(quipStage, [], packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(true)
@@ -559,9 +564,185 @@ class PackageInfoSpec extends Specification {
     }
 
     and:
-    def packageInfo = new PackageInfo(pipeline.stageById("3"), "deb", "_", false, false, new ObjectMapper())
+    def packageInfo = new PackageInfo(pipeline.stageById("3"), [], "deb", "_", false, false, new ObjectMapper())
 
     expect:
     packageInfo.findTargetPackage(false).package == "spinnakerdeps_0.1.0-114_all spinnaker_0.2.0-114_all"
+  }
+
+  @Unroll("#requestPackage -> #result")
+  def "should consume kork artifact format when only artifacts are present"() {
+    given:
+    Stage bakeStage = new Stage()
+    PackageType packageType = DEB
+    boolean extractBuildDetails = false
+
+    Artifact artifact1 = new Artifact.ArtifactBuilder()
+      .type("DEB")
+      .name("deb-sample-app-server")
+      .version("0.0.1~rc.52-h53.96b4f22")
+      .reference("debian-local:pool/d/deb-sample-app-server/deb-sample-app-server_0.0.1~rc.52-h53.96b4f22.deb")
+      .provenance("https://jenkins/deb-sample-app-build-master")
+      .build()
+    Artifact artifact2 = new Artifact.ArtifactBuilder()
+      .type("DEB")
+      .name("my-package")
+      .version("0.0.1")
+      .reference("debian-local:pool/d/my-package/my-package_0.0.1_all.deb")
+      .provenance("https://jenkins/my-package-build-master")
+      .build()
+    List<Artifact> artifacts = new ArrayList<>()
+    artifacts.add(artifact1)
+    artifacts.add(artifact2)
+
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+      artifacts,
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false,
+      mapper)
+    def allowMissingPackageInstallation = true
+
+    Map trigger = ["artifacts": artifacts]
+    Map buildInfo = [:]
+    Map stageContext = ["package": requestPackage]
+
+    when:
+    Map returnedStageContext = packageInfo.createAugmentedRequest(trigger, buildInfo, stageContext, allowMissingPackageInstallation)
+
+    then:
+    returnedStageContext.package == result
+
+    where:
+    requestPackage                         | result
+    "deb-sample-app-server"                | "deb-sample-app-server_0.0.1~rc.52-h53.96b4f22"
+    "deb-sample-app"                       | "deb-sample-app"
+    "deb-sample-app-server deb-sample-app" | "deb-sample-app-server_0.0.1~rc.52-h53.96b4f22 deb-sample-app"
+  }
+
+  @Unroll("#requestPackage -> #result")
+  def "should consume kork artifact format there are other build and trigger artifacts"() {
+    given:
+    Stage bakeStage = new Stage()
+    PackageType packageType = DEB
+    boolean extractBuildDetails = false
+
+    Artifact artifact1 = new Artifact.ArtifactBuilder()
+      .type("DEB")
+      .name("deb-sample-app-server")
+      .version("0.0.1~rc.52-h53.96b4f22")
+      .reference("debian-local:pool/d/deb-sample-app-server/deb-sample-app-server_0.0.1~rc.52-h53.96b4f22.deb")
+      .provenance("https://jenkins/deb-sample-app-build-master")
+      .build()
+    List<Artifact> artifacts = new ArrayList<>()
+    artifacts.add(artifact1)
+
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+      artifacts,
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false,
+      mapper)
+    def allowMissingPackageInstallation = true
+
+    Map trigger = ["buildInfo": ["artifacts": filename], "artifacts": artifacts]
+    Map buildInfo = ["artifacts": [["fileName": "blabla.txt"]]]
+    Map stageContext = ["package": requestPackage]
+
+    when:
+    Map returnedStageContext = packageInfo.createAugmentedRequest(trigger, buildInfo, stageContext, allowMissingPackageInstallation)
+
+    then:
+    returnedStageContext.package == result
+
+    where:
+    filename                                 | requestPackage                         | result
+    [["fileName": "testEmpty.txt"]]          | "deb-sample-app-server"                | "deb-sample-app-server_0.0.1~rc.52-h53.96b4f22"
+    [["fileName": "testEmpty.txt"]]          | "deb-sample-app"                       | "deb-sample-app"
+    [["fileName": "test-package_1.0.0.deb"]] | "deb-sample-app-server deb-sample-app" | "deb-sample-app-server_0.0.1~rc.52-h53.96b4f22 deb-sample-app"
+  }
+
+  def "should fail if artifact is present with different versions in artifact and either trigger or build info"() {
+    given:
+    Stage bakeStage = new Stage()
+    PackageType packageType = DEB
+    boolean extractBuildDetails = false
+
+    Artifact artifact1 = new Artifact.ArtifactBuilder()
+      .type("DEB")
+      .name("test-package")
+      .version("1.0.0")
+      .reference("debian-local:pool/d/test-package/test-package_1.0.0.deb")
+      .provenance("https://jenkins/test-package-build-master")
+      .build()
+    List<Artifact> artifacts = new ArrayList<>()
+    artifacts.add(artifact1)
+
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+      artifacts,
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false,
+      mapper)
+    def allowMissingPackageInstallation = true
+
+    Map trigger = ["buildInfo": ["artifacts": triggerFilename], "artifacts": artifacts]
+    Map buildInfo = ["artifacts": buildFilename]
+    Map stageContext = ["package": requestPackage]
+
+    when:
+    packageInfo.createAugmentedRequest(trigger, buildInfo, stageContext, allowMissingPackageInstallation)
+
+    then:
+    def exception = thrown(IllegalStateException)
+    exception.message.contains("build artifact in both")
+
+    where:
+    triggerFilename                            | buildFilename                                | requestPackage
+    [["fileName": "test-package_2.0.0.deb"]]   | [["fileName": "bla_1.0.0.deb"]]              | "test-package"
+    [["fileName": "bla_1.0.0.deb"]]            | [["fileName": "test-package_2.0.0.deb"]]     | "test-package"
+  }
+
+  def "should work if the same artifact is present in different places"() {
+    given:
+    Stage bakeStage = new Stage()
+    PackageType packageType = DEB
+    boolean extractBuildDetails = false
+
+    Artifact artifact1 = new Artifact.ArtifactBuilder()
+      .type("DEB")
+      .name("test-package")
+      .version("1.0.0")
+      .reference("debian-local:pool/d/test-package/test-package_1.0.0.deb")
+      .provenance("https://jenkins/test-package-build-master")
+      .build()
+    List<Artifact> artifacts = new ArrayList<>()
+    artifacts.add(artifact1)
+
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+      artifacts,
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false,
+      mapper)
+    def allowMissingPackageInstallation = true
+
+    Map trigger = ["buildInfo": ["artifacts": triggerFilename], "artifacts": artifacts]
+    Map buildInfo = ["artifacts": buildFilename]
+    Map stageContext = ["package": requestPackage]
+
+    when:
+    Map returnedStageContext = packageInfo.createAugmentedRequest(trigger, buildInfo, stageContext, allowMissingPackageInstallation)
+
+    then:
+    returnedStageContext.package == result
+
+    where:
+    triggerFilename                            | buildFilename                                | requestPackage     | result
+    [["fileName": "test-package_1.0.0.deb"]]   | [["fileName": "test-package_1.0.0.deb"]]     | "test-package"     | "test-package_1.0.0"
   }
 }

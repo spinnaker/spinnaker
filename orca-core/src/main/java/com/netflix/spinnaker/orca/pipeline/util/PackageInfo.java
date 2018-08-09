@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +31,22 @@ import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+/**
+ * This class inspects the context of a stage, preceding stages, the trigger, and possibly the parent pipeline
+ * in order to see if an artifact matching the name(s) specified in the bake stage was produced.
+ * If so, that version will be used in the bake request.
+ * If nothing is found after all this searching it is up to the bakery to pull the latest package version.
+ *
+ * Artifact information comes from Jenkins on the pipeline trigger in the field `buildInfo.artifacts`.
+ * If your trigger contains the Artifacts field, this class will also look for version information in there.
+ */
 public class PackageInfo {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final ObjectMapper mapper;
   private final Stage stage;
+  private final List<Artifact> artifacts;
   private final String versionDelimiter;
   private final String packageType;
   private final boolean extractBuildDetails;
@@ -43,8 +54,15 @@ public class PackageInfo {
   private final BuildDetailExtractor buildDetailExtractor;
   private final List<Pattern> packageFilePatterns = new ArrayList<>();
 
-  public PackageInfo(Stage stage, String packageType, String versionDelimiter, boolean extractBuildDetails, boolean extractVersion, ObjectMapper mapper) {
+  public PackageInfo(Stage stage,
+                     List<Artifact> artifacts,
+                     String packageType,
+                     String versionDelimiter,
+                     boolean extractBuildDetails,
+                     boolean extractVersion,
+                     ObjectMapper mapper) {
     this.stage = stage;
+    this.artifacts = artifacts;
     this.packageType = packageType;
     this.versionDelimiter = versionDelimiter;
     this.extractBuildDetails = extractBuildDetails;
@@ -69,82 +87,78 @@ public class PackageInfo {
   }
 
   public Map<String, Object> findTargetPackage(boolean allowMissingPackageInstallation) {
-    Map<String, Object> requestMap = new HashMap<>();
+    Map<String, Object> stageContext = new HashMap<>();
     // copy the context since we may modify it in createAugmentedRequest
-    requestMap.putAll(stage.getContext());
+    stageContext.putAll(stage.getContext());
 
     if (stage.getExecution().getType() == PIPELINE) {
       Map trigger = mapper.convertValue(stage.getExecution().getTrigger(), Map.class);
-      Map buildInfo = null;
-      if (requestMap.get("buildInfo") != null) { // package was built as part of the pipeline
-        buildInfo = mapper.convertValue(requestMap.get("buildInfo"), Map.class);
+      Map buildInfoCurrentExecution = null;
+      if (stageContext.get("buildInfo") != null) { // package was built as part of the pipeline
+        buildInfoCurrentExecution = mapper.convertValue(stageContext.get("buildInfo"), Map.class);
       }
 
-      if (buildInfo == null || (buildInfo.get("artifacts") != null && !((Collection) buildInfo.get("artifacts")).isEmpty())) {
+      if (buildInfoCurrentExecution == null || (buildInfoCurrentExecution.get("artifacts") != null && !((Collection) buildInfoCurrentExecution.get("artifacts")).isEmpty())) {
         Map<String, Object> upstreamBuildInfo = findBuildInfoInUpstreamStage(stage, packageFilePatterns);
         if (!upstreamBuildInfo.isEmpty()) {
-          buildInfo = upstreamBuildInfo;
+          buildInfoCurrentExecution = upstreamBuildInfo;
         }
       }
 
-      if (buildInfo == null) {
-        buildInfo = emptyMap();
+      if (buildInfoCurrentExecution == null) {
+        buildInfoCurrentExecution = emptyMap();
       }
 
-      return createAugmentedRequest(trigger, buildInfo, requestMap, allowMissingPackageInstallation);
+      return createAugmentedRequest(trigger, buildInfoCurrentExecution, stageContext, allowMissingPackageInstallation);
     }
-    return requestMap;
+
+    // A package could only have been produced as part of a pipeline,
+    // so if this is not a pipeline return the unchanged context.
+    return stageContext;
   }
 
   /**
-   * Try to find a package from the pipeline trigger and/or a step in the pipeline.
+   * Try to find a package from the artifacts.
+   * If not present, fall back to the pipeline trigger and/or a step in the pipeline.
    * Optionally put the build details into the request object.  This does not alter the stage context,
    * so assign it back if that's the desired behavior.
    *
-   * @param trigger
-   * @param buildInfo
-   * @param request
+   * @param trigger the trigger of the pipeline
+   * @param buildInfoCurrentExecution the buildInfo block that comes from either the current execution, not the trigger
+   * @param stageContext the stage context
    * @return
    */
   @VisibleForTesting
-  private Map<String, Object> createAugmentedRequest(Map<String, Object> trigger, Map<String, Object> buildInfo, Map<String, Object> request, boolean allowMissingPackageInstallation) {
-    Map<String, Object> artifactSourceBuildInfo = getArtifactSourceBuildInfo(trigger);
-    List<Map<String, Object>> triggerArtifacts = Optional.ofNullable((List<Map<String, Object>>) artifactSourceBuildInfo.get("artifacts")).orElse(emptyList());
-    List<Map<String, Object>> buildArtifacts = Optional.ofNullable((List<Map<String, Object>>) buildInfo.get("artifacts")).orElse(emptyList());
+  private Map<String, Object> createAugmentedRequest(Map<String, Object> trigger,
+                                                     Map<String, Object> buildInfoCurrentExecution,
+                                                     Map<String, Object> stageContext,
+                                                     boolean allowMissingPackageInstallation) {
+    Map<String, Object> triggerBuildInfo = getBuildInfoFromTriggerOrParentTrigger(trigger);
+    List<Map<String, Object>> triggerArtifacts = Optional.ofNullable((List<Map<String, Object>>) triggerBuildInfo.get("artifacts")).orElse(emptyList());
+    List<Map<String, Object>> buildArtifacts = Optional.ofNullable((List<Map<String, Object>>) buildInfoCurrentExecution.get("artifacts")).orElse(emptyList());
 
-    if (request.get("package") == null || request.get("package").equals("") || isUrl(request.get("package").toString())) {
-      return request;
+    if (stageContext.get("package") == null || stageContext.get("package").equals("") || isUrl(stageContext.get("package").toString())) {
+      return stageContext;
     }
 
-    if (buildInfo.isEmpty() || buildArtifacts.isEmpty()) {
+    if (buildInfoCurrentExecution.isEmpty() || buildArtifacts.isEmpty()) {
       Optional<Map<String, Object>> parentBuildInfo = Optional
         .ofNullable((Map) trigger.get("parentExecution"))
         .map(it -> (Map) it.get("trigger"))
         .map(it -> (Map<String, Object>) it.get("buildInfo"));
-      if (triggerArtifacts.isEmpty() && (trigger.get("buildInfo") != null || parentBuildInfo.isPresent())) {
+      if (triggerArtifacts.isEmpty() && (trigger.get("buildInfo") != null || parentBuildInfo.isPresent()) && artifacts.isEmpty()) {
         throw new IllegalStateException("Jenkins job detected but no artifacts found, please archive the packages in your job and try again.");
       }
     }
 
-    if (buildArtifacts.isEmpty() && triggerArtifacts.isEmpty()) {
-      return request;
+    if (buildArtifacts.isEmpty() && triggerArtifacts.isEmpty() && artifacts.isEmpty()) {
+      return stageContext;
     }
 
     List<String> missingPrefixes = new ArrayList<>();
     String fileExtension = format(".%s", packageType);
 
-    // There might not be a request.package so we look for the package name from either the buildInfo or trigger
-    //
-    String reqPkg = Optional
-      .ofNullable(request.get("package").toString())
-      .orElseGet(() ->
-        buildArtifacts
-          .stream()
-          .findFirst()
-          .map(it -> it.get("fileName").toString().split(versionDelimiter)[0])
-          .orElseGet(() -> triggerArtifacts.stream().findFirst().map(it -> it.get("fileName").toString().split(versionDelimiter)[0]).orElse(null))
-      );
-
+    String reqPkg = stageContext.get("package").toString();
     List<String> requestPackages = Arrays.asList(reqPkg.split(" "));
 
     for (int index = 0; index < requestPackages.size(); index++) {
@@ -152,49 +166,72 @@ public class PackageInfo {
 
       String prefix = requestPackage + versionDelimiter;
 
+      Artifact matchedArtifact = filterKorkArtifacts(artifacts, requestPackage, packageType);
       Map<String, Object> triggerArtifact = filterArtifacts(triggerArtifacts, prefix, fileExtension);
       Map<String, Object> buildArtifact = filterArtifacts(buildArtifacts, prefix, fileExtension);
 
       // only one unique package per pipeline is allowed
       if (!triggerArtifact.isEmpty() && !buildArtifact.isEmpty() && !triggerArtifact.get("fileName").equals(buildArtifact.get("fileName"))) {
-        throw new IllegalStateException("Found build artifact in Jenkins stage and Pipeline Trigger");
+        throw new IllegalStateException("Found build artifact in both Jenkins stage ("
+          + buildArtifact.get("fileName")
+          + ") and Pipeline Trigger ("
+          + triggerArtifact.get("filename")
+          + ")");
       }
 
-      String packageName = null;
+      if (!triggerArtifact.isEmpty() && matchedArtifact != null && !extractPackageVersion(triggerArtifact, prefix, fileExtension).equals(matchedArtifact.getVersion())) {
+        throw new IllegalStateException("Found build artifact in both Pipeline Trigger ("
+          + triggerArtifact.get("filename")
+          + ") and produced artifacts ("
+          + matchedArtifact.getVersion() + versionDelimiter + matchedArtifact.getVersion()
+          + ")");
+      }
+
+      if (!buildArtifact.isEmpty() && matchedArtifact != null && !extractPackageVersion(buildArtifact, prefix, fileExtension).equals(matchedArtifact.getVersion())) {
+        throw new IllegalStateException("Found build artifact in both Jenkins stage ("
+          + matchedArtifact.getVersion() + versionDelimiter + matchedArtifact.getVersion()
+          + ") and produced artifacts ("
+          + buildArtifact.get("fileName")
+          + ")");
+      }
+
+      String packageIdentifier = null; //package-name + delimiter + version, like "test-package_1.0.0"
       String packageVersion = null;
 
-      if (!triggerArtifact.isEmpty()) {
-        packageName = extractPackageName(triggerArtifact, fileExtension);
+      if (matchedArtifact != null) {
+        packageIdentifier = matchedArtifact.getName() + versionDelimiter + matchedArtifact.getVersion();
+        if (extractVersion) {
+          packageVersion = matchedArtifact.getVersion();
+        }
+      } else if (!buildArtifact.isEmpty()) {
+        packageIdentifier = extractPackageIdentifier(buildArtifact, fileExtension);
+        if (extractVersion) {
+          packageVersion = extractPackageVersion(buildArtifact, prefix, fileExtension);
+        }
+      } else if (!triggerArtifact.isEmpty()) {
+        packageIdentifier = extractPackageIdentifier(triggerArtifact, fileExtension);
         if (extractVersion) {
           packageVersion = extractPackageVersion(triggerArtifact, prefix, fileExtension);
         }
       }
 
-      if (!buildArtifact.isEmpty()) {
-        packageName = extractPackageName(buildArtifact, fileExtension);
-        if (extractVersion) {
-          packageVersion = extractPackageVersion(buildArtifact, prefix, fileExtension);
-        }
-      }
-
       if (packageVersion != null) {
-        request.put("packageVersion", packageVersion);
+        stageContext.put("packageVersion", packageVersion);
       }
 
-      if (triggerArtifact.isEmpty() && buildArtifact.isEmpty()) {
+      if (triggerArtifact.isEmpty() && buildArtifact.isEmpty() && matchedArtifact == null) {
         missingPrefixes.add(prefix);
       }
 
-      // When a package match one of the packages coming from the trigger or from the previous stage its name
+      // When a package matches one of the packages coming from the trigger or from the previous stage its name
       // get replaced with the actual package name. Otherwise its just passed down to the bakery,
       // letting the bakery to resolve it.
-      requestPackages.set(index, packageName != null ? packageName : requestPackage);
+      requestPackages.set(index, packageIdentifier != null ? packageIdentifier : requestPackage);
 
-      if (packageName != null) {
-
+      if (packageIdentifier != null) {
         if (extractBuildDetails) {
-          Map<String, Object> buildInfoForDetails = !buildArtifact.isEmpty() ? buildInfo : artifactSourceBuildInfo;
-          buildDetailExtractor.tryToExtractBuildDetails(buildInfoForDetails, request);
+          Map<String, Object> buildInfoForDetails = !buildArtifact.isEmpty() ? buildInfoCurrentExecution : triggerBuildInfo;
+          buildDetailExtractor.tryToExtractBuildDetails(buildInfoForDetails, stageContext);
         }
       }
     }
@@ -210,23 +247,35 @@ public class PackageInfo {
       ));
     }
 
-    request.put("package", requestPackages.stream().collect(joining(" ")));
-    return request;
+    stageContext.put("package", requestPackages.stream().collect(joining(" ")));
+    return stageContext;
   }
 
-  Map<String, Object> getArtifactSourceBuildInfo(Map<String, Object> trigger) {
-    Map<String, Object> buildInfo = Optional.ofNullable((Map<String, Object>) trigger.get("buildInfo")).orElse(emptyMap());
+  /**
+   * @param trigger
+   * @return the buildInfo block from the pipeline trigger if it exists,
+   *         or the buildInfo block from the parent pipeline trigger if it exists,
+   *         or an empty map.
+   */
+  Map<String, Object> getBuildInfoFromTriggerOrParentTrigger(Map<String, Object> trigger) {
+    Map<String, Object> triggerBuildInfo = Optional.ofNullable((Map<String, Object>) trigger.get("buildInfo")).orElse(emptyMap());
     Map<String, Object> parentExecution = Optional.ofNullable((Map<String, Object>) trigger.get("parentExecution")).orElse(emptyMap());
-    if (buildInfo.get("artifacts") != null) {
-      return buildInfo;
+    if (triggerBuildInfo.get("artifacts") != null) {
+      return triggerBuildInfo;
     }
     if (parentExecution.get("trigger") != null) {
-      return getArtifactSourceBuildInfo((Map<String, Object>) parentExecution.get("trigger"));
+      return getBuildInfoFromTriggerOrParentTrigger((Map<String, Object>) parentExecution.get("trigger"));
     }
     return emptyMap();
   }
 
-  private String extractPackageName(Map artifact, String fileExtension) {
+  /**
+   * packageIdentifier is the package name plus version information.
+   *  When filename = orca_1.1767.0-h1997.29115f6_all.deb
+   *  then packageIdentifier = orca_1.1767.0-h1997.29115f6_all
+   * @return the name of the package plus all version information, including architecture.
+   */
+  private String extractPackageIdentifier(Map artifact, String fileExtension) {
     String fileName = artifact.get("fileName").toString();
     return fileName.substring(0, fileName.lastIndexOf(fileExtension));
   }
@@ -245,14 +294,23 @@ public class PackageInfo {
     if (packageType.equals("rpm")) {
       return filterRPMArtifacts(artifacts, prefix);
     } else {
-      return artifacts.
-        stream()
+      return artifacts
+        .stream()
         .filter(it ->
           it.get("fileName") != null && it.get("fileName").toString().startsWith(prefix) && it.get("fileName").toString().endsWith(fileExtension)
         )
         .findFirst()
         .orElse(emptyMap());
     }
+  }
+
+  private Artifact filterKorkArtifacts(List<Artifact> artifacts, String requestPackage, String packageType) {
+    return artifacts
+      .stream()
+      .filter( it ->
+        it.getName() != null && it.getName().equals(requestPackage) && it.getType().equalsIgnoreCase(packageType)
+      ).findFirst()
+      .orElse(null);
   }
 
   private Map<String, Object> filterRPMArtifacts(List<Map<String, Object>> artifacts, String prefix) {
