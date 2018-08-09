@@ -133,21 +133,27 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
     }
 
     Integer desiredReplicas = deployment.getSpec().getReplicas();
-    Integer existing = status.getUpdatedReplicas();
-    if (existing == null || (desiredReplicas != null && desiredReplicas > existing)) {
+    Integer statusReplicas = status.getReplicas();
+    if ((desiredReplicas == null || desiredReplicas == 0) && (statusReplicas == null || statusReplicas == 0)) {
+      return result;
+    }
+
+    Integer updatedReplicas = status.getUpdatedReplicas();
+    if (updatedReplicas == null || (desiredReplicas != null && desiredReplicas > updatedReplicas)) {
       return result.unstable("Waiting for all replicas to be updated");
     }
 
-    if (status.getReplicas() != null && status.getReplicas() > existing) {
+    if (statusReplicas != null && statusReplicas > updatedReplicas) {
       return result.unstable("Waiting for old replicas to finish termination");
     }
 
-    if (status.getAvailableReplicas() == null || status.getAvailableReplicas() < existing) {
+    Integer availableReplicas = status.getAvailableReplicas();
+    if (availableReplicas == null || availableReplicas < updatedReplicas) {
       return result.unstable("Waiting for all replicas to be available");
     }
 
-    existing = status.getReadyReplicas();
-    if (existing == null || (desiredReplicas != null && desiredReplicas > existing)) {
+    Integer readyReplicas = status.getReadyReplicas();
+    if (readyReplicas == null || (desiredReplicas != null && desiredReplicas > readyReplicas)) {
       return result.unstable("Waiting for all replicas to be ready");
     }
 
