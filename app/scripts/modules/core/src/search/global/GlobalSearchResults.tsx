@@ -71,8 +71,6 @@ export const GlobalSearchResults = ({
           )),
         ];
       })}
-      <li key="divider" className="divider" />
-      <li key="seeMore" className="result" />
     </ul>
   );
 };
