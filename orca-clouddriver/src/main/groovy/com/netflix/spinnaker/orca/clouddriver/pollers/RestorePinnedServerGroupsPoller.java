@@ -234,11 +234,9 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
                                                     Optional<ServerGroup> serverGroup,
                                                     List<Map<String, Object>> jobs) {
     String name = serverGroup.map(s -> format(
-      "Unpin Server Group: %s to %s/%s/%s",
+      "Unpin Server Group: %s (min: %s)",
       pinnedServerGroupTag.serverGroup,
-      pinnedServerGroupTag.unpinnedCapacity.min,
-      s.capacity.desired,
-      s.capacity.max
+      pinnedServerGroupTag.unpinnedCapacity.min
     )).orElseGet(() -> "Deleting tags on '" + pinnedServerGroupTag.id + "'");
 
     return ImmutableMap.<String, Object>builder()
@@ -269,17 +267,13 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
       .put("region", pinnedServerGroupTag.location)
       .put("credentials", pinnedServerGroupTag.account)
       .put("cloudProvider", pinnedServerGroupTag.cloudProvider)
-      .put("interestingHealthProviderNames", Collections.emptyList()) // no need to wait on health when only
-      .put("capacity", ImmutableMap.<String, Integer>builder()        // adjusting min capacity
+      .put("interestingHealthProviderNames", Collections.emptyList()) // no need to wait on health when only adjusting min capacity
+      .put("capacity", ImmutableMap.<String, Integer>builder()
         .put("min", pinnedServerGroupTag.unpinnedCapacity.min)
-        .put("desired", serverGroup.capacity.desired)
-        .put("max", serverGroup.capacity.max)
         .build()
       )
       .put("constraints", Collections.singletonMap("capacity", ImmutableMap.<String, Integer>builder()
-        .put("min", serverGroup.capacity.min)                         // ensure that the current capacity matches
-        .put("desired", serverGroup.capacity.desired)                 // expectations and has not changed since the
-        .put("max", serverGroup.capacity.max)                         // last caching cycle
+        .put("min", serverGroup.capacity.min)                         // ensure that the current min capacity has not been already changed
         .build())
       )
       .build();
