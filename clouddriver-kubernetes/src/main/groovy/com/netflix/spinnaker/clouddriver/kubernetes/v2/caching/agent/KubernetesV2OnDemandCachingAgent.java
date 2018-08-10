@@ -111,7 +111,9 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     List<CacheData> keepInOnDemand = new ArrayList<>();
     List<CacheData> evictFromOnDemand = new ArrayList<>();
 
-    providerCache.getAll(ON_DEMAND_TYPE, primaryKeys).forEach(cd -> {
+    Collection<String> existingKeys = providerCache.existingIdentifiers(ON_DEMAND_TYPE, primaryKeys);
+
+    providerCache.getAll(ON_DEMAND_TYPE, existingKeys).forEach(cd -> {
       // can't be a ternary op due to restrictions on non-statement expressions in lambdas
       if (shouldKeepInOnDemand(start, cd)) {
         keepInOnDemand.add(cd);
