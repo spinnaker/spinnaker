@@ -86,9 +86,10 @@
 # pylint: disable=missing-docstring
 
 # Standard python modules.
+import logging
 import os
 import sys
-import logging
+import time
 
 # citest modules.
 import citest.base
@@ -738,6 +739,8 @@ class BakeAndDeployTest(st.AgentTestCase):
     if not self.scenario.test_google:
       self.skipTest("--test_google flag not set")
     else:
+      # Wait for Echo's cache to pick up the pipeline.
+      time.sleep(20)
       self.run_test_case(
           self.scenario.trigger_bake_and_deploy_google_pipeline(),
           poll_every_secs=5)
