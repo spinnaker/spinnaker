@@ -210,10 +210,6 @@ public class KubernetesCacheDataConverter {
     cacheRelationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences()));
     cacheRelationships.putAll(implicitRelationships(manifest, account, resourceRelationships));
 
-    if (isNamespaced && StringUtils.isNotEmpty(namespace)) {
-      cacheRelationships.putAll(namespaceRelationship(account, namespace));
-    }
-
     String key = Keys.infrastructure(kind, account, namespace, name);
     return new DefaultCacheData(key, infrastructureTtlSeconds, attributes, cacheRelationships);
   }
@@ -308,17 +304,6 @@ public class KubernetesCacheDataConverter {
       keys.add(Keys.infrastructure(kind, account, namespace, name));
       relationships.put(kind.toString(), keys);
     }
-
-    return relationships;
-  }
-
-  static Map<String, Collection<String>> namespaceRelationship(String account, String namespace) {
-    Map<String, Collection<String>> relationships = new HashMap<>();
-    relationships.put(NAMESPACE.toString(),
-        Collections.singletonList(
-            Keys.infrastructure(NAMESPACE, account, namespace, namespace)
-        )
-    );
 
     return relationships;
   }
