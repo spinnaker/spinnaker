@@ -16,54 +16,52 @@
 
 package com.netflix.spinnaker.front50.model;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
+import static net.logstash.logback.argument.StructuredArguments.value;
 
-import com.google.api.services.storage.Storage;
-import com.google.api.services.storage.StorageScopes;
-import com.google.api.services.storage.model.*;
-
-import com.google.api.services.storage.model.Bucket;
-import com.google.api.client.http.ByteArrayContent;
-import com.google.api.client.util.DateTime;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
-
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
+import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.FileInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.concurrent.Callable;
-
+import com.google.api.client.util.DateTime;
+import com.google.api.services.storage.Storage;
+import com.google.api.services.storage.StorageScopes;
+import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Objects;
+import com.google.api.services.storage.model.StorageObject;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
+import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.retry.GcsSafeRetry;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import groovy.lang.Closure;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.scheduling.TaskScheduler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import static net.logstash.logback.argument.StructuredArguments.value;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.TaskScheduler;
 
 
 public class
@@ -94,11 +92,11 @@ GcsStorageService implements StorageService {
   private final Timer patchTimer;
   private final TaskScheduler taskScheduler;
 
+  private ConcurrentHashMap<String, AtomicBoolean> updateLockMap = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<String, AtomicBoolean> scheduledUpdateLockMap = new ConcurrentHashMap<>();
+
   @VisibleForTesting
   final HashSet<String> purgeOldVersionPaths = new HashSet<String>();
-
-  // These are for scheduled timestamp update retries
-  private final HashMap<String, Long> daoTypeNameReferenceTime = new HashMap<String, Long>();
 
   /**
    * Bucket location for when a missing bucket is created. Has no effect if the bucket already
@@ -497,82 +495,92 @@ GcsStorageService implements StorageService {
     }
   }
 
+  // Returns a boolean that a thread is preparing to update lastmodified (but has not yet sent the
+  // request to GCS). If another thread observes this value as true, it can safely skip updating
+  // lastmodified itself as this will be done by the other thread (and said update is guaranteed
+  // to completely happen after the value was observed as true).
+  private AtomicBoolean updateLock(String daoTypeName) {
+    return updateLockMap.computeIfAbsent(daoTypeName, (String s) -> new AtomicBoolean(false));
+  }
+
+  // Returns a boolean that indicates a deferred update to lastmodified has been scheduled due to
+  // receiving an error response from a prior update. If this value is true, a thread can safely
+  // skip updating lastmodified, as this will be handled by the deferred update.
+  private AtomicBoolean scheduledUpdateLock(String daoTypeName) {
+    return scheduledUpdateLockMap.computeIfAbsent(daoTypeName, (String s) -> new AtomicBoolean(false));
+  }
+
   @VisibleForTesting
   public void scheduleWriteLastModified(String daoTypeName) {
-    long modifiedTime = getLastModifiedOfTypeName(daoTypeName);
     Date when = new Date();
-
-    synchronized (daoTypeNameReferenceTime) {
-      boolean schedule = daoTypeNameReferenceTime.get(daoTypeName) == null;
-      daoTypeNameReferenceTime.put(daoTypeName, modifiedTime);
-      GcsStorageService service = this;
-
-      if (schedule) {
-        Runnable task = new Runnable() {
-          public void run() {
-            log.info("RUNNING {}", daoTypeName);
-            Long storedTime;
-            synchronized (service.daoTypeNameReferenceTime) {
-              storedTime = service.daoTypeNameReferenceTime.remove(daoTypeName);
-            }
-            long modifiedTime = service.getLastModifiedOfTypeName(daoTypeName);
-            if (modifiedTime <= storedTime) {
-              log.info("Retrying deferred writeLastModified for {}", daoTypeName);
-              service.writeLastModified(daoTypeName);
-            } else {
-              log.info("Canceling deferred writeLastModified because timestamp already updated.");
-            }
-          }
-        };
-        when.setSeconds(when.getSeconds() + 1);
-
-        log.info("Scheduling deferred update {} timestamp.", daoTypeName);
-        taskScheduler.schedule(task, when);
-      } else {
-        log.info("Already scheduled update {} timestamp.", daoTypeName);
+    when.setSeconds(when.getSeconds() + 2);
+    GcsStorageService service = this;
+    Runnable task = new Runnable() {
+      public void run() {
+        // Release the scheduled update lock, and perform the actual update
+        scheduledUpdateLock(daoTypeName).set(false);
+        log.info("RUNNING {}", daoTypeName);
+        service.writeLastModified(daoTypeName);
       }
+    };
+    if (scheduledUpdateLock(daoTypeName).compareAndSet(false, true)) {
+      log.info("Scheduling deferred update {} timestamp.", daoTypeName);
+      taskScheduler.schedule(task, when);
     }
   }
 
   private void writeLastModified(String daoTypeName) {
-      // We'll just touch the file since the StorageObject manages a timestamp.
-      String timestamp_path = daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME;
-      StorageObject object = new StorageObject()
-          .setBucket(bucketName)
-          .setName(timestamp_path)
-          .setUpdated(new DateTime(System.currentTimeMillis()));
+    // We'll just touch the file since the StorageObject manages a timestamp.
+    String timestamp_path = daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME;
+    StorageObject object = new StorageObject()
+      .setBucket(bucketName)
+      .setName(timestamp_path)
+      .setUpdated(new DateTime(System.currentTimeMillis()));
+    // Short-circuit if there's a scheduled update, or if another thread has already acquired the
+    // lock and is updating lastModified.
+    if (!scheduledUpdateLock(daoTypeName).get() && updateLock(daoTypeName).compareAndSet(false, true)) {
       try {
+        synchronized (updateLock(daoTypeName)) {
+          // Release the update lock *before* actually updating lastModified as any thread observing
+          // the lock as set must know that the last modified time will be updated *after* it observed
+          // the lock
+          // That is also the reason this block is synchronized; if a thread acquires the lock while we're
+          // writing lastModified, we want it to hold the lock and block until the current write is done.
+          // (At most one other thread will block in this manner; any further threads will short-circuit
+          // and piggy-back on the blocked thread's update.)
+          updateLock(daoTypeName).set(false);
           timeExecute(patchTimer, obj_api.patch(bucketName, object.getName(), object));
+        }
       } catch (HttpResponseException e) {
-          if (e.getStatusCode() == 503 || e.getStatusCode() == 429) {
-              log.warn("Could not write {}: {}", timestamp_path, e.getMessage());
-              scheduleWriteLastModified(daoTypeName);
-              return;
-          }
-          if (e.getStatusCode() == 404 || e.getStatusCode() == 400) {
-              byte[] bytes = "{}".getBytes();
-              ByteArrayContent content = new ByteArrayContent("application/json", bytes);
+        if (e.getStatusCode() == 503 || e.getStatusCode() == 429) {
+          log.warn("Could not write {}: {}", timestamp_path, e.getMessage());
+          scheduleWriteLastModified(daoTypeName);
+          return;
+        }
+        if (e.getStatusCode() == 404 || e.getStatusCode() == 400) {
+          byte[] bytes = "{}".getBytes();
+          ByteArrayContent content = new ByteArrayContent("application/json", bytes);
 
-              try {
-                log.info("Attempting to add {}", value("path", timestamp_path));
-                timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
-              } catch (IOException ioex) {
-                  log.error("writeLastModified failed to update {}\n{}",
-                            value("path", timestamp_path), e.toString());
-                  log.error("writeLastModified insert failed too", ioex);
-                throw new IllegalStateException(e);
-              }
-          } else {
-              log.error("writeLastModified failed to update {}\n{}",
-                        value("path", timestamp_path), value("exception", e.toString()));
-              throw new IllegalStateException(e);
+          try {
+            log.info("Attempting to add {}", value("path", timestamp_path));
+            timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
+          } catch (IOException ioex) {
+            log.error("writeLastModified failed to update {}\n{}",
+              value("path", timestamp_path), e.toString());
+            log.error("writeLastModified insert failed too", ioex);
+            throw new IllegalStateException(e);
           }
-      } catch (IOException e) {
-          log.error("writeLastModified failed:", e.getMessage());
+        } else {
+          log.error("writeLastModified failed to update {}\n{}",
+            value("path", timestamp_path), value("exception", e.toString()));
           throw new IllegalStateException(e);
+        }
+      } catch (IOException e) {
+        log.error("writeLastModified failed:", e.getMessage());
+        throw new IllegalStateException(e);
       }
 
-      synchronized(purgeOldVersionPaths) {
+      synchronized (purgeOldVersionPaths) {
         // If the bucket is versioned, purge the old timestamp versions
         // because they serve no value and just consume storage and extra time
         // if we eventually destroy this bucket.
@@ -580,6 +588,7 @@ GcsStorageService implements StorageService {
         // it is a long term concern rather than a short term one.
         purgeOldVersionPaths.add(timestamp_path);
       }
+    }
   }
 
   public void purgeBatchedVersionPaths() {
