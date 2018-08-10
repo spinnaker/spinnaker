@@ -22,10 +22,12 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DeleteAmazonImageAtomicO
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @AmazonOperation(AtomicOperations.DEREGISTER_IMAGE)
+@Component
 public class DeleteAmazonImageAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   public AtomicOperation convertOperation(Map input) {
