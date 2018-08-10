@@ -131,22 +131,20 @@ public class KubernetesCacheDataConverter {
 
   public static CacheData mergeCacheData(CacheData current, CacheData added) {
     String id = current.getId();
-    Map<String, Object> attributes = new HashMap<>();
-    attributes.putAll(current.getAttributes());
+    Map<String, Object> attributes = new HashMap<>(current.getAttributes());
     attributes.putAll(added.getAttributes());
     // Behavior is: if no ttl is set on either, the merged key won't expire
     int ttl = Math.min(current.getTtlSeconds(), added.getTtlSeconds());
+    Map<String, Collection<String>> relationships = new HashMap<>(current.getRelationships());
 
-    Map<String, Collection<String>> relationships = new HashMap<>();
-    relationships.putAll(current.getRelationships());
     added.getRelationships()
         .entrySet()
         .forEach(entry -> relationships.merge(entry.getKey(), entry.getValue(),
             (a, b) -> {
-              Set<String> result = new HashSet<>();
-              result.addAll(a);
-              result.addAll(b);
-              return result;
+              Collection<String> res = new HashSet<>(Math.max(a.size(), b.size()));
+              res.addAll(a);
+              res.addAll(b);
+              return res;
             }));
 
     return new DefaultCacheData(id, ttl, attributes, relationships);
