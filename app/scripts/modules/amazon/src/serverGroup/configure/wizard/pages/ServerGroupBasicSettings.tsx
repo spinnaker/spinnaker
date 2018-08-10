@@ -33,6 +33,7 @@ export interface IServerGroupBasicSettingsProps {
 }
 
 export interface IServerGroupBasicSettingsState {
+  isLoadingImages: boolean;
   images: any[];
   namePreview: string;
   createsNewCluster: boolean;
@@ -54,6 +55,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     const { disableImageSelection } = props.values.viewState;
     this.state = {
       images: disableImageSelection ? [] : props.values.backingData.filtered.images,
+      isLoadingImages: false,
       ...this.getStateFromProps(props),
     };
   }
@@ -81,9 +83,27 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     return { namePreview, createsNewCluster, latestServerGroup, showPreviewAsWarning };
   }
 
+  private showLoadingSpinner = () => {
+    this.setState({
+      isLoadingImages: true,
+      images: [
+        {
+          disabled: true,
+          message: (
+            <div className="horizontal center">
+              <Spinner size="small" />
+            </div>
+          ),
+        },
+      ],
+    });
+  };
+
   public componentDidMount() {
     const { values } = this.props;
+
     this.imageSearchResultsStream
+      .do(this.showLoadingSpinner)
       .debounceTime(250)
       .switchMap(this.searchImagesImpl)
       .subscribe(data => {
@@ -91,43 +111,25 @@ class ServerGroupBasicSettingsImpl extends React.Component<
           if (image.message && !image.imageName) {
             return image;
           }
+
           return {
             imageName: image.imageName,
             ami: image.amis && image.amis[values.region] ? image.amis[values.region][0] : null,
             virtualizationType: image.attributes ? image.attributes.virtualizationType : null,
           };
         });
+
         values.backingData.filtered.images = images;
         values.backingData.packageImages = values.backingData.filtered.images;
-        this.setState({ images });
+        this.setState({ images, isLoadingImages: false });
       });
-    if (!values.viewState.disableImageSelection && !values.amiName) {
-      this.searchImages('');
-    }
   }
 
   private searchImagesImpl = (q: string) => {
-    const { values } = this.props;
+    const { selectedProvider, region } = this.props.values;
 
-    const images = [
-      {
-        message: (
-          <div>
-            <Spinner size="small" />
-            {`Finding results matching "${q}"...`}
-          </div>
-        ),
-      },
-    ];
-    this.setState({ images });
-
-    return Observable.fromPromise<any[]>(
-      ReactInjector.imageReader.findImages({
-        provider: values.selectedProvider,
-        q: q,
-        region: values.region,
-      }),
-    ).map(result => {
+    const findImagesPromise = ReactInjector.imageReader.findImages({ provider: selectedProvider, q, region });
+    return Observable.fromPromise<any[]>(findImagesPromise).map(result => {
       if (result.length === 0 && q.startsWith('ami-') && q.length === 12) {
         // allow 'advanced' users to continue with just an ami id (backing image may not have been indexed yet)
         const record = {
@@ -139,7 +141,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
         } as any;
 
         // trust that the specific image exists in the selected region
-        record.amis[values.region] = [q];
+        record.amis[region] = [q];
         result = [record];
       }
 
@@ -260,7 +262,14 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
   public render() {
     const { app, errors, values } = this.props;
-    const { createsNewCluster, images, latestServerGroup, namePreview, showPreviewAsWarning } = this.state;
+    const {
+      createsNewCluster,
+      isLoadingImages,
+      images,
+      latestServerGroup,
+      namePreview,
+      showPreviewAsWarning,
+    } = this.state;
     const { AccountSelectField, DeploymentStrategySelector } = NgReact;
     const { SubnetSelectField } = AwsNgReact;
 
@@ -366,6 +375,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
                   placeholder="Search for an image..."
                   required={true}
                   valueKey="imageName"
+                  filterOptions={isLoadingImages ? (false as any) : undefined}
                   options={images}
                   optionRenderer={this.imageOptionRenderer}
                   onInputChange={value => this.searchImages(value)}
@@ -387,7 +397,6 @@ class ServerGroupBasicSettingsImpl extends React.Component<
                   valueKey="imageName"
                   options={images}
                   optionRenderer={this.imageOptionRenderer}
-                  onInputChange={value => this.searchImages(value)}
                   onChange={(value: Option<string>) => this.imageChanged(value)}
                   onSelectResetsInput={false}
                   onBlurResetsInput={false}

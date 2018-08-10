@@ -55,7 +55,7 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
   }
 
   private preferSourceCapacityChanged = (option: Option<boolean>) => {
-    this.props.setFieldValue('preferSourceCapacity', option.value ? true : undefined);
+    this.props.setFieldValue('preferSourceCapacity', option && option.value ? true : undefined);
     this.setState({});
   };
 
@@ -109,6 +109,7 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
                     <div>
                       If no current server group is found,
                       <Select
+                        clearable={false}
                         value={!!command.preferSourceCapacity}
                         options={this.preferSourceCapacityOptions}
                         onChange={this.preferSourceCapacityChanged}
