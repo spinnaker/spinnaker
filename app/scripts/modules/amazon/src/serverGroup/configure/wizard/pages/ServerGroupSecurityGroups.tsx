@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FormikProps } from 'formik';
 
-import { IWizardPageProps, wizardPage } from '@spinnaker/core';
+import { IWizardPageProps, wizardPage, FirewallLabels } from '@spinnaker/core';
 
 import { SecurityGroupSelector } from '../securityGroups/SecurityGroupSelector';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
@@ -13,7 +13,9 @@ class ServerGroupSecurityGroupsImpl extends React.Component<
   IWizardPageProps & FormikProps<IAmazonServerGroupCommand>,
   IServerGroupSecurityGroupsState
 > {
-  public static LABEL = 'Security Groups';
+  public static get LABEL() {
+    return FirewallLabels.get('Firewalls');
+  }
 
   public validate(values: IAmazonServerGroupCommand): { [key: string]: string } {
     const errors: { [key: string]: string } = {};

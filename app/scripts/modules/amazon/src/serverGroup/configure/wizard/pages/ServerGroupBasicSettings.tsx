@@ -15,6 +15,7 @@ import {
   TetheredSelect,
   IServerGroup,
   TaskReason,
+  Spinner,
 } from '@spinnaker/core';
 
 import { AwsNgReact } from 'amazon/reactShims';
@@ -100,7 +101,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
         values.backingData.packageImages = values.backingData.filtered.images;
         this.setState({ images });
       });
-    if (!values.amiName) {
+    if (!values.viewState.disableImageSelection && !values.amiName) {
       this.searchImages('');
     }
   }
@@ -110,7 +111,12 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
     const images = [
       {
-        message: `<loading-spinner size="'nano'"></loading-spinner> Finding results matching "${q}"...`,
+        message: (
+          <div>
+            <Spinner size="small" />
+            {`Finding results matching "${q}"...`}
+          </div>
+        ),
       },
     ];
     this.setState({ images });
@@ -190,7 +196,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
         'Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.';
     }
 
-    if (!values.amiName) {
+    if (!values.viewState.disableImageSelection && !values.amiName) {
       errors.amiName = 'Image required.';
     }
 
