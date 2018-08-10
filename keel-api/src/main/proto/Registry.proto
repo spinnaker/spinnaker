@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package spinnaker.keel.api.engine;
+
+option java_multiple_files = true;
+option java_package = "com.netflix.spinnaker.keel.api.engine";
+
+import "Asset.proto";
+
+service AssetPluginRegistry {
+  rpc register (RegisterAssetPluginRequest) returns (RegisterAssetPluginResponse);
+}
+
+message RegisterAssetPluginRequest {
+  string name = 1;
+  repeated TypeMetadata types = 2;
+}
+
+message RegisterAssetPluginResponse {
+  bool succeeded = 1;
+}
+
+service VetoPluginRegistry {
+  rpc register (RegisterVetoPluginRequest) returns (RegisterVetoPluginResponse);
+}
+
+message RegisterVetoPluginRequest {
+  string name = 1;
+}
+
+message RegisterVetoPluginResponse {
+  bool succeeded = 1;
+}

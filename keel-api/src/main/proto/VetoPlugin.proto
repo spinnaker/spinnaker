@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package com.netflix.spinnaker.keel.api;
+package spinnaker.keel.api.plugin;
 
 option java_multiple_files = true;
 option java_package = "com.netflix.spinnaker.keel.api";

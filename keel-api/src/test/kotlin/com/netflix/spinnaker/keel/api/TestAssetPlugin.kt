@@ -1,16 +1,12 @@
 package com.netflix.spinnaker.keel.api
 
+import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import io.grpc.stub.StreamObserver
 
 class TestAssetPlugin : AssetPluginGrpc.AssetPluginImplBase() {
-  override fun supports(request: TypeMetadata, responseObserver: StreamObserver<SupportsResponse>) {
-    val response = SupportsResponse
-      .newBuilder()
-      .setSupports(request.kind == "Test")
-      .build()
-
+  override fun current(request: Asset, responseObserver: StreamObserver<Asset>) {
     with(responseObserver) {
-      onNext(response)
+      onNext(request)
       onCompleted()
     }
   }

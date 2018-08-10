@@ -17,10 +17,11 @@
 include "keel-api",
   "keel-api-test",
   "keel-aws",
-  "keel-retrofit",
-  "keel-orca",
   "keel-clouddriver",
   "keel-grpc",
+  "keel-orca",
+  "keel-retrofit",
+  "keel-rule-engine",
   "keel-veto"
 
 rootProject.name = "keel"

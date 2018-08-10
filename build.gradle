@@ -20,7 +20,7 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.1.2"
+    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:$spinnakerVersion"
     classpath "org.springframework.boot:spring-boot-gradle-plugin:$bootVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
     classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"

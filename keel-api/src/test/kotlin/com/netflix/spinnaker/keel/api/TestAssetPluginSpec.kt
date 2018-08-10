@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.api
 
+import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import strikt.api.expect
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
+import strikt.assertions.isEqualTo
 
 internal object TestAssetPluginSpec : Spek({
 
@@ -19,31 +19,19 @@ internal object TestAssetPluginSpec : Spek({
   afterGroup(grpc::stopServer)
 
   describe("a generic gRPC service") {
-    it("supports a Test request") {
-      val request = TypeMetadata
-        .newBuilder()
-        .setApiVersion("1.0")
-        .setKind("Test")
-        .build()
-
-      grpc.withChannel {
-        val response = it.supports(request)
-
-        expect(response.supports).isTrue()
+    it("supports a current request") {
+      val request = Asset.newBuilder().apply {
+        typeMetadataBuilder.apply {
+          apiVersion = "1.0"
+          kind = "Test"
+        }
       }
-    }
-
-    it("does not support any other kind of request") {
-      val request = TypeMetadata
-        .newBuilder()
-        .setApiVersion("1.0")
-        .setKind("Whatever")
         .build()
 
       grpc.withChannel {
-        val response = it.supports(request)
+        val response = it.current(request)
 
-        expect(response.supports).isFalse()
+        expect(response).isEqualTo(request)
       }
     }
   }

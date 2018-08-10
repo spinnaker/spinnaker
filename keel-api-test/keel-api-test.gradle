@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+apply plugin: "java-library"
+
 buildscript {
   repositories {
     jcenter()
@@ -24,5 +26,6 @@ buildscript {
 }
 
 dependencies {
+  api "com.netflix.spinnaker.kork:kork-core:$korkVersion"
   compile project(":keel-api")
 }
