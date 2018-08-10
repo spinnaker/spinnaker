@@ -63,6 +63,7 @@ class ResolveQuipVersionTask implements RetryableTask {
       packageType = new OperatingSystem(stage.context.baseOs as String).getPackageType()
     }
     PackageInfo packageInfo = new PackageInfo(stage,
+      [],
       packageType.packageType,
       packageType.versionDelimiter,
       true, // extractBuildDetails
