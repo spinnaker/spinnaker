@@ -246,11 +246,12 @@ public class KubernetesCacheDataConverter {
       cacheRelationships.put(ARTIFACT.toString(), Collections.singletonList(Keys.artifact(artifact.getType(), artifact.getName(), artifact.getLocation(), artifact.getVersion())));
     }
 
-    cacheRelationships.put(APPLICATIONS.toString(), Collections.singletonList(Keys.application(application)));
-
-    String cluster = moniker.getCluster();
-    if (StringUtils.isNotEmpty(cluster) && hasClusterRelationship) {
-      cacheRelationships.put(CLUSTERS.toString(), Collections.singletonList(Keys.cluster(account, application, cluster)));
+    if (hasClusterRelationship) {
+      cacheRelationships.put(APPLICATIONS.toString(), Collections.singletonList(Keys.application(application)));
+      String cluster = moniker.getCluster();
+      if (StringUtils.isNotEmpty(cluster)) {
+        cacheRelationships.put(CLUSTERS.toString(), Collections.singletonList(Keys.cluster(account, application, cluster)));
+      }
     }
 
     return cacheRelationships;
