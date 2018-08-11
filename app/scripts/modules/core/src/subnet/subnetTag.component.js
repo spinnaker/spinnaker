@@ -1,26 +1,11 @@
 'use strict';
 
 import { SubnetReader } from 'core/subnet/subnet.read.service';
+import { SubnetTag } from './SubnetTag';
+import { react2angular } from 'react2angular';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.subnet.tag.component', []).component('subnetTag', {
-  bindings: {
-    subnetId: '=',
-  },
-  template: '<span class="subnet-tag">{{$ctrl.subnetLabel}}</span>',
-  controller: function() {
-    this.$onInit = () => {
-      if (!this.subnetId) {
-        this.subnetLabel = null;
-      } else {
-        this.subnetLabel = '(' + this.subnetId + ')';
-        SubnetReader.getSubnetPurpose(this.subnetId).then(name => {
-          if (name) {
-            this.subnetLabel = name;
-          }
-        });
-      }
-    };
-  },
-});
+module.exports = angular
+  .module('spinnaker.core.subnet.tag.component', [])
+  .component('subnetTag', react2angular(SubnetTag, ['subnetId']));
