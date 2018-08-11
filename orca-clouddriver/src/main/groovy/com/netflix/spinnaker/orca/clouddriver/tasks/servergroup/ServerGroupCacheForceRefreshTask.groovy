@@ -55,6 +55,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
 
   @Override
   TaskResult execute(Stage stage) {
+
     if ((clock.millis() - stage.startTime) > autoSucceedAfterMs) {
       /*
        * If an issue arises performing a refresh, wait at least 10 minutes (the default ttl of a cache record) before
@@ -62,6 +63,9 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
        *
        * Under normal operations, this refresh task should complete sub-minute.
        */
+      log.warn("After {}ms no progress has been made with the force cache refresh. Shorting the circuit.",
+        clock.millis() - stage.startTime
+      )
       return new TaskResult(SUCCEEDED, ["shortCircuit": true])
     }
 
@@ -74,9 +78,8 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       return optionalTaskResult.get()
     }
 
-    boolean allAreComplete = processPendingForceCacheUpdates(
-      stage.execution.id, account, cloudProvider, stageData, stage.startTime
-    )
+    boolean allAreComplete = processPendingForceCacheUpdates(stage.execution.id, account, cloudProvider, stageData, stage.startTime)
+
     if (allAreComplete) {
       // ensure clean stage data such that a subsequent ServerGroupCacheForceRefresh (in this stage) starts fresh
       stageData.reset()
@@ -154,26 +157,71 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
                                                   String cloudProvider,
                                                   StageData stageData,
                                                   Long startTime) {
+
     def pendingForceCacheUpdates = cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE)
+    log.debug(
+      "Force cache refresh clouddriver response was: {} (executionId: {})",
+      pendingForceCacheUpdates,
+      executionId
+    )
     boolean isRecent = (startTime != null) ? pendingForceCacheUpdates.find { it.cacheTime >= startTime } : false
 
     boolean finishedProcessing = true
     stageData.deployServerGroups.each { String region, Set<String> serverGroups ->
-      def makeModel = { serverGroup ->
-        [serverGroup: serverGroup, region: region, account: account]
-      }
+      def makeModel = { serverGroup -> [serverGroup: serverGroup, region: region, account: account] }
 
       def processedServerGroups = serverGroups.findAll { String serverGroup ->
         def model = makeModel(serverGroup)
 
+        def forceCacheUpdate = pendingForceCacheUpdates.find {
+          (it.details as Map<String, String>).intersect(model) == model
+        }
+
         if (stageData.processedServerGroups.contains(model)) {
           // this server group has already been processed
+          log.debug(
+            "Force cache refresh has been already processed (model: {}, executionId: {})",
+            model,
+            executionId
+          )
           return true
+        }
+
+        if (!forceCacheUpdate) {
+          // there is no pending cache update, force it again in the event that it was missed
+          stageData.removeRefreshedServerGroup(model.serverGroup, model.region, model.account)
+          log.warn(
+            "Unable to find pending cache refresh request, forcing a new cache refresh (model: {}, executionId: {})",
+            model,
+            executionId
+          )
+
+          try {
+            log.debug(
+              "Force immediate cache refresh POST to clouddriver (model: {}, executionId: {})",
+              model,
+              executionId
+            )
+            def response = cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
+            if (response.status == HttpURLConnection.HTTP_OK) {
+              // cache update was applied immediately, no need to poll for completion
+              log.debug(
+                "Processed force cache refresh request immediately (model: {}, executionId: {})",
+                model,
+                executionId
+              )
+              return true
+            }
+            stageData.refreshedServerGroups << model
+          } catch (e) {
+            stageData.errors << e.message
+          }
+          return false
         }
 
         if (!isRecent) {
           // replication lag -- there are no pending force cache refreshes newer than this particular stage ... retry in 10s
-          log.debug(
+          log.warn(
             "No recent pending force cache refresh updates found, retrying in 10s (lag: {}ms, model: {}, executionId: {})",
             System.currentTimeMillis() - startTime,
             model,
@@ -182,36 +230,36 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
           return false
         }
 
-        def forceCacheUpdate = pendingForceCacheUpdates.find {
-          (it.details as Map<String, String>).intersect(model) == model
-        }
-
-        if (!forceCacheUpdate) {
-          // there is no pending cache update, force it again in the event that it was missed
-          stageData.removeRefreshedServerGroup(model.serverGroup, model.region, model.account)
-          log.warn("Unable to find pending cache refresh request (model: ${model})")
-
-          return false
-        }
-
         if (forceCacheUpdate) {
           if (!forceCacheUpdate.processedTime) {
             // there is a pending cache update that is still awaiting processing
-            log.warn("Awaiting processing on pending cache refresh request (model: ${model})")
-
+            log.warn(
+              "Awaiting processing on pending cache refresh request (model: {}, executionId: {})",
+              model,
+              executionId
+            )
             return false
           }
 
           if (forceCacheUpdate.processedTime < startTime || forceCacheUpdate.cacheTime < startTime) {
             // there is a stale pending cache update, force it again
             stageData.removeRefreshedServerGroup(serverGroup, region, account)
-            log.warn("Found stale pending cache refresh request (model: ${model}, request: ${forceCacheUpdate})")
-
+            log.warn(
+              "Found stale pending cache refresh request (request: {}, model: {}, executionId: {})",
+              forceCacheUpdate,
+              model,
+              executionId
+            )
             return false
           }
         }
 
-        log.debug("Processed force cache refresh request in ${forceCacheUpdate.cacheTime - startTime}ms (model: ${model})")
+        log.debug(
+          "Processed force cache refresh request in {}ms (model: ${model}, executionId: {})",
+          forceCacheUpdate.cacheTime - startTime,
+          model,
+          executionId
+        )
         return true
       }
 
