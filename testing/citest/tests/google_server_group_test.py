@@ -252,7 +252,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
 
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder(
-        self.__mig_title + ' Resized', retryable_for_secs=90)
+        self.__mig_title + ' Resized', retryable_for_secs=180)
      .inspect_resource(self.__mig_resource_name, self.__server_group_name,
                        **self.__mig_resource_kwargs)
      .EXPECT(ov_factory.value_list_path_contains('size', jp.NUM_EQ(2))))
