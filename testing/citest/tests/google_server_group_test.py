@@ -250,6 +250,13 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     }]
     job[0].update(self.__mig_payload_extra)
 
+    # We set the timeout to 10 minutes, as Spinnaker is returning success once
+    # it has seen the new instance appear, but the contract is waiting for the
+    # instance group's self-reported size to be the new size. There is sometimes a
+    # delay of several minutes between the instance first appearing and the instance
+    # group manager reporting the new size. In order to avoid intermittently failing
+    # tests, we set a reasonably long timeout to wait for consistency between the
+    # Spinnaker internal contract and the contract this test is measuring.
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder(
         self.__mig_title + ' Resized', retryable_for_secs=600)
