@@ -97,14 +97,15 @@ class KubernetesInstanceDetailsController implements IController {
 
   public editInstance(): void {
     this.$uibModal.open({
-      templateUrl: require('../../manifest/wizard/manifestWizard.html'),
+      templateUrl: require('kubernetes/v2/manifest/wizard/manifestWizard.html'),
       size: 'lg',
       controller: 'kubernetesV2ManifestEditCtrl',
       controllerAs: 'ctrl',
       resolve: {
-        sourceManifest: this.instance.manifest,
-        sourceMoniker: this.instance.moniker,
-        application: this.app,
+        sourceManifest: () => this.instance.manifest,
+        sourceMoniker: () => this.instance.moniker,
+        application: () => this.app,
+        account: () => this.instance.account,
       },
     });
   }

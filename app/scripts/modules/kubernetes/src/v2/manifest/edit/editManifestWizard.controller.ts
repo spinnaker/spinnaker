@@ -7,7 +7,7 @@ import {
   IKubernetesManifestCommand,
   IKubernetesManifestCommandMetadata,
   KubernetesManifestCommandBuilder,
-} from '../manifestCommandBuilder.service';
+} from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 class KubernetesEditManifestCtrl implements IController {
   public state = {
@@ -21,11 +21,12 @@ class KubernetesEditManifestCtrl implements IController {
   constructor(
     sourceManifest: any,
     sourceMoniker: IMoniker,
+    account: string,
     private $uibModalInstance: IModalInstanceService,
     private application: Application,
   ) {
     'ngInject';
-    KubernetesManifestCommandBuilder.buildNewManifestCommand(application, sourceManifest, sourceMoniker).then(
+    KubernetesManifestCommandBuilder.buildNewManifestCommand(application, sourceManifest, sourceMoniker, account).then(
       builtCommand => {
         const { command, metadata } = builtCommand;
         this.command = command;

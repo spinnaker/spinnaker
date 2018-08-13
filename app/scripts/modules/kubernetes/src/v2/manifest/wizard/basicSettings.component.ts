@@ -8,8 +8,8 @@ class KubernetesManifestBasicSettingsCtrl implements IController {
 }
 
 class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
-  public bindings: any = { command: '=', metadata: '<' };
-  public controller: any = KubernetesManifestBasicSettingsCtrl;
+  public bindings = { command: '=', metadata: '<' };
+  public controller = KubernetesManifestBasicSettingsCtrl;
   public controllerAs = 'ctrl';
   public template = `
       <ng-form name="basicSettings">

@@ -117,14 +117,15 @@ class KubernetesServerGroupManagerDetailsController implements IController {
 
   public editServerGroupManager(): void {
     this.$uibModal.open({
-      templateUrl: require('../../manifest/wizard/manifestWizard.html'),
+      templateUrl: require('kubernetes/v2/manifest/wizard/manifestWizard.html'),
       size: 'lg',
       controller: 'kubernetesV2ManifestEditCtrl',
       controllerAs: 'ctrl',
       resolve: {
-        sourceManifest: this.serverGroupManager.manifest,
-        sourceMoniker: this.serverGroupManager.moniker,
-        application: this.app,
+        sourceManifest: () => this.serverGroupManager.manifest,
+        sourceMoniker: () => this.serverGroupManager.moniker,
+        application: () => this.app,
+        account: () => this.serverGroupManager.account,
       },
     });
   }

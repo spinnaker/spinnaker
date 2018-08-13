@@ -49,14 +49,15 @@ class KubernetesSecurityGroupDetailsController implements IController {
 
   public editSecurityGroup(): void {
     this.$uibModal.open({
-      templateUrl: require('../../manifest/wizard/manifestWizard.html'),
+      templateUrl: require('kubernetes/v2/manifest/wizard/manifestWizard.html'),
       size: 'lg',
       controller: 'kubernetesV2ManifestEditCtrl',
       controllerAs: 'ctrl',
       resolve: {
-        sourceManifest: this.securityGroup.manifest,
-        sourceMoniker: this.securityGroup.moniker,
-        application: this.app,
+        sourceManifest: () => this.securityGroup.manifest,
+        sourceMoniker: () => this.securityGroup.moniker,
+        application: () => this.app,
+        account: () => this.securityGroupFromParams.accountId,
       },
     });
   }

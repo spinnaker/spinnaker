@@ -7,7 +7,7 @@ import {
   IKubernetesManifestCommand,
   IKubernetesManifestCommandMetadata,
   KubernetesManifestCommandBuilder,
-} from '../manifestCommandBuilder.service';
+} from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 class KubernetesManifestWizardCtrl implements IController {
   public state = {

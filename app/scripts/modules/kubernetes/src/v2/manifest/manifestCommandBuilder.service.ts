@@ -3,7 +3,7 @@ import { dump, loadAll } from 'js-yaml';
 import { $q } from 'ngimport';
 import { IPromise } from 'angular';
 
-import { AccountService, Application, IMoniker } from '@spinnaker/core';
+import { AccountService, Application, IMoniker, IAccount, IAccountDetails } from '@spinnaker/core';
 
 export interface IKubernetesManifestCommandData {
   command: IKubernetesManifestCommand;
@@ -63,6 +63,7 @@ export class KubernetesManifestCommandBuilder {
     app: Application,
     sourceManifest?: any,
     sourceMoniker?: IMoniker,
+    sourceAccount?: string,
   ): IPromise<IKubernetesManifestCommandData> {
     const dataToFetch = {
       accounts: AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
@@ -71,19 +72,17 @@ export class KubernetesManifestCommandBuilder {
 
     // TODO(dpeach): if no callers of this method are Angular controllers,
     // $q.all may be safely replaced with Promise.all.
-    return $q.all(dataToFetch).then(({ accounts, artifactAccounts }) => {
-      const backingData = {
-        accounts,
-        artifactAccounts,
-      };
-      const accountData = backingData.accounts[0];
-      let account: string = null;
-      if (accountData) {
-        account = accountData.name;
-      }
+    return $q.all(dataToFetch).then((backingData: { accounts: IAccountDetails[]; artifactAccounts: IAccount[] }) => {
+      const { accounts, artifactAccounts } = backingData;
+
+      const account = accounts.some(a => a.name === sourceAccount)
+        ? accounts.find(a => a.name === sourceAccount).name
+        : accounts.length
+          ? accounts[0].name
+          : null;
 
       let manifestArtifactAccount: string = null;
-      const artifactAccountData = backingData.artifactAccounts[0];
+      const [artifactAccountData] = artifactAccounts;
       if (artifactAccountData) {
         manifestArtifactAccount = artifactAccountData.name;
       }

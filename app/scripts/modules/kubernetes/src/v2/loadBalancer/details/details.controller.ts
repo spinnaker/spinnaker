@@ -51,14 +51,15 @@ class KubernetesLoadBalancerDetailsController implements IController {
 
   public editLoadBalancer(): void {
     this.$uibModal.open({
-      templateUrl: require('../../manifest/wizard/manifestWizard.html'),
+      templateUrl: require('kubernetes/v2/manifest/wizard/manifestWizard.html'),
       size: 'lg',
       controller: 'kubernetesV2ManifestEditCtrl',
       controllerAs: 'ctrl',
       resolve: {
-        sourceManifest: this.loadBalancer.manifest,
-        sourceMoniker: this.loadBalancer.moniker,
-        application: this.app,
+        sourceManifest: () => this.loadBalancer.manifest,
+        sourceMoniker: () => this.loadBalancer.moniker,
+        application: () => this.app,
+        account: () => this.loadBalancer.account,
       },
     });
   }
