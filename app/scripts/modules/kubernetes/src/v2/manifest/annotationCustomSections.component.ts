@@ -63,8 +63,8 @@ class KubernetesAnnotationCustomSections implements IController {
       content = this.$interpolate(content)({ ...this.resource });
     }
     return {
-      title: parsed.title.replace('-', ' ').trim(),
-      key: parsed.key.replace('-', ' ').trim(),
+      title: parsed.title.replace(/-/g, ' ').trim(),
+      key: parsed.key.replace(/-/g, ' ').trim(),
       content: parsed.isHtml ? this.sanitizeContent(content) : content,
       isHtml: parsed.isHtml,
     };
