@@ -147,7 +147,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
             <b>IAM Instance Profile (optional)</b>
           </div>
           <div className="col-md-6">
-            <input type="text" className="form-control input-sm no-spel" name="iamRole" />
+            <Field type="text" className="form-control input-sm no-spel" name="iamRole" />
           </div>
         </div>
         <div className="form-group">
@@ -156,7 +156,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
             <HelpField id="aws.serverGroup.base64UserData" />
           </div>
           <div className="col-md-6">
-            <input type="text" className="form-control input-sm no-spel" name="base64UserData" />
+            <Field type="text" className="form-control input-sm no-spel" name="base64UserData" />
           </div>
         </div>
         <div className="form-group">
@@ -167,7 +167,12 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
 
           <div className="col-md-6 checkbox">
             <label>
-              <input type="checkbox" ng-model="$ctrl.command.instanceMonitoring" /> Enable Instance Monitoring{' '}
+              <input
+                type="checkbox"
+                value={values.instanceMonitoring ? 'true' : 'false'}
+                onChange={e => setFieldValue('instanceMonitoring', e.target.value === 'true')}
+              />{' '}
+              Enable Instance Monitoring{' '}
             </label>
           </div>
         </div>
@@ -177,7 +182,12 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
           </div>
           <div className="col-md-6 checkbox">
             <label>
-              <input type="checkbox" ng-model="$ctrl.command.ebsOptimized" /> Optimize Instances for EBS
+              <input
+                type="checkbox"
+                value={values.ebsOptimized ? 'true' : 'false'}
+                onChange={e => setFieldValue('ebsOptimized', e.target.value === 'true')}
+              />{' '}
+              Optimize Instances for EBS
             </label>
           </div>
         </div>
