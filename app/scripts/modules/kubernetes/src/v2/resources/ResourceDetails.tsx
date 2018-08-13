@@ -6,7 +6,6 @@ import { IManifest, Spinner, CloudProviderLogo, CollapsibleSection, AccountTag, 
 import { KubernetesManifestService } from '../manifest/manifest.service';
 import { ManifestEvents } from 'kubernetes/v2/pipelines/stages/deployManifest/react/ManifestEvents';
 import { ManifestLabels } from 'kubernetes/v2/manifest/ManifestLabels';
-import { ManifestAnnotations } from 'kubernetes/v2/manifest/ManifestAnnotations';
 import { ManifestCondition } from 'kubernetes/v2/manifest/status/ManifestCondition';
 
 export interface IKubernetesResourceDetailsProps {
@@ -109,9 +108,6 @@ export class KubernetesResourceDetails extends React.Component<
             </CollapsibleSection>
             <CollapsibleSection key="labels" heading="labels" defaultExpanded={true}>
               <ManifestLabels manifest={get(manifest, ['manifest'], {})} />
-            </CollapsibleSection>
-            <CollapsibleSection key="annotations" heading="annotations" defaultExpanded={true}>
-              <ManifestAnnotations manifest={get(manifest, ['manifest'], {})} />
             </CollapsibleSection>
           </div>
         )}

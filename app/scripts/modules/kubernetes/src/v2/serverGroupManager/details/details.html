@@ -107,10 +107,6 @@
       <kubernetes-manifest-labels manifest="ctrl.serverGroupManager.manifest"></kubernetes-manifest-labels>
     </collapsible-section>
 
-    <collapsible-section heading="Annotations" expanded="true">
-      <kubernetes-manifest-annotations manifest="ctrl.serverGroupManager.manifest"></kubernetes-manifest-annotations>
-    </collapsible-section>
-
     <collapsible-section heading="Artifacts" expanded="true">
       <ul ng-repeat="artifact in ctrl.manifest.artifacts">
         <kubernetes-manifest-artifact artifact="artifact"></kubernetes-manifest-artifact>
