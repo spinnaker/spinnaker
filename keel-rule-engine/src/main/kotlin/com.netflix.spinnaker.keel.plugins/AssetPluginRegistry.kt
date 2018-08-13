@@ -34,14 +34,14 @@ class AssetPluginRegistry(
         log.info("Registered asset plugin \"${request.name}\" supporting $type")
       }
     responseObserver.apply {
-      onNext(
-        RegisterAssetPluginResponse
-          .newBuilder()
-          .apply { succeeded = true }
-          .build()
-      )
+      onNext(registerAssetPluginSuccessResponse)
       onCompleted()
     }
   }
 }
 
+val registerAssetPluginSuccessResponse: RegisterAssetPluginResponse =
+  RegisterAssetPluginResponse
+    .newBuilder()
+    .apply { succeeded = true }
+    .build()

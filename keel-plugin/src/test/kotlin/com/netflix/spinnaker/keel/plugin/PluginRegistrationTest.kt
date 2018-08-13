@@ -48,7 +48,7 @@ internal class PluginRegistrationTest {
     whenever(amazonAssetPlugin.supportedTypes) doReturn listOf(
       "aws.SecurityGroup",
       "aws.ClassicLoadBalancer"
-    ).map { TypeMetadata.newBuilder().setKind(it).build() }
+    ).map(::typeMetadataForKind)
   }
 
   @AfterEach
@@ -68,3 +68,7 @@ internal class PluginRegistrationTest {
       )
   }
 }
+
+
+fun typeMetadataForKind(it: String) =
+  TypeMetadata.newBuilder().setKind(it).build()
