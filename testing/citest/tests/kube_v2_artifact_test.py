@@ -293,8 +293,7 @@ class KubeV2ArtifactTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.new_post_operation(
             title='Deploy manifest', data=payload,
-            path='pipelines/' + self.TEST_APP + '/' + pipeline_name,
-            status_class=st.SynchronousHttpOperationStatus),
+            path='pipelines/' + self.TEST_APP + '/' + pipeline_name),
         contract=builder.build())
 
   def deploy_deployment_with_docker_artifact(self, image):
