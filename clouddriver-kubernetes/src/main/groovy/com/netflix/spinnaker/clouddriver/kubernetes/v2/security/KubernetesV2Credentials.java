@@ -356,7 +356,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     log.info("Checking permissions on configured kinds... {}", allKinds);
     for (KubernetesKind kind : allKinds) {
-      if (kind == KubernetesKind.NONE) {
+      if (kind == KubernetesKind.NONE || omitKinds.contains(kind)) {
         continue;
       }
 
