@@ -52,7 +52,7 @@ export class SecurityGroupSelector extends React.Component<ISecurityGroupSelecto
     const { availableGroups, groupsToEdit, helpKey, hideLabel } = this.props;
     const { refreshing, refreshTime } = this.state;
 
-    const availableGroupOptions = availableGroups.map(g => ({ label: `${g.name} (${g.id})`, value: g.name }));
+    const availableGroupOptions = availableGroups.map(g => ({ label: `${g.name} (${g.id})`, value: g.id }));
 
     return (
       <>
