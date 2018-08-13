@@ -29,13 +29,15 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.util.concurrent.atomic.AtomicReference
+
 @Slf4j
 @Component
 public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
 
-  private static resolvedBakeryDefaults = null
+  private final resolvedBakeryDefaults = new AtomicReference<RoscoGoogleConfiguration.GCEBakeryDefaults>()
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
 
@@ -53,23 +55,20 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   @Autowired
   RoscoGoogleConfiguration.GoogleConfigurationProperties googleConfigurationProperties
 
-  public GCEBakeHandler() {
-    resolvedBakeryDefaults = null
-  }
-
   @Override
   RoscoGoogleConfiguration.GCEBakeryDefaults getBakeryDefaults() {
-    if (!resolvedBakeryDefaults) {
-      resolvedBakeryDefaults = new RoscoGoogleConfiguration.GCEBakeryDefaults()
-      resolvedBakeryDefaults.baseImages = (gceBakeryDefaults?.baseImages ?: []) + (deprecatedGCEBakeryDefaults?.baseImages ?: [])
-      resolvedBakeryDefaults.network = gceBakeryDefaults?.network ?: deprecatedGCEBakeryDefaults?.network
-      resolvedBakeryDefaults.networkProjectId = gceBakeryDefaults?.networkProjectId ?: deprecatedGCEBakeryDefaults?.networkProjectId
-      resolvedBakeryDefaults.subnetwork = gceBakeryDefaults?.subnetwork ?: deprecatedGCEBakeryDefaults?.subnetwork
-      resolvedBakeryDefaults.templateFile = gceBakeryDefaults?.templateFile ?: deprecatedGCEBakeryDefaults?.templateFile
-      resolvedBakeryDefaults.zone = gceBakeryDefaults?.zone ?: deprecatedGCEBakeryDefaults?.zone
-      resolvedBakeryDefaults.useInternalIp = gceBakeryDefaults?.useInternalIp != null ? gceBakeryDefaults?.useInternalIp : deprecatedGCEBakeryDefaults?.useInternalIp
+    if (resolvedBakeryDefaults.get() == null) {
+      def defaults = new RoscoGoogleConfiguration.GCEBakeryDefaults()
+      defaults.baseImages = (gceBakeryDefaults?.baseImages ?: []) + (deprecatedGCEBakeryDefaults?.baseImages ?: [])
+      defaults.network = gceBakeryDefaults?.network ?: deprecatedGCEBakeryDefaults?.network
+      defaults.networkProjectId = gceBakeryDefaults?.networkProjectId ?: deprecatedGCEBakeryDefaults?.networkProjectId
+      defaults.subnetwork = gceBakeryDefaults?.subnetwork ?: deprecatedGCEBakeryDefaults?.subnetwork
+      defaults.templateFile = gceBakeryDefaults?.templateFile ?: deprecatedGCEBakeryDefaults?.templateFile
+      defaults.zone = gceBakeryDefaults?.zone ?: deprecatedGCEBakeryDefaults?.zone
+      defaults.useInternalIp = gceBakeryDefaults?.useInternalIp != null ? gceBakeryDefaults?.useInternalIp : deprecatedGCEBakeryDefaults?.useInternalIp
+      resolvedBakeryDefaults.compareAndSet(null, defaults)
     }
-    return resolvedBakeryDefaults
+    return resolvedBakeryDefaults.get();
   }
 
   @Override
