@@ -13,13 +13,13 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
   public controllerAs = 'ctrl';
   public template = `
       <ng-form name="basicSettings">
-        <stage-config-field label="Account *" help-key="kubernetes.manifest.account">
+        <stage-config-field label="Account" help-key="kubernetes.manifest.account">
           <account-select-field component="ctrl.command"
                                 field="account"
                                 accounts="ctrl.metadata.backingData.accounts"
                                 provider="'kubernetes'"></account-select-field>
         </stage-config-field>
-        <stage-config-field label="Application *" help-key="kubernetes.manifest.application">
+        <stage-config-field label="Application" help-key="kubernetes.manifest.application">
           <input readonly="true"
                  type="text"
                  class="form-control input-sm"
@@ -30,7 +30,7 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
   `;
 }
 
-export const KUBERNETES_MANIFEST_BASIC_SETTINGS = 'spinnaker.kubernetes.v2.kubernetes.manifest.basicSettings.component';
+export const KUBERNETES_MANIFEST_BASIC_SETTINGS = 'spinnaker.kubernetes.v2.manifest.basicSettings.component';
 module(KUBERNETES_MANIFEST_BASIC_SETTINGS, []).component(
   'kubernetesManifestBasicSettings',
   new KubernetesManifestBasicSettingsComponent(),
