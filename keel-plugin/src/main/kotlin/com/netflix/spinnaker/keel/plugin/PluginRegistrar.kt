@@ -1,9 +1,9 @@
-package com.netflix.spinnaker.keel.aws
+package com.netflix.spinnaker.keel.plugin
 
 import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.keel.api.engine.AssetPluginRegistryGrpc
+import com.netflix.spinnaker.keel.api.engine.AssetPluginRegistryGrpc.AssetPluginRegistryBlockingStub
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
-import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import io.grpc.ManagedChannelBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -18,24 +18,35 @@ class PluginRegistrar(
 
   @PostConstruct
   fun registerPlugins() {
-    val stub = eurekaClient
+    registry().let { registry ->
+      plugins.forEach { plugin ->
+        plugin.register(registry)
+      }
+    }
+  }
+
+  private fun AssetPlugin.register(registry: AssetPluginRegistryBlockingStub) {
+    registry.register(
+      RegisterAssetPluginRequest
+        .newBuilder()
+        .addAllTypes(supportedTypes)
+        .build()
+    ).let { response ->
+      if (response.succeeded) {
+        log.info("Successfully registered {} with Keel", javaClass.simpleName)
+      }
+    }
+  }
+
+  private fun registry(): AssetPluginRegistryBlockingStub {
+    return eurekaClient
       .getNextServerFromEureka("keel", false)
       ?.let { address ->
-        ManagedChannelBuilder.forAddress(address.ipAddr, address.port)
+        ManagedChannelBuilder
+          .forAddress(address.ipAddr, address.port)
           .usePlaintext()
           .build()
           .let(AssetPluginRegistryGrpc::newBlockingStub)
       } ?: throw IllegalStateException("Can't find keel in Eureka")
-    plugins.forEach { plugin ->
-      stub.register(
-        RegisterAssetPluginRequest.newBuilder()
-          .addAllTypes(plugin.supportedTypes)
-          .build()
-      ).let { response ->
-        if (response.succeeded) {
-          log.info("Successfully registered {} with Keel", plugin.javaClass.simpleName)
-        }
-      }
-    }
   }
 }

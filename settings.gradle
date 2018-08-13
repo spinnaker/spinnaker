@@ -16,6 +16,7 @@
 
 include "keel-api",
   "keel-api-test",
+  "keel-plugin",
   "keel-aws",
   "keel-clouddriver",
   "keel-grpc",

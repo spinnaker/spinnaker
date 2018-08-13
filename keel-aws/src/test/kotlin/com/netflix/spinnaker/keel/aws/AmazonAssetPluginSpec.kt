@@ -173,8 +173,8 @@ internal object AmazonAssetPluginSpec : Spek({
   }
 })
 
-private val Assertion<OrchestrationRequest>.application: Assertion<String>
+private val Assertion.Builder<OrchestrationRequest>.application: Assertion.Builder<String>
   get() = map(OrchestrationRequest::application)
 
-private val Assertion<OrchestrationRequest>.job: Assertion<List<Job>>
+private val Assertion.Builder<OrchestrationRequest>.job: Assertion.Builder<List<Job>>
   get() = map(OrchestrationRequest::job)

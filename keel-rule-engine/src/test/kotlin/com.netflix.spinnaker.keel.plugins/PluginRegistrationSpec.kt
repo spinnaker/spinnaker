@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginResponse
+import com.netflix.spinnaker.keel.api.instanceInfo
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc.AssetPluginBlockingStub
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc.AssetPluginImplBase

@@ -39,14 +39,18 @@ class GrpcStubManager<S : AbstractStub<S>>(private val newStub: (ManagedChannel)
   val port: Int
     get() = server?.port ?: throw IllegalStateException("server is not started")
 
-  val instanceInfo: InstanceInfo
-    get() = InstanceInfo.Builder
-      .newBuilder()
-      .setAppName("grpc")
-      .setIPAddr("localhost")
-      .setPort(port)
-      .build()
 }
+
+/**
+ * Eureka-style address for the GRPC server.
+ */
+val GrpcStubManager<*>.instanceInfo: InstanceInfo
+  get() = InstanceInfo.Builder
+    .newBuilder()
+    .setAppName("grpc")
+    .setIPAddr("localhost")
+    .setPort(port)
+    .build()
 
 fun Server.shutdownWithin(timeout: Long, unit: TimeUnit) {
   shutdown()

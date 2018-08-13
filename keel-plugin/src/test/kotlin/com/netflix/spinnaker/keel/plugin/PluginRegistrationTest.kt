@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.keel.plugin
 
 import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.keel.api.GrpcStubManager
@@ -7,8 +7,7 @@ import com.netflix.spinnaker.keel.api.engine.AssetPluginRegistryGrpc
 import com.netflix.spinnaker.keel.api.engine.AssetPluginRegistryGrpc.AssetPluginRegistryImplBase
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
-import com.netflix.spinnaker.keel.aws.AmazonAssetPlugin
-import com.netflix.spinnaker.keel.aws.PluginRegistrar
+import com.netflix.spinnaker.keel.api.instanceInfo
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
@@ -20,6 +19,8 @@ import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.assertions.containsExactlyInAnyOrder
 
+val registerSuccess = RegisterAssetPluginResponse.newBuilder().setSucceeded(true).build()
+
 internal class PluginRegistrationTest {
 
   val grpc = GrpcStubManager(AssetPluginRegistryGrpc::newBlockingStub)
@@ -29,13 +30,13 @@ internal class PluginRegistrationTest {
     override fun register(request: RegisterAssetPluginRequest, responseObserver: StreamObserver<RegisterAssetPluginResponse>) {
       registeredTypes.addAll(request.typesList.map(TypeMetadata::getKind))
       with(responseObserver) {
-        onNext(RegisterAssetPluginResponse.newBuilder().setSucceeded(true).build())
+        onNext(registerSuccess)
         onCompleted()
       }
     }
   }
   val eurekaClient: EurekaClient = mock()
-  val amazonAssetPlugin = AmazonAssetPlugin(mock(), mock(), mock())
+  val amazonAssetPlugin = mock<AssetPlugin>()
   val registrar = PluginRegistrar(eurekaClient, listOf(amazonAssetPlugin))
 
   @BeforeEach
@@ -44,6 +45,10 @@ internal class PluginRegistrationTest {
       addService(registry)
     }
     whenever(eurekaClient.getNextServerFromEureka("keel", false)) doReturn grpc.instanceInfo
+    whenever(amazonAssetPlugin.supportedTypes) doReturn listOf(
+      "aws.SecurityGroup",
+      "aws.ClassicLoadBalancer"
+    ).map { TypeMetadata.newBuilder().setKind(it).build() }
   }
 
   @AfterEach
