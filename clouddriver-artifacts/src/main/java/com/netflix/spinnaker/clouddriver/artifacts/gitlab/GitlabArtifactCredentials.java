@@ -25,6 +25,8 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Request.Builder;
 import com.squareup.okhttp.Response;
+import java.util.Arrays;
+import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -38,6 +40,7 @@ import java.io.InputStream;
 @Data
 public class GitlabArtifactCredentials implements ArtifactCredentials {
   private final String name;
+  private final List<String> types = Arrays.asList("gitlab/file");
 
   @JsonIgnore
   private final Builder requestBuilder;
@@ -108,11 +111,6 @@ public class GitlabArtifactCredentials implements ArtifactCredentials {
     } catch (IOException e) {
       throw new com.netflix.spinnaker.clouddriver.artifacts.gitlab.GitlabArtifactCredentials.FailedDownloadException("Unable to download the contents of artifact " + artifact + ": " + e.getMessage(), e);
     }
-  }
-
-  @Override
-  public boolean handlesType(String type) {
-    return type.equals("gitlab/file");
   }
 
   public class FailedDownloadException extends IOException {

@@ -21,9 +21,14 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public interface ArtifactCredentials {
   String getName();
-  boolean handlesType(String type);
+  List<String> getTypes();
   InputStream download(Artifact artifact) throws IOException;
+
+  default boolean handlesType(String type) {
+    return getTypes().stream().anyMatch(it -> it.equals(type));
+  }
 }

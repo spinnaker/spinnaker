@@ -27,6 +27,8 @@ import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.Arrays;
+import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -43,6 +45,7 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
   @JsonIgnore
   private final Storage storage;
   private final String name;
+  private final List<String> types = Arrays.asList("gcs/object");
 
   public GcsArtifactCredentials(String applicationName, GcsArtifactAccount account) throws IOException, GeneralSecurityException {
     HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
@@ -95,10 +98,5 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
         .setGeneration(generation);
 
     return get.executeMediaAsInputStream();
-  }
-
-  @Override
-  public boolean handlesType(String type) {
-    return type.equals("gcs/object");
   }
 }

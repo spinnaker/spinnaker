@@ -20,6 +20,8 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
@@ -36,6 +38,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String apiEndpoint;
   private final String apiRegion;
   private final String region;
+  private final List<String> types = Arrays.asList("s3/object");
 
   public S3ArtifactCredentials(S3ArtifactAccount account) throws IllegalArgumentException {
     name = account.getName();
@@ -73,10 +76,5 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     String path = reference.substring(slash + 1);
     S3Object s3obj = getS3Client().getObject(bucketName, path);
     return s3obj.getObjectContent();
-  }
-
-  @Override
-  public boolean handlesType(String type) {
-    return type.equals("s3/object");
   }
 }
