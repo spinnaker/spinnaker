@@ -110,6 +110,7 @@ public class AwsSdkClientSupplier {
       ClientConfiguration clientConfiguration = new ClientConfiguration();
       clientConfiguration.setRetryPolicy(getRetryPolicy(key));
       clientConfiguration.setUseGzip(useGzip);
+      clientConfiguration.setUserAgentSuffix("spinnaker");
 
       if (proxy != null && proxy.isProxyConfigMode()) {
         proxy.apply(clientConfiguration);
