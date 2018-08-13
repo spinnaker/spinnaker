@@ -241,8 +241,7 @@ class KubeV2HelmTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.new_post_operation(
             title='Deploy manifest', data=payload,
-            path='pipelines/' + self.TEST_APP + '/bake-deploy-pipeline',
-            status_class=st.SynchronousHttpOperationStatus),
+            path='pipelines/' + self.TEST_APP + '/bake-deploy-pipeline'),
         contract=builder.build())
 
   def delete_kind(self, kind, version=None):

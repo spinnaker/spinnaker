@@ -292,8 +292,7 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.new_post_operation(
             title='Deploy manifest', data=payload,
-            path='pipelines/' + self.TEST_APP + '/deploy-manifest-pipeline',
-            status_class=st.SynchronousHttpOperationStatus),
+            path='pipelines/' + self.TEST_APP + '/deploy-manifest-pipeline'),
         contract=builder.build())
 
   def delete_manifest(self):
