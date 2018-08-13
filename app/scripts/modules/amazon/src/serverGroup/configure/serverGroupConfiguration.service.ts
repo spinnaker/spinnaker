@@ -447,7 +447,9 @@ export class AwsServerGroupConfigurationService {
     const result: IAmazonServerGroupCommandResult = { dirty: {} };
     const currentOptions: ISecurityGroup[] = command.backingData.filtered.securityGroups;
     const newRegionalSecurityGroups = this.getRegionalSecurityGroups(command);
-    if (currentOptions && command.securityGroups) {
+    const isExpression =
+      typeof command.securityGroups === 'string' && (command.securityGroups as string).includes('${');
+    if (currentOptions && command.securityGroups && !isExpression) {
       // not initializing - we are actually changing groups
       const currentGroupNames = command.securityGroups.map(groupId => {
         const match = find(currentOptions, { id: groupId });
@@ -470,7 +472,7 @@ export class AwsServerGroupConfigurationService {
       }
     }
     command.backingData.filtered.securityGroups = newRegionalSecurityGroups.sort((a, b) => {
-      if (command.securityGroups) {
+      if (command.securityGroups && !isExpression) {
         if (command.securityGroups.includes(a.id)) {
           return -1;
         }

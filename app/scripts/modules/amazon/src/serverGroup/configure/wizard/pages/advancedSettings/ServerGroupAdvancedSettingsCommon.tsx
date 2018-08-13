@@ -50,6 +50,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
     const { app, setFieldValue, values } = this.props;
 
     const blockDeviceMappingsSource = values.getBlockDeviceMappingsSource(values);
+    const keyPairs = values.backingData.filtered.keyPairs || [];
 
     return (
       <div className="container-fluid form-horizontal">
@@ -128,7 +129,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
               value={values.keyPair}
               required={true}
               clearable={false}
-              options={values.backingData.filtered.keyPairs.map(t => ({ label: t, value: t }))}
+              options={keyPairs.map(t => ({ label: t, value: t }))}
               onChange={(option: Option) => setFieldValue('keyPair', option.value)}
             />
           </div>

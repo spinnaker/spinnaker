@@ -83,15 +83,15 @@ class ServerGroupLoadBalancersImpl extends React.Component<
     const { dirty } = values.viewState;
     const { refreshed, refreshing, showVpcLoadBalancers } = this.state;
 
-    const loadBalancerOptions = values.backingData.filtered.loadBalancers
+    const loadBalancerOptions = (values.backingData.filtered.loadBalancers || [])
       .concat(values.spelLoadBalancers || [])
       .map(stringToOption);
 
-    const targetGroupOptions = values.backingData.filtered.targetGroups
+    const targetGroupOptions = (values.backingData.filtered.targetGroups || [])
       .concat(values.spelTargetGroups || [])
       .map(stringToOption);
 
-    const vpcLoadBalancerOptions = values.backingData.filtered.vpcLoadBalancers.map(stringToOption);
+    const vpcLoadBalancerOptions = (values.backingData.filtered.vpcLoadBalancers || []).map(stringToOption);
 
     const hasVpcLoadBalancers = values.vpcLoadBalancers && values.vpcLoadBalancers.length > 0;
 
@@ -195,7 +195,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
                   <b>VPC Load Balancers</b>
                 </div>
                 <div className="col-md-8">
-                  {values.backingData.filtered.vpcLoadBalancers.length > 0 && (
+                  {vpcLoadBalancerOptions.length > 0 && (
                     <TetheredSelect
                       multi={true}
                       options={vpcLoadBalancerOptions}
