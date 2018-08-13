@@ -260,8 +260,9 @@ class CatsSearchProvider implements SearchProvider, Runnable {
               Map<String, String> parsed = parser.parseKey(key)
               return filters.entrySet().every { filter ->
                 String[] vals = filter.value.split(',')
-                filter.key == 'cloudProvider' || vals.contains(parsed[filter.key]) ||
-                  vals.contains(parsed[parser.getNameMapping(cache)])
+                filter.key == 'cloudProvider' || parsed &&
+                  ((parsed.containsKey(filter.key) && vals.contains(parsed[filter.key])) ||
+                  (parsed.containsKey(parser.getNameMapping(cache)) && vals.contains(parsed[parser.getNameMapping(cache)])))
               }
             } else {
               log.warn("No parser found for $cache:$key")
