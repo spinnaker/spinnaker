@@ -5,6 +5,7 @@ import * as moment from 'moment';
 import { Registry } from 'core/registry';
 import { IgorService, BuildServiceType } from 'core/ci/igor.service';
 import { IJobConfig, IParameterDefinitionList, IStage } from 'core/domain';
+import { SETTINGS } from 'core/config/settings';
 import { WerckerExecutionLabel } from './WerckerExecutionLabel';
 
 export interface IWerckerStageViewState {
@@ -206,26 +207,28 @@ export const WERCKER_STAGE = 'spinnaker.core.pipeline.stage.werckerStage';
 
 module(WERCKER_STAGE, [])
   .config(() => {
-    Registry.pipeline.registerStage({
-      label: 'Wercker',
-      description: 'Runs a Wercker build pipeline',
-      key: 'wercker',
-      restartable: true,
-      controller: 'WerckerStageCtrl',
-      controllerAs: '$ctrl',
-      templateUrl: require('./werckerStage.html'),
-      executionDetailsUrl: require('./werckerExecutionDetails.html'),
-      executionLabelComponent: WerckerExecutionLabel,
-      extraLabelLines: (stage: IStage) => {
-        if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
-          return 0;
-        }
-        const lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
-        return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
-      },
-      defaultTimeoutMs: moment.duration(2, 'hours').asMilliseconds(),
-      validators: [{ type: 'requiredField', fieldName: 'job' }],
-      strategy: true,
-    });
+    if (SETTINGS.feature.wercker) {
+      Registry.pipeline.registerStage({
+        label: 'Wercker',
+        description: 'Runs a Wercker build pipeline',
+        key: 'wercker',
+        restartable: true,
+        controller: 'WerckerStageCtrl',
+        controllerAs: '$ctrl',
+        templateUrl: require('./werckerStage.html'),
+        executionDetailsUrl: require('./werckerExecutionDetails.html'),
+        executionLabelComponent: WerckerExecutionLabel,
+        extraLabelLines: (stage: IStage) => {
+          if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
+            return 0;
+          }
+          const lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
+          return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
+        },
+        defaultTimeoutMs: moment.duration(2, 'hours').asMilliseconds(),
+        validators: [{ type: 'requiredField', fieldName: 'job' }],
+        strategy: true,
+      });
+    }
   })
   .controller('WerckerStageCtrl', WerckerStage);

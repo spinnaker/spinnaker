@@ -188,6 +188,7 @@ window.spinnakerSettings = {
     roscoMode: true,
     snapshots: false,
     travis: false,
+    wercker: false,
     versionedProviders: true,
   },
 };

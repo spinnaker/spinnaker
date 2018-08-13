@@ -48,6 +48,7 @@ export interface IFeatures {
   versionedProviders?: boolean;
   travis?: boolean;
   managedServiceAccounts?: boolean;
+  wercker?: boolean;
   [key: string]: any;
 }
 

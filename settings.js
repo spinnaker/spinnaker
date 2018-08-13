@@ -194,6 +194,7 @@ window.spinnakerSettings = {
     travis: false,
     versionedProviders: true,
     vpcMigrator: true,
+    wercker: false,
     managedServiceAccounts: managedServiceAccountsEnabled,
   },
 };
