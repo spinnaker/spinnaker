@@ -15,7 +15,6 @@ class KubernetesScaleManifestSettingsFormComponent implements IComponentOptions 
                   class="form-control input-sm highlight-pristine"
                   ng-model="ctrl.settings.replicas"
                   min="0"/>
-            <span class="input-group-addon">replica<span ng-if="ctrl.settings.replicas !== 1">s</span></span>
           </div>
         </div>
       </div>
