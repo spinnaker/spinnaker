@@ -1,5 +1,8 @@
 import { cloneDeep } from 'lodash';
 import { dump, loadAll } from 'js-yaml';
+import { $q } from 'ngimport';
+import { IPromise } from 'angular';
+
 import { AccountService, Application, IMoniker } from '@spinnaker/core';
 
 export interface IKubernetesManifestCommandData {
@@ -60,13 +63,15 @@ export class KubernetesManifestCommandBuilder {
     app: Application,
     sourceManifest?: any,
     sourceMoniker?: IMoniker,
-  ): Promise<IKubernetesManifestCommandData> {
-    const dataToFetch = [
-      AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
-      AccountService.getArtifactAccounts(),
-    ];
+  ): IPromise<IKubernetesManifestCommandData> {
+    const dataToFetch = {
+      accounts: AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
+      artifactAccounts: AccountService.getArtifactAccounts(),
+    };
 
-    return Promise.all(dataToFetch).then(([accounts, artifactAccounts]) => {
+    // TODO(dpeach): if no callers of this method are Angular controllers,
+    // $q.all may be safely replaced with Promise.all.
+    return $q.all(dataToFetch).then(({ accounts, artifactAccounts }) => {
       const backingData = {
         accounts,
         artifactAccounts,
