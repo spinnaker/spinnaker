@@ -2,6 +2,7 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
+  compile project(":orca-core")
   compile project(":orca-front50")
 
   compile spinnaker.dependency('rxJava')

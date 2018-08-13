@@ -62,6 +62,7 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.EVENT
 
 @Configuration
 @ComponentScan({
+  "com.netflix.spinnaker.orca.locks",
   "com.netflix.spinnaker.orca.pipeline",
   "com.netflix.spinnaker.orca.deprecation",
   "com.netflix.spinnaker.orca.pipeline.util",

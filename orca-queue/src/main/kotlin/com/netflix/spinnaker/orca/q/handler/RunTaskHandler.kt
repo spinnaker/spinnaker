@@ -59,11 +59,14 @@ class RunTaskHandler(
   private val tasks: Collection<Task>,
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
+  private val taskExecutionInterceptors: List<TaskExecutionInterceptor>,
   private val registry: Registry
 ) : OrcaMessageHandler<RunTask>, ExpressionAware, AuthenticationAware {
 
   override fun handle(message: RunTask) {
-    message.withTask { stage, taskModel, task ->
+    message.withTask { origStage, taskModel, task ->
+      var stage = origStage
+      taskExecutionInterceptors.forEach { t -> stage = t.beforeTaskExecution(task, stage) }
       val execution = stage.execution
       val thisInvocationStartTimeMs = clock.millis()
 
@@ -87,7 +90,9 @@ class RunTaskHandler(
           }
 
           stage.withAuth {
-            task.execute(stage.withMergedContext()).let { result: TaskResult ->
+            var taskResult = task.execute(stage.withMergedContext())
+            taskExecutionInterceptors.forEach { t -> taskResult = t.afterTaskExecution(task, stage, taskResult) }
+            taskResult.let { result: TaskResult ->
               // TODO: rather send this data with CompleteTask message
               stage.processTaskOutput(result)
               when (result.status) {
@@ -135,6 +140,12 @@ class RunTaskHandler(
     }
   }
 
+  private fun maxBackoff(): Long =
+    taskExecutionInterceptors.fold(Long.MAX_VALUE) {
+      backoff, interceptor ->
+      Math.min(backoff, interceptor.maxTaskBackoff())
+    }
+
   private fun trackResult(stage: Stage, thisInvocationStartTimeMs: Long, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus) {
     val commonTags = MetricsTagHelper.commonTags(stage, taskModel, status)
     val detailedTags = MetricsTagHelper.detailedTaskTags(stage, taskModel, status)
@@ -168,8 +179,8 @@ class RunTaskHandler(
   private fun Task.backoffPeriod(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, stage: Stage): TemporalAmount =
     when (this) {
       is RetryableTask -> Duration.ofMillis(
-        getDynamicBackoffPeriod(stage, Duration.ofMillis(System.currentTimeMillis() - (taskModel.startTime
-          ?: 0)))
+        Math.min(getDynamicBackoffPeriod(stage, Duration.ofMillis(System.currentTimeMillis() - (taskModel.startTime
+          ?: 0))), maxBackoff())
       )
       else             -> Duration.ofSeconds(1)
     }

@@ -68,6 +68,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       listOf(task, timeoutOverrideTask),
       clock,
       listOf(exceptionHandler),
+      emptyList(),
       NoopRegistry()
     )
   }

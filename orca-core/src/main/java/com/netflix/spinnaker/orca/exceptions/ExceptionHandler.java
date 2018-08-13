@@ -36,7 +36,7 @@ public interface ExceptionHandler {
     public Response(String exceptionType, String operation, Map<String, Object> responseDetails, boolean shouldRetry) {
       this.exceptionType = exceptionType;
       this.operation = operation;
-      this.details = responseDetails == null ? Collections.emptyMap() : Collections.unmodifiableMap(responseDetails);
+      this.details = responseDetails == null ? new HashMap<>() : new HashMap<>(responseDetails);
       this.shouldRetry = shouldRetry;
     }
 
