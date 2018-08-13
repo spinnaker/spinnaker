@@ -54,7 +54,7 @@ public class KubernetesKind {
   public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv", false, false);
   public static KubernetesKind PERSISTENT_VOLUME_CLAIM = new KubernetesKind("persistentVolumeClaim", "pvc");
   public static KubernetesKind SECRET = new KubernetesKind("secret");
-  public static KubernetesKind SERVICE = new KubernetesKind("service", "svc");
+  public static KubernetesKind SERVICE = new KubernetesKind("service", "svc", true, true);
   public static KubernetesKind SERVICE_ACCOUNT = new KubernetesKind("serviceAccount", "sa");
   public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet", null, true, true);
   public static KubernetesKind STORAGE_CLASS = new KubernetesKind("storageClass", "sc", false, false);
