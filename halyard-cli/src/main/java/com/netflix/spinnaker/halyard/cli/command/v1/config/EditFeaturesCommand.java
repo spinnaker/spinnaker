@@ -85,6 +85,20 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   )
   private Boolean appengineContainerImageUrlDeployments = null;
 
+  @Parameter(
+      names = "--travis",
+      description = "Enable the Travis CI stage.",
+      arity = 1
+  )
+  private Boolean travis = null;
+
+  @Parameter(
+      names = "--wercker",
+      description = "Enable the Wercker CI stage.",
+      arity = 1
+  )
+  private Boolean wercker = null;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -103,6 +117,8 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     features.setMineCanary(mineCanary != null ? mineCanary : features.getMineCanary());
     features.setInfrastructureStages(infrastructureStages != null ? infrastructureStages : features.getInfrastructureStages());
     features.setAppengineContainerImageUrlDeployments(appengineContainerImageUrlDeployments != null ? appengineContainerImageUrlDeployments : features.getAppengineContainerImageUrlDeployments());
+    features.setTravis(travis != null ? travis : features.getTravis());
+    features.setWercker(wercker != null ? wercker : features.getWercker());
 
     if (originalHash == features.hashCode()) {
       AnsiUi.failure("No changes supplied.");

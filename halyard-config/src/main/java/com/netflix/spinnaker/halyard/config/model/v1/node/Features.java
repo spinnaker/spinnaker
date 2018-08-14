@@ -53,6 +53,10 @@ public class Features extends Node {
   private Boolean appengineContainerImageUrlDeployments;
   @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Infrastructure Stages is not configurable prior to this release. Will be stable at a later release.")
   private Boolean infrastructureStages;
+  @ValidForSpinnakerVersion(lowerBound = "1.9.0", message = "Travis stage is not available prior to this release.")
+  private Boolean travis;
+  @ValidForSpinnakerVersion(lowerBound = "1.9.0", message = "Wercker stage is not available prior to this release.")
+  private Boolean wercker;
 
   public boolean isAuth(DeploymentConfiguration deploymentConfiguration) {
     return deploymentConfiguration.getSecurity().getAuthn().isEnabled();
