@@ -59,6 +59,12 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       factory, options, source_repository_names=['spin'], **kwargs)
     self.__gcs_uploader = SpinGcsUploader(options)
     self.__build_version = None  # recorded after build
+    bom_contents = BomSourceCodeManager.load_bom(options)
+    gate_entry = bom_contents.get('services', {}).get('gate', {})
+    if not gate_entry:
+      raise_and_log_error(
+          ConfigError('No gate service entry found in bom {}'.format(bom_contents)))
+    self.__gate_version = gate_entry['version']
 
   def _do_can_skip_repository(self, repository):
     self.source_code_manager.ensure_local_repository(repository)
@@ -101,10 +107,30 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       env.update({'CGO_ENABLED': '0',
                   'GOOS': dist_arch.dist,
                   'GOARCH': dist_arch.arch})
+
+      # Note: spin CLI is coupled to the Gate major and minor version.
+      # Gate is a routing server, so features and breaking changes in Gate
+      # must be reflected in spin since it is a client.
+      dash = self.__gate_version.find('-')
+      gate_semver = self.__gate_version[:dash]
+
+      prefix = os.path.join(repository.origin, 'version')
+      double_slash = prefix.find('//')
+      # Trim prefix to format go package properly.
+      if prefix.find('//') != -1:
+        prefix = prefix[double_slash+2:]
+      if prefix[len(prefix)] == '/':
+        prefix = prefix[:len(prefix)-1]
+
+
+      # Unset ReleasePhase tag for proper versions.
+      ldflags = '-ldflags "-X {pref}.Version={gate_version} -X {pref}.ReleasePhase="'.format(pref=prefix,
+                                                                                             gate_version=gate_semver)
+      cmd = 'go build {ldflags} .'.format(ldflags=ldflags)
       self.metrics.time_call(
           'GoBuild', labels, self.metrics.default_determine_outcome_labels,
           check_subprocesses_to_logfile, 'Building spin ' + context, logfile,
-          ['go build .'], cwd=config_root, env=env)
+          [cmd], cwd=config_root, env=env)
 
       spin_path = '{}/spin'.format(config_root)
       self.__gcs_uploader.upload_from_filename(
@@ -113,7 +139,6 @@ class BuildSpinCommand(RepositoryCommandProcessor):
 
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
-    # TODO(jacobkiefer): Docker container publish.
     self.source_code_manager.ensure_local_repository(repository)
     self.build_all_distributions(repository)
 
@@ -277,14 +302,9 @@ class PublishSpinCommand(CommandProcessor):
       latest_path = 'spin/{}.{}.x-latest'.format(gate_major, gate_min)
       self.__gcs_uploader.upload_from_filename(latest_path, os.path.join(output_dir, latest_file))
 
-  def update_versions_file(self):
-    """Update the versions file in the spin bucket."""
-
-
   def _do_command(self):
     """Implements CommandProcessor interface."""
     # TODO(jacobkiefer): Add spin CLI docs generation.
-    # TODO(jacobkiefer): Docker container publish.
     repository = self.__scm.make_repository_spec('spin')
     git = self.__scm.git
     git.clone_repository_to_path(repository)
@@ -315,6 +335,8 @@ class BuildSpinCommandFactory(RepositoryCommandFactory):
     self.add_argument(
         parser, 'spin_credentials_path', defaults, None,
         help='The credentials to use to authenticate with the bucket.')
+    # BomSourceCodeManager adds bom_version and bom_path arguments to fetch BOMs.
+    BomSourceCodeManager.add_parser_args(parser, defaults)
 
 
 class PublishSpinCommandFactory(CommandFactory):
