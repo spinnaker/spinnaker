@@ -3,7 +3,7 @@ import { dump, loadAll } from 'js-yaml';
 import { $q } from 'ngimport';
 import { IPromise } from 'angular';
 
-import { AccountService, Application, IMoniker, IAccount, IAccountDetails } from '@spinnaker/core';
+import { AccountService, Application, IMoniker, IArtifactAccount, IAccountDetails } from '@spinnaker/core';
 
 export interface IKubernetesManifestCommandData {
   command: IKubernetesManifestCommand;
@@ -72,52 +72,54 @@ export class KubernetesManifestCommandBuilder {
 
     // TODO(dpeach): if no callers of this method are Angular controllers,
     // $q.all may be safely replaced with Promise.all.
-    return $q.all(dataToFetch).then((backingData: { accounts: IAccountDetails[]; artifactAccounts: IAccount[] }) => {
-      const { accounts, artifactAccounts } = backingData;
+    return $q
+      .all(dataToFetch)
+      .then((backingData: { accounts: IAccountDetails[]; artifactAccounts: IArtifactAccount[] }) => {
+        const { accounts, artifactAccounts } = backingData;
 
-      const account = accounts.some(a => a.name === sourceAccount)
-        ? accounts.find(a => a.name === sourceAccount).name
-        : accounts.length
-          ? accounts[0].name
-          : null;
+        const account = accounts.some(a => a.name === sourceAccount)
+          ? accounts.find(a => a.name === sourceAccount).name
+          : accounts.length
+            ? accounts[0].name
+            : null;
 
-      let manifestArtifactAccount: string = null;
-      const [artifactAccountData] = artifactAccounts;
-      if (artifactAccountData) {
-        manifestArtifactAccount = artifactAccountData.name;
-      }
+        let manifestArtifactAccount: string = null;
+        const [artifactAccountData] = artifactAccounts;
+        if (artifactAccountData) {
+          manifestArtifactAccount = artifactAccountData.name;
+        }
 
-      const manifest: any = null;
-      const manifests: any = null;
-      const manifestText = !sourceManifest ? '' : dump(sourceManifest);
-      const cloudProvider = 'kubernetes';
-      const moniker = sourceMoniker || {
-        app: app.name,
-      };
+        const manifest: any = null;
+        const manifests: any = null;
+        const manifestText = !sourceManifest ? '' : dump(sourceManifest);
+        const cloudProvider = 'kubernetes';
+        const moniker = sourceMoniker || {
+          app: app.name,
+        };
 
-      const relationships = {
-        loadBalancers: [] as string[],
-        securityGroups: [] as string[],
-      };
+        const relationships = {
+          loadBalancers: [] as string[],
+          securityGroups: [] as string[],
+        };
 
-      const versioned: any = null;
+        const versioned: any = null;
 
-      return {
-        command: {
-          cloudProvider,
-          manifest,
-          manifests,
-          relationships,
-          moniker,
-          account,
-          versioned,
-          manifestArtifactAccount,
-        },
-        metadata: {
-          backingData,
-          manifestText,
-        },
-      } as IKubernetesManifestCommandData;
-    });
+        return {
+          command: {
+            cloudProvider,
+            manifest,
+            manifests,
+            relationships,
+            moniker,
+            account,
+            versioned,
+            manifestArtifactAccount,
+          },
+          metadata: {
+            backingData,
+            manifestText,
+          },
+        } as IKubernetesManifestCommandData;
+      });
   }
 }
