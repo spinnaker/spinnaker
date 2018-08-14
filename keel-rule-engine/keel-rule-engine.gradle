@@ -1,6 +1,7 @@
 apply plugin: "java-library"
 apply from: "$rootDir/gradle/grpc.gradle"
-apply from: "$rootDir/gradle/spek2.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
+apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   protobuf project(":keel-api")
@@ -12,3 +13,8 @@ dependencies {
   testImplementation "io.grpc:grpc-netty:$grpcVersion"
 }
 
+test {
+  useJUnitPlatform {
+    includeEngines "spek", "junit-jupiter"
+  }
+}

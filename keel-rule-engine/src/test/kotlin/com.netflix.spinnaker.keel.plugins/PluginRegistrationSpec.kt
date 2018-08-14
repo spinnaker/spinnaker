@@ -24,8 +24,11 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import io.grpc.stub.StreamObserver
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.gherkin.Feature
+import org.jetbrains.spek.api.Spek
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import strikt.api.expect
 import strikt.assertions.isA
 import strikt.assertions.isNotNull
@@ -60,25 +63,23 @@ internal object PluginRegistrationSpec : Spek({
     reset(eurekaClient)
   }
 
-  Feature("registering an asset plugin") {
-    val subject by memoized {
-      AssetPluginRegistry(eurekaClient)
-    }
-
-    Scenario("no plugin is registered for an asset type") {
-      Then("no stub is returned for an unknown asset type") {
+  describe("registering an asset plugin") {
+    given("no plugin is registered for an asset type") {
+      val subject = AssetPluginRegistry(eurekaClient)
+      it("no stub is returned for an unknown asset type") {
         subject.pluginFor(type).let {
           expect(it).isNull()
         }
       }
     }
 
-    Scenario("a plugin is registered for an asset type") {
+    given("a plugin is registered for an asset type") {
+      val subject = AssetPluginRegistry(eurekaClient)
       val responseHandler: StreamObserver<RegisterAssetPluginResponse> = mock()
 
       afterGroup { reset(responseHandler) }
 
-      Given("a plugin was registered") {
+      given("a plugin was registered") {
         subject.register(
           RegisterAssetPluginRequest
             .newBuilder()
@@ -91,7 +92,7 @@ internal object PluginRegistrationSpec : Spek({
         )
       }
 
-      Then("the registration request succeeds") {
+      it("the registration request succeeds") {
         inOrder(responseHandler) {
           verify(responseHandler).onNext(check {
             expect(it.succeeded).isTrue()
@@ -100,7 +101,7 @@ internal object PluginRegistrationSpec : Spek({
         }
       }
 
-      Then("the registry can now supply a stub for talking to the plugin") {
+      it("the registry can now supply a stub for talking to the plugin") {
         subject.pluginFor(type).let {
           expect(it).isNotNull().isA<AssetPluginBlockingStub>()
         }
@@ -108,32 +109,30 @@ internal object PluginRegistrationSpec : Spek({
     }
   }
 
-  Feature("registering a veto plugin") {
+  describe("registering a veto plugin") {
     val vetoCallback: (VetoPluginBlockingStub) -> Any = mock()
 
-    val subject by memoized {
-      VetoPluginRegistry(eurekaClient)
-    }
-
-    Scenario("no plugins are registered") {
+    given("no plugins are registered") {
+      val subject = VetoPluginRegistry(eurekaClient)
 
       afterGroup { reset(vetoCallback) }
 
-      When("applying vetos") {
+      on("applying vetos") {
         subject.applyVetos(vetoCallback)
       }
 
-      Then("the callback is never invoked") {
+      it("the callback is never invoked") {
         verifyZeroInteractions(vetoCallback)
       }
     }
 
-    Scenario("a plugin is registered for an asset type") {
+    given("a plugin is registered for an asset type") {
+      val subject = VetoPluginRegistry(eurekaClient)
       val responseHandler: StreamObserver<RegisterVetoPluginResponse> = mock()
 
       afterGroup { reset(responseHandler, vetoCallback) }
 
-      Given("plugins were registered") {
+      given("plugins were registered") {
         sequenceOf("execution-window", "cloud-capacity").forEach {
           subject.register(
             RegisterVetoPluginRequest.newBuilder().setName(it).build(),
@@ -142,17 +141,17 @@ internal object PluginRegistrationSpec : Spek({
         }
       }
 
-      Then("the registration request succeeds") {
+      it("the registration request succeeds") {
         verify(responseHandler, times(2)).onNext(check {
           expect(it.succeeded).isTrue()
         })
       }
 
-      When("applying vetos") {
+      on("applying vetos") {
         subject.applyVetos(vetoCallback)
       }
 
-      Then("the registry can now supply a stub for talking to the plugin") {
+      it("the registry can now supply a stub for talking to the plugin") {
         verify(vetoCallback, times(2)).invoke(check {
           expect(it).isA<VetoPluginBlockingStub>()
         })
