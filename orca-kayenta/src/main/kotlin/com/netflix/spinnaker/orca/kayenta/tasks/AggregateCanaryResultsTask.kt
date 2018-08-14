@@ -37,7 +37,8 @@ class AggregateCanaryResultsTask : Task {
     val runCanaryStages = stage
       .execution
       .stages
-      .filter { it -> it.type == RunCanaryPipelineStage.STAGE_TYPE }
+      .filter { it -> it.type == RunCanaryPipelineStage.STAGE_TYPE && it.parentStageId == stage.id }
+      .sortedBy { it.name.substringAfterLast("#").toInt() }
     val runCanaryScores = runCanaryStages
       .map { it -> it.mapTo<Number>("/canaryScore") }
       .map(Number::toDouble)

@@ -68,5 +68,8 @@ class RunCanaryPipelineStage(
   companion object {
     @JvmStatic
     val STAGE_TYPE = "runCanary"
+
+    @JvmStatic
+    val STAGE_NAME_PREFIX = "Run Canary #"
   }
 }
