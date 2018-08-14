@@ -36,6 +36,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spinnaker/spin/config"
 	gate "github.com/spinnaker/spin/gateapi"
+	"github.com/spinnaker/spin/version"
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 )
@@ -160,7 +161,7 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 	cfg := &gate.Configuration{
 		BasePath:      m.gateEndpoint,
 		DefaultHeader: make(map[string]string),
-		UserAgent:     "Spin CLI version", // TODO(jacobkiefer): Add a reasonable UserAgent.
+		UserAgent:     fmt.Sprintf("%s/%s", version.UserAgent, version.String()),
 		HTTPClient:    client,
 	}
 	m.GateClient = gate.NewAPIClient(cfg)

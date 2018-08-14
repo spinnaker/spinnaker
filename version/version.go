@@ -12,32 +12,27 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package main
+package version
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/mitchellh/cli"
-	"github.com/spinnaker/spin/version"
 )
 
-func main() {
-	args := os.Args[1:]
+// Main version number being run right now.
+var Version = ""
 
-	cli := &cli.CLI{
-		Name:     "spin",
-		Args:     args,
-		Commands: Commands,
-		Version:  version.String(),
+// A pre-release marker for the version. If this is an empty string,
+// then the release is a final release. Otherwise this is a pre-release
+// version e.g. "dev", "alpha", etc.
+var ReleasePhase = "dev"
+
+// User Agent name set in requests.
+const UserAgent = "Spin-CLI"
+
+// String prints the version of the Spin CLI.
+func String() string {
+	if ReleasePhase != "" {
+		return fmt.Sprintf("%s-%s", Version, ReleasePhase)
 	}
-
-	c, err := cli.Run()
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error executing CLI: %s\n", err)
-		c = 1
-	}
-
-	os.Exit(c)
+	return Version
 }

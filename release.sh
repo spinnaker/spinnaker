@@ -46,8 +46,6 @@ usage: $0 --key_file <key file path> --version <version>
       [--gcs_bucket_path <path>]
 
 
-    If run with no arguments you will be prompted for cloud provider and region
-
     --gcs_bucket_path <arg>      Path to the GCS bucket to write the `spin` binaries to.
 
     --key_file <arg>             Service account JSON key file to use to upload `spin`
