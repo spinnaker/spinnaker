@@ -8,7 +8,7 @@ import * as classNames from 'classnames';
 import { Application } from 'core/application/application.model';
 import { StageExecutionDetails } from 'core/pipeline/details/StageExecutionDetails';
 import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
-import { IExecution, IRestartDetails } from 'core/domain';
+import { IExecution, IRestartDetails, IPipeline } from 'core/domain';
 import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
@@ -34,7 +34,7 @@ export interface IExecutionProps {
   title?: string | JSX.Element;
   dataSourceKey?: string;
   showAccountLabels?: boolean;
-  onRerun?: (execution: IExecution) => void;
+  onRerun?: (execution: IExecution, config: IPipeline) => void;
 }
 
 export interface IExecutionState {
@@ -230,7 +230,9 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   private handleRerunClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution rerun clicked' });
-    this.props.onRerun(this.props.execution);
+    const { application, execution } = this.props;
+    const pipelineConfig = application.pipelineConfigs.data.find((p: IPipeline) => p.id === execution.pipelineConfigId);
+    this.props.onRerun(execution, pipelineConfig);
   };
 
   private handleSourceClick = (): void => {

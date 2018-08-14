@@ -128,13 +128,13 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     );
   }
 
-  public triggerPipeline(trigger: IExecutionTrigger = null): void {
+  public triggerPipeline(trigger: IExecutionTrigger = null, config = this.state.pipelineConfig): void {
     ModalInjector.modalService
       .open({
         templateUrl: require('../../manualExecution/manualPipelineExecution.html'),
         controller: 'ManualPipelineExecutionCtrl as vm',
         resolve: {
-          pipeline: () => this.state.pipelineConfig,
+          pipeline: () => config,
           application: () => this.props.application,
           currentlyRunningExecutions: () => this.props.group.runningExecutions,
           trigger: () => trigger,
@@ -196,9 +196,9 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     e.stopPropagation();
   };
 
-  private rerunExecutionClicked = (execution: IExecution): void => {
-    ReactGA.event({ category: 'Pipeline', action: 'Rerun pipeline button clicked', label: this.props.group.heading });
-    this.triggerPipeline(execution.trigger);
+  private rerunExecutionClicked = (execution: IExecution, config: IPipeline): void => {
+    ReactGA.event({ category: 'Pipeline', action: 'Rerun pipeline button clicked', label: config.name });
+    this.triggerPipeline(execution.trigger, config);
   };
 
   public render(): React.ReactElement<ExecutionGroup> {
