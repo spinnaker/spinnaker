@@ -1,17 +1,17 @@
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.model.AssetDesiredState
+import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
 
 class InMemoryAssetRepository : AssetRepository {
 
-  private val assets = mutableMapOf<AssetId, AssetDesiredState>()
+  private val assets = mutableMapOf<AssetId, Asset>()
 
-  override fun assets(callback: (AssetDesiredState) -> Unit) {
+  override fun assets(callback: (Asset) -> Unit) {
     assets.values.forEach(callback)
   }
 
-  override fun store(asset: AssetDesiredState) {
+  override fun store(asset: Asset) {
     assets[asset.id] = asset
   }
 }

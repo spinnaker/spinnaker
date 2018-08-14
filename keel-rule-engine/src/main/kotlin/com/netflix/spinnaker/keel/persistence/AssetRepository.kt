@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.model.AssetDesiredState
+import com.netflix.spinnaker.keel.model.Asset
 
 interface AssetRepository {
 
-  fun assets(callback: (AssetDesiredState) -> Unit)
+  fun assets(callback: (Asset) -> Unit)
 
-  fun store(asset: AssetDesiredState)
+  fun store(asset: Asset)
 
 }
