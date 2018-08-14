@@ -1,20 +1,38 @@
 import { IComponentOptions, IController, module } from 'angular';
 
-import { IExpectedArtifact } from 'core/domain';
-import { IAccount } from 'core/account';
+import { IExpectedArtifact, IArtifact } from 'core/domain';
+import { IArtifactAccount } from 'core/account';
 import { ArtifactIconService } from './ArtifactIconService';
 
 import './artifactSelector.less';
 
 class ExpectedArtifactSelectorCtrl implements IController {
   public command: any;
-  public id: any;
-  public account: any;
-  public accounts: IAccount[];
+  public id: string;
+  public account: string;
+  public accounts: IArtifactAccount[];
   public expectedArtifacts: IExpectedArtifact[];
   public helpFieldKey: string;
   public showIcons: boolean;
   public fieldColumns: number;
+
+  private selectedArtifact(): IArtifact | null {
+    const expected = this.expectedArtifacts.find(ea => ea.id === this.id);
+    if (expected) {
+      return expected.matchArtifact || expected.defaultArtifact;
+    } else {
+      return null;
+    }
+  }
+
+  private selectedArtifactAccounts(): IArtifactAccount[] {
+    const artifact = this.selectedArtifact();
+    if (artifact == null || this.accounts == null) {
+      return [];
+    }
+    const filteredAccounts = this.accounts.filter(acc => acc.types.includes(artifact.type));
+    return filteredAccounts;
+  }
 
   public $onInit() {
     this.fieldColumns = this.fieldColumns || 8;
@@ -26,6 +44,17 @@ class ExpectedArtifactSelectorCtrl implements IController {
       return '';
     }
     return ArtifactIconService.getPath(artifact.type);
+  }
+
+  public setAccountForSelectedArtifact() {
+    const accounts = this.selectedArtifactAccounts();
+    if (accounts.length > 0) {
+      this.account = accounts[0].name;
+    }
+  }
+
+  public showArtifactAccountSelect(): boolean {
+    return this.selectedArtifactAccounts().length > 1;
   }
 }
 
@@ -47,7 +76,9 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
       <ng-form name="artifact">
         <stage-config-field label="Expected Artifact" help-key="{{ctrl.helpFieldKey}}" field-columns="{{ ctrl.fieldColumns }}">
           <ui-select ng-model="ctrl.id"
-                     class="form-control input-sm expected-artifact-selector" required>
+                     class="form-control input-sm expected-artifact-selector"
+                     on-select="ctrl.setAccountForSelectedArtifact()"
+                     required>
             <ui-select-match>
               <img
                 ng-if="ctrl.showIcons && ctrl.iconPath($select.selected)"
@@ -68,13 +99,13 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
             </ui-select-choices>
           </ui-select>
         </stage-config-field>
-        <stage-config-field ng-if="ctrl.account !== undefined"
+        <stage-config-field ng-if="ctrl.showArtifactAccountSelect()"
                             label="Artifact Account"
                             fieldColumns="{{ ctrl.fieldColumns }}">
           <ui-select ng-model="ctrl.account"
                      class="form-control input-sm">
             <ui-select-match>{{ $select.selected.name }}</ui-select-match>
-            <ui-select-choices repeat="account.name as account in ctrl.accounts">
+            <ui-select-choices repeat="account.name as account in ctrl.selectedArtifactAccounts()">
               <span>{{ account.name }}</span>
             </ui-select-choices>
           </ui-select>

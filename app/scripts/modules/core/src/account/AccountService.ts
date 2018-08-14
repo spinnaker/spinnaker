@@ -27,6 +27,11 @@ export interface IAccount {
   skin?: string;
 }
 
+export interface IArtifactAccount {
+  name: string;
+  types: string[];
+}
+
 export interface IAccountDetails extends IAccount {
   accountType: string;
   authorized: boolean;
@@ -93,7 +98,7 @@ export class AccountService {
     });
   }
 
-  public static getArtifactAccounts(): IPromise<IAccount[]> {
+  public static getArtifactAccounts(): IPromise<IArtifactAccount[]> {
     return API.one('artifacts')
       .one('credentials')
       .useCache()

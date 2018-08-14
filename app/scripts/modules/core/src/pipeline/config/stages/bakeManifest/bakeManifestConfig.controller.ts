@@ -1,11 +1,11 @@
 import { IController, IScope } from 'angular';
 
-import { AccountService, ExpectedArtifactService, IAccount, IExpectedArtifact } from 'core';
+import { AccountService, ExpectedArtifactService, IArtifactAccount, IExpectedArtifact } from 'core';
 import { UUIDGenerator } from 'core/utils';
 
 export class BakeManifestConfigCtrl implements IController {
   public expectedArtifacts: IExpectedArtifact[];
-  public artifactAccounts: IAccount[];
+  public artifactAccounts: IArtifactAccount[];
   public templateRenderers = ['HELM2'];
 
   public static defaultInputArtifact(): any {
