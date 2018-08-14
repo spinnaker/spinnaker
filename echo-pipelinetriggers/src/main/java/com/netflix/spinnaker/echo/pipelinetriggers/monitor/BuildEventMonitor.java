@@ -85,8 +85,10 @@ public class BuildEventMonitor extends TriggerMonitor {
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     BuildEvent buildEvent = (BuildEvent) event;
-    return trigger -> pipeline.withTrigger(trigger.atBuildNumber(buildEvent.getBuildNumber()).withEventId(event.getEventId()))
-      .withReceivedArtifacts(getArtifacts(buildEvent));
+    return trigger -> pipeline.withTrigger(trigger.atBuildNumber(buildEvent.getBuildNumber())
+                                                  .withEventId(event.getEventId())
+                                                  .withLink(buildEvent.getContent().getProject().getLastBuild().getUrl()))
+                              .withReceivedArtifacts(getArtifacts(buildEvent));
   }
 
   @Override

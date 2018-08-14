@@ -49,6 +49,7 @@ class BuildEvent extends TriggerEvent {
     boolean building
     int number
     Result result
+    String url
     List<Artifact> artifacts
   }
 
