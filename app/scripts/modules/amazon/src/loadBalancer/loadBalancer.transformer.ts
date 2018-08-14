@@ -122,6 +122,12 @@ export class AwsLoadBalancerTransformer {
       tg.serverGroups = tg.serverGroups.map(serverGroup => {
         const account = accounts.find(x => x.name === serverGroup.account);
         const cloudProvider = serverGroup.cloudProvider || (account && account.cloudProvider);
+
+        serverGroup.instances.forEach(instance => {
+          instance.cloudProvider = cloudProvider;
+          instance.provider = cloudProvider;
+        });
+
         return { ...serverGroup, cloudProvider };
       });
 

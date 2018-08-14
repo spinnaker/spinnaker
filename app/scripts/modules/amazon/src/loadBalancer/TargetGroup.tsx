@@ -22,9 +22,8 @@ export class TargetGroup extends React.Component<ITargetGroupProps> {
     const ServerGroups = orderBy(targetGroup.serverGroups, ['isDisabled', 'name'], ['asc', 'desc']).map(serverGroup => (
       <LoadBalancerServerGroup
         key={serverGroup.name}
-        account={targetGroup.account}
-        region={targetGroup.region}
-        cloudProvider={targetGroup.cloudProvider}
+        account={serverGroup.account}
+        region={serverGroup.region}
         serverGroup={serverGroup}
         showInstances={showInstances}
       />

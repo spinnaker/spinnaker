@@ -31,9 +31,8 @@ export class LoadBalancerClusterContainer extends React.Component<ILoadBalancerC
     const ServerGroups = orderBy(serverGroups, ['isDisabled', 'name'], ['asc', 'desc']).map(serverGroup => (
       <LoadBalancerServerGroup
         key={serverGroup.name}
-        account={loadBalancer.account}
-        region={loadBalancer.region}
-        cloudProvider={loadBalancer.cloudProvider}
+        account={serverGroup.account}
+        region={serverGroup.region}
         serverGroup={serverGroup}
         showInstances={showInstances}
       />
@@ -44,11 +43,7 @@ export class LoadBalancerClusterContainer extends React.Component<ILoadBalancerC
         {showServerGroups && ServerGroups}
         {!showServerGroups &&
           showInstances && (
-            <LoadBalancerInstances
-              cloudProvider={loadBalancer.cloudProvider}
-              serverGroups={loadBalancer.serverGroups}
-              instances={loadBalancer.instances}
-            />
+            <LoadBalancerInstances serverGroups={loadBalancer.serverGroups} instances={loadBalancer.instances} />
           )}
       </div>
     );

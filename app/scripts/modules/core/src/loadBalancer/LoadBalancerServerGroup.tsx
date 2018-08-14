@@ -10,7 +10,6 @@ import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { Instances } from 'core/instance/Instances';
 
 export interface ILoadBalancerServerGroupProps {
-  cloudProvider: string;
   region: string;
   account: string;
   serverGroup: IServerGroup;
@@ -41,7 +40,7 @@ export class LoadBalancerServerGroup extends React.Component<
   }
 
   public render(): React.ReactElement<LoadBalancerServerGroup> {
-    const { cloudProvider, serverGroup, showInstances, account, region } = this.props;
+    const { serverGroup, showInstances, account, region } = this.props;
 
     const className = classNames({
       clickable: true,
@@ -54,7 +53,7 @@ export class LoadBalancerServerGroup extends React.Component<
       region: serverGroup.region || region,
       accountId: serverGroup.account || account,
       serverGroup: serverGroup.name,
-      provider: serverGroup.cloudProvider || cloudProvider,
+      provider: serverGroup.cloudProvider,
     };
 
     return (
@@ -64,7 +63,8 @@ export class LoadBalancerServerGroup extends React.Component<
             <div className="server-group-title container-fluid no-padding">
               <div className="row">
                 <div className="col-md-8">
-                  <CloudProviderLogo provider={cloudProvider} height={'14px'} width={'14px'} /> {serverGroup.name}
+                  <CloudProviderLogo provider={serverGroup.cloudProvider} height={'14px'} width={'14px'} />{' '}
+                  {serverGroup.name}
                 </div>
                 <div className="col-md-4 text-right">
                   <HealthCounts container={serverGroup.instanceCounts} />
@@ -73,7 +73,7 @@ export class LoadBalancerServerGroup extends React.Component<
             </div>
             {showInstances && (
               <div className="instance-list">
-                <Instances cloudProvider={this.props.cloudProvider} instances={this.state.instances} />
+                <Instances instances={this.state.instances} />
               </div>
             )}
           </div>

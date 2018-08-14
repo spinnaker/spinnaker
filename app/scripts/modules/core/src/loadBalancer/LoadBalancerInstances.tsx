@@ -9,7 +9,6 @@ import { ClusterState } from 'core/state';
 export interface ILoadBalancerInstancesProps {
   serverGroups: IServerGroup[];
   instances: IInstance[];
-  cloudProvider?: string;
 }
 
 export interface ILoadBalancerInstancesState {
@@ -41,7 +40,7 @@ export class LoadBalancerInstances extends React.Component<ILoadBalancerInstance
   public render(): React.ReactElement<LoadBalancerInstances> {
     return (
       <div className="instance-list">
-        <Instances cloudProvider={this.props.cloudProvider} instances={this.state.instances} />
+        <Instances instances={this.state.instances} />
       </div>
     );
   }

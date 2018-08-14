@@ -8,7 +8,6 @@ import { Instance } from './Instance';
 export interface IInstancesProps {
   instances: IInstance[];
   highlight?: string;
-  cloudProvider?: string;
 }
 
 export interface IInstancesState {
@@ -72,7 +71,7 @@ class InstancesInternal extends React.Component<IInstancesInternalProps, IInstan
 
   private handleInstanceClicked = (instance: IInstance) => {
     const { router, uiview } = this.props;
-    const params = { instanceId: instance.id, provider: instance.provider || this.props.cloudProvider };
+    const params = { instanceId: instance.id, provider: instance.cloudProvider || instance.provider };
     const options = { relative: uiview.context };
 
     router.stateService.go('.instanceDetails', params, options);
