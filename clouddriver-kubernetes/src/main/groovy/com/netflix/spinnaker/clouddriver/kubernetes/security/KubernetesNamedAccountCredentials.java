@@ -204,6 +204,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     String kubeconfigFile;
     String kubeconfigContents;
     String kubectlExecutable;
+    Integer kubectlRequestTimeoutSeconds;
     Boolean serviceAccount;
     Boolean configureImagePullSecrets;
     List<String> namespaces;
@@ -292,6 +293,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
     Builder kubectlExecutable(String kubectlExecutable) {
       this.kubectlExecutable = kubectlExecutable;
+      return this;
+    }
+
+    Builder kubectlRequestTimeoutSeconds(Integer kubectlRequestTimeoutSeconds) {
+      this.kubectlRequestTimeoutSeconds = kubectlRequestTimeoutSeconds;
       return this;
     }
 
@@ -420,6 +426,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .accountName(name)
               .kubeconfigFile(kubeconfigFile)
               .kubectlExecutable(kubectlExecutable)
+              .kubectlRequestTimeoutSeconds(kubectlRequestTimeoutSeconds)
               .context(context)
               .oAuthServiceAccount(oAuthServiceAccount)
               .oAuthScopes(oAuthScopes)

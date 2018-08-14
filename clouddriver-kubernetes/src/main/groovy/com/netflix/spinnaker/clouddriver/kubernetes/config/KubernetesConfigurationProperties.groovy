@@ -37,6 +37,7 @@ class KubernetesConfigurationProperties {
     String kubeconfigFile
     String kubeconfigContents
     String kubectlExecutable
+    Integer kubectlRequestTimeoutSeconds;
     Boolean serviceAccount
     Boolean configureImagePullSecrets
     List<String> namespaces

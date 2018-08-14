@@ -439,6 +439,10 @@ public class KubectlJobExecutor {
       command.add(executable);
     }
 
+    if (credentials.getKubectlRequestTimeoutSeconds() != null) {
+      command.add("--request-timeout=" + credentials.getKubectlRequestTimeoutSeconds());
+    }
+
     if (credentials.isDebug()) {
       command.add("-v");
       command.add("9");

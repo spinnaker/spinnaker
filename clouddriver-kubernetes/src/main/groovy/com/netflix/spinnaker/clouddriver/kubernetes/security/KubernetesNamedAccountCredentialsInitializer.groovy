@@ -92,6 +92,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .kubeconfigFile(managedAccount.kubeconfigFile)
           .kubeconfigContents(managedAccount.kubeconfigContents)
           .kubectlExecutable(managedAccount.kubectlExecutable)
+          .kubectlRequestTimeoutSeconds(managedAccount.kubectlRequestTimeoutSeconds)
           .serviceAccount(managedAccount.serviceAccount)
           .configureImagePullSecrets(managedAccount.configureImagePullSecrets)
           .namespaces(managedAccount.namespaces)

@@ -77,6 +77,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Getter
   private final String kubectlExecutable;
 
+  @Getter
+  private final Integer kubectlRequestTimeoutSeconds;
+
   // remove when kubectl is no longer a dependency
   @Getter
   private final String kubeconfigFile;
@@ -146,6 +149,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     String kubeconfigFile;
     String context;
     String kubectlExecutable;
+    Integer kubectlRequestTimeoutSeconds;
     String oAuthServiceAccount;
     List<String> oAuthScopes;
     String userAgent;
@@ -172,6 +176,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     public Builder kubectlExecutable(String kubectlExecutable) {
       this.kubectlExecutable = kubectlExecutable;
+      return this;
+    }
+
+    public Builder kubectlRequestTimeoutSeconds(Integer kubectlRequestTimeoutSeconds) {
+      this.kubectlRequestTimeoutSeconds = kubectlRequestTimeoutSeconds;
       return this;
     }
 
@@ -261,6 +270,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           registry,
           kubeconfigFile,
           kubectlExecutable,
+          kubectlRequestTimeoutSeconds,
           context,
           oAuthServiceAccount,
           oAuthScopes,
@@ -281,6 +291,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       @NotNull Registry registry,
       String kubeconfigFile,
       String kubectlExecutable,
+      Integer kubectlRequestTimeoutSeconds,
       String context,
       String oAuthServiceAccount,
       List<String> oAuthScopes,
@@ -298,6 +309,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.jobExecutor = jobExecutor;
     this.debug = debug;
     this.kubectlExecutable = kubectlExecutable;
+    this.kubectlRequestTimeoutSeconds = kubectlRequestTimeoutSeconds;
     this.kubeconfigFile = kubeconfigFile;
     this.context = context;
     this.oAuthServiceAccount = oAuthServiceAccount;
