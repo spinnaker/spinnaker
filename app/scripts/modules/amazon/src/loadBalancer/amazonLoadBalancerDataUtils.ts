@@ -24,7 +24,9 @@ export class AmazonLoadBalancerDataUtils {
     serverGroup.instances.forEach(instance => {
       const tgHealth: IAmazonHealth = instance.health.find(h => h.type === 'TargetGroup') as IAmazonHealth;
       if (tgHealth) {
-        const matchedHealth: ILoadBalancer = tgHealth.targetGroups.find(tg => tg.name === match.name);
+        const matchedHealth: ILoadBalancer = tgHealth.targetGroups.find(
+          tg => tg.name === match.name && tg.region === match.region && tg.account === match.account,
+        );
 
         if (matchedHealth !== undefined && matchedHealth.healthState !== undefined) {
           const healthState = matchedHealth.healthState.toLowerCase();
@@ -54,7 +56,8 @@ export class AmazonLoadBalancerDataUtils {
           .map((targetGroupName: string) => {
             const allTargetGroups = flatten(loadBalancers.map(lb => lb.targetGroups || []));
             const targetGroup = allTargetGroups.find(
-              tg => tg.name === targetGroupName && tg.region === serverGroup.region,
+              tg =>
+                tg.name === targetGroupName && tg.region === serverGroup.region && tg.account === serverGroup.account,
             );
             return this.buildTargetGroup(targetGroup, serverGroup);
           })
