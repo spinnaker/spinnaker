@@ -11,6 +11,8 @@ var jobsEnabled = '{%features.jobs%}' === 'true';
 var infrastructureStagesEnabled = '{%features.infrastructureStages%}' === 'true';
 var pipelineTemplatesEnabled = '{%features.pipelineTemplates%}' === 'true';
 var artifactsEnabled = '{%features.artifacts%}' === 'true';
+var travisEnabled = '{%features.travis%}' === 'true';
+var werckerEnabled = '{%features.wercker%}' === 'true';
 var mineCanaryEnabled = '{%features.mineCanary%}' === 'true';
 var reduxLoggerEnabled = '{%canary.reduxLogger%}' === 'true';
 var defaultMetricsAccountName = '{%canary.defaultMetricsAccount%}';
@@ -187,8 +189,8 @@ window.spinnakerSettings = {
     clusterDiff: false,
     roscoMode: true,
     snapshots: false,
-    travis: false,
-    wercker: false,
+    travis: travisEnabled,
+    wercker: werckerEnabled,
     versionedProviders: true,
   },
 };
