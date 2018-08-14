@@ -21,6 +21,7 @@ enum Platform {
   APPENGINE,
   AWS, // Any thoughts on renaming this provider to EC2?
   AZURE,
+  CLOUDFOUNDRY,
   DCOS,
   GCE,
   GCP,
@@ -56,6 +57,9 @@ def includePlatform(Platform platform) {
     case Platform.AZURE:
       include 'clouddriver-azure'
       break
+    case Platform.CLOUDFOUNDRY:
+      include 'clouddriver-cloudfoundry'
+      break
     case Platform.DCOS:
       include 'clouddriver-dcos'
       break
@@ -88,6 +92,7 @@ def includePlatform(Platform platform) {
       includePlatform(Platform.APPENGINE)
       includePlatform(Platform.AWS)
       includePlatform(Platform.AZURE)
+      includePlatform(Platform.CLOUDFOUNDRY)
       includePlatform(Platform.DCOS)
       includePlatform(Platform.GCE)
       includePlatform(Platform.GCP)
@@ -102,7 +107,6 @@ def includePlatform(Platform platform) {
 includePlatforms.split(",").each {
   includePlatform(it)
 }
-
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"

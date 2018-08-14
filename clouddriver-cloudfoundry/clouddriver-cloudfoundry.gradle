@@ -1,0 +1,16 @@
+dependencies {
+  compile project(":clouddriver-artifacts")
+  compile project(":clouddriver-core")
+
+  compile spinnaker.dependency('frigga')
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
+
+  compile spinnaker.dependency('korkArtifacts')
+  compile spinnaker.dependency('lombok')
+
+  spinnaker.group('retrofitDefault')
+  spinnaker.group('test')
+
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version("jackson")}"
+}

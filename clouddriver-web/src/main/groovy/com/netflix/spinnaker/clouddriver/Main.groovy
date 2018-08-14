@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.appengine.artifacts.AppengineStorageCon
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.azure.AzureConfiguration
+import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryConfiguration
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.core.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.dcos.DcosConfiguration
@@ -72,7 +73,8 @@ import java.security.Security
   EurekaProviderConfiguration,
   DcosConfiguration,
   LocalJobConfig,
-  TitusConfiguration
+  TitusConfiguration,
+  CloudFoundryConfiguration
 ])
 @ComponentScan([
   'com.netflix.spinnaker.config',
