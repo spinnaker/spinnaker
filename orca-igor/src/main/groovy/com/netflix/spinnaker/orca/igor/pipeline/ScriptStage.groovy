@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.igor.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartScriptTask
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 @Slf4j
-class ScriptStage implements StageDefinitionBuilder, RestartableStage, CancellableStage {
+class ScriptStage implements StageDefinitionBuilder, CancellableStage {
 
   @Autowired StopJenkinsJobTask stopJenkinsJobTask
 

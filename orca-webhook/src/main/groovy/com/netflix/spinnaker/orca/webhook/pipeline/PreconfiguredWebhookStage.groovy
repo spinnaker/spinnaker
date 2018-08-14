@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.webhook.pipeline
 
-import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -26,7 +25,6 @@ import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookNotFound
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookUnauthorizedException
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

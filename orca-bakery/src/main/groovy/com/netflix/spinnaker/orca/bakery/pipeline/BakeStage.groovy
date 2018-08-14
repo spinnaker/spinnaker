@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.bakery.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
@@ -39,7 +38,7 @@ import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAG
 @Slf4j
 @Component
 @CompileStatic
-class BakeStage implements StageDefinitionBuilder, RestartableStage {
+class BakeStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "bake"
 

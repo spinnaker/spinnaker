@@ -21,4 +21,9 @@ public class AcquireLockStage implements StageDefinitionBuilder {
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
     builder.withTask("acquireLock", AcquireLockTask.class);
   }
+
+  @Override
+  public void prepareStageForRestart(@Nonnull Stage stage) {
+    stage.getContext().remove("completeOtherBranchesThenFail");
+  }
 }

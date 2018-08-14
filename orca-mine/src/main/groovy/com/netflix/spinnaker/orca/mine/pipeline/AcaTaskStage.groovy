@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.tasks.CompleteCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.MonitorAcaTaskTask
@@ -34,7 +33,7 @@ import static retrofit.RetrofitError.Kind.HTTP
 
 @Slf4j
 @Component
-class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, RestartableStage {
+class AcaTaskStage implements StageDefinitionBuilder, CancellableStage {
   @Autowired
   MineService mineService
 

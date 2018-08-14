@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
-import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.MonitorJobTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion
@@ -29,7 +28,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class RunJobStage implements StageDefinitionBuilder, RestartableStage {
+class RunJobStage implements StageDefinitionBuilder {
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder

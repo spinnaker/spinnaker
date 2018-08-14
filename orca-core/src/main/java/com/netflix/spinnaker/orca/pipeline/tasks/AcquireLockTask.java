@@ -44,7 +44,21 @@ public class AcquireLockTask implements Task {
       exResult.getDetails().put("lockName", lfe.getLockName());
       exResult.getDetails().put("currentLockValue", lfe.getCurrentLockValue());
       resultContext.put("exception", exResult);
-      return new TaskResult(ExecutionStatus.TERMINAL, resultContext);
+
+      //Changes lock acquisition failure to stop the current branch, and fail
+      // the pipeline when other branches complete. If one operation in parallel
+      // is unable to acquire a lock, this would mean other operations would
+      // complete normally (if they are able to lock) before the overall execution
+      // fails.
+      //
+      //This is preferable to one operation failing to acquire a lock leaving other
+      // operations in a partially completed state. Additionally this makes the stage
+      // restart story a bit more sensible - we can restart the failed Acquire Lock
+      // stage and the pipeline will proceed, and we haven't failed a bunch of other
+      // stages halfway through so the pipeline will proceed for any downstream join
+      // points.
+      resultContext.put("completeOtherBranchesThenFail", true);
+      return new TaskResult(ExecutionStatus.STOPPED, resultContext);
     }
   }
 }

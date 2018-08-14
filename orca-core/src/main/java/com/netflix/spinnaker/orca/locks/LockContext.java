@@ -115,7 +115,7 @@ public class LockContext {
   private final LockManager.LockValue lockValue;
   private final String lockHolder;
 
-  LockContext(String lockName,
+  public LockContext(String lockName,
               LockManager.LockValue lockValue,
               String lockHolder) {
     this.lockName = Objects.requireNonNull(lockName);
@@ -133,5 +133,20 @@ public class LockContext {
 
   public String getLockHolder() {
     return lockHolder;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    LockContext that = (LockContext) o;
+    return Objects.equals(lockName, that.lockName) &&
+      Objects.equals(lockValue, that.lockValue) &&
+      Objects.equals(lockHolder, that.lockHolder);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(lockName, lockValue, lockHolder);
   }
 }

@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.orca.front50.pipeline;
 
 import com.netflix.spinnaker.orca.CancellableStage;
-import com.netflix.spinnaker.orca.RestartableStage;
 import com.netflix.spinnaker.orca.front50.tasks.MonitorPipelineTask;
 import com.netflix.spinnaker.orca.front50.tasks.StartPipelineTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
@@ -36,7 +35,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 
 @Component
-public class PipelineStage implements StageDefinitionBuilder, RestartableStage, CancellableStage {
+public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 

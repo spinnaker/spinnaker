@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, AuthenticatedStage {
+class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage {
 
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {

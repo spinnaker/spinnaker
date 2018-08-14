@@ -100,7 +100,7 @@ class RunTaskHandler(
                   queue.push(message, task.backoffPeriod(taskModel, stage))
                   trackResult(stage, thisInvocationStartTimeMs, taskModel, result.status)
                 }
-                SUCCEEDED, REDIRECT, FAILED_CONTINUE -> {
+                SUCCEEDED, REDIRECT, FAILED_CONTINUE, STOPPED -> {
                   queue.push(CompleteTask(message, result.status))
                   trackResult(stage, thisInvocationStartTimeMs, taskModel, result.status)
                 }
