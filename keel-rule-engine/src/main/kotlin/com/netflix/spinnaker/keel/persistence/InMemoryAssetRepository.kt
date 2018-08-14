@@ -11,6 +11,9 @@ class InMemoryAssetRepository : AssetRepository {
     assets.values.forEach(callback)
   }
 
+  override fun get(id: AssetId): Asset? =
+    assets[id]
+
   override fun store(asset: Asset) {
     assets[asset.id] = asset
   }
