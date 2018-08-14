@@ -702,6 +702,9 @@ public class RedisExecutionRepository implements ExecutionRepository {
       }
       execution.setKeepWaitingPipelines(Boolean.parseBoolean(map.get("keepWaitingPipelines")));
       execution.setOrigin(map.get("origin"));
+      if (map.get("source") != null) {
+        execution.setSource(mapper.readValue(map.get("source"), Execution.PipelineSource.class));
+      }
       execution.setTrigger(map.get("trigger") != null ? mapper.readValue(map.get("trigger"), Trigger.class) : NO_TRIGGER);
       if (map.get("systemNotifications") != null) {
         execution.getSystemNotifications().addAll(mapper.readValue(map.get("systemNotifications"), LIST_OF_SYSTEM_NOTIFICATIONS));
@@ -804,6 +807,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       map.put("paused", mapper.writeValueAsString(execution.getPaused()));
       map.put("keepWaitingPipelines", String.valueOf(execution.isKeepWaitingPipelines()));
       map.put("origin", execution.getOrigin());
+      map.put("source", mapper.writeValueAsString(execution.getSource()));
       map.put("trigger", mapper.writeValueAsString(execution.getTrigger()));
       map.put("systemNotifications", mapper.writeValueAsString(execution.getSystemNotifications()));
     } catch (JsonProcessingException e) {
