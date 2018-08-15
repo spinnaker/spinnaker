@@ -10,7 +10,7 @@ import {
 } from 'angular';
 import { IArtifact, IArtifactKindConfig } from 'core/domain';
 import { Registry } from 'core/registry';
-import { ArtifactIconService } from 'core';
+import { AccountService, ArtifactIconService, IArtifactAccount } from 'core';
 
 class ArtifactCtrl implements IController {
   public artifact: IArtifact;
@@ -20,6 +20,7 @@ class ArtifactCtrl implements IController {
   private isMatch: boolean;
   public selectedLabel: string;
   public selectedIcon: string;
+  private artifactAccounts?: IArtifactAccount[];
 
   constructor(
     private $attrs: IAttributes,
@@ -56,10 +57,21 @@ class ArtifactCtrl implements IController {
 
   public $onInit(): void {
     this.loadArtifactKind();
+    AccountService.getArtifactAccounts().then(accounts => {
+      this.artifactAccounts = accounts;
+    });
   }
 
   public getOptions(): IArtifactKindConfig[] {
-    const options = this.options.filter(o => o.isDefault === this.isDefault || o.isMatch === this.isMatch);
+    let options = this.options.filter(o => o.isDefault === this.isDefault || o.isMatch === this.isMatch);
+    if (this.artifactAccounts) {
+      options = options.filter(o => {
+        const isCustomArtifact = o.type == null;
+        const isPublic = !!o.isPubliclyAccessible;
+        const hasCredential = this.artifactAccounts.find(a => a.types.includes(o.type));
+        return isCustomArtifact || isPublic || hasCredential;
+      });
+    }
     return options.sort((a, b) => a.label.localeCompare(b.label));
   }
 

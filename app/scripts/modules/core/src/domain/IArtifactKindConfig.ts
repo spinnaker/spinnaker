@@ -5,6 +5,7 @@ export interface IArtifactKindConfig {
   key: string;
   isDefault: boolean;
   isMatch: boolean;
+  isPubliclyAccessible?: boolean;
   template: string;
   controller: Function;
   controllerAs?: string;
