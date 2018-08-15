@@ -52,29 +52,55 @@ public class RedisClientConfiguration {
   public List<RedisClientDelegate> redisClientDelegates(ClientConfigurationWrapper redisClientConfigurations,
                                                         Optional<List<RedisClientDelegate>> otherRedisClientDelegates) {
     List<RedisClientDelegate> clients = new ArrayList<>();
+
+    // Backwards compat with `redis.connection` and no `redis.clients` defined.
+    if (redisClientConfigurations.clients == null || redisClientConfigurations.clients.isEmpty()) {
+      clients.add(createClient("primaryDefault", REDIS, new HashMap<>(), redisClientConfigurations));
+    }
+
     redisClientConfigurations.clients.forEach((name, config) -> {
       if (config.primary != null) {
         clients.add(createClient(
           RedisClientSelector.getName(true, name),
           config.primary.driver,
-          config.primary.config
+          config.primary.config,
+          redisClientConfigurations
         ));
       }
       if (config.previous != null) {
         clients.add(createClient(
           RedisClientSelector.getName(false, name),
           config.previous.driver,
-          config.previous.config
+          config.previous.config,
+          redisClientConfigurations
         ));
       }
     });
-    if (otherRedisClientDelegates.isPresent()) {
-      clients.addAll(otherRedisClientDelegates.get());
-    }
+    otherRedisClientDelegates.ifPresent(clients::addAll);
     return clients;
   }
 
-  private RedisClientDelegate createClient(String name, Driver driver, Map<String, Object> properties) {
+  private RedisClientDelegate createClient(String name,
+                                           Driver driver,
+                                           Map<String, Object> properties,
+                                           ClientConfigurationWrapper rootConfig) {
+    // Pre-kork redis configuration days, Redis used alternative config structure. This wee block will map the
+    // connection information from the deprecated format to the new format _if_ the old format values are present and
+    // new format values are missing
+    if (driver == REDIS) {
+      Optional.ofNullable(rootConfig.connection).map(v -> {
+        if (!Optional.ofNullable(properties.get("connection")).isPresent()) {
+          properties.put("connection", v);
+        }
+        return v;
+      });
+      Optional.ofNullable(rootConfig.timeoutMs).map(v -> {
+        if (!Optional.ofNullable(properties.get("timeoutMs")).isPresent()) {
+          properties.put("timeoutMs", v);
+        }
+        return v;
+      });
+    }
     return getClientFactoryForDriver(driver).build(name, properties);
   }
 
@@ -105,12 +131,38 @@ public class RedisClientConfiguration {
   public static class ClientConfigurationWrapper {
     Map<String, DualClientConfiguration> clients = new HashMap<>();
 
+    /**
+     * Backwards compatibility of pre-kork config format
+     */
+    String connection;
+
+    /**
+     * Backwards compatibility of pre-kork config format
+     */
+    Integer timeoutMs;
+
     public Map<String, DualClientConfiguration> getClients() {
       return clients;
     }
 
     public void setClients(Map<String, DualClientConfiguration> clients) {
       this.clients = clients;
+    }
+
+    public String getConnection() {
+      return connection;
+    }
+
+    public void setConnection(String connection) {
+      this.connection = connection;
+    }
+
+    public Integer getTimeoutMs() {
+      return timeoutMs;
+    }
+
+    public void setTimeoutMs(Integer timeoutMs) {
+      this.timeoutMs = timeoutMs;
     }
   }
 
