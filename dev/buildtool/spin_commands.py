@@ -119,8 +119,8 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       # Trim prefix to format go package properly.
       if prefix.find('//') != -1:
         prefix = prefix[double_slash+2:]
-      if prefix[len(prefix)] == '/':
-        prefix = prefix[:len(prefix)-1]
+      if prefix[:-1] == '/':
+        prefix = prefix[:-1]
 
 
       # Unset ReleasePhase tag for proper versions.
