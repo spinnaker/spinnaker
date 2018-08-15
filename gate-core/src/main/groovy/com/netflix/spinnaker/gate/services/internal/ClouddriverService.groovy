@@ -336,4 +336,13 @@ interface ClouddriverService {
   Map getManifest(@Path(value = 'account') String account,
                   @Path(value = 'location') String location,
                   @Path(value = 'name') String name)
+
+  @GET('/applications/{application}/serverGroups/{account}/{serverGroupName}/events')
+  List<Map> getServerGroupEvents(
+    @Path(value = 'application') String application,
+    @Path(value = 'account') String account,
+    @Path(value = 'serverGroupName') String serverGroupName,
+    @Query("region") String region,
+    @Query("provider") String provider
+  )
 }
