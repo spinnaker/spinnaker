@@ -64,14 +64,14 @@ class BomBuilder(object):
   """Helper class for BuildBomCommand that constructs the bom specification."""
 
   @staticmethod
-  def new_from_bom(options, scm, bom):
-    return BomBuilder(options, scm, base_bom=bom)
+  def new_from_bom(options, scm, metrics, bom):
+    return BomBuilder(options, scm, metrics, base_bom=bom)
 
   @property
   def base_bom(self):
     return self.__base_bom
 
-  def __init__(self, options, scm, base_bom=None):
+  def __init__(self, options, scm, metrics, base_bom=None):
     """Construct new builder.
 
     Args:
@@ -81,6 +81,7 @@ class BomBuilder(object):
     """
     self.__options = options
     self.__scm = scm
+    self.__metrics = metrics
     self.__services = {}
     self.__repositories = {}
     self.__base_bom = base_bom or {}
@@ -182,11 +183,29 @@ class BomBuilder(object):
 
     services = dict(self.__base_bom.get('services', {}))
     changed = False
+    def to_semver(build_version):
+      index = build_version.find('-')
+      return build_version[:index] if index >= 0 else build_version
+
     for name, info in self.__services.items():
+      labels = {'repostiory': name, 'branch': options.git_branch, 'updated': True}
       if info['commit'] == services.get(name, {}).get('commit', None):
-        logging.debug('%s commit hasnt changed -- keeping existing %s',
-                      name, info)
-        continue
+        if to_semver(info['version']) == to_semver(services.get(name, {}).get('version', '')):
+          logging.debug('%s commit hasnt changed -- keeping existing %s',
+                        name, info)
+          labels['updated'] = False
+          labels['reason'] = 'same commit'
+          self.__metrics.inc_counter('UpdateBomEntry', labels)
+          continue
+        else:
+          # An earlier branch was patched since our base bom.
+          labels['reason'] = 'different version'
+          logging.debug('%s version changed to %s even though commit has not',
+                        name, info)
+      else:
+        labels['reason'] = 'different commit'
+      self.__metrics.inc_counter('UpdateBomEntry', labels)
+
       changed = True
       services[name] = info
 
@@ -235,31 +254,7 @@ class BuildBomCommand(RepositoryCommandProcessor):
     if base_bom:
       logging.info('Creating new bom based on version "%s"',
                    base_bom.get('version', 'UNKNOWN'))
-    self.__builder = BomBuilder(self.options, self.scm, base_bom=base_bom)
-
-  def _do_can_skip_repository(self, repository):
-    name = repository.name
-    service_name = self.scm.repository_name_to_service_name(name)
-    origin = repository.origin
-    branch = self.options.git_branch
-    services = self.__builder.base_bom.get('services', {})
-    existing_bom_entry = services.get(service_name, {})
-    existing_commit = existing_bom_entry.get('commit')
-    logging.debug('Fetching current commit for %s %s', origin, branch)
-    current_commit = self.git.query_remote_repository_commit_id(origin, branch)
-
-    if current_commit == existing_commit:
-      result = True
-      reason = 'same commit'
-      logging.debug('%s %s is unchanged - skip.', origin, branch)
-    else:
-      result = False
-      reason = 'different commit' if existing_bom_entry else 'fresh bom'
-
-    labels = {'repository': name, 'branch': branch,
-              'reason': reason, 'updated': result}
-    self.metrics.inc_counter('UpdateBomEntry', labels)
-    return result
+    self.__builder = BomBuilder(self.options, self.scm, self.metrics, base_bom=base_bom)
 
   def _do_repository(self, repository):
     source_info = self.scm.refresh_source_info(

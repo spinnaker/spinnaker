@@ -26,6 +26,7 @@ from buildtool import (
     DEFAULT_BUILD_NUMBER,
     BranchSourceCodeManager,
     GitRepositorySpec,
+    MetricsManager,
     RepositorySummary,
     SourceInfo)
 import buildtool
@@ -46,7 +47,6 @@ from test_util import (
     OUTLIER_SERVICE,
     BaseGitRepoTestFixture,
     init_runtime)
-
 
 def load_default_bom_dependencies():
   path = os.path.join(os.path.dirname(__file__),
@@ -138,9 +138,6 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
     # When the base command ensures the local repository exists, we'll
     # intercept that call and do nothing rather than the git checkouts, etc.
     make_fake(BranchSourceCodeManager, 'ensure_local_repository')
-    mock_remote = self.patch_function('buildtool.branch_scm.GitRunner'
-                                      '.query_remote_repository_commit_id')
-    mock_remote.return_value = 'CommitA'
 
     # When the base command asks for the repository metadata, we'll return
     # this hardcoded info, then look for it later in the generated om.
@@ -172,11 +169,9 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
             origin='https://%s/TestOwner/%s' % (options.github_hostname, name),
             upstream='https://github.com/spinnaker/' + name)
         for name in sorted(['clouddriver', 'deck', 'echo', 'fiat', 'front50',
-                            'gate', 'igor', 'kayenta', 'orca', 'rosco', 'spin',
-                            'spinnaker', 'spinnaker-monitoring'])
+                            'gate', 'igor', 'kayenta', 'orca', 'rosco',
+                            'spinnaker-monitoring'])
     ]
-    mock_remote.assert_called_once_with(test_repository.origin,
-                                        options.git_branch)
     mock_filter.assert_called_once_with(bom_repo_list)
     mock_refresh.assert_called_once_with(test_repository, 'OptionBuildNumber')
     bom_text, bom_path = mock_write.call_args_list[0][0]
@@ -216,7 +211,7 @@ class TestBomBuilder(BaseGitRepoTestFixture):
     self.scm = BranchSourceCodeManager(self.options, self.test_root)
 
   def test_default_build(self):
-    builder = BomBuilder(self.options, self.scm)
+    builder = BomBuilder(self.options, self.scm, MetricsManager.singleton())
     bom = builder.build()
     self.assertEqual(
         bom['dependencies'], load_default_bom_dependencies())
@@ -239,7 +234,7 @@ class TestBomBuilder(BaseGitRepoTestFixture):
     options.bom_dependencies_path = path
 
     try:
-      builder = BomBuilder(options, self.scm)
+      builder = BomBuilder(options, self.scm, MetricsManager.singleton())
       bom = builder.build()
     finally:
       os.remove(path)
@@ -256,7 +251,8 @@ class TestBomBuilder(BaseGitRepoTestFixture):
 
     scm = BranchSourceCodeManager(options, test_root)
     golden_bom = dict(self.golden_bom)
-    builder = BomBuilder.new_from_bom(options, scm, golden_bom)
+    builder = BomBuilder.new_from_bom(
+      options, scm, MetricsManager.singleton(), golden_bom)
     source_repositories = [scm.make_repository_spec(name)
                            for name in ALL_STANDARD_TEST_BOM_REPO_NAMES]
     for repository in source_repositories:
@@ -301,7 +297,8 @@ class TestBomBuilder(BaseGitRepoTestFixture):
     options.build_number = 'UpdatedBuildNumber'
 
     scm = BranchSourceCodeManager(options, test_root)
-    builder = BomBuilder.new_from_bom(options, scm, self.golden_bom)
+    builder = BomBuilder.new_from_bom(
+      options, scm, MetricsManager.singleton(), self.golden_bom)
 
     repository = scm.make_repository_spec(OUTLIER_REPO)
     scm.ensure_git_path(repository)
@@ -339,7 +336,7 @@ class TestBomBuilder(BaseGitRepoTestFixture):
 
   def test_determine_most_common_prefix(self):
     options = self.options
-    builder = BomBuilder(options, self.scm)
+    builder = BomBuilder(options, self.scm, MetricsManager.singleton())
     self.assertIsNone(builder.determine_most_common_prefix())
 
     prefix = ['http://github.com/one', '/local/source/path/two']
