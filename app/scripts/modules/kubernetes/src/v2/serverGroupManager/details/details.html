@@ -27,7 +27,7 @@
     <div class="actions">
       <div class="dropdown" uib-dropdown dropdown-append-to-body>
         <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
-          Server Group Manager Actions <span class="caret"></span>
+          {{ctrl.serverGroupManager.kind | robotToHuman}} Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
           <li>
