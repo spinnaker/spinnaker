@@ -1,7 +1,0 @@
-<div style="display:inline-block" uib-tooltip="{{healthState !== 'Up' ? loadBalancer.description : ''}}" tooltip-placement="left">
-  <span ng-if="healthState === 'Up'"
-        class="glyphicon glyphicon-Up-triangle"></span>
-  <span ng-if="healthState === 'OutOfService' || healthState === 'Down'"
-        class="glyphicon glyphicon-Down-triangle"></span>
-  <span>{{name}}</span>
-</div>
