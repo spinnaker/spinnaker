@@ -15,6 +15,14 @@
 """
 Integration test to see if the helm bake process is working for the
 Spinnaker Kubernetes V2 integration.
+
+This test requires 'helm', a tool for packaging & deploying Kubernetes
+manifests. Follow the instuctions here: 
+
+  https://docs.helm.sh/using_helm/#from-the-binary-releases
+
+to install 'helm'. You do not need to run 'helm init' or install
+'tiller' (like the docs might mention) for this test to pass.
 """
 
 # Standard python modules.
