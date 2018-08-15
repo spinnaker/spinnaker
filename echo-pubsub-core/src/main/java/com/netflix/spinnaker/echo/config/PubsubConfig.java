@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(EchoPubsubConfigurationProperties.class)
 public class PubsubConfig {
 
   @Bean

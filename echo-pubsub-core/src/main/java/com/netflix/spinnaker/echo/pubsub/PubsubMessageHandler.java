@@ -23,6 +23,7 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +50,10 @@ public class PubsubMessageHandler {
   @Autowired
   public PubsubMessageHandler(PubsubEventMonitor pubsubEventMonitor,
     ObjectMapper objectMapper,
-    RedisClientDelegate redisClientDelegate) {
+    RedisClientSelector redisClientSelector) {
     this.pubsubEventMonitor = pubsubEventMonitor;
     this.objectMapper = objectMapper;
-    this.redisClientDelegate = redisClientDelegate;
+    this.redisClientDelegate = redisClientSelector.primary("default");
   }
 
   private static final String SET_IF_NOT_EXIST = "NX";

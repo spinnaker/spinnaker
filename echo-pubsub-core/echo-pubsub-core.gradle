@@ -28,4 +28,5 @@ dependencies {
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency("korkJedis")
   compile spinnaker.dependency("korkJedisTest")
+  compile spinnaker.dependency("korkDynomite")
 }

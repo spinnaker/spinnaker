@@ -36,6 +36,6 @@ class EmbeddedRedisConfiguration {
 
   @Bean
   Pool<Jedis> jedisPool() {
-    redisServer().pool
+    return redisServer().pool
   }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
@@ -37,7 +38,11 @@ class PubsubMessageHandlerSpec extends Specification {
   @AutoCleanup("destroy")
   EmbeddedRedis embeddedRedis
 
-  RedisClientDelegate redisClientDelegate = new JedisClientDelegate(embeddedRedis.getPool())
+  @Shared
+  RedisClientDelegate redisClientDelegate
+
+  @Shared
+  RedisClientSelector redisClientSelector
 
   MessageDigest messageDigest = MessageDigest.getInstance("SHA-256")
 
@@ -47,11 +52,13 @@ class PubsubMessageHandlerSpec extends Specification {
   PubsubMessageHandler pubsubMessageHandler = new PubsubMessageHandler(
     pubsubEventMonitor,
     new ObjectMapper(),
-    redisClientDelegate,
+    redisClientSelector,
   )
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
+    redisClientDelegate = new JedisClientDelegate("primaryDefault", embeddedRedis.getPool())
+    redisClientSelector = new RedisClientSelector([redisClientDelegate])
   }
 
   def cleanup() {
