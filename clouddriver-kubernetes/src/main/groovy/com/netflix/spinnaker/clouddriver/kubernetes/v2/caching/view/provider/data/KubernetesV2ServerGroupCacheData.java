@@ -18,6 +18,9 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.model.ServerGroupManager;
+import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
 import lombok.Builder;
 import lombok.Data;
 
@@ -29,6 +32,7 @@ public class KubernetesV2ServerGroupCacheData implements KubernetesV2CacheData {
   private CacheData serverGroupData;
   private List<CacheData> instanceData;
   private List<CacheData> loadBalancerData;
+  private List<Keys.InfrastructureCacheKey> serverGroupManagerKeys;
 
   public CacheData primaryData() {
     return serverGroupData;

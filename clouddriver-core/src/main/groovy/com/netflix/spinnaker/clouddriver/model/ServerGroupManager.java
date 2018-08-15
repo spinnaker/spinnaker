@@ -18,6 +18,10 @@
 package com.netflix.spinnaker.clouddriver.model;
 
 import com.netflix.spinnaker.moniker.Moniker;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
@@ -27,4 +31,14 @@ public interface ServerGroupManager {
   Moniker getMoniker();
   Set<ServerGroupSummary> getServerGroups();
   String getRegion();
+
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  class ServerGroupManagerSummary {
+    String name;
+    String location;
+    String account;
+  }
 }

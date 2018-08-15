@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.model.ServerGroupManager
 import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -250,6 +251,7 @@ class ServerGroupController {
     ServerGroup.InstanceCounts instanceCounts
     Map<String, Object> tags
     Map providerMetadata
+    List<ServerGroupManager.ServerGroupManagerSummary> serverGroupManagers
 
     ServerGroupViewModel(ServerGroup serverGroup, String clusterName, String accountName) {
       cluster = clusterName
@@ -265,6 +267,7 @@ class ServerGroupController {
       instanceCounts = serverGroup.getInstanceCounts()
       securityGroups = serverGroup.getSecurityGroups()
       loadBalancers = serverGroup.getLoadBalancers()
+      serverGroupManagers = serverGroup.getServerGroupManagers()
       moniker = serverGroup.getMoniker()
       if (serverGroup.launchConfig) {
         if (serverGroup.launchConfig.instanceType) {

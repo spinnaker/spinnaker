@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Cluster;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2LoadBalancer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroup;
@@ -50,6 +51,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Logic
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.INSTANCES;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.LOAD_BALANCERS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUPS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUP_MANAGERS;
 
 @Component
 @Slf4j
@@ -230,6 +232,24 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
       clusterToServerGroups.put(clusterKey, storedData);
     }
 
+    Map<String, List<InfrastructureCacheKey>> serverGroupToServerGroupManagerKeys = new HashMap<>();
+    for (CacheData serverGroupDatum : serverGroupData) {
+      serverGroupToServerGroupManagerKeys.put(
+          serverGroupDatum.getId(),
+          kindMap.translateSpinnakerKind(SERVER_GROUP_MANAGERS)
+              .stream()
+              .map(kind -> serverGroupDatum.getRelationships().get(kind.toString()))
+              .filter(Objects::nonNull)
+              .flatMap(Collection::stream)
+              .map(Keys::parseKey)
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .filter(k -> k instanceof Keys.InfrastructureCacheKey)
+              .map(k -> (Keys.InfrastructureCacheKey) k)
+              .collect(Collectors.toList())
+      );
+    }
+
     Map<String, List<CacheData>> serverGroupToLoadBalancers = cacheUtils.mapByRelationship(loadBalancerData, SERVER_GROUPS);
     Map<String, List<CacheData>> serverGroupToInstances = cacheUtils.mapByRelationship(instanceData, SERVER_GROUPS);
     Map<String, List<CacheData>> loadBalancerToServerGroups = cacheUtils.mapByRelationship(serverGroupData, LOAD_BALANCERS);
@@ -250,7 +270,8 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
               clusterLoadBalancers,
               serverGroupToInstances,
               loadBalancerToServerGroups,
-              serverGroupToLoadBalancers
+              serverGroupToLoadBalancers,
+              serverGroupToServerGroupManagerKeys
           )
       );
     }
@@ -273,7 +294,8 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
       List<CacheData> loadBalancerData,
       Map<String, List<CacheData>> instanceDataByServerGroup,
       Map<String, List<CacheData>> serverGroupDataByLoadBalancer,
-      Map<String, List<CacheData>> loadBalancerDataByServerGroup) {
+      Map<String, List<CacheData>> loadBalancerDataByServerGroup,
+      Map<String, List<InfrastructureCacheKey>> serverGroupToServerGroupManagerKeys) {
     if (clusterDatum == null) {
       return null;
     }
@@ -284,6 +306,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
             .serverGroupData(cd)
             .instanceData(instanceDataByServerGroup.getOrDefault(cd.getId(), new ArrayList<>()))
             .loadBalancerData(loadBalancerDataByServerGroup.getOrDefault(cd.getId(), new ArrayList<>()))
+            .serverGroupManagerKeys(serverGroupToServerGroupManagerKeys.getOrDefault(cd.getId(), new ArrayList<>()))
             .build())
         )
         .filter(Objects::nonNull)

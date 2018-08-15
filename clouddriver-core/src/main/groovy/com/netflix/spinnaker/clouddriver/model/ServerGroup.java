@@ -26,6 +26,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -165,6 +166,10 @@ public interface ServerGroup {
   @JsonIgnore
   @Deprecated
   ImageSummary getImageSummary();
+
+  default List<ServerGroupManager.ServerGroupManagerSummary> getServerGroupManagers() {
+    return new ArrayList<>();
+  }
 
   @Builder
   @NoArgsConstructor

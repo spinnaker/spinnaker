@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
+import com.netflix.spinnaker.clouddriver.model.ServerGroupManager.ServerGroupManagerSummary;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupSummary;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
@@ -56,6 +57,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
   Set<Instance> instances = new HashSet<>();
   Set<String> loadBalancers = new HashSet<>();
   Set<String> securityGroups = new HashSet<>();
+  List<ServerGroupManagerSummary> serverGroupManagers = new ArrayList<>();
   Map<String, Object> launchConfig = new HashMap<>();
   Capacity capacity = new Capacity();
   ImageSummary imageSummary;
@@ -97,11 +99,12 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     return disabled;
   }
 
-  protected KubernetesV2ServerGroup(KubernetesManifest manifest, String key, List<KubernetesV2Instance> instances, Set<String> loadBalancers) {
+  protected KubernetesV2ServerGroup(KubernetesManifest manifest, String key, List<KubernetesV2Instance> instances, Set<String> loadBalancers, List<ServerGroupManagerSummary> serverGroupManagers) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
     this.instances = new HashSet<>(instances);
     this.loadBalancers = loadBalancers;
+    this.serverGroupManagers = serverGroupManagers;
 
     Object odesired = ((Map<String, Object>) manifest
         .getOrDefault("spec", new HashMap<String, Object>()))
@@ -119,7 +122,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .build();
   }
 
-  private static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData, List<CacheData> loadBalancerData) {
+  private static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData, List<CacheData> loadBalancerData, List<Keys.InfrastructureCacheKey> serverGroupManagerKeys) {
     if (cd == null) {
       return null;
     }
@@ -127,6 +130,18 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     if (instanceData == null) {
       instanceData = new ArrayList<>();
     }
+
+    if (serverGroupManagerKeys == null) {
+      serverGroupManagerKeys = new ArrayList<>();
+    }
+
+    List<ServerGroupManagerSummary> serverGroupManagers = serverGroupManagerKeys.stream()
+        .map(k -> ServerGroupManagerSummary.builder()
+            .account(k.getAccount())
+            .location(k.getNamespace())
+            .name(k.getName())
+            .build()
+        ).collect(Collectors.toList());
 
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(cd);
 
@@ -149,11 +164,11 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .map(k -> KubernetesManifest.getFullResourceName(k.getKubernetesKind(), k.getName()))
         .collect(Collectors.toSet());
 
-    return new KubernetesV2ServerGroup(manifest, cd.getId(), instances, loadBalancers);
+    return new KubernetesV2ServerGroup(manifest, cd.getId(), instances, loadBalancers, serverGroupManagers);
   }
 
   public static KubernetesV2ServerGroup fromCacheData(KubernetesV2ServerGroupCacheData cacheData) {
-    return fromCacheData(cacheData.getServerGroupData(), cacheData.getInstanceData(), cacheData.getLoadBalancerData());
+    return fromCacheData(cacheData.getServerGroupData(), cacheData.getInstanceData(), cacheData.getLoadBalancerData(), cacheData.getServerGroupManagerKeys());
   }
 
   public ServerGroupSummary toServerGroupSummary() {
