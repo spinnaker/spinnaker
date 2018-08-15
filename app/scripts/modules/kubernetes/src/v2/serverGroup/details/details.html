@@ -86,7 +86,12 @@
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
       <dl class="dl-horizontal dl-flex"
-          ng-if="ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
+          ng-if="ctrl.serverGroup.capacity.min == null">
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+      <dl class="dl-horizontal dl-flex"
+          ng-if="ctrl.serverGroup.capacity.min != null && ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
         <dt>Min/Max</dt>
         <dd>{{ctrl.serverGroup.capacity.min}}</dd>
         <dt>Current</dt>
