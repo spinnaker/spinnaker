@@ -8,34 +8,51 @@ class StaleIssuePolicy(Policy):
         self.stale_days = self.config.get('stale_days')
         self.count = 0
         if not self.stale_days:
-            self.stale_days = 120
+            self.stale_days = 90
 
     def applies(self, o):
         return ObjectType(o) == 'issue'
 
     def apply(self, g, o):
-        if o.created_at is None:
+        days_since_created = None
+        days_since_updated = None
+        now = datetime.now()
+        if o.state == 'closed':
             return
 
-        now = datetime.now()
-        days_since_created = (now - o.created_at).days
+        if o.created_at is not None:
+            days_since_created = (now - o.created_at).days
+        else:
+            return
 
         if days_since_created < self.stale_days:
             return
 
-        if HasLabel(o, 'stale'):
+        if o.updated_at is not None:
+            days_since_updated = (now - o.updated_at).days
+        else:
             return
 
-        repo = IssueRepo(o)
+        if days_since_updated < self.stale_days:
+            return
 
-        newest_date = o.created_at
-        for e in o.get_events():
-            if e.created_at > newest_date:
-                newest_date = e.created_at
-
-        delta = now - newest_date
-        if delta.days >= self.stale_days:
-            self.logging.info("Tagging {} as stale after {} days since last activity".format(o.url, delta.days))
+        if HasLabel(o, 'to-be-closed'):
+            o.create_comment("This issue is tagged as 'to-be-closed' and hasn't been updated " + 
+                " in {} days, ".format(days_since_updated) + 
+                "so we are closing it. You can always reopen this issue if needed.")
+            o.edit(state='closed')
+        elif HasLabel(o, 'stale'):
+            o.create_comment("This issue is tagged as 'stale' and hasn't been updated " + 
+                " in {} days, ".format(days_since_updated) + 
+                "so we are tagging it as 'to-be-closed'. It will be closed " +
+                "in {} days unless updates are made. ".format(self.stale_days) +
+                "If you want to remove this label, comment:\n\n" +
+                "> @spinnakerbot remove-label to-be-closed")
+            AddLabel(g, o, 'to-be-closed')
+        else:
+            o.create_comment("This issue hasn't been updated in {} days, ".format(days_since_updated) + 
+                "so we are tagging it as 'stale'. If you want to remove this label, comment:\n\n" +
+                "> @spinnakerbot remove-label stale")
             AddLabel(g, o, 'stale')
 
 StaleIssuePolicy()
