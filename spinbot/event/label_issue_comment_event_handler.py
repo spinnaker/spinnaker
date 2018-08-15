@@ -1,4 +1,4 @@
-from gh import AddLabel
+from gh import AddLabel, RemoveLabel
 from .handler import Handler
 from .command import GetCommands
 from .issue_event import GetIssue
@@ -16,11 +16,15 @@ class LabelIssueCommentEventHandler(Handler):
         # avoid fetching until needed
         issue = None
         for command in GetCommands(event.payload.get('comment', {}).get('body')):
-            if command[0] != 'add-label':
-                continue
-            if issue is None:
-                issue = GetIssue(g, event)
-            for label in command[1:]:
-                AddLabel(g, issue, label, create=False)
+            if command[0] == 'add-label':
+                if issue is None:
+                    issue = GetIssue(g, event)
+                for label in command[1:]:
+                    AddLabel(g, issue, label, create=False)
+            if command[0] == 'remove-label':
+                if issue is None:
+                    issue = GetIssue(g, event)
+                for label in command[1:]:
+                    RemoveLabel(g, issue, label, create=False)
 
 LabelIssueCommentEventHandler()
