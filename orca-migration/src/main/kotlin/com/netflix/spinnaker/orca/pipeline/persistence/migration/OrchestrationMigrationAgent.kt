@@ -37,7 +37,7 @@ class OrchestrationMigrationAgent(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun startPolling() {
+  override fun tick() {
     val previouslyMigratedOrchestrationIds = dualExecutionRepository.primary.retrieveAllExecutionIds(ORCHESTRATION)
 
     val executionCriteria = ExecutionRepository.ExecutionCriteria().apply {

@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
-import rx.Observable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -117,21 +116,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
   }
 
   @Override
-  protected void startPolling() {
-    subscription = Observable
-      .timer(getPollingInterval(), TimeUnit.SECONDS, scheduler)
-      .repeat()
-      .filter(interval -> tryAcquireLock())
-      .subscribe(interval -> {
-        try {
-          poll();
-        } catch (Exception e) {
-          log.error("Error checking for pinned server groups", e);
-        }
-      });
-  }
-
-  void poll() {
+  protected void tick() {
     log.info("Checking for pinned server groups");
 
     List<PinnedServerGroupTag> pinnedServerGroupTags = fetchPinnedServerGroupTags();

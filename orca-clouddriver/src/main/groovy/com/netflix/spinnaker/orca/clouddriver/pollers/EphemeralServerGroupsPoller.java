@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
-import rx.Observable;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -93,21 +92,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   }
 
   @Override
-  protected void startPolling() {
-    subscription = Observable
-      .timer(getPollingInterval(), TimeUnit.SECONDS, scheduler)
-      .repeat()
-      .filter(interval -> tryAcquireLock())
-      .subscribe(interval -> {
-        try {
-          poll();
-        } catch (Exception e) {
-          log.error("Error checking for ephemeral server groups", e);
-        }
-      });
-  }
-
-  private void poll() {
+  protected void tick() {
     log.info("Checking for ephemeral server groups");
 
     List<EphemeralServerGroupTag> ephemeralServerGroupTags = fetchEphemeralServerGroupTags();

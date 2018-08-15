@@ -49,7 +49,7 @@ class AdminController {
 
     NoDiscoveryApplicationStatusPublisher noDiscoveryApplicationStatusPublisher = (NoDiscoveryApplicationStatusPublisher) discoveryStatusPoller;
 
-    boolean enabled = enabledWrapper.get("enabled")
+    Boolean enabled = enabledWrapper.get("enabled")
     if (enabled == null) {
       throw new ValidationException("The field \"enabled\" must be set", null)
     }

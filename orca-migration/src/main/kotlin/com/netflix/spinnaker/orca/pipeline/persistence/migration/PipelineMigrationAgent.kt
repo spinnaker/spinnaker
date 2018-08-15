@@ -36,7 +36,7 @@ class PipelineMigrationAgent(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun startPolling() {
+  override fun tick() {
     val previouslyMigratedPipelineIds = dualExecutionRepository.primary.retrieveAllExecutionIds(PIPELINE)
 
     val executionCriteria = ExecutionRepository.ExecutionCriteria().apply {

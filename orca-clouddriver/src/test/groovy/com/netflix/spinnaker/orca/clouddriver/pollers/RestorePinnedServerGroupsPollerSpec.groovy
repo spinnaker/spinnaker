@@ -95,7 +95,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
 
   def "should only unpin server group if corresponding execution is complete"() {
     when:
-    restorePinnedServerGroupsAgent.poll()
+    restorePinnedServerGroupsAgent.tick()
 
     then:
     1 * restorePinnedServerGroupsAgent.fetchPinnedServerGroupTags() >> {
@@ -124,7 +124,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     true
 
     when:
-    restorePinnedServerGroupsAgent.poll()
+    restorePinnedServerGroupsAgent.tick()
 
     then:
     1 * restorePinnedServerGroupsAgent.fetchPinnedServerGroupTags() >> {

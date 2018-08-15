@@ -20,11 +20,14 @@ import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
+import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
 
 import javax.annotation.PreDestroy;
+
+import java.util.concurrent.TimeUnit;
 
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
@@ -44,7 +47,21 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
 
   protected abstract String getNotificationType();
 
-  protected abstract void startPolling();
+  protected abstract void tick();
+
+  protected void startPolling() {
+    subscription = Observable
+      .timer(getPollingInterval(), TimeUnit.SECONDS, scheduler)
+      .repeat()
+      .filter(interval -> tryAcquireLock())
+      .subscribe(interval -> {
+        try {
+          tick();
+        } catch (Exception e) {
+          log.error("Error running agent tick", e);
+        }
+      });
+  }
 
   protected boolean tryAcquireLock() {
     return clusterLock.tryAcquireLock(getNotificationType(), getPollingInterval());

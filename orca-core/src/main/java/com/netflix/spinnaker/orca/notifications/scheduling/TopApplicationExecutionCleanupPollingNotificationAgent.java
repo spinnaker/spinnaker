@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static java.lang.String.format;
@@ -101,15 +100,8 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent extends Abst
     return TopApplicationExecutionCleanupPollingNotificationAgent.class.getSimpleName();
   }
 
-  protected void startPolling() {
-    subscription = Observable
-      .timer(pollingIntervalMs, TimeUnit.MILLISECONDS, scheduler)
-      .repeat()
-      .subscribe(interval -> tick());
-  }
-
   @VisibleForTesting
-  void tick() {
+  protected void tick() {
     LongTaskTimer timer = registry.longTaskTimer(timerId);
     long timerId = timer.start();
 

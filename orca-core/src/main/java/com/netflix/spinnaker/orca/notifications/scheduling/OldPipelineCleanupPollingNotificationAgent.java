@@ -30,15 +30,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import rx.Observable;
-import rx.Scheduler;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
@@ -50,8 +47,6 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
   private static final List<String> COMPLETED_STATUSES = ExecutionStatus.COMPLETED.stream().map(Enum::toString).collect(Collectors.toList());
 
   private final Logger log = LoggerFactory.getLogger(OldPipelineCleanupPollingNotificationAgent.class);
-
-  private Scheduler scheduler = Schedulers.io();
 
   private Func1<Execution, Boolean> filter = new Func1<Execution, Boolean>() {
     @Override
@@ -125,14 +120,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
   }
 
   @Override
-  protected void startPolling() {
-    subscription = Observable
-      .timer(pollingIntervalMs, TimeUnit.MILLISECONDS, scheduler)
-      .repeat()
-      .subscribe(aLong -> tick());
-  }
-
-  private void tick() {
+  protected void tick() {
     LongTaskTimer timer = registry.longTaskTimer(timerId);
     long timerId = timer.start();
     try {
