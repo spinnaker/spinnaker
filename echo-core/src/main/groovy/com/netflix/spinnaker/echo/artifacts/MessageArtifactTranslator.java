@@ -103,6 +103,6 @@ public class MessageArtifactTranslator {
       // there is no template and no artifacts are expected
       log.warn("Unable to parse artifact from {}", hydratedTemplate);
     }
-    return null;
+    return Collections.EMPTY_LIST;
   }
 }
