@@ -41,8 +41,9 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
     const { viewState } = props.command;
     if (!viewState.disableNoTemplateSelection) {
       templates.push(this.noTemplate);
-      selectedTemplate = this.noTemplate;
     }
+
+    selectedTemplate = this.noTemplate;
 
     const serverGroups: IServerGroup[] = props.application
       .getDataSource('serverGroups')
@@ -64,8 +65,10 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
       });
     });
 
-    if (templates.length === 1) {
+    if (viewState.disableNoTemplateSelection && templates.length === 1) {
       selectedTemplate = templates[0];
+    } else if (!viewState.disableNoTemplateSelection && templates.length === 2) {
+      selectedTemplate = templates[1];
     }
 
     this.state = {
@@ -198,14 +201,13 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
             </form>
           </Modal.Body>
           <div className="modal-footer">
-            {selectedTemplate &&
-              (selectedTemplate.serverGroup || !command.viewState.disableNoTemplateSelection) && (
-                <button className="btn btn-primary" onClick={this.useTemplate}>
-                  {selectedTemplate.serverGroup && <span>Use this template</span>}
-                  {!selectedTemplate.serverGroup && <span>Continue without a template</span>}
-                  <span className="glyphicon glyphicon-chevron-right" />
-                </button>
-              )}
+            {(selectedTemplate.serverGroup || !command.viewState.disableNoTemplateSelection) && (
+              <button className="btn btn-primary" onClick={this.useTemplate}>
+                {selectedTemplate.serverGroup && <span>Use this template</span>}
+                {!selectedTemplate.serverGroup && <span>Continue without a template</span>}
+                <span className="glyphicon glyphicon-chevron-right" />
+              </button>
+            )}
           </div>
         </div>
       </div>
