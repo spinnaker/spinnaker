@@ -7,3 +7,4 @@ export * from './expectedArtifact.service';
 export * from './imageSourceSelector.component';
 export * from './react/ExecutionArtifactTab';
 export * from './react/ArtifactIconList';
+export * from './ArtifactTypes';

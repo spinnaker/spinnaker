@@ -7,7 +7,7 @@ import {
   KubernetesManifestCommandBuilder,
 } from '../../../manifest/manifestCommandBuilder.service';
 
-import { ExpectedArtifactService, IExpectedArtifact } from '@spinnaker/core';
+import { ExpectedArtifactService, IExpectedArtifact, ArtifactTypePatterns } from '@spinnaker/core';
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -18,6 +18,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public textSource = 'text';
   public artifactSource = 'artifact';
   public sources = [this.textSource, this.artifactSource];
+  public excludedManifestArtifactPatterns = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
 
   public expectedArtifacts: IExpectedArtifact[];
 

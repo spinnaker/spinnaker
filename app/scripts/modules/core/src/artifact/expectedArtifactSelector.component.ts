@@ -15,14 +15,19 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public helpFieldKey: string;
   public showIcons: boolean;
   public fieldColumns: number;
+  public excludeArtifactTypePatterns: RegExp[];
 
-  private selectedArtifact(): IArtifact | null {
-    const expected = this.expectedArtifacts.find(ea => ea.id === this.id);
+  private artifactFromExpected(expected: IExpectedArtifact): IArtifact | null {
     if (expected) {
       return expected.matchArtifact || expected.defaultArtifact;
     } else {
       return null;
     }
+  }
+
+  private selectedArtifact(): IArtifact | null {
+    const expected = this.expectedArtifacts.find(ea => ea.id === this.id);
+    return this.artifactFromExpected(expected);
   }
 
   private selectedArtifactAccounts(): IArtifactAccount[] {
@@ -39,7 +44,7 @@ class ExpectedArtifactSelectorCtrl implements IController {
   }
 
   public iconPath(expected: IExpectedArtifact): string {
-    const artifact = expected && (expected.matchArtifact || expected.defaultArtifact);
+    const artifact = this.artifactFromExpected(expected);
     if (artifact == null) {
       return '';
     }
@@ -56,6 +61,24 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public showArtifactAccountSelect(): boolean {
     return this.selectedArtifactAccounts().length > 1;
   }
+
+  public getExpectedArtifacts(): IExpectedArtifact[] {
+    let eas = this.expectedArtifacts || [];
+    if (this.excludeArtifactTypePatterns) {
+      eas = eas.filter(ea => {
+        const artifact = this.artifactFromExpected(ea);
+        if (artifact === this.selectedArtifact()) {
+          return true;
+        }
+        if (artifact) {
+          return !this.excludeArtifactTypePatterns.find(patt => patt.test(artifact.type));
+        } else {
+          return false;
+        }
+      });
+    }
+    return eas;
+  }
 }
 
 class ExpectedArtifactSelectorComponent implements IComponentOptions {
@@ -68,6 +91,7 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
     helpFieldKey: '@',
     showIcons: '<',
     fieldColumns: '@',
+    excludeArtifactTypePatterns: '<',
   };
   public controller: any = ExpectedArtifactSelectorCtrl;
   public controllerAs = 'ctrl';
@@ -88,7 +112,7 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
                 ng-src="{{ ctrl.iconPath($select.selected) }}" />
               {{ $select.selected | summarizeExpectedArtifact }}
             </ui-select-match>
-            <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
+            <ui-select-choices repeat="expected.id as expected in ctrl.getExpectedArtifacts()">
               <img
                 ng-if="ctrl.showIcons && ctrl.iconPath(expected)"
                 width="16"
