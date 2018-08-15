@@ -111,6 +111,11 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
   }
 
   @Override
+  protected TimeUnit getPollingIntervalUnit() {
+    return TimeUnit.SECONDS;
+  }
+
+  @Override
   protected String getNotificationType() {
     return "restorePinnedServerGroups";
   }

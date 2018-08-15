@@ -45,13 +45,17 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
 
   protected abstract long getPollingInterval();
 
+  protected TimeUnit getPollingIntervalUnit() {
+    return TimeUnit.MILLISECONDS;
+  }
+
   protected abstract String getNotificationType();
 
   protected abstract void tick();
 
   protected void startPolling() {
     subscription = Observable
-      .timer(getPollingInterval(), TimeUnit.SECONDS, scheduler)
+      .timer(getPollingInterval(), getPollingIntervalUnit(), scheduler)
       .repeat()
       .filter(interval -> tryAcquireLock())
       .subscribe(interval -> {

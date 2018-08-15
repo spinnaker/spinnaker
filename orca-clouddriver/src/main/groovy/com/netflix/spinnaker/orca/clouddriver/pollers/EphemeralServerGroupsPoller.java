@@ -87,6 +87,11 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   }
 
   @Override
+  protected TimeUnit getPollingIntervalUnit() {
+    return TimeUnit.SECONDS;
+  }
+
+  @Override
   protected String getNotificationType() {
     return "ephemeralServerGroups";
   }
