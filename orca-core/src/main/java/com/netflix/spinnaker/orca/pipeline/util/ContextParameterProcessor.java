@@ -38,6 +38,7 @@ import java.util.Optional;
 
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static java.util.Collections.EMPTY_MAP;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -115,6 +116,10 @@ public class ContextParameterProcessor {
 
     if (trigger != null && !trigger.getParameters().isEmpty()) {
       context.put("parameters", trigger.getParameters());
+    } else {
+      if(!context.containsKey("parameters")) {
+        context.put("parameters", EMPTY_MAP);
+      }
     }
 
     if (context.get("buildInfo") instanceof BuildInfo) {

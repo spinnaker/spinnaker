@@ -29,6 +29,7 @@ import org.springframework.expression.spel.SpelEvaluationException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
 import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.SourceControl
@@ -684,9 +685,9 @@ class ContextParameterProcessorSpec extends Specification {
   def 'can operate on List from json'() {
     given:
     def source = [
-      'expression': '${#toJson(parameters["regions"].split(",")).contains("us-west-2")}',
+      'expression': '${#toJson(list["regions"].split(",")).contains("us-west-2")}',
     ]
-    def context = [parameters: [regions: regions]]
+    def context = [list: [regions: regions]]
 
     when:
     def result = contextParameterProcessor.process(source, context, true)
@@ -908,6 +909,26 @@ class ContextParameterProcessorSpec extends Specification {
     then:
     result.status == "SUCCEEDED"
     result.status instanceof String
+  }
+
+  @Unroll
+  def "Correctly evaluates parameters field in the trigger"() {
+    given:
+    Map context = [trigger: new DefaultTrigger("","","", parameters)]
+
+    def source = ['branch': '${parameters["branch"] ?: "noValue"}']
+
+    when:
+    def result = contextParameterProcessor.process(source, context, true)
+
+    then:
+    result.branch == expectedBranch
+
+    where:
+    parameters       || expectedBranch
+    [:]              || "noValue"
+    [notFound:"xyz"] || "noValue"
+    [branch:"hello"] || "hello"
   }
 
   static escapeExpression(String expression) {
