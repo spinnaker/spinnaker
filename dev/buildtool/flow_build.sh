@@ -50,10 +50,11 @@ function run_build_flow() {
   start_command_unless NO_HALYARD "build_halyard" \
       $EXTRA_BUILD_HALYARD_ARGS
 
-  start_command_unless NO_SPIN "build_spin"
+  start_command_unless NO_SPIN "build_spin" \
+      $EXTRA_BOM_COMMAND_ARGS
 
   start_command_unless NO_CHANGELOG "build_changelog" \
-      $EXTRA_BOM_COMMAND_ARGS \
+      $EXTRA_BOM_COMMAND_ARGS
 
   # Synchronize here so we have all the artifacts build before we continue.
   wait_for_commands_or_die "Build"
