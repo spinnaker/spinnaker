@@ -55,7 +55,8 @@ public class JedisPoolFactory {
 
     return new InstrumentedJedisPool(
       registry,
-      new JedisPool(objectPoolConfig, host, port, properties.timeoutMs, password, database, name, isSSL),
+      // Pool name should always be "null", as setting this is incompat with some SaaS Redis offerings
+      new JedisPool(objectPoolConfig, host, port, properties.timeoutMs, password, database, null, isSSL),
       name
     );
   }
