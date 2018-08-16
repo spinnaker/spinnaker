@@ -1,0 +1,10 @@
+[
+  {% for image in results.images %}
+  {
+    {% set split = image.name.split(":") %}
+    "reference": "{{ split[0] }}@{{ image.digest }}",
+    "name": "{{ image.name }}",
+    "version": "{{ image.digest }}",
+    "type": "docker/image"
+  } {% if not loop.last %} , {% endif %} {% endfor %}
+]

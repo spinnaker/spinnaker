@@ -82,6 +82,7 @@ public class GooglePubsubProperties {
   public static enum MessageFormat {
     GCS("/gcs.jinja"),
     GCR("/gcr.jinja"),
+    GCB("/gcb.jinja"),
     CUSTOM();
 
     private String jarPath = "";
