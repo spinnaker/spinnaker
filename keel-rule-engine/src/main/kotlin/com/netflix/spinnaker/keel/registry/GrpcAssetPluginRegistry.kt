@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.plugins
+package com.netflix.spinnaker.keel.registry
 
 import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.keel.api.TypeMetadata

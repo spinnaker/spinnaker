@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.plugins
+package com.netflix.spinnaker.keel.registry
 
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc.AssetPluginBlockingStub

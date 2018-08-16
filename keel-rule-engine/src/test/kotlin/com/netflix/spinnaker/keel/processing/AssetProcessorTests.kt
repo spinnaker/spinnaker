@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.processing
 import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
-import com.netflix.spinnaker.keel.plugins.VetoPluginRegistry
+import com.netflix.spinnaker.keel.registry.VetoPluginRegistry
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock

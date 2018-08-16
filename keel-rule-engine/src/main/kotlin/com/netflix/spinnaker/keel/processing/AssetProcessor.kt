@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.processing
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.fingerprint
 import com.netflix.spinnaker.keel.persistence.AssetRepository
-import com.netflix.spinnaker.keel.plugins.VetoPluginRegistry
+import com.netflix.spinnaker.keel.registry.VetoPluginRegistry
 import org.springframework.stereotype.Component
 
 @Component
