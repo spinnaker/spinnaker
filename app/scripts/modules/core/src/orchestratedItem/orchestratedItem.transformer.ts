@@ -120,21 +120,21 @@ export class OrchestratedItemTransformer {
     const generalException: any = task.getValueFor('exception');
     if (generalException) {
       const details: any = generalException.details;
-      if (details && details.currentLockValueApplication && details.currentLockValueType && details.currentLockValue) {
+      if (details && details.currentLockValue) {
         let typeDisplay: string;
         let linkUrl: string;
 
-        if (details.currentLockValueType === 'orchestration') {
+        if (details.currentLockValue.type === 'orchestration') {
           typeDisplay = 'task';
           linkUrl = ReactInjector.$state.href('home.applications.application.tasks.taskDetails', {
-            application: details.currentLockValueApplication,
-            taskId: details.currentLockValue,
+            application: details.currentLockValue.application,
+            taskId: details.currentLockValue.id,
           });
         } else {
           typeDisplay = 'pipeline';
           linkUrl = ReactInjector.$state.href('home.applications.application.pipelines.executionDetails.execution', {
-            application: details.currentLockValueApplication,
-            executionId: details.currentLockValue,
+            application: details.currentLockValue.application,
+            executionId: details.currentLockValue.id,
           });
         }
 
