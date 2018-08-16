@@ -69,4 +69,9 @@ public interface TaskRepository {
    * @return list of tasks
    */
   List<Task> list()
+
+  /**
+   * Lists all tasks owned by this instance
+   */
+  List<Task> listByThisInstance()
 }

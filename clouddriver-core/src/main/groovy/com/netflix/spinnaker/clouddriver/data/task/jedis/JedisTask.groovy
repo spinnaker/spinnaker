@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.data.task.jedis
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
@@ -30,14 +31,16 @@ class JedisTask implements Task {
 
   final String id
   final long startTimeMs
+  final String ownerId
 
   @JsonIgnore
   final boolean previousRedis
 
-  JedisTask(String id, long startTimeMs, RedisTaskRepository repository, boolean previousRedis) {
+  JedisTask(String id, long startTimeMs, RedisTaskRepository repository, String ownerId, boolean previousRedis) {
     this.id = id
     this.startTimeMs = startTimeMs
     this.repository = repository
+    this.ownerId = ownerId
     this.previousRedis = previousRedis
   }
 
@@ -80,6 +83,11 @@ class JedisTask implements Task {
     } else {
       status
     }
+  }
+
+  @Override
+  String getOwnerId() {
+    return ownerId
   }
 
   @Override

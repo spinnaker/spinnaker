@@ -52,6 +52,11 @@ class InMemoryTaskRepository implements TaskRepository {
     repository.values() as List
   }
 
+  @Override
+  List<Task> listByThisInstance() {
+    return list()
+  }
+
   private String getNextId() {
     while (true) {
       def maybeNext = new BigInteger(new Random().nextInt(Integer.MAX_VALUE)).toString(36)

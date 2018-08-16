@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.dyno.connectionpool.exception.DynoException;
+import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -81,7 +82,7 @@ public class RedisTaskRepository implements TaskRepository {
 
     String taskId = UUID.randomUUID().toString();
 
-    JedisTask task = new JedisTask(taskId, System.currentTimeMillis(), this, false);
+    JedisTask task = new JedisTask(taskId, System.currentTimeMillis(), this, ClouddriverHostname.ID, false);
     addToHistory(DefaultTaskStatus.create(phase, status, TaskState.STARTED), task);
     set(taskId, task);
     Long newTask = retry(() -> redisClientDelegate.withCommandsClient(client -> {
@@ -117,6 +118,7 @@ public class RedisTaskRepository implements TaskRepository {
         taskMap.get("id"),
         Long.parseLong(taskMap.get("startTimeMs")),
         this,
+        taskMap.get("ownerId"),
         oldTask
       );
     }
@@ -154,11 +156,19 @@ public class RedisTaskRepository implements TaskRepository {
     }), "Getting all running tasks");
   }
 
+  @Override
+  public List<Task> listByThisInstance() {
+    return list().stream()
+        .filter(t -> ClouddriverHostname.ID.equals(t.getOwnerId()))
+        .collect(Collectors.toList());
+  }
+
   public void set(String id, JedisTask task) {
     String taskId = "task:" + task.getId();
     Map<String, String> data = new HashMap<>();
     data.put("id", task.getId());
     data.put("startTimeMs", Long.toString(task.getStartTimeMs()));
+    data.put("ownerId", task.getOwnerId());
     retry(() -> redisClientDelegate.withCommandsClient(client -> {
       client.hmset(taskId, data);
       client.expire(taskId, TASK_TTL);

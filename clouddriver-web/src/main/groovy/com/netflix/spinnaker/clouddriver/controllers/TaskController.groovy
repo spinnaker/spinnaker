@@ -19,19 +19,26 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
-import javax.servlet.http.HttpServletRequest
+import javax.annotation.PreDestroy
+import java.util.concurrent.TimeUnit
 
 @RequestMapping("/task")
 @RestController
+@Slf4j
 class TaskController {
   @Autowired
   TaskRepository taskRepository
+
+  @Value('${admin.tasks.shutdownWaitSeconds:-1}')
+  Long shutdownWaitSeconds
 
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   Task get(@PathVariable("id") String id) {
@@ -45,5 +52,21 @@ class TaskController {
   @RequestMapping(method = RequestMethod.GET)
   List<Task> list() {
     taskRepository.list()
+  }
+
+  @PreDestroy
+  public void destroy() {
+    long start = System.currentTimeMillis()
+    def tasks = taskRepository.listByThisInstance()
+    while (tasks && !tasks.isEmpty() &&
+        (System.currentTimeMillis() - start) / TimeUnit.SECONDS.toMillis(1) < shutdownWaitSeconds) {
+      log.info("There are {} task(s) still running... sleeping before shutting down", tasks.size())
+      sleep(1000)
+      tasks = taskRepository.listByThisInstance()
+    }
+
+    if (tasks && !tasks.isEmpty()) {
+      log.error("Shutting down while tasks '{}' are still in progress!", tasks)
+    }
   }
 }

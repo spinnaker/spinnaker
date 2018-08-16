@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.data.task
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 
@@ -28,9 +29,14 @@ public class DefaultTask implements Task {
   private static final Logger log = Logger.getLogger(DefaultTask.name)
 
   final String id
+  final String ownerId = ClouddriverHostname.ID
   private final Deque<Status> statusHistory = new ConcurrentLinkedDeque<Status>()
   private final Deque<Object> resultObjects = new ConcurrentLinkedDeque<Object>()
   final long startTimeMs = System.currentTimeMillis()
+
+  public String getOwnerId() {
+    return ownerId
+  }
 
   public DefaultTask(String id) {
     this(id, 'INIT', "Creating task ${id}")

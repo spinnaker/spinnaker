@@ -45,6 +45,11 @@ public interface Task {
   List<? extends Status> getHistory()
 
   /**
+   * The id of the clouddriver instance that submitted this task
+    */
+  String getOwnerId()
+
+  /**
    * This method is used to update the status of the Task with given phase and status strings.
    * @param phase
    * @param status

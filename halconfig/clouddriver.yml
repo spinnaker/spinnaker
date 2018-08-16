@@ -1,5 +1,7 @@
 # halconfig
 
+admin.tasks.shutdownWaitSeconds: 600 # 10 minutes
+
 server:
   port: ${services.clouddriver.port:7002}
   address: ${services.clouddriver.host:localhost}
