@@ -68,14 +68,13 @@ public class DeleteImageTask extends AbstractCloudProviderAwareTask implements R
     TaskId taskId = katoService
       .requestOperations(deleteImageRequest.getCloudProvider(), operations).toBlocking().first();
 
-    Map<String, Object> outputs = ImmutableMap.<String, Object>builder()
-      .put("notification.type", "deleteImage")
-      .put("kato.last.task.id", taskId)
-      .put("delete.region", deleteImageRequest.getRegion())
-      .put("delete.account.name", deleteImageRequest.getCredentials())
-      .build();
+    Map<String, Object> outputs = new HashMap<>();
+    outputs.put("notification.type", "deleteImage");
+    outputs.put("kato.last.task.id", taskId);
+    outputs.put("delete.region", deleteImageRequest.getRegion());
+    outputs.put("delete.account.name", deleteImageRequest.getCredentials());
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, stage.getContext(), outputs);
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }
 
   private void validateInputs(DeleteImageStage.DeleteImageRequest createIssueRequest) {
