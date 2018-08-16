@@ -94,7 +94,14 @@ export class ConfigurePipelineTemplateModalController implements IController {
     const config = this.buildConfig();
     return PipelineTemplateReader.getPipelinePlan(config)
       .then(plan => {
-        this.$uibModalInstance.close({ plan, config });
+        const { parameterConfig, expectedArtifacts, triggers } = plan;
+        const inherited = {
+          ...config,
+          ...(this.state.inheritTemplateParameters && parameterConfig ? { parameterConfig } : {}),
+          ...(this.state.inheritTemplateExpectedArtifacts && expectedArtifacts ? { expectedArtifacts } : {}),
+          ...(this.state.inheritTemplateTriggers && triggers ? { triggers } : {}),
+        };
+        this.$uibModalInstance.close({ plan, config: inherited });
       })
       .catch((response: IHttpPromiseCallbackArg<IPipelineTemplatePlanResponse>) => {
         Object.assign(this.state, { loading: false, error: true, planErrors: response.data && response.data.errors });
