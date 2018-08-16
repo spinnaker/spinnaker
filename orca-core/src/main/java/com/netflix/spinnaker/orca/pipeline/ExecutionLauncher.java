@@ -184,6 +184,7 @@ public class ExecutionLauncher {
       .withNotifications((List<Map<String, Object>>) config.get("notifications"))
       .withOrigin(getString(config, "origin"))
       .withStartTimeExpiry(getString(config, "startTimeExpiry"))
+      .withSource(objectMapper.convertValue(config.get("source"), Execution.PipelineSource.class))
       .build();
   }
 

@@ -83,6 +83,11 @@ public class PipelineBuilder {
     return this;
   }
 
+  public PipelineBuilder withSource(Execution.PipelineSource source) {
+    pipeline.setSource(source);
+    return this;
+  }
+
   public PipelineBuilder withStartTimeExpiry(String startTimeExpiry) {
     if (startTimeExpiry != null) {
       pipeline.setStartTimeExpiry(Long.valueOf(startTimeExpiry));
