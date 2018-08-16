@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.netflix.spinnaker.clouddriver.core.CloudProvider;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
 
-import java.lang.annotation.Annotation;
+import static java.util.Collections.emptySet;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@Component
-public class CloudFoundryCloudProvider implements CloudProvider {
-  public static String ID = "cloudfoundry";
+class CloudFoundryClusterTest {
+  private CloudFoundryCluster cluster = new CloudFoundryCluster("dev", "app-dev-detail", emptySet(), emptySet());
 
-  @Override
-  public String getId() {
-    return ID;
+  @Test
+  void getStack() {
+    assertThat(cluster.getStack()).isEqualTo("dev");
   }
 
-  @Override
-  public String getDisplayName() {
-    return "Cloud Foundry";
-  }
-
-  @Override
-  public Class<? extends Annotation> getOperationAnnotationType() {
-    return CloudFoundryOperation.class;
+  @Test
+  void getDetail() {
+    assertThat(cluster.getDetail()).isEqualTo("detail");
   }
 }

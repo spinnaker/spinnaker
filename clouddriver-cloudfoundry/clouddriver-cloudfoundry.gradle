@@ -1,3 +1,7 @@
+test {
+  useJUnitPlatform()
+}
+
 dependencies {
   compile project(":clouddriver-artifacts")
   compile project(":clouddriver-core")
@@ -10,7 +14,9 @@ dependencies {
   compile spinnaker.dependency('lombok')
 
   spinnaker.group('retrofitDefault')
-  spinnaker.group('test')
+
+  testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+  testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
 
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version("jackson")}"
 }

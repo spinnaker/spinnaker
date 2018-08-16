@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.netflix.spinnaker.clouddriver.core.CloudProvider;
-import org.springframework.stereotype.Component;
+/*
+ * A package is an application’s ‘source code’; either raw bits for your application or a pointer to these bits.
+ */
+public class CloudFoundryPackage {
+  /*
+   * This endpoint downloads the bits of an existing package.
+   */
+  private String downloadUrl;
 
-import java.lang.annotation.Annotation;
-
-@Component
-public class CloudFoundryCloudProvider implements CloudProvider {
-  public static String ID = "cloudfoundry";
-
-  @Override
-  public String getId() {
-    return ID;
+  public String getDownloadUrl() {
+    return downloadUrl;
   }
 
-  @Override
-  public String getDisplayName() {
-    return "Cloud Foundry";
-  }
-
-  @Override
-  public Class<? extends Annotation> getOperationAnnotationType() {
-    return CloudFoundryOperation.class;
+  public void setDownloadUrl(String downloadUrl) {
+    this.downloadUrl = downloadUrl;
   }
 }

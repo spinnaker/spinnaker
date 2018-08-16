@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.netflix.spinnaker.clouddriver.core.CloudProvider;
-import org.springframework.stereotype.Component;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.lang.annotation.Annotation;
-
-@Component
-public class CloudFoundryCloudProvider implements CloudProvider {
-  public static String ID = "cloudfoundry";
-
-  @Override
-  public String getId() {
-    return ID;
-  }
-
-  @Override
-  public String getDisplayName() {
-    return "Cloud Foundry";
-  }
-
-  @Override
-  public Class<? extends Annotation> getOperationAnnotationType() {
-    return CloudFoundryOperation.class;
-  }
+@AllArgsConstructor
+@Getter
+class CloudFoundryServiceInstance {
+  private final String serviceName;
+  private final String name;
+  private final String plan;
 }

@@ -69,7 +69,7 @@ public interface Cluster {
    */
   @Empty
   @JsonSerialize(nullsUsing = NullCollectionSerializer.class)
-  Set<ServerGroup> getServerGroups();
+  Set<? extends ServerGroup> getServerGroups();
 
   /**
    * A set of {@link LoadBalancer} objects that are associated with this cluster
@@ -79,7 +79,7 @@ public interface Cluster {
   @Empty
   @JsonSerialize(nullsUsing = NullCollectionSerializer.class)
   // TODO(ttomsu): Why are load balancers associated with Clusters instead of ServerGroups?
-  Set<LoadBalancer> getLoadBalancers();
+  Set<? extends LoadBalancer> getLoadBalancers();
 
   @Data
   @NoArgsConstructor

@@ -101,7 +101,7 @@ public interface ServerGroup {
    * @return set of instances or an empty set if none exist
    */
   @Empty
-  Set<Instance> getInstances();
+  Set<? extends Instance> getInstances();
 
   /**
    * The names of the load balancers associated with this server group
