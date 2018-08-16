@@ -26,7 +26,7 @@ class ExpectedArtifactSelectorCtrl implements IController {
   }
 
   private selectedArtifact(): IArtifact | null {
-    const expected = this.expectedArtifacts.find(ea => ea.id === this.id);
+    const expected = (this.expectedArtifacts || []).find(ea => ea.id === this.id);
     return this.artifactFromExpected(expected);
   }
 
