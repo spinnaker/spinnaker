@@ -949,6 +949,10 @@ def init_argument_parser(parser, defaults):
            ' to help trace the source of resources created within the'
            ' tests.')
 
+  add_parser_argument(
+      parser, 'test_jenkins_job_name', defaults, 'TriggerBake',
+      help='The Jenkins job name to use in tests.')
+
 
 def validate_options(options):
   """Validate testing related command-line parameters."""
