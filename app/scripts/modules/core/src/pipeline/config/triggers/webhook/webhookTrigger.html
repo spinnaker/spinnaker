@@ -22,9 +22,9 @@
       <map-editor model="ctrl.trigger.payloadConstraints" add-button-label="Add payload constraint"></map-editor>
     </div>
   </div>
-  <div class="form-group" ng-if="$ctrl.fiatEnabled">
-    <run-as-user-selector service-accounts="$ctrl.serviceAccounts"
-                          component="$ctrl.trigger"
+  <div class="form-group" ng-if="ctrl.fiatEnabled">
+    <run-as-user-selector service-accounts="ctrl.serviceAccounts"
+                          component="ctrl.trigger"
                           field="runAsUser">
     </run-as-user-selector>
   </div>
