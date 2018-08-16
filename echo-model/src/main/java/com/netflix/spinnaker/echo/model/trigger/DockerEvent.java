@@ -1,11 +1,11 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,20 +17,28 @@
 package com.netflix.spinnaker.echo.model.trigger;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PubsubEvent extends TriggerEvent {
+public class DockerEvent extends TriggerEvent {
+  public static final String TYPE = "DOCKER";
 
-  public static final String TYPE = "pubsub";
-
-  private Content content;
+  Content content;
 
   @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Content {
-    private MessageDescription messageDescription;
+    private String account;
+    private String registry;
+    private String repository;
+    private String tag;
+    private String digest;
   }
 }

@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.model.trigger
+package com.netflix.spinnaker.echo.model.trigger;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import groovy.transform.Canonical
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Canonical
+import java.util.Map;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-class WebhookEvent extends TriggerEvent {
-  public static final String TYPE = "WEBHOOK"
-  Map content
+public class WebhookEvent extends TriggerEvent {
+  public static final String TYPE = "WEBHOOK";
+  private Map content;
 }

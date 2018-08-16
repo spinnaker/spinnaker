@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.model
+package com.netflix.spinnaker.echo.model;
 
-import org.springframework.http.HttpHeaders
+import java.util.Date;
+import java.util.Map;
+
+import lombok.*;
+import org.springframework.http.HttpHeaders;
 
 /**
  * Represents event metadata
  */
-@SuppressWarnings('PropertyName')
-class Metadata {
-    String source
-    String type
-    String created = new Date().time
-    String organization
-    String project
-    String application
-    String _content_id
-    Map attributes
-    HttpHeaders requestHeaders = new HttpHeaders()
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Metadata {
+    private String source;
+    private String type;
+    private String created = Long.toString(new Date().getTime());
+    private String organization;
+    private String project;
+    private String application;
+    private String _content_id;
+    private Map attributes;
+    private HttpHeaders requestHeaders = new HttpHeaders();
 }
