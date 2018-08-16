@@ -41,6 +41,7 @@ import com.netflix.spinnaker.gate.services.internal.MineService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.gate.services.internal.RoscoService
+import com.netflix.spinnaker.gate.services.internal.SwabbieService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
@@ -210,6 +211,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @ConditionalOnProperty('services.kayenta.enabled')
   KayentaService kayentaService(OkHttpClient okHttpClient) {
     createClient "kayenta", KayentaService, okHttpClient
+  }
+
+  @Bean
+  @ConditionalOnProperty('services.swabbie.enabled')
+  SwabbieService swabbieService(OkHttpClient okHttpClient) {
+    createClient("swabbie", SwabbieService, okHttpClient)
   }
 
   private <T> T createClient(String serviceName,
