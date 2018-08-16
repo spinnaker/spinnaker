@@ -48,7 +48,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
     return errors;
   }
 
-  public refreshLoadBalancers(): void {
+  public refreshLoadBalancers = () => {
     this.setState({ refreshing: true });
     AwsReactInjector.awsServerGroupConfigurationService.refreshLoadBalancers(this.props.values).then(() => {
       this.setState({
@@ -56,7 +56,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
         refreshed: true,
       });
     });
-  }
+  };
 
   public clearWarnings(key: 'loadBalancers' | 'targetGroups'): void {
     this.props.values.viewState.dirty[key] = null;
@@ -208,7 +208,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
             )}
           </div>
         )}
-        {refreshed && (
+        {!refreshed && (
           <div className="form-group small" style={{ marginTop: '20px' }}>
             <div className="col-md-8 col-md-offset-4">
               {refreshing && (
@@ -222,7 +222,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
                   If you are looking for a load balancer or target group from a different application, <br />
                   <a className="clickable" onClick={this.refreshLoadBalancers}>
                     click here
-                  </a>
+                  </a>{' '}
                   to load all load balancers.
                 </p>
               )}
