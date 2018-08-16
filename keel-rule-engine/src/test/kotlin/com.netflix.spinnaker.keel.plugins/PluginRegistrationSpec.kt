@@ -65,7 +65,7 @@ internal object PluginRegistrationSpec : Spek({
 
   describe("registering an asset plugin") {
     given("no plugin is registered for an asset type") {
-      val subject = AssetPluginRegistry(eurekaClient)
+      val subject = GrpcAssetPluginRegistry(eurekaClient)
       it("no stub is returned for an unknown asset type") {
         subject.pluginFor(type).let {
           expect(it).isNull()
@@ -74,7 +74,7 @@ internal object PluginRegistrationSpec : Spek({
     }
 
     given("a plugin is registered for an asset type") {
-      val subject = AssetPluginRegistry(eurekaClient)
+      val subject = GrpcAssetPluginRegistry(eurekaClient)
       val responseHandler: StreamObserver<RegisterAssetPluginResponse> = mock()
 
       afterGroup { reset(responseHandler) }
@@ -113,7 +113,7 @@ internal object PluginRegistrationSpec : Spek({
     val vetoCallback: (VetoPluginBlockingStub) -> Any = mock()
 
     given("no plugins are registered") {
-      val subject = VetoPluginRegistry(eurekaClient)
+      val subject = GrpcVetoPluginRegistry(eurekaClient)
 
       afterGroup { reset(vetoCallback) }
 
@@ -127,7 +127,7 @@ internal object PluginRegistrationSpec : Spek({
     }
 
     given("a plugin is registered for an asset type") {
-      val subject = VetoPluginRegistry(eurekaClient)
+      val subject = GrpcVetoPluginRegistry(eurekaClient)
       val responseHandler: StreamObserver<RegisterVetoPluginResponse> = mock()
 
       afterGroup { reset(responseHandler, vetoCallback) }

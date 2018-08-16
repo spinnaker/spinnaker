@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.keel.model
 
+import com.google.common.hash.HashCode
+import com.google.common.hash.Hashing
+
 /**
  * Internal representation of an asset.
  */
@@ -27,3 +30,6 @@ data class Asset(
 data class AssetId(
   val value: String
 )
+
+val Asset.fingerprint: HashCode
+  get() = Hashing.murmur3_128().hashBytes(spec)
