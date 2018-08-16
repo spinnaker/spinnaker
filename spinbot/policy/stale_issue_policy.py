@@ -8,7 +8,7 @@ class StaleIssuePolicy(Policy):
         self.stale_days = self.config.get('stale_days')
         self.count = 0
         if not self.stale_days:
-            self.stale_days = 90
+            self.stale_days = 45
 
     def applies(self, o):
         return ObjectType(o) == 'issue'
