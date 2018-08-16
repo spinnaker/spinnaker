@@ -6,6 +6,8 @@ import { ArtifactIconService } from './ArtifactIconService';
 
 import './artifactSelector.less';
 
+type IExpectedArtifactFilter = (ea: IExpectedArtifact, a: IArtifact) => boolean;
+
 class ExpectedArtifactSelectorCtrl implements IController {
   public command: any;
   public id: string;
@@ -15,7 +17,8 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public helpFieldKey: string;
   public showIcons: boolean;
   public fieldColumns: number;
-  public excludeArtifactTypePatterns: RegExp[];
+  public offeredArtifactTypes: RegExp[];
+  public excludedArtifactTypes: RegExp[];
 
   private artifactFromExpected(expected: IExpectedArtifact): IArtifact | null {
     if (expected) {
@@ -37,6 +40,16 @@ class ExpectedArtifactSelectorCtrl implements IController {
     }
     const filteredAccounts = this.accounts.filter(acc => acc.types.includes(artifact.type));
     return filteredAccounts;
+  }
+
+  private filterExpectedArtifacts(fn: IExpectedArtifactFilter): IExpectedArtifact[] {
+    return (this.expectedArtifacts || []).filter(ea => {
+      const artifact = this.artifactFromExpected(ea);
+      if (!artifact) {
+        return false;
+      }
+      return fn(ea, artifact);
+    });
   }
 
   public $onInit() {
@@ -63,21 +76,17 @@ class ExpectedArtifactSelectorCtrl implements IController {
   }
 
   public getExpectedArtifacts(): IExpectedArtifact[] {
-    let eas = this.expectedArtifacts || [];
-    if (this.excludeArtifactTypePatterns) {
-      eas = eas.filter(ea => {
-        const artifact = this.artifactFromExpected(ea);
-        if (artifact === this.selectedArtifact()) {
-          return true;
-        }
-        if (artifact) {
-          return !this.excludeArtifactTypePatterns.find(patt => patt.test(artifact.type));
-        } else {
-          return false;
-        }
-      });
-    }
-    return eas;
+    return this.filterExpectedArtifacts((_expectedArtifact, artifact) => {
+      let isIncluded = true;
+      let isExcluded = false;
+      if (this.offeredArtifactTypes && this.offeredArtifactTypes.length > 0) {
+        isIncluded = !!this.offeredArtifactTypes.find(patt => patt.test(artifact.type));
+      }
+      if (this.excludedArtifactTypes && this.excludedArtifactTypes.length > 0) {
+        isExcluded = !!this.excludedArtifactTypes.find(patt => patt.test(artifact.type));
+      }
+      return isIncluded && !isExcluded;
+    });
   }
 }
 
@@ -91,7 +100,8 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
     helpFieldKey: '@',
     showIcons: '<',
     fieldColumns: '@',
-    excludeArtifactTypePatterns: '<',
+    offeredArtifactTypes: '<',
+    excludedArtifactTypes: '<',
   };
   public controller: any = ExpectedArtifactSelectorCtrl;
   public controllerAs = 'ctrl';

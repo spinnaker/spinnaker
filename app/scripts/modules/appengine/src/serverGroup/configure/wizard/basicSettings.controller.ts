@@ -2,7 +2,7 @@ import { extend, IController, IControllerService, IScope, module } from 'angular
 import { StateService } from '@uirouter/angularjs';
 import { set } from 'lodash';
 
-import { SETTINGS } from '@spinnaker/core';
+import { SETTINGS, ArtifactTypePatterns } from '@spinnaker/core';
 
 import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
 import { AppengineSourceType, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
@@ -13,6 +13,7 @@ interface IAppengineBasicSettingsScope extends IScope {
 
 class AppengineServerGroupBasicSettingsCtrl implements IController {
   public containerImageUrlEnabled = SETTINGS.providers.appengine.defaults.containerImageUrlDeployments;
+  public containerImageArtifactTypes: RegExp[];
 
   constructor(
     public $scope: IAppengineBasicSettingsScope,
@@ -35,6 +36,7 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
     if (!this.$scope.command.gitCredentialType) {
       this.onAccountChange();
     }
+    this.containerImageArtifactTypes = [ArtifactTypePatterns.DOCKER_IMAGE];
   }
 
   public isGitSource(): boolean {
