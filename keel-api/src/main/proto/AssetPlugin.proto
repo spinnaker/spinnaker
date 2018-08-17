@@ -9,11 +9,15 @@ import "google/protobuf/empty.proto";
 import "Asset.proto";
 
 service AssetPlugin {
-  rpc current(Asset) returns (Asset);
+  rpc current (Asset) returns (CurrentResponse);
 
-  rpc plan(Asset) returns (PlanResponse);
+  rpc plan (Asset) returns (PlanResponse);
 
-  rpc converge(Asset) returns (ConvergeResponse);
+  rpc converge (Asset) returns (ConvergeResponse);
+}
+
+message CurrentResponse {
+  Asset asset = 1;
 }
 
 message PlanResponse {

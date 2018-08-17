@@ -24,7 +24,8 @@ import strikt.api.Assertion
 import strikt.api.expect
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import strikt.protobuf.isEmpty
+import strikt.assertions.isFalse
+import strikt.assertions.isTrue
 import strikt.protobuf.unpack
 import strikt.protobuf.unpacksTo
 import java.util.*
@@ -94,7 +95,7 @@ internal object AmazonAssetPluginSpec : Spek({
       }
 
       Then("returns null") {
-        expect(response.spec).isEmpty()
+        expect(response.hasAsset()).isFalse()
       }
     }
 
@@ -127,10 +128,13 @@ internal object AmazonAssetPluginSpec : Spek({
       }
 
       Then("returns the existing security group") {
-        expect(response.spec)
-          .unpacksTo<SecurityGroup>()
-          .unpack<SecurityGroup>()
-          .isEqualTo(securityGroup)
+        expect(response) {
+          map { it.hasAsset() }.isTrue()
+          map { it.asset.spec }
+            .unpacksTo<SecurityGroup>()
+            .unpack<SecurityGroup>()
+            .isEqualTo(securityGroup)
+        }
       }
     }
   }

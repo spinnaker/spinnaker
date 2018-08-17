@@ -31,7 +31,7 @@ internal object TestAssetPluginSpec : Spek({
       grpc.withChannel {
         val response = it.current(request)
 
-        expect(response).isEqualTo(request)
+        expect(response.asset).isEqualTo(request)
       }
     }
   }

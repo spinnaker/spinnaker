@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.aws
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
+import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.aws.SecurityGroupRule.RuleCase.CIDRRULE
 import com.netflix.spinnaker.keel.aws.SecurityGroupRule.RuleCase.HTTPRULE
 import com.netflix.spinnaker.keel.aws.SecurityGroupRule.RuleCase.REFERENCERULE
@@ -35,7 +36,7 @@ class AmazonAssetPlugin(
     TypeMetadata.newBuilder().setApiVersion("1.0").setKind(kind).build()
   }
 
-  override fun current(request: Asset, responseObserver: StreamObserver<Asset>) {
+  override fun current(request: Asset, responseObserver: StreamObserver<CurrentResponse>) {
     val asset = when {
       request.spec.isA<SecurityGroup>() -> {
         val spec: SecurityGroup = request.spec.unpack()
@@ -45,11 +46,12 @@ class AmazonAssetPlugin(
     }
 
     with(responseObserver) {
-      if (asset != null) {
-        onNext(asset.toProto(request))
-      } else {
-        onNext(null)
-      }
+      onNext(CurrentResponse
+        .newBuilder()
+        .also {
+          it.asset = asset?.toProto(request)
+        }
+        .build())
       onCompleted()
     }
   }

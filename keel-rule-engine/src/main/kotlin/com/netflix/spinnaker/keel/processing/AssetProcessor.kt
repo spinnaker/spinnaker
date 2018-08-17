@@ -13,7 +13,7 @@ class AssetProcessor(
 ) {
   fun checkAsset(id: AssetId) {
     repository.get(id)?.also { desired ->
-      assetService.current(desired).also { current ->
+      assetService.current(desired)?.also { current ->
         if (desired.fingerprint != current.fingerprint) {
           if (vetoService.allow(desired)) {
             assetService.converge(desired)
