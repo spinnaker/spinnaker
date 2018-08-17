@@ -15,4 +15,6 @@ export interface IExecutionTrigger {
   dryRun?: boolean;
   artifacts?: IArtifact[];
   resolvedExpectedArtifacts?: IExpectedArtifact[];
+  link?: string;
+  linkText?: string;
 }
