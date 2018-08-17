@@ -5,6 +5,8 @@
     {% endfor %}
   ],
 
+  "terminationGracePeriodSeconds": {{ terminationGracePeriodSeconds }},
+
   "volumes": [
     {% for volume in volumes %}
     {{ volume }} {% if not loop.last %} , {% endif %}

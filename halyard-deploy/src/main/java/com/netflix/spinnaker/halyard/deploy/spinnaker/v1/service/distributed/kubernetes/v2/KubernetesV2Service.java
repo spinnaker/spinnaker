@@ -50,6 +50,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,12 +68,28 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   ObjectMapper getObjectMapper();
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
 
+  default int terminationGracePeriodSeconds() {
+    return 60;
+  }
+
+  default String shutdownScriptFile() {
+    return "/opt/spinnaker/scripts/shutdown.sh";
+  }
+
   default boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
     return true;
   }
 
   default List<String> getReadinessExecCommand(ServiceSettings settings) {
     return Arrays.asList("wget", "--spider", "-q", settings.getScheme() + "://localhost:" + settings.getPort() + settings.getHealthEndpoint());
+  }
+
+  default boolean hasPreStopCommand() {
+    return false;
+  }
+
+  default List<String> getPreStopCommand(ServiceSettings settings) {
+    return hasPreStopCommand() ? Arrays.asList("bash", shutdownScriptFile()): Collections.EMPTY_LIST;
   }
 
   default String getRootHomeDirectory() {
@@ -149,6 +166,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
     TemplatedResource podSpec = new JinjaJarResource("/kubernetes/manifests/podSpec.yml")
         .addBinding("containers", containers)
+        .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
         .addBinding("volumes", volumes);
 
     return new JinjaJarResource("/kubernetes/manifests/deployment.yml")
@@ -178,6 +196,14 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       probe.addBinding("port", settings.getPort());
     }
 
+    String lifecycle = "{}";
+    List<String> preStopCommand = getPreStopCommand(settings);
+    if (!preStopCommand.isEmpty()) {
+      TemplatedResource lifecycleResource = new JinjaJarResource("/kubernetes/manifests/lifecycle.yml");
+      lifecycleResource.addBinding("command", getPreStopCommand(settings));
+      lifecycle = lifecycleResource.toString();
+    }
+
     CustomSizing customSizing = details.getDeploymentConfiguration().getDeploymentEnvironment().getCustomSizing();
     TemplatedResource resources = new JinjaJarResource("/kubernetes/manifests/resources.yml");
     if (customSizing != null) {
@@ -194,6 +220,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     container.addBinding("port", settings.getPort());
     container.addBinding("volumeMounts", volumeMounts);
     container.addBinding("probe", probe.toString());
+    container.addBinding("lifecycle", lifecycle);
     container.addBinding("env", env);
     container.addBinding("resources", resources.toString());
 

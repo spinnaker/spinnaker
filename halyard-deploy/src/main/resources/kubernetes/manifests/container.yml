@@ -15,6 +15,8 @@
     {% endfor %}
   ],
 
+  "lifecycle": {{ lifecycle }},
+
   "env": [
     {% for key, value in env.items() %}
     {
