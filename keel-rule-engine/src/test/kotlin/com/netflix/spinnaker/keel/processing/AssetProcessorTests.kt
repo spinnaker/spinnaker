@@ -43,7 +43,7 @@ internal class AssetProcessorTests {
   }
 
   @Test
-  fun `no action is taken if something vetos it`() {
+  fun `no action is taken if something vetoes it`() {
     whenever(assetService.current(desired)) doReturn desired.copy(spec = randomBytes())
     whenever(vetoService.allow(desired)) doReturn false
 

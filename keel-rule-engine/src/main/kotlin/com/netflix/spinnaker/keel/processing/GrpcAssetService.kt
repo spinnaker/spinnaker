@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.keel.processing
 
-import com.google.protobuf.ByteString
-import com.netflix.spinnaker.keel.api.TypeMetadata
+import com.netflix.spinnaker.keel.grpc.fromProto
+import com.netflix.spinnaker.keel.grpc.toProto
+import com.netflix.spinnaker.keel.grpc.toTypeMetaData
 import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.registry.GrpcAssetPluginRegistry
 import com.netflix.spinnaker.keel.registry.UnsupportedAssetType
 import org.springframework.stereotype.Component
@@ -31,35 +31,4 @@ class GrpcAssetService(
   override fun converge(asset: Asset) {
     TODO("not implemented")
   }
-
-  private fun Asset.toProto(): AssetProto =
-    AssetProto
-      .newBuilder()
-      .also {
-        it.typeMetadata = toTypeMetaData()
-        it.addDependsOn(id.toProto())
-        it.specBuilder.value = ByteString.copyFrom(spec)
-      }
-      .build()
-
-  private fun AssetId.toProto(): AssetIdProto =
-    AssetIdProto.newBuilder().setValue(value).build()
-
-  private fun Asset.toTypeMetaData(): TypeMetadata =
-    TypeMetadata
-      .newBuilder()
-      .also {
-        it.apiVersion = apiVersion
-        it.kind = kind
-      }
-      .build()
-
-  private fun AssetProto.fromProto(): Asset =
-    Asset(
-      id = AssetId(id.value),
-      apiVersion = typeMetadata.apiVersion,
-      kind = typeMetadata.kind,
-      dependsOn = dependsOnList.map { AssetId(it.value) }.toSet(),
-      spec = spec.value.toByteArray()
-    )
 }
