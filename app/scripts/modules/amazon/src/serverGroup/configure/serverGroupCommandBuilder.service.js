@@ -263,6 +263,7 @@ module.exports = angular
             useSimpleCapacity: serverGroup.asg.minSize === serverGroup.asg.maxSize,
             usePreferredZones: usePreferredZones,
             mode: mode,
+            submitButtonLabel: getSubmitButtonLabel(mode),
             isNew: false,
             dirty: {},
           },
