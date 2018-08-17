@@ -66,8 +66,13 @@ export class ConfigurePipelineTemplateModalController implements IController {
   }
 
   public initialize(): void {
-    this.pipelineName = this.pipelineTemplateConfig.config.pipeline.name;
-    this.source = this.pipelineTemplateConfig.config.pipeline.template.source;
+    const { config } = this.pipelineTemplateConfig;
+    const inherit: string[] = (config.configuration || { inherit: [] }).inherit;
+    this.state.inheritTemplateExpectedArtifacts = inherit.includes('expectedArtifacts');
+    this.state.inheritTemplateParameters = inherit.includes('parameters');
+    this.state.inheritTemplateTriggers = inherit.includes('triggers');
+    this.pipelineName = config.pipeline.name;
+    this.source = config.pipeline.template.source;
     this.loadTemplate()
       .then(() => {
         this.groupVariableMetadata();
