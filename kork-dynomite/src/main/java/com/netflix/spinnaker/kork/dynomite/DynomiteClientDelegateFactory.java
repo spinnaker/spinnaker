@@ -24,6 +24,8 @@ import com.netflix.discovery.DiscoveryClient;
 import com.netflix.dyno.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegateFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 
 import java.io.IOException;
@@ -34,6 +36,8 @@ import static com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver.D
 import static java.lang.String.format;
 
 public class DynomiteClientDelegateFactory implements RedisClientDelegateFactory<DynomiteClientDelegate> {
+
+  private static final Logger log = LoggerFactory.getLogger(DynomiteClientDelegateFactory.class);
 
   private ObjectMapper objectMapper;
   private Optional<DiscoveryClient> discoveryClient;
@@ -69,10 +73,9 @@ public class DynomiteClientDelegateFactory implements RedisClientDelegateFactory
     Map<String, Object> props = new HashMap<>(properties);
 
     Map<String, Object> springHosts = (Map<String, Object>) properties.get("hosts");
-    if (springHosts == null) {
-      throw new BeanCreationException("Dynomite hosts must be set");
+    if (springHosts != null) {
+      props.put("hosts", new ArrayList<>(springHosts.values()));
     }
-    props.put("hosts", new ArrayList<>(springHosts.values()));
 
     ObjectMapper mapper = objectMapper.copy();
     SimpleModule simpleModule = new SimpleModule();
