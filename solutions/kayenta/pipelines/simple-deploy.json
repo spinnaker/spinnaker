@@ -1,0 +1,228 @@
+{
+  "name": "Simple deploy",
+  "application": "sampleapp",
+  "appConfig": {},
+  "description": "This pipeline deploys the sample application in Kubernetes in the most simple way possible, with no checks.\nYou can choose the success rate of the application.",
+  "executionEngine": "v2",
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "parallel": true,
+  "parameterConfig": [
+    {
+      "description": "Success rate of the application",
+      "hasOptions": true,
+      "label": "Success Rate",
+      "name": "successRate",
+      "options": [
+        {
+          "value": "0"
+        },
+        {
+          "value": "10"
+        },
+        {
+          "value": "20"
+        },
+        {
+          "value": "30"
+        },
+        {
+          "value": "40"
+        },
+        {
+          "value": "50"
+        },
+        {
+          "value": "60"
+        },
+        {
+          "value": "70"
+        },
+        {
+          "value": "80"
+        },
+        {
+          "value": "90"
+        },
+        {
+          "value": "100"
+        }
+      ],
+      "required": true
+    }
+  ],
+  "stages": [
+    {
+      "account": "my-kubernetes-account",
+      "cloudProvider": "kubernetes",
+      "kinds": [],
+      "labelSelectors": {
+        "selectors": []
+      },
+      "location": "",
+      "manifestArtifactAccount": "embedded-artifact",
+      "manifests": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "labels": {
+              "app": "sampleapp"
+            },
+            "name": "sampleapp",
+            "namespace": "default"
+          },
+          "spec": {
+            "replicas": 4,
+            "selector": {
+              "matchLabels": {
+                "app": "sampleapp",
+                "version": "prod"
+              }
+            },
+            "template": {
+              "metadata": {
+                "annotations": {
+                  "prometheus.io/scrape": "true"
+                },
+                "labels": {
+                  "app": "sampleapp",
+                  "version": "prod"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "env": [
+                      {
+                        "name": "SUCCESS_RATE",
+                        "valueFrom": {
+                          "configMapKeyRef": {
+                            "key": "SUCCESS_RATE",
+                            "name": "sampleapp-config-prod"
+                          }
+                        }
+                      }
+                    ],
+                    "image": "gcr.io/spinnaker-marketplace/sampleapp:latest",
+                    "name": "sampleapp",
+                    "ports": [
+                      {
+                        "containerPort": 8000
+                      },
+                      {
+                        "containerPort": 8080
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "apiVersion": "v1",
+          "kind": "Service",
+          "metadata": {
+            "labels": {
+              "app": "sampleapp"
+            },
+            "name": "sampleapp",
+            "namespace": "default"
+          },
+          "spec": {
+            "ports": [
+              {
+                "name": "metrics",
+                "port": 8000,
+                "protocol": "TCP",
+                "targetPort": 8000
+              },
+              {
+                "name": "http",
+                "port": 8080,
+                "protocol": "TCP",
+                "targetPort": 8080
+              }
+            ],
+            "selector": {
+              "app": "sampleapp"
+            },
+            "type": "ClusterIP"
+          }
+        }
+      ],
+      "moniker": {
+        "app": "sampleapp"
+      },
+      "name": "Deploy",
+      "options": {
+        "cascading": true
+      },
+      "refId": "1",
+      "relationships": {
+        "loadBalancers": [],
+        "securityGroups": []
+      },
+      "requiredArtifactIds": [
+        "f5b81bd7-fe4d-4888-b424-c3870c38a9aa"
+      ],
+      "requisiteStageRefIds": [
+        "2"
+      ],
+      "source": "text",
+      "type": "deployManifest"
+    },
+    {
+      "account": "my-kubernetes-account",
+      "cloudProvider": "kubernetes",
+      "expectedArtifacts": [
+        {
+          "defaultArtifact": {
+            "kind": "custom"
+          },
+          "id": "f5b81bd7-fe4d-4888-b424-c3870c38a9aa",
+          "matchArtifact": {
+            "kind": "custom",
+            "name": "sampleapp-config-prod",
+            "type": "kubernetes/configMap"
+          },
+          "useDefaultArtifact": false,
+          "usePriorExecution": false
+        }
+      ],
+      "manifestArtifactAccount": "embedded-artifact",
+      "manifests": [
+        {
+          "apiVersion": "v1",
+          "data": {
+            "SUCCESS_RATE": "${ parameters.successRate }"
+          },
+          "kind": "ConfigMap",
+          "metadata": {
+            "labels": {
+              "app": "sampleapp"
+            },
+            "name": "sampleapp-config-prod",
+            "namespace": "default"
+          }
+        }
+      ],
+      "moniker": {
+        "app": "sampleapp"
+      },
+      "name": "Deploy Config",
+      "refId": "2",
+      "relationships": {
+        "loadBalancers": [],
+        "securityGroups": []
+      },
+      "requisiteStageRefIds": [],
+      "source": "text",
+      "type": "deployManifest"
+    }
+  ],
+  "triggers": [],
+  "updateTs": "1531749445000"
+}

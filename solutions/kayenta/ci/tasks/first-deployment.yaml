@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: google/cloud-sdk
+    tag: 'latest'
+
+inputs:
+  - name: spinnaker-git
+
+params:
+  GOOGLE_CLOUD_PROJECT: kayenta-solution-ci
+
+run:
+  path: bash
+  args: [spinnaker-git/solutions/kayenta/ci/scripts/first-deployment.sh]
