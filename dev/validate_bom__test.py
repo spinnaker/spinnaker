@@ -80,6 +80,7 @@ from multiprocessing.pool import ThreadPool
 import atexit
 import collections
 import logging
+import math
 import os
 import re
 import subprocess
@@ -93,6 +94,7 @@ import yaml
 from buildtool import (
     add_parser_argument,
     determine_subprocess_outcome_labels,
+    check_subprocess,
     check_subprocesses_to_logfile,
     raise_and_log_error,
     ConfigError,
@@ -318,17 +320,53 @@ class ValidateBomTestController(object):
       except Exception as ex:
         logging.error('Error terminating child: %s', ex)
 
+  def __collect_gce_quota(self, project, region,
+                          project_percent=100.0, region_percent=100.0):
+    project_info_json = check_subprocess('gcloud compute project-info describe'
+                                         ' --format yaml'
+                                         ' --project %s' % project)
+    project_info = yaml.load(project_info_json)
+    project_quota = {'gce_global_%s' % info['metric']:
+                          int(max(1, math.floor(
+                              project_percent * (info['limit'] - info['usage']))))
+                     for info in project_info['quotas']}
+
+    region_info_json = check_subprocess('gcloud compute regions describe'
+                                        ' --format yaml'
+                                        ' %s' % region)
+    region_info = yaml.load(region_info_json)
+    region_quota = {
+        'gce_region_%s' % info['metric']: int(max(
+            1, math.floor(region_percent * (info['limit'] - info['usage']))))
+        for info in region_info['quotas']
+    }
+    return project_quota, region_quota
+    
   def __init__(self, deployer):
     options = deployer.options
-    quota_spec = {
-        parts[0]: int(parts[1])
-        for parts in [entry.split('=')
-                      for entry in options.test_default_quota.split(',')]}
+    quota_spec = {}
+
+    if options.google_account_project:
+      project_quota, region_quota = self.__collect_gce_quota(
+          options.google_account_project, options.test_gce_quota_region,
+          project_percent=options.test_gce_project_quota_factor,
+          region_percent=options.test_gce_region_quota_factor)
+      quota_spec.update(project_quota)
+      quota_spec.update(region_quota)
+
+    if options.test_default_quota:
+      quota_spec.update({
+          parts[0].strip(): int(parts[1])
+          for parts in [entry.split('=')
+                        for entry in options.test_default_quota.split(',')]
+      })
+
     if options.test_quota:
       quota_spec.update(
-          {parts[0]: int(parts[1])
+          {parts[0].strip(): int(parts[1])
            for parts in [entry.split('=')
                          for entry in options.test_quota.split(',')]})
+
     self.__quota_tracker = QuotaTracker(quota_spec, deployer.metrics)
     self.__deployer = deployer
     self.__lock = threading.Lock()
@@ -908,15 +946,31 @@ def init_argument_parser(parser, defaults):
       help='Number of seconds to permit services to startup before giving up.')
 
   add_parser_argument(
+      parser, 'test_gce_project_quota_factor', defaults, 1.0, type=float,
+      help='Default percentage of available project quota to make available'
+           ' for tests.')
+
+  add_parser_argument(
+      parser, 'test_gce_region_quota_factor', defaults, 1.0, type=float,
+      help='Default percentage of available region quota to make available'
+           ' for tests.')
+
+  add_parser_argument(
+      parser, 'test_gce_quota_region', defaults, 'us-central1',
+      help='GCE Compute Region to gather region quota limits from.')
+
+  add_parser_argument(
       parser, 'test_default_quota',
-      defaults, 'google_backend_services=5,google_forwarding_rules=10'
-                ',google_ssl_certificates=5,google_cpu=20'
-                ',appengine_deployment=1',
-      help='Comma-delimited name=value list of quota limits. This is used'
-           ' to rate-limit tests based on their profiled quota specifications.')
+      defaults, '',
+      help='Default quota parameters for values used in the --test_profiles.'
+           ' This does not include GCE quota values, which are determined'
+           ' at runtime. These value can be further overriden by --test_quota.'
+           ' These are meant as built-in defaults, where --test_quota as'
+           ' per-execution overriden.')
+
   add_parser_argument(
       parser, 'test_quota', defaults, '',
-      help='Comma-delimited name=value list of --test_default_quota overrides.')
+      help='Comma-delimited name=value list of quota overrides.')
 
   add_parser_argument(
       parser, 'testing_enabled', defaults, True, type=bool,
