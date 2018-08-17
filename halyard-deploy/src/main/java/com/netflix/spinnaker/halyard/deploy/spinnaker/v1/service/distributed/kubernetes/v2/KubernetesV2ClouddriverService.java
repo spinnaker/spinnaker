@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -41,6 +42,14 @@ public class KubernetesV2ClouddriverService extends ClouddriverService implement
 
   @Autowired
   KubernetesV2ClouddriverProfileFactory kubernetesV2ClouddriverProfileFactory;
+
+  @Override
+  public int terminationGracePeriodSeconds() {
+    // This is intended to be way longer than any task should take to complete.
+    // See how clouddriver holds off termination while tasks are running here:
+    // https://github.com/spinnaker/clouddriver/pull/2882
+    return (int) TimeUnit.MINUTES.toSeconds(12);
+  }
 
   protected ClouddriverProfileFactory getClouddriverProfileFactory() {
     return kubernetesV2ClouddriverProfileFactory;
