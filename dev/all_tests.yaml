@@ -33,8 +33,14 @@ tests:
         jenkins_master_enabled: true
       services: [clouddriver, echo, front50, gate, igor, orca, rosco]
     quota:
-      google_cpu: 1
-      google_forwarding_rules: 1
+      gce_region_IN_USE_ADDRESSES: 1
+      gce_region_INSTANCE_GROUP_MANAGERS: 1
+      gce_region_CPUS: 1
+      gce_region_INSTANCE_GROUPS: 1
+      gce_global_FORWARDING_RULES: 1
+      gce_global_HEALTH_CHECKS: 1
+      gce_global_FORWARDING_RULES: 1
+      gce_global_TARGET_POOLS: 1
     api: gate
     args:
       alias: [standard_google_provider_params]
@@ -79,9 +85,12 @@ tests:
       services: [clouddriver]
     api: clouddriver
     quota:
-      google_cpu: 1
-      google_backend_services: 1
-      google_forwarding_rules: 2
+      gce_region_IN_USE_ADDRESSES: 3
+      gce_region_CPUS: 3
+      gce_global_IN_USE_ADDRESSES: 1
+      gce_global_FORWARDING_RULES: 1
+      gce_global_HEALTH_CHECKS: 1
+      gce_global_TARGET_POOLS: 1
     args:
       alias: [standard_google_provider_params]
 
@@ -91,8 +100,16 @@ tests:
         google_account_enabled: true
       services: [clouddriver, front50, gate, orca]
     quota:
-      google_cpu: 3
-      google_forwarding_rules: 1
+      gce_region_IN_USE_ADDRESSES: 2
+      gce_region_INSTANCE_GROUP_MANAGERS: 1
+      gce_region_CPUS: 2
+      gce_global_IN_USE_ADDRESSES: 2
+      gce_global_TARGET_HTTP_PROXIES: 1
+      gce_global_BACKEND_SERVICES: 1
+      gce_global_URL_MAPS: 1
+      gce_global_HEALTH_CHECKS: 2
+      gce_global_FORWARDING_RULES: 1
+      gce_global_TARGET_POOLS: 1
     path: citest/tests/google_server_group_test.py
     api: gate
     args:
@@ -104,8 +121,12 @@ tests:
         google_account_enabled: true
       services: [clouddriver, front50, gate, orca]
     quota:
-      google_cpu: 3
-      google_forwarding_rules: 1
+      gce_region_IN_USE_ADDRESSES: 3
+      gce_region_REGIONAL_INSTANCE_GROUP_MANAGERS: 2
+      gce_region_CPUS: 3
+      gce_global_IN_USE_ADDRESSES: 1
+      gce_global_FORWARDING_RULES: 1
+      gce_global_TARGET_POOLS: 1
     path: citest/tests/google_server_group_test.py
     api: gate
     args:
@@ -118,8 +139,17 @@ tests:
         google_account_enabled: true
       services: [clouddriver, front50, gate, orca]
     quota:
-      google_cpu: 2
-      google_forwarding_rules: 1
+      gce_region_IN_USE_ADDRESSES: 2
+      gce_region_INSTANCE_GROUP_MANAGERS: 1
+      gce_region_CPUS: 2
+      gce_region_INSTANCE_GROUPS: 1
+      gce_global_IN_USE_ADDRESSES: 2
+      gce_global_TARGET_HTTP_PROXIES: 1
+      gce_global_BACKEND_SERVICES: 1
+      gce_global_URL_MAPS: 1
+      gce_global_HEALTH_CHECKS: 2
+      gce_global_FORWARDING_RULES: 2
+      gce_global_TARGET_POOLS: 1
     api: gate
     args:
       alias: [standard_google_provider_params]
@@ -130,9 +160,14 @@ tests:
         google_account_enabled: true
       services: [clouddriver, front50, gate, orca]
     quota:
-      google_backend_services: 3
-      google_cpu: 2
-      google_ssl_certificates: 2
+      gce_global_IN_USE_ADDRESSES: 1
+      gce_global_TARGET_HTTP_PROXIES: 1
+      gce_global_BACKEND_SERVICES: 3
+      gce_global_SSL_CERTIFICATES: 1
+      gce_global_URL_MAPS: 1
+      gce_global_HEALTH_CHECKS: 2
+      gce_global_FORWARDING_RULES: 1
+      gce_global_FIREWALLS: 1
     api: gate
     args:
       alias: [standard_google_provider_params]
@@ -143,9 +178,19 @@ tests:
         google_account_enabled: true
       services: [clouddriver, front50, gate, orca]
     quota:
-      google_backend_services: 3
-      google_cpu: 2
-      google_ssl_certificates: 2
+      gce_region_IN_USE_ADDRESSES: 1
+      gce_region_INSTANCE_GROUP_MANAGERS: 1
+      gce_region_CPUS: 1
+      gce_region_INSTANCE_GROUPS: 1
+      gce_global_IN_USE_ADDRESSES: 1
+      gce_global_TARGET_HTTP_PROXIES: 1
+      gce_global_BACKEND_SERVICES: 3
+      gce_global_SSL_CERTIFICATES: 1
+      gce_global_TARGET_HTTPS_PROXIES: 1
+      gce_global_URL_MAPS: 1
+      gce_global_HEALTH_CHECKS: 2
+      gce_global_FORWARDING_RULES: 1
+      gce_global_FIREWALLS: 1
     api: gate
     args:
       alias: [standard_google_provider_params]
@@ -248,8 +293,6 @@ tests:
       configuration:
         appengine_account_enabled: true
       services: [clouddriver, front50, gate, orca]
-    quota:
-      appengine_deployment: 1
     path: citest/tests/appengine_smoke_test.py
     api: gate
     args:
@@ -263,8 +306,6 @@ tests:
       configuration:
         appengine_account_enabled: true
       services: [clouddriver, front50, gate, orca]
-    quota:
-      appengine_deployment: 1
     path: citest/tests/appengine_smoke_test.py
     api: gate
     args:
@@ -281,8 +322,6 @@ tests:
         gcs_pubsub_enabled: true
         pubsub_google_enabled: true
       services: [clouddriver, front50, gate, orca, echo]
-    quota:
-      appengine_deployment: 1
     api: gate
     args:
       alias: [standard_appengine_provider_params]
