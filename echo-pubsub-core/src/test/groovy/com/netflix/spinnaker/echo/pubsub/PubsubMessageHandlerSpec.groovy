@@ -42,7 +42,7 @@ class PubsubMessageHandlerSpec extends Specification {
   RedisClientDelegate redisClientDelegate
 
   @Shared
-  RedisClientSelector redisClientSelector
+  Optional<RedisClientSelector> redisClientSelector
 
   MessageDigest messageDigest = MessageDigest.getInstance("SHA-256")
 
@@ -58,7 +58,7 @@ class PubsubMessageHandlerSpec extends Specification {
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
     redisClientDelegate = new JedisClientDelegate("primaryDefault", embeddedRedis.getPool())
-    redisClientSelector = new RedisClientSelector([redisClientDelegate])
+    redisClientSelector = Optional.of(new RedisClientSelector([redisClientDelegate]))
   }
 
   def cleanup() {

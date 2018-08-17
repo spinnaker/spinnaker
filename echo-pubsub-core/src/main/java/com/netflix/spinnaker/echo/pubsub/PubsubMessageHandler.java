@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Shared cache of received and handled pubsub messages to synchronize clients.
@@ -45,15 +46,15 @@ public class PubsubMessageHandler {
 
   private final ObjectMapper objectMapper;
 
-  private final RedisClientDelegate redisClientDelegate;
+  private RedisClientDelegate redisClientDelegate;
 
   @Autowired
   public PubsubMessageHandler(PubsubEventMonitor pubsubEventMonitor,
     ObjectMapper objectMapper,
-    RedisClientSelector redisClientSelector) {
+    Optional<RedisClientSelector> redisClientSelector) {
     this.pubsubEventMonitor = pubsubEventMonitor;
     this.objectMapper = objectMapper;
-    this.redisClientDelegate = redisClientSelector.primary("default");
+    redisClientSelector.ifPresent(selector -> this.redisClientDelegate = selector.primary("default"));
   }
 
   private static final String SET_IF_NOT_EXIST = "NX";
@@ -74,6 +75,10 @@ public class PubsubMessageHandler {
                             MessageAcknowledger acknowledger,
                             String identifier,
                             String messageId) {
+    if (redisClientDelegate == null) {
+      throw new IllegalStateException("Redis not enabled, pubsub requires redis. Please enable.");
+    }
+
     String messageKey = makeKey(description, messageId);
     if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
       processEvent(description);
