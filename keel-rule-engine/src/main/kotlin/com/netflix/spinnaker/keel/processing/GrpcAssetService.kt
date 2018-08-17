@@ -19,9 +19,9 @@ class GrpcAssetService(
     val typeMetaData = asset.toTypeMetaData()
     val stub = registry
       .pluginFor(typeMetaData) ?: throw UnsupportedAssetType(typeMetaData)
-    return stub.current(asset.toProto()).let {
-      if (it.hasAsset()) {
-        it.asset.fromProto()
+    return stub.current(asset.toProto()).let { response ->
+      if (response.hasAsset()) {
+        response.asset.fromProto()
       } else {
         null
       }

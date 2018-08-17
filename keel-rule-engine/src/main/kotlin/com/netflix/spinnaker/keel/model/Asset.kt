@@ -29,7 +29,9 @@ data class Asset(
 
 data class AssetId(
   val value: String
-)
+) {
+  override fun toString(): String = value
+}
 
 val Asset.fingerprint: HashCode
   get() = Hashing.murmur3_128().hashBytes(spec)
