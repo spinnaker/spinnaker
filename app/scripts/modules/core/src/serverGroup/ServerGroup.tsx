@@ -34,6 +34,7 @@ export interface IServerGroupProps {
   sortFilter: ISortFilter;
   hasLoadBalancers: boolean;
   hasDiscovery: boolean;
+  hasManager?: boolean;
 }
 
 export interface IServerGroupState {
@@ -159,7 +160,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
 
   public render() {
     const { instances, images, jenkins, docker, isSelected, isMultiSelected } = this.state;
-    const { serverGroup, application, sortFilter, hasDiscovery, hasLoadBalancers } = this.props;
+    const { serverGroup, application, sortFilter, hasDiscovery, hasLoadBalancers, hasManager } = this.props;
     const { account, region, name } = serverGroup;
     const { showAllInstances, listInstances } = sortFilter;
     const key = ScrollToService.toDomId(['serverGroup', account, region, name].join('-'));
@@ -171,6 +172,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       'clickable-row': true,
       disabled: serverGroup.isDisabled,
       active: isSelected,
+      managed: hasManager,
     });
 
     return (

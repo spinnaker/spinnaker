@@ -10,6 +10,7 @@ import { Tooltip } from 'core/presentation';
 import { IClusterSubgroup, IServerGroupSubgroup } from './filter/ClusterFilterService';
 import { ISortFilter } from 'core/filterModel';
 import { ClusterPodTitleWrapper } from 'core/cluster/ClusterPodTitleWrapper';
+import { ServerGroupManager } from 'core/serverGroupManager/ServerGroupManager';
 
 export interface IClusterPodProps {
   grouping: IClusterSubgroup;
@@ -93,6 +94,16 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
             onUpdate={() => application.serverGroups.refresh()}
           />
         </h6>
+
+        {(subgroup.serverGroupManagers || []).map(manager => (
+          <ServerGroupManager
+            key={manager.key}
+            manager={manager}
+            grouping={grouping}
+            application={application}
+            sortFilter={sortFilter}
+          />
+        ))}
 
         {grouping.cluster.category === 'serverGroup' &&
           sortedServerGroups.map((serverGroup: IServerGroup) => (

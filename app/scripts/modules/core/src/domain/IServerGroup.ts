@@ -46,6 +46,7 @@ export interface IServerGroup {
   runningTasks?: ITask[];
   searchField?: string;
   securityGroups?: string[];
+  serverGroupManagers?: Array<{ account: string; location: string; name: string }>;
   stack?: string;
   stringVal?: string;
   subnetType?: string;

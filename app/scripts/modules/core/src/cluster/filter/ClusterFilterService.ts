@@ -1,4 +1,4 @@
-import { each, forOwn, groupBy, sortBy } from 'lodash';
+import { each, forOwn, groupBy, sortBy, partition } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
@@ -31,12 +31,21 @@ export interface IClusterSubgroup extends IParentGrouping {
   entityTags: IEntityTags;
 }
 
+// TODO(dpeach): should this be IRegionSubgroup?
 export interface IServerGroupSubgroup {
   heading: string;
   key: string;
   category: string;
   serverGroups: IServerGroup[];
+  serverGroupManagers?: IServerGroupManagerSubgroup[];
   entityTags: IEntityTags;
+}
+
+export interface IServerGroupManagerSubgroup {
+  heading: string;
+  key: string;
+  category: string;
+  serverGroups: IServerGroup[];
 }
 
 export type Grouping = IClusterGroup | IClusterSubgroup | IServerGroupSubgroup;
@@ -76,12 +85,29 @@ export class ClusterFilterService {
             regionGroups: IServerGroupSubgroup[] = [];
 
           forOwn(regionGroupings, (regionGroup: IServerGroup[], region: string) => {
+            const [managed, standalone] = partition(
+                regionGroup,
+                group => group.serverGroupManagers && group.serverGroupManagers.length,
+              ),
+              serverGroupManagers: IServerGroupManagerSubgroup[] = [],
+              managerGroupings = groupBy(managed, sg => sg.serverGroupManagers[0].name);
+
+            forOwn(managerGroupings, (managerGroup: IServerGroup[], manager: string) => {
+              serverGroupManagers.push({
+                heading: manager,
+                key: manager,
+                category: 'serverGroupManager',
+                serverGroups: managerGroup,
+              });
+            });
+
             regionGroups.push({
               heading: region,
               category,
-              serverGroups: regionGroup,
+              serverGroups: standalone,
               key: `${region}:${category}`,
               entityTags: (regionGroup[0].clusterEntityTags || []).find(t => t.entityRef['region'] === region),
+              ...(serverGroupManagers.length ? { serverGroupManagers } : {}),
             });
           });
 

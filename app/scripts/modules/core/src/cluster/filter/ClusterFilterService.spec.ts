@@ -1025,4 +1025,84 @@ describe('Service: clusterFilterService', function() {
       }, debounceTimeout);
     });
   });
+
+  describe('server group managers', function() {
+    let managed: any, unmanaged: any;
+    beforeEach(() => {
+      managed = {
+        cluster: 'cluster-a',
+        name: 'cluster-a-v001',
+        account: 'prod',
+        region: 'us-east-1',
+        stringVal: 'original',
+        category: 'serverGroup',
+        instances: [],
+        serverGroupManagers: [
+          {
+            name: 'my-deployment',
+            location: 'default',
+            account: 'my-k8s-account',
+          },
+        ],
+      };
+      unmanaged = {
+        cluster: 'cluster-a',
+        name: 'cluster-a-v002',
+        account: 'prod',
+        region: 'us-east-1',
+        stringVal: 'original',
+        category: 'serverGroup',
+        instances: [],
+      };
+    });
+
+    it('adds server group manager grouping if managed server groups are present', function(done) {
+      application = this.buildApplication({
+        serverGroups: {
+          data: [managed],
+        },
+      });
+
+      application.clusters = clusterService.createServerGroupClusters(application.getDataSource('serverGroups').data);
+      ClusterState.filterService.updateClusterGroups(application);
+
+      setTimeout(() => {
+        expect(ClusterState.filterModel.asFilterModel.groups[0].subgroups[0].subgroups[0].serverGroupManagers).toEqual([
+          {
+            heading: 'my-deployment',
+            key: 'my-deployment',
+            category: 'serverGroupManager',
+            serverGroups: [managed],
+          },
+        ]);
+        done();
+      }, debounceTimeout);
+    });
+
+    it('only adds managed server groups', function(done) {
+      application = this.buildApplication({
+        serverGroups: {
+          data: [managed, unmanaged],
+        },
+      });
+
+      application.clusters = clusterService.createServerGroupClusters(application.getDataSource('serverGroups').data);
+      ClusterState.filterService.updateClusterGroups(application);
+
+      setTimeout(() => {
+        expect(ClusterState.filterModel.asFilterModel.groups[0].subgroups[0].subgroups[0].serverGroupManagers).toEqual([
+          {
+            heading: 'my-deployment',
+            key: 'my-deployment',
+            category: 'serverGroupManager',
+            serverGroups: [managed],
+          },
+        ]);
+        expect(ClusterState.filterModel.asFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups).toEqual([
+          unmanaged,
+        ]);
+        done();
+      }, debounceTimeout);
+    });
+  });
 });

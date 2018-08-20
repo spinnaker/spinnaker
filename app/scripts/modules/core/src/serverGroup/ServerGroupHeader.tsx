@@ -10,7 +10,6 @@ import { HealthCounts } from 'core/healthCounts';
 import { NameUtils } from 'core/naming';
 import { CloudProviderLogo } from 'core/cloudProvider';
 import { LoadBalancersTagWrapper } from 'core/loadBalancer';
-import { ServerGroupManagerTag } from 'core/serverGroupManager/ServerGroupManagerTag';
 import { ISortFilter } from 'core/filterModel';
 import { Overridable } from 'core/overrideRegistry';
 
@@ -126,13 +125,6 @@ export class RunningTasks extends React.Component<IServerGroupHeaderProps> {
   }
 }
 
-export class ServerGroupManager extends React.Component<IServerGroupHeaderProps> {
-  public render() {
-    const { application, serverGroup } = this.props;
-    return <ServerGroupManagerTag application={application} serverGroup={serverGroup} />;
-  }
-}
-
 @Overridable('serverGroups.pod.header')
 export class ServerGroupHeader extends React.Component<IServerGroupHeaderProps> {
   public render() {
@@ -150,7 +142,6 @@ export class ServerGroupHeader extends React.Component<IServerGroupHeaderProps> 
         <div className="flex-container-h baseline flex-pull-right">
           <RunningTasks {...props} />
           <LoadBalancers {...props} />
-          <ServerGroupManager {...props} />
           <Health {...props} />
         </div>
       </div>
