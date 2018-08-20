@@ -18,7 +18,6 @@ module('netflix.spinnaker', [
   AMAZON_MODULE,
   GOOGLE_MODULE,
   ECS_MODULE,
-  require('./modules/cloudfoundry/cf.module.js').name,
   require('./modules/azure/azure.module.js').name,
   KUBERNETES_V1_MODULE,
   OPENSTACK_MODULE,

@@ -28,7 +28,7 @@ var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED
 window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'dcos', 'openstack', 'oracle', 'ecs'],
+  defaultProviders: ['aws', 'gce', 'azure', 'kubernetes', 'dcos', 'openstack', 'oracle', 'ecs'],
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
   authEndpoint: authEndpoint,

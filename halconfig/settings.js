@@ -93,7 +93,7 @@ var slack = {
 window.spinnakerSettings = {
   version: version,
   checkForUpdates: false,
-  defaultProviders: ['aws', 'ecs', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack', 'oracle', 'dcos'],
+  defaultProviders: ['aws', 'ecs', 'gce', 'azure', 'kubernetes', 'titus', 'openstack', 'oracle', 'dcos'],
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
   authEndpoint: authEndpoint,
