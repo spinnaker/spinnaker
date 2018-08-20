@@ -23,8 +23,8 @@ export class ManifestEvents extends React.Component<IManifestEventsProps> {
     if (!this.props.manifest) {
       return null;
     }
-    if (this.props.manifest && !this.props.manifest.events) {
-      return <div>No events found - Kubernetes does not store events for long.</div>;
+    if (this.props.manifest && (!this.props.manifest.events || this.props.manifest.events.length === 0)) {
+      return <div>No recent events found - Kubernetes does not store events for long.</div>;
     }
     const { events } = this.props.manifest;
     return events.map((e, i) => {
