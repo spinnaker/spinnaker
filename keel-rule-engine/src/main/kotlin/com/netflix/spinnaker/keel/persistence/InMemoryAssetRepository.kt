@@ -4,7 +4,6 @@ import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
 
 class InMemoryAssetRepository : AssetRepository {
-
   private val assets = mutableMapOf<AssetId, Asset>()
 
   override fun assets(callback: (Asset) -> Unit) {
@@ -16,6 +15,15 @@ class InMemoryAssetRepository : AssetRepository {
 
   override fun store(asset: Asset) {
     assets[asset.id] = asset
+  }
+
+  override fun dependents(id: AssetId): Iterable<AssetId> =
+    assets
+      .filter { it.value.dependsOn.contains(id) }
+      .keys
+
+  internal fun dropAll() {
+    assets.clear()
   }
 }
 

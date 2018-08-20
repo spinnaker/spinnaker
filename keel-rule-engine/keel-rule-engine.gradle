@@ -7,6 +7,7 @@ dependencies {
   protobuf project(":keel-api")
 
   implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
+  implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion"
 
   testImplementation "io.strikt:strikt-protobuf:$striktVersion"
   testImplementation project(":keel-api-test")

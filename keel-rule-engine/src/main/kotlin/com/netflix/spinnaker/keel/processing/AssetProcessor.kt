@@ -9,27 +9,37 @@ import org.springframework.stereotype.Component
 @Component
 class AssetProcessor(
   private val repository: AssetRepository,
-  private val assetService: AssetService,
-  private val vetoService: VetoService
+  private val assetService: AssetService
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  fun checkAsset(id: AssetId) {
-    repository.get(id)?.also { desired ->
-      log.info("{}: Validating state", desired.id)
-      assetService.current(desired)?.also { current ->
-        if (desired.fingerprint != current.fingerprint) {
-          log.info("{}: Current state does not match: seeking permission to converge", desired.id)
-          if (vetoService.allow(desired)) {
-            log.info("{}: Converging", desired.id)
-            assetService.converge(desired)
+  // TODO: coroutine
+  fun validateSubTree(id: AssetId): Set<AssetId> {
+    val desired = repository.get(id)
+    if (desired == null) {
+      log.error("{}: Not found", id)
+      return emptySet()
+    } else {
+      val invalidAssetIds = mutableSetOf<AssetId>()
+      log.info("{}: Validating state", id)
+      assetService
+        .current(desired)
+        ?.also { current ->
+          if (desired.fingerprint == current.fingerprint) {
+            log.debug("{}: Current state valid", id)
           } else {
-            log.warn("{}: Convergence denied", desired.id)
+            // mark as in diff state
+            log.info("{}: Current state invalid", id)
+            invalidAssetIds.add(id)
           }
-        } else {
-          log.debug("{}: Current state valid", desired.id)
+          repository.dependents(id).forEach { dependentId ->
+            log.debug("{}: Validating dependent asset {}", id, dependentId)
+            validateSubTree(dependentId).also { them ->
+              invalidAssetIds.addAll(them)
+            }
+          }
         }
-      }
+      return invalidAssetIds
     }
   }
 }
