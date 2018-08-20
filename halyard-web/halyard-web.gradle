@@ -31,14 +31,14 @@ dependencies {
   compile project(':halyard-cli')
   compile project(':halyard-config')
   compile project(':halyard-core')
-  compile project(':halyard-deploy')  
+  compile project(':halyard-deploy')
   compile project(':halyard-proto')
 
   compile('org.lognet:grpc-spring-boot-starter:2.3.2')
   compile 'com.google.guava:guava:23.5-jre'
 }
 
-tasks.bootRepackage.enabled = project.repackage
+tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
 
 mainClassName = 'com.netflix.spinnaker.halyard.Main'
 
