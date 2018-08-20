@@ -178,7 +178,7 @@ class RunDcosJobAtomicOperation implements AtomicOperation<DeploymentResult> {
           }
         }
 
-        if (jobDescription.secrets) {
+        if (jobDescription.secrets != null) {
           secrets = jobDescription.secrets.clone()
         }
 
