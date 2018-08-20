@@ -72,7 +72,7 @@ public class MetricSetPair {
   @ToString
   @AllArgsConstructor
   @NoArgsConstructor
-  static class MetricSetScope {
+  public static class MetricSetScope {
 
     @NotNull
     @Getter
