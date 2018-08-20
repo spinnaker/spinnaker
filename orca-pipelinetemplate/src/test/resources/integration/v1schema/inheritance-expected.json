@@ -3,7 +3,10 @@
   "limitConcurrent": true,
   "application": "orca",
   "name": "MPT Inheritance Test",
-  "source": "inheritance-root.yml",
+  "source": {
+    "id": "inheritance-root.yml",
+    "type": "templatedPipeline"
+  },
   "stages": [
     {
       "requisiteStageRefIds": [],

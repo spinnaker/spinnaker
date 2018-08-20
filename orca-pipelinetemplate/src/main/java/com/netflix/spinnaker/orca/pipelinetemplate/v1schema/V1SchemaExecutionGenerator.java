@@ -32,7 +32,10 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     pipeline.put("id", Optional.ofNullable(request.getId()).orElse(Optional.ofNullable(configuration.getPipeline().getPipelineConfigId()).orElse("unknown")));
     pipeline.put("application", configuration.getPipeline().getApplication());
     if (template.getSource() != null) {
-      pipeline.put("source", template.getSource());
+      Map<String, String> source = new HashMap<>();
+      source.put("id", template.getSource());
+      source.put("type", "templatedPipeline");
+      pipeline.put("source", source);
     }
     if (request.getExecutionId() != null) {
       pipeline.put("executionId", request.getExecutionId());
