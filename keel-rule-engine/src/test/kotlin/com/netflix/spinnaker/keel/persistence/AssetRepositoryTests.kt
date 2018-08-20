@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 
@@ -64,6 +65,22 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
   }
 
   @Test
+  fun `after storing an asset its state is unknown`() {
+    val asset = Asset(
+      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
+      apiVersion = "1.0",
+      kind = "ec2:SecurityGroup",
+      spec = ByteArray(0)
+    )
+
+    subject.store(asset)
+
+    expect(subject.lastKnownState(asset.id))
+      .isNotNull()
+      .isA<AssetState.Unknown>()
+  }
+
+  @Test
   fun `assets with different ids do not overwrite each other`() {
     val asset1 = Asset(
       id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
@@ -106,8 +123,9 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
     )
     subject.store(asset2)
 
-    expect(subject.get(asset1.id)) {
-      isNotNull().map(Asset::spec).isEqualTo(asset2.spec)
-    }
+    expect(subject.get(asset1.id))
+      .isNotNull()
+      .map(Asset::spec)
+      .isEqualTo(asset2.spec)
   }
 }

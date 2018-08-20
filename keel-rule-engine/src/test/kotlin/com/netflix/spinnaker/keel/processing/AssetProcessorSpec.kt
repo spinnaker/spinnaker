@@ -16,11 +16,12 @@ import strikt.api.expect
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
 import java.lang.System.nanoTime
+import java.time.Clock
 import java.util.*
 
 internal object AssetProcessorSpec : Spek({
 
-  val repository = InMemoryAssetRepository()
+  val repository = InMemoryAssetRepository(Clock.systemDefaultZone())
   val assetService: AssetService = mock()
   val subject = AssetProcessor(repository, assetService)
 
