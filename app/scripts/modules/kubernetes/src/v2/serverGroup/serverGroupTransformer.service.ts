@@ -1,5 +1,5 @@
 import { IPromise, IQService, module } from 'angular';
-import { IKubernetesServerGroup } from 'kubernetes';
+import { IKubernetesServerGroup } from 'kubernetes/v2/serverGroup/details/IKubernetesServerGroup';
 
 export class KubernetesV2ServerGroupTransformer {
   constructor(private $q: IQService) {
