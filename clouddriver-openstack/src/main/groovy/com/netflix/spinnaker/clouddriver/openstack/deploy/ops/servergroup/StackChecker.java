@@ -52,7 +52,7 @@ public class StackChecker implements BlockingStatusChecker.StatusChecker<Stack> 
     if ((operationString + "_IN_PROGRESS").equals(status)) {
       return false;
     } else if ((operationString + "_FAILED").equals(status)) {
-      String message = String.format("Failed to create stack %s: %s", stack.getName(), stack.getStackStatusReason());
+      String message = String.format("Failed to %s stack %s: %s", operation.toString().toLowerCase(), stack.getName(), stack.getStackStatusReason());
       ActionResponse actionResponse = ActionResponse.actionFailed(message, 500);
       throw new OpenstackProviderException(actionResponse);
     } else if ((operationString + "_COMPLETE").equals(status)) {
