@@ -20,6 +20,7 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
             value={selected ? { label: selected.metadata.name, value: selected.id } : null}
             onChange={this.handleTemplateSelect}
             optionRenderer={this.templateOptionRenderer}
+            onSelectResetsInput={false}
           />
         </div>
       </div>

@@ -448,6 +448,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                             value={{ value: this.state.command.config.name, label: this.state.command.config.name }}
                             optionRenderer={this.configOptionRenderer}
                             onChange={this.handleConfigChange}
+                            onSelectResetsInput={false}
                           />
                         </div>
                       </div>
