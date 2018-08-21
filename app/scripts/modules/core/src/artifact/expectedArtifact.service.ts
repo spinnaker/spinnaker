@@ -3,6 +3,9 @@ import { IPipeline, IStage, IExpectedArtifact, IExecutionContext } from 'core/do
 
 export class ExpectedArtifactService {
   public static getExpectedArtifactsAvailableToStage(stage: IStage, pipeline: IPipeline): IExpectedArtifact[] {
+    if (!stage || !pipeline) {
+      return [];
+    }
     let result = pipeline.expectedArtifacts || [];
     PipelineConfigService.getAllUpstreamDependencies(pipeline, stage).forEach(s => {
       const expectedArtifact = (s as any).expectedArtifact;

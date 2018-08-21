@@ -17,6 +17,7 @@ module.exports = angular
         field: '@',
         readOnly: '=',
         providers: '=?',
+        onChange: '&',
       },
       templateUrl: require('./providerSelector.html'),
       link: function(scope) {

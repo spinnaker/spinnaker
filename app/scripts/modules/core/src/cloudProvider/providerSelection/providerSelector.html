@@ -1,4 +1,5 @@
 <ui-select ng-model="component[field]"
+           on-select="onChange()"
            ng-if="initialized && showSelector && !readOnly"
            class="form-control input-sm">
   <ui-select-match placeholder="Select a provider">
