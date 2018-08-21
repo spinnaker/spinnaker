@@ -1,0 +1,14 @@
+<div class="col-md-12" ng-if="$ctrl.command.viewState.dirty.securityGroups || $ctrl.removed.length">
+  <div class="alert alert-warning">
+    <p><i class="fa fa-exclamation-triangle"></i>
+      The following <firewall-label label="firewalls"/> could not be found in the selected account/region/VPC and were removed:
+    </p>
+    <ul>
+      <li ng-repeat="securityGroup in $ctrl.command.viewState.dirty.securityGroups">{{securityGroup}}</li>
+      <li ng-repeat="securityGroup in $ctrl.removed">{{securityGroup}}</li>
+    </ul>
+    <p class="text-right">
+      <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="$ctrl.acknowledgeSecurityGroupRemoval()">Okay</a>
+    </p>
+  </div>
+</div>

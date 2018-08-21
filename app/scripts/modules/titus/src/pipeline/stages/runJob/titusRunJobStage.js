@@ -4,10 +4,15 @@ const angular = require('angular');
 import { Subject } from 'rxjs';
 
 import { AccountService, ExecutionDetailsTasks, FirewallLabels, Registry } from '@spinnaker/core';
+
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
+import { SECURITY_GROUPS_REMOVED } from './securityGroupsRemoved.component';
 
 module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.runJobStage', [])
+  .module('spinnaker.titus.pipeline.stage.runJobStage', [
+    SECURITY_GROUPS_REMOVED,
+    require('./securityGroupSelector.directive').name,
+  ])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'runJob',
