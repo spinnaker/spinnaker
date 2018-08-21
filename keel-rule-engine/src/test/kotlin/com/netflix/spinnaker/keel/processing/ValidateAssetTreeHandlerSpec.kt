@@ -6,18 +6,21 @@ import com.netflix.spinnaker.keel.persistence.AssetState.Diff
 import com.netflix.spinnaker.keel.persistence.AssetState.Missing
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
 import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
+import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import strikt.api.Assertion
 import strikt.api.expect
-import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import java.lang.System.nanoTime
@@ -26,12 +29,13 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.*
 
-internal object AssetValidatorSpec : Spek({
+internal object ValidateAssetTreeHandlerSpec : Spek({
 
   val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
   val repository = InMemoryAssetRepository(clock)
   val assetService: AssetService = mock()
-  val subject = AssetValidator(repository, assetService)
+  val queue: Queue = mock()
+  val subject = ValidateAssetTreeHandler(repository, assetService, queue)
 
   val rootAsset = Asset(id = AssetId("SecurityGroup:aws:prod:us-west-2:keel"), kind = "SecurityGroup", spec = randomBytes())
   val assets = listOf(
@@ -41,6 +45,8 @@ internal object AssetValidatorSpec : Spek({
     it.copy(dependsOn = setOf(rootAsset.id))
   }
 
+  val message = ValidateAssetTree(rootAsset.id)
+
   describe("validating a sub-tree") {
     given("no desired state is known") {
       beforeGroup {
@@ -49,12 +55,15 @@ internal object AssetValidatorSpec : Spek({
 
       afterGroup {
         repository.dropAll()
+        reset(queue)
       }
 
-      it("returns an empty set") {
-        subject.validateSubTree(rootAsset.id) expect {
-          isEmpty()
-        }
+      on("receiving a message") {
+        subject.handle(message)
+      }
+
+      it("does not try to converge any assets") {
+        verifyZeroInteractions(queue)
       }
     }
 
@@ -75,12 +84,14 @@ internal object AssetValidatorSpec : Spek({
           }
         }
 
-        afterGroup { reset(assetService) }
+        afterGroup { reset(assetService, queue) }
 
-        it("returns an empty set") {
-          subject.validateSubTree(rootAsset.id) expect {
-            isEmpty()
-          }
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("does not try to converge any assets") {
+          verifyZeroInteractions(queue)
         }
 
         it("marks all assets as ${Ok::class.java.simpleName}") {
@@ -108,12 +119,17 @@ internal object AssetValidatorSpec : Spek({
           }
         }
 
-        afterGroup { reset(assetService) }
+        afterGroup { reset(assetService, queue) }
 
-        it("returns all invalid asset ids") {
-          subject.validateSubTree(rootAsset.id) expect {
-            containsExactlyInAnyOrder(*invalidAssets.map { it.id }.toTypedArray())
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("requests convergence of all invalid assets") {
+          invalidAssets.forEach {
+            verify(queue).push(ConvergeAsset(it.id))
           }
+          verifyNoMoreInteractions(queue)
         }
 
         it("marks valid assets as ${Ok::class.java.simpleName}") {
@@ -152,12 +168,17 @@ internal object AssetValidatorSpec : Spek({
           }
         }
 
-        afterGroup { reset(assetService) }
+        afterGroup { reset(assetService, queue) }
 
-        it("returns all invalid asset ids") {
-          subject.validateSubTree(rootAsset.id) expect {
-            containsExactlyInAnyOrder(*missingAssets.map { it.id }.toTypedArray())
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("requests convergence of all missing assets") {
+          missingAssets.forEach {
+            verify(queue).push(ConvergeAsset(it.id))
           }
+          verifyNoMoreInteractions(queue)
         }
 
         it("marks valid assets as ${Ok::class.java.simpleName}") {

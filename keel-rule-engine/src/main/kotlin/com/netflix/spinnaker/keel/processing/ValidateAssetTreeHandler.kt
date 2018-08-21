@@ -6,18 +6,32 @@ import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState.Diff
 import com.netflix.spinnaker.keel.persistence.AssetState.Missing
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
+import com.netflix.spinnaker.q.MessageHandler
+import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class AssetValidator(
+class ValidateAssetTreeHandler(
   private val repository: AssetRepository,
-  private val assetService: AssetService
-) {
+  private val assetService: AssetService,
+  override val queue: Queue
+) : MessageHandler<ValidateAssetTree> {
+
+  override val messageType = ValidateAssetTree::class.java
+
+  override fun handle(message: ValidateAssetTree) {
+    validateSubTree(message.id).also { invalidAssetIds ->
+      invalidAssetIds.forEach { id ->
+        queue.push(ConvergeAsset(id))
+      }
+    }
+  }
+
   private val log = LoggerFactory.getLogger(javaClass)
 
   // TODO: coroutine
-  fun validateSubTree(id: AssetId): Set<AssetId> {
+  private fun validateSubTree(id: AssetId): Set<AssetId> {
     val desired = repository.get(id)
     if (desired == null) {
       log.error("{}: Not found", id)
