@@ -132,7 +132,7 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
         <span className="hidden-xs">
           <ApplicationIcon app={app} />
         </span>
-        <span className="horizontal middle">
+        <span className="horizontal middle wrap">
           <span className="application-name">{app.name}</span>
           <ApplicationRefresher app={app} />
         </span>
