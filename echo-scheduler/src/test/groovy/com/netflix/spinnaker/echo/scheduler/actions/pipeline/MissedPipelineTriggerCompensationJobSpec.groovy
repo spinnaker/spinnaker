@@ -30,7 +30,9 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
@@ -60,13 +62,13 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     ]
 
     and:
-    def dateContext = new MissedPipelineTriggerCompensationJob.DateContext(
-      timeZone: TimeZone.getTimeZone('America/Los_Angeles'),
-      triggerWindowFloor: getDateOffset(0),
-      now: getDateOffset(50)
-    )
+    def dateContext = Mock(MissedPipelineTriggerCompensationJob.DateContext)
+    dateContext.now() >> getDateOffset(50)
+    dateContext.triggerWindowFloor() >> getDateOffset(0)
+    dateContext.getClock() >> Clock.system(ZoneId.of('America/Los_Angeles'))
+
     def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
-      pipelineInitiator, registry, 30000, 'America/Los_Angeles', true, 900000, 20, dateContext)
+      pipelineInitiator, registry, /* not used */ 30000, /* not used */ 'America/Los_Angeles', true, 900000, 20, dateContext)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
@@ -83,7 +85,8 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       ]
     }
     1 * pipelineInitiator.call((Pipeline) pipelines[0])
-    0 * _
+    0 * orcaService._
+    0 * pipelineInitiator._
   }
 
   def 'should no-op with no missed executions'() {
@@ -98,13 +101,8 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     ]
 
     and:
-    def dateContext = new MissedPipelineTriggerCompensationJob.DateContext(
-      timeZone: TimeZone.getTimeZone('America/Los_Angeles'),
-      triggerWindowFloor: getDateOffset(0),
-      now: getDateOffset(0)
-    )
     def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
-      pipelineInitiator, registry, 30000, 'America/Los_Angeles', true, 900000, 20, dateContext)
+      pipelineInitiator, registry, 30000L, 'America/Los_Angeles', true, 900000, 20)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
@@ -214,6 +212,22 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
     then:
     missedExecution == true
+  }
+
+  def 'verify that the present is a fleeting moment, the past is no more'() {
+    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
+      pipelineInitiator, registry, 30000, 'America/Los_Angeles', true, 900000, 20)
+
+    def sleepyTimeMs = 100
+
+    when:
+    def t1 = compensationJob.dateContext.now().toInstant()
+    sleep(sleepyTimeMs)
+    def t2 = compensationJob.dateContext.now().toInstant()
+
+    then:
+    t2 > t1
+    Duration.between(t1, t2).toMillis() >= sleepyTimeMs
   }
 
   Pipeline.PipelineBuilder pipelineBuilder(String id) {

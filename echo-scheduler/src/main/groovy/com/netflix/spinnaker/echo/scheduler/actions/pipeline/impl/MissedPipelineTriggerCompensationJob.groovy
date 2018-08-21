@@ -201,14 +201,14 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
       try {
         CronExpression expr = getCronExpression(trigger)
-        expr.timeZone = dateContext.timeZone
+        expr.timeZone = TimeZone.getTimeZone(dateContext.clock.zone)
 
-        if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now, pipeline)) {
+        if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor(), dateContext.now(), pipeline)) {
           pipelineInitiator.call(pipeline)
         }
       } catch (ParseException e) {
         log.error("Error parsing cron expression (${trigger.cronExpression}) for pipeline ${pipeline.id}", e)
-        registry.counter("orca.errors", "exception", error.getClass().getName()).increment()
+        registry.counter("orca.errors", "exception", e.getClass().getName()).increment()
       }
     }
   }
@@ -286,16 +286,25 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   }
 
   static class DateContext {
-    TimeZone timeZone
-    Date triggerWindowFloor
-    Date now
+    Clock clock
+    long compensationWindowMs
+
+    DateContext(Clock clock, long compensationWindowMs) {
+      this.clock = clock
+      this.compensationWindowMs = compensationWindowMs
+    }
+
+    Date triggerWindowFloor() {
+      return Date.from(now().toInstant().minus(compensationWindowMs, ChronoUnit.MILLIS))
+    }
+
+    Date now() {
+      return Date.from(Instant.now(clock))
+    }
 
     static DateContext fromCompensationWindow(String timeZoneId, long compensationWindowMs) {
       Clock clock = Clock.system(ZoneId.of(timeZoneId))
-      TimeZone tz = TimeZone.getTimeZone(clock.zone)
-      Date triggerWindowFloor = Date.from(Instant.now(clock).minus(compensationWindowMs, ChronoUnit.MILLIS))
-      Date now = Date.from(Instant.now(clock))
-      return new DateContext(timeZone: tz, triggerWindowFloor: triggerWindowFloor, now: now)
+      return new DateContext(clock, compensationWindowMs)
     }
   }
 }
