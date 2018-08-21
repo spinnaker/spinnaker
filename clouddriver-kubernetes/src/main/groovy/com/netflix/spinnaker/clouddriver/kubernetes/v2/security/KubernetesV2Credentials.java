@@ -366,13 +366,14 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     String checkNamespace = namespaces.get(0);
     List<KubernetesKind> allKinds = KubernetesKind.getValues();
 
-    log.info("Checking permissions on configured kinds... {}", allKinds);
+    log.info("Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
     for (KubernetesKind kind : allKinds) {
       if (kind == KubernetesKind.NONE || omitKinds.contains(kind)) {
         continue;
       }
 
       try {
+        log.info("Checking if {} is readable...", kind);
         if (kind.isNamespaced()) {
           list(kind, checkNamespace);
         } else {
