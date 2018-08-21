@@ -15,9 +15,12 @@
 package applications
 
 import (
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/spinnaker/spin/command"
@@ -27,6 +30,7 @@ import (
 type ApplicationSaveCommand struct {
 	ApiMeta command.ApiMeta
 
+	applicationFile string
 	applicationName string
 	ownerEmail      string
 	cloudProviders  util.FlagStringArray
@@ -38,6 +42,7 @@ func (c *ApplicationSaveCommand) flagSet() *flag.FlagSet {
 	cmd := "application save"
 
 	f := c.ApiMeta.GlobalFlagSet(cmd)
+	f.StringVar(&c.applicationFile, "file", "", "Path to the application file")
 	f.StringVar(&c.applicationName, "application-name", "", "Name of the application")
 	f.StringVar(&c.ownerEmail, "owner-email", "", "Email of the application owner")
 	f.Var(&c.cloudProviders, "cloud-providers", "Cloud providers configured for this application")
@@ -50,33 +55,87 @@ func (c *ApplicationSaveCommand) flagSet() *flag.FlagSet {
 	return f
 }
 
+// parseApplicationFile reads and deserializes the application input from Stdin or a file.
+func (c *ApplicationSaveCommand) parseApplicationFile() (map[string]interface{}, error) {
+	var fromFile *os.File
+	var err error
+	var applicationJson map[string]interface{}
+
+	if c.applicationFile != "" {
+		fromFile, err = os.Open(c.applicationFile)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		fromFile = os.Stdin
+	}
+
+	fi, err := fromFile.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	pipedStdin := (fi.Mode() & os.ModeCharDevice) == 0
+	if fi.Size() <= 0 && !pipedStdin {
+		// Create app based on flag input.
+		c.ApiMeta.Ui.Info("No json input, constructing application from flags.")
+		return nil, nil
+	}
+
+	err = json.NewDecoder(fromFile).Decode(&applicationJson)
+	if err != nil {
+		return nil, err
+	}
+	return applicationJson, nil
+}
+
 // saveApplication calls the Gate endpoint to save the application.
-func (c *ApplicationSaveCommand) saveApplication() (map[string]interface{}, *http.Response, error) {
-	appSpec := map[string]interface{}{
-		"type": "createApplication",
-		"application": map[string]interface{}{
+func (c *ApplicationSaveCommand) saveApplication(initialApp map[string]interface{}) (map[string]interface{}, *http.Response, error) {
+	var app map[string]interface{}
+	if initialApp != nil && len(initialApp) > 0 {
+		app = initialApp
+		if len(c.cloudProviders) != 0 {
+			c.ApiMeta.Ui.Warn("Overriding application cloud providers with explicit flag values.\n")
+			app["cloudProviders"] = c.cloudProviders
+		}
+		if c.applicationName != "" {
+			c.ApiMeta.Ui.Warn("Overriding application name with explicit flag values.\n")
+			app["name"] = c.applicationName
+		}
+		if c.ownerEmail != "" {
+			c.ApiMeta.Ui.Warn("Overriding application owner email with explicit flag values.\n")
+			app["email"] = c.ownerEmail
+		}
+
+		if !c.validApp(app) {
+			return nil, nil, errors.New("Required application parameter missing, exiting...")
+		}
+	} else {
+		if c.applicationName == "" || c.ownerEmail == "" || len(c.cloudProviders) == 0 {
+			return nil, nil, errors.New("Required application parameter missing, exiting...")
+		}
+		app = map[string]interface{}{
 			"cloudProviders": c.cloudProviders,
 			"instancePort":   80,
 			"name":           c.applicationName,
 			"email":          c.ownerEmail,
-		},
+		}
 	}
 
 	createAppTask := map[string]interface{}{
-		"job":         []interface{}{appSpec},
-		"application": c.applicationName,
-		"description": fmt.Sprintf("Create Application: %s", c.applicationName),
+		"job":         []interface{}{map[string]interface{}{"type": "createApplication", "application": app}},
+		"application": app["name"],
+		"description": fmt.Sprintf("Create Application: %s", app["name"]),
 	}
 	return c.ApiMeta.GateClient.TaskControllerApi.TaskUsingPOST1(c.ApiMeta.Context, createAppTask)
 }
 
-func (c *ApplicationSaveCommand) validateCommand() bool {
-	if c.applicationName == "" || c.ownerEmail == "" || len(c.cloudProviders) == 0 {
-		c.ApiMeta.Ui.Error("Required application parameter missing.\n")
-		return false
-	}
+func (c *ApplicationSaveCommand) validApp(app map[string]interface{}) bool {
 	// TODO(jacobkiefer): Add validation for valid cloudProviders and well-formed emails.
-	return true
+	providers, _ := app["cloudProviders"]
+	name, _ := app["name"]
+	email, _ := app["email"]
+	return providers != nil && name != "" && email != ""
 }
 
 func (c *ApplicationSaveCommand) Run(args []string) int {
@@ -94,11 +153,13 @@ func (c *ApplicationSaveCommand) Run(args []string) int {
 		return 1
 	}
 
-	if !c.validateCommand() {
+	applicationJson, err := c.parseApplicationFile()
+	if err != nil {
+		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
-	_, resp, err := c.saveApplication()
+	_, resp, err := c.saveApplication(applicationJson)
 
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
@@ -121,6 +182,7 @@ usage: spin application save [options]
 	Save the provided application
 
     --application-name: Name of the application
+    --file: Path to the application file
     --owner-email: Email of the application owner
     --cloud-providers: List of configured cloud providers
 

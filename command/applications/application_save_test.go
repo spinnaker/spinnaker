@@ -17,8 +17,10 @@ package applications
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/spinnaker/spin/command"
@@ -143,6 +145,61 @@ func TestApplicationSave_missingproviders(t *testing.T) {
 	}
 }
 
+func TestApplicationSave_filebasic(t *testing.T) {
+	ts := GateServerSuccess()
+	defer ts.Close()
+
+	tempFile := tempAppFile(testAppJsonStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp app file.")
+	}
+	defer os.Remove(tempFile.Name())
+
+	meta := command.ApiMeta{}
+	args := []string{
+		"--file", tempFile.Name(),
+		"--gate-endpoint", ts.URL,
+	}
+
+	cmd := ApplicationSaveCommand{
+		ApiMeta: meta,
+	}
+	ret := cmd.Run(args)
+	if ret != 0 {
+		t.Fatalf("Command failed with: %d", ret)
+	}
+}
+
+func TestApplicationSave_stdinbasic(t *testing.T) {
+	ts := GateServerSuccess()
+	defer ts.Close()
+
+	tempFile := tempAppFile(testAppJsonStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp app file.")
+	}
+	defer os.Remove(tempFile.Name())
+
+	// Prepare Stdin for test reading.
+	tempFile.Seek(0, 0)
+	oldStdin := os.Stdin
+	defer func() { os.Stdin = oldStdin }()
+	os.Stdin = tempFile
+
+	meta := command.ApiMeta{}
+	args := []string{
+		"--gate-endpoint", ts.URL,
+	}
+
+	cmd := ApplicationSaveCommand{
+		ApiMeta: meta,
+	}
+	ret := cmd.Run(args)
+	if ret != 0 {
+		t.Fatalf("Command failed with: %d", ret)
+	}
+}
+
 // GateServerSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with a 200 OK.
 func GateServerSuccess() *httptest.Server {
@@ -163,3 +220,24 @@ func GateServerFail() *httptest.Server {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}))
 }
+
+func tempAppFile(appContent string) *os.File {
+	tempFile, _ := ioutil.TempFile("" /* /tmp dir. */, "app-spec")
+	bytes, err := tempFile.Write([]byte(appContent))
+	if err != nil || bytes == 0 {
+		fmt.Println("Could not write temp file.")
+		return nil
+	}
+	return tempFile
+}
+
+const testAppJsonStr = `
+{
+   "email" : "someone@example.com",
+   "cloudProviders" : [
+      "gce"
+   ],
+   "name" : "sampleapp"
+}
+
+`

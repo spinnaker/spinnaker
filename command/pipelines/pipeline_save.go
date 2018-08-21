@@ -56,7 +56,6 @@ func (c *PipelineSaveCommand) parsePipelineFile() (map[string]interface{}, error
 	if c.pipelineFile != "" {
 		dat, err = ioutil.ReadFile(c.pipelineFile)
 	} else { // Stdin
-		fmt.Println("Reading stdin yo")
 		dat, err = ioutil.ReadAll(os.Stdin)
 	}
 
