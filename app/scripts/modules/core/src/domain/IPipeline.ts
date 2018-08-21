@@ -19,6 +19,10 @@ export interface IPipeline {
   parameterConfig: IParameter[];
   disabled?: boolean;
   expectedArtifacts?: IExpectedArtifact[];
+  source?: {
+    id: string;
+    type: string;
+  };
   type?: string;
 }
 
