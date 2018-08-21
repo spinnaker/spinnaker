@@ -221,7 +221,10 @@ public class KubernetesManifestAnnotater {
         .stack(getAnnotation(annotations, STACK, new TypeReference<String>() {}, null))
         .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}, null))
         .sequence(getAnnotation(annotations, SEQUENCE, new TypeReference<Integer>() {},
-            getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, null)))
+            manifest.getKind() == KubernetesKind.REPLICA_SET ?
+                getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, null) :
+                null
+        ))
         .build();
   }
 

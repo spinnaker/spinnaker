@@ -30,6 +30,7 @@ class KubernetesManifestAnnotatorSpec extends Specification {
 
   private KubernetesManifest freshManifest() {
     def result = new KubernetesManifest()
+    result.put("kind", "replicaSet")
     result.put("metadata", ["annotations": [:]])
     return result
   }
