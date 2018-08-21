@@ -55,6 +55,7 @@ public class FindArtifactsFromResourceTask extends AbstractCloudProviderAwareTas
       ), 5, 1000, true);
 
     if (manifest != null) {
+      outputs.put("manifest", manifest.getManifest());
       outputs.put("artifacts", manifest.getArtifacts());
     } else {
       throw new IllegalArgumentException("Manifest " + stageData.manifestName + " not found in "
