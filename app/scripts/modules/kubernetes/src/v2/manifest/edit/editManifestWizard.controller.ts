@@ -1,4 +1,5 @@
 import { IController, module } from 'angular';
+import { load } from 'js-yaml';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import { Application, IMoniker, ManifestWriter, SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
@@ -26,6 +27,12 @@ class KubernetesEditManifestCtrl implements IController {
     private application: Application,
   ) {
     'ngInject';
+    if (sourceManifest &&
+        sourceManifest.metadata &&
+        sourceManifest.metadata.annotations &&
+        sourceManifest.metadata.annotations['kubectl.kubernetes.io/last-applied-configuration']) {
+      sourceManifest = load(sourceManifest.metadata.annotations['kubectl.kubernetes.io/last-applied-configuration'])
+    }
     KubernetesManifestCommandBuilder.buildNewManifestCommand(application, sourceManifest, sourceMoniker, account).then(
       builtCommand => {
         const { command, metadata } = builtCommand;
