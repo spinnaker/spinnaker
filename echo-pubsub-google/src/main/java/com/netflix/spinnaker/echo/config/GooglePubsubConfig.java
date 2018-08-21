@@ -16,20 +16,25 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import com.netflix.spinnaker.echo.config.GooglePubsubProperties.GooglePubsubSubscription;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
+import com.netflix.spinnaker.echo.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
+import com.netflix.spinnaker.echo.pubsub.google.GooglePubsubPublisher;
 import com.netflix.spinnaker.echo.pubsub.google.GooglePubsubSubscriber;
+import com.netflix.spinnaker.echo.pubsub.model.PubsubPublisher;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
 
 @Configuration
 @Slf4j
@@ -39,6 +44,9 @@ public class GooglePubsubConfig {
 
   @Autowired
   private PubsubSubscribers pubsubSubscribers;
+
+  @Autowired
+  private PubsubPublishers pubsubPublishers;
 
   @Autowired
   private PubsubMessageHandler pubsubMessageHandler;
@@ -51,7 +59,7 @@ public class GooglePubsubConfig {
   void googlePubsubSubscribers() {
     log.info("Creating Google Pubsub Subscribers");
     List<PubsubSubscriber> newSubscribers = new ArrayList<>();
-    googlePubsubProperties.getSubscriptions().forEach((GooglePubsubProperties.GooglePubsubSubscription subscription) -> {
+    googlePubsubProperties.getSubscriptions().forEach((GooglePubsubSubscription subscription) -> {
       log.info("Bootstrapping Google Pubsub Subscriber listening to subscription: {} in project: {}",
           subscription.getSubscriptionName(),
           subscription.getProject());
@@ -60,5 +68,21 @@ public class GooglePubsubConfig {
       newSubscribers.add(subscriber);
     });
     pubsubSubscribers.putAll(newSubscribers);
+  }
+
+  @PostConstruct
+  void googlePubsubPublishers() throws IOException {
+    log.info("Creating Google Pubsub Publishers");
+    List<PubsubPublisher> newPublishers = googlePubsubProperties.getPublishers()
+      .stream()
+      .map(publisherConfig -> {
+        log.info("Bootstrapping Google Pubsub Publisher name {} on topic {} in project {}",
+          publisherConfig.getName(),
+          publisherConfig.getTopicName(),
+          publisherConfig.getProject());
+        return GooglePubsubPublisher.buildPublisher(publisherConfig);
+      }).collect(Collectors.toList());
+
+    pubsubPublishers.putAll(newPublishers);
   }
 }

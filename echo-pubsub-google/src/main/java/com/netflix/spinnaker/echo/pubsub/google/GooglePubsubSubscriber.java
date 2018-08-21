@@ -29,7 +29,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.PubsubMessage;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
-import com.netflix.spinnaker.echo.config.GooglePubsubProperties;
+import com.netflix.spinnaker.echo.config.GooglePubsubCredentialsProvider;
+import com.netflix.spinnaker.echo.config.GooglePubsubProperties.GooglePubsubSubscription;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
@@ -37,9 +38,7 @@ import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.threeten.bp.Duration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -96,7 +95,7 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
     return String.format("projects/%s/subscriptions/%s", project, name);
   }
 
-  public static GooglePubsubSubscriber buildSubscriber(GooglePubsubProperties.GooglePubsubSubscription subscription,
+  public static GooglePubsubSubscriber buildSubscriber(GooglePubsubSubscription subscription,
                                                        PubsubMessageHandler pubsubMessageHandler) {
     String subscriptionName = subscription.getSubscriptionName();
     String project = subscription.getProject();
@@ -108,18 +107,10 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
         subscription.readTemplatePath());
 
     Credentials credentials = null;
-    if (jsonPath != null && !jsonPath.isEmpty()) {
-      try {
-        credentials = ServiceAccountCredentials.fromStream(new FileInputStream(jsonPath));
-      } catch (IOException e) {
-        log.error("Could not import Google Pubsub json credentials: {}", e.getMessage());
-      }
-    } else {
-      try {
-        credentials = GoogleCredentials.getApplicationDefault();
-      } catch (IOException e) {
-        log.error("Could not import default application credentials: {}", e.getMessage());
-      }
+    try {
+      credentials = new GooglePubsubCredentialsProvider(jsonPath).getCredentials();
+    } catch (IOException e) {
+      log.error("Could not create Google Pubsub json credentials: {}", e.getMessage());
     }
 
     return new GooglePubsubSubscriber(subscription.getName(), subscriptionName, project, credentials, messageReceiver);

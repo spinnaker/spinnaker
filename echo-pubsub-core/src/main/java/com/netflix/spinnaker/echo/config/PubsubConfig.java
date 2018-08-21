@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import com.netflix.spinnaker.echo.pubsub.PubsubPublishers;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,5 +27,10 @@ public class PubsubConfig {
   @Bean
   PubsubSubscribers pubsubSubscribers() {
     return new PubsubSubscribers();
+  }
+
+  @Bean
+  PubsubPublishers pubsubPublishers() {
+    return new PubsubPublishers();
   }
 }

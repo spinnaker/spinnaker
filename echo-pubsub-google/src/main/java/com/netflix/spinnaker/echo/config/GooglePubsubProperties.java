@@ -16,19 +16,20 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 import org.springframework.validation.annotation.Validated;
 
 @Data
@@ -37,7 +38,10 @@ import org.springframework.validation.annotation.Validated;
 public class GooglePubsubProperties {
 
   @Valid
-  private List<GooglePubsubSubscription> subscriptions;
+  private List<GooglePubsubSubscription> subscriptions = new ArrayList<>();
+
+  @Valid
+  private List<GooglePubsubPublisherConfig> publishers = new ArrayList<>();
 
   @Data
   @NoArgsConstructor
@@ -77,6 +81,29 @@ public class GooglePubsubProperties {
         throw new RuntimeException("Failed to read template in subscription " + name + ": " + e.getMessage(), e);
       }
     }
+  }
+
+  @Data
+  @NoArgsConstructor
+  public static class GooglePubsubPublisherConfig {
+
+    @NotEmpty
+    private String name;
+
+    @NotEmpty
+    private String project;
+
+    // Optional. Uses Application Default Credentials if not set.
+    private String jsonPath;
+
+    @NotEmpty
+    private String topicName;
+
+    @Min(value = 1L, message = "Batch count threshold must be a positive integer. Defaults to 10.")
+    private Long batchCountThreshold = 10L;
+
+    @Min(value = 1L, message = "Delay milliseconds threshold must be a positive integer. Defaults to 1000.")
+    private Long delayMillisecondsThreshold = 1000L;
   }
 
   public static enum MessageFormat {
