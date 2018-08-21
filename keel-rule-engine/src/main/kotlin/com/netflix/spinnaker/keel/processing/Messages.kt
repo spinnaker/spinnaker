@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.q.Message
 
 data class ValidateAssetTree(
-  val id: AssetId
+  val rootId: AssetId
 ) : Message()
 
 data class ConvergeAsset(

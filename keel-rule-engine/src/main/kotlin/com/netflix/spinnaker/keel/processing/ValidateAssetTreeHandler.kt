@@ -21,7 +21,7 @@ class ValidateAssetTreeHandler(
   override val messageType = ValidateAssetTree::class.java
 
   override fun handle(message: ValidateAssetTree) {
-    validateSubTree(message.id).also { invalidAssetIds ->
+    validateSubTree(message.rootId).also { invalidAssetIds ->
       invalidAssetIds.forEach { id ->
         queue.push(ConvergeAsset(id))
       }
