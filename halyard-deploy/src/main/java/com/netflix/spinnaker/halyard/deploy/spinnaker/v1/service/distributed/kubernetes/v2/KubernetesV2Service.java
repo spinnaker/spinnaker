@@ -173,6 +173,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .addBinding("name", getService().getCanonicalName())
         .addBinding("namespace", namespace)
         .addBinding("replicas", targetSize)
+        .addBinding("version", details.getDeploymentConfiguration().getVersion())
         .addBinding("podAnnotations", settings.getKubernetes().getPodAnnotations())
         .addBinding("podSpec", podSpec.toString())
         .toString();
