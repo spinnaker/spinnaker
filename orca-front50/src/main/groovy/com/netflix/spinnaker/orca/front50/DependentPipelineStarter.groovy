@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.front50
 
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
+
 import java.util.concurrent.Callable
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
@@ -39,18 +42,26 @@ import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.
 @Slf4j
 class DependentPipelineStarter implements ApplicationContextAware {
   private ApplicationContext applicationContext
-
-  @Autowired
   ObjectMapper objectMapper
+  ContextParameterProcessor contextParameterProcessor
+  List<PipelinePreprocessor> pipelinePreprocessors
+  ArtifactResolver artifactResolver
+  Registry registry
 
   @Autowired
-  ContextParameterProcessor contextParameterProcessor
-
-  @Autowired(required = false)
-  List<PipelinePreprocessor> pipelinePreprocessors
-
-  @Autowired(required = false)
-  ArtifactResolver artifactResolver
+  DependentPipelineStarter(ApplicationContext applicationContext,
+                           ObjectMapper objectMapper,
+                           ContextParameterProcessor contextParameterProcessor,
+                           Optional<List<PipelinePreprocessor>> pipelinePreprocessors,
+                           Optional<ArtifactResolver> artifactResolver,
+                           Registry registry) {
+    this.applicationContext = applicationContext
+    this.objectMapper = objectMapper
+    this.contextParameterProcessor = contextParameterProcessor
+    this.pipelinePreprocessors = pipelinePreprocessors.get()
+    this.artifactResolver = artifactResolver.get()
+    this.registry = registry
+  }
 
   Execution trigger(Map pipelineConfig,
                     String user,
@@ -130,6 +141,12 @@ class DependentPipelineStarter implements ApplicationContextAware {
       callable = AuthenticatedRequest.propagate({
         log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
         pipeline = executionLauncher().start(PIPELINE, json)
+
+        Id id = registry.createId("pipelines.triggered")
+          .withTag("application", Optional.ofNullable(pipeline.getApplication()).orElse("NULL_APPLICATION"))
+          .withTag("monitor", getClass().getSimpleName())
+        registry.counter(id).increment()
+
       } as Callable<Void>, true, principal)
     } else {
       callable = AuthenticatedRequest.propagate({
