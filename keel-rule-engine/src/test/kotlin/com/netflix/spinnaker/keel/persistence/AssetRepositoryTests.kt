@@ -3,8 +3,10 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
+import com.netflix.spinnaker.keel.processing.randomBytes
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
@@ -30,24 +32,40 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
   @Test
   fun `when no assets exist assets is a no-op`() {
-    subject.assets(callback)
+    subject.rootAssets(callback)
 
     verifyZeroInteractions(callback)
   }
 
   @Test
-  fun `after storing an asset it is returned by assets`() {
+  fun `after storing a asset with no dependencies it is returned by assets`() {
     val asset = Asset(
       id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
       apiVersion = "1.0",
       kind = "ec2:SecurityGroup",
-      spec = ByteArray(0)
+      spec = randomBytes()
     )
 
     subject.store(asset)
-    subject.assets(callback)
+    subject.rootAssets(callback)
 
     verify(callback).invoke(asset)
+  }
+
+  @Test
+  fun `after storing a asset with dependencies it is not returned by assets`() {
+    val asset = Asset(
+      id = AssetId("LoadBalancer:ec2:test:us-west-2:fnord"),
+      apiVersion = "1.0",
+      kind = "ec2:SecurityGroup",
+      dependsOn = setOf(AssetId("SecurityGroup:ec2:test:us-west-2:fnord")),
+      spec = randomBytes()
+    )
+
+    subject.store(asset)
+    subject.rootAssets(callback)
+
+    verify(callback, never()).invoke(asset)
   }
 
   @Test
@@ -56,7 +74,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
       apiVersion = "1.0",
       kind = "ec2:SecurityGroup",
-      spec = ByteArray(0)
+      spec = randomBytes()
     )
 
     subject.store(asset)
@@ -70,7 +88,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
       apiVersion = "1.0",
       kind = "ec2:SecurityGroup",
-      spec = ByteArray(0)
+      spec = randomBytes()
     )
 
     subject.store(asset)
@@ -87,18 +105,18 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
       apiVersion = "1.0",
       kind = "ec2:SecurityGroup",
-      spec = ByteArray(0)
+      spec = randomBytes()
     )
     val asset2 = Asset(
       id = AssetId("SecurityGroup:ec2:test:us-east-1:fnord"),
       apiVersion = "1.0",
       kind = "ec2:SecurityGroup",
-      spec = ByteArray(0)
+      spec = randomBytes()
     )
 
     subject.store(asset1)
     subject.store(asset2)
-    subject.assets(callback)
+    subject.rootAssets(callback)
 
     argumentCaptor<Asset>().apply {
       verify(callback, times(2)).invoke(capture())
@@ -115,12 +133,12 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
       apiVersion = "1.0",
       kind = "ec2:SecurityGroup",
-      spec = ByteArray(0)
+      spec = randomBytes()
     )
     subject.store(asset1)
 
     val asset2 = asset1.copy(
-      spec = ByteArray(1024)
+      spec = randomBytes()
     )
     subject.store(asset2)
 
