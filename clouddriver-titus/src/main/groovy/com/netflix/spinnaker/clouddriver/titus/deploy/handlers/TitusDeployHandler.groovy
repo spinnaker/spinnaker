@@ -185,7 +185,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
       }
 
-      task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}..."
+      task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}... ${System.currentTimeMillis()}"
       DockerImage dockerImage = new DockerImage(description.imageId)
 
       if (description.interestingHealthProviderNames && !description.interestingHealthProviderNames.empty) {
@@ -322,24 +322,24 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       retrySupport.retry({
         try {
-          task.updateStatus BASE_PHASE, "Submitting job request to Titus..."
+          task.updateStatus BASE_PHASE, "Submitting job request to Titus... ${System.currentTimeMillis()}"
           jobUri = titusClient.submitJob(submitJobRequest)
         } catch (io.grpc.StatusRuntimeException e) {
-          task.updateStatus BASE_PHASE, "Error encountered submitting job request to Titus ${e.message} for ${nextServerGroupName}"
+          task.updateStatus BASE_PHASE, "Error encountered submitting job request to Titus ${e.message} for ${nextServerGroupName} ${System.currentTimeMillis()}"
           if ((e.status.code == Status.RESOURCE_EXHAUSTED.code || e.status.code == Status.INVALID_ARGUMENT.code) && (e.status.description.contains("Job sequence id reserved by another pending job") || e.status.description.contains("Constraint violation - job with group sequence"))) {
             if (e.status.description.contains("Job sequence id reserved by another pending job")) {
               sleep 1000 ^ pow(2, retryCount)
               retryCount++
             }
             nextServerGroupName = resolveJobName(description, submitJobRequest, task, titusClient)
-            task.updateStatus BASE_PHASE, "Retrying with ${nextServerGroupName} after ${tries} attempts"
+            task.updateStatus BASE_PHASE, "Retrying with ${nextServerGroupName} after ${tries} attempts ${System.currentTimeMillis()}"
             throw e;
           }
           if (e.status.code == Status.UNAVAILABLE.code) {
             throw e;
           } else {
             log.error("Could not submit job and not retrying for status ${e.status} ", e)
-            task.updateStatus BASE_PHASE, "could not submit job ${e.status} ${e.message}"
+            task.updateStatus BASE_PHASE, "could not submit job ${e.status} ${e.message} ${System.currentTimeMillis()}"
           }
         }
       }, 8, 100, true)
@@ -348,7 +348,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         throw new TitusException("Could not create job")
       }
 
-      task.updateStatus BASE_PHASE, "Successfully submitted job request to Titus (Job URI: ${jobUri})"
+      task.updateStatus BASE_PHASE, "Successfully submitted job request to Titus (Job URI: ${jobUri}) ${System.currentTimeMillis()}"
 
       deploymentResult.serverGroupNames = ["${region}:${nextServerGroupName}".toString()]
       deploymentResult.serverGroupNameByRegion = [(description.region): nextServerGroupName]
@@ -385,7 +385,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     TitusServerGroupNameResolver serverGroupNameResolver = new TitusServerGroupNameResolver(titusClient, description.region)
     String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
     submitJobRequest.withJobName(nextServerGroupName)
-    task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
+    task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName} ${System.currentTimeMillis()}"
     return nextServerGroupName
   }
 
@@ -396,7 +396,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     def regionScopedProvider = regionScopedProviderFactory.forRegion(accountCredentialsProvider.getCredentials(description.credentials.awsAccount), description.region)
     def targetGroups = targetGroupLookupHelper.getTargetGroupsByName(regionScopedProvider, description.targetGroups)
     if (targetGroups.unknownTargetGroups) {
-      throw new IllegalStateException("Unable to find target groups named $targetGroups.unknownTargetGroups")
+      throw new IllegalStateException("Unable to find target groups named $targetGroups.unknownTargetGroups ${System.currentTimeMillis()}")
     }
     return targetGroups
   }
@@ -409,7 +409,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     }
     targetGroups?.targetGroupARNs.each { targetGroupARN ->
       loadBalancerClient.addLoadBalancer(jobUri, targetGroupARN)
-      task.updateStatus BASE_PHASE, "Attached ${targetGroupARN} to ${jobUri}"
+      task.updateStatus BASE_PHASE, "Attached ${targetGroupARN} to ${jobUri}  ${System.currentTimeMillis()}"
     }
   }
 
@@ -449,7 +449,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
       }
     }
-    task.updateStatus BASE_PHASE, "Copy scaling policies succeeded (Job URI: ${jobUri})"
+    task.updateStatus BASE_PHASE, "Copy scaling policies succeeded (Job URI: ${jobUri}) ${System.currentTimeMillis()}"
   }
 
   private TitusClient buildSourceTitusClient(Source source) {
