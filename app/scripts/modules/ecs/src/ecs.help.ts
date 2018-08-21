@@ -28,6 +28,12 @@ const helpContents: { [key: string]: string } = {
     '<p>The strategy the container scheduler will be using.  See <a href="http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html" target="_blank">AWS documentation</a> for more details. </p><p>You should at least balance across availability zones</p><p>Custom placement strategies have not been implemented yet.</p>',
   'ecs.capacity.autoscalingPolicies':
     '<p>A predefined MetricAlarm and Autoscaling policy with an Action must exist.</p><p>There is a delay in MetricAlarm recognizing the Autoscaling policy.</p>',
+  'ecs.healthgraceperiod':
+    '<p>How long a container will be kept alive despite the load balancer health checks, in seconds.</p>',
+  'ecs.networkMode':
+    '<p>awsvpc is the only networking mode that allows you to use Elastic Network Interfaces (ENI).  The default value converts to Bridge on Linux, and NAT on Windows.</p>',
+  'ecs.subnet': '<p>The subnet group on which your server group will be deployed.</p>',
+  'ecs.securityGroups': '<p>The security group(s) name(s) your containers are deployed with.</p>',
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

@@ -56,10 +56,7 @@ module.exports = angular
         'ecs.serverGroup.horizontalScaling',
         require('./horizontalScaling/horizontalScaling.html'),
       ),
-      loadBalancers: overrideRegistry.getTemplate(
-        'ecs.serverGroup.loadBalancers',
-        require('./loadBalancers/loadBalancers.html'),
-      ),
+      networking: overrideRegistry.getTemplate('ecs.serverGroup.networking', require('./networking/networking.html')),
       advancedSettings: overrideRegistry.getTemplate(
         'ecs.serverGroup.advancedSettings',
         require('./advancedSettings/advancedSettings.html'),
@@ -149,6 +146,7 @@ module.exports = angular
     }
 
     function initializeWatches() {
+      $scope.$watch('command.subnetType', createResultProcessor($scope.command.subnetTypeChanged));
       $scope.$watch('command.credentials', createResultProcessor($scope.command.credentialsChanged));
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
       $scope.$watch(

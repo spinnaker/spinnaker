@@ -37,11 +37,11 @@ export class ApplicationLoadBalancerSelectorComponent implements IComponentOptio
     command: '=',
   };
   public controller: any = LoadBalancerSelectorController;
-  public templateUrl = require('./loadBalancerSelector.component.html');
+  public templateUrl = require('./networkingSelector.component.html');
 }
 
-export const ECS_LOAD_BALANCER_SELECTOR = 'spinnaker.ecs.serverGroup.configure.wizard.loadBalancers.selector.component';
-module(ECS_LOAD_BALANCER_SELECTOR, [ECS_SERVER_GROUP_CONFIGURATION_SERVICE]).component(
+export const ECS_NETWORKING_SECTION = 'spinnaker.ecs.serverGroup.configure.wizard.loadBalancers.selector.component';
+module(ECS_NETWORKING_SECTION, [ECS_SERVER_GROUP_CONFIGURATION_SERVICE]).component(
   'ecsServerGroupLoadBalancerSelector',
   new ApplicationLoadBalancerSelectorComponent(),
 );

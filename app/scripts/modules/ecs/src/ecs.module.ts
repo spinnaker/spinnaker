@@ -5,7 +5,7 @@ const angular = require('angular');
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
-import { ECS_LOAD_BALANCER_SELECTOR } from './serverGroup/configure/wizard/loadBalancers/loadBalancerSelector.component';
+import { ECS_NETWORKING_SECTION } from './serverGroup/configure/wizard/networking/networkingSelector.component';
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
 import { IAM_ROLE_READ_SERVICE } from './iamRoles/iamRole.read.service';
 import { ECS_CLUSTER_READ_SERVICE } from './ecsCluster/ecsCluster.read.service';
@@ -35,7 +35,7 @@ angular
     require('./serverGroup/configure/wizard/advancedSettings/advancedSettings.component').name,
     require('./serverGroup/configure/wizard/verticalScaling/verticalScaling.component').name,
     require('./serverGroup/configure/wizard/horizontalScaling/horizontalScaling.component').name,
-    ECS_LOAD_BALANCER_SELECTOR,
+    ECS_NETWORKING_SECTION,
     ECS_CLUSTER_READ_SERVICE,
     METRIC_ALARM_READ_SERVICE,
     PLACEMENT_STRATEGY_SERVICE,

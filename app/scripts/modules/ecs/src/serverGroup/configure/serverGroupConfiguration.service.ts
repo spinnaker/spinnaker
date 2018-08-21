@@ -19,6 +19,9 @@ import {
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   ServerGroupCommandRegistry,
   SubnetReader,
+  SECURITY_GROUP_READER,
+  SecurityGroupReader,
+  // ISecurityGroup,
 } from '@spinnaker/core';
 
 import { IAmazonLoadBalancer } from '@spinnaker/amazon';
@@ -44,6 +47,8 @@ export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupC
   iamRoles: string[];
   ecsClusters: string[];
   metricAlarms: IMetricAlarmDescriptor[];
+  subnetTypes: string[];
+  securityGroupNames: string[];
 }
 
 export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBackingData {
@@ -52,6 +57,8 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   ecsClusters: IEcsClusterDescriptor[];
   iamRoles: IRoleDescriptor[];
   metricAlarms: IMetricAlarmDescriptor[];
+  // subnetTypes: string;
+  // securityGroups: string[]
 }
 
 export interface IEcsServerGroupCommand extends IServerGroupCommand {
@@ -61,7 +68,9 @@ export interface IEcsServerGroupCommand extends IServerGroupCommand {
   placementStrategyName: string;
   placementStrategySequence: IPlacementStrategy[];
 
+  subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   placementStrategyNameChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
+  // subnetTypeChanged: (command: IEcsServerGroupCommand) => IServerGroupCommandResult;
   regionIsDeprecated: (command: IEcsServerGroupCommand) => boolean;
 }
 
@@ -79,6 +88,7 @@ export class EcsServerGroupConfigurationService {
     private ecsClusterReader: EscClusterReader,
     private metricAlarmReader: MetricAlarmReader,
     private placementStrategyService: PlacementStrategyService,
+    private securityGroupReader: SecurityGroupReader,
   ) {
     'ngInject';
   }
@@ -123,10 +133,11 @@ export class EcsServerGroupConfigurationService {
       .all({
         credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('ecs'),
         loadBalancers: this.loadBalancerReader.listLoadBalancers('ecs'),
-        subnets: SubnetReader.listSubnets(),
+        subnets: SubnetReader.listSubnetsByProvider('ecs'),
         iamRoles: this.iamRoleReader.listRoles('ecs'),
         ecsClusters: this.ecsClusterReader.listClusters(),
         metricAlarms: this.metricAlarmReader.listMetricAlarms(),
+        securityGroups: this.securityGroupReader.getAllSecurityGroups(),
       })
       .then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
         let loadBalancerReloader = this.$q.when();
@@ -135,6 +146,8 @@ export class EcsServerGroupConfigurationService {
         cmd.backingData = backingData as IEcsServerGroupCommandBackingData;
         this.configureVpcId(cmd);
         this.configureAvailableIamRoles(cmd);
+        this.configureAvailableSubnetTypes(cmd);
+        this.configureAvailableSecurityGroups(cmd);
         this.configureAvailableMetricAlarms(cmd);
         this.configureAvailableEcsClusters(cmd);
 
@@ -199,6 +212,48 @@ export class EcsServerGroupConfigurationService {
       }
     }
     */
+  }
+
+  public configureAvailableSecurityGroups(command: IEcsServerGroupCommand): void {
+    if (command.subnetType == null) {
+      command.backingData.filtered.securityGroups = [];
+      return;
+    }
+
+    const vpcId = chain(command.backingData.subnets)
+      .filter({
+        account: command.credentials,
+        region: command.region,
+        purpose: command.subnetType,
+      })
+      .compact()
+      .uniqBy('purpose')
+      .map('vpcId')
+      .value()[0];
+
+    if (
+      command.backingData.securityGroups[command.credentials] &&
+      command.backingData.securityGroups[command.credentials]['ecs'] &&
+      command.backingData.securityGroups[command.credentials]['ecs'][command.region]
+    ) {
+      const allSecurityGroups = command.backingData.securityGroups[command.credentials]['ecs'][command.region];
+      command.backingData.filtered.securityGroupNames = chain(allSecurityGroups)
+        .filter({ vpcId: vpcId })
+        .map('name')
+        .value();
+    }
+  }
+
+  public configureAvailableSubnetTypes(command: IEcsServerGroupCommand): void {
+    command.backingData.filtered.subnetTypes = chain(command.backingData.subnets)
+      .filter({
+        account: command.credentials,
+        region: command.region,
+      })
+      .compact()
+      .uniqBy('purpose')
+      .map('purpose')
+      .value();
   }
 
   public configureAvailableEcsClusters(command: IEcsServerGroupCommand): void {
@@ -360,8 +415,16 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailabilityZones(command);
         this.configureAvailableMetricAlarms(command);
         this.configureAvailableEcsClusters(command);
+        this.configureAvailableSubnetTypes(command);
+        this.configureAvailableSecurityGroups(command);
       }
 
+      return result;
+    };
+
+    cmd.subnetTypeChanged = (command: IEcsServerGroupCommand): IServerGroupCommandResult => {
+      const result: IEcsServerGroupCommandResult = { dirty: {} };
+      this.configureAvailableSecurityGroups(command);
       return result;
     };
 
@@ -372,6 +435,8 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableIamRoles(command);
         this.configureAvailableMetricAlarms(command);
         this.configureAvailableEcsClusters(command);
+        this.configureAvailableSubnetTypes(command);
+        this.configureAvailableSecurityGroups(command);
 
         const regionsForAccount: IAccountDetails =
           backingData.credentialsKeyedByAccount[command.credentials] || ({ regions: [] } as IAccountDetails);
@@ -403,6 +468,7 @@ export class EcsServerGroupConfigurationService {
 export const ECS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.ecs.serverGroup.configure.service';
 module(ECS_SERVER_GROUP_CONFIGURATION_SERVICE, [
   LOAD_BALANCER_READ_SERVICE,
+  SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
 ]).service('ecsServerGroupConfigurationService', EcsServerGroupConfigurationService);
