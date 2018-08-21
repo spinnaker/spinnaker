@@ -44,6 +44,11 @@ class CreateWebhookTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
+    Map<String, ?> outputs = [webhook: [:]]
+    // TODO: The below parameter is deprecated and should be removed after some time
+    Map<String, ?> outputsDeprecated = [deprecationWarning: "All webhook information will be moved beneath the key 'webhook', " +
+      "and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today."]
+
     String url = stage.context.url
     def method = stage.context.method ? HttpMethod.valueOf(stage.context.method.toString().toUpperCase()) : HttpMethod.POST
     def payload = stage.context.payload
@@ -56,18 +61,16 @@ class CreateWebhookTask implements RetryableTask {
     } catch (HttpStatusCodeException e) {
       def statusCode = e.getStatusCode()
       if (statusCode.is5xxServerError() || statusCode.value() == 429) {
-        log.warn("error submitting webhook to ${url}, will retry", e)
-        return new TaskResult(ExecutionStatus.RUNNING)
+        String errorMessage = "error submitting webhook for pipeline ${stage.execution.id} to ${url}, will retry."
+        log.warn(errorMessage, e)
+        outputs.webhook << [statusCode: statusCode]
+        outputs.webhook << [errorMessage: errorMessage]
+        return new TaskResult(ExecutionStatus.RUNNING, outputs)
       }
       throw e
     }
 
     def statusCode = response.statusCode
-
-    Map<String, ?> outputs = [webhook: [:]]
-    // TODO: The below parameter is deprecated and should be removed after some time
-    Map<String, ?> outputsDeprecated = [deprecationWarning: "All webhook information will be moved beneath the key 'webhook', " +
-      "and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today."]
 
     outputs.webhook << [statusCode: statusCode]
     outputsDeprecated << [statusCode: statusCode]
