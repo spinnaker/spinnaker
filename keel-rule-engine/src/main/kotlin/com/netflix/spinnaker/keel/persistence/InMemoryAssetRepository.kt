@@ -4,12 +4,13 @@ import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import java.time.Clock
+import java.time.Instant
 
 class InMemoryAssetRepository(
   private val clock: Clock
 ) : AssetRepository {
   private val assets = mutableMapOf<AssetId, Asset>()
-  private val states = mutableMapOf<AssetId, AssetState>()
+  private val states = mutableMapOf<AssetId, Pair<AssetState, Instant>>()
 
   override fun assets(callback: (Asset) -> Unit) {
     assets.values.forEach(callback)
@@ -20,7 +21,7 @@ class InMemoryAssetRepository(
 
   override fun store(asset: Asset) {
     assets[asset.id] = asset
-    states[asset.id] = Unknown(clock.instant())
+    states[asset.id] = Pair(Unknown, clock.instant())
   }
 
   override fun dependents(id: AssetId): Iterable<AssetId> =
@@ -28,8 +29,12 @@ class InMemoryAssetRepository(
       .filter { it.value.dependsOn.contains(id) }
       .keys
 
-  override fun lastKnownState(id: AssetId): AssetState? =
+  override fun lastKnownState(id: AssetId): Pair<AssetState, Instant>? =
     states[id]
+
+  override fun updateState(id: AssetId, state: AssetState) {
+    states[id] = Pair(state, clock.instant())
+  }
 
   internal fun dropAll() {
     assets.clear()

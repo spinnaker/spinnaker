@@ -2,6 +2,9 @@ package com.netflix.spinnaker.keel.processing
 
 import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.persistence.AssetState.Diff
+import com.netflix.spinnaker.keel.persistence.AssetState.Missing
+import com.netflix.spinnaker.keel.persistence.AssetState.Ok
 import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -15,15 +18,20 @@ import strikt.api.Assertion
 import strikt.api.expect
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import java.lang.System.nanoTime
 import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import java.util.*
 
-internal object AssetProcessorSpec : Spek({
+internal object AssetValidatorSpec : Spek({
 
-  val repository = InMemoryAssetRepository(Clock.systemDefaultZone())
+  val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+  val repository = InMemoryAssetRepository(clock)
   val assetService: AssetService = mock()
-  val subject = AssetProcessor(repository, assetService)
+  val subject = AssetValidator(repository, assetService)
 
   val rootAsset = Asset(id = AssetId("SecurityGroup:aws:prod:us-west-2:keel"), kind = "SecurityGroup", spec = randomBytes())
   val assets = listOf(
@@ -33,7 +41,7 @@ internal object AssetProcessorSpec : Spek({
     it.copy(dependsOn = setOf(rootAsset.id))
   }
 
-  describe("validating asset status") {
+  describe("validating a sub-tree") {
     given("no desired state is known") {
       beforeGroup {
         assets.forEach(repository::store)
@@ -74,6 +82,17 @@ internal object AssetProcessorSpec : Spek({
             isEmpty()
           }
         }
+
+        it("marks all assets as ${Ok::class.java.simpleName}") {
+          (assets + rootAsset).forEach {
+            repository.lastKnownState(it.id) expect {
+              isNotNull().and {
+                map { it.first }.isEqualTo(Ok)
+                map { it.second }.isEqualTo(clock.instant())
+              }
+            }
+          }
+        }
       }
 
       given("the current state of some assets differ from the desired state") {
@@ -94,6 +113,72 @@ internal object AssetProcessorSpec : Spek({
         it("returns all invalid asset ids") {
           subject.validateSubTree(rootAsset.id) expect {
             containsExactlyInAnyOrder(*invalidAssets.map { it.id }.toTypedArray())
+          }
+        }
+
+        it("marks valid assets as ${Ok::class.java.simpleName}") {
+          validAssets.forEach {
+            repository.lastKnownState(it.id) expect {
+              isNotNull().and {
+                map { it.first }.isEqualTo(Ok)
+                map { it.second }.isEqualTo(clock.instant())
+              }
+            }
+          }
+        }
+
+        it("marks invalid assets as ${Diff::class.java.simpleName}") {
+          invalidAssets.forEach {
+            repository.lastKnownState(it.id) expect {
+              isNotNull().and {
+                map { it.first }.isEqualTo(Diff)
+                map { it.second }.isEqualTo(clock.instant())
+              }
+            }
+          }
+        }
+      }
+
+      given("some assets do not exist in the cloud") {
+        val missingAssets = assets
+        val validAssets = setOf(rootAsset)
+
+        beforeGroup {
+          missingAssets.forEach {
+            whenever(assetService.current(it)) doReturn null as Asset?
+          }
+          validAssets.forEach {
+            whenever(assetService.current(it)) doReturn it
+          }
+        }
+
+        afterGroup { reset(assetService) }
+
+        it("returns all invalid asset ids") {
+          subject.validateSubTree(rootAsset.id) expect {
+            containsExactlyInAnyOrder(*missingAssets.map { it.id }.toTypedArray())
+          }
+        }
+
+        it("marks valid assets as ${Ok::class.java.simpleName}") {
+          validAssets.forEach {
+            repository.lastKnownState(it.id) expect {
+              isNotNull().and {
+                map { it.first }.isEqualTo(Ok)
+                map { it.second }.isEqualTo(clock.instant())
+              }
+            }
+          }
+        }
+
+        it("marks missing assets as ${Missing::class.java.simpleName}") {
+          missingAssets.forEach {
+            repository.lastKnownState(it.id) expect {
+              isNotNull().and {
+                map { it.first }.isEqualTo(Missing)
+                map { it.second }.isEqualTo(clock.instant())
+              }
+            }
           }
         }
       }

@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 
@@ -77,7 +77,8 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
     expect(subject.lastKnownState(asset.id))
       .isNotNull()
-      .isA<AssetState.Unknown>()
+      .map { it.first }
+      .isEqualTo(Unknown)
   }
 
   @Test
