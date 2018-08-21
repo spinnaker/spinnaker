@@ -14,16 +14,19 @@ message SecurityGroup {
   repeated SecurityGroupRule inboundRules = 6;
   repeated SecurityGroupRule outboundRules = 7;
   string description = 8;
-  string sourceApplication = 9;
-  string targetApplication = 10;
+}
+
+message SecurityGroupRules {
+  repeated SecurityGroupRule inboundRules = 1;
+  repeated SecurityGroupRule outboundRules = 2;
 }
 
 message SecurityGroupRule {
   oneof rule {
     ReferenceRule referenceRule = 1;
-    SelfReferencingRule selfReferencingRule = 2;
-    HttpRule httpRule = 3;
-    CidrRule cidrRule = 4;
+    CrossRegionReferenceRule crossRegionReferenceRule = 2;
+    SelfReferencingRule selfReferencingRule = 3;
+    CidrRule cidrRule = 5;
   }
 }
 
@@ -33,14 +36,17 @@ message ReferenceRule {
   string name = 3;
 }
 
+message CrossRegionReferenceRule {
+  repeated PortRange portRanges = 1;
+  string protocol = 2;
+  string name = 3;
+  string account = 4;
+  string vpcName = 5;
+}
+
 message SelfReferencingRule {
   repeated PortRange portRanges = 1;
   string protocol = 2;
-}
-
-message HttpRule {
-  repeated string paths = 1;
-  string host = 2;
 }
 
 message CidrRule {
