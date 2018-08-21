@@ -43,6 +43,7 @@ public class GoogleSubscription extends Subscription {
   }
 
   public static enum MessageFormat {
+    GCB,
     GCS,
     GCR,
     CUSTOM

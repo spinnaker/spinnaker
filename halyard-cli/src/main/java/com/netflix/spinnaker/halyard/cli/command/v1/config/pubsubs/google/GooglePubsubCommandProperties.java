@@ -28,6 +28,6 @@ public class GooglePubsubCommandProperties {
   public static final String ACK_DEADLINE_SECONDS_DESCRIPTION = "Time in seconds before an outstanding message is considered unacknowledged and is re-sent.\n" +
       "Configurable in your Google Cloud Pubsub subscription. See the docs here: https://cloud.google.com/pubsub/docs/subscriber";
 
-  public static final String MESSAGE_FORMAT_DESCRIPTION = "One of 'GCS', 'GCR', or 'CUSTOM'. This can be used to help Spinnaker translate the contents of the\n" +
+  public static final String MESSAGE_FORMAT_DESCRIPTION = "One of 'GCB', 'GCS', 'GCR', or 'CUSTOM'. This can be used to help Spinnaker translate the contents of the\n" +
       "Pub/Sub message into Spinnaker artifacts.";
 }
