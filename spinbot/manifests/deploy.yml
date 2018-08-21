@@ -83,6 +83,7 @@ data:
       - name: log_event_handler
         config:
           payload: false
+      - name: pull_request_message_handler
       - name: filetype_check_pull_request_handler
         config:
           omit_repos: 
