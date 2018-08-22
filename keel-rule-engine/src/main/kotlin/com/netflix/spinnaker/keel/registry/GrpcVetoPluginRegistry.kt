@@ -11,14 +11,13 @@ import org.slf4j.LoggerFactory
 class GrpcVetoPluginRegistry(
   override val eurekaClient: EurekaClient
 ) : VetoPluginRegistryGrpc.VetoPluginRegistryImplBase(),
-  Registry<VetoPluginGrpc.VetoPluginBlockingStub>,
-  VetoPluginRegistry {
+  Registry<VetoPluginGrpc.VetoPluginBlockingStub> {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val vetoPlugins: MutableSet<String> = mutableSetOf()
   override val stubFactory = VetoPluginGrpc::newBlockingStub
 
-  override fun <R> applyVetos(callback: (VetoPluginGrpc.VetoPluginBlockingStub) -> R): Iterable<R> =
+  fun <R> applyVetos(callback: (VetoPluginGrpc.VetoPluginBlockingStub) -> R): Iterable<R> =
     vetoPlugins.map(this::stubFor).map(callback)
 
   override fun register(

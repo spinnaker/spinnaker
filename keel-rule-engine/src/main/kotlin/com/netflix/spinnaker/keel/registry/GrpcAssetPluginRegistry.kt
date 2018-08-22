@@ -11,13 +11,13 @@ import org.slf4j.LoggerFactory
 
 class GrpcAssetPluginRegistry(
   override val eurekaClient: EurekaClient
-) : AssetPluginRegistryGrpc.AssetPluginRegistryImplBase(), Registry<AssetPluginGrpc.AssetPluginBlockingStub>, AssetPluginRegistry {
+) : AssetPluginRegistryGrpc.AssetPluginRegistryImplBase(), Registry<AssetPluginGrpc.AssetPluginBlockingStub> {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val assetPlugins: MutableMap<TypeMetadata, String> = mutableMapOf()
   override val stubFactory = AssetPluginGrpc::newBlockingStub
 
-  override fun pluginFor(type: TypeMetadata): AssetPluginGrpc.AssetPluginBlockingStub? =
+  fun pluginFor(type: TypeMetadata): AssetPluginGrpc.AssetPluginBlockingStub? =
     assetPlugins[type]?.let { name ->
       stubFor(name)
     }
