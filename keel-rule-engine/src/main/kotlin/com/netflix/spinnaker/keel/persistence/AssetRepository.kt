@@ -1,7 +1,10 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.model.Asset
+import com.netflix.spinnaker.keel.model.AssetBase
+import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.model.PartialAsset
 import java.time.Instant
 
 interface AssetRepository {
@@ -19,12 +22,23 @@ interface AssetRepository {
   fun get(id: AssetId): Asset?
 
   /**
-   * Persists an asset.
+   * Fetches the ids of any assets that depend (directly) on [id].
+   * Get a partial asset
    */
-  fun store(asset: Asset)
+  fun getPartial(id: AssetId): PartialAsset?
 
   /**
-   * Fetches the ids of any assets that depend (directly) on [id].
+   * Get an asset including all associated partial assets
+   */
+  fun getContainer(id: AssetId): AssetContainer
+
+  /**
+   * Persists an asset or partial asset
+   */
+  fun store(asset: AssetBase)
+
+  /**
+   * Get the dependents of an asset id
    */
   fun dependents(id: AssetId): Iterable<AssetId>
 

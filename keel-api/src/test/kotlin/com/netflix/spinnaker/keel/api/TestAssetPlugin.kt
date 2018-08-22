@@ -5,11 +5,14 @@ import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
 import io.grpc.stub.StreamObserver
 
 class TestAssetPlugin : AssetPluginGrpc.AssetPluginImplBase() {
-  override fun current(request: Asset, responseObserver: StreamObserver<CurrentResponse>) {
+  override fun current(request: AssetContainer, responseObserver: StreamObserver<CurrentResponse>) {
     with(responseObserver) {
       onNext(CurrentResponse
         .newBuilder()
-        .also { it.asset = request }
+        .also {
+          it.desired = request.asset
+          it.current = request.asset
+        }
         .build()
       )
       onCompleted()

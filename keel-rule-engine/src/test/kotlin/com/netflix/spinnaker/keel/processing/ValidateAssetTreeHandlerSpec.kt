@@ -27,7 +27,7 @@ import java.lang.System.nanoTime
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
-import java.util.*
+import java.util.Random
 
 internal object ValidateAssetTreeHandlerSpec : Spek({
 
@@ -78,9 +78,9 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
 
       given("all states match the desired state") {
         beforeGroup {
-          whenever(assetService.current(rootAsset)) doReturn rootAsset
+          whenever(assetService.current(rootAsset.wrap())) doReturn CurrentAssetPair(rootAsset, rootAsset)
           for (asset in assets) {
-            whenever(assetService.current(asset)) doReturn asset
+            whenever(assetService.current(asset.wrap())) doReturn CurrentAssetPair(asset, asset)
           }
         }
 
@@ -94,7 +94,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           verifyZeroInteractions(queue)
         }
 
-        it("marks all assets as ${Ok::class.java.simpleName}") {
+        it("marks all assets as $Ok") {
           (assets + rootAsset).forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
@@ -112,10 +112,11 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
 
         beforeGroup {
           invalidAssets.forEach {
-            whenever(assetService.current(it)) doReturn it.copy(spec = randomBytes())
+            val asset = it.copy(spec = randomBytes())
+            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(asset, asset)
           }
           validAssets.forEach {
-            whenever(assetService.current(it)) doReturn it
+            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, it)
           }
         }
 
@@ -132,7 +133,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           verifyNoMoreInteractions(queue)
         }
 
-        it("marks valid assets as ${Ok::class.java.simpleName}") {
+        it("marks valid assets as $Ok") {
           validAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
@@ -143,7 +144,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           }
         }
 
-        it("marks invalid assets as ${Diff::class.java.simpleName}") {
+        it("marks invalid assets as $Diff") {
           invalidAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
@@ -161,10 +162,10 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
 
         beforeGroup {
           missingAssets.forEach {
-            whenever(assetService.current(it)) doReturn null as Asset?
+            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, null)
           }
           validAssets.forEach {
-            whenever(assetService.current(it)) doReturn it
+            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, it)
           }
         }
 
@@ -181,7 +182,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           verifyNoMoreInteractions(queue)
         }
 
-        it("marks valid assets as ${Ok::class.java.simpleName}") {
+        it("marks valid assets as $Ok") {
           validAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
@@ -192,7 +193,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           }
         }
 
-        it("marks missing assets as ${Missing::class.java.simpleName}") {
+        it("marks missing assets as $Missing") {
           missingAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {

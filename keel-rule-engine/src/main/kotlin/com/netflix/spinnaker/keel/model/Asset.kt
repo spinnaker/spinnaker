@@ -4,15 +4,28 @@ import com.google.common.hash.HashCode
 import com.google.common.hash.Hashing
 
 /**
+ * Common interface for assets and partial assets.
+ */
+interface AssetBase {
+  val id: AssetId
+  val apiVersion: String
+  val kind: String
+  val spec: ByteArray
+}
+
+/**
  * Internal representation of an asset.
  */
 data class Asset(
-  val id: AssetId,
-  val apiVersion: String = "1.0",
-  val kind: String,
+  override val id: AssetId,
+  override val apiVersion: String = "1.0",
+  override val kind: String,
   val dependsOn: Set<AssetId> = emptySet(),
-  val spec: ByteArray
-) {
+  override val spec: ByteArray
+) : AssetBase {
+
+  fun wrap(): AssetContainer = AssetContainer(this)
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
@@ -26,6 +39,38 @@ data class Asset(
 
   override fun hashCode(): Int = id.hashCode()
 }
+
+/**
+ * Internal representation of a partial asset.
+ */
+data class PartialAsset(
+  override val id: AssetId,
+  val root: AssetId,
+  override val apiVersion: String = "1.0",
+  override val kind: String,
+  override val spec: ByteArray
+) : AssetBase {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as PartialAsset
+
+    if (id != other.id) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int = id.hashCode()
+}
+
+/**
+ * Internal representation of an asset container.
+ */
+data class AssetContainer(
+  val asset: Asset?,
+  val partialAssets: Set<PartialAsset> = setOf()
+)
 
 data class AssetId(
   val value: String

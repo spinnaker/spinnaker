@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.processing
 
 import com.netflix.spinnaker.keel.model.Asset
+import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState
@@ -23,12 +24,14 @@ class ConvergeAssetHandler(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun handle(message: ConvergeAsset) {
-    repository.get(message.id)?.also { asset ->
+    repository.getContainer(message.id).withAssetPresent()?.also { assetContainer ->
+      val asset = assetContainer.asset!!
+
       val outdatedDependencies = asset.outdatedDependencies
       if (outdatedDependencies.isEmpty()) {
-        if (vetoService.allow(asset)) {
+        if (vetoService.allow(assetContainer)) {
           log.info("{} : requesting convergence")
-          assetService.converge(asset)
+          assetService.converge(assetContainer)
         } else {
           log.info("{} : convergence was vetoed")
         }
@@ -55,6 +58,10 @@ class ConvergeAssetHandler(
         }
       }
 
-  private val AssetId.isUpToDate: Boolean
-    get() = repository.lastKnownState(this)?.first == Ok
+  private fun AssetContainer.withAssetPresent(): AssetContainer? =
+    if (asset == null) {
+      null
+    } else {
+      this
+    }
 }

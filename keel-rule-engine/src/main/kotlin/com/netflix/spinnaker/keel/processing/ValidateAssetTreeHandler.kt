@@ -36,21 +36,21 @@ class ValidateAssetTreeHandler(
 
   // TODO: coroutine
   private suspend fun SequenceBuilder<AssetId>.validateSubTree(id: AssetId) {
-    val desired = repository.get(id)
-    if (desired == null) {
+    val desired = repository.getContainer(id)
+    if (desired.asset == null) {
       log.error("{} : Not found", id)
     } else {
       log.debug("{} : Validating state", id)
       assetService
         .current(desired)
-        .also { current ->
+        .also { assetContainer ->
           when {
-            current == null -> {
-              log.info("{} : Does not exist", id)
+            assetContainer.current == null -> {
+              log.info("{}: Does not exist", id)
               repository.updateState(id, Missing)
               yield(id)
             }
-            desired.fingerprint == current.fingerprint -> {
+            desired.asset.fingerprint == assetContainer.current.fingerprint -> {
               log.info("{} : Current state valid", id)
               repository.updateState(id, Ok)
             }

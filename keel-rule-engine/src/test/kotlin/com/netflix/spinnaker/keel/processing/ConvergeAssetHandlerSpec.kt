@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.processing
 
 import com.netflix.spinnaker.keel.model.Asset
+import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState.Diff
@@ -52,7 +53,7 @@ internal object ConvergeAssetHandlerSpec : Spek({
 
   describe("converging an asset") {
     given("the asset cannot be found") {
-      beforeGroup { whenever(repository.get(asset.id)) doReturn null as Asset? }
+      beforeGroup { whenever(repository.getContainer(asset.id)) doReturn AssetContainer(null) }
       afterGroup { reset(repository) }
 
       on("receiving a message") {
@@ -67,6 +68,7 @@ internal object ConvergeAssetHandlerSpec : Spek({
 
     given("dependent assets are up-to-date") {
       beforeGroup {
+        whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
         setOf(asset, level1Dependency, level2Dependency).forEach {
           whenever(repository.get(it.id)) doReturn it
         }
@@ -76,7 +78,7 @@ internal object ConvergeAssetHandlerSpec : Spek({
       afterGroup { reset(repository) }
 
       given("nothing vetoes the convergence") {
-        beforeGroup { whenever(vetoService.allow(asset)) doReturn true }
+        beforeGroup { whenever(vetoService.allow(asset.wrap())) doReturn true }
         afterGroup { reset(vetoService) }
 
         on("receiving a message") {
@@ -84,12 +86,12 @@ internal object ConvergeAssetHandlerSpec : Spek({
         }
 
         it("requests convergence of the asset") {
-          verify(assetService).converge(asset)
+          verify(assetService).converge(asset.wrap())
         }
       }
 
       given("something vetoes the convergence") {
-        beforeGroup { whenever(vetoService.allow(asset)) doReturn false }
+        beforeGroup { whenever(vetoService.allow(asset.wrap())) doReturn false }
         afterGroup { reset(vetoService) }
 
         on("receiving a message") {
@@ -105,6 +107,7 @@ internal object ConvergeAssetHandlerSpec : Spek({
     sequenceOf(Diff, Missing, Unknown).forEach { state ->
       given("a direct dependency is in $state state") {
         beforeGroup {
+          whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
           setOf(asset, level1Dependency, level2Dependency).forEach {
             whenever(repository.get(it.id)) doReturn it
           }
@@ -131,6 +134,7 @@ internal object ConvergeAssetHandlerSpec : Spek({
 
       given("an indirect dependency is in $state state") {
         beforeGroup {
+          whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
           setOf(asset, level1Dependency, level2Dependency).forEach {
             whenever(repository.get(it.id)) doReturn it
           }

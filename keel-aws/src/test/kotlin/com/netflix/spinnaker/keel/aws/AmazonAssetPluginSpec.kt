@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.aws
 
-import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetContainer
 import com.netflix.spinnaker.keel.api.GrpcStubManager
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -28,7 +28,7 @@ import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import strikt.protobuf.unpack
 import strikt.protobuf.unpacksTo
-import java.util.*
+import java.util.UUID
 
 internal object AmazonAssetPluginSpec : Spek({
 
@@ -77,16 +77,19 @@ internal object AmazonAssetPluginSpec : Spek({
         reset(cloudDriverService)
       }
 
-      val request = Asset
+      val request = AssetContainer
         .newBuilder()
         .apply {
-          typeMetadataBuilder.apply {
-            kind = "aws.SecurityGroup"
-            apiVersion = "1.0"
+          asset = assetBuilder.apply {
+            typeMetadataBuilder.apply {
+              kind = "aws.SecurityGroup"
+              apiVersion = "1.0"
+            }
+            specBuilder.apply {
+              value = securityGroup.toByteString()
+            }
           }
-          specBuilder.apply {
-            value = securityGroup.toByteString()
-          }
+            .build()
         }
         .build()
 
@@ -95,7 +98,7 @@ internal object AmazonAssetPluginSpec : Spek({
       }
 
       Then("returns null") {
-        expect(response.hasAsset()).isFalse()
+        expect(response.hasCurrent()).isFalse()
       }
     }
 
@@ -112,14 +115,16 @@ internal object AmazonAssetPluginSpec : Spek({
         reset(cloudDriverService)
       }
 
-      val request = Asset
+      val request = AssetContainer
         .newBuilder()
         .apply {
-          typeMetadataBuilder.apply {
-            kind = "aws.SecurityGroup"
-            apiVersion = "1.0"
-          }
-          spec = securityGroup.pack()
+          asset = assetBuilder.apply {
+            typeMetadataBuilder.apply {
+              kind = "aws.SecurityGroup"
+              apiVersion = "1.0"
+            }
+            spec = securityGroup.pack()
+          }.build()
         }
         .build()
 
@@ -129,8 +134,8 @@ internal object AmazonAssetPluginSpec : Spek({
 
       Then("returns the existing security group") {
         expect(response) {
-          map { it.hasAsset() }.isTrue()
-          map { it.asset.spec }
+          map { it.hasCurrent() }.isTrue()
+          map { it.current.spec }
             .unpacksTo<SecurityGroup>()
             .unpack<SecurityGroup>()
             .isEqualTo(securityGroup)
@@ -147,14 +152,16 @@ internal object AmazonAssetPluginSpec : Spek({
         reset(cloudDriverService, orcaService)
       }
 
-      val request = Asset
+      val request = AssetContainer
         .newBuilder()
         .apply {
-          typeMetadataBuilder.apply {
-            kind = "aws.SecurityGroup"
-            apiVersion = "1.0"
+          assetBuilder.apply {
+            typeMetadataBuilder.apply {
+              kind = "aws.SecurityGroup"
+              apiVersion = "1.0"
+            }
+            spec = securityGroup.pack()
           }
-          spec = securityGroup.pack()
         }
         .build()
 

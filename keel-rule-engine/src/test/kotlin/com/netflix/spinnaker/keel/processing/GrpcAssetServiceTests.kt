@@ -33,6 +33,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import com.netflix.spinnaker.keel.api.Asset as AssetProto
+import com.netflix.spinnaker.keel.api.AssetContainer as AssetContainerProto
 
 internal class GrpcAssetServiceTests {
   val grpc = GrpcStubManager(AssetPluginGrpc::newBlockingStub)
@@ -74,7 +75,7 @@ internal class GrpcAssetServiceTests {
   @Test
   fun `current throws an exception if no registered plugin supports an asset type`() {
     throws<UnsupportedAssetType> {
-      subject.current(asset.copy(kind = "ElasticLoadBalancer:aws:prod:us-west-2:keel"))
+      subject.current(asset.copy(kind = "ElasticLoadBalancer:aws:prod:us-west-2:keel").wrap())
     }
 
     verifyZeroInteractions(plugin)
@@ -84,13 +85,15 @@ internal class GrpcAssetServiceTests {
   fun `current returns null if asset does not currently exist`() {
     handleCurrent { _, responseObserver ->
       with(responseObserver) {
-        onNext(CurrentResponse.getDefaultInstance())
+        onNext(CurrentResponse.newBuilder().also {
+          it.desired = asset.toProto()
+        }.build())
         onCompleted()
       }
     }
 
-    subject.current(asset).also { result ->
-      expect(result).isNull()
+    subject.current(asset.wrap()).also { result ->
+      expect(result.current).isNull()
     }
   }
 
@@ -103,8 +106,8 @@ internal class GrpcAssetServiceTests {
       }
     }
 
-    subject.current(asset).also { result ->
-      expect(result) {
+    subject.current(asset.wrap()).also { result ->
+      expect(result.current) {
         isNotNull().isIdenticalTo(asset)
       }
     }
@@ -114,14 +117,15 @@ internal class GrpcAssetServiceTests {
     return CurrentResponse
       .newBuilder()
       .also {
-        it.asset = toProto()
+        it.current = toProto()
+        it.desired = toProto()
       }
       .build()
   }
 
-  fun handleCurrent(handler: (AssetProto, StreamObserver<CurrentResponse>) -> Unit) {
+  fun handleCurrent(handler: (AssetContainerProto, StreamObserver<CurrentResponse>) -> Unit) {
     whenever(plugin.current(any(), any())) doAnswer {
-      val asset = it.getArgument<AssetProto>(0)
+      val asset = it.getArgument<AssetContainerProto>(0)
       val observer = it.getArgument<StreamObserver<CurrentResponse>>(1)
       handler(asset, observer)
     }

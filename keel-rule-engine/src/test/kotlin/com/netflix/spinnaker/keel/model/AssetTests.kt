@@ -6,7 +6,7 @@ import org.junit.jupiter.api.TestFactory
 import strikt.api.expect
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEqualTo
-import java.util.*
+import java.util.Base64
 
 internal class AssetTests {
   @TestFactory

@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.aws
 
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetContainer
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
@@ -36,10 +37,10 @@ class AmazonAssetPlugin(
     TypeMetadata.newBuilder().setApiVersion("1.0").setKind(kind).build()
   }
 
-  override fun current(request: Asset, responseObserver: StreamObserver<CurrentResponse>) {
+  override fun current(request: AssetContainer, responseObserver: StreamObserver<CurrentResponse>) {
     val asset = when {
-      request.spec.isA<SecurityGroup>() -> {
-        val spec: SecurityGroup = request.spec.unpack()
+      request.asset.spec.isA<SecurityGroup>() -> {
+        val spec: SecurityGroup = request.asset.spec.unpack()
         cloudDriverService.getSecurityGroup(spec)
       }
       else -> null
@@ -49,17 +50,18 @@ class AmazonAssetPlugin(
       onNext(CurrentResponse
         .newBuilder()
         .also {
-          it.asset = asset?.toProto(request)
+          it.current = asset?.toProto(request)
+          it.desired = request.asset
         }
         .build())
       onCompleted()
     }
   }
 
-  override fun converge(request: Asset, responseObserver: StreamObserver<ConvergeResponse>) {
+  override fun converge(request: AssetContainer, responseObserver: StreamObserver<ConvergeResponse>) {
     when {
-      request.spec.isA<SecurityGroup>() -> {
-        val spec: SecurityGroup = request.spec.unpack()
+      request.asset.spec.isA<SecurityGroup>() -> {
+        val spec: SecurityGroup = request.asset.spec.unpack()
         orcaService
           .orchestrate(OrchestrationRequest(
             "Upsert security group $request.",
@@ -104,20 +106,22 @@ class AmazonAssetPlugin(
       spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.accountName, spec.region).id }
     )
 
-  private fun com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.toProto(request: Asset): Asset =
+  private fun com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.toProto(request: AssetContainer): Asset =
     Asset.newBuilder()
       .apply {
-        typeMetadata = request.typeMetadata
-        spec = SecurityGroup.newBuilder()
-          .also {
-            it.name = name
-            it.accountName = accountName
-            it.region = region
-            it.vpcName = vpcId?.let { cloudDriverCache.networkBy(it).name }
-            it.description = description
-          }
-          .build()
-          .pack()
+        if (request.hasAsset()) {
+          typeMetadata = request.asset.typeMetadata
+          spec = SecurityGroup.newBuilder()
+            .also {
+              it.name = name
+              it.accountName = accountName
+              it.region = region
+              it.vpcName = vpcId?.let { cloudDriverCache.networkBy(it).name }
+              it.description = description
+            }
+            .build()
+            .pack()
+        }
       }
       .build()
 }

@@ -20,18 +20,22 @@ internal object TestAssetPluginSpec : Spek({
 
   describe("a generic gRPC service") {
     it("supports a current request") {
-      val request = Asset.newBuilder().apply {
-        typeMetadataBuilder.apply {
-          apiVersion = "1.0"
-          kind = "Test"
+      val request = AssetContainer.newBuilder().apply {
+        asset = assetBuilder.apply {
+          typeMetadataBuilder.apply {
+            apiVersion = "1.0"
+            kind = "Test"
+          }
         }
+          .build()
       }
         .build()
 
       grpc.withChannel {
         val response = it.current(request)
 
-        expect(response.asset).isEqualTo(request)
+        expect(response.desired).isEqualTo(request.asset)
+        expect(response.current).isEqualTo(request.asset)
       }
     }
   }

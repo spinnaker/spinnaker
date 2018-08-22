@@ -1,7 +1,10 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.model.Asset
+import com.netflix.spinnaker.keel.model.AssetBase
+import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.model.PartialAsset
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import java.time.Clock
 import java.time.Instant
@@ -10,6 +13,7 @@ class InMemoryAssetRepository(
   private val clock: Clock
 ) : AssetRepository {
   private val assets = mutableMapOf<AssetId, Asset>()
+  private val partialAssets = mutableMapOf<AssetId, PartialAsset>()
   private val states = mutableMapOf<AssetId, Pair<AssetState, Instant>>()
 
   override fun rootAssets(callback: (Asset) -> Unit) {
@@ -19,8 +23,21 @@ class InMemoryAssetRepository(
   override fun get(id: AssetId): Asset? =
     assets[id]
 
-  override fun store(asset: Asset) {
-    assets[asset.id] = asset
+  override fun getPartial(id: AssetId): PartialAsset? =
+    partialAssets[id]
+
+  override fun getContainer(id: AssetId): AssetContainer =
+    AssetContainer(
+      asset = get(id),
+      partialAssets = partialAssets.filterValues { it.root.value == id.value }.values.toSet()
+    )
+
+  override fun store(asset: AssetBase) {
+    when (asset) {
+      is Asset -> assets[asset.id] = asset
+      is PartialAsset -> partialAssets[asset.id] = asset
+      else -> throw IllegalArgumentException("Unknown asset type: ${asset.javaClass.simpleName}")
+    }
     states[asset.id] = Unknown to clock.instant()
   }
 

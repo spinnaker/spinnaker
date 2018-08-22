@@ -14,6 +14,18 @@ message Asset {
   google.protobuf.Any spec = 4;
 }
 
+message PartialAsset {
+  AssetId id = 1;
+  AssetId root = 2;
+  TypeMetadata typeMetadata = 3;
+  google.protobuf.Any spec = 4;
+}
+
+message AssetContainer {
+  Asset asset = 1;
+  repeated PartialAsset partialAssets = 2;
+}
+
 message AssetId {
   string value = 1;
 }
