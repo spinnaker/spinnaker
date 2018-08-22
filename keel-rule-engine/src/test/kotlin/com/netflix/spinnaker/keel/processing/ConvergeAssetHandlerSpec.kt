@@ -70,7 +70,7 @@ internal object ConvergeAssetHandlerSpec : Spek({
         setOf(asset, level1Dependency, level2Dependency).forEach {
           whenever(repository.get(it.id)) doReturn it
         }
-        whenever(repository.lastKnownState(any())) doReturn Pair(Ok, now())
+        whenever(repository.lastKnownState(any())) doReturn (Ok to now())
       }
 
       afterGroup { reset(repository) }
@@ -108,9 +108,9 @@ internal object ConvergeAssetHandlerSpec : Spek({
           setOf(asset, level1Dependency, level2Dependency).forEach {
             whenever(repository.get(it.id)) doReturn it
           }
-          whenever(repository.lastKnownState(level2Dependency.id)) doReturn Pair(Ok, now())
-          whenever(repository.lastKnownState(level1Dependency.id)) doReturn Pair(state, now())
-          whenever(repository.lastKnownState(asset.id)) doReturn Pair(Ok, now())
+          whenever(repository.lastKnownState(level2Dependency.id)) doReturn (Ok to now())
+          whenever(repository.lastKnownState(level1Dependency.id)) doReturn (state to now())
+          whenever(repository.lastKnownState(asset.id)) doReturn (Ok to now())
         }
 
         afterGroup { reset(repository) }
@@ -134,9 +134,9 @@ internal object ConvergeAssetHandlerSpec : Spek({
           setOf(asset, level1Dependency, level2Dependency).forEach {
             whenever(repository.get(it.id)) doReturn it
           }
-          whenever(repository.lastKnownState(level2Dependency.id)) doReturn Pair(state, now())
-          whenever(repository.lastKnownState(level1Dependency.id)) doReturn Pair(Ok, now())
-          whenever(repository.lastKnownState(asset.id)) doReturn Pair(Ok, now())
+          whenever(repository.lastKnownState(level2Dependency.id)) doReturn (state to now())
+          whenever(repository.lastKnownState(level1Dependency.id)) doReturn (Ok to now())
+          whenever(repository.lastKnownState(asset.id)) doReturn (Ok to now())
         }
 
         afterGroup { reset(repository) }

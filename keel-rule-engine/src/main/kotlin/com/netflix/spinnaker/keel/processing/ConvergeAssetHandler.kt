@@ -49,9 +49,9 @@ class ConvergeAssetHandler(
         val state = repository.lastKnownState(dependencyId)?.first ?: Unknown
         return if (state == Ok) {
           repository.get(dependencyId)?.outdatedDependencies
-            ?: listOf(Pair(dependencyId, Unknown))
+            ?: listOf(dependencyId to Unknown)
         } else {
-          listOf(Pair(dependencyId, state))
+          listOf(dependencyId to state)
         }
       }
 

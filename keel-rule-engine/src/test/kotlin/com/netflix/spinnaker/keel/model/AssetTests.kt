@@ -16,7 +16,7 @@ internal class AssetTests {
       ByteArray(1)
     )
       .map { bytes ->
-        Pair(asset(bytes), asset(bytes))
+        asset(bytes) to asset(bytes)
       }
       .map { (asset1, asset2) ->
         dynamicTest("fingerprints of 2 assets with spec ${asset1.spec.base64} match") {
@@ -27,11 +27,11 @@ internal class AssetTests {
   @TestFactory
   fun `fingerprints do not match if spec differs`() =
     listOf(
-      Pair(randomBytes(), randomBytes()),
-      Pair(ByteArray(2), ByteArray(1))
+      randomBytes() to randomBytes(),
+      ByteArray(2) to ByteArray(1)
     )
       .map { (bytes1, bytes2) ->
-        Pair(asset(bytes1), asset(bytes2))
+        asset(bytes1) to asset(bytes2)
       }
       .map { (asset1, asset2) ->
         dynamicTest("fingerprints of 2 assets with specs ${asset1.spec.base64} and ${asset2.spec.base64} do not match") {

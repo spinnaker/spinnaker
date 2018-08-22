@@ -21,7 +21,7 @@ class InMemoryAssetRepository(
 
   override fun store(asset: Asset) {
     assets[asset.id] = asset
-    states[asset.id] = Pair(Unknown, clock.instant())
+    states[asset.id] = Unknown to clock.instant()
   }
 
   override fun dependents(id: AssetId): Iterable<AssetId> =
@@ -33,7 +33,7 @@ class InMemoryAssetRepository(
     states[id]
 
   override fun updateState(id: AssetId, state: AssetState) {
-    states[id] = Pair(state, clock.instant())
+    states[id] = state to clock.instant()
   }
 
   internal fun dropAll() {
