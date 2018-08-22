@@ -1,11 +1,16 @@
 application-links {
   .row-heading {
     padding: 10px 0;
-    border-bottom: 1px solid var(--color-alto);
-    border-top: 1px solid var(--color-alto);
+    .heading-label {
+      font-size: 16px;
+    }
   }
   .link-section {
     margin: 10px 0;
+  }
+  .link-header {
+    color: var(--color-concrete);
+    font-size: 12px;
   }
   .sm-label-right {
     padding-left: 0;
@@ -23,7 +28,24 @@ application-links {
     border-radius: 2px;
   }
 
+  .ui-sortable-handle {
+    margin-left: -40px;
+  }
+
   .ui-select-search {
     position: absolute;
+  }
+
+  .ui-select-match-item {
+    background-color: var(--color-accent);
+    color: var(--color-text-on-dark);
+  }
+
+  .ui-select-match-close {
+    opacity: 1;
+    color: var(--color-text-on-dark);
+    text-shadow: inherit;
+    padding-left: 6px;
+    padding-top: 2px;
   }
 }

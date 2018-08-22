@@ -25,7 +25,18 @@ module.exports = angular
           return;
         }
 
-        this.sections = _.cloneDeep(this.application.attributes.instanceLinks || SETTINGS.defaultInstanceLinks || []);
+        this.cloudProviders = this.application.attributes.cloudProviders
+          ? this.application.attributes.cloudProviders
+          : [];
+
+        this.sections = _.cloneDeep(
+          this.application.attributes.instanceLinks || SETTINGS.defaultInstanceLinks || [],
+        ).filter(
+          section =>
+            !section.cloudProviders ||
+            section.cloudProviders.length === 0 ||
+            _.intersection(section.cloudProviders, this.cloudProviders).length > 0,
+        );
 
         this.viewState = {
           originalSections: _.cloneDeep(this.sections),
@@ -34,10 +45,6 @@ module.exports = angular
           saveError: false,
           isDirty: false,
         };
-
-        this.cloudProviders = this.application.attributes.cloudProviders
-          ? this.application.attributes.cloudProviders
-          : [];
 
         this.setDefaultLinkState();
       };

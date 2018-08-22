@@ -74,7 +74,7 @@ module.exports = angular
       $scope.healthMetrics = displayableMetrics;
     }
 
-    function retrieveInstance() {
+    const retrieveInstance = () => {
       var extraData = {};
       var instanceSummary, loadBalancers, account, region, vpcId;
       app.serverGroups.data.some(function(serverGroup) {
@@ -94,30 +94,36 @@ module.exports = angular
         extraData.account = account;
         extraData.region = region;
         RecentHistoryService.addExtraDataToLatest('instances', extraData);
-        return InstanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
-          $scope.state.loading = false;
-          extractHealthMetrics(instanceSummary, details);
-          $scope.instance = defaults(details, instanceSummary);
-          $scope.instance.account = account;
-          $scope.instance.region = region;
-          $scope.instance.vpcId = vpcId;
-          $scope.instance.loadBalancers = loadBalancers;
-          $scope.baseIpAddress = $scope.instance.placement.containerIp || $scope.instance.placement.host;
-          $scope.instance.externalIpAddress = $scope.instance.placement.host;
-          if (details.securityGroups) {
-            $scope.securityGroups = _.chain(details.securityGroups)
-              .map(function(securityGroup) {
-                return titusSecurityGroupReader.resolveIndexedSecurityGroup(
-                  app['securityGroupsIndex'],
-                  extraData,
-                  securityGroup.groupId,
-                );
-              })
-              .compact()
-              .value();
-          }
-          getBastionAddressForAccount($scope.instance.account, $scope.instance.region);
-        }, autoClose);
+        return $q
+          .all([
+            InstanceReader.getInstanceDetails(account, region, instance.instanceId),
+            AccountService.getAccountDetails(account),
+          ])
+          .then(([instanceDetails, accountDetails]) => {
+            $scope.state.loading = false;
+            extractHealthMetrics(instanceSummary, instanceDetails);
+            $scope.instance = defaults(instanceDetails, instanceSummary);
+            $scope.instance.account = account;
+            $scope.instance.region = region;
+            $scope.instance.vpcId = vpcId;
+            $scope.instance.loadBalancers = loadBalancers;
+            $scope.baseIpAddress = $scope.instance.placement.containerIp || $scope.instance.placement.host;
+            $scope.instance.externalIpAddress = $scope.instance.placement.host;
+            if (instanceDetails.securityGroups) {
+              $scope.securityGroups = _.chain(instanceDetails.securityGroups)
+                .map(function(securityGroup) {
+                  return titusSecurityGroupReader.resolveIndexedSecurityGroup(
+                    app['securityGroupsIndex'],
+                    extraData,
+                    securityGroup.groupId,
+                  );
+                })
+                .compact()
+                .value();
+            }
+            getBastionAddressForAccount(accountDetails, region);
+            $scope.instance.titusUiEndpoint = this.titusUiEndpoint;
+          }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -125,7 +131,7 @@ module.exports = angular
         $scope.state.loading = false;
       }
       return $q.when(null);
-    }
+    };
 
     function autoClose() {
       if ($scope.$$destroyed) {
@@ -281,20 +287,22 @@ module.exports = angular
       });
     };
 
-    let getBastionAddressForAccount = (account, region) => {
-      return AccountService.getAccountDetails(account).then(details => {
-        this.bastionHost = details.bastionHost || 'unknown';
+    const getBastionAddressForAccount = (accountDetails, region) => {
+      this.bastionHost = accountDetails.bastionHost || 'unknown';
 
-        const discoveryHealth = $scope.instance.health.find(m => m.type === 'Discovery');
-        if (discoveryHealth) {
-          this.discoveryInfoLink =
-            `http://discoveryreadonly.${region}.dyn${details.environment}` +
-            `.netflix.net:7001/discovery/v2/apps/${discoveryHealth.application}/${$scope.instance.instanceId}`;
-        }
+      const discoveryHealth = $scope.instance.health.find(m => m.type === 'Discovery');
+      if (discoveryHealth) {
+        this.discoveryInfoLink =
+          `http://discoveryreadonly.${region}.dyn${accountDetails.environment}` +
+          `.netflix.net:7001/discovery/v2/apps/${discoveryHealth.application}/${$scope.instance.instanceId}`;
+      }
 
-        this.titusUiEndpoint = filter(details.regions, { name: region })[0].endpoint;
-        $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh -region ${region} ${$scope.instance.id}'`;
-      });
+      const titusUiEndpoint = filter(accountDetails.regions, { name: region })[0].endpoint;
+      this.titusUiEndpoint = titusUiEndpoint;
+
+      $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh -region ${region} ${$scope.instance.id}'`;
+
+      return titusUiEndpoint;
     };
 
     this.hasPorts = () => {
