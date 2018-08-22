@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -159,7 +160,7 @@ public class KubernetesCacheDataConverter {
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
         .put("name", podName)
         .put("namespace", namespace)
-        .put("containerMetrics", podMetric.getContainerMetrics())
+        .put("metrics", podMetric.getContainerMetrics())
         .build();
 
     Map<String, Collection<String>> relationships = new ImmutableMap.Builder<String, Collection<String>>()
@@ -233,6 +234,10 @@ public class KubernetesCacheDataConverter {
 
     String key = Keys.infrastructure(kind, account, namespace, name);
     return new DefaultCacheData(key, infrastructureTtlSeconds, attributes, cacheRelationships);
+  }
+
+  public static List<Map> getMetrics(CacheData cacheData) {
+    return mapper.convertValue(cacheData.getAttributes().get("metrics"), new TypeReference<List<Map>>() { });
   }
 
   public static KubernetesManifest getManifest(CacheData cacheData) {

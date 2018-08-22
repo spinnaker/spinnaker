@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -32,9 +33,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -86,6 +89,11 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .sorted(Comparator.comparing(lastEventTimestamp))
         .collect(Collectors.toList());
 
+    String metricKey = Keys.metric(kind, account, location, parsedName.getRight());
+    List<Map> metrics = cacheUtils.getSingleEntry(Keys.Kind.KUBERNETES_METRIC.toString(), metricKey)
+        .map(KubernetesCacheDataConverter::getMetrics)
+        .orElse(Collections.emptyList());
+
     KubernetesHandler handler = properties.getHandler();
 
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
@@ -100,6 +108,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .artifacts(handler.listArtifacts(manifest))
         .events(events)
         .warnings(handler.listWarnings(manifest))
+        .metrics(metrics)
         .build();
   }
 }
