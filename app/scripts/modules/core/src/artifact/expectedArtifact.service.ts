@@ -1,5 +1,6 @@
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { IPipeline, IStage, IExpectedArtifact, IExecutionContext } from 'core/domain';
+import { UUIDGenerator } from 'core/utils/uuid.service';
 
 export class ExpectedArtifactService {
   public static getExpectedArtifactsAvailableToStage(stage: IStage, pipeline: IPipeline): IExpectedArtifact[] {
@@ -30,5 +31,30 @@ export class ExpectedArtifactService {
         .map(field => stageContext[field])
         .filter(v => v)
         .reduce((array, value) => array.concat(value), []);
+  }
+
+  public static createEmptyArtifact(kind: string): IExpectedArtifact {
+    return {
+      id: UUIDGenerator.generateUuid(),
+      usePriorArtifact: false,
+      useDefaultArtifact: false,
+      matchArtifact: {
+        id: UUIDGenerator.generateUuid(),
+        kind,
+      },
+      defaultArtifact: {
+        id: UUIDGenerator.generateUuid(),
+        kind,
+      },
+    };
+  }
+
+  public static addNewArtifactTo(obj: any): IExpectedArtifact {
+    const artifact = ExpectedArtifactService.createEmptyArtifact('custom');
+    if (obj.expectedArtifacts == null) {
+      obj.expectedArtifacts = [];
+    }
+    obj.expectedArtifacts.push(artifact);
+    return artifact;
   }
 }

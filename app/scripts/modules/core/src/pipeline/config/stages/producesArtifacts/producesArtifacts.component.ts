@@ -1,7 +1,6 @@
 import { IComponentOptions, IController, module } from 'angular';
 
-import { UUIDGenerator } from 'core/utils/uuid.service';
-import { IStage, IExpectedArtifact, IPipeline } from 'core';
+import { IStage, IExpectedArtifact, IPipeline, ExpectedArtifactService } from 'core';
 import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
 
 class ProducesArtifactsCtrl implements IController {
@@ -22,24 +21,8 @@ class ProducesArtifactsCtrl implements IController {
     ArtifactReferenceService.removeReferenceFromStages(expectedArtifact.id, this.pipeline.stages);
   };
 
-  private defaultArtifact() {
-    return { kind: 'custom' };
-  }
-
   public addExpectedArtifact() {
-    const newArtifact = {
-      matchArtifact: this.defaultArtifact(),
-      usePriorExecution: false,
-      useDefaultArtifact: false,
-      defaultArtifact: this.defaultArtifact(),
-      id: UUIDGenerator.generateUuid(),
-    };
-
-    if (!this.stage.expectedArtifacts) {
-      this.stage.expectedArtifacts = [];
-    }
-
-    this.stage.expectedArtifacts.push(newArtifact);
+    ExpectedArtifactService.addNewArtifactTo(this.stage);
   }
 }
 
