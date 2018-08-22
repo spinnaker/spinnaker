@@ -10,7 +10,7 @@ export interface IServerGroupManagerHeadingProps {
 
 export const ServerGroupManagerHeading = ({ onClick, health, provider }: IServerGroupManagerHeadingProps) => {
   return (
-    <div className={`flex-container-h baseline server-group-title sticky-header-3`} onClick={onClick}>
+    <div className={`flex-container-h baseline server-group-title`} onClick={onClick}>
       <div className="flex-container-h baseline section-title">
         <CloudProviderLogo provider={provider} height="16px" width="16px" />
       </div>
