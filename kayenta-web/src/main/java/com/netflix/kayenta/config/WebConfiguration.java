@@ -16,18 +16,33 @@
 
 package com.netflix.kayenta.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
-import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator;
+import com.google.common.collect.ImmutableList;
+import com.netflix.kayenta.interceptors.MetricsInterceptor;
+import com.netflix.spectator.api.Registry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @Configuration
 @Slf4j
 @ComponentScan({"com.netflix.kayenta.controllers"})
-public class WebConfiguration {
+public class WebConfiguration extends WebMvcConfigurerAdapter {
+
+  @Autowired
+  Registry registry;
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(
+      new MetricsInterceptor(
+        this.registry,
+        "controller.invocations",
+        ImmutableList.of("accountName", "configurationAccountName", "metricsAccountName", "storageAccountName", "application"),
+        ImmutableList.of("BasicErrorController")
+      )
+    );
+  }
 }
