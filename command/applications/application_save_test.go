@@ -32,7 +32,7 @@ const (
 )
 
 func TestApplicationSave_basic(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -72,7 +72,7 @@ func TestApplicationSave_fail(t *testing.T) {
 }
 
 func TestApplicationSave_flags(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -89,7 +89,7 @@ func TestApplicationSave_flags(t *testing.T) {
 }
 
 func TestApplicationSave_missingname(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -108,7 +108,7 @@ func TestApplicationSave_missingname(t *testing.T) {
 }
 
 func TestApplicationSave_missingemail(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -127,7 +127,7 @@ func TestApplicationSave_missingemail(t *testing.T) {
 }
 
 func TestApplicationSave_missingproviders(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
 	meta := command.ApiMeta{}
@@ -146,7 +146,7 @@ func TestApplicationSave_missingproviders(t *testing.T) {
 }
 
 func TestApplicationSave_filebasic(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
 	tempFile := tempAppFile(testAppJsonStr)
@@ -171,7 +171,7 @@ func TestApplicationSave_filebasic(t *testing.T) {
 }
 
 func TestApplicationSave_stdinbasic(t *testing.T) {
-	ts := GateServerSuccess()
+	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
 	tempFile := tempAppFile(testAppJsonStr)
@@ -200,18 +200,6 @@ func TestApplicationSave_stdinbasic(t *testing.T) {
 	}
 }
 
-// GateServerSuccess spins up a local http server that we will configure the GateClient
-// to direct requests to. Responds with a 200 OK.
-func GateServerSuccess() *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		payload := map[string]string{
-			"ref": "/tasks/somethingtotallyreasonable",
-		}
-		b, _ := json.Marshal(&payload)
-		fmt.Fprintln(w, string(b))
-	}))
-}
-
 // GateServerFail spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with a 500 InternalServerError.
 func GateServerFail() *httptest.Server {
@@ -219,6 +207,27 @@ func GateServerFail() *httptest.Server {
 		// TODO(jacobkiefer): Mock more robust errors once implemented upstream.
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}))
+}
+
+// testGatePipelineExecuteSuccess spins up a local http server that we will configure the GateClient
+// to direct requests to. Responds with successful responses to pipeline execute API calls.
+func testGateApplicationSaveSuccess() *httptest.Server {
+	mux := http.NewServeMux()
+	mux.Handle("/tasks", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		payload := map[string]string{
+			"ref": "/tasks/id",
+		}
+		b, _ := json.Marshal(&payload)
+		fmt.Fprintln(w, string(b))
+	}))
+	mux.Handle("/tasks/id", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		payload := map[string]string{
+			"status": "SUCCEEDED",
+		}
+		b, _ := json.Marshal(&payload)
+		fmt.Fprintln(w, string(b))
+	}))
+	return httptest.NewServer(mux)
 }
 
 func tempAppFile(appContent string) *os.File {

@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spinnaker/spin/command"
 	"github.com/spinnaker/spin/util"
@@ -138,6 +139,47 @@ func (c *ApplicationSaveCommand) validApp(app map[string]interface{}) bool {
 	return providers != nil && name != "" && email != ""
 }
 
+// queryTask queries the task for the given ref and returns whether it was
+// successful or not.
+func (c *ApplicationSaveCommand) queryTask(ref map[string]interface{}) (map[string]interface{}, *http.Response, error) {
+	toks := strings.Split(ref["ref"].(string), "/")
+	id := toks[len(toks)-1]
+
+	return c.ApiMeta.GateClient.TaskControllerApi.GetTaskUsingGET1(c.ApiMeta.Context, id)
+}
+
+// TODO(jacobkiefer): Consider generalizing if we need these functions elsewhere.
+
+func (c *ApplicationSaveCommand) taskCompleted(task map[string]interface{}) bool {
+	taskStatus, exists := task["status"]
+	if !exists {
+		return false
+	}
+
+	COMPLETED := [...]string{"SUCCEEDED", "STOPPED", "SKIPPED", "TERMINAL", "FAILED_CONTINUE"}
+	for _, status := range COMPLETED {
+		if taskStatus == status {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *ApplicationSaveCommand) taskSucceeded(task map[string]interface{}) bool {
+	taskStatus, exists := task["status"]
+	if !exists {
+		return false
+	}
+
+	SUCCESSFUL := [...]string{"SUCCEEDED", "STOPPED", "SKIPPED"}
+	for _, status := range SUCCESSFUL {
+		if taskStatus == status {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *ApplicationSaveCommand) Run(args []string) int {
 	// TODO(jacobkiefer): Should we check for an existing application of the same name?
 	var err error
@@ -159,15 +201,30 @@ func (c *ApplicationSaveCommand) Run(args []string) int {
 		return 1
 	}
 
-	_, resp, err := c.saveApplication(applicationJson)
-
+	ref, _, err := c.saveApplication(applicationJson)
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	task, resp, err := c.queryTask(ref)
+	attempts := 0
+	for (task == nil || !c.taskCompleted(task)) && attempts < 5 {
+		task, resp, err = c.queryTask(ref)
+		attempts += 1
+		time.Sleep(time.Duration(attempts*attempts) * time.Second)
+	}
+
+	if err != nil {
+		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
+		return 1
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("Encountered an error saving application, status code: %d\n", resp.StatusCode))
+		return 1
+	}
+	if !c.taskSucceeded(task) {
+		c.ApiMeta.Ui.Error(fmt.Sprintf("Encountered an error saving application, task output was: %v\n", task))
 		return 1
 	}
 

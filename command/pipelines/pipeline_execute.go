@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/spinnaker/spin/command"
 	gate "github.com/spinnaker/spin/gateapi"
@@ -106,6 +107,7 @@ func (c *PipelineExecuteCommand) Run(args []string) int {
 	for len(executions) == 0 && attempts < 5 {
 		executions, resp, err = c.queryExecution()
 		attempts += 1
+		time.Sleep(time.Duration(attempts*attempts) * time.Second)
 	}
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
