@@ -37,7 +37,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 bold "Using bucket $BUCKET_URI..."
 
-gsutil mb $BUCKET_URI
+gsutil mb -p $PROJECT_ID $BUCKET_URI
 
 bold "Configuring sample code & pipelines..."
 
