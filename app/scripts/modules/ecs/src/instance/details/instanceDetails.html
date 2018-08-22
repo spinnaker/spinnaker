@@ -70,10 +70,6 @@
               serverGroup: instance.serverGroup,
               provider: instance.provider})">{{instance.serverGroup}}</a>
         </dd>
-        <dt ng-if="instance.serverGroup">VPC</dt>
-        <dd ng-if="instance.serverGroup"><vpc-tag vpc-id="instance.vpcId"></vpc-tag></dd>
-        <dt ng-if="instance.subnetId">Subnet</dt>
-        <dd ng-if="instance.subnetId"><subnet-tag subnet-id="instance.subnetId"></subnet-tag></dd>
         <dt ng-if="instance.imageId">Image ID</dt>
         <dd ng-if="instance.imageId">{{instance.imageId}}</dd>
       </dl>
@@ -111,8 +107,28 @@
     </collapsible-section>
     <collapsible-section heading="Networking">
       <dl class="horizontal-when-filters-collapsed">
-        <dd>
-          Private address: <a href="http://{{instance.privateAddress}}" target="_blank">{{instance.privateAddress}}</a>
+        <dt ng-if="instance.vpcId">VPC</dt>
+        <dd ng-if="instance.vpcId"><vpc-tag vpc-id="instance.vpcId"></vpc-tag></dd>
+        <dt ng-if="instance.subnetId">Subnet</dt>
+        <dd ng-if="instance.subnetId"><subnet-tag subnet-id="instance.subnetId"></subnet-tag></dd>
+
+        <dt ng-if="instance.privateAddress || instance.networkInterface">IP</dt>
+        <dd ng-if="instance.networkInterface.privateIpv4Address">
+          Private address (ENI): <a href="http://{{instance.networkInterface.privateIpv4Address}}" target="_blank">{{instance.networkInterface.privateIpv4Address}}</a>
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="instance.networkInterface.privateIpv4Address"
+            tool-tip="'Copy to clipboard'">
+          </copy-to-clipboard>
+        <dd ng-if="instance.networkInterface.ipv6Address">
+          Private address (ENI): <a href="http://{{instance.networkInterface.ipv6Address}}" target="_blank">{{instance.networkInterface.ipv6Address}}</a>
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="instance.networkInterface.ipv6Address"
+            tool-tip="'Copy to clipboard'">
+          </copy-to-clipboard>
+        <dd ng-if="instance.privateAddress">
+          Private address (Bridge): <a href="http://{{instance.privateAddress}}" target="_blank">{{instance.privateAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="instance.privateAddress"
