@@ -66,6 +66,12 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
             .forEach(c -> result.add((KubernetesCachingAgent) c))
         );
 
+    if (v2Credentials.isMetrics()) {
+      IntStream.range(0, credentials.getCacheThreads())
+          .boxed()
+          .forEach(i -> result.add(new KubernetesMetricCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads())));
+    }
+
     return result.stream()
         .collect(Collectors.toMap(KubernetesCachingAgent::getAgentType, c -> c, (a, b) -> b))
         .values();

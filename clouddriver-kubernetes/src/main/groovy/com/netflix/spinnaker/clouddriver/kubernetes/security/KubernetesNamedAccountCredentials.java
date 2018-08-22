@@ -58,6 +58,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   final private String kubeconfigFile;
   final private String kubectlExecutable;
   final private Boolean serviceAccount;
+  final private Boolean metrics;
   private List<String> namespaces;
   private List<String> omitNamespaces;
   private String skin;
@@ -82,6 +83,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
                                     String kubeconfigFile,
                                     String kubectlExecutable,
                                     Boolean serviceAccount,
+                                    Boolean metrics,
                                     List<String> namespaces,
                                     List<String> omitNamespaces,
                                     String skin,
@@ -103,6 +105,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     this.kubeconfigFile = kubeconfigFile;
     this.kubectlExecutable = kubectlExecutable;
     this.serviceAccount = serviceAccount;
+    this.metrics = metrics;
     this.namespaces = namespaces;
     this.omitNamespaces = omitNamespaces;
     this.skin = skin;
@@ -206,6 +209,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     String kubectlExecutable;
     Integer kubectlRequestTimeoutSeconds;
     Boolean serviceAccount;
+    Boolean metrics;
     Boolean configureImagePullSecrets;
     List<String> namespaces;
     List<String> omitNamespaces;
@@ -303,6 +307,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
     Builder serviceAccount(Boolean serviceAccount) {
       this.serviceAccount = serviceAccount;
+      return this;
+    }
+
+    Builder metrics(Boolean metrics) {
+      this.metrics = metrics;
       return this;
     }
 
@@ -439,6 +448,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .cachingPolicies(cachingPolicies)
               .kinds(kinds)
               .omitKinds(omitKinds)
+              .metrics(metrics)
               .debug(debug)
               .jobExecutor(jobExecutor)
               .build();
@@ -498,6 +508,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         serviceAccount = false;
       }
 
+      if (metrics == null) {
+        // on by default
+        metrics = true;
+      }
+
       if (credentials == null) {
         credentials = buildCredentials();
       }
@@ -515,6 +530,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
           kubeconfigFile,
           kubectlExecutable,
           serviceAccount,
+          metrics,
           namespaces,
           omitNamespaces,
           skin,

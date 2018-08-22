@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResou
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
@@ -41,6 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +65,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final List<KubernetesKind> kinds;
   private final List<KubernetesKind> omitKinds;
   @Getter private final boolean serviceAccount;
+  @Getter private boolean metrics;
   @Getter private final List<KubernetesCachingPolicy> cachingPolicies;
 
   // TODO(lwander) make configurable
@@ -163,6 +166,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<String> omitKinds;
     boolean debug;
     boolean serviceAccount;
+    boolean metrics;
 
     public Builder accountName(String accountName) {
       this.accountName = accountName;
@@ -254,6 +258,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
+    public Builder metrics(boolean metrics) {
+      this.metrics = metrics;
+      return this;
+    }
+
     public KubernetesV2Credentials build() {
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
@@ -279,6 +288,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           cachingPolicies,
           KubernetesKind.registeredStringList(kinds),
           KubernetesKind.registeredStringList(omitKinds),
+          metrics,
           debug
       );
     }
@@ -300,6 +310,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       @NotNull List<KubernetesCachingPolicy> cachingPolicies,
       @NotNull List<KubernetesKind> kinds,
       @NotNull List<KubernetesKind> omitKinds,
+      boolean metrics,
       boolean debug) {
     this.registry = registry;
     this.clock = registry.clock();
@@ -318,6 +329,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.customResources = customResources;
     this.cachingPolicies = cachingPolicies;
     this.kinds = kinds;
+    this.metrics = metrics;
     this.omitKinds = omitKinds;
 
     this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, Collections.singletonList(KubernetesKind.NAMESPACE), "")
@@ -385,6 +397,17 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         omitKinds.add(kind);
       }
     }
+
+    if (metrics) {
+      try {
+        log.info("Checking if pod metrics are readable...");
+        topPod(checkNamespace);
+      } catch (Exception e) {
+        log.warn("Could not read pod metrics in account '{}' for reason: {}", accountName, e.getMessage());
+        log.debug("Reading logs failed with exception: ", e);
+        metrics = false;
+      }
+    }
   }
 
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
@@ -413,6 +436,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   public List<String> delete(KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
     return runAndRecordMetrics("delete", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
+  }
+
+  public Collection<KubernetesPodMetric> topPod(String namespace) {
+    return runAndRecordMetrics("top", KubernetesKind.POD, namespace, () -> jobExecutor.topPod(this, namespace));
   }
 
   public void deploy(KubernetesManifest manifest) {

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesCachingProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -58,6 +59,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.NAMESPACE;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.POD;
 import static java.lang.Math.toIntExact;
 
 @Slf4j
@@ -148,6 +150,25 @@ public class KubernetesCacheDataConverter {
             }));
 
     return new DefaultCacheData(id, ttl, attributes, relationships);
+  }
+
+  public static CacheData convertPodMetric(String account,
+      String namespace,
+      KubernetesPodMetric podMetric) {
+    String podName = podMetric.getPodName();
+    Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
+        .put("name", podName)
+        .put("namespace", namespace)
+        .put("containerMetrics", podMetric.getContainerMetrics())
+        .build();
+
+    Map<String, Collection<String>> relationships = new ImmutableMap.Builder<String, Collection<String>>()
+        .put(POD.toString(), Collections.singletonList(Keys.infrastructure(POD, account, namespace, podName)))
+        .build();
+
+    String id = Keys.metric(POD, account, namespace, podName);
+
+    return new DefaultCacheData(id, infrastructureTtlSeconds, attributes, relationships);
   }
 
   public static CacheData convertAsResource(String account,

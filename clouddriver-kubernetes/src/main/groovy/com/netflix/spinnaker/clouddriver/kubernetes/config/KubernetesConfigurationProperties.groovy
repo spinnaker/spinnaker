@@ -49,6 +49,7 @@ class KubernetesConfigurationProperties {
     Permissions.Builder permissions = new Permissions.Builder()
     String namingStrategy = "kubernetesAnnotations"
     Boolean debug = false
+    Boolean metrics = true
     List<CustomKubernetesResource> customResources;
     List<KubernetesCachingPolicy> cachingPolicies;
     List<String> kinds

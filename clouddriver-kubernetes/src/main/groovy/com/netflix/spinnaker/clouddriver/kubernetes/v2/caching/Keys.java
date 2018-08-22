@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.KUBERNETES_METRIC;
+
 @Slf4j
 public class Keys {
   /**
@@ -40,7 +42,8 @@ public class Keys {
   public enum Kind {
     LOGICAL,
     ARTIFACT,
-    INFRASTRUCTURE;
+    INFRASTRUCTURE,
+    KUBERNETES_METRIC;
 
     @Override
     public String toString() {
@@ -114,6 +117,10 @@ public class Keys {
     return infrastructure(manifest.getKind(), account, manifest.getNamespace(), manifest.getName());
   }
 
+  public static String metric(KubernetesKind kind, String account, String namespace, String name) {
+    return createKey(KUBERNETES_METRIC, kind, account, namespace, name);
+  }
+
   public static Optional<CacheKey> parseKey(String key) {
     String[] parts = key.split(":", -1);
 
@@ -134,6 +141,8 @@ public class Keys {
           return Optional.of(new ArtifactCacheKey(parts));
         case INFRASTRUCTURE:
           return Optional.of(new InfrastructureCacheKey(parts));
+        case KUBERNETES_METRIC:
+          return Optional.of(new MetricCacheKey(parts));
         default:
           throw new IllegalArgumentException("Unknown kind " + kind);
       }
@@ -287,6 +296,37 @@ public class Keys {
     @Override
     public String getGroup() {
       return kubernetesKind.toString();
+    }
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class MetricCacheKey extends CacheKey {
+    private Kind kind = KUBERNETES_METRIC;
+    private KubernetesKind kubernetesKind;
+    private String account;
+    private String namespace;
+    private String name;
+
+    public MetricCacheKey(String[] parts) {
+      if (parts.length != 6) {
+        throw new IllegalArgumentException("Malformed metric key " + Arrays.toString(parts));
+      }
+
+      kubernetesKind = KubernetesKind.fromString(parts[2]);
+      account = parts[3];
+      namespace = parts[4];
+      name = parts[5];
+    }
+
+    @Override
+    public String toString() {
+      return createKey(kind, kubernetesKind, account, namespace, name);
+    }
+
+    @Override
+    public String getGroup() {
+      return KUBERNETES_METRIC.toString();
     }
   }
 }

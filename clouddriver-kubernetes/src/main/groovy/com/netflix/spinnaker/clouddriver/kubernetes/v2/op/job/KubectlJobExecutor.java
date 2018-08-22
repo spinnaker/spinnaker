@@ -23,13 +23,14 @@ import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobStatus;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric.ContainerMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import io.kubernetes.client.models.V1DeleteOptions;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +40,11 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -524,6 +528,79 @@ public class KubectlJobExecutor {
     }
     return status.getStdOut();
   }
+
+  public Collection<KubernetesPodMetric> topPod(KubernetesV2Credentials credentials, String namespace) {
+    List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
+    command.add("top");
+    command.add("po");
+    command.add("--containers");
+
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
+        System.getenv(),
+        new ByteArrayInputStream(new byte[0]));
+
+    JobStatus status = backoffWait(jobId, credentials.isDebug());
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new KubectlException("Could not read metrics: " + status.getStdErr());
+    }
+
+    Map<String, KubernetesPodMetric> result = new HashMap<>();
+
+    String output = status.getStdOut().trim();
+    if (StringUtils.isEmpty(output)) {
+      log.warn("No output from `kubectl top` command, no metrics to report.");
+      return new ArrayList<>();
+    }
+
+    String[] lines = output.split("\n");
+    if (lines.length <= 1) {
+      return new ArrayList<>();
+    }
+
+    // POD NAME CPU(cores) MEMORY(bytes) ...
+    String[] header = lines[0].trim().split("\\s+");
+
+    if (header.length <= 2) {
+      log.warn("Unexpected metric format -- no metrics to report based on table header {}.", header);
+      return new ArrayList<>();
+    }
+
+    // CPU(cores) MEMORY(bytes)
+    String[] metricKeys = Arrays.copyOfRange(header, 2, header.length);
+    for (int i = 1; i < lines.length; i++) {
+      String[] entry = lines[i].trim().split("\\s+");
+      if (entry.length != header.length) {
+        log.warn("Entry {} does not match column width of {}, skipping", entry, header);
+      }
+
+      String podName = entry[0];
+      String containerName = entry[1];
+
+      Map<String, String> metrics = new HashMap<>();
+      for (int j = 0; j < metricKeys.length; j++) {
+        metrics.put(metricKeys[j], entry[j + 2]);
+      }
+
+      ContainerMetric containerMetric = ContainerMetric.builder()
+          .containerName(containerName)
+          .metrics(metrics)
+          .build();
+
+      KubernetesPodMetric podMetric = result.getOrDefault(podName, KubernetesPodMetric.builder()
+          .podName(podName)
+          .containerMetrics(new ArrayList<>())
+          .build());
+
+      podMetric.getContainerMetrics().add(containerMetric);
+
+      result.put(podName, podMetric);
+    }
+
+    return result.values();
+  }
+
 
   public Void patch(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace,
     String name, KubernetesPatchOptions options, KubernetesManifest manifest) {

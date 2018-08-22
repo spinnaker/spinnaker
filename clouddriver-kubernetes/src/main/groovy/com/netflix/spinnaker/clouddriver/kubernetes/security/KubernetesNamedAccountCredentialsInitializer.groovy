@@ -109,6 +109,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .cachingPolicies(managedAccount.cachingPolicies)
           .kinds(managedAccount.kinds)
           .omitKinds(managedAccount.omitKinds)
+          .metrics(managedAccount.metrics)
           .debug(managedAccount.debug)
           .kubernetesSpinnakerKindMap(kubernetesSpinnakerKindMap)
           .build()
