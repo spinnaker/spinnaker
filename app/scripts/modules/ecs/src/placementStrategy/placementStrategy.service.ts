@@ -6,9 +6,9 @@ export class PlacementStrategyService {
   public getPredefinedStrategy(strategyName: string): IPlacementStrategy[] {
     if (strategyName === 'AZ Balanced Spread') {
       return this.getAzBalancedSpreadStrategy();
-    } else if (strategyName === 'AZ Balanced BinPack') {
+    } else if (strategyName === 'AZ Balanced BinPack' || strategyName === 'AZ Balanced BinPack Memory' ) {  // Note: 'BinPack' is a misleading term which was replaced later by 'BinPack Memory' as it was more clear
       return this.getAzBalancedBinPackStrategy();
-    } else if (strategyName === 'BinPack') {
+    } else if (strategyName === 'BinPack' || strategyName === 'BinPack Memory') { // Note: 'BinPack' is a misleading term which was replaced later by 'BinPack Memory' as it was more clear
       return this.getBinPackStrategy();
     } else if (strategyName === 'One Task Per Host') {
       return this.getOneTaskPerHostStrategy();
