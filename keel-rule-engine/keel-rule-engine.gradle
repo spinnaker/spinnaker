@@ -6,6 +6,7 @@ apply from: "$rootDir/gradle/junit5.gradle"
 dependencies {
   protobuf project(":keel-api")
 
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
   implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
   implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion"
 

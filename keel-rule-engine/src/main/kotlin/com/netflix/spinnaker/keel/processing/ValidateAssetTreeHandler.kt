@@ -10,6 +10,8 @@ import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import kotlin.coroutines.experimental.SequenceBuilder
+import kotlin.coroutines.experimental.buildSequence
 
 @Component
 class ValidateAssetTreeHandler(
@@ -21,24 +23,23 @@ class ValidateAssetTreeHandler(
   override val messageType = ValidateAssetTree::class.java
 
   override fun handle(message: ValidateAssetTree) {
-    validateSubTree(message.rootId).also { invalidAssetIds ->
-      invalidAssetIds.forEach { id ->
-        log.debug("{} : Requesting convergence", id)
-        queue.push(ConvergeAsset(id))
-      }
+    val invalidAssetIds = buildSequence {
+      validateSubTree(message.rootId)
+    }
+    invalidAssetIds.forEach { id ->
+      log.debug("{} : Requesting convergence", id)
+      queue.push(ConvergeAsset(id))
     }
   }
 
   private val log = LoggerFactory.getLogger(javaClass)
 
   // TODO: coroutine
-  private fun validateSubTree(id: AssetId): Set<AssetId> {
+  private suspend fun SequenceBuilder<AssetId>.validateSubTree(id: AssetId) {
     val desired = repository.get(id)
     if (desired == null) {
       log.error("{} : Not found", id)
-      return emptySet()
     } else {
-      val invalidAssetIds = mutableSetOf<AssetId>()
       log.debug("{} : Validating state", id)
       assetService
         .current(desired)
@@ -47,7 +48,7 @@ class ValidateAssetTreeHandler(
             current == null -> {
               log.info("{} : Does not exist", id)
               repository.updateState(id, Missing)
-              invalidAssetIds.add(id)
+              yield(id)
             }
             desired.fingerprint == current.fingerprint -> {
               log.info("{} : Current state valid", id)
@@ -56,17 +57,14 @@ class ValidateAssetTreeHandler(
             else -> {
               log.info("{} : Current state invalid", id)
               repository.updateState(id, Diff)
-              invalidAssetIds.add(id)
+              yield(id)
             }
           }
           repository.dependents(id).forEach { dependentId ->
             log.debug("{} : Validating dependent asset {}", id, dependentId)
-            validateSubTree(dependentId).also { them ->
-              invalidAssetIds.addAll(them)
-            }
+            validateSubTree(dependentId)
           }
         }
-      return invalidAssetIds
     }
   }
 }

@@ -15,6 +15,7 @@ class ScheduledAssetChecker(
 
   @Scheduled(fixedDelayString = "\${check.cycle.frequency.ms:3600000}")
   fun runCheckCycle() {
+    log.info("Starting check cycle")
     repository.rootAssets {
       queue.push(ValidateAssetTree(it.id))
     }
