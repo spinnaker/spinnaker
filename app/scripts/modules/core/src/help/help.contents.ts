@@ -363,9 +363,9 @@ const helpContents: { [key: string]: string } = {
     '<p>These storage settings have been cloned from the base server group and differ from the default settings for this instance type.</p>',
   'instanceType.unavailable': '<p>This instance type is not available for the selected configuration.</p>',
   'execution.forceRebake': `
-      <p>By default, the bakery will <b>not</b> create a new image if the contents of the package have not changed;
-        instead, it will return the previously baked image.</p>
-      <p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>`,
+      <p>By default, the bakery will <b>not</b> create a new image if the contents of the package and base image have not changed.
+        Instead, it will return the previously baked image, though this behavior is not guaranteed.</p>
+      <p>Select this option to force the bakery to create a new image, regardless of whether or not a matching image exists.</p>`,
   'execution.dryRun': `
       <p>Select this option to run the pipeline without <em>really</em> executing anything.</p>
       <p>This is a good way to test parameter-driven behavior, expressions, optional stages, etc.</p>`,
