@@ -35,6 +35,7 @@ import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
@@ -57,7 +58,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,13 +86,13 @@ GcsStorageService implements StorageService {
   private final Long retryIntervalBase;
   private final Long jitterMultiplier;
   private final Long maxRetries;
-  private final Timer deleteTimer;
-  private final Timer purgeTimer;  // for deleting timestamp generations
-  private final Timer loadTimer;
-  private final Timer mediaDownloadTimer;
-  private final Timer listTimer;
-  private final Timer insertTimer;
-  private final Timer patchTimer;
+  private final Id deleteTimer;
+  private final Id purgeTimer;  // for deleting timestamp generations
+  private final Id loadTimer;
+  private final Id mediaDownloadTimer;
+  private final Id listTimer;
+  private final Id insertTimer;
+  private final Id patchTimer;
   private final TaskScheduler taskScheduler;
 
   private ConcurrentHashMap<String, AtomicBoolean> updateLockMap = new ConcurrentHashMap<>();
@@ -147,13 +150,13 @@ GcsStorageService implements StorageService {
     this.taskScheduler = taskScheduler;
 
     Id id = registry.createId("google.storage.invocation");
-    deleteTimer = registry.timer(id.withTag("method", "delete"));
-    purgeTimer = registry.timer(id.withTag("method", "purgeTimestamp"));
-    loadTimer = registry.timer(id.withTag("method", "load"));
-    listTimer = registry.timer(id.withTag("method", "list"));
-    mediaDownloadTimer = registry.timer(id.withTag("method", "mediaDownload"));
-    insertTimer = registry.timer(id.withTag("method", "insert"));
-    patchTimer = registry.timer(id.withTag("method", "patch"));
+    deleteTimer = id.withTag("method", "delete");
+    purgeTimer = id.withTag("method", "purgeTimestamp");
+    loadTimer = id.withTag("method", "load");
+    listTimer = id.withTag("method", "list");
+    mediaDownloadTimer = id.withTag("method", "mediaDownload");
+    insertTimer = id.withTag("method", "insert");
+    patchTimer = id.withTag("method", "patch");
   }
 
   public GcsStorageService(String bucketName,
@@ -228,27 +231,40 @@ GcsStorageService implements StorageService {
     this.registry = registry;
 
     Id id = registry.createId("google.storage.invocation");
-    deleteTimer = registry.timer(id.withTag("method", "delete"));
-    purgeTimer = registry.timer(id.withTag("method", "purgeTimestamp"));
-    loadTimer = registry.timer(id.withTag("method", "load"));
-    listTimer = registry.timer(id.withTag("method", "list"));
-    mediaDownloadTimer = registry.timer(id.withTag("method", "mediaDownload"));
-    insertTimer = registry.timer(id.withTag("method", "insert"));
-    patchTimer = registry.timer(id.withTag("method", "patch"));
+    deleteTimer = id.withTag("method", "delete");
+    purgeTimer = id.withTag("method", "purgeTimestamp");
+    loadTimer = id.withTag("method", "load");
+    listTimer = id.withTag("method", "list");
+    mediaDownloadTimer = id.withTag("method", "mediaDownload");
+    insertTimer = id.withTag("method", "insert");
+    patchTimer = id.withTag("method", "patch");
   }
 
-  private <T> T timeExecute(Timer timer, AbstractGoogleClientRequest<T> request) throws IOException {
+  private <T> T timeExecute(Id timerId, AbstractGoogleClientRequest<T> request) throws IOException {
+     T result;
+     Clock clock = registry.clock();
+     long startTime = clock.monotonicTime();
+     int statusCode = -1;
+
      try {
-       return timer.record(new Callable<T>() {
-          public T call() throws IOException {
-            return request.execute();
-          }
-       });
+       result = request.execute();
+       statusCode = request.getLastStatusCode();
+     } catch (HttpResponseException e) {
+       statusCode = e.getStatusCode();
+       throw e;
      } catch (IOException ioex) {
-         throw ioex;
+       throw ioex;
      } catch (Exception ex) {
-         throw new IllegalStateException(ex);
+       throw new IllegalStateException(ex);
+     } finally {
+       long nanos = clock.monotonicTime() - startTime;
+       String status = Integer.toString(statusCode).charAt(0) + "xx";
+
+       Id id = timerId.withTags("status", status,
+                                 "statusCode", Integer.toString(statusCode));
+       registry.timer(id).record(nanos, TimeUnit.NANOSECONDS);
      }
+     return result;
   }
 
   /**
@@ -469,12 +485,31 @@ GcsStorageService implements StorageService {
 
         Closure timeExecuteClosure = new Closure<String>(this, this) {
             public Object doCall() throws Exception {
-              mediaDownloadTimer.record(new Callable() {
-                public Void call() throws Exception {
-                  getter.executeMediaAndDownloadTo(output);
-                  return null;
+              Clock clock = registry.clock();
+              long startTime = clock.monotonicTime();
+              int statusCode = -1;
+
+              try {
+                getter.executeMediaAndDownloadTo(output);
+                statusCode = getter.getLastStatusCode();
+                if (statusCode < 0) {
+                  // getLastStatusCode is returning -1
+                  statusCode = 200;
                 }
-              });
+              } catch (HttpResponseException e) {
+                statusCode = e.getStatusCode();
+                throw e;
+              } catch (Exception e) {
+                log.error("mediaDownload exception from {}", object.getName(), e);
+                throw e;
+              } finally {
+                long nanos = clock.monotonicTime() - startTime;
+                String status = Integer.toString(statusCode).charAt(0) + "xx";
+                Id id = mediaDownloadTimer.withTags(
+                           "status", status,
+                           "statusCode", Integer.toString(statusCode));
+                registry.timer(id).record(nanos, TimeUnit.NANOSECONDS);
+              }
               return Closure.DONE;
             }
         };
