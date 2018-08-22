@@ -20,6 +20,11 @@ module.exports = angular.module('spinnaker.core.instance.details.instanceLinks',
     this.port = _.get(this.application, 'attributes.instancePort', SETTINGS.defaultInstancePort) || 80;
     this.sections = _.cloneDeep(
       _.get(this.application, 'attributes.instanceLinks', SETTINGS.defaultInstanceLinks) || [],
+    ).filter(
+      section =>
+        !section.cloudProviders ||
+        !this.instance.cloudProvider ||
+        section.cloudProviders.includes(this.instance.cloudProvider),
     );
     this.sections.forEach(section => {
       section.links = section.links.map(link => {
@@ -35,7 +40,7 @@ module.exports = angular.module('spinnaker.core.instance.details.instanceLinks',
           );
         }
         // handle relative paths
-        if (!url.includes('//')) {
+        if (!url.includes('//') && !url.startsWith('{{')) {
           url = `http://${this.address + port + url}`;
         }
         return {

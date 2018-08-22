@@ -35,17 +35,22 @@
           class="clickable glyphicon glyphicon-resize-vertical"></span>
       </div>
       <div class="col-md-2 sm-label-right">Section heading</div>
-      <div class="col-md-9">
-        <div class="row">
-          <div class="col-md-4" style="padding-right: 0">
-            <input type="text" class="form-control input" ng-model="section.title" ng-change="$ctrl.configChanged()"/>
-          </div>
-          <div class="col-md-2 col-md-offset-6" style="padding: 5px 0">
-            <a href ng-click="$ctrl.removeSection($index)" uib-tooltip="Remove section">
-              <span class="glyphicon glyphicon-trash"></span>
-            </a>
-          </div>
-        </div>
+      <div class="col-md-3" style="padding-right: 0">
+        <input type="text" class="form-control input" ng-model="section.title" ng-change="$ctrl.configChanged()"/>
+      </div>
+      <div ng-if="$ctrl.cloudProviders.length <= 1" class="col-md-5"></div>
+      <div ng-if="$ctrl.cloudProviders.length > 1" class="col-md-2 sm-label-right">Cloud Provider(s)</div>
+      <div ng-if="$ctrl.cloudProviders.length > 1" class="col-md-3" style="padding-right: 0">
+        <ui-select class="form-control input" search-enabled="false" theme="bootstrap" ng-model="section.cloudProviders" on-select="$ctrl.configChanged()" style="height: 30px; width: 100%;" multiple>
+          <ui-select-match placeholder="(All Cloud Providers)">{{$item}}</ui-select-match>
+          <ui-select-choices repeat="provider in $ctrl.cloudProviders">{{provider}}</ui-select-choices>
+        </ui-select>
+      </div>
+
+      <div class="col-md-1" style="padding: 5px 10px">
+        <a href ng-click="$ctrl.removeSection($index)" uib-tooltip="Remove section">
+          <span class="glyphicon glyphicon-trash"></span>
+        </a>
       </div>
     </div>
     <div class="row" style="margin-top: 10px">

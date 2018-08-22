@@ -35,6 +35,10 @@ module.exports = angular
           isDirty: false,
         };
 
+        this.cloudProviders = this.application.attributes.cloudProviders
+          ? this.application.attributes.cloudProviders
+          : [];
+
         this.setDefaultLinkState();
       };
 
