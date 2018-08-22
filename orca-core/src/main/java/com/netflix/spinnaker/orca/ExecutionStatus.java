@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 public enum ExecutionStatus {
   /**
@@ -105,7 +106,6 @@ public enum ExecutionStatus {
 
   private static final Collection<ExecutionStatus> SUCCESSFUL = Collections.unmodifiableList(Arrays.asList(SUCCEEDED, STOPPED, SKIPPED));
   private static final Collection<ExecutionStatus> FAILURE = Collections.unmodifiableList(Arrays.asList(TERMINAL, STOPPED, FAILED_CONTINUE));
-
   private final boolean complete;
   private final boolean halt;
 

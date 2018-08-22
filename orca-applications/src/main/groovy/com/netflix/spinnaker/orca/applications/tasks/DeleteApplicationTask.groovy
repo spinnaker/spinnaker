@@ -16,15 +16,19 @@
 
 package com.netflix.spinnaker.orca.applications.tasks
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+@Slf4j
 @Component
 class DeleteApplicationTask extends AbstractFront50Task {
   @Override
-  Map<String, Object> performRequest(Application application) {
+  TaskResult performRequest(Application application) {
     Map<String, Object> outputs = [:]
 
     try {
@@ -36,18 +40,20 @@ class DeleteApplicationTask extends AbstractFront50Task {
           front50Service.deletePermission(application.name)
         } catch (RetrofitError re) {
           if (re.response?.status == 404) {
-            return [:]
+            return new TaskResult(ExecutionStatus.SUCCEEDED, [:], [:])
           }
-          throw re
+          log.error("Could not create or update application permission", re)
+          return new TaskResult(ExecutionStatus.TERMINAL, [:], outputs)
         }
       }
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        return [:]
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [:], [:])
       }
-      throw e
+      log.error("Could not create or update application permission", e)
+      return new TaskResult(ExecutionStatus.TERMINAL, [:], outputs)
     }
-    return outputs
+    return new TaskResult(ExecutionStatus.SUCCEEDED, [:], outputs)
   }
 
   @Override

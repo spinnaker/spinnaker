@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.applications.tasks
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
 import groovy.transform.CompileStatic
@@ -29,7 +31,7 @@ import retrofit.RetrofitError
 @CompileStatic
 class UpsertApplicationTask extends AbstractFront50Task {
   @Override
-  Map<String, Object> performRequest(Application application) {
+  TaskResult performRequest(Application application) {
     Map<String, Object> outputs = [:]
     outputs.previousState = [:]
 
@@ -38,28 +40,29 @@ class UpsertApplicationTask extends AbstractFront50Task {
      */
 
     def existingApplication = fetchApplication(application.name)
-    if (existingApplication) {
-      outputs.previousState = existingApplication
-      log.info("Updating application (name: ${application.name})")
-      front50Service.update(application.name, application)
-    } else {
-      log.info("Creating application (name: ${application.name})")
-      front50Service.create(application)
-      if (application.permission?.permissions == null) {
-        application.setPermissions(Permissions.EMPTY)
-      }
-    }
-
     try {
+      if (existingApplication) {
+        outputs.previousState = existingApplication
+        log.info("Updating application (name: ${application.name})")
+        front50Service.update(application.name, application)
+      } else {
+        log.info("Creating application (name: ${application.name})")
+        front50Service.create(application)
+        if (application.permission?.permissions == null) {
+          application.setPermissions(Permissions.EMPTY)
+        }
+      }
+
       if (application.permission?.permissions != null) {
         front50Service.updatePermission(application.name, application.permission)
       }
     } catch (RetrofitError re) {
       log.error("Could not create or update application permission", re)
+      return new TaskResult(ExecutionStatus.TERMINAL, [:], outputs)
     }
 
     outputs.newState = application ?: [:]
-    outputs
+    return new TaskResult(ExecutionStatus.SUCCEEDED, [:], outputs)
   }
 
   @Override

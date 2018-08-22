@@ -34,7 +34,7 @@ abstract class AbstractFront50Task implements Task {
   @Autowired
   ObjectMapper mapper
 
-  abstract  Map<String, Object> performRequest(Application application)
+  abstract  TaskResult performRequest(Application application)
   abstract String getNotificationType()
 
   @Override
@@ -62,10 +62,10 @@ abstract class AbstractFront50Task implements Task {
       "notification.type": getNotificationType(),
       "application.name": application.name
     ]
-    def executionStatus = ExecutionStatus.SUCCEEDED
+    TaskResult taskResult = performRequest(application)
+    outputs << taskResult.outputs
 
-    Map<String, Object> results = performRequest(application)
-    return new TaskResult(executionStatus, outputs + (results ?: [:]))
+    return new TaskResult(taskResult.status, outputs)
   }
 
   Application fetchApplication(String applicationName) {
