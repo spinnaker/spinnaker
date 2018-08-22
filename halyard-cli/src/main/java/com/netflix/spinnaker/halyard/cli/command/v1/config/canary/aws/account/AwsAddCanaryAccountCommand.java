@@ -105,6 +105,6 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
 
   @Override
   protected AbstractCanaryAccount emptyAccount() {
-    return new GoogleCanaryAccount();
+    return new AwsCanaryAccount();
   }
 }
