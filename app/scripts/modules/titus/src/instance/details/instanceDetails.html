@@ -165,8 +165,9 @@
     </collapsible-section>
     <collapsible-section heading="Console Output">
       <ul>
-        <li><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}/tasks/{{instance.id}}/logs/live" target="_blank">Live
-          Logs in Titus UI</a></li>
+        <li>
+          <console-output-link instance="instance"></console-output-link>
+        </li>
       </ul>
     </collapsible-section>
     <instance-links address="baseIpAddress" application="application" instance="instance" moniker="moniker" environment="environment"></instance-links>
