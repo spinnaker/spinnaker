@@ -21,7 +21,6 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.artifacts.DefaultJinjavaFactory
-import com.netflix.spinnaker.echo.artifacts.JinjavaFactory
 import com.netflix.spinnaker.echo.config.AmazonPubsubProperties
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler
 import com.netflix.spinnaker.kork.aws.ARN
@@ -39,7 +38,7 @@ class AmazonSQSSubscriberSpec extends Specification {
   ARN queueARN = new ARN("arn:aws:sqs:us-west-2:100:queueName")
   ARN topicARN = new ARN("arn:aws:sns:us-west-2:100:topicName")
   AmazonPubsubProperties.AmazonPubsubSubscription subscription =
-    new AmazonPubsubProperties.AmazonPubsubSubscription('aws_events', topicARN.arn, queueARN.arn, "", null)
+    new AmazonPubsubProperties.AmazonPubsubSubscription('aws_events', topicARN.arn, queueARN.arn, "", null, false, 3600L)
 
   @Shared
   def objectMapper = new ObjectMapper()
@@ -56,7 +55,7 @@ class AmazonSQSSubscriberSpec extends Specification {
     new DefaultJinjavaFactory()
   )
 
-  def 'should unmarshall an sns notification message'() {
+  def 'should unmarshal an sns notification message'() {
     given:
     String payload = '''
       {\"Records\":[
@@ -77,12 +76,13 @@ class AmazonSQSSubscriberSpec extends Specification {
       "4444-ffff",
       "arn:aws:sns:us-west-2:100:topicName",
       "Amazon S3 Notification",
-      payload
+      payload,
+      [:]
     )
     String snsMesssage = objectMapper.writeValueAsString(notificationMessage)
 
     when:
-    String result = subject.unmarshallMessageBody(snsMesssage)
+    String result = subject.unmarshalMessageBody(snsMesssage)
 
     then:
     0 * subject.log.error()

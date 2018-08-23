@@ -52,9 +52,14 @@ public class AmazonPubsubProperties {
 
     private MessageFormat messageFormat;
 
+    private boolean idInMessageAttributes;
+
     int visibilityTimeout = 30;
     int sqsMessageRetentionPeriodSeconds = 120;
     int waitTimeSeconds = 5;
+
+    // 1 hour default
+    private Long dedupeRetentionMillis = 3600000L;
 
     public AmazonPubsubSubscription() {
     }
@@ -64,12 +69,23 @@ public class AmazonPubsubProperties {
       String topicARN,
       String queueARN,
       String templatePath,
-      MessageFormat messageFormat) {
+      MessageFormat messageFormat,
+      boolean idInMessageAttributes,
+      Long dedupeRetentionMillis
+    ) {
       this.name = name;
       this.topicARN = topicARN;
       this.queueARN = queueARN;
       this.templatePath = templatePath;
       this.messageFormat = messageFormat;
+      this.idInMessageAttributes = idInMessageAttributes;
+      if (dedupeRetentionMillis != null && dedupeRetentionMillis >= 0) {
+        this.dedupeRetentionMillis = dedupeRetentionMillis;
+      } else {
+        if (dedupeRetentionMillis != null) {
+          log.warn("Ignoring dedupeRetentionMillis invalid value of " + dedupeRetentionMillis);
+        }
+      }
     }
 
     private MessageFormat determineMessageFormat(){

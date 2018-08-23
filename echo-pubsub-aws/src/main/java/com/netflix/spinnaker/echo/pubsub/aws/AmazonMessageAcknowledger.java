@@ -66,27 +66,16 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
 
   @Override
   public void nack() {
-    // Set visibility timeout to 0, so that the message can be processed by another worker
-    // Todo emjburns: is changing message visibility a needed optimization?
-    try {
-      amazonSQS.changeMessageVisibility(queueUrl, message.getReceiptHandle(), 0);
-      log.debug("Changed visibility timeout of message: {} from queue: {}", message.getMessageId(), queueUrl);
-      registry.counter(getFailedMetricId(subscriptionName)).increment();
-    } catch (ReceiptHandleIsInvalidException e) {
-      log.warn("Error nack-ing message: {}, queue: {}, reason: {} (receiptHandle: {})",
-        message.getMessageId(),
-        queueUrl,
-        e.getMessage(),
-        message.getReceiptHandle()
-      );
-    }
+    // Do nothing. Message is being processed by another worker,
+    // and will be available again in 30 seconds to process
+    registry.counter(getNackMetricId(subscriptionName)).increment();
   }
 
   Id getProcessedMetricId(String subscriptionName) {
     return registry.createId("echo.pubsub.amazon.totalProcessed", "subscriptionName", subscriptionName);
   }
 
-  Id getFailedMetricId(String subscriptionName) {
-    return registry.createId("echo.pubsub.amazon.totalFailed", "subscriptionName", subscriptionName);
+  Id getNackMetricId(String subscriptionName) {
+    return registry.createId("echo.pubsub.amazon.messagesNacked", "subscriptionName", subscriptionName);
   }
 }
