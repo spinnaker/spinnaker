@@ -410,7 +410,7 @@ GcsStorageService implements StorageService {
         if (items != null) {
           for (StorageObject item: items) {
             String name = item.getName();
-            if (name.endsWith(dataFilename)) {
+            if (name.endsWith('/' + dataFilename)) {
               result.put(name.substring(skipToOffset, name.length() - skipFromEnd), item.getUpdated().getValue());
             }
           }
