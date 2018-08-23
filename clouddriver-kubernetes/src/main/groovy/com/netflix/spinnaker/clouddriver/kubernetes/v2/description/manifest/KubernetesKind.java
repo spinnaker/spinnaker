@@ -50,7 +50,7 @@ public class KubernetesKind {
   public static KubernetesKind ROLE = new KubernetesKind("role", false);
   public static KubernetesKind ROLE_BINDING = new KubernetesKind("roleBinding", false);
   public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns", false, false);
-  public static KubernetesKind NETWORK_POLICY = new KubernetesKind("networkPolicy", "netpol");
+  public static KubernetesKind NETWORK_POLICY = new KubernetesKind("networkPolicy", "netpol", true, true);
   public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv", false, false);
   public static KubernetesKind PERSISTENT_VOLUME_CLAIM = new KubernetesKind("persistentVolumeClaim", "pvc");
   public static KubernetesKind SECRET = new KubernetesKind("secret");

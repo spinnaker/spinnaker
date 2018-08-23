@@ -233,7 +233,6 @@ public class KubernetesV2SearchProvider implements SearchProvider {
         .filter(Objects::nonNull)
         .collect(Collectors.toList()));
 
-
     results = results.stream()
         .filter(r -> typeSet.contains(r.get("type")) || typeSet.contains(r.get("group")))
         .collect(Collectors.toList());
