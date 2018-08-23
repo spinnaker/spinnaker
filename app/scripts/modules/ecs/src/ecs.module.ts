@@ -13,6 +13,7 @@ import { METRIC_ALARM_READ_SERVICE } from './metricAlarm/metricAlarm.read.servic
 import { PLACEMENT_STRATEGY_SERVICE } from './placementStrategy/placementStrategy.service';
 import './ecs.help';
 import { COMMON_MODULE } from './common/common.module';
+import { ECS_SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
 
 import './logo/ecs.logo.less';
 
@@ -51,6 +52,7 @@ angular
     require('./pipeline/stages/resizeAsg/ecsResizeAsgStage').name,
     require('./pipeline/stages/scaleDownCluster/ecsScaleDownClusterStage').name,
     require('./pipeline/stages/shrinkCluster/ecsShrinkClusterStage').name,
+    ECS_SERVERGROUP_MODULE,
   ])
   .config(function() {
     CloudProviderRegistry.registerProvider('ecs', {
