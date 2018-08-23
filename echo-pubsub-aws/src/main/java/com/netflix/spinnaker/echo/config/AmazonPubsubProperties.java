@@ -52,7 +52,13 @@ public class AmazonPubsubProperties {
 
     private MessageFormat messageFormat;
 
-    private boolean idInMessageAttributes;
+    /**
+     * Provide an id, present in the message attributes as a string,
+     * to use as a unique identifier for processing messages.
+     * Fall back to amazon sqs id if alternate Id is not present in
+     * the message attributes
+     */
+    private String alternateIdInMessageAttributes;
 
     int visibilityTimeout = 30;
     int sqsMessageRetentionPeriodSeconds = 120;
@@ -70,7 +76,7 @@ public class AmazonPubsubProperties {
       String queueARN,
       String templatePath,
       MessageFormat messageFormat,
-      boolean idInMessageAttributes,
+      String alternateIdInMessageAttributes,
       Long dedupeRetentionMillis
     ) {
       this.name = name;
@@ -78,7 +84,7 @@ public class AmazonPubsubProperties {
       this.queueARN = queueARN;
       this.templatePath = templatePath;
       this.messageFormat = messageFormat;
-      this.idInMessageAttributes = idInMessageAttributes;
+      this.alternateIdInMessageAttributes = alternateIdInMessageAttributes;
       if (dedupeRetentionMillis != null && dedupeRetentionMillis >= 0) {
         this.dedupeRetentionMillis = dedupeRetentionMillis;
       } else {

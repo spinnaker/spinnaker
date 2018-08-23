@@ -38,7 +38,7 @@ class AmazonSQSSubscriberSpec extends Specification {
   ARN queueARN = new ARN("arn:aws:sqs:us-west-2:100:queueName")
   ARN topicARN = new ARN("arn:aws:sns:us-west-2:100:topicName")
   AmazonPubsubProperties.AmazonPubsubSubscription subscription =
-    new AmazonPubsubProperties.AmazonPubsubSubscription('aws_events', topicARN.arn, queueARN.arn, "", null, false, 3600L)
+    new AmazonPubsubProperties.AmazonPubsubSubscription('aws_events', topicARN.arn, queueARN.arn, "", null, null, 3600L)
 
   @Shared
   def objectMapper = new ObjectMapper()

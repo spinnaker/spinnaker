@@ -198,9 +198,11 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
         }
       }
 
-      if (subscription.isIdInMessageAttributes() && stringifiedMessageAttributes.containsKey("id")){
+      if (subscription.getAlternateIdInMessageAttributes() != null
+          && !subscription.getAlternateIdInMessageAttributes().isEmpty()
+          && stringifiedMessageAttributes.containsKey(subscription.getAlternateIdInMessageAttributes())){
         // Message attributes contain the unique id used for deduping
-        messageId = stringifiedMessageAttributes.get("id");
+        messageId = stringifiedMessageAttributes.get(subscription.getAlternateIdInMessageAttributes());
       }
 
       pubsubMessageHandler.handleMessage(description, acknowledger, identity.getIdentity(), messageId);
