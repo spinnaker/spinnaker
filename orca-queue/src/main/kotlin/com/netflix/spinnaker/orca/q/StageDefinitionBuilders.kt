@@ -135,7 +135,7 @@ private fun Stage.buildExecutionWindow(): Stage? {
       execution,
       RestrictExecutionDuringTimeWindow.TYPE,
       RestrictExecutionDuringTimeWindow.TYPE,
-      context.filterKeys { it != "restrictExecutionDuringTimeWindow" },
+      context.filterKeys { it !in setOf("restrictExecutionDuringTimeWindow", "stageTimeoutMs") },
       this,
       STAGE_BEFORE
     )
