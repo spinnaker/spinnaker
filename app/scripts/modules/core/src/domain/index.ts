@@ -1,5 +1,6 @@
 export * from './IAppNotification';
 export * from './IArtifact';
+export * from './IArtifactEditorProps';
 export * from './IArtifactExtractor';
 export * from './IArtifactKindConfig';
 

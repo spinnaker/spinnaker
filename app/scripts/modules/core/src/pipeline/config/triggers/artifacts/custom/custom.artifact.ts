@@ -2,6 +2,7 @@ import { IController, module } from 'angular';
 
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
+import { CustomArtifactEditor } from './CustomArtifactEditor';
 
 class CustomArtifactController implements IController {
   constructor(public artifact: IArtifact) {
@@ -23,6 +24,7 @@ module(CUSTOM_ARTIFACT, [])
         this.artifact = artifact;
       },
       controllerAs: 'ctrl',
+      editCmp: CustomArtifactEditor,
       template: `
 <div class="col-md-12">
   <div class="form-group row">

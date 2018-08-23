@@ -2,6 +2,7 @@ import { module } from 'angular';
 
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
+import { GitlabArtifactEditor } from './GitlabArtifactEditor';
 
 export const GITLAB_ARTIFACT = 'spinnaker.core.pipeline.trigger.gitlab.artifact';
 module(GITLAB_ARTIFACT, []).config(() => {
@@ -18,6 +19,7 @@ module(GITLAB_ARTIFACT, []).config(() => {
       this.artifact.type = 'gitlab/file';
     },
     controllerAs: 'ctrl',
+    editCmp: GitlabArtifactEditor,
     template: `
 <div class="col-md-12">
   <div class="form-group row">

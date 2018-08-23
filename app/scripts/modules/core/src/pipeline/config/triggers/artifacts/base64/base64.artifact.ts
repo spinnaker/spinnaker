@@ -2,6 +2,7 @@ import { module } from 'angular';
 
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
+import { Base64ArtifactEditor } from './Base64ArtifactEditor';
 
 import './base64.artifact.less';
 
@@ -20,6 +21,7 @@ module(BASE64_ARTIFACT, []).config(() => {
       this.artifact.type = 'embedded/base64';
     },
     controllerAs: 'ctrl',
+    editCmp: Base64ArtifactEditor,
     template: `
 <div class="col-md-12">
   <div class="form-group row">

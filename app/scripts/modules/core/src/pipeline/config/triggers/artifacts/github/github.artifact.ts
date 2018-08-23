@@ -2,6 +2,7 @@ import { module } from 'angular';
 
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
+import { GithubArtifactEditor } from './GithubArtifactEditor';
 
 export const GITHUB_ARTIFACT = 'spinnaker.core.pipeline.trigger.github.artifact';
 module(GITHUB_ARTIFACT, []).config(() => {
@@ -18,6 +19,7 @@ module(GITHUB_ARTIFACT, []).config(() => {
       this.artifact.type = 'github/file';
     },
     controllerAs: 'ctrl',
+    editCmp: GithubArtifactEditor,
     template: `
 <div class="col-md-12">
   <div class="form-group row">

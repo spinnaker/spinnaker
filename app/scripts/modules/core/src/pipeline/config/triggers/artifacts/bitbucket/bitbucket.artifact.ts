@@ -2,6 +2,7 @@ import { module } from 'angular';
 
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
+import { BitbucketArtifactEditor } from './BitbucketArtifactEditor';
 
 export const BITBUCKET_ARTIFACT = 'spinnaker.core.pipeline.trigger.bitbucket.artifact';
 module(BITBUCKET_ARTIFACT, []).config(() => {
@@ -18,6 +19,7 @@ module(BITBUCKET_ARTIFACT, []).config(() => {
       this.artifact.type = 'bitbucket/file';
     },
     controllerAs: 'ctrl',
+    editCmp: BitbucketArtifactEditor,
     template: `
 <div class="col-md-12">
   <div class="form-group row">
