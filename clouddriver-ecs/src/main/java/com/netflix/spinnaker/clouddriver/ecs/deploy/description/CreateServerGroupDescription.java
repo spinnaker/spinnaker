@@ -47,4 +47,13 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
 
   List<MetricAlarm> autoscalingPolicies;
   List<PlacementStrategy> placementStrategySequence;
+  String networkMode;
+  String subnetType;
+  Integer healthCheckGracePeriodSeconds;
+
+  @Override
+  public String getRegion() {
+    //CreateServerGroupDescription does not contain a region. Instead it has AvailabilityZones
+    return getAvailabilityZones().keySet().iterator().next();
+  }
 }

@@ -21,13 +21,14 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCre
 public class NetflixAssumeRoleEcsCredentials extends NetflixECSCredentials {
   private final String assumeRole;
   private final String sessionName;
+  private final String awsAccount;
 
-  public NetflixAssumeRoleEcsCredentials(NetflixAssumeRoleAmazonCredentials copy) {
+  public NetflixAssumeRoleEcsCredentials(NetflixAssumeRoleAmazonCredentials copy, String awsAccount) {
     super(copy);
     this.assumeRole = copy.getAssumeRole();
     this.sessionName = copy.getSessionName();
+    this.awsAccount = awsAccount;
   }
-
 
   public String getAssumeRole() {
     return assumeRole;
@@ -35,5 +36,9 @@ public class NetflixAssumeRoleEcsCredentials extends NetflixECSCredentials {
 
   public String getSessionName() {
     return sessionName;
+  }
+
+  public String getAwsAccount() {
+    return awsAccount;
   }
 }

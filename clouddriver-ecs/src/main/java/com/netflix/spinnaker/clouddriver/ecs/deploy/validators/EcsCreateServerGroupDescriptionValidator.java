@@ -131,5 +131,4 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     }
 
   }
-
 }

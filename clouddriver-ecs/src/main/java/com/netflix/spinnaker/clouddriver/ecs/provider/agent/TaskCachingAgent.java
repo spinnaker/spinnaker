@@ -178,6 +178,7 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
     attributes.put("lastStatus", task.getLastStatus());
     attributes.put("desiredStatus", task.getDesiredStatus());
     attributes.put("startedAt", task.getStartedAt().getTime());
+    attributes.put("attachments", task.getAttachments());
 
     return attributes;
   }
