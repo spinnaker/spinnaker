@@ -59,13 +59,12 @@ type ApiMeta struct {
 	// Context for OAuth2 access token.
 	Context context.Context
 
-	// Internal fields
-	color bool
-
 	// This is the set of flags global to the command parser.
 	gateEndpoint string
 
 	ignoreCertErrors bool
+
+	quiet bool
 
 	// Location of the spin config.
 	configLocation string
@@ -81,6 +80,10 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 
 	f.BoolVar(&m.ignoreCertErrors, "insecure", false, "Ignore Certificate Errors")
 
+	f.BoolVar(&m.quiet, "quiet", false, "Squelch non-essentual output")
+
+	f.BoolVar(&m.Color, "no-color", true, "Disable color")
+
 	f.Usage = func() {}
 
 	return f
@@ -91,18 +94,6 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 // NOTE: This expects the flag set to be parsed prior to invoking it.
 func (m *ApiMeta) Process(args []string) ([]string, error) {
 	// Do the Ui initialization so we can properly warn if Process() fails.
-	// Colorization.
-	m.Color = true
-	m.color = m.Color
-	for i, v := range args {
-		if v == "--no-color" {
-			m.color = false
-			m.Color = false
-			args = append(args[:i], args[i+1:]...)
-			break
-		}
-	}
-
 	// Set the Ui.
 	m.Ui = &ColorizeUi{
 		Colorize:   m.Colorize(),
@@ -110,6 +101,7 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 		WarnColor:  "[yellow]",
 		InfoColor:  "[blue]",
 		Ui:         &cli.BasicUi{Writer: os.Stdout},
+		Quiet:      m.quiet,
 	}
 
 	// CLI configuration.
@@ -173,7 +165,7 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 func (m *ApiMeta) Colorize() *colorstring.Colorize {
 	return &colorstring.Colorize{
 		Colors:  colorstring.DefaultColors,
-		Disable: !m.color,
+		Disable: !m.Color,
 		Reset:   true,
 	}
 }
@@ -311,7 +303,7 @@ func (m *ApiMeta) Authenticate() error {
 			}
 		}
 
-		m.Ui.Output("Caching oauth2 token.")
+		m.Ui.Info("Caching oauth2 token.")
 		OAuth2.CachedToken = newToken
 		buf, _ := yaml.Marshal(&m.Config)
 		info, _ := os.Stat(m.configLocation)
@@ -335,6 +327,7 @@ Global Options:
 	--gate-endpoint               Gate (API server) endpoint.
         --no-color                    Removes color from CLI output.
         --insecure=false              Ignore certificate errors during connection to endpoints.
+        --quiet=false                 Squelch non-essential output.
 	`
 
 	return strings.TrimSpace(help)

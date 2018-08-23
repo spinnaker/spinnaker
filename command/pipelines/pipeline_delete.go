@@ -89,7 +89,7 @@ func (c *PipelineDeleteCommand) Run(args []string) int {
 		return 1
 	}
 
-	c.ApiMeta.Ui.Output(c.ApiMeta.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline deleted")))
+	c.ApiMeta.Ui.Info(c.ApiMeta.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline deleted")))
 	return 0
 }
 

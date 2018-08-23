@@ -28,6 +28,7 @@ type ColorizeUi struct {
 	ErrorColor  string
 	WarnColor   string
 	Ui          cli.Ui
+	Quiet       bool
 }
 
 func (u *ColorizeUi) Ask(query string) (string, error) {
@@ -43,7 +44,9 @@ func (u *ColorizeUi) Output(message string) {
 }
 
 func (u *ColorizeUi) Info(message string) {
-	u.Ui.Info(u.colorize(message, u.InfoColor))
+	if !u.Quiet {
+		u.Ui.Info(u.colorize(message, u.InfoColor))
+	}
 }
 
 func (u *ColorizeUi) Error(message string) {
@@ -51,7 +54,9 @@ func (u *ColorizeUi) Error(message string) {
 }
 
 func (u *ColorizeUi) Warn(message string) {
-	u.Ui.Warn(u.colorize(message, u.WarnColor))
+	if !u.Quiet {
+		u.Ui.Warn(u.colorize(message, u.WarnColor))
+	}
 }
 
 func (u *ColorizeUi) colorize(message string, color string) string {

@@ -228,7 +228,7 @@ func (c *ApplicationSaveCommand) Run(args []string) int {
 		return 1
 	}
 
-	c.ApiMeta.Ui.Output(c.ApiMeta.Colorize().Color(fmt.Sprintf("[reset][bold][green]Application save succeeded")))
+	c.ApiMeta.Ui.Info(c.ApiMeta.Colorize().Color(fmt.Sprintf("[reset][bold][green]Application save succeeded")))
 	return 0
 }
 
