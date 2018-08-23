@@ -159,6 +159,12 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
 
   @Override
   String getConsoleOutput(String account, String region, String id) {
-    return null // TODO - TBD
+    TitusInstance instance = this.getInstance(account, region, id)
+    if (instance == null) {
+      return null
+    }
+    String url = "http://" + instance.getHostIp() + ":8004/logs/" + instance.getInstanceId() + "?f=stdout"
+    String output = new URL(url).getText()
+    return output
   }
 }
