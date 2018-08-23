@@ -821,6 +821,10 @@ class GoogleConfigurator(Configurator):
     add_parser_argument(
         parser, 'google_account_name', defaults, 'my-google-account',
         help='The name of the primary google account to configure.')
+    add_parser_argument(
+        parser, 'google_account_regions',
+        defaults, ','.join(['us-central1','us-east1','us-east4','us-west1','us-west2']),
+        help='The Google Cloud regions this account should manage.')
 
   def validate_options(self, options):
     """Implements interface."""
@@ -842,7 +846,8 @@ class GoogleConfigurator(Configurator):
     account_params = [options.google_account_name]
     account_params.extend([
         '--project', options.google_account_project,
-        '--json-path', os.path.basename(options.google_account_credentials)])
+        '--json-path', os.path.basename(options.google_account_credentials),
+        '--regions', options.google_account_regions])
 
     script.append('hal -q --log=info config provider google enable')
     if options.deploy_google_zone:
