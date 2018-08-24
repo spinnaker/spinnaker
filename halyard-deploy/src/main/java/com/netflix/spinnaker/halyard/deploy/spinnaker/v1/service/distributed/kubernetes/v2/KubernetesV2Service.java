@@ -68,6 +68,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   ObjectMapper getObjectMapper();
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
 
+  default boolean runsOnJvm() {
+    return true;
+  }
+
   default int terminationGracePeriodSeconds() {
     return 60;
   }
@@ -347,6 +351,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
         .setEnabled(isEnabled(deploymentConfiguration));
+    if (runsOnJvm()) {
+      // Use half the available memory allocated to the container for the JVM heap
+      settings.getEnv().put("JAVA_OPTS", "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2");
+    }
     return settings;
   }
 

@@ -32,6 +32,11 @@ public class KubernetesV2MonitoringDaemonService extends SpinnakerMonitoringDaem
   KubernetesV2ServiceDelegate serviceDelegate;
 
   @Override
+  public boolean runsOnJvm() {
+    return false;
+  }
+
+  @Override
   public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
     return deploymentConfiguration.getMetricStores().isEnabled();
   }

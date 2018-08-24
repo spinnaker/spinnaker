@@ -52,6 +52,10 @@ public class KubernetesV2DeckService extends DeckService implements KubernetesV2
     return new Settings();
   }
 
+  @Override
+  public boolean runsOnJvm() {
+    return false;
+  }
 
   @Override
   protected Optional<String> customProfileOutputPath(String profileName) {

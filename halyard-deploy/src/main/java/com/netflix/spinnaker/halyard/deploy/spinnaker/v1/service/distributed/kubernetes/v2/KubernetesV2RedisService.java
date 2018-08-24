@@ -31,6 +31,11 @@ public class KubernetesV2RedisService extends RedisService implements Kubernetes
   @Autowired
   KubernetesV2ServiceDelegate serviceDelegate;
 
+  @Override
+  public boolean runsOnJvm() {
+    return false;
+  }
+
   public String getArtifactId(String deploymentName) {
     return "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
   }
