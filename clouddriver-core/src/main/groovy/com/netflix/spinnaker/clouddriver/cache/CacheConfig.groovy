@@ -111,4 +111,9 @@ class CacheConfig {
     new CatsSearchProvider(catsInMemorySearchProperties, cacheView, providers, providerRegistry, permissionEvaluator, keyParsers)
   }
 
+  @Bean
+  @ConditionalOnMissingBean(SearchableProvider)
+  SearchableProvider noopSearchableProvider() {
+    new NoopSearchableProvider()
+  }
 }
