@@ -15,16 +15,13 @@
 package pipelines
 
 import (
-	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/spinnaker/spin/command"
+	"github.com/spinnaker/spin/util"
 )
 
 type PipelineSaveCommand struct {
@@ -51,28 +48,7 @@ func (c *PipelineSaveCommand) flagSet() *flag.FlagSet {
 
 // parsePipelineFile reads and deserializes the pipeline input from Stdin or a file.
 func (c *PipelineSaveCommand) parsePipelineFile() (map[string]interface{}, error) {
-	var dat []byte
-	var err error
-	if c.pipelineFile != "" {
-		dat, err = ioutil.ReadFile(c.pipelineFile)
-	} else { // Stdin
-		dat, err = ioutil.ReadAll(os.Stdin)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	if c.pipelineFile == "" && len(dat) == 0 {
-		return nil, errors.New("No pipeline input received from '--file' or Stdin, exiting...")
-	}
-
-	var pipelineJson map[string]interface{}
-	err = json.Unmarshal(dat, &pipelineJson)
-	if err != nil {
-		return nil, err
-	}
-	return pipelineJson, nil
+	return util.ParseJsonFromFileOrStdin(c.pipelineFile)
 }
 
 // pipelineIsValid validates that the passed pipelineJson is formatted properly.
@@ -118,11 +94,6 @@ func (c *PipelineSaveCommand) Run(args []string) int {
 	args, err = c.ApiMeta.Process(args)
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
-		return 1
-	}
-
-	if len(args) == 0 {
-		c.ApiMeta.Ui.Error("No pipeline input received from '--file' or Stdin, exiting...")
 		return 1
 	}
 

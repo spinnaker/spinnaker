@@ -23,13 +23,15 @@ import (
 
 	"github.com/spinnaker/spin/command"
 	gate "github.com/spinnaker/spin/gateapi"
+	"github.com/spinnaker/spin/util"
 )
 
 type PipelineExecuteCommand struct {
 	ApiMeta command.ApiMeta
 
-	application string
-	name        string
+	application   string
+	name          string
+	parameterFile string
 }
 
 // flagSet adds all options for this command to the flagset and returns the
@@ -40,6 +42,7 @@ func (c *PipelineExecuteCommand) flagSet() *flag.FlagSet {
 	f := c.ApiMeta.GlobalFlagSet(cmd)
 	f.StringVar(&c.application, "application", "", "Spinnaker application the pipeline lives in")
 	f.StringVar(&c.name, "name", "", "Name of the pipeline to execute")
+	f.StringVar(&c.parameterFile, "parameter-file", "", "File to load pipeline parameter values from")
 
 	// TODO auto-generate flag help rather than putting it in "Help"
 	f.Usage = func() {
@@ -50,11 +53,16 @@ func (c *PipelineExecuteCommand) flagSet() *flag.FlagSet {
 }
 
 // executePipeline calls the Gate endpoint to execute the pipeline.
-func (c *PipelineExecuteCommand) executePipeline() (gate.HttpEntity, *http.Response, error) {
+func (c *PipelineExecuteCommand) executePipeline(params map[string]interface{}) (gate.HttpEntity, *http.Response, error) {
+	trigger := map[string]interface{}{"type": "manual"}
+	if len(params) > 0 {
+		trigger["parameters"] = params
+	}
+
 	entity, resp, err := c.ApiMeta.GateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(c.ApiMeta.Context,
 		c.application,
 		c.name,
-		map[string]interface{}{"type": "manual"})
+		map[string]interface{}{"trigger": trigger})
 	if err != nil {
 		return gate.HttpEntity{}, nil, err
 	}
@@ -72,6 +80,15 @@ func (c *PipelineExecuteCommand) queryExecution() ([]interface{}, *http.Response
 		})
 }
 
+func (c *PipelineExecuteCommand) parseParameters() (map[string]interface{}, error) {
+	parameters, err := util.ParseJsonFromFileOrStdin(c.parameterFile)
+	if err != nil && strings.HasPrefix(err.Error(), "No json input") {
+		// Pipeline can be executed with no parameters.
+		return nil, nil
+	}
+	return parameters, err
+}
+
 func (c *PipelineExecuteCommand) Run(args []string) int {
 	var err error
 	f := c.flagSet()
@@ -80,7 +97,7 @@ func (c *PipelineExecuteCommand) Run(args []string) int {
 		return 1
 	}
 
-	args, err = c.ApiMeta.Process(args)
+	_, err = c.ApiMeta.Process(args)
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
@@ -90,7 +107,14 @@ func (c *PipelineExecuteCommand) Run(args []string) int {
 		c.ApiMeta.Ui.Error("One of required parameters 'application' or 'name' not set.\n")
 		return 1
 	}
-	_, resp, err := c.executePipeline()
+
+	parameters, err := c.parseParameters()
+	if err != nil {
+		c.ApiMeta.Ui.Error(fmt.Sprintf("Could not parse supplied pipeline parameters: %v.\n", err))
+		return 1
+	}
+
+	_, resp, err := c.executePipeline(parameters)
 
 	if err != nil {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("Execute pipeline failed with response: %v and error: %s\n", resp, err))

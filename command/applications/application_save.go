@@ -15,12 +15,10 @@
 package applications
 
 import (
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -58,36 +56,12 @@ func (c *ApplicationSaveCommand) flagSet() *flag.FlagSet {
 
 // parseApplicationFile reads and deserializes the application input from Stdin or a file.
 func (c *ApplicationSaveCommand) parseApplicationFile() (map[string]interface{}, error) {
-	var fromFile *os.File
-	var err error
-	var applicationJson map[string]interface{}
-
-	if c.applicationFile != "" {
-		fromFile, err = os.Open(c.applicationFile)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		fromFile = os.Stdin
-	}
-
-	fi, err := fromFile.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	pipedStdin := (fi.Mode() & os.ModeCharDevice) == 0
-	if fi.Size() <= 0 && !pipedStdin {
-		// Create app based on flag input.
-		c.ApiMeta.Ui.Info("No json input, constructing application from flags.")
+	application, err := util.ParseJsonFromFileOrStdin(c.applicationFile)
+	if err != nil && strings.HasPrefix(err.Error(), "No json input") {
+		// Apps can be created with no json input and only flags.
 		return nil, nil
 	}
-
-	err = json.NewDecoder(fromFile).Decode(&applicationJson)
-	if err != nil {
-		return nil, err
-	}
-	return applicationJson, nil
+	return application, err
 }
 
 // saveApplication calls the Gate endpoint to save the application.
