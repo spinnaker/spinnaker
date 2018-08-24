@@ -53,6 +53,8 @@
         <dd>{{ctrl.instance.namespace}}</dd>
         <dt>Kind</dt>
         <dd>{{ctrl.instance.kind}}</dd>
+        <dt>QOS Class</dt>
+        <dd><kubernetes-manifest-qos manifest="ctrl.instance.manifest"></kubernetes-manifest-qos></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
@@ -65,6 +67,10 @@
 
     <collapsible-section heading="Events" expanded="true">
       <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
+    </collapsible-section>
+
+    <collapsible-section heading="Resources" expanded="true">
+      <kubernetes-manifest-resources manifest="ctrl.instance.manifest" metrics="ctrl.manifest.metrics"></kubernetes-manifest-resources>
     </collapsible-section>
 
     <collapsible-section heading="Labels" expanded="true">

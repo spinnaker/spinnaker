@@ -32,6 +32,8 @@ import { KUBERNETES_MANIFEST_ARTIFACT } from './manifest/artifact/artifact.compo
 import { KUBERNETES_MANIFEST_SELECTOR } from './manifest/selector/selector.component';
 import { KUBERNETES_MANIFEST_LABELS } from './manifest/manifestLabels.component';
 import { KUBERNETES_MANIFEST_EVENTS } from './manifest/manifestEvents.component';
+import { KUBERNETES_MANIFEST_RESOURCES } from './manifest/manifestResources.component';
+import { KUBERNETES_MANIFEST_QOS } from './manifest/manifestQos.component';
 import { KUBERNETES_MULTI_MANIFEST_SELECTOR } from './manifest/selector/multiSelector.component';
 import { KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transformer';
 import { KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transformer';
@@ -81,6 +83,8 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MULTI_MANIFEST_SELECTOR,
   KUBERNETES_MANIFEST_LABELS,
   KUBERNETES_MANIFEST_EVENTS,
+  KUBERNETES_MANIFEST_RESOURCES,
+  KUBERNETES_MANIFEST_QOS,
   KUBERNETES_ANNOTATION_CUSTOM_SECTIONS,
   KUBERNETES_V2_RESOURCE_STATES,
 ]).config(() => {
