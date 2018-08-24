@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit.RetrofitError
 
 import javax.servlet.http.HttpServletRequest
@@ -233,7 +234,7 @@ class BuildController {
                 def propertyStream = jenkinsService.getPropertyFile(job, buildNumber, path).body.in()
 
                 if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
-                    Yaml yml = new Yaml()
+                    Yaml yml = new Yaml(new SafeConstructor())
                     map = yml.load(propertyStream)
                 } else if (fileName.endsWith('.json')) {
                     map = objectMapper.readValue(propertyStream, Map)
