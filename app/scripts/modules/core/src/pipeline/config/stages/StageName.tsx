@@ -37,6 +37,6 @@ export const StageName: React.SFC<IStageNameProps> = props => {
   return <span>{nameFromRefId(props.stages, props.refId)}</span>;
 };
 
-export const STAGE_NAME = 'spinnaker.core.artifact.artifactTab.component';
+export const STAGE_NAME = 'spinnaker.core.artifact.stageName.component';
 
 module(STAGE_NAME, []).component('stageName', react2angular(StageName, ['stages', 'refId']));
