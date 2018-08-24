@@ -1,5 +1,4 @@
 import { cloneDeep } from 'lodash';
-import { dump, loadAll } from 'js-yaml';
 import { $q } from 'ngimport';
 import { IPromise } from 'angular';
 
@@ -24,8 +23,6 @@ export interface IKubernetesManifestCommand {
 }
 
 export interface IKubernetesManifestCommandMetadata {
-  manifestText: string;
-  yamlError: boolean;
   backingData: any;
 }
 
@@ -48,13 +45,8 @@ export class KubernetesManifestCommandBuilder {
     return true;
   }
 
-  public static copyAndCleanCommand(
-    metadata: IKubernetesManifestCommandMetadata,
-    input: IKubernetesManifestCommand,
-  ): IKubernetesManifestCommand {
+  public static copyAndCleanCommand(input: IKubernetesManifestCommand): IKubernetesManifestCommand {
     const command = cloneDeep(input);
-    command.manifests = [];
-    loadAll(metadata.manifestText, doc => command.manifests.push(doc));
     delete command.source;
     return command;
   }
@@ -89,9 +81,6 @@ export class KubernetesManifestCommandBuilder {
           manifestArtifactAccount = artifactAccountData.name;
         }
 
-        const manifest: any = null;
-        const manifests: any = null;
-        const manifestText = !sourceManifest ? '' : dump(sourceManifest);
         const cloudProvider = 'kubernetes';
         const moniker = sourceMoniker || {
           app: app.name,
@@ -107,8 +96,12 @@ export class KubernetesManifestCommandBuilder {
         return {
           command: {
             cloudProvider,
-            manifest,
-            manifests,
+            manifest: null,
+            manifests: Array.isArray(sourceManifest)
+              ? sourceManifest
+              : sourceManifest != null
+                ? [sourceManifest]
+                : null,
             relationships,
             moniker,
             account,
@@ -117,7 +110,6 @@ export class KubernetesManifestCommandBuilder {
           },
           metadata: {
             backingData,
-            manifestText,
           },
         } as IKubernetesManifestCommandData;
       });

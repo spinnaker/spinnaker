@@ -26,10 +26,11 @@
         </div>
       </stage-config-field>
     </ng-form>
-    <kubernetes-manifest-entry ng-if="ctrl.$scope.stage.source === ctrl.textSource"
-                               command="ctrl.$scope.stage"
-                               metadata="ctrl.metadata" change="ctrl.change()">
-    </kubernetes-manifest-entry>
+    <yaml-editor
+      ng-if="stage.source === ctrl.textSource"
+      on-change="ctrl.handleYamlChange"
+      value="stage.patchBody">
+    </yaml-editor>
     <expected-artifact-selector ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
                                 command="ctrl.$scope.stage"
                                 id="ctrl.$scope.stage.manifestArtifactId"

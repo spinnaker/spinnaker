@@ -27,11 +27,13 @@ class KubernetesEditManifestCtrl implements IController {
     private application: Application,
   ) {
     'ngInject';
-    if (sourceManifest &&
-        sourceManifest.metadata &&
-        sourceManifest.metadata.annotations &&
-        sourceManifest.metadata.annotations['kubectl.kubernetes.io/last-applied-configuration']) {
-      sourceManifest = load(sourceManifest.metadata.annotations['kubectl.kubernetes.io/last-applied-configuration'])
+    if (
+      sourceManifest &&
+      sourceManifest.metadata &&
+      sourceManifest.metadata.annotations &&
+      sourceManifest.metadata.annotations['kubectl.kubernetes.io/last-applied-configuration']
+    ) {
+      sourceManifest = load(sourceManifest.metadata.annotations['kubectl.kubernetes.io/last-applied-configuration']);
     }
     KubernetesManifestCommandBuilder.buildNewManifestCommand(application, sourceManifest, sourceMoniker, account).then(
       builtCommand => {
@@ -51,7 +53,7 @@ class KubernetesEditManifestCtrl implements IController {
   }
 
   public submit(): void {
-    const command = KubernetesManifestCommandBuilder.copyAndCleanCommand(this.metadata, this.command);
+    const command = KubernetesManifestCommandBuilder.copyAndCleanCommand(this.command);
     const submitMethod = () => ManifestWriter.deployManifest(command, this.application);
     this.taskMonitor.submit(submitMethod);
   }

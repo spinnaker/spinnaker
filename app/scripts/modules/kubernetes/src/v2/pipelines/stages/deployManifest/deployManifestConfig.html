@@ -23,8 +23,7 @@
       </stage-config-field>
     </ng-form>
     <kubernetes-manifest-entry ng-if="ctrl.$scope.stage.source === ctrl.textSource"
-                               command="ctrl.$scope.stage"
-                               metadata="ctrl.metadata" change="ctrl.change()">
+                               command="ctrl.$scope.stage">
     </kubernetes-manifest-entry>
     <expected-artifact-selector ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
                                 command="ctrl.$scope.stage"

@@ -35,7 +35,7 @@ class KubernetesManifestWizardCtrl implements IController {
   }
 
   public submit(): void {
-    const command = KubernetesManifestCommandBuilder.copyAndCleanCommand(this.metadata, this.command);
+    const command = KubernetesManifestCommandBuilder.copyAndCleanCommand(this.command);
     const submitMethod = () => ManifestWriter.deployManifest(command, this.application);
     this.taskMonitor.submit(submitMethod);
   }

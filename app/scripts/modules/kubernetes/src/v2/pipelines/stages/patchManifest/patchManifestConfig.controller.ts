@@ -1,5 +1,4 @@
 import { IController, IScope } from 'angular';
-import { loadAll } from 'js-yaml';
 import { ExpectedArtifactService, IExpectedArtifact } from '@spinnaker/core';
 import { IPatchOptions, MergeStrategy } from './patchOptionsForm.component';
 import {
@@ -58,20 +57,9 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
     });
   }
 
-  public change() {
-    this.$scope.ctrl.metadata.yamlError = false;
-    try {
-      this.$scope.stage.patchBody = {};
-      loadAll(this.metadata.manifestText, doc => {
-        if (Array.isArray(doc)) {
-          // TODO: Error. Not a valid use case for patch.
-          doc.forEach(d => this.$scope.stage.patchBody.push(d));
-        } else {
-          this.$scope.stage.patchBody = doc;
-        }
-      });
-    } catch (e) {
-      this.$scope.ctrl.metadata.yamlError = true;
-    }
-  }
+  public handleYamlChange = (patchBody: any): void => {
+    this.$scope.stage.patchBody = patchBody;
+    // Called from a React component.
+    this.$scope.$applyAsync();
+  };
 }
