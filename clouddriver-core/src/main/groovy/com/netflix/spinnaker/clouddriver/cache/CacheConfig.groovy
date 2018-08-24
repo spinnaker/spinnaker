@@ -34,16 +34,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 
 import java.util.concurrent.TimeUnit
 
 @Configuration
-@Import([
-  RedisCacheConfig,
-  DynomiteCacheConfig,
-  JedisCacheConfig
+@ComponentScan([
+  'com.netflix.spinnaker.clouddriver.cache',
 ])
 @EnableConfigurationProperties(CatsInMemorySearchProperties)
 class CacheConfig {

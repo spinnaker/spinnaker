@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers
 
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper.TargetGroupLookupResult
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory

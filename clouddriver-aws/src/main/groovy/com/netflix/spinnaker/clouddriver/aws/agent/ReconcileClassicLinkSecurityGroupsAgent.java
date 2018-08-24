@@ -35,7 +35,7 @@ import com.google.common.base.Strings;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration;
+import com.netflix.spinnaker.config.AwsConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.security
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
-import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration.DeployDefaults
+import com.netflix.spinnaker.config.GoogleConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository

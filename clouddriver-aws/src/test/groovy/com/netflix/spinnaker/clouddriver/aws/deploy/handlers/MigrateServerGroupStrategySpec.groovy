@@ -24,7 +24,7 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.autoscaling.model.SuspendedProcess
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.SecurityGroup
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.converters.AllowLaunchAtomicOperationConverter

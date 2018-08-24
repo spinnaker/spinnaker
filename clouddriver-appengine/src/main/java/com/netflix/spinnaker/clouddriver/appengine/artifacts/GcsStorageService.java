@@ -47,7 +47,7 @@ public class GcsStorageService {
     void visit(StorageObject storageObj) throws IOException;
   };
 
-  static class Factory {
+  public static class Factory {
     private String applicationName_;
     private HttpTransport transport_;
     private JsonFactory jsonFactory_;

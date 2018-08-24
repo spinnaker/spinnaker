@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
-import com.netflix.spinnaker.clouddriver.oracle.OracleConfiguration
+import com.netflix.spinnaker.config.OracleConfiguration
 import com.netflix.spinnaker.clouddriver.oracle.provider.OracleInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.oracle.provider.agent.*
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials

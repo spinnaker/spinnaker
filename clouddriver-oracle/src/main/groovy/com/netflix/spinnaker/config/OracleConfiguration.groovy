@@ -6,7 +6,7 @@
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
-package com.netflix.spinnaker.clouddriver.oracle
+package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.clouddriver.oracle.config.OracleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.oracle.health.OracleHealthIndicator

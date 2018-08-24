@@ -20,7 +20,7 @@ import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.*
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancerType

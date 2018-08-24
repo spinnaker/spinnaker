@@ -1,11 +1,11 @@
 /*
- * Copyright 2016 Veritas Technologies LLC.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.openstack
+package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
-import com.netflix.spinnaker.clouddriver.openstack.health.OpenstackHealthIndicator
-import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentialsInitializer
+import com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties
+import com.netflix.spinnaker.clouddriver.appengine.health.AppengineHealthIndicator
+import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentialsInitializer
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -30,23 +30,22 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
 import org.springframework.scheduling.annotation.EnableScheduling
 
-
 @Configuration
 @EnableConfigurationProperties
 @EnableScheduling
-@ConditionalOnProperty('openstack.enabled')
-@ComponentScan(["com.netflix.spinnaker.clouddriver.openstack"])
-@Import([ OpenstackCredentialsInitializer ])
-class OpenstackConfiguration {
+@ConditionalOnProperty("appengine.enabled")
+@ComponentScan(["com.netflix.spinnaker.clouddriver.appengine"])
+@Import([ AppengineCredentialsInitializer ])
+class AppengineConfiguration {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  @ConfigurationProperties("openstack")
-  OpenstackConfigurationProperties openstackConfigurationProperties() {
-    new OpenstackConfigurationProperties()
+  @ConfigurationProperties("appengine")
+  AppengineConfigurationProperties appengineConfigurationProperties() {
+    new AppengineConfigurationProperties()
   }
 
   @Bean
-  OpenstackHealthIndicator openstackHealthIndicator() {
-    new OpenstackHealthIndicator()
+  AppengineHealthIndicator appengineHealthIndicator() {
+    new AppengineHealthIndicator()
   }
 }

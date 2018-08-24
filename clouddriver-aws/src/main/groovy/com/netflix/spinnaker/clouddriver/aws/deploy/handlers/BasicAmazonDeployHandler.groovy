@@ -23,8 +23,8 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
+import com.netflix.spinnaker.config.AwsConfiguration
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig

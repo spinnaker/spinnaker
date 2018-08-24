@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.titus.config
+package com.netflix.spinnaker.config
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider

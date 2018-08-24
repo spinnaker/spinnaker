@@ -20,7 +20,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration;
 import com.amazonaws.services.autoscaling.model.SuspendedProcess;
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults;
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
 import com.netflix.spinnaker.clouddriver.aws.deploy.converters.AllowLaunchAtomicOperationConverter;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription.Capacity;

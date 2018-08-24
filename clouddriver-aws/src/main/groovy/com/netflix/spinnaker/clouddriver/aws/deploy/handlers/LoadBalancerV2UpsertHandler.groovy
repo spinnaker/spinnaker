@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.Action
-import com.amazonaws.services.elasticloadbalancingv2.model.ActionTypeEnum
 import com.amazonaws.services.elasticloadbalancingv2.model.CreateListenerRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.CreateListenerResult
 import com.amazonaws.services.elasticloadbalancingv2.model.CreateLoadBalancerRequest
@@ -47,7 +46,7 @@ import com.amazonaws.services.elasticloadbalancingv2.model.RuleCondition
 import com.amazonaws.services.elasticloadbalancingv2.model.SetSecurityGroupsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupAttribute
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers;
 
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration;
+import com.netflix.spinnaker.config.AwsConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerMigrator;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.MigrateLoadBalancerResult;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.MigrateSecurityGroupResult;
@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.servergroup.MigrateClust
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

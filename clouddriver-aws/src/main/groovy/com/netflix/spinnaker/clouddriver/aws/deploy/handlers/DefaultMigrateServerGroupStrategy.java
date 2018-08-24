@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers;
 
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults;
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
 import com.netflix.spinnaker.clouddriver.aws.deploy.converters.AllowLaunchAtomicOperationConverter;
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;

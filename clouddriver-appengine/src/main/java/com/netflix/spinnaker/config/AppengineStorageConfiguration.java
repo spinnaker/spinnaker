@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.appengine.artifacts;
+package com.netflix.spinnaker.config;
 
+import com.netflix.spinnaker.clouddriver.appengine.artifacts.GcsStorageService.Factory;
 import com.netflix.spinnaker.clouddriver.appengine.artifacts.config.StorageConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -37,9 +38,9 @@ public class AppengineStorageConfiguration {
   StorageConfigurationProperties storageAccountInfo;
 
   @Bean
-  GcsStorageService.Factory storageServiceFactory(String clouddriverUserAgentApplicationName) {
+  Factory storageServiceFactory(String clouddriverUserAgentApplicationName) {
     try {
-      return new GcsStorageService.Factory(clouddriverUserAgentApplicationName);
+      return new Factory(clouddriverUserAgentApplicationName);
     } catch (IOException | GeneralSecurityException ex) {
       throw new IllegalStateException(ex);
     }

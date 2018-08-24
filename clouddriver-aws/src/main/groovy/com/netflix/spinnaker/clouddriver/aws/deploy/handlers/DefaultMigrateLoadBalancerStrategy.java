@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers;
 
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults;
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
 

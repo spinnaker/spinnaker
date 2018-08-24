@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2016 Veritas Technologies LLC.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.config
 
-package com.netflix.spinnaker.clouddriver.azure
-
-import com.netflix.spinnaker.clouddriver.azure.config.AzureConfigurationProperties
-import com.netflix.spinnaker.clouddriver.azure.health.AzureHealthIndicator
-import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentialsInitializer
-
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
+import com.netflix.spinnaker.clouddriver.openstack.health.OpenstackHealthIndicator
+import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentialsInitializer
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -28,23 +27,26 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Scope
 import org.springframework.scheduling.annotation.EnableScheduling
+
 
 @Configuration
 @EnableConfigurationProperties
 @EnableScheduling
-@ConditionalOnProperty('azure.enabled')
-@ComponentScan(["com.netflix.spinnaker.clouddriver.azure"])
-@Import([ AzureCredentialsInitializer ])
-class AzureConfiguration {
+@ConditionalOnProperty('openstack.enabled')
+@ComponentScan(["com.netflix.spinnaker.clouddriver.openstack"])
+@Import([ OpenstackCredentialsInitializer ])
+class OpenstackConfiguration {
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  @ConfigurationProperties("azure")
-  AzureConfigurationProperties azureConfigurationProperties() {
-    new AzureConfigurationProperties()
+  @ConfigurationProperties("openstack")
+  OpenstackConfigurationProperties openstackConfigurationProperties() {
+    new OpenstackConfigurationProperties()
   }
 
   @Bean
-  AzureHealthIndicator azureHealthIndicator() {
-    new AzureHealthIndicator()
+  OpenstackHealthIndicator openstackHealthIndicator() {
+    new OpenstackHealthIndicator()
   }
 }

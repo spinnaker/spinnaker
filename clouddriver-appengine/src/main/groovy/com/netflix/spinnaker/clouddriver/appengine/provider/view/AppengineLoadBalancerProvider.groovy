@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
-import com.netflix.spinnaker.clouddriver.appengine.AppengineConfiguration
 import com.netflix.spinnaker.clouddriver.appengine.cache.Keys
 import com.netflix.spinnaker.clouddriver.appengine.cache.Keys.Namespace
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineInstance

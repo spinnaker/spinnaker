@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import spock.lang.Shared
 import spock.lang.Specification

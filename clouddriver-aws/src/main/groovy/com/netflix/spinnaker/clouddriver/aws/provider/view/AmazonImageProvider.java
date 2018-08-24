@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration;
+import com.netflix.spinnaker.config.AwsConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.data.Keys;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonImage;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup;
