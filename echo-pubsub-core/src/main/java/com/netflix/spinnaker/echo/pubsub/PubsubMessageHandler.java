@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.echo.pubsub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Metadata;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
@@ -33,6 +35,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.zip.CRC32;
 
 /**
  * Shared cache of received and handled pubsub messages to synchronize clients.
@@ -43,29 +46,29 @@ import java.util.Optional;
 public class PubsubMessageHandler {
 
   private final PubsubEventMonitor pubsubEventMonitor;
-
   private final ObjectMapper objectMapper;
-
   private RedisClientDelegate redisClientDelegate;
-
-  @Autowired
-  public PubsubMessageHandler(PubsubEventMonitor pubsubEventMonitor,
-    ObjectMapper objectMapper,
-    Optional<RedisClientSelector> redisClientSelector) {
-    this.pubsubEventMonitor = pubsubEventMonitor;
-    this.objectMapper = objectMapper;
-    redisClientSelector.ifPresent(selector -> this.redisClientDelegate = selector.primary("default"));
-  }
+  private final Registry registry;
 
   private static final String SET_IF_NOT_EXIST = "NX";
   private static final String SET_EXPIRE_TIME_MILLIS = "PX";
   private static final String SUCCESS = "OK";
+  @Autowired
+  public PubsubMessageHandler(PubsubEventMonitor pubsubEventMonitor,
+                              ObjectMapper objectMapper,
+                              Optional<RedisClientSelector> redisClientSelector,
+                              Registry registry) {
+    this.pubsubEventMonitor = pubsubEventMonitor;
+    this.objectMapper = objectMapper;
+    redisClientSelector.ifPresent(selector -> this.redisClientDelegate = selector.primary("default"));
+    this.registry = registry;
+  }
 
   public void handleFailedMessage(MessageDescription description,
     MessageAcknowledger acknowledger,
     String identifier,
     String messageId) {
-    String messageKey = makeKey(description, messageId);
+    String messageKey = makeProcessingKey(description, messageId);
     if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
       setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
     }
@@ -79,10 +82,19 @@ public class PubsubMessageHandler {
       throw new IllegalStateException("Redis not enabled, pubsub requires redis. Please enable.");
     }
 
-    String messageKey = makeKey(description, messageId);
-    if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
+    String completeKey = makeCompletedKey(description, messageId);
+    if (messageComplete(completeKey, description.getMessagePayload())) {
+      // Acknowledge duplicate messages but don't process them
+      acknowledger.ack();
+      registry.counter(getDuplicateMetricId(description)).increment();
+      return;
+    }
+
+    String processingKey = makeProcessingKey(description, messageId);
+    if (tryAck(processingKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
       processEvent(description);
-      setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
+      setMessageComplete(completeKey, description.getMessagePayload(), description.getRetentionDeadlineMillis());
+      registry.counter(getProcessedMetricId(description)).increment();
     }
   }
 
@@ -112,11 +124,26 @@ public class PubsubMessageHandler {
     });
   }
 
+  private void setMessageComplete(String messageKey, String payload, Long retentionDeadlineMillis) {
+    redisClientDelegate.withCommandsClient(c -> {
+      c.psetex(messageKey, retentionDeadlineMillis, getCRC32(payload));
+    });
+  }
+
+  private Boolean messageComplete(String messageKey, String value) {
+    return redisClientDelegate.withCommandsClient(c -> {
+      return getCRC32(value).equals(c.get(messageKey));
+    });
+  }
+
   // Todo emjburns: change key format to "{echo:pubsub:system}:%s:%s" and migrate messages
-  private String makeKey(MessageDescription description, String messageId) {
+  private String makeProcessingKey(MessageDescription description, String messageId) {
     return String.format("%s:echo-pubsub:%s:%s", description.getPubsubSystem().toString(), description.getSubscriptionName(), messageId);
   }
 
+  private String makeCompletedKey(MessageDescription description, String messageId) {
+    return String.format("{echo:pubsub:completed}:%s:%s:%s", description.getPubsubSystem().toString(), description.getSubscriptionName(), messageId);
+  }
 
   private void processEvent(MessageDescription description) {
     log.debug("Processing pubsub event with payload {}", description.getMessagePayload());
@@ -140,5 +167,26 @@ public class PubsubMessageHandler {
     event.setContent(content);
     event.setDetails(details);
     pubsubEventMonitor.processEvent(event);
+  }
+
+  /**
+   * Generates a string checksum for comparing message body.
+   */
+  private String getCRC32(String value) {
+    CRC32 checksum = new CRC32();
+    checksum.update(value.getBytes());
+    return Long.toString(checksum.getValue());
+  }
+
+  private Id getDuplicateMetricId(MessageDescription messageDescription) {
+    return registry.createId("echo.pubsub.duplicateMessages")
+      .withTag("subscription", messageDescription.getSubscriptionName())
+      .withTag("pubsubSystem", messageDescription.getPubsubSystem().toString());
+  }
+
+  private Id getProcessedMetricId(MessageDescription messageDescription) {
+    return registry.createId("echo.pubsub.messagesProcessed")
+      .withTag("subscription", messageDescription.getSubscriptionName())
+      .withTag("pubsubSystem", messageDescription.getPubsubSystem().toString());
   }
 }

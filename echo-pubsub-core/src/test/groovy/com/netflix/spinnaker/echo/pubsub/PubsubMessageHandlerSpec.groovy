@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.pubsub
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
@@ -53,6 +54,7 @@ class PubsubMessageHandlerSpec extends Specification {
     pubsubEventMonitor,
     new ObjectMapper(),
     redisClientSelector,
+    new NoopRegistry()
   )
 
   def setupSpec() {
@@ -165,7 +167,6 @@ class PubsubMessageHandlerSpec extends Specification {
 
     then:
     1 * pubsubEventMonitor.processEvent(_)
-    1 * acker.ack()
-    1 * acker.nack() // Lock acquisition failed.
+    2 * acker.ack() // duplicate is dismissed
   }
 }
