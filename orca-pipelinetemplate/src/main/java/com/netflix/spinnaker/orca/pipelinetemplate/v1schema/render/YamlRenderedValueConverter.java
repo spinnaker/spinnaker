@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.composer.ComposerException;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.parser.ParserException;
 
 import java.util.Arrays;
@@ -31,7 +32,7 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private static final ThreadLocal<Yaml> yaml = ThreadLocal.withInitial(Yaml::new);
+  private static final ThreadLocal<Yaml> yaml = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
   @Override
   public Object convertRenderedValue(String renderedValue) {

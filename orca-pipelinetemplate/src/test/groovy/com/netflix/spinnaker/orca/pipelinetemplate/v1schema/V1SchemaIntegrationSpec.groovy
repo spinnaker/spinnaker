@@ -37,6 +37,7 @@ import org.springframework.core.io.Resource
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.unitils.reflectionassert.ReflectionComparatorMode
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -85,7 +86,7 @@ class V1SchemaIntegrationSpec extends Specification {
 
   private static class IntegrationTestDataProvider {
 
-    Yaml yaml = new Yaml()
+    Yaml yaml = new Yaml(new SafeConstructor())
     ObjectMapper objectMapper = new ObjectMapper()
 
     List<IntegrationTest> provide() {

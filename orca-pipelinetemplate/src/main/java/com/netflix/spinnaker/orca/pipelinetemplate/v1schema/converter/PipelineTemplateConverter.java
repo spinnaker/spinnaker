@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.BufferedReader;
@@ -48,7 +49,7 @@ public class PipelineTemplateConverter {
     options.setIndent(2);
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
     options.setSplitLines(false);
-    Yaml yaml = new Yaml(representer, options);
+    Yaml yaml = new Yaml(new SafeConstructor(), representer, options);
 
     String output = yaml.dump(p);
 

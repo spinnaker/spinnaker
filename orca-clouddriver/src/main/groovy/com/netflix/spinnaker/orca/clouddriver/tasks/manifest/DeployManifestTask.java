@@ -36,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit.client.Response;
 
 import javax.annotation.Nonnull;
@@ -63,7 +64,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
   @Autowired
   ObjectMapper objectMapper;
 
-  private static final ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(Yaml::new);
+  private static final ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
   @Autowired
   ContextParameterProcessor contextParameterProcessor;

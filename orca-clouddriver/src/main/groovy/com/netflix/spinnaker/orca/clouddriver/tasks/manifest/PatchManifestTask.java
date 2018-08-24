@@ -30,14 +30,15 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit.client.Response;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,7 +53,7 @@ import java.util.stream.StreamSupport;
 public class PatchManifestTask extends AbstractCloudProviderAwareTask implements Task {
 
   public static final String TASK_NAME = "patchManifest";
-  private static final ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(Yaml::new);
+  private static final ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
   @Autowired
   KatoService kato;
