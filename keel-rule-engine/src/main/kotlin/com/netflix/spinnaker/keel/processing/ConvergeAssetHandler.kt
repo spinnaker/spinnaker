@@ -17,7 +17,6 @@ package com.netflix.spinnaker.keel.processing
 
 import com.netflix.spinnaker.keel.grpc.PluginRequestFailed
 import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState
@@ -40,8 +39,8 @@ class ConvergeAssetHandler(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun handle(message: ConvergeAsset) {
-    repository.getContainer(message.id).withAssetPresent()?.also { assetContainer ->
-      val asset = assetContainer.asset!!
+    repository.getContainer(message.id)?.also { assetContainer ->
+      val asset = assetContainer.asset
 
       val outdatedDependencies = asset.outdatedDependencies
       if (outdatedDependencies.isEmpty()) {
@@ -77,11 +76,4 @@ class ConvergeAssetHandler(
           listOf(dependencyId to state)
         }
       }
-
-  private fun AssetContainer.withAssetPresent(): AssetContainer? =
-    if (asset == null) {
-      null
-    } else {
-      this
-    }
 }

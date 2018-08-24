@@ -50,7 +50,7 @@ interface AssetRepository {
   /**
    * Get an asset including all associated partial assets
    */
-  fun getContainer(id: AssetId): AssetContainer
+  fun getContainer(id: AssetId): AssetContainer?
 
   /**
    * Persists an asset or partial asset

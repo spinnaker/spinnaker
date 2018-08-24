@@ -94,7 +94,7 @@ data class PartialAsset(
  * Internal representation of an asset container.
  */
 data class AssetContainer(
-  val asset: Asset?,
+  val asset: Asset,
   val partialAssets: Set<PartialAsset> = setOf()
 )
 

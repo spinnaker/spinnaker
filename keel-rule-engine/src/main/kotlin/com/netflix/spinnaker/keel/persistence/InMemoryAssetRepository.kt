@@ -49,11 +49,13 @@ class InMemoryAssetRepository(
   override fun getPartial(id: AssetId): PartialAsset? =
     partialAssets[id]
 
-  override fun getContainer(id: AssetId): AssetContainer =
-    AssetContainer(
-      asset = get(id),
-      partialAssets = partialAssets.filterValues { it.root.value == id.value }.values.toSet()
-    )
+  override fun getContainer(id: AssetId): AssetContainer? =
+    get(id)?.let {
+      AssetContainer(
+        asset = it,
+        partialAssets = partialAssets.filterValues { it.root.value == id.value }.values.toSet()
+      )
+    }
 
   override fun store(asset: AssetBase) {
     when (asset) {

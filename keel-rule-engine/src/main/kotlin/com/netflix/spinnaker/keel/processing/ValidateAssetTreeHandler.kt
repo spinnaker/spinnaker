@@ -52,7 +52,7 @@ class ValidateAssetTreeHandler(
 
   private suspend fun SequenceBuilder<AssetId>.validateSubTree(id: AssetId) {
     val desired = repository.getContainer(id)
-    if (desired.asset == null) {
+    if (desired == null) {
       log.error("{} : Not found", id)
     } else {
       log.debug("{} : Validating state", id)

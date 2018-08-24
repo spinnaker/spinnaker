@@ -53,7 +53,7 @@ internal object ConvergeAssetHandlerSpec : Spek({
 
   describe("converging an asset") {
     given("the asset cannot be found") {
-      beforeGroup { whenever(repository.getContainer(asset.id)) doReturn AssetContainer(null) }
+      beforeGroup { whenever(repository.getContainer(asset.id)) doReturn null as AssetContainer? }
       afterGroup { reset(repository) }
 
       on("receiving a message") {
