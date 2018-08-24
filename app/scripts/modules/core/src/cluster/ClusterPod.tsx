@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { orderBy } from 'lodash';
+import { orderBy, partition, groupBy, map } from 'lodash';
 
 import { ClusterState } from 'core/state';
 import { ServerGroup } from 'core/serverGroup/ServerGroup';
@@ -79,6 +79,16 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
     }
 
     const sortedServerGroups = orderBy(subgroup.serverGroups, [iteratee], ['desc']);
+    // TODO(dpeach): similar grouping logic (e.g., by region, cluster, etc.)
+    // happens in the ClusterFilterService. However, that service makes a lot of assumptions
+    // about how the data is organized when diffing server groups after resource load or attaching
+    // entity tags, running tasks, and running pipeline executions to server groups. Putting
+    // this logic here seems fine while the server group manager grouping is still experimental.
+    const [managedServerGroups, standaloneServerGroups] = partition(
+      sortedServerGroups,
+      group => group.serverGroupManagers && group.serverGroupManagers.length,
+    );
+    const serverGroupManagers = groupBy(managedServerGroups, serverGroup => serverGroup.serverGroupManagers[0].name);
 
     return (
       <div className="pod-subgroup" key={subgroup.key}>
@@ -95,18 +105,19 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
           />
         </h6>
 
-        {(subgroup.serverGroupManagers || []).map(manager => (
+        {map(serverGroupManagers, (serverGroups, manager) => (
           <ServerGroupManager
-            key={manager.key}
+            key={manager}
             manager={manager}
             grouping={grouping}
+            serverGroups={serverGroups}
             application={application}
             sortFilter={sortFilter}
           />
         ))}
 
         {grouping.cluster.category === 'serverGroup' &&
-          sortedServerGroups.map((serverGroup: IServerGroup) => (
+          standaloneServerGroups.map((serverGroup: IServerGroup) => (
             <ServerGroup
               key={serverGroup.name}
               serverGroup={serverGroup}
