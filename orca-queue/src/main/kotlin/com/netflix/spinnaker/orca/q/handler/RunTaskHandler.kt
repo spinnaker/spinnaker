@@ -190,8 +190,12 @@ class RunTaskHandler(
   }
 
   private fun Task.checkForTimeout(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, message: Message) {
-    checkForStageTimeout(stage)
-    checkForTaskTimeout(taskModel, stage, message)
+    if (stage.type == RestrictExecutionDuringTimeWindow.TYPE) {
+      return
+    } else {
+      checkForStageTimeout(stage)
+      checkForTaskTimeout(taskModel, stage, message)
+    }
   }
 
   private fun Task.checkForTaskTimeout(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, stage: Stage, message: Message) {
