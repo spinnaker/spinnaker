@@ -21,6 +21,7 @@
 bintray_jar_repository: jars
 bintray_org: spinnaker-releases
 bintray_debian_repository: debians
+bintray_publish_wait_secs: -1
 
 
 ################################

@@ -326,6 +326,7 @@ class GradleRunner(object):
     bintray_org = options.bintray_org
     jar_repo = options.bintray_jar_repository
     debian_repo = options.bintray_debian_repository
+    publish_wait_secs = options.bintray_publish_wait_secs
 
     args = [
         '-PbintrayOrg="{org}"'.format(org=bintray_org),
@@ -334,7 +335,9 @@ class GradleRunner(object):
         '-PbintrayKey="{key}"'.format(key=bintray_key),
         '-PbintrayUser="{user}"'.format(user=bintray_user),
         '-PbintrayPackageDebDistribution={distribution}'.format(
-            distribution=distribution)
+            distribution=distribution),
+        '-PbintrayPublishWaitForSecs={publishWaitSecs}'.format(
+            publishWaitSecs=publish_wait_secs)
     ]
 
     return args
@@ -412,6 +415,12 @@ class GradleCommandFactory(RepositoryCommandFactory):
     GradleCommandFactory.add_argument(
         parser, 'bintray_debian_repository', defaults, None,
         help='Repository in the --bintray_org to publish debians to.')
+
+    GradleCommandFactory.add_argument(
+        parser, 'bintray_publish_wait_secs', defaults, '0',
+        help='How many seconds to synchronously wait when publishing packages to'
+             'Bintray. When set to -1, wait the maximum time supported by the'
+             'server; when set to 0, publish asynchronously.')
 
 
   def init_argparser(self, parser, defaults):

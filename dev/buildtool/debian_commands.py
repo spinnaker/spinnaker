@@ -42,7 +42,7 @@ class BuildDebianCommand(GradleCommandProcessor):
       raise_and_log_error(ConfigError('Expected BINTRAY_USER set.'))
     check_options_set(
         options, ['bintray_org', 'bintray_jar_repository',
-                  'bintray_debian_repository'])
+                  'bintray_debian_repository', 'bintray_publish_wait_secs'])
 
   def _do_can_skip_repository(self, repository):
     if repository.name in NON_DEBIAN_BOM_REPOSITORIES:
