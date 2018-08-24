@@ -55,6 +55,8 @@
         <dd>{{ctrl.instance.kind}}</dd>
         <dt>QOS Class</dt>
         <dd><kubernetes-manifest-qos manifest="ctrl.instance.manifest"></kubernetes-manifest-qos></dd>
+        <dt>Logs</dt>
+        <dd><console-output-link instance="ctrl.consoleOutputInstance"></console-output-link></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
@@ -76,13 +78,6 @@
     <collapsible-section heading="Labels" expanded="true">
       <kubernetes-manifest-labels manifest="ctrl.instance.manifest"></kubernetes-manifest-labels>
     </collapsible-section>
-
-    <collapsible-section heading="Logs" expanded="true">
-      <div>
-        <console-output-link instance="ctrl.consoleOutputInstance"></console-output-link>
-      </div>
-    </collapsible-section>
   </div>
-
 </div>
 
