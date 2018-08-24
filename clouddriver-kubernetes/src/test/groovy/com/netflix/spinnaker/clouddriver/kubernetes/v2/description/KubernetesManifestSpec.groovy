@@ -22,12 +22,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class KubernetesManifestSpec extends Specification {
   def objectMapper = new ObjectMapper()
-  def yaml = new Yaml()
+  def yaml = new Yaml(new SafeConstructor())
 
   def NAME = "my-name"
   def NAMESPACE = "my-namespace"

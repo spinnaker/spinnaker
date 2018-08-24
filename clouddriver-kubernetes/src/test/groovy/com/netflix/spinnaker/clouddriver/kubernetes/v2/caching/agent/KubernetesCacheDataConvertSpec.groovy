@@ -33,12 +33,13 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.moniker.Moniker
 import org.apache.commons.lang3.tuple.Pair
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class KubernetesCacheDataConvertSpec extends Specification {
   def mapper = new ObjectMapper()
-  def yaml = new Yaml()
+  def yaml = new Yaml(new SafeConstructor())
   def ACCOUNT = "my-account"
   def NAMESPACE = "spinnaker"
 

@@ -22,13 +22,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class KubernetesHorizontalPodAutoscalerHandlerSpec extends Specification {
   def objectMapper = new ObjectMapper()
-  def yaml = new Yaml()
+  def yaml = new Yaml(new SafeConstructor())
   def handler = new KubernetesHorizontalPodAutoscalerHandler()
   def ACCOUNT = "my-account"
   @Shared

@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,13 +35,13 @@ public class ArtifactDownloader {
 
   final private ObjectMapper objectMapper;
 
-  final Yaml yamlParser;
+  final private Yaml yamlParser;
 
   @Autowired
-  public ArtifactDownloader(ArtifactCredentialsRepository artifactCredentialsRepository, ObjectMapper objectMapper) {
+  public ArtifactDownloader(ArtifactCredentialsRepository artifactCredentialsRepository, ObjectMapper objectMapper, Yaml yaml) {
     this.artifactCredentialsRepository = artifactCredentialsRepository;
     this.objectMapper = objectMapper;
-    this.yamlParser = new Yaml();
+    this.yamlParser = yaml;
   }
 
   public InputStream download(Artifact artifact) throws IOException {

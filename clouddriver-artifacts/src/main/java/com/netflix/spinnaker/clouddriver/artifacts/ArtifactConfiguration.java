@@ -29,6 +29,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @Configuration
 @EnableConfigurationProperties
@@ -46,5 +48,10 @@ public class ArtifactConfiguration {
   @Bean
   ArtifactCredentialsRepository artifactCredentialsRepository() {
     return new ArtifactCredentialsRepository();
+  }
+
+  @Bean
+  Yaml yaml() {
+    return new Yaml(new SafeConstructor());
   }
 }
