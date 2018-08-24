@@ -40,12 +40,13 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
+  val publisher: ApplicationEventPublisher = mock()
 
   subject(CachingMode.GROUP) {
-    CancelExecutionHandler(queue, repository)
+    CancelExecutionHandler(queue, repository, publisher)
   }
 
-  fun resetMocks() = reset(queue, repository)
+  fun resetMocks() = reset(queue, repository, publisher)
 
   describe("cancelling an execution") {
     given("there are no paused stages") {
@@ -75,6 +76,14 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
 
       it("it triggers a reevaluate") {
         verify(queue).push(RescheduleExecution(pipeline))
+      }
+
+      it("publishes an execution complete event") {
+        verify(publisher).publishEvent(check<ExecutionComplete> {
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.status).isEqualTo(CANCELED)
+        })
       }
 
       it("does not send any further messages") {
