@@ -34,7 +34,6 @@ class ValidateAssetTreeHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  // TODO: coroutine
   private suspend fun SequenceBuilder<AssetId>.validateSubTree(id: AssetId) {
     val desired = repository.getContainer(id)
     if (desired.asset == null) {
