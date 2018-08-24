@@ -54,8 +54,8 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
   override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
     if (parent.context["deployments"] != null) {
       graph.add {
-        it.type = DeployCanaryClustersStage.STAGE_TYPE
-        it.name = "Deploy Canary Clusters"
+        it.type = DeployCanaryServerGroupsStage.STAGE_TYPE
+        it.name = "Deploy Canary Server Groups"
       }
     }
 

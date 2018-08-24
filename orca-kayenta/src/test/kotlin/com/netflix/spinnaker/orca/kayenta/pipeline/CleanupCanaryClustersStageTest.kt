@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
-import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
@@ -35,94 +32,41 @@ import java.time.Duration
 internal object CleanupCanaryClustersStageTest : Spek({
 
   val subject = CleanupCanaryClustersStage()
-  val mapper = OrcaObjectMapper.newInstance()
 
   given("a canary deployment pipeline") {
     val baseline = mapOf(
       "application" to "spindemo",
       "account" to "prod",
-      "cluster" to "spindemo-prestaging-prestaging"
+      "cluster" to "spindemo-prestaging"
     )
-    val controlCluster = mapOf(
-      "account" to "prod",
-      "application" to "spindemo",
-      "availabilityZones" to mapOf(
-        "us-west-1" to listOf("us-west-1a", "us-west-1c")
-      ),
-      "capacity" to mapOf("desired" to 1, "max" to 1, "min" to 1),
-      "cloudProvider" to "aws",
-      "cooldown" to 10,
-      "copySourceCustomBlockDeviceMappings" to true,
-      "ebsOptimized" to false,
-      "enabledMetrics" to listOf<Any>(),
-      "freeFormDetails" to "prestaging-baseline",
-      "healthCheckGracePeriod" to 600,
-      "healthCheckType" to "EC2",
-      "iamRole" to "spindemoInstanceProfile",
-      "instanceMonitoring" to true,
-      "instanceType" to "m3.large",
-      "interestingHealthProviderNames" to listOf("Amazon"),
-      "keyPair" to "nf-prod-keypair-a",
-      "loadBalancers" to listOf<Any>(),
-      "moniker" to mapOf(
-        "app" to "spindemo",
-        "cluster" to "spindemo-prestaging-prestaging-baseline",
-        "detail" to "prestaging-baseline",
-        "stack" to "prestaging"
-      ),
-      "provider" to "aws",
-      "securityGroups" to listOf("sg-b575ded0", "sg-b775ded2", "sg-dbe43abf"),
-      "spotPrice" to "",
-      "stack" to "prestaging",
-      "subnetType" to "internal (vpc0)",
-      "suspendedProcesses" to listOf<Any>(),
-      "tags" to mapOf<String, Any>(),
-      "targetGroups" to listOf<Any>(),
-      "targetHealthyDeployPercentage" to 100,
-      "terminationPolicies" to listOf("Default"),
-      "useAmiBlockDeviceMappings" to false,
-      "useSourceCapacity" to false
-    )
-    val experimentCluster = mapOf(
-      "account" to "prod",
-      "application" to "spindemo",
-      "availabilityZones" to mapOf(
-        "us-west-1" to listOf("us-west-1a", "us-west-1c")
-      ),
-      "capacity" to mapOf("desired" to 1, "max" to 1, "min" to 1),
-      "cloudProvider" to "aws",
-      "cooldown" to 10,
-      "copySourceCustomBlockDeviceMappings" to true,
-      "ebsOptimized" to false,
-      "enabledMetrics" to listOf<Any>(),
-      "freeFormDetails" to "prestaging-canary",
-      "healthCheckGracePeriod" to 600,
-      "healthCheckType" to "EC2",
-      "iamRole" to "spindemoInstanceProfile",
-      "instanceMonitoring" to true,
-      "instanceType" to "m3.large",
-      "interestingHealthProviderNames" to listOf("Amazon"),
-      "keyPair" to "nf-prod-keypair-a",
-      "loadBalancers" to listOf<Any>(),
-      "moniker" to mapOf(
-        "app" to "spindemo",
-        "cluster" to "spindemo-prestaging-prestaging-canary",
-        "detail" to "prestaging-canary",
-        "stack" to "prestaging"
-      ),
-      "provider" to "aws",
-      "securityGroups" to listOf("sg-b575ded0", "sg-b775ded2", "sg-dbe43abf"),
-      "spotPrice" to "",
-      "stack" to "prestaging",
-      "subnetType" to "internal (vpc0)",
-      "suspendedProcesses" to listOf<Any>(),
-      "tags" to mapOf<String, Any>(),
-      "targetGroups" to listOf<Any>(),
-      "targetHealthyDeployPercentage" to 100,
-      "terminationPolicies" to listOf("Default"),
-      "useAmiBlockDeviceMappings" to false,
-      "useSourceCapacity" to false
-    )
+    val controlServerGroupA = serverGroup {
+      mapOf(
+        "application" to "spindemo",
+        "stack" to "prestaging",
+        "freeFormDetails" to "baseline-a"
+      )
+    }
+    val controlServerGroupB = serverGroup {
+      mapOf(
+        "application" to "spindemo",
+        "stack" to "prestaging",
+        "freeFormDetails" to "baseline-b"
+      )
+    }
+    val experimentServerGroupA = serverGroup {
+      mapOf(
+        "application" to "spindemo",
+        "stack" to "prestaging",
+        "freeFormDetails" to "canary-a"
+      )
+    }
+    val experimentServerGroupB = serverGroup {
+      mapOf(
+        "application" to "spindemo",
+        "stack" to "prestaging",
+        "freeFormDetails" to "canary-b"
+      )
+    }
     val delayBeforeCleanup = Duration.ofHours(3)
     val pipeline = pipeline {
       stage {
@@ -130,13 +74,21 @@ internal object CleanupCanaryClustersStageTest : Spek({
         type = KayentaCanaryStage.STAGE_TYPE
         context["deployments"] = mapOf(
           "baseline" to baseline,
-          "control" to controlCluster,
-          "experiment" to experimentCluster,
+          "serverGroupPairs" to listOf(
+            mapOf(
+              "control" to controlServerGroupA,
+              "experiment" to experimentServerGroupA
+            ),
+            mapOf(
+              "control" to controlServerGroupB,
+              "experiment" to experimentServerGroupB
+            )
+          ),
           "delayBeforeCleanup" to delayBeforeCleanup.toString()
         )
         stage {
           refId = "1<1"
-          type = DeployCanaryClustersStage.STAGE_TYPE
+          type = DeployCanaryServerGroupsStage.STAGE_TYPE
         }
         stage {
           refId = "1>1"
@@ -150,26 +102,24 @@ internal object CleanupCanaryClustersStageTest : Spek({
     val beforeStages = subject.beforeStages(canaryCleanupStage)
 
     it("first disables the control and experiment clusters") {
-      beforeStages.named("Disable control cluster") {
+      beforeStages.named("Disable control cluster spindemo-prestaging-baseline-a") {
         assertThat(type).isEqualTo(DisableClusterStage.STAGE_TYPE)
         assertThat(requisiteStageRefIds).isEmpty()
 
         assertThat(context["cloudProvider"]).isEqualTo("aws")
-        assertThat(context["credentials"]).isEqualTo(controlCluster["account"])
-        assertThat(context["cluster"]).isEqualTo((controlCluster["moniker"] as Map<String, Any>)["cluster"])
-        assertThat(context["moniker"]).isEqualTo(mapper.convertValue<Moniker>(controlCluster["moniker"]!!))
+        assertThat(context["credentials"]).isEqualTo(controlServerGroupA["account"])
+        assertThat(context["cluster"]).isEqualTo("spindemo-prestaging-baseline-a")
         assertThat(context["regions"]).isEqualTo(setOf("us-west-1"))
 
         assertThat(context["remainingEnabledServerGroups"]).isEqualTo(0)
       }
-      beforeStages.named("Disable experiment cluster") {
+      beforeStages.named("Disable experiment cluster spindemo-prestaging-canary-a") {
         assertThat(type).isEqualTo(DisableClusterStage.STAGE_TYPE)
         assertThat(requisiteStageRefIds).isEmpty()
 
         assertThat(context["cloudProvider"]).isEqualTo("aws")
-        assertThat(context["credentials"]).isEqualTo(experimentCluster["account"])
-        assertThat(context["cluster"]).isEqualTo((experimentCluster["moniker"] as Map<String, Any>)["cluster"])
-        assertThat(context["moniker"]).isEqualTo(mapper.convertValue<Moniker>(experimentCluster["moniker"]!!))
+        assertThat(context["credentials"]).isEqualTo(experimentServerGroupA["account"])
+        assertThat(context["cluster"]).isEqualTo("spindemo-prestaging-canary-a")
         assertThat(context["regions"]).isEqualTo(setOf("us-west-1"))
 
         assertThat(context["remainingEnabledServerGroups"]).isEqualTo(0)
@@ -184,15 +134,17 @@ internal object CleanupCanaryClustersStageTest : Spek({
             .map(pipeline::stageByRef)
             .map(Stage::getName)
         ).containsExactlyInAnyOrder(
-          "Disable control cluster",
-          "Disable experiment cluster"
+          "Disable control cluster spindemo-prestaging-baseline-a",
+          "Disable control cluster spindemo-prestaging-baseline-b",
+          "Disable experiment cluster spindemo-prestaging-canary-a",
+          "Disable experiment cluster spindemo-prestaging-canary-b"
         )
         assertThat(context["waitTime"]).isEqualTo(delayBeforeCleanup.seconds)
       }
     }
 
     it("finally destroys the clusters") {
-      beforeStages.named("Cleanup control cluster") {
+      beforeStages.named("Cleanup control cluster spindemo-prestaging-baseline-a") {
         assertThat(type).isEqualTo(ShrinkClusterStage.STAGE_TYPE)
         assertThat(
           requisiteStageRefIds
@@ -201,16 +153,14 @@ internal object CleanupCanaryClustersStageTest : Spek({
         ).containsExactly("Wait before cleanup")
 
         assertThat(context["cloudProvider"]).isEqualTo("aws")
-        assertThat(context["credentials"]).isEqualTo(controlCluster["account"])
-        assertThat(context["cluster"]).isEqualTo((controlCluster["moniker"] as Map<String, Any>)["cluster"])
-        assertThat(context["moniker"]).isEqualTo(mapper.convertValue<Moniker>(controlCluster["moniker"]!!))
+        assertThat(context["credentials"]).isEqualTo(controlServerGroupA["account"])
         assertThat(context["regions"]).isEqualTo(setOf("us-west-1"))
-
+        assertThat(context["cluster"]).isEqualTo("spindemo-prestaging-baseline-a")
         assertThat(context["allowDeleteActive"]).isEqualTo(true)
         assertThat(context["shrinkToSize"]).isEqualTo(0)
       }
 
-      beforeStages.named("Cleanup experiment cluster") {
+      beforeStages.named("Cleanup experiment cluster spindemo-prestaging-canary-a") {
         assertThat(type).isEqualTo(ShrinkClusterStage.STAGE_TYPE)
         assertThat(
           requisiteStageRefIds
@@ -219,11 +169,9 @@ internal object CleanupCanaryClustersStageTest : Spek({
         ).containsExactly("Wait before cleanup")
 
         assertThat(context["cloudProvider"]).isEqualTo("aws")
-        assertThat(context["credentials"]).isEqualTo(experimentCluster["account"])
-        assertThat(context["cluster"]).isEqualTo((experimentCluster["moniker"] as Map<String, Any>)["cluster"])
-        assertThat(context["moniker"]).isEqualTo(mapper.convertValue<Moniker>(experimentCluster["moniker"]!!))
+        assertThat(context["credentials"]).isEqualTo(experimentServerGroupA["account"])
+        assertThat(context["cluster"]).isEqualTo("spindemo-prestaging-canary-a")
         assertThat(context["regions"]).isEqualTo(setOf("us-west-1"))
-
         assertThat(context["allowDeleteActive"]).isEqualTo(true)
         assertThat(context["shrinkToSize"]).isEqualTo(0)
       }

@@ -367,7 +367,7 @@ object KayentaCanaryStageTest : Spek({
 
       it("injects a deploy canary stage") {
         aroundStages.first().apply {
-          assertThat(type).isEqualTo(DeployCanaryClustersStage.STAGE_TYPE)
+          assertThat(type).isEqualTo(DeployCanaryServerGroupsStage.STAGE_TYPE)
         }
       }
 

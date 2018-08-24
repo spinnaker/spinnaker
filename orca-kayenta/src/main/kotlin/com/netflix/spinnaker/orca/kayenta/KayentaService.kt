@@ -62,7 +62,7 @@ data class CanaryScopes(
 )
 
 data class CanaryScope(
-  val scope: String,
+  val scope: String?,
   val location: String?,
   val start: Instant,
   val end: Instant,

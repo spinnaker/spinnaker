@@ -17,27 +17,29 @@
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.FindImageFromClusterStage
-import com.netflix.spinnaker.orca.ext.mapTo
+import com.netflix.spinnaker.orca.ext.withTask
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
-import com.netflix.spinnaker.orca.kayenta.model.canaryStage
-import com.netflix.spinnaker.orca.kayenta.model.deployments
-import com.netflix.spinnaker.orca.kayenta.model.regions
+import com.netflix.spinnaker.orca.kayenta.model.*
+import com.netflix.spinnaker.orca.kayenta.tasks.PropagateDeployedServerGroupScopes
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
-class DeployCanaryClustersStage : StageDefinitionBuilder {
+class DeployCanaryServerGroupsStage : StageDefinitionBuilder {
 
   companion object {
     @JvmStatic
-    val STAGE_TYPE = "deployCanaryClusters"
+    val STAGE_TYPE = "deployCanaryServerGroups"
+    const val DEPLOY_CONTROL_SERVER_GROUPS = "Deploy control server groups"
+    const val DEPLOY_EXPERIMENT_SERVER_GROUPS = "Deploy experiment server groups"
   }
 
   override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
     parent.deployments.also { deployments ->
-      // find image stage for the control cluster
+      // find image stage for the control server groups
       graph.add {
         it.type = FindImageFromClusterStage.PIPELINE_CONFIG_TYPE
         it.name = "Find baseline image"
@@ -49,24 +51,27 @@ class DeployCanaryClustersStage : StageDefinitionBuilder {
           "cloudProvider" to (deployments.baseline.cloudProvider ?: "aws")
         )
       }
-      parent.canaryStage.also { canaryStage ->
-        // deployment for the control cluster follows the find image
-        graph.append {
-          it.type = ParallelDeployStage.PIPELINE_CONFIG_TYPE
-          it.name = "Deploy control cluster"
-          it.context.putAll(canaryStage.mapTo("/deployments/control"))
-          it.context["strategy"] = "highlander"
-        }
 
-        // deployment for the experiment cluster is branched separately, there
-        // should be an upstream bake / find image that supplies the artifact
-        graph.add {
-          it.type = ParallelDeployStage.PIPELINE_CONFIG_TYPE
-          it.name = "Deploy experiment cluster"
-          it.context.putAll(canaryStage.mapTo("/deployments/experiment"))
-          it.context["strategy"] = "highlander"
-        }
+      // deployment for the control server groups follows the find image
+      graph.append {
+        it.type = ParallelDeployStage.PIPELINE_CONFIG_TYPE
+        it.name = DEPLOY_CONTROL_SERVER_GROUPS
+        it.context["clusters"] = parent.controlServerGroups
+        it.context["strategy"] = "highlander"
+      }
+
+      // deployment for the experiment server groups is branched separately, there
+      // should be an upstream bake / find image that supplies the artifact
+      graph.add {
+        it.type = ParallelDeployStage.PIPELINE_CONFIG_TYPE
+        it.name = DEPLOY_EXPERIMENT_SERVER_GROUPS
+        it.context["clusters"] = parent.experimentServerGroups
+        it.context["strategy"] = "highlander"
       }
     }
+  }
+
+  override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
+    builder.withTask<PropagateDeployedServerGroupScopes>("propagateDeployedServerGroupScopes")
   }
 }

@@ -53,9 +53,9 @@ data class KayentaCanaryContext(
 
 data class CanaryConfigScope(
   val scopeName: String = "default",
-  val controlScope: String,
+  val controlScope: String?,
   val controlLocation: String?,
-  val experimentScope: String,
+  val experimentScope: String?,
   val experimentLocation: String?,
   val startTimeIso: String?,
   val endTimeIso: String?,
