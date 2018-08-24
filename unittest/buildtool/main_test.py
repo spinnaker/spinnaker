@@ -45,12 +45,12 @@ class TestMain(unittest.TestCase):
   def setUpClass(cls):
     # pylint: disable=invalid-name
     fd, cls.defaults_file = tempfile.mkstemp(prefix='main_test_c')
-    os.write(fd, str.encode(yaml.dump(CUSTOM_DEFAULTS)))
+    os.write(fd, str.encode(yaml.safe_dump(CUSTOM_DEFAULTS)))
     os.close(fd)
     OVERRIDE_CUSTOM_DEFAULTS['default_args_file'] = cls.defaults_file
 
     fd, cls.override_defaults_file = tempfile.mkstemp(prefix='main_test_d')
-    os.write(fd, str.encode(yaml.dump(OVERRIDE_CUSTOM_DEFAULTS)))
+    os.write(fd, str.encode(yaml.safe_dump(OVERRIDE_CUSTOM_DEFAULTS)))
     os.close(fd)
 
 

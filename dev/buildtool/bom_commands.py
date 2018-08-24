@@ -140,7 +140,7 @@ class BomBuilder(object):
       logging.debug('Loading bom dependencies from %s',
                     self.__bom_dependencies_path)
       with open(self.__bom_dependencies_path, 'r') as stream:
-        dependencies = yaml.load(stream.read())
+        dependencies = yaml.safe_load(stream.read())
         logging.debug('Loaded %s', dependencies)
     else:
       dependencies = None
@@ -243,7 +243,7 @@ class BuildBomCommand(RepositoryCommandProcessor):
       check_path_exists(options.refresh_from_bom_path,
                         "refresh_from_bom_path")
       with open(options.refresh_from_bom_path, 'r') as stream:
-        base_bom = yaml.load(stream.read())
+        base_bom = yaml.safe_load(stream.read())
     elif options.refresh_from_bom_version:
       logging.debug('Using base bom version "%s"',
                     options.refresh_from_bom_version)
@@ -268,7 +268,7 @@ class BuildBomCommand(RepositoryCommandProcessor):
       logging.info('Bom has not changed from version %s @ %s',
                    bom['version'], bom['timestamp'])
 
-    bom_text = yaml.dump(bom, default_flow_style=False)
+    bom_text = yaml.safe_dump(bom, default_flow_style=False)
 
     path = _determine_bom_path(self)
     write_to_path(bom_text, path)
@@ -356,12 +356,12 @@ class PublishBomCommand(RepositoryCommandProcessor):
       logging.info('Publishing bom alias %s = %s',
                    alias, os.path.basename(bom_path))
       with open(bom_path, 'r') as stream:
-        bom = yaml.load(stream)
+        bom = yaml.safe_load(stream)
 
       alias_path = os.path.join(os.path.dirname(bom_path), alias + '.yml')
       with open(alias_path, 'w') as stream:
         bom['version'] = options.bom_alias
-        yaml.dump(bom, stream, default_flow_style=False)
+        yaml.safe_dump(bom, stream, default_flow_style=False)
       self.__hal_runner.publish_bom_path(alias_path)
 
   def __publish_configs(self, bom_path):

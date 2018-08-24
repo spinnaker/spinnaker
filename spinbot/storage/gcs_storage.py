@@ -36,12 +36,12 @@ class GcsStorage(Storage):
         else:
             b = self.bucket.blob(self.path)
 
-        props = yaml.load(contents)
+        props = yaml.safe_load(contents)
         if props is None:
             props = {}
 
         props[key] = val
-        b.upload_from_string(yaml.dump(props))
+        b.upload_from_string(yaml.safe_dump(props))
 
     def load(self, key):
         b = self.bucket.get_blob(self.path)
@@ -51,7 +51,7 @@ class GcsStorage(Storage):
         else:
             b = self.bucket.blob(self.path)
 
-        props = yaml.load(contents)
+        props = yaml.safe_load(contents)
         if props is None:
             props = {}
 

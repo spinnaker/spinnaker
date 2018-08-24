@@ -368,7 +368,7 @@ class PublishHalyardCommand(CommandProcessor):
       version_data = check_subprocess(
           'gsutil cat {url}'.format(url=versions_url))
 
-    commit = yaml.load(version_data).get(options.halyard_version)
+    commit = yaml.safe_load(version_data).get(options.halyard_version)
     if commit is None:
       raise_and_log_error(
           ConfigError('Unknown halyard version "{version}" in "{url}"'.format(

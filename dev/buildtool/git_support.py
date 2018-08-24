@@ -532,7 +532,7 @@ class CommitMessage(
   def to_yaml(self):
     """Convert the summary to a yaml string."""
     data = dict(self._asdict())
-    return yaml.dump(data, default_flow_style=False)
+    return yaml.safe_dump(data, default_flow_style=False)
 
   def _asdict(self):
     """Override broken method in some Python3
@@ -596,7 +596,7 @@ class RepositorySummary(collections.namedtuple(
     else:
       del data['commit_messages']
 
-    return yaml.dump(data, default_flow_style=False)
+    return yaml.safe_dump(data, default_flow_style=False)
 
   def _asdict(self):
     """Override broken method in some Python3

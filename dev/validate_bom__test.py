@@ -331,7 +331,7 @@ class ValidateBomTestController(object):
     project_info_json = check_subprocess('gcloud compute project-info describe'
                                          ' --format yaml'
                                          ' --project %s' % project)
-    project_info = yaml.load(project_info_json)
+    project_info = yaml.safe_load(project_info_json)
     project_quota = {'gce_global_%s' % info['metric']:
                           int(max(1, math.floor(
                               project_percent * (info['limit'] - info['usage']))))
@@ -340,7 +340,7 @@ class ValidateBomTestController(object):
     region_info_json = check_subprocess('gcloud compute regions describe'
                                         ' --format yaml'
                                         ' %s' % region)
-    region_info = yaml.load(region_info_json)
+    region_info = yaml.safe_load(region_info_json)
     region_quota = {
         'gce_region_%s' % info['metric']: int(max(
             1, math.floor(region_percent * (info['limit'] - info['usage']))))

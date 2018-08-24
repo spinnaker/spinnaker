@@ -263,7 +263,7 @@ class PublishSpinnakerCommand(CommandProcessor):
     bom = self.__hal.retrieve_bom_version(self.options.bom_version)
     bom['version'] = spinnaker_version
     bom_path = os.path.join(self.get_output_dir(), spinnaker_version + '.yml')
-    write_to_path(yaml.dump(bom, default_flow_style=False), bom_path)
+    write_to_path(yaml.safe_dump(bom, default_flow_style=False), bom_path)
     self.__hal.publish_bom_path(bom_path)
     self.push_branches_and_tags(bom)
 

@@ -154,7 +154,7 @@ class CollectBomVersions(CommandProcessor):
     logging.debug('Loading %s', url)
     try:
       text = check_subprocess('gsutil cat ' + url)
-      return yaml.load(text)
+      return yaml.safe_load(text)
     except Exception as ex:
       self.__bad_files[self.url_to_bom_name(url)] = exception_to_message(ex)
       maybe_log_exception('load_from_from_url', ex,
@@ -326,7 +326,7 @@ class CollectBomVersions(CommandProcessor):
 
     path = os.path.join(self.get_output_dir(), 'all_bom_service_map.yml')
     logging.info('Writing bom analysis to %s', path)
-    write_to_path(yaml.dump(result_map, default_flow_style=False), path)
+    write_to_path(yaml.safe_dump(result_map, default_flow_style=False), path)
 
     partition_names = ['released', 'unreleased']
     partitions = self.partition_service_map(result_map)
@@ -334,26 +334,29 @@ class CollectBomVersions(CommandProcessor):
       path = os.path.join(self.get_output_dir(),
                           partition_names[index] + '_bom_service_map.yml')
       logging.info('Writing bom analysis to %s', path)
-      write_to_path(yaml.dump(data, default_flow_style=False), path)
+      write_to_path(yaml.safe_dump(data, default_flow_style=False), path)
 
     if self.__bad_files:
       path = os.path.join(self.get_output_dir(), 'bad_boms.txt')
       logging.warning('Writing %d bad URLs to %s', len(self.__bad_files), path)
-      write_to_path(yaml.dump(self.__bad_files, default_flow_style=False), path)
+      write_to_path(
+          yaml.safe_dump(self.__bad_files, default_flow_style=False),
+          path)
 
     if self.__non_standard_boms:
       path = os.path.join(self.get_output_dir(), 'nonstandard_boms.txt')
       logging.warning('Writing %d nonstandard boms to %s',
                       len(self.__non_standard_boms), path)
       write_to_path(
-          yaml.dump(self.__non_standard_boms, default_flow_style=False), path)
+          yaml.safe_dump(self.__non_standard_boms, default_flow_style=False),
+          path)
 
     config = {
         'halyard_bom_bucket': options.halyard_bom_bucket
     }
     path = os.path.join(self.get_output_dir(), 'config.yml')
     logging.info('Writing to %s', path)
-    write_to_path(yaml.dump(config, default_flow_style=False), path)
+    write_to_path(yaml.safe_dump(config, default_flow_style=False), path)
 
   def partition_service_map(self, result_map):
     def partition_info_list(info_list):
@@ -577,9 +580,9 @@ class CollectArtifactVersions(CommandProcessor):
           self.get_output_dir(),
           '%s__%s_versions.yml' % (bintray_repo, repo_type))
       logging.info('Writing %s versions to %s', bintray_repo, path)
-      write_to_path(yaml.dump(package_map,
-                              allow_unicode=True,
-                              default_flow_style=False), path)
+      write_to_path(yaml.safe_dump(package_map,
+                                   allow_unicode=True,
+                                   default_flow_style=False), path)
     return results[0], results[1]
 
   def query_gcr_image_versions(self, image):
@@ -620,9 +623,9 @@ class CollectArtifactVersions(CommandProcessor):
         self.get_output_dir(),
         options.docker_registry.replace('/', '__') + '__gcb_versions.yml')
     logging.info('Writing %s versions to %s', options.docker_registry, path)
-    write_to_path(yaml.dump(image_map,
-                            allow_unicode=True,
-                            default_flow_style=False), path)
+    write_to_path(yaml.safe_dump(image_map,
+                                 allow_unicode=True,
+                                 default_flow_style=False), path)
     return image_map
 
   def collect_gce_image_versions(self):
@@ -657,9 +660,9 @@ class CollectArtifactVersions(CommandProcessor):
     path = os.path.join(
         self.get_output_dir(), project + '__gce_image_versions.yml')
     logging.info('Writing gce image versions to %s', path)
-    write_to_path(yaml.dump(image_map,
-                            allow_unicode=True,
-                            default_flow_style=False), path)
+    write_to_path(yaml.safe_dump(image_map,
+                                 allow_unicode=True,
+                                 default_flow_style=False), path)
     return image_map
 
   def _do_command(self):
@@ -684,7 +687,8 @@ class CollectArtifactVersions(CommandProcessor):
       path = os.path.join(self.get_output_dir(), 'missing_%s.yml' % which[0])
       logging.info('Writing to %s', path)
       write_to_path(
-          yaml.dump(which[1], allow_unicode=True, default_flow_style=False),
+          yaml.safe_dump(which[1], allow_unicode=True,
+                         default_flow_style=False),
           path)
 
     config = {
@@ -696,7 +700,7 @@ class CollectArtifactVersions(CommandProcessor):
     }
     path = os.path.join(self.get_output_dir(), 'config.yml')
     logging.info('Writing to %s', path)
-    write_to_path(yaml.dump(config, default_flow_style=False), path)
+    write_to_path(yaml.safe_dump(config, default_flow_style=False), path)
 
 
 class CollectArtifactVersionsFactory(CommandFactory):
@@ -788,13 +792,13 @@ class AuditArtifactVersions(CommandProcessor):
 
     logging.debug('Loading container image versions from "%s"', gcr_paths[0])
     with open(gcr_paths[0], 'r') as stream:
-      self.__container_versions = yaml.load(stream.read())
+      self.__container_versions = yaml.safe_load(stream.read())
     with open(jar_paths[0], 'r') as stream:
-      self.__jar_versions = yaml.load(stream.read())
+      self.__jar_versions = yaml.safe_load(stream.read())
     with open(debian_paths[0], 'r') as stream:
-      self.__debian_versions = yaml.load(stream.read())
+      self.__debian_versions = yaml.safe_load(stream.read())
     with open(image_paths[0], 'r') as stream:
-      self.__gce_image_versions = yaml.load(stream.read())
+      self.__gce_image_versions = yaml.safe_load(stream.read())
 
   def __extract_all_bom_versions(self, bom_map):
     result = set([])
@@ -872,7 +876,7 @@ class AuditArtifactVersions(CommandProcessor):
     with open(path, 'r') as stream:
       self.__all_released_boms = {}      # forever
       self.__current_released_boms = {}  # since min_version to audit
-      for service, versions in yaml.load(stream.read()).items():
+      for service, versions in yaml.safe_load(stream.read()).items():
         if not versions:
           # e.g. this service has not yet been released.
           logging.info('No versions for service=%s', service)
@@ -888,7 +892,7 @@ class AuditArtifactVersions(CommandProcessor):
     path = os.path.join(bom_data_dir, 'unreleased_bom_service_map.yml')
     check_path_exists(path, 'unreleased bom analysis')
     with open(path, 'r') as stream:
-      self.__unreleased_boms = yaml.load(stream.read())
+      self.__unreleased_boms = yaml.safe_load(stream.read())
 
     self.__only_bad_and_invalid_boms = False
     self.__all_bom_versions = self.__extract_all_bom_versions(
@@ -936,7 +940,7 @@ class AuditArtifactVersions(CommandProcessor):
       path = os.path.join(self.get_output_dir(), 'audit_' + what + '.yml')
       logging.info('Writing %s', path)
       write_to_path(
-          yaml.dump(data, allow_unicode=True, default_flow_style=False),
+          yaml.safe_dump(data, allow_unicode=True, default_flow_style=False),
           path)
 
     confirmed_boms = self.__all_bom_versions - set(self.__invalid_boms.keys())
@@ -1061,11 +1065,11 @@ class AuditArtifactVersions(CommandProcessor):
     path = os.path.join(os.path.dirname(self.get_output_dir()),
                         'collect_bom_versions', 'config.yml')
     with open(path, 'r') as stream:
-      bom_config = yaml.load(stream.read())
+      bom_config = yaml.safe_load(stream.read())
     path = os.path.join(os.path.dirname(self.get_output_dir()),
                         'collect_artifact_versions', 'config.yml')
     with open(path, 'r') as stream:
-      art_config = yaml.load(stream.read())
+      art_config = yaml.safe_load(stream.read())
 
     if self.__prune_boms:
       path = os.path.join(self.get_output_dir(), 'prune_boms.txt')

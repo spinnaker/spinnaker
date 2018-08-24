@@ -96,7 +96,7 @@ def __load_defaults_from_path(path, visited=None):
   visited.append(path)
 
   with open(path, 'r') as f:
-    defaults = yaml.load(f)
+    defaults = yaml.safe_load(f)
 
     # Allow these files to be recursive
     # So that there can be some overall default file
@@ -253,7 +253,7 @@ def main():
 
   logging.debug(
       'Running with options:\n   %s',
-      '\n   '.join(yaml.dump(vars(options), default_flow_style=False)
+      '\n   '.join(yaml.safe_dump(vars(options), default_flow_style=False)
                    .split('\n')))
 
   factory = command_registry.get(options.command)

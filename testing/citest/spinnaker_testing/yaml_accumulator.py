@@ -55,7 +55,7 @@ def load_string(source, target):
     source: [string] YAML document text.
     target: [dict] To update from YAML.
   """
-  target.update(flatten(yaml.load(source, Loader=yaml.Loader)))
+  target.update(flatten(yaml.safe_load(source, Loader=yaml.Loader)))
 
 
 def load_path(path, target):
@@ -66,5 +66,5 @@ def load_path(path, target):
     target: [dict] To update from YAML.
   """
   with open(path, 'r') as f:
-    target.update(flatten(yaml.load(f, Loader=yaml.Loader)))
+    target.update(flatten(yaml.safe_load(f, Loader=yaml.Loader)))
 

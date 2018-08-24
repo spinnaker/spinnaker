@@ -230,7 +230,7 @@ class BuildContainerCommand(GradleCommandProcessor):
         'steps': steps
     }
 
-    return yaml.dump(config, default_flow_style=True)
+    return yaml.safe_dump(config, default_flow_style=True)
 
 
 class BuildContainerFactory(GradleCommandFactory):

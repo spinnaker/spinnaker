@@ -131,7 +131,7 @@ def __write_image_delete_script(possible_versions_to_delete, days_before, projec
 
 def __derive_images_from_bom(bom_version, contents_by_name):
   bom_content_str = contents_by_name[bom_version]
-  bom_dict = yaml.load(bom_content_str)
+  bom_dict = yaml.safe_load(bom_content_str)
   service_entries = bom_dict['services']
   return [__format_image_name(s, service_entries) for s in SERVICES]
 
