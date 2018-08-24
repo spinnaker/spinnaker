@@ -20,6 +20,7 @@ import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser
 import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
@@ -28,7 +29,7 @@ class HalconfigParserMocker extends Specification {
   HalconfigParser mockHalconfigParser(String config) {
     def parserStub = new HalconfigParser()
     parserStub.objectMapper = new StrictObjectMapper()
-    parserStub.yamlParser = new Yaml()
+    parserStub.yamlParser = new Yaml(new SafeConstructor())
     parserStub.halconfigPath = "/some/nonsense/file"
 
     def stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8))

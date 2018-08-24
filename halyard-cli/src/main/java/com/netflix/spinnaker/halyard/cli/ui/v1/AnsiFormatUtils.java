@@ -26,6 +26,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.util.List;
 import java.util.Map;
@@ -57,7 +59,7 @@ public class AnsiFormatUtils {
       options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
       options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
 
-      yamlParser = new Yaml(options);
+      yamlParser = new Yaml(new SafeConstructor(), new Representer(), options);
     }
 
     return yamlParser;

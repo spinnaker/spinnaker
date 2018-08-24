@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.config.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -31,7 +32,7 @@ class HalconfigParserSpec extends Specification {
 
   void setup() {
     parser = new HalconfigParser()
-    parser.yamlParser = new Yaml()
+    parser.yamlParser = new Yaml(new SafeConstructor())
     parser.objectMapper = new StrictObjectMapper()
   }
 

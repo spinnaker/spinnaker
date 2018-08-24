@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -48,7 +49,7 @@ import java.util.Map;
 
 @Slf4j
 public class KubernetesV2Utils {
-  static private Yaml yaml = new Yaml();
+  static private Yaml yaml = new Yaml(new SafeConstructor());
   static private ObjectMapper mapper = new ObjectMapper();
 
   static public boolean exists(KubernetesAccount account, String manifest) {

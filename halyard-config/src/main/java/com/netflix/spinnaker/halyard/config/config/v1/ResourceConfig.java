@@ -21,6 +21,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -81,7 +83,7 @@ public class ResourceConfig {
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
     options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
-    return new Yaml(options);
+    return new Yaml(new SafeConstructor(), new Representer(), options);
   }
 
   private String normalizePath(String path) {
