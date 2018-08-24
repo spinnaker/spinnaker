@@ -219,8 +219,9 @@ class SpinnakerSourceCodeManager(object):
     dir_path = os.path.join(self.__options.output_dir, 'source_info')
     build_number = self.determine_build_number(repository)
     with open(os.path.join(dir_path, filename), 'r') as stream:
-      return SourceInfo(build_number,
-                        RepositorySummary.from_dict(yaml.load(stream.read())))
+      return SourceInfo(
+          build_number,
+          RepositorySummary.from_dict(yaml.safe_load(stream.read())))
 
   def check_source_info(self, repository):
     """Ensure cached source info is consistent with current repository."""

@@ -159,7 +159,7 @@ class BaseGitRepoTestFixture(unittest.TestCase):
     # Adjust the golden bom so it references the details of
     # the test instance specific origin repo we just created in test_util.
     with open(source_path, 'r') as stream:
-      cls.golden_bom = yaml.load(stream.read())
+      cls.golden_bom = yaml.safe_load(stream.read())
 
       #  Change the bom's default gitPrefix to our origin root
       cls.golden_bom['artifactSources']['gitPrefix'] = (

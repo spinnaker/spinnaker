@@ -304,7 +304,7 @@ class BuildChangelogCommand(RepositoryCommandProcessor):
 
     if options.relative_to_bom_path:
       with open(options.relative_to_bom_path, 'r') as stream:
-        self.__relative_bom = yaml.load(stream.read())
+        self.__relative_bom = yaml.safe_load(stream.read())
     elif options.relative_to_bom_version:
       self.__relative_bom = HalRunner(options).retrieve_bom_version(
           options.relative_to_bom_version)

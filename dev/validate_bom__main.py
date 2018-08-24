@@ -197,7 +197,7 @@ def wrapped_main():
 
   logging.debug(
       'Running with options:\n   %s',
-      '\n   '.join(yaml.dump(vars(options), default_flow_style=False)
+      '\n   '.join(yaml.safe_dump(vars(options), default_flow_style=False)
                    .split('\n')))
 
   metrics = MetricsManager.startup_metrics(options)

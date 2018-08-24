@@ -71,7 +71,7 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
     logging.debug('Loading bom from %s', path)
     with open(path, 'r') as f:
       bom_yaml_string = f.read()
-    return yaml.load(bom_yaml_string)
+    return yaml.safe_load(bom_yaml_string)
 
   @staticmethod
   def load_bom(options):

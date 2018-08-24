@@ -36,7 +36,7 @@ def merge_single_arg_key(ctx, key, val):
 def GetCtx():
     ctx = {}
     with open(os.path.expanduser('~/.spinbot/config'), 'r') as f:
-        ctx = yaml.load(f)
+        ctx = yaml.safe_load(f)
 
     args = parse_args()
     merge_ctx_args(ctx, args)

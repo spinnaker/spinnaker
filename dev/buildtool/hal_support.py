@@ -96,7 +96,7 @@ class HalRunner(object):
               '{url}: {code}\n{body}'.format(
                   url=url, code=error.code, body=response.read()),
               server='halyard'))
-    self.__halyard_runtime_config = yaml.load(response)
+    self.__halyard_runtime_config = yaml.safe_load(response)
 
   def check_writer_enabled(self):
     """Ensure halyard has writerEnabled true."""
@@ -125,7 +125,7 @@ class HalRunner(object):
     """Retrieve the specified BOM version as a dict."""
     logging.info('Getting bom version %s', version)
     content = self.check_run('version bom ' + version + ' --quiet')
-    return yaml.load(content)
+    return yaml.safe_load(content)
 
   def publish_halyard_release(self, release_version):
     """Make release_version available as the latest version."""

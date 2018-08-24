@@ -637,7 +637,7 @@ version: {version}
             CommitMessage('commitB', 'authorB', 'dateB', 'messageB'),
             CommitMessage('commitA', 'authorA', 'dateA', 'messageA')
         ])
-    yamlized = yaml.load(summary.to_yaml())
+    yamlized = yaml.safe_load(summary.to_yaml())
     self.assertEqual(summary.commit_id, yamlized['commit_id'])
     self.assertEqual(summary.tag, yamlized['tag'])
     self.assertEqual(summary.version, yamlized['version'])

@@ -52,7 +52,7 @@ def load_default_bom_dependencies():
   path = os.path.join(os.path.dirname(__file__),
                       '../../dev/buildtool/bom_dependencies.yml')
   with open(path, 'r') as stream:
-    return yaml.load(stream.read())
+    return yaml.safe_load(stream.read())
 
 def make_default_options(options):
   options.git_branch = 'OptionBranch'
@@ -177,7 +177,7 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
     bom_text, bom_path = mock_write.call_args_list[0][0]
 
     self.assertEqual(bom_path, 'MY PATH')
-    bom = yaml.load(bom_text)
+    bom = yaml.safe_load(bom_text)
 
     golden_text = textwrap.dedent("""\
         artifactSources:
@@ -193,7 +193,7 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
         timestamp: '2018-01-02 03:04:05'
         version: OptionBranch-OptionBuildNumber
     """)
-    golden_bom = yaml.load(golden_text)
+    golden_bom = yaml.safe_load(golden_text)
     golden_bom['dependencies'] = load_default_bom_dependencies()
 
     for key, value in golden_bom.items():
@@ -228,7 +228,7 @@ class TestBomBuilder(BaseGitRepoTestFixture):
     fd, path = tempfile.mkstemp(prefix='bomdeps')
     os.close(fd)
     with open(path, 'w') as stream:
-      yaml.dump(dependencies, stream)
+      yaml.safe_dump(dependencies, stream)
 
     options = self.options
     options.bom_dependencies_path = path

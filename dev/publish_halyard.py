@@ -79,7 +79,7 @@ class HalyardPublisher(object):
     nightly_commit_file = '{0}/nightly-version-commits.yml'.format(local_bucket_name)
     nightly_commit_dict = {}
     with open(nightly_commit_file, 'r') as ncf:
-      nightly_commit_dict = yaml.load(ncf.read())
+      nightly_commit_dict = yaml.safe_load(ncf.read())
 
     # Check Halyard out at the correct commit.
     commit_to_build = nightly_commit_dict.get(self.__nightly_version, None)
