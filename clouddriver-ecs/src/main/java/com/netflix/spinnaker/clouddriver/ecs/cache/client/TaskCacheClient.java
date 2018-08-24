@@ -52,7 +52,9 @@ public class TaskCacheClient extends AbstractCacheClient<Task> {
     task.setGroup((String) attributes.get("group"));
     task.setLastStatus((String) attributes.get("lastStatus"));
     task.setDesiredStatus((String) attributes.get("desiredStatus"));
-    task.setStartedAt((Long) attributes.get("startedAt"));
+    if (attributes.containsKey("startedAt")) {
+      task.setStartedAt((Long) attributes.get("startedAt"));
+    }
 
     if (attributes.containsKey("containers")) {
       List<Map<String, Object>> containers = (List<Map<String, Object>>) attributes.get("containers");
