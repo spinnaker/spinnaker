@@ -267,6 +267,7 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
     ServerGroup previousServerGroupWithImage = serverGroupsInRegion
       .stream()
       .filter(s -> !(s.name.equalsIgnoreCase(newestEnabledServerGroupInRegion.name)))
+      .filter(s -> s.image != null && s.image.imageId != null)
       .filter(s -> imageDetails.getImageId().equalsIgnoreCase(s.image.imageId))
       .findFirst()
       .orElse(null);

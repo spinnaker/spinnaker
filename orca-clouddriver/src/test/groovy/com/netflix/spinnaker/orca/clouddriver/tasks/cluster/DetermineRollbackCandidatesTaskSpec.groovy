@@ -115,6 +115,7 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     1 * oortService.getCluster("app", _, "app-stack-details", _) >> {
       return buildResponse([
         serverGroups: [
+          buildServerGroup("servergroup-v002", "us-west-2", 50, false, null, [:], 80),
           buildServerGroup("servergroup-v001", "us-west-2", 100, false, [:], [:], 80),
         ]
       ])
