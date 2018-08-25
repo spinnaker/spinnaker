@@ -151,7 +151,7 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     description.iamRole = 'iam-role-arn'
     description.containerPort = 1337
     description.targetGroup = 'target-group-arn'
-    description.securityGroups = ['sg-deadbeef']
+    description.securityGroupNames = ['sg-deadbeef']
     description.portProtocol = 'tcp'
     description.computeUnits = 256
     description.reservedMemory = 512

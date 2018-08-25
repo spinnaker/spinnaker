@@ -54,6 +54,7 @@ import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamPolicyReader;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamTrustRelationship;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixAssumeRoleEcsCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.services.EcsCloudMetricService;
+import com.netflix.spinnaker.clouddriver.ecs.services.SecurityGroupSelector;
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,8 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
   @Autowired
   SubnetSelector subnetSelector;
 
+  @Autowired
+  SecurityGroupSelector securityGroupSelector;
 
   public CreateServerGroupAtomicOperation(CreateServerGroupDescription description) {
     super(description, "CREATE_ECS_SERVER_GROUP");
@@ -191,9 +194,17 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
     }
 
     if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())) {
+      Collection<String> subnetIds = subnetSelector.resolveSubnetsIds(description.getAccount(), description.getRegion(), description.getSubnetType());
+      Collection<String> vpcIds = subnetSelector.getSubnetVpcIds(description.getAccount(), description.getRegion(), subnetIds);
+      Collection<String> securityGroupIds = securityGroupSelector.resolveSecurityGroupNames(
+        description.getAccount(),
+        description.getRegion(),
+        description.getSecurityGroupNames(),
+        vpcIds);
+
       AwsVpcConfiguration awsvpcConfiguration = new AwsVpcConfiguration()
-        .withSecurityGroups(description.getSecurityGroups())
-        .withSubnets(subnetSelector.resolveSubnetsIds(description.getAccount(), description.getRegion(), description.getSubnetType()));
+        .withSecurityGroups(securityGroupIds)
+        .withSubnets(subnetIds);
       request.withNetworkConfiguration(new NetworkConfiguration().withAwsvpcConfiguration(awsvpcConfiguration));
     }
 

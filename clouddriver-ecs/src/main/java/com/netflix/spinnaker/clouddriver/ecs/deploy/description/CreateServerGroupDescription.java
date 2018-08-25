@@ -32,7 +32,7 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   String iamRole;
   Integer containerPort;
   String targetGroup;
-  List<String> securityGroups;
+  List<String> securityGroupNames;
 
   String portProtocol;
 

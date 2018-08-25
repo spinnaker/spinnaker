@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,5 +61,21 @@ public class SubnetSelector {
         .collect(Collectors.toSet());
 
     return filteredSubnetIds;
+  }
+
+  public Collection<String> getSubnetVpcIds(String ecsAccountName, String region, Collection<String> subnetIds) {
+    String correspondingAwsAccountName = ecsAccountMapper.fromEcsAccountNameToAws(ecsAccountName).getName();
+
+    Set<String> subnetKeys = subnetIds.stream()
+      .map(subnetId -> Keys.getSubnetKey(subnetId, region, correspondingAwsAccountName))
+      .collect(Collectors.toSet());
+    Set<AmazonSubnet> amazonSubnets = amazonSubnetProvider.loadResults(subnetKeys);
+
+    Set<EcsSubnet> ecsSubnets = converter.convertToEcsSubnet(amazonSubnets);
+
+    return ecsSubnets
+      .stream()
+      .map(AmazonSubnet::getVpcId)
+      .collect(Collectors.toSet());
   }
 }
