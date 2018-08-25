@@ -49,7 +49,7 @@ SUPPORTED_DISTRIBUTED_PLATFORMS = ['kubernetes']
 HALYARD_SERVICES = ['halyard']
 SPINNAKER_SERVICES = [
     'clouddriver', 'echo', 'fiat', 'front50', 'gate', 'igor', 'orca',
-    'rosco', 'kayenta', 'spinnaker-monitoring'
+    'rosco', 'kayenta', 'monitoring'
 ]
 
 
@@ -91,7 +91,7 @@ def write_data_to_secure_path(data, path=None, is_script=False):
   maybe_executable = stat.S_IXUSR if is_script else 0
   flags = stat.S_IRUSR | stat.S_IWUSR | maybe_executable
   os.fchmod(fd, flags)
-  os.write(fd, str.encode(data))
+  os.write(fd, data.encode('utf-8'))
   os.close(fd)
   return path
 
@@ -472,22 +472,34 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
       service: [string] The service's log to get
       log_dir: [string] The directory name to write the logs into.
     """
+    if service == 'monitoring':
+      # monitoring is in a sidecar of each service
+      return
+
     options = self.options
     k8s_namespace = options.deploy_k8s_namespace
     service_pod = self.__get_pod_name(k8s_namespace, service)
-    path = os.path.join(log_dir, service + '.log')
-    write_data_to_secure_path('', path)
-    check_subprocess(
-        'kubectl -n {namespace} -c {container} {context} logs {pod}'
-        '  >> {path}'
-        .format(namespace=k8s_namespace,
-                container='spin-{service}'.format(service=service),
-                context=('--context {0}'.format(options.k8s_account_context)
-                         if options.k8s_account_context
-                         else ''),
-                pod=service_pod,
-                path=path),
-        shell=True)
+
+    containers = ['spin-' + service]
+    if options.monitoring_install_which:
+      containers.append('spin-monitoring-daemon')
+
+    for container in containers:
+      if container == 'spin-monitoring-daemon':
+        path = os.path.join(log_dir, service + '_monitoring.log')
+      else:
+        path = os.path.join(log_dir, service + '.log')
+      retcode, stdout = run_subprocess(
+          'kubectl -n {namespace} -c {container} {context} logs {pod}'
+          .format(namespace=k8s_namespace,
+                  container=container,
+                  context=('--context {0}'.format(options.k8s_account_context)
+                           if options.k8s_account_context
+                           else ''),
+                  pod=service_pod),
+          shell=True)
+      write_data_to_secure_path(stdout, path)
+
 
 class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
   """Concrete deployer used to deploy Hal onto Generic VM
@@ -692,7 +704,6 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
   def do_fetch_service_log_file(self, service, log_dir):
     """Implements the BaseBomValidateDeployer interface."""
     write_data_to_secure_path('', os.path.join(log_dir, service + '.log'))
-    service_dir = service if service != 'spinnaker-monitoring' else 'monitoring'
     retcode, stdout = run_subprocess(
         'ssh'
         ' -i {ssh_key}'
@@ -705,7 +716,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
         .format(user=self.hal_user,
                 ip=self.instance_ip,
                 ssh_key=self.ssh_key_path,
-                service_dir=service_dir,
+                service_dir=service,
                 service_name=service))
     if retcode != 0:
       logging.warning('Failed obtaining %s.log: %s', service, stdout)
