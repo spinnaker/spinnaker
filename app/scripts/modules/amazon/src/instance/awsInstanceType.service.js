@@ -8,13 +8,13 @@ import { API } from '@spinnaker/core';
 module.exports = angular
   .module('spinnaker.amazon.instanceType.service', [])
   .factory('awsInstanceTypeService', function($http, $q) {
-    var m4 = {
-      type: 'm4',
+    var m5 = {
+      type: 'm5',
       description:
-        'This family includes the m4 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+        'm5 instances provide a balance of compute, memory, and network resources. They are a good choice for most applications.',
       instanceTypes: [
         {
-          name: 'm4.large',
+          name: 'm5.large',
           label: 'Large',
           cpu: 2,
           memory: 8,
@@ -22,7 +22,7 @@ module.exports = angular
           costFactor: 1,
         },
         {
-          name: 'm4.xlarge',
+          name: 'm5.xlarge',
           label: 'XLarge',
           cpu: 4,
           memory: 16,
@@ -30,12 +30,12 @@ module.exports = angular
           costFactor: 2,
         },
         {
-          name: 'm4.2xlarge',
+          name: 'm5.2xlarge',
           label: '2XLarge',
           cpu: 8,
           memory: 32,
           storage: { type: 'EBS' },
-          costFactor: 2,
+          costFactor: 4,
         },
       ],
     };
@@ -140,7 +140,7 @@ module.exports = angular
       {
         type: 'general',
         label: 'General Purpose',
-        families: [m4, t2gp],
+        families: [m5, t2gp],
         icon: 'hdd',
       },
       {
@@ -256,9 +256,9 @@ module.exports = angular
 
     let families = {
       paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
-      hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'm3', 'm4', 'p2', 'r3', 't2', 'x1'],
-      vpcOnly: ['c4', 'm4', 't2', 'x1'],
-      ebsOptimized: ['c4', 'd2', 'f1', 'g3', 'i3', 'm4', 'p2', 'r4', 'x1'],
+      hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'm3', 'm4', 'm5', 'p2', 'r3', 't2', 'x1'],
+      vpcOnly: ['c4', 'm4', 'm5', 't2', 'x1'],
+      ebsOptimized: ['c4', 'd2', 'f1', 'g3', 'i3', 'm4', 'm5', 'p2', 'r4', 'x1'],
     };
 
     function filterInstanceTypes(instanceTypes, virtualizationType, vpcOnly) {
