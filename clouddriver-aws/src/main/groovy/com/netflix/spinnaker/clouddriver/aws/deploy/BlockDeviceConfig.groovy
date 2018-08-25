@@ -177,6 +177,14 @@ class BlockDeviceConfig {
       "t2.xlarge"   : [],
       "t2.2xlarge"  : [],
 
+      "t3.nano"     : [],
+      "t3.micro"    : [],
+      "t3.small"    : [],
+      "t3.medium"   : [],
+      "t3.large"    : [],
+      "t3.xlarge"   : [],
+      "t3.2xlarge"  : [],
+
       "x1.16xlarge" : enumeratedBlockDevicesWithVirtualName(1),
       "x1.32xlarge" : enumeratedBlockDevicesWithVirtualName(2),
 
