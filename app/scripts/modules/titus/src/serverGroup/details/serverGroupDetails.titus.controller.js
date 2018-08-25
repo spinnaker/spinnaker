@@ -302,7 +302,7 @@ module.exports = angular
         header: 'Rolling back?',
         body: `Spinnaker provides an orchestrated rollback feature to carefully restore a different version of this
              server group. Do you want to use the orchestrated rollback?`,
-        buttonText: `Yes, let's start the orchestrated rollback`,
+        buttonText: `Yes, take me to the rollback settings modal`,
         cancelButtonText: 'No, I just want to enable the server group',
       };
 
