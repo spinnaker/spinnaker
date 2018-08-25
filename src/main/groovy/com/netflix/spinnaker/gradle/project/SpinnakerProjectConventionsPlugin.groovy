@@ -69,6 +69,7 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
             bintrayPackage.debComponent = 'spinnaker'
             bintrayPackage.debArchitectures = 'i386,amd64'
             bintrayPackage.buildNumber = propOrDefault('bintrayPackageBuildNumber', '')
+            bintrayPackage.publishWaitForSecs = propOrDefault('bintrayPublishWaitForSecs', '0').toInteger()
         }
 
         project.repositories.jcenter()

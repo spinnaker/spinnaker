@@ -222,6 +222,7 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
                     }
                     http.request(POST, JSON) {
                         uri.path = publishUri
+                        body = [publish_wait_for_secs: packageExtension.publishWaitForSecs]
                         response.success = { resp ->
                             project.logger.info("Published '$packagePath/$versionName'.")
                         }

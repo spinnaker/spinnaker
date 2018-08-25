@@ -22,4 +22,5 @@ class OspackageBintrayExtension {
     String debComponent
     String debArchitectures
     String buildNumber
+    int publishWaitForSecs
 }
