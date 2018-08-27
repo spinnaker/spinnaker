@@ -162,7 +162,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       placementStrategySequence: [],
       networkMode: 'awsvpc',
       subnetType: 'public',
-      securityGroupNames: ['helloworld']
+      securityGroupNames: ['helloworld'],
+      associatePublicIpAddress: true
     )
 
     def operation = new CreateServerGroupAtomicOperation(description)
@@ -208,6 +209,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     1 * ecs.createService({ CreateServiceRequest request ->
       request.networkConfiguration.awsvpcConfiguration.subnets == ['subnet-12345']
       request.networkConfiguration.awsvpcConfiguration.securityGroups == ['sg-12345']
+      request.networkConfiguration.awsvpcConfiguration.assignPublicIp == 'ENABLED'
       request.role == null
     } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
 
