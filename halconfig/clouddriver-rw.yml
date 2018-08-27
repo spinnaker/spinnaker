@@ -1,0 +1,10 @@
+# halconfig
+
+server:
+  port: ${services.clouddriver-rw.port:7002}
+  address: ${services.clouddriver-rw.host:localhost}
+
+caching:
+  redis:
+    hashingEnabled: false
+  writeEnabled: false
