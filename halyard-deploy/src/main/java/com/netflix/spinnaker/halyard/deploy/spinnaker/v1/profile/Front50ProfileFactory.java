@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +67,7 @@ public class Front50ProfileFactory extends SpringProfileFactory {
         URI connectionUri = null;
         if (persistentStore instanceof RedisPersistentStore) {
           try {
-            connectionUri = new URI(endpoints.getServices().getRedis().getBaseUrl());
+            connectionUri = new URI(endpoints.getServiceSettings(Type.REDIS).getBaseUrl());
           } catch (URISyntaxException e) {
             throw new RuntimeException("Malformed redis URL, this is a bug.");
           }

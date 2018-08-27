@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -55,8 +56,8 @@ public class ApachePortsProfileFactory extends TemplateBackedProfileFactory {
   @Override
   protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     Map<String, Object> bindings = new HashMap<>();
-    bindings.put("deck-host", endpoints.getServices().getDeck().getHost());
-    bindings.put("deck-port", endpoints.getServices().getDeck().getPort() + "");
+    bindings.put("deck-host", endpoints.getServiceSettings(Type.DECK).getHost());
+    bindings.put("deck-port", endpoints.getServiceSettings(Type.DECK).getPort() + "");
     return bindings;
   }
 

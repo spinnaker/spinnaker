@@ -18,20 +18,33 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.EchoService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Data
 @Component
+@EqualsAndHashCode(callSuper = true)
 public class KubernetesV2EchoService extends EchoService implements KubernetesV2Service<EchoService.Echo> {
+  final DeployPriority deployPriority = new DeployPriority(0);
+
   @Delegate
   @Autowired
   KubernetesV2ServiceDelegate serviceDelegate;
 
   @Override
-  public ServiceSettings defaultServiceSettings() {
-    return new Settings();
+  public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
+    return !deploymentConfiguration.getDeploymentEnvironment().getHaServices().getEcho().isEnabled();
+  }
+
+  @Override
+  public ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    return new Settings(getActiveSpringProfiles(deploymentConfiguration));
   }
 }

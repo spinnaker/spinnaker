@@ -18,6 +18,8 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -25,11 +27,14 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
-import lombok.AllArgsConstructor;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -39,13 +44,30 @@ import java.util.stream.Collectors;
 @Component
 public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDeploymentDetails<KubernetesAccount>> {
   @Autowired
+  @Qualifier("kubernetesV2ClouddriverService")
   KubernetesV2ClouddriverService clouddriverService;
+
+  @Autowired
+  KubernetesV2ClouddriverCachingService clouddriverCachingService;
+
+  @Autowired
+  KubernetesV2ClouddriverRoService clouddriverRoService;
+
+  @Autowired
+  KubernetesV2ClouddriverRwService clouddriverRwService;
 
   @Autowired
   KubernetesV2DeckService deckService;
 
   @Autowired
+  @Qualifier("kubernetesV2EchoService")
   KubernetesV2EchoService echoService;
+
+  @Autowired
+  KubernetesV2EchoSchedulerService echoSchedulerService;
+
+  @Autowired
+  KubernetesV2EchoSlaveService echoSlaveService;
 
   @Autowired
   KubernetesV2FiatService fiatService;
@@ -86,11 +108,8 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
   public List<KubernetesV2Service> getServicesByPriority(List<SpinnakerService.Type> serviceTypes) {
     List<KubernetesV2Service> result = getFieldsOfType(KubernetesV2Service.class).stream()
         .filter(d -> serviceTypes.contains(d.getService().getType()))
+        .sorted((d1, d2) -> d2.getDeployPriority().compareTo(d1.getDeployPriority()))
         .collect(Collectors.toList());
-
-    if (result.removeIf(s -> s.getService().getType() == SpinnakerService.Type.REDIS)) {
-      result.add(0, redisService);
-    }
 
     return result;
   }

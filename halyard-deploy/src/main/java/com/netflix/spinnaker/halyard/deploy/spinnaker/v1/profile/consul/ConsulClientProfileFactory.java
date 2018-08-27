@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
@@ -51,7 +52,7 @@ public class ConsulClientProfileFactory extends TemplateBackedProfileFactory {
   @Override
   protected Map<String, Object> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     Map<String, Object> bindings = new HashMap<>();
-    ServiceSettings consul = endpoints.getServices().getConsulClient();
+    ServiceSettings consul = endpoints.getServiceSettings(Type.CONSUL_CLIENT);
     bindings.put("scheme", consul.getScheme());
     bindings.put("port", consul.getPort() + "");
     return bindings;

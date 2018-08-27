@@ -18,32 +18,58 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
+import java.util.Arrays;
+import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Data
 @Component
+@EqualsAndHashCode(callSuper = true)
 public class KubernetesV2GateService extends GateService implements KubernetesV2Service<GateService.Gate> {
+  final DeployPriority deployPriority = new DeployPriority(0);
+
   @Delegate
   @Autowired
   KubernetesV2ServiceDelegate serviceDelegate;
 
   @Override
-  public ServiceSettings defaultServiceSettings() {
-    return new Settings();
+  public ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    return new Settings(deploymentConfiguration.getSecurity().getApiSecurity(), getActiveSpringProfiles(deploymentConfiguration));
   }
 
   @Override
-  public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
-    Settings settings = new Settings(deploymentConfiguration.getSecurity().getApiSecurity());
+  public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(
+        deploymentConfiguration);
+    ServiceSettings settings = defaultServiceSettings(deploymentConfiguration);
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
         .setEnabled(true);
     return settings;
+  }
+
+  @Override
+  protected boolean hasServiceOverrides(DeploymentConfiguration deployment) {
+    HaServices haServices = deployment.getDeploymentEnvironment().getHaServices();
+    return haServices.getClouddriver().isEnabled() || haServices.getEcho().isEnabled();
+  }
+
+  @Override
+  protected List<Type> overrideServiceEndpoints() {
+    return Arrays.asList(
+        Type.CLOUDDRIVER_RO,
+        Type.ECHO_SLAVE
+    );
   }
 }

@@ -18,15 +18,26 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.FiatService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
+import java.util.Arrays;
+import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Data
 @Component
+@EqualsAndHashCode(callSuper = true)
 public class KubernetesV2FiatService extends FiatService implements KubernetesV2Service<FiatService.Fiat> {
+  final DeployPriority deployPriority = new DeployPriority(0);
+
   @Delegate
   @Autowired
   KubernetesV2ServiceDelegate serviceDelegate;
@@ -37,7 +48,20 @@ public class KubernetesV2FiatService extends FiatService implements KubernetesV2
   }
 
   @Override
-  public ServiceSettings defaultServiceSettings() {
-    return new Settings();
+  public ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    return new Settings(getActiveSpringProfiles(deploymentConfiguration));
+  }
+
+  @Override
+  protected boolean hasServiceOverrides(DeploymentConfiguration deployment) {
+    HaServices haServices = deployment.getDeploymentEnvironment().getHaServices();
+    return haServices.getClouddriver().isEnabled();
+  }
+
+  @Override
+  protected List<Type> overrideServiceEndpoints() {
+    return Arrays.asList(
+        Type.CLOUDDRIVER_RO
+    );
   }
 }

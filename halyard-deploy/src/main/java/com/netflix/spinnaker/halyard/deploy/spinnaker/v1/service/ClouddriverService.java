@@ -135,7 +135,7 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
     public Settings() {}
 
     public Settings(List<String> profiles) {
-      setProfiles(profiles);
+      super(profiles);
     }
   }
 }

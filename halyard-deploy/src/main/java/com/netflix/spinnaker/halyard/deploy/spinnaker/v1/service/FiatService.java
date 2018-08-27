@@ -95,5 +95,9 @@ abstract public class FiatService extends SpringService<FiatService.Fiat> {
     Map<String, String> env = new HashMap<>();
 
     public Settings() {}
+
+    public Settings(List<String> profiles) {
+      super(profiles);
+    }
   }
 }

@@ -35,13 +35,12 @@ import java.util.stream.Collectors;
 abstract public class SpinnakerServiceProvider<D extends DeploymentDetails> {
   public SpinnakerRuntimeSettings buildRuntimeSettings(DeploymentConfiguration deploymentConfiguration) {
     SpinnakerRuntimeSettings endpoints = new SpinnakerRuntimeSettings();
-    for (SpinnakerService.Type type : SpinnakerService.Type.values()) {
-      SpinnakerService service = getSpinnakerService(type);
+    for (SpinnakerService service : getServices()) {
       if (service != null && service.isInBillOfMaterials(deploymentConfiguration)) {
         log.info("Building service settings entry for " + service.getServiceName());
         ServiceSettings settings = service.getDefaultServiceSettings(deploymentConfiguration);
         settings.mergePreferThis(service.buildServiceSettings(deploymentConfiguration));
-        endpoints.setServiceSettings(type, settings);
+        endpoints.setServiceSettings(service.getType(), settings);
       }
     }
     return endpoints;

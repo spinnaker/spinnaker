@@ -21,14 +21,21 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.KayentaService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Data
 @Component
+@EqualsAndHashCode(callSuper = true)
 public class KubernetesV2KayentaService extends KayentaService implements KubernetesV2Service<KayentaService.Kayenta> {
+  final DeployPriority deployPriority = new DeployPriority(0);
+
   @Delegate
   @Autowired
   KubernetesV2ServiceDelegate serviceDelegate;
@@ -47,7 +54,7 @@ public class KubernetesV2KayentaService extends KayentaService implements Kubern
   }
 
   @Override
-  public ServiceSettings defaultServiceSettings() {
+  public ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings();
   }
 }

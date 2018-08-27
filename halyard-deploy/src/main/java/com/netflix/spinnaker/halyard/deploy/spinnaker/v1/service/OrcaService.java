@@ -120,7 +120,7 @@ abstract public class OrcaService extends SpringService<OrcaService.Orca> {
     public Settings() {}
 
     public Settings(List<String> profiles) {
-      setProfiles(profiles);
+      super(profiles);
     }
   }
 }

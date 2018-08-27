@@ -52,6 +52,7 @@ public class ServiceSettings {
   String password;
   Map<String, String> env;
   String artifactId;
+  String baseUrl;
   String overrideBaseUrl;
   String location;
   KubernetesSettings kubernetes = new KubernetesSettings();
@@ -63,7 +64,13 @@ public class ServiceSettings {
   Integer targetSize;
   Boolean skipLifeCycleManagement;
 
-  public ServiceSettings() { }
+  public ServiceSettings withOnlyBaseUrl() {
+    ServiceSettings settings = new ServiceSettings();
+    settings.setEnabled(getEnabled());
+    settings.setBaseUrl(getBaseUrl());
+    settings.setKubernetes(null);
+    return settings;
+  }
 
   void mergePreferThis(ServiceSettings other) {
     Arrays.stream(getClass().getDeclaredMethods()).forEach(m -> {
@@ -121,7 +128,13 @@ public class ServiceSettings {
   }
 
   public String getBaseUrl() {
-    return buildBaseUri().toString();
+    if (baseUrl != null) {
+      return baseUrl;
+    }
+    if (getScheme() != null && getPort() != null && getAddress() != null) {
+      return buildBaseUri().toString();
+    }
+    return null;
   }
 
   @JsonIgnore

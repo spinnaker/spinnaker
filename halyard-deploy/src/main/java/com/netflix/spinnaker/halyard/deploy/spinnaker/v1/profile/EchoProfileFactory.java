@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +42,7 @@ public class EchoProfileFactory extends SpringProfileFactory {
     List<String> files = new ArrayList<>();
 
     profile.appendContents("global.spinnaker.timezone: " + deploymentConfiguration.getTimezone());
-    profile.appendContents("spinnaker.baseUrl: " + endpoints.getServices().getDeck().getBaseUrl());
+    profile.appendContents("spinnaker.baseUrl: " + endpoints.getServiceSettings(Type.DECK).getBaseUrl());
 
     Notifications notifications = deploymentConfiguration.getNotifications();
     if (notifications != null) {

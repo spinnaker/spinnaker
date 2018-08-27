@@ -30,6 +30,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
@@ -54,7 +55,7 @@ public class KayentaProfileFactory extends SpringProfileFactory {
 
     if (canary.isEnabled()) {
       List<String> files = new ArrayList<>(backupRequiredFiles(canary, deploymentConfiguration.getName()));
-      KayentaConfigWrapper kayentaConfig = new KayentaConfigWrapper(endpoints.getServices().getKayenta(), canary);
+      KayentaConfigWrapper kayentaConfig = new KayentaConfigWrapper(endpoints.getServiceSettings(Type.KAYENTA), canary);
       profile.appendContents(yamlToString(kayentaConfig)).setRequiredFiles(files);
     }
   }

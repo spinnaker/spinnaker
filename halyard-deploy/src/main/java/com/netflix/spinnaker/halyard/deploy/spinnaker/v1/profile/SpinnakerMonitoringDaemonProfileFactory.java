@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
@@ -49,8 +50,7 @@ public class SpinnakerMonitoringDaemonProfileFactory extends RegistryBackedProfi
 
   @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    SpinnakerRuntimeSettings.Services services = endpoints.getServices();
-    ServiceSettings monitoringService = services.getMonitoringDaemon();
+    ServiceSettings monitoringService = endpoints.getServiceSettings(Type.MONITORING_DAEMON);
     MetricStores metricStores = deploymentConfiguration.getMetricStores();
     List<String> enabledMetricStores = new ArrayList<>();
     List<String> files = new ArrayList<>();

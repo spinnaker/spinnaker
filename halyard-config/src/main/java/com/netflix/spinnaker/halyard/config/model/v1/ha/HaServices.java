@@ -23,9 +23,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Optional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

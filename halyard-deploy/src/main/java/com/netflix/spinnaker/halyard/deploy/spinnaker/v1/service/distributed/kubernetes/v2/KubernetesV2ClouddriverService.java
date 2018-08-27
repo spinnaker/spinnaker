@@ -25,6 +25,9 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.KubernetesV2Clo
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +36,13 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Data
 @Component
+@EqualsAndHashCode(callSuper = true)
 @Slf4j
 public class KubernetesV2ClouddriverService extends ClouddriverService implements KubernetesV2Service<ClouddriverService.Clouddriver> {
+  final DeployPriority deployPriority = new DeployPriority(4);
+
   @Delegate
   @Autowired
   KubernetesV2ServiceDelegate serviceDelegate;
@@ -56,6 +63,11 @@ public class KubernetesV2ClouddriverService extends ClouddriverService implement
   }
 
   @Override
+  public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
+    return !deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().isEnabled();
+  }
+
+  @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
     generateAwsProfile(deploymentConfiguration, endpoints, getRootHomeDirectory()).ifPresent(profiles::add);
@@ -64,7 +76,7 @@ public class KubernetesV2ClouddriverService extends ClouddriverService implement
   }
 
   @Override
-  public ServiceSettings defaultServiceSettings() {
-    return new Settings();
+  public ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    return new Settings(getActiveSpringProfiles(deploymentConfiguration));
   }
 }

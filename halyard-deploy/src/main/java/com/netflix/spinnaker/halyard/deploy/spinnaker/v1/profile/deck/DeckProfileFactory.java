@@ -39,6 +39,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RegistryBackedProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -77,7 +78,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     String version = deploymentConfiguration.getVersion();
 
     // Configure global settings
-    bindings.put("gate.baseUrl", endpoints.getServices().getGate().getBaseUrl());
+    bindings.put("gate.baseUrl", endpoints.getServiceSettings(Type.GATE).getBaseUrl());
     bindings.put("timezone", deploymentConfiguration.getTimezone());
     bindings.put("version", deploymentConfiguration.getVersion());
 

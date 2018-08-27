@@ -39,6 +39,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils.SecretMountPair;
@@ -64,9 +65,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact);
   String getSpinnakerStagingPath(String deploymentName);
   ArtifactService getArtifactService();
-  ServiceSettings defaultServiceSettings();
+  ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration);
   ObjectMapper getObjectMapper();
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
+  DeployPriority getDeployPriority();
 
   default boolean runsOnJvm() {
     return true;
@@ -345,7 +347,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
   default ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
-    ServiceSettings settings = defaultServiceSettings();
+    ServiceSettings settings = defaultServiceSettings(deploymentConfiguration);
     String location = kubernetesSharedServiceSettings.getDeployLocation();
     settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))

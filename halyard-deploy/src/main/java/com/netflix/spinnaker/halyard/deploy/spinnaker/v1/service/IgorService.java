@@ -95,6 +95,10 @@ abstract public class IgorService extends SpringService<IgorService.Igor> {
     Map<String, String> env = new HashMap<>();
 
     public Settings() {}
+
+    public Settings(List<String> profiles) {
+      super(profiles);
+    }
   }
 }
 

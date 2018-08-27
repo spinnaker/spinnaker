@@ -247,6 +247,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   // Used to ensure dependencies are deployed first. The higher the priority, the sooner the service is deployed.
   class DeployPriority {
     final Integer priority;
+
     public DeployPriority(Integer priority) {
       this.priority = priority;
     }
