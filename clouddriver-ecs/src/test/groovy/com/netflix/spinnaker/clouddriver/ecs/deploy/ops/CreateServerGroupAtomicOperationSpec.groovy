@@ -141,7 +141,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName)
   }
 
-  def 'should create a service using VPC mode'() {
+  def 'should create a service using VPC and Fargate mode'() {
     given:
     def description = new CreateServerGroupDescription(
       credentials: TestCredential.named('Test', [:]),
@@ -160,6 +160,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       availabilityZones: ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']],
       autoscalingPolicies: [],
       placementStrategySequence: [],
+      launchType: 'FARGATE',
       networkMode: 'awsvpc',
       subnetType: 'public',
       securityGroupNames: ['helloworld'],
@@ -200,6 +201,11 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.containerDefinitions.get(0).portMappings.get(0).containerPort == 1337
       request.containerDefinitions.get(0).portMappings.get(0).hostPort == 0
       request.containerDefinitions.get(0).portMappings.get(0).protocol == 'tcp'
+      request.requiresCompatibilities.size() == 1
+      request.requiresCompatibilities.get(0) == 'FARGATE'
+      request.memory == 9001
+      request.cpu == 9002
+      request.executionRoleArn == 'arn:aws:iam::test:test-role'
     }) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
 
     1 * iamClient.getRole(_) >> new GetRoleResult().withRole(role)
@@ -211,6 +217,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.networkConfiguration.awsvpcConfiguration.securityGroups == ['sg-12345']
       request.networkConfiguration.awsvpcConfiguration.assignPublicIp == 'ENABLED'
       request.role == null
+      request.launchType == 'FARGATE'
     } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
 
     result.getServerGroupNames().size() == 1

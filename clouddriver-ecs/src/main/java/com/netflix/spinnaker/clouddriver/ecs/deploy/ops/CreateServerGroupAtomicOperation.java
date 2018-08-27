@@ -72,6 +72,7 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
 
   private static final String NECESSARY_TRUSTED_SERVICE = "ecs-tasks.amazonaws.com";
   public static final String AWSVPC_NETWORK_MODE = "awsvpc";
+  public static final String FARGATE_LAUNCH_TYPE = "FARGATE";
 
   @Autowired
   EcsCloudMetricService ecsCloudMetricService;
@@ -98,11 +99,12 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
 
     String serverGroupVersion = inferNextServerGroupVersion(ecs);
 
+    String ecsServiceRole = inferAssumedRoleArn(credentials);
+
     updateTaskStatus("Creating Amazon ECS Task Definition...");
-    TaskDefinition taskDefinition = registerTaskDefinition(ecs, serverGroupVersion);
+    TaskDefinition taskDefinition = registerTaskDefinition(ecs, ecsServiceRole, serverGroupVersion);
     updateTaskStatus("Done creating Amazon ECS Task Definition...");
 
-    String ecsServiceRole = inferAssumedRoleArn(credentials);
     Service service = createService(ecs, taskDefinition, ecsServiceRole, serverGroupVersion);
 
     String resourceId = registerAutoScalingGroup(credentials, service);
@@ -117,7 +119,7 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
     return makeDeploymentResult(service);
   }
 
-  private TaskDefinition registerTaskDefinition(AmazonECS ecs, String version) {
+  private TaskDefinition registerTaskDefinition(AmazonECS ecs, String ecsServiceRole, String version) {
 
     Collection<KeyValuePair> containerEnvironment = new LinkedList<>();
     containerEnvironment.add(new KeyValuePair().withName("SERVER_GROUP").withValue(version));
@@ -161,6 +163,16 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
     if (!description.getIamRole().equals("None (No IAM role)")) {
       checkRoleTrustRelations(description.getIamRole());
       request.setTaskRoleArn(description.getIamRole());
+    }
+
+    if (!StringUtils.isEmpty(description.getLaunchType())) {
+      request.setRequiresCompatibilities(Arrays.asList(description.getLaunchType()));
+    }
+
+    if (FARGATE_LAUNCH_TYPE.equals(description.getLaunchType())) {
+      request.setExecutionRoleArn(ecsServiceRole);
+      request.setCpu(description.getComputeUnits().toString());
+      request.setMemory(description.getReservedMemory().toString());
     }
 
     RegisterTaskDefinitionResult registerTaskDefinitionResult = ecs.registerTaskDefinition(request);
@@ -211,6 +223,10 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
       }
 
       request.withNetworkConfiguration(new NetworkConfiguration().withAwsvpcConfiguration(awsvpcConfiguration));
+    }
+
+    if (!StringUtils.isEmpty(description.getLaunchType())) {
+      request.withLaunchType(description.getLaunchType());
     }
 
     if (description.getHealthCheckGracePeriodSeconds() != null) {
