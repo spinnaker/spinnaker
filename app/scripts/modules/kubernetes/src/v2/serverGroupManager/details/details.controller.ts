@@ -1,9 +1,16 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
+import { orderBy } from 'lodash';
 
-import { Application, IManifest, IServerGroupManager, IServerGroupManagerStateParams } from '@spinnaker/core';
-import { IKubernetesServerGroupManager } from '../IKubernetesServerGroupManager';
-import { KubernetesManifestService } from '../../manifest/manifest.service';
+import {
+  NameUtils,
+  Application,
+  IManifest,
+  IServerGroupManager,
+  IServerGroupManagerStateParams,
+} from '@spinnaker/core';
+import { IKubernetesServerGroupManager } from 'kubernetes/v2/serverGroupManager/IKubernetesServerGroupManager';
+import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
 
 class KubernetesServerGroupManagerDetailsController implements IController {
   public serverGroupManager: IKubernetesServerGroupManager;
@@ -77,7 +84,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
 
   public undoRolloutServerGroupManager(): void {
     this.$uibModal.open({
-      templateUrl: require('../../manifest/rollout/undo.html'),
+      templateUrl: require('kubernetes/v2/manifest/rollout/undo.html'),
       controller: 'kubernetesV2ManifestUndoRolloutCtrl',
       controllerAs: 'ctrl',
       resolve: {
@@ -86,13 +93,13 @@ class KubernetesServerGroupManagerDetailsController implements IController {
           namespace: this.serverGroupManager.namespace,
           account: this.serverGroupManager.account,
         },
-        revisions: () =>
-          this.serverGroupManager.serverGroups.map(sg => {
-            return {
-              name: sg.name,
-              revision: sg.moniker.sequence,
-            };
-          }),
+        revisions: () => {
+          const [, ...rest] = orderBy(this.serverGroupManager.serverGroups, ['moniker.sequence'], ['desc']);
+          return rest.map((serverGroup, index) => ({
+            label: `${NameUtils.getSequence(serverGroup.moniker.sequence)}${index > 0 ? '' : ' - previous revision'}`,
+            revision: serverGroup.moniker.sequence,
+          }));
+        },
         application: this.app,
       },
     });

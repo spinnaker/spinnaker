@@ -2,7 +2,7 @@ import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import { Application, ManifestWriter, TaskMonitor } from '@spinnaker/core';
-import { IManifestCoordinates } from '../IManifestCoordinates';
+import { IManifestCoordinates } from 'kubernetes/v2/manifest/IManifestCoordinates';
 
 interface IUndoRolloutCommand {
   manifestName: string;
@@ -13,7 +13,7 @@ interface IUndoRolloutCommand {
 }
 
 interface IRolloutRevision {
-  name: string;
+  label: string;
   revision: number;
 }
 

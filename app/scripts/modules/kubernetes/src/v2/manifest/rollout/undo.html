@@ -11,10 +11,10 @@
           <div class="col-md-3 sm-label-right">
             Revision
           </div>
-          <div class="col-md-4">
-            <select class="form-control input-sm" ng-model="ctrl.command.revision">
+          <div class="col-md-7">
+            <select style="width: 100%;" class="form-control input-sm" ng-model="ctrl.command.revision">
               <option ng-repeat="revision in ctrl.revisions" value="{{revision.revision}}"
-                      ng-selected="ctrl.command.revisions === revision.revision">Revision {{revision.revision}} ({{revision.name}})</option>
+                      ng-selected="ctrl.command.revisions === revision.revision">{{revision.label}}</option>
             </select>
           </div>
         </div>
