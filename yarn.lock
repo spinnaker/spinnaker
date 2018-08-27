@@ -81,9 +81,9 @@
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
 
-"@spinnaker/kayenta@0.0.54":
-  version "0.0.54"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.54.tgz#d8da2a1d870488ed0fb6bc0e6ddb4c410f5ab82a"
+"@spinnaker/kayenta@0.0.56":
+  version "0.0.56"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.56.tgz#438f9ed1cc364044371def69fde10830e6e93290"
   dependencies:
     "@fortawesome/fontawesome-free-webfonts" "^1.0.4"
     "@types/plotly.js" "^1.28.12"
@@ -94,6 +94,8 @@
     angular-ui-bootstrap "^2.5.0"
     angular-ui-router "1.0.0"
     angular-ui-sortable "^0.17.0"
+    babel-plugin-transform-async-to-generator "^6.24.1"
+    babel-polyfill "^6.26.0"
     bootstrap "3.3.7"
     cachefactory "^3.0.0"
     chart.js "^2.7.0"
@@ -1727,6 +1729,14 @@ babel-plugin-transform-strict-mode@^6.24.1:
   dependencies:
     babel-runtime "^6.22.0"
     babel-types "^6.24.1"
+
+babel-polyfill@^6.26.0:
+  version "6.26.0"
+  resolved "https://registry.yarnpkg.com/babel-polyfill/-/babel-polyfill-6.26.0.tgz#379937abc67d7895970adc621f284cd966cf2153"
+  dependencies:
+    babel-runtime "^6.26.0"
+    core-js "^2.5.0"
+    regenerator-runtime "^0.10.5"
 
 babel-preset-env@^1.6.1:
   version "1.6.1"
@@ -11232,7 +11242,7 @@ regenerate@^1.2.1:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/regenerate/-/regenerate-1.3.2.tgz#d1941c67bad437e1be76433add5b385f95b19260"
 
-regenerator-runtime@^0.10.0:
+regenerator-runtime@^0.10.0, regenerator-runtime@^0.10.5:
   version "0.10.5"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.10.5.tgz#336c3efc1220adcedda2c9fab67b5a7955a33658"
 
