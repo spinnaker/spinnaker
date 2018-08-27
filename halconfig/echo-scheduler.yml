@@ -1,0 +1,18 @@
+# halconfig
+
+server:
+  port: ${services.echo-scheduler.port:8089}
+  address: ${services.echo-scheduler.host:localhost}
+
+scheduler:
+  enabled: true
+  threadPoolSize: 20
+  triggeringEnabled: true
+  pipelineConfigsPoller:
+    enabled: true
+    pollingIntervalMs: 30000
+  cron:
+    timezone: ${global.spinnaker.timezone:America/Los_Angeles}
+
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}

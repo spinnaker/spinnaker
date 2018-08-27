@@ -28,6 +28,7 @@ scheduler:
     pollingIntervalMs: 30000
   cron:
     timezone: ${global.spinnaker.timezone:America/Los_Angeles}
-    
+
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
+  enabled: ${services.redis.enabled:false}
