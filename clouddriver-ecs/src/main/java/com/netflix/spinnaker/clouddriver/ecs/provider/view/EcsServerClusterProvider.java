@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.view;
 import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
 import com.amazonaws.services.ec2.model.GroupIdentifier;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
+import com.amazonaws.services.ecs.model.NetworkInterface;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
@@ -178,8 +179,12 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
 
     com.amazonaws.services.ec2.model.Instance ec2Instance = containerInformationService.getEc2Instance(account, region, task);
     String availabilityZone = ec2Instance.getPlacement().getAvailabilityZone();
+    NetworkInterface networkInterface =
+      !task.getContainers().isEmpty()
+        && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
+        ? task.getContainers().get(0).getNetworkInterfaces().get(0) : null;
 
-    return new EcsTask(taskId, launchTime, task.getLastStatus(), task.getDesiredStatus(), availabilityZone, healthStatus, address);
+    return new EcsTask(taskId, launchTime, task.getLastStatus(), task.getDesiredStatus(), availabilityZone, healthStatus, address, networkInterface);
   }
 
   private TaskDefinition buildTaskDefinition(com.amazonaws.services.ecs.model.TaskDefinition taskDefinition) {

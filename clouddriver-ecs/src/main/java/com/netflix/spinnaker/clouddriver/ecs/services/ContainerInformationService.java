@@ -132,12 +132,12 @@ public class ContainerInformationService {
     }
 
     if (hostPort < 0 || hostPort > 65535) {
-      return "unknown";
+      return null;
     }
 
     Instance instance = getEc2Instance(accountName, region, task);
     if(instance == null){
-      return "unknown";
+      return null;
     }
 
     String hostPrivateIpAddress = instance.getPrivateIpAddress();

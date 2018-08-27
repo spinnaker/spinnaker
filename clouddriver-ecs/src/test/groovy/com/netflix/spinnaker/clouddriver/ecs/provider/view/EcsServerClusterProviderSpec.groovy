@@ -176,7 +176,7 @@ class EcsServerClusterProviderSpec extends Specification {
       disabled: false,
       createdTime: startTime,
       instances: [
-        new EcsTask(taskId, startTime, 'RUNNING', 'RUNNING', "us-west-1a", [healthStatus], "${ip}:1337")
+        new EcsTask(taskId, startTime, 'RUNNING', 'RUNNING', "us-west-1a", [healthStatus], "${ip}:1337", null)
       ],
       securityGroups: [],
       instanceCounts: new ServerGroup.InstanceCounts(

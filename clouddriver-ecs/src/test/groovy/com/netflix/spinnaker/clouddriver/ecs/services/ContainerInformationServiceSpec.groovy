@@ -203,7 +203,7 @@ class ContainerInformationServiceSpec extends Specification {
     retrievedIp == ip + ':' + port
   }
 
-  def 'should return a unknown when port is out of range'() {
+  def 'should return a null when port is out of range'() {
     given:
     def task = new Task(
       containers: [
@@ -221,7 +221,7 @@ class ContainerInformationServiceSpec extends Specification {
     def retrievedIp = service.getTaskPrivateAddress('test-account', 'us-west-1', task)
 
     then:
-    retrievedIp == 'unknown'
+    retrievedIp == null
   }
 
   def 'should return a unknown when there is no container instance for the task'() {
@@ -245,7 +245,7 @@ class ContainerInformationServiceSpec extends Specification {
     def retrievedIp = service.getTaskPrivateAddress('test-account', 'us-west-1', task)
 
     then:
-    retrievedIp == 'unknown'
+    retrievedIp == null
   }
 
   def 'should return a unknown when there is no ec2 instance for the container'() {
@@ -280,7 +280,7 @@ class ContainerInformationServiceSpec extends Specification {
     def retrievedIp = service.getTaskPrivateAddress('test-account', 'us-west-1', task)
 
     then:
-    retrievedIp == 'unknown'
+    retrievedIp == null
   }
 
   def 'should throw an exception when task has multiple containers'() {

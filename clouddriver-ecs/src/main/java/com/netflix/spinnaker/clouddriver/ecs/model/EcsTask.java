@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.model;
 
+import com.amazonaws.services.ecs.model.NetworkInterface;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
@@ -35,8 +36,16 @@ public class EcsTask implements Instance, Serializable {
   private String providerType;
   private String cloudProvider;
   private String privateAddress;
+  private NetworkInterface networkInterface;
 
-  public EcsTask(String name, Long launchTime, String lastStatus, String desiredStatus, String availabilityZone, List<Map<String, Object>> health, String privateAddress) {
+  public EcsTask(String name,
+                 Long launchTime,
+                 String lastStatus,
+                 String desiredStatus,
+                 String availabilityZone,
+                 List<Map<String, Object>> health,
+                 String privateAddress,
+                 NetworkInterface networkInterface) {
     this.name = name;
     providerType = cloudProvider = EcsCloudProvider.ID;
     this.launchTime = launchTime;
@@ -44,6 +53,7 @@ public class EcsTask implements Instance, Serializable {
     healthState = calculateHealthState(lastStatus, desiredStatus);
     zone = availabilityZone;
     this.privateAddress = privateAddress;
+    this.networkInterface = networkInterface;
   }
 
   /**
