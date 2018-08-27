@@ -97,7 +97,7 @@ abstract public class FiatService extends SpringService<FiatService.Fiat> {
     public Settings() {}
 
     public Settings(List<String> profiles) {
-      super(profiles);
+      setProfiles(profiles);
     }
   }
 }

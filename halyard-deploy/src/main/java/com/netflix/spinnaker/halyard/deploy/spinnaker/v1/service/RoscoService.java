@@ -144,7 +144,7 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
     public Settings() {}
 
     public Settings(List<String> profiles) {
-      super(profiles);
+      setProfiles(profiles);
     }
   }
 }

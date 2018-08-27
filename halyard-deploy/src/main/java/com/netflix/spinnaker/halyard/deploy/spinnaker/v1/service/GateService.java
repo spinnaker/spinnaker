@@ -121,7 +121,7 @@ abstract public class GateService extends SpringService<GateService.Gate> {
     }
 
     public Settings(ApiSecurity apiSecurity, List<String> profiles) {
-      super(profiles);
+      setProfiles(profiles);
       setOverrideBaseUrl(apiSecurity.getOverrideBaseUrl());
       if (apiSecurity.getSsl().isEnabled()) {
         scheme = "https";

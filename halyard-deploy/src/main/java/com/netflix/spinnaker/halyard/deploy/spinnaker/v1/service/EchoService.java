@@ -97,7 +97,7 @@ abstract public class EchoService extends SpringService<EchoService.Echo> {
     public Settings() {}
 
     public Settings(List<String> profiles) {
-      super(profiles);
+      setProfiles(profiles);
     }
   }
 }
