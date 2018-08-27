@@ -72,6 +72,9 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
   private final String activeElasticSearchIndex;
 
+  private final boolean singleMappingType;
+  private final String mappingTypeName;
+
 
   @Autowired
   public ElasticSearchEntityTagsProvider(ApplicationContext applicationContext,
@@ -86,6 +89,8 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     this.front50Service = front50Service;
     this.jestClient = jestClient;
     this.activeElasticSearchIndex = elasticSearchConfigProperties.getActiveIndex();
+    this.singleMappingType = elasticSearchConfigProperties.isSingleMappingType();
+    this.mappingTypeName = elasticSearchConfigProperties.getMappingTypeName();
   }
 
   @Override
@@ -177,7 +182,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     try {
       Index action = new Index.Builder(objectMapper.convertValue(prepareForWrite(objectMapper, entityTags), Map.class))
         .index(activeElasticSearchIndex)
-        .type(entityTags.getEntityRef().getEntityType())
+        .type(getDocumentType(entityTags))
         .id(entityTags.getId())
         .build();
 
@@ -204,7 +209,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         builder = builder.addAction(
           new Index.Builder(objectMapper.convertValue(prepareForWrite(objectMapper, entityTags), Map.class))
             .index(activeElasticSearchIndex)
-            .type(entityTags.getEntityRef().getEntityType())
+            .type(getDocumentType(entityTags))
             .id(entityTags.getId())
             .build()
         );
@@ -242,7 +247,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
       Delete action = new Delete.Builder(id)
         .index(activeElasticSearchIndex)
-        .type(entityTags.getEntityRef().getEntityType())
+        .type(getDocumentType(entityTags))
         .build();
 
       JestResult jestResult = jestClient.execute(action);
@@ -267,7 +272,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       for (EntityTags entityTags : tags) {
         builder = builder.addAction(
           new Delete.Builder(entityTags.getId())
-            .type(entityTags.getEntityRef().getEntityType())
+            .type(getDocumentType(entityTags))
             .build()
         );
       }
@@ -551,5 +556,13 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     entityTags.getTags().forEach(entityTag -> entityTag.setValue(entityTag.getValueForRead(objectMapper)));
 
     return entityTags;
+  }
+
+  private String getDocumentType(EntityTags entityTags) {
+    if (singleMappingType) {
+      return mappingTypeName;
+    } else {
+      return entityTags.getEntityRef().getEntityType();
+    }
   }
 }
