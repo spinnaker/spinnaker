@@ -4,7 +4,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const path = require('path');
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
-const fs = require('fs');
 const inclusionPattern = [
   path.resolve(__dirname, 'src'),
   path.resolve(NODE_MODULE_PATH, '@spinnaker/styleguide'),
@@ -109,7 +108,7 @@ function configure(IS_TEST) {
         'angular-cache', 'angular-messages', 'angular-sanitize', 'bootstrap',
         'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rxjs', 'react', 'angular2react',
         'react2angular', 'react-bootstrap', 'react-dom', 'react-ga', 'ui-router-visualizer', 'ui-select',
-        '@uirouter/angularjs'
+        '@uirouter/angularjs', 'babel-polyfill'
       ],
       spinnaker: ['@spinnaker/core']
     };

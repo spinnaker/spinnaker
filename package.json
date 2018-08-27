@@ -33,6 +33,8 @@
     "angular-ui-bootstrap": "^2.5.0",
     "angular-ui-router": "1.0.0",
     "angular-ui-sortable": "^0.17.0",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-polyfill": "^6.26.0",
     "bootstrap": "3.3.7",
     "cachefactory": "^3.0.0",
     "chart.js": "^2.7.0",
@@ -76,7 +78,7 @@
   },
   "devDependencies": {
     "@spinnaker/amazon": "^0.0.104",
-    "@spinnaker/core": "0.0.237",
+    "@spinnaker/core": "0.0.259",
     "@spinnaker/styleguide": "^1.0.1",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "^1.5.10",

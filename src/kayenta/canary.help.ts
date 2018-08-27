@@ -4,10 +4,16 @@ const helpContents: {[key: string]: string} = {
   'pipeline.config.canary.clusterPairs': `
         <p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
         <p>The version currently deployed in the baseline cluster will be used to create a new baseline server group, while the version created in the previous bake or Find Image stage will be deployed into the canary.</p>`,
-  'pipeline.config.canary.analysisType': `
-        <p>The analysis type determines whether the canary analysis is performed over data points collected starting from the moment of execution and into the future, or over an explicitly-specified time interval.</p>
-        <p>The <strong>Real Time</strong> analysis type means that the canary analysis will be performed over a time interval beginning at the moment of execution.</p>
-        <p>The <strong>Retrospective</strong> analysis type means that the canary analysis will be performed over an explicitly-specified time interval (likely in the past).</p>`,
+  'pipeline.config.canary.analysisType.realTimeAutomatic': `
+        <p>The <strong>Real Time (Automatic)</strong> analysis type means that the canary analysis will be performed over a time interval beginning at the moment of execution.</p>
+        <p>For this analysis type, Spinnaker will provision and clean up the baseline and canary server groups.</p>`,
+  'pipeline.config.canary.analysisType.realTime': `
+        <p>The <strong>Real Time (Manual)</strong> analysis type means that the canary analysis will be performed over a time interval beginning at the moment of execution.</p>
+        <p>For this analysis type, you are responsible for provisioning and cleaning up the baseline and canary server groups.</p>`,
+  'pipeline.config.canary.analysisType.retrospective': `
+        <p>The <strong>Retrospective</strong> analysis type means that the canary analysis will be performed over an explicitly-specified time interval (likely in the past).</p>
+        <p>For this analysis type, you are responsible for provisioning and cleaning up the baseline and canary server groups.</p>
+  `,
   'pipeline.config.canary.resultStrategy': `
         <p>The result stategy is used to determine how to roll up a score if multiple clusters are participating in the canary.</p>
         <p>The <strong>lowest</strong> strategy means that the cluster with the lowest score is used as the rolled up score.</p>

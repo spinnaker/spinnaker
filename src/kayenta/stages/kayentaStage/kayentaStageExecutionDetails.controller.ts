@@ -5,9 +5,9 @@ import {
   ExecutionDetailsSectionService,
   IExecutionStage
 } from '@spinnaker/core';
-import { RUN_CANARY } from './stageTypes';
+import { DEPLOY_CANARY_SERVER_GROUPS, RUN_CANARY } from './stageTypes';
 import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
-import { ICanaryConfigSummary } from 'kayenta/domain/ICanaryConfigSummary';
+import { ICanaryConfigSummary, KayentaAnalysisType } from 'kayenta/domain';
 
 import './kayentaStageExecutionDetails.less';
 
@@ -59,8 +59,26 @@ class KayentaStageExecutionDetailsController {
   }
 
   private resolveControlAndExperimentNames(): void {
-    this.resolvedControl = this.canaryRuns.length ? this.canaryRuns[0].context.scopes[this.firstScopeName].controlScope.scope : this.$scope.stage.context.canaryConfig.scopes[0].controlScope;
-    this.resolvedExperiment = this.canaryRuns.length ? this.canaryRuns[0].context.scopes[this.firstScopeName].experimentScope.scope : this.$scope.stage.context.canaryConfig.scopes[0].experimentScope;
+    if (this.$scope.stage.context.analysisType === KayentaAnalysisType.RealTimeAutomatic) {
+      const deploy =
+        this.$scope.execution.stages.find((stage: IExecutionStage) =>
+          stage.type === DEPLOY_CANARY_SERVER_GROUPS
+            && stage.parentStageId === this.$scope.stage.id
+        );
+
+      const [deployedServerGroups] = deploy.outputs.deployedServerGroups;
+      this.resolvedControl = deployedServerGroups.controlScope;
+      this.resolvedExperiment = deployedServerGroups.experimentScope;
+    } else {
+      this.resolvedControl =
+        this.canaryRuns.length
+          ? this.canaryRuns[0].context.scopes[this.firstScopeName].controlScope.scope
+          : this.$scope.stage.context.canaryConfig.scopes[0].controlScope;
+      this.resolvedExperiment =
+        this.canaryRuns.length
+          ? this.canaryRuns[0].context.scopes[this.firstScopeName].experimentScope.scope
+          : this.$scope.stage.context.canaryConfig.scopes[0].experimentScope;
+    }
   }
 
   private initialized(): void {

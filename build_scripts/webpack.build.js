@@ -14,7 +14,7 @@ const exclusionPattern = /(node_modules|\.\.\/deck)/;
 module.exports = {
   context: basePath,
   entry: {
-    lib: path.join(basePath, 'src', 'kayenta', 'index.ts'),
+    lib: ['babel-polyfill', path.join(basePath, 'src', 'kayenta', 'index.ts')],
   },
   output: {
     path: path.join(basePath, 'lib'),
@@ -24,7 +24,10 @@ module.exports = {
     umdNamedDefine: true,
   },
   externals: [
-    nodeExternals({ modulesDir: NODE_MODULE_PATH }),
+    nodeExternals({
+      modulesDir: NODE_MODULE_PATH,
+      whitelist: ['babel-polyfill'],
+    }),
   ],
   resolve: {
     extensions: ['.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.less', '.html'],

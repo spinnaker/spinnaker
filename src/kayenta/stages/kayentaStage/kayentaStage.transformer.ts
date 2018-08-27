@@ -5,7 +5,7 @@ import {
   Application, IExecution, IExecutionStage, ITransformer,
   OrchestratedItemTransformer
 } from '@spinnaker/core';
-import { KAYENTA_CANARY, RUN_CANARY } from './stageTypes';
+import { KAYENTA_CANARY, RUN_CANARY, WAIT } from './stageTypes';
 
 export class KayentaStageTransformer implements ITransformer {
 
@@ -15,7 +15,10 @@ export class KayentaStageTransformer implements ITransformer {
       if (stage.type === KAYENTA_CANARY) {
         OrchestratedItemTransformer.defineProperties(stage);
 
-        const syntheticCanaryStages = execution.stages.filter(s => s.parentStageId === stage.id);
+        const syntheticCanaryStages = execution.stages.filter(s =>
+          s.parentStageId === stage.id
+           && [WAIT, RUN_CANARY].includes(s.type)
+        );
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
 
         stage.exceptions = [];
