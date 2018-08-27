@@ -57,6 +57,26 @@
     </div>
   </div>
 
+  <div ng-if="$ctrl.command.networkMode == 'awsvpc'">
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>Associate Public IP Address</b> <help-field key="ecs.publicip"></help-field>
+      </div>
+      <div class="col-md-1 radio">
+        <label>
+          <input type="radio" ng-model="$ctrl.command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
+          Yes
+        </label>
+      </div>
+      <div class="col-md-1 radio">
+        <label>
+          <input type="radio" ng-model="$ctrl.command.associatePublicIpAddress" ng-value="false" id="associatePublicIpAddressFalse"/>
+          No
+        </label>
+      </div>
+    </div>
+  </div>
+
   <div class="col-md-12" ng-if="$ctrl.command.viewState.dirty.targetGroup">
     <div class="alert alert-warning">
       <p><i class="fa fa-exclamation-triangle"></i>

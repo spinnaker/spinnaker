@@ -30,6 +30,7 @@ const helpContents: { [key: string]: string } = {
     '<p>A predefined MetricAlarm and Autoscaling policy with an Action must exist.</p><p>There is a delay in MetricAlarm recognizing the Autoscaling policy.</p>',
   'ecs.healthgraceperiod':
     '<p>How long a container will be kept alive despite the load balancer health checks, in seconds.</p>',
+  'ecs.publicip': '<p>Assign a public IP address to each task.</p>',
   'ecs.networkMode':
     '<p>awsvpc is the only networking mode that allows you to use Elastic Network Interfaces (ENI).  The default value converts to Bridge on Linux, and NAT on Windows.</p>',
   'ecs.subnet': '<p>The subnet group on which your server group will be deployed.</p>',
