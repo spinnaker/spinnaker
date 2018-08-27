@@ -24,6 +24,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
+import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.artifacts.JinjavaFactory;
 import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
@@ -184,8 +185,8 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
         .messagePayload(messagePayload)
         .messageAttributes(stringifiedMessageAttributes)
         .pubsubSystem(pubsubSystem)
-        .ackDeadlineMillis(TimeUnit.SECONDS.toMillis(50)) // Set a high upper bound on message processing time.
-        .retentionDeadlineMillis(subscription.getDedupeRetentionMillis()) // Configurable but default to 1 hour
+        .ackDeadlineSeconds(60) // Set a high upper bound on message processing time.
+        .retentionDeadlineSeconds(subscription.getDedupeRetentionSeconds()) // Configurable but default to 1 hour
         .build();
 
       AmazonMessageAcknowledger acknowledger = new AmazonMessageAcknowledger(amazonSQS, queueId, message, registry, getName());
@@ -207,6 +208,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
       pubsubMessageHandler.handleMessage(description, acknowledger, identity.getIdentity(), messageId);
     } catch (Exception e) {
+      registry.counter(getFailedToBeHandledMetricId(e)).increment();
       log.error("Message {} from queue {} failed to be handled", message, queueId, e);
       // Todo emjburns: add dead-letter queue policy
     }
@@ -255,5 +257,10 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       log.error("Unable to parse message attributes. Unknown message type. (body: {})", messageBody, e);
     }
     return Collections.emptyMap();
+  }
+
+  private Id getFailedToBeHandledMetricId(Exception e) {
+    return registry.createId("echo.pubsub.amazon.failedMessages")
+      .withTag("exceptionClass", e.getClass().getSimpleName());
   }
 }

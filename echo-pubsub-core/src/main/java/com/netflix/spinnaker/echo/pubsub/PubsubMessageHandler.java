@@ -51,7 +51,7 @@ public class PubsubMessageHandler {
   private final Registry registry;
 
   private static final String SET_IF_NOT_EXIST = "NX";
-  private static final String SET_EXPIRE_TIME_MILLIS = "PX";
+  private static final String SET_EXPIRE_TIME_SECONDS = "EX";
   private static final String SUCCESS = "OK";
   @Autowired
   public PubsubMessageHandler(PubsubEventMonitor pubsubEventMonitor,
@@ -69,8 +69,8 @@ public class PubsubMessageHandler {
     String identifier,
     String messageId) {
     String messageKey = makeProcessingKey(description, messageId);
-    if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
-      setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
+    if (tryAck(messageKey, description.getAckDeadlineSeconds(), acknowledger, identifier)) {
+      setMessageHandled(messageKey, identifier, description.getRetentionDeadlineSeconds());
     }
   }
 
@@ -91,18 +91,18 @@ public class PubsubMessageHandler {
     }
 
     String processingKey = makeProcessingKey(description, messageId);
-    if (tryAck(processingKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
+    if (tryAck(processingKey, description.getAckDeadlineSeconds(), acknowledger, identifier)) {
       processEvent(description);
-      setMessageComplete(completeKey, description.getMessagePayload(), description.getRetentionDeadlineMillis());
+      setMessageComplete(completeKey, description.getMessagePayload(), description.getRetentionDeadlineSeconds());
       registry.counter(getProcessedMetricId(description)).increment();
     }
   }
 
   private boolean tryAck(String messageKey,
-                         Long ackDeadlineMillis,
+                         Integer ackDeadlineSeconds,
                          MessageAcknowledger acknowledger,
                          String identifier) {
-    if (!acquireMessageLock(messageKey, identifier, ackDeadlineMillis)) {
+    if (!acquireMessageLock(messageKey, identifier, ackDeadlineSeconds)) {
       acknowledger.nack();
       return false;
     } else {
@@ -111,22 +111,22 @@ public class PubsubMessageHandler {
     }
   }
 
-  private Boolean acquireMessageLock(String messageKey, String identifier, Long ackDeadlineMillis) {
+  private Boolean acquireMessageLock(String messageKey, String identifier, Integer ackDeadlineSeconds) {
     String response = redisClientDelegate.withCommandsClient(c -> {
-      return c.set(messageKey, identifier, SET_IF_NOT_EXIST, SET_EXPIRE_TIME_MILLIS, ackDeadlineMillis);
+      return c.set(messageKey, identifier, SET_IF_NOT_EXIST, SET_EXPIRE_TIME_SECONDS, ackDeadlineSeconds);
     });
     return SUCCESS.equals(response);
   }
 
-  private void setMessageHandled(String messageKey, String identifier, Long retentionDeadlineMillis) {
+  private void setMessageHandled(String messageKey, String identifier, Integer retentionDeadlineSeconds) {
     redisClientDelegate.withCommandsClient(c -> {
-      c.psetex(messageKey, retentionDeadlineMillis, identifier);
+      c.setex(messageKey, retentionDeadlineSeconds, identifier);
     });
   }
 
-  private void setMessageComplete(String messageKey, String payload, Long retentionDeadlineMillis) {
+  private void setMessageComplete(String messageKey, String payload, Integer retentionDeadlineSeconds) {
     redisClientDelegate.withCommandsClient(c -> {
-      c.psetex(messageKey, retentionDeadlineMillis, getCRC32(payload));
+      c.setex(messageKey, retentionDeadlineSeconds, getCRC32(payload));
     });
   }
 

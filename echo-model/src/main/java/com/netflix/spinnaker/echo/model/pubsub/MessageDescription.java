@@ -47,9 +47,9 @@ public class MessageDescription {
 
   private PubsubSystem pubsubSystem;
 
-  private Long ackDeadlineMillis;
+  private Integer ackDeadlineSeconds;
 
-  private Long retentionDeadlineMillis;
+  private Integer retentionDeadlineSeconds;
 
   /**
    * List of artifacts parsed from the pub/sub message.

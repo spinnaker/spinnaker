@@ -99,7 +99,7 @@ trait RetrofitStubs {
 
     def description = MessageDescription.builder()
         .pubsubSystem(pubsubSystem)
-        .ackDeadlineMillis(10000)
+        .ackDeadlineSeconds(1)
         .subscriptionName(subscriptionName)
         .artifacts(artifacts)
         .build()

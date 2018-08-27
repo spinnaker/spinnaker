@@ -190,7 +190,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
 
     def description = MessageDescription.builder()
       .pubsubSystem(PubsubSystem.GOOGLE)
-      .ackDeadlineMillis(10000)
+      .ackDeadlineSeconds(1)
       .subscriptionName("projects/project/subscriptions/subscription")
       .messagePayload(JsonOutput.toJson([key: 'value']))
       .build()
@@ -226,7 +226,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
 
     def description = MessageDescription.builder()
       .pubsubSystem(PubsubSystem.GOOGLE)
-      .ackDeadlineMillis(10000)
+      .ackDeadlineSeconds(1)
       .subscriptionName("projects/project/subscriptions/subscription")
       .messagePayload(JsonOutput.toJson([key: 'value']))
       .messageAttributes([key: 'value'])

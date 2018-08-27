@@ -187,8 +187,8 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
         .messagePayload(messagePayload)
         .messageAttributes(messageAttributes)
         .pubsubSystem(pubsubSystem)
-        .ackDeadlineMillis(5 * TimeUnit.SECONDS.toMillis(ackDeadlineSeconds)) // Set a high upper bound on message processing time.
-        .retentionDeadlineMillis(TimeUnit.DAYS.toMillis(7)) // Expire key after max retention time, which is 7 days.
+        .ackDeadlineSeconds(5 * ackDeadlineSeconds) // Set a high upper bound on message processing time.
+        .retentionDeadlineSeconds(7 * 24 * 60 * 60) // Expire key after max retention time, which is 7 days.
         .build();
       GoogleMessageAcknowledger acknowledger = new GoogleMessageAcknowledger(consumer);
 

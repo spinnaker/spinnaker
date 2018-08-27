@@ -65,7 +65,7 @@ public class AmazonPubsubProperties {
     int waitTimeSeconds = 5;
 
     // 1 hour default
-    private Long dedupeRetentionMillis = 3600000L;
+    private Integer dedupeRetentionSeconds = 3600;
 
     public AmazonPubsubSubscription() {
     }
@@ -77,7 +77,7 @@ public class AmazonPubsubProperties {
       String templatePath,
       MessageFormat messageFormat,
       String alternateIdInMessageAttributes,
-      Long dedupeRetentionMillis
+      Integer dedupeRetentionSeconds
     ) {
       this.name = name;
       this.topicARN = topicARN;
@@ -85,11 +85,11 @@ public class AmazonPubsubProperties {
       this.templatePath = templatePath;
       this.messageFormat = messageFormat;
       this.alternateIdInMessageAttributes = alternateIdInMessageAttributes;
-      if (dedupeRetentionMillis != null && dedupeRetentionMillis >= 0) {
-        this.dedupeRetentionMillis = dedupeRetentionMillis;
+      if (dedupeRetentionSeconds != null && dedupeRetentionSeconds >= 0) {
+        this.dedupeRetentionSeconds = dedupeRetentionSeconds;
       } else {
-        if (dedupeRetentionMillis != null) {
-          log.warn("Ignoring dedupeRetentionMillis invalid value of " + dedupeRetentionMillis);
+        if (dedupeRetentionSeconds != null) {
+          log.warn("Ignoring dedupeRetentionSeconds invalid value of " + dedupeRetentionSeconds);
         }
       }
     }
