@@ -1,4 +1,5 @@
 apply plugin: "java-library"
+apply plugin: "kotlin-spring"
 apply from: "$rootDir/gradle/grpc.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
@@ -9,6 +10,9 @@ dependencies {
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
   implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
   implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion"
+
+  implementation "org.springframework.boot:spring-boot-starter-actuator:$bootVersion"
+  implementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
 
   testImplementation "io.strikt:strikt-protobuf:$striktVersion"
   testImplementation project(":keel-api-test")

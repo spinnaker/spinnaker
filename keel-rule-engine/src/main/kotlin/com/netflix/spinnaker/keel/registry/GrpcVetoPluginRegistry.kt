@@ -7,7 +7,9 @@ import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginResponse
 import com.netflix.spinnaker.keel.api.engine.VetoPluginRegistryGrpc
 import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
+@Component
 class GrpcVetoPluginRegistry(
   override val eurekaClient: EurekaClient
 ) : VetoPluginRegistryGrpc.VetoPluginRegistryImplBase(),

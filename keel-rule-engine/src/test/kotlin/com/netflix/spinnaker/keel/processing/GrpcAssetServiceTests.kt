@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.instanceInfo
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
+import com.netflix.spinnaker.keel.grpc.GrpcAssetService
 import com.netflix.spinnaker.keel.grpc.toProto
 import com.netflix.spinnaker.keel.grpc.toTypeMetaData
 import com.netflix.spinnaker.keel.model.Asset

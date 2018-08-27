@@ -6,15 +6,22 @@ import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.PartialAsset
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Instant
+import javax.annotation.PostConstruct
 
+@Component
+//@ConditionalOnMissingBean(AssetRepository::class)
 class InMemoryAssetRepository(
   private val clock: Clock
 ) : AssetRepository {
   private val assets = mutableMapOf<AssetId, Asset>()
   private val partialAssets = mutableMapOf<AssetId, PartialAsset>()
   private val states = mutableMapOf<AssetId, Pair<AssetState, Instant>>()
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun rootAssets(callback: (Asset) -> Unit) {
     assets.values.filter { it.dependsOn.isEmpty() }.forEach(callback)
@@ -55,6 +62,11 @@ class InMemoryAssetRepository(
 
   internal fun dropAll() {
     assets.clear()
+  }
+
+  @PostConstruct
+  fun onInitialize() {
+    log.warn("Using in-memory asset registry")
   }
 }
 

@@ -38,3 +38,9 @@ configurations.all {
     }
   }
 }
+
+license {
+  mapping {
+    kt = "SLASHSTAR_STYLE"
+  }
+}

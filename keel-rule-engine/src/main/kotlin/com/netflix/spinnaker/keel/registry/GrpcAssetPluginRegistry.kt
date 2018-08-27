@@ -8,7 +8,9 @@ import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
+@Component
 class GrpcAssetPluginRegistry(
   override val eurekaClient: EurekaClient
 ) : AssetPluginRegistryGrpc.AssetPluginRegistryImplBase(), Registry<AssetPluginGrpc.AssetPluginBlockingStub> {
