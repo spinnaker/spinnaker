@@ -62,7 +62,8 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
 
     if (!converters) {
       throw new AtomicOperationConverterNotFoundException(
-          "No atomic operation converter found for description '${description}' and cloud provider '${cloudProvider}' at version '${version}'"
+          "No atomic operation converter found for description '${description}' and cloud provider '${cloudProvider}'. " +
+          "It is possible that either 1) the account name used for the operation is incorrect, or 2) the account name used for the operation is unhealthy/unable to communicate with ${cloudProvider}."
       )
     }
 
