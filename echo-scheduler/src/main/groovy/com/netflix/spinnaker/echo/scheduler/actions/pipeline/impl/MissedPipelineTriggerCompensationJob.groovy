@@ -204,7 +204,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
         expr.timeZone = TimeZone.getTimeZone(dateContext.clock.zone)
 
         if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor(), dateContext.now(), pipeline)) {
-          pipelineInitiator.call(pipeline)
+          pipelineInitiator.call(pipeline.withTrigger(trigger))
         }
       } catch (ParseException e) {
         log.error("Error parsing cron expression (${trigger.cronExpression}) for pipeline ${pipeline.id}", e)

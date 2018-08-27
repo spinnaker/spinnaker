@@ -45,9 +45,10 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
   def 'should trigger pipelines for all missed executions'() {
     given:
+    def theTriggeringTrigger = new Trigger.TriggerBuilder().id('1').type(Trigger.Type.CRON.toString()).cronExpression('* 0/30 * * * ? *').enabled(true).build()
     def pipelines = [
       pipelineBuilder('1').disabled(false).triggers([
-        new Trigger.TriggerBuilder().id('1').type(Trigger.Type.CRON.toString()).cronExpression('* 0/30 * * * ? *').enabled(true).build(),
+        theTriggeringTrigger,
         new Trigger.TriggerBuilder().id('2').type(Trigger.Type.JENKINS.toString()).enabled(true).build()
       ]).build(),
       pipelineBuilder('2').disabled(true).triggers([
@@ -84,7 +85,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
         new OrcaService.PipelineResponse(pipelineConfigId: '4', startTime: getDateOffset(30).time)
       ]
     }
-    1 * pipelineInitiator.call((Pipeline) pipelines[0])
+    1 * pipelineInitiator.call((Pipeline) pipelines[0].withTrigger(theTriggeringTrigger))
     0 * orcaService._
     0 * pipelineInitiator._
   }
