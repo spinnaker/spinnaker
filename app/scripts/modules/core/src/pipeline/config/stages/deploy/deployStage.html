@@ -1,23 +1,23 @@
 <div class="row" ng-if="!pipeline.strategy">
   <div class="col-md-12">
-    <table class="table table-condensed">
+    <table class="table table-condensed table-deployStage">
       <thead>
       <tr>
         <th></th>
         <th if-multiple-providers>Provider</th>
         <th>Account</th>
         <th>Cluster</th>
-        <th style="width:100px">Region</th>
+        <th>Region</th>
         <th ng-if="deployStageCtrl.hasSubnetDeployments()">Subnet</th>
         <th>Strategy</th>
         <th>Capacity</th>
-        <th class="text-center" ng-if="deployStageCtrl.hasInstanceTypeDeployments()">Instance Type</th>
+        <th ng-if="deployStageCtrl.hasInstanceTypeDeployments()">Instance Type</th>
         <th style="width: 58px">Actions</th>
       </tr>
       </thead>
       <tbody ui-sortable="deployStageCtrl.clusterSortOptions" ng-model="stage.clusters">
       <tr ng-repeat="cluster in stage.clusters">
-        <td class="handle" style="cursor: move"><span class="glyphicon glyphicon-resize-vertical"></span></td>
+        <td class="handle"><span class="glyphicon glyphicon-resize-vertical"></span></td>
         <td if-multiple-providers class="text-center">
           <cloud-provider-logo provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"
                                width="'20px'" height="'20px'" show-tooltip="true"></cloud-provider-logo>
@@ -25,7 +25,7 @@
         <td>
           <account-tag account="cluster.account"></account-tag>
         </td>
-        <td style="word-break: break-all;">
+        <td>
           {{ deployStageCtrl.getClusterName(cluster) }}
         </td>
         <td>
