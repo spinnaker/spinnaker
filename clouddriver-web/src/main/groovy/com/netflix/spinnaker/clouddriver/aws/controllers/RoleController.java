@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.controllers;
+package com.netflix.spinnaker.clouddriver.aws.controllers;
 
 import com.netflix.spinnaker.clouddriver.aws.model.Role;
 import com.netflix.spinnaker.clouddriver.aws.model.RoleProvider;
@@ -42,7 +42,7 @@ public class RoleController {
     if (roleProviders == null) {
       return Collections.emptyList();
     }
-    
+
     Set<Role> roles = roleProviders.stream()
       .filter(roleProvider -> roleProvider.getCloudProvider().equals(cloudProvider))
       .flatMap(roleProvider -> roleProvider.getAll().stream())

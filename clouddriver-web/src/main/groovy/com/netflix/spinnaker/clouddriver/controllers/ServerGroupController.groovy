@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.aws.model.InstanceTargetGroups
-import com.netflix.spinnaker.clouddriver.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -44,6 +42,9 @@ import org.springframework.web.bind.annotation.RestController
 @Slf4j
 @RestController
 class ServerGroupController {
+
+  private static final String INSTANCE_LOAD_BALANCER_HEALTH_TYPE = 'LoadBalancer'
+  private static final String INSTANCE_TARGET_GROUP_HEALTH_TYPE = 'TargetGroup'
 
   @Autowired
   List<ClusterProvider> clusterProviders
@@ -317,12 +318,12 @@ class ServerGroupController {
         if (health.containsKey("status")) {
           healthMetric.status = health.status
         }
-        if (health.type == InstanceLoadBalancers.HEALTH_TYPE && health.containsKey("loadBalancers")) {
+        if (health.type == INSTANCE_LOAD_BALANCER_HEALTH_TYPE && health.containsKey("loadBalancers")) {
           healthMetric.loadBalancers = health.loadBalancers.collect {
             [name: it.loadBalancerName, state: it.state, description: it.description, healthState: it.healthState]
           }
         }
-        if (health.type == InstanceTargetGroups.HEALTH_TYPE && health.containsKey("targetGroups")) {
+        if (health.type == INSTANCE_TARGET_GROUP_HEALTH_TYPE && health.containsKey("targetGroups")) {
           healthMetric.targetGroups = health.targetGroups.collect {
             [name: it.targetGroupName, state: it.state, description: it.description, healthState: it.healthState]
           }
