@@ -33,6 +33,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
@@ -118,6 +120,7 @@ class X509Config {
     new X509StandaloneAuthConfig()
   }
 
+  @Order(Ordered.LOWEST_PRECEDENCE)
   class X509StandaloneAuthConfig extends WebSecurityConfigurerAdapter {
     void configure(HttpSecurity http) {
       authConfig.configure(http)

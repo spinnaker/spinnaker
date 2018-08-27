@@ -25,6 +25,8 @@ import org.apache.commons.lang.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -41,6 +43,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 @Configuration
 @Slf4j
 @EnableWebSecurity
+@Order(Ordered.LOWEST_PRECEDENCE)
 class AnonymousConfig extends WebSecurityConfigurerAdapter {
   static String key = "spinnaker-anonymous"
   static String defaultEmail = "anonymous"

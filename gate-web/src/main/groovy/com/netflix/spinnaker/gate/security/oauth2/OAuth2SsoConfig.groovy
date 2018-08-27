@@ -29,6 +29,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -49,6 +51,7 @@ import javax.servlet.http.HttpServletResponse
 @Import(SecurityAutoConfiguration)
 @EnableOAuth2Sso
 @EnableConfigurationProperties
+@Order(Ordered.LOWEST_PRECEDENCE)
 // Note the 4 single-quotes below - this is a raw groovy string, because SpEL and groovy
 // string syntax overlap!
 @ConditionalOnExpression(''''${security.oauth2.client.clientId:}'!=""''')

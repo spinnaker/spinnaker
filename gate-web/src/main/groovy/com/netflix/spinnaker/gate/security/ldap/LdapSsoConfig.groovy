@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Component
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
+@Order(Ordered.LOWEST_PRECEDENCE)
 class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired

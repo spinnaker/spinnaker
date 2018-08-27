@@ -36,6 +36,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.builders.WebSecurity
@@ -60,6 +62,7 @@ import static org.springframework.security.extensions.saml2.config.SAMLConfigure
 @EnableWebSecurity
 @Import(SecurityAutoConfiguration)
 @Slf4j
+@Order(Ordered.LOWEST_PRECEDENCE)
 class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired

@@ -30,6 +30,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -45,6 +47,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @ConditionalOnExpression("${google.iap.enabled:false}")
 @EnableConfigurationProperties(IAPSecurityConfigProperties.class)
+@Order(Ordered.LOWEST_PRECEDENCE)
 public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
