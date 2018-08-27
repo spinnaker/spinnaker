@@ -63,6 +63,7 @@ swagger:
     - .*applications.*
     - .*securityGroups.*
     - /search
+    - .*pipelineConfigs.*
     - .*pipelines.*
     - .*loadBalancers.*
     - .*instances.*
