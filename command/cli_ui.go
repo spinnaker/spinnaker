@@ -15,10 +15,15 @@
 package command
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/colorstring"
+	"github.com/spinnaker/spin/command/output"
+	"k8s.io/client-go/util/jsonpath"
 )
 
 type ColorizeUi struct {
@@ -41,6 +46,53 @@ func (u *ColorizeUi) AskSecret(query string) (string, error) {
 
 func (u *ColorizeUi) Output(message string) {
 	u.Ui.Output(u.colorize(message, u.OutputColor))
+}
+
+// JsonOutput pretty prints the data specified in the input.
+// Callers can optionally supply a jsonpath template to pull out nested data in input.
+// This leverages the kubernetes jsonpath libs (https://kubernetes.io/docs/reference/kubectl/jsonpath/).
+func (u *ColorizeUi) JsonOutput(input interface{}, outputFormat *output.OutputFormat) {
+	if outputFormat == nil {
+		prettyStr, _ := json.MarshalIndent(input, "", " ")
+		u.Output(u.colorize(string(prettyStr), u.OutputColor))
+		return
+	}
+
+	template := outputFormat.JsonPath
+	if template == "" {
+		prettyStr, _ := json.MarshalIndent(input, "", " ")
+		u.Output(u.colorize(string(prettyStr), u.OutputColor))
+	} else {
+		jsonValue, err := u.parseJsonPath(input, template)
+		if err != nil {
+			u.Error(fmt.Sprintf("%v", err))
+		}
+
+		prettyStr, err := json.MarshalIndent(jsonValue, "", " ")
+		if err != nil {
+			u.Error(fmt.Sprintf("%v", err))
+		}
+		u.Output(u.colorize(string(prettyStr), u.OutputColor))
+	}
+}
+
+// parseJsonPath finds the values specified in the input data as specified with the template.
+// This leverages the kubernetes jsonpath libs (https://kubernetes.io/docs/reference/kubectl/jsonpath/).
+func (u *ColorizeUi) parseJsonPath(input interface{}, template string) (interface{}, error) {
+	j := jsonpath.New("json-path")
+	buf := new(bytes.Buffer)
+	if err := j.Parse(template); err != nil {
+		return buf, errors.New(fmt.Sprintf("Error parsing json: %v", err))
+	}
+	values, err := j.FindResults(input)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error parsing value from input %v using template %s: %v ", input, template, err))
+	}
+
+	if values != nil && len(values) > 0 && len(values[0]) > 0 {
+		return values[0][0].Interface(), nil
+	}
+	return nil, errors.New(fmt.Sprintf("Error parsing value from input %v using template %s: %v ", input, template, err))
 }
 
 func (u *ColorizeUi) Info(message string) {

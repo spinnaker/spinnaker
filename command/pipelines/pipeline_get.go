@@ -15,7 +15,6 @@
 package pipelines
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -89,12 +88,8 @@ func (c *PipelineGetCommand) Run(args []string) int {
 			resp.StatusCode))
 		return 1
 	}
-	prettyString, err := json.MarshalIndent(successPayload, "", "  ")
-	if err != nil {
-		c.ApiMeta.Ui.Error(fmt.Sprintf("Failed to marshal pipeline get payload: %v.\n", successPayload))
-		return 1
-	}
-	c.ApiMeta.Ui.Output(fmt.Sprintf("%s\n", prettyString))
+
+	c.ApiMeta.Ui.JsonOutput(successPayload, c.ApiMeta.OutputFormat)
 	return 0
 }
 
@@ -104,7 +99,8 @@ usage: spin pipeline get [options]
 
 	List the pipelines for the provided application
 
-    --id: Id of the pipeline
+    --application: Application the pipeline lives in
+    --name: Name of the pipeline
 
 %s`, c.ApiMeta.Help())
 	return strings.TrimSpace(help)

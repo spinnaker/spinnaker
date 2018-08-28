@@ -15,7 +15,6 @@
 package applications
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -75,12 +74,8 @@ func (c *ApplicationListCommand) Run(args []string) int {
 		c.ApiMeta.Ui.Error(fmt.Sprintf("Encountered an error saving application, status code: %d\n", resp.StatusCode))
 		return 1
 	}
-	prettyString, err := json.MarshalIndent(appList, "", "  ")
-	if err != nil {
-		c.ApiMeta.Ui.Error(fmt.Sprintf("Failed to marshal application list payload: %d.\n", appList))
-		return 1
-	}
-	c.ApiMeta.Ui.Output(fmt.Sprintf("%s\n", prettyString))
+
+	c.ApiMeta.Ui.JsonOutput(appList, c.ApiMeta.OutputFormat)
 	return 0
 }
 

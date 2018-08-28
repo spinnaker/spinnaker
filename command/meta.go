@@ -34,6 +34,7 @@ import (
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/colorstring"
 	"github.com/mitchellh/go-homedir"
+	"github.com/spinnaker/spin/command/output"
 	"github.com/spinnaker/spin/config"
 	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/version"
@@ -47,8 +48,8 @@ type ApiMeta struct {
 	// with an ApiMeta field. These are expected to be set externally
 	// (not from within the command itself).
 
-	Color bool   // True if output should be colored
-	Ui    cli.Ui // Ui for output
+	Color bool        // True if output should be colored
+	Ui    *ColorizeUi // Ui for output
 
 	// Gate Api client.
 	GateClient *gate.APIClient
@@ -59,6 +60,8 @@ type ApiMeta struct {
 	// Context for OAuth2 access token.
 	Context context.Context
 
+	OutputFormat *output.OutputFormat
+
 	// This is the set of flags global to the command parser.
 	gateEndpoint string
 
@@ -68,6 +71,8 @@ type ApiMeta struct {
 
 	// Location of the spin config.
 	configLocation string
+
+	outputFormat string
 }
 
 // GlobalFlagSet adds all global options to the flagset, and returns the flagset object
@@ -77,12 +82,12 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 
 	f.StringVar(&m.gateEndpoint, "gate-endpoint", "http://localhost:8084",
 		"Gate (API server) endpoint")
-
 	f.BoolVar(&m.ignoreCertErrors, "insecure", false, "Ignore Certificate Errors")
-
 	f.BoolVar(&m.quiet, "quiet", false, "Squelch non-essentual output")
-
 	f.BoolVar(&m.Color, "no-color", true, "Disable color")
+	// TODO(jacobkiefer): Codify the json-path as part of an OutputConfig or
+	// something similar. Sets the stage for yaml output, etc.
+	f.StringVar(&m.outputFormat, "output", "", "Configure output formatting")
 
 	f.Usage = func() {}
 
@@ -102,6 +107,12 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 		InfoColor:  "[blue]",
 		Ui:         &cli.BasicUi{Writer: os.Stdout},
 		Quiet:      m.quiet,
+	}
+
+	var err error
+	m.OutputFormat, err = output.ParseOutputFormat(m.outputFormat)
+	if err != nil {
+		return args, err
 	}
 
 	// CLI configuration.

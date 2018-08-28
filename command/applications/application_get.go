@@ -15,7 +15,6 @@
 package applications
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -95,12 +94,7 @@ func (c *ApplicationGetCommand) Run(args []string) int {
 		return 1
 	}
 
-	prettyString, err := json.MarshalIndent(app, "", "  ")
-	if err != nil {
-		c.ApiMeta.Ui.Error(fmt.Sprintf("Failed to marshal application payload: %v.\n", app))
-		return 1
-	}
-	c.ApiMeta.Ui.Output(fmt.Sprintf("%s\n", prettyString))
+	c.ApiMeta.Ui.JsonOutput(app, c.ApiMeta.OutputFormat)
 	return 0
 }
 
