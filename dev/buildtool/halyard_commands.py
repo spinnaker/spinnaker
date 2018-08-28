@@ -373,6 +373,7 @@ class PublishHalyardCommand(CommandProcessor):
       raise_and_log_error(
           ConfigError('Unknown halyard version "{version}" in "{url}"'.format(
               version=options.halyard_version, url=versions_url)))
+    return commit
 
   def _prepare_repository(self):
     """Prepare a local repository to build for release.
