@@ -10,4 +10,6 @@ dependencies {
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
 
   testCompile "com.squareup.retrofit:retrofit-mock:$retrofitVersion"
+
+  runtime "org.jetbrains.kotlin:kotlin-reflect"
 }
