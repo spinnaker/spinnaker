@@ -346,12 +346,8 @@ class PublishHalyardCommand(CommandProcessor):
     self.__release_tag = 'version-' + semver_str
     self.__release_version = semver_str
 
-  def determine_commit(self, repository):
+  def determine_halyard_commit(self):
     """Determine the commit_id that we want to publish."""
-    if repository.name != 'halyard':
-      raise_and_log_error(
-          ConfigError('Unexpected repository "%s"' % repository.name))
-
     options = self.options
     versions_url = options.halyard_version_commits_url
     if not versions_url:
@@ -383,9 +379,9 @@ class PublishHalyardCommand(CommandProcessor):
     into github so want to at least clone the repo regardless.
     """
     logging.debug('Preparing repository for publishing a halyard release.')
+    commit = self.determine_halyard_commit()
     repository = self.__scm.make_repository_spec(
-        SPINNAKER_HALYARD_REPOSITORY_NAME)
-    commit = self.determine_commit(repository)
+        SPINNAKER_HALYARD_REPOSITORY_NAME, commit_id=commit)
     git_dir = repository.git_dir
     if os.path.exists(git_dir):
       logging.info('Deleting existing %s to build fresh.', git_dir)
