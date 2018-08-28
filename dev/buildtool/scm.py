@@ -135,11 +135,11 @@ class SpinnakerSourceCodeManager(object):
       git_dir: if supplied then use it, otherwise default under the root path.
       origin: if supplied then use it, even if None. Otherwise default
       upstream: if supplied then use it, even if None. Otherwise default.
+      kwargs: Additional repository attributes
     """
     git_dir = kwargs.pop('git_dir', os.path.join(self.__root_source_dir, name))
     origin = kwargs.pop('origin', self.AUTO)
     upstream = kwargs.pop('upstream', self.AUTO)
-    check_kwargs_empty(kwargs)
 
     if origin == self.AUTO:
       origin = self.determine_origin(name)
@@ -157,7 +157,7 @@ class SpinnakerSourceCodeManager(object):
       upstream = self.determine_upstream_url(name)
 
     return GitRepositorySpec(
-        name, origin=origin, upstream=upstream, git_dir=git_dir)
+        name, origin=origin, upstream=upstream, git_dir=git_dir, **kwargs)
 
   def determine_upstream_url(self, name):
     upstream_owner = 'spinnaker' if name not in ('citest') else 'google'
@@ -176,7 +176,7 @@ class SpinnakerSourceCodeManager(object):
     """
     raise NotImplementedError(self.__class__.__name__)
 
-  def ensure_local_repository(self, repository):
+  def ensure_local_repository(self, repository, commit=None):
     """Make sure local repository directory exists, and make it so if not."""
     git_dir = repository.git_dir
     have_git_dir = os.path.exists(git_dir)

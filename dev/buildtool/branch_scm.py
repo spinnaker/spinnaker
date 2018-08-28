@@ -108,11 +108,22 @@ class BranchSourceCodeManager(SpinnakerSourceCodeManager):
     return build_number
 
   def check_repository_is_current(self, repository):
-    branch = self.options.git_branch or 'master'
     git_dir = repository.git_dir
+    commit = repository.commit_or_none()
+    if commit is not None:
+      have_commit = self.git.query_local_repository_commit_id(git_dir)
+      if have_commit != commit:
+        raise_and_log_error(
+          UnexpectedError(
+             '"%s" is at the wrong commit "%s" vs "%s"' % (
+                 git_dir, have_commit, commit)))
+      return True
+
+    branch = self.options.git_branch or 'master'
     have_branch = self.git.query_local_repository_branch(git_dir)
     if have_branch != branch:
       raise_and_log_error(
           UnexpectedError(
-              '"%s" is at the wrong branch "%s"' % (git_dir, branch)))
+              '"%s" is at the wrong branch "%s" vs "%s"' % (
+                  git_dir, have_branch, branch)))
     return True
