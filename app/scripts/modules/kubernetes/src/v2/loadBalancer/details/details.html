@@ -32,10 +32,10 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li>
-              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete</a>
             </li>
             <li>
-              <a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a>
+              <a href ng-click="ctrl.editLoadBalancer()">Edit</a>
             </li>
           </ul>
         </div>
@@ -53,7 +53,16 @@
         <dd>{{ctrl.loadBalancer.namespace}}</dd>
         <dt>Kind</dt>
         <dd>{{ctrl.loadBalancer.kind}}</dd>
-        <dt ng-if="ctrl.loadBalancer.serverGroups.length">Server Groups</dt>
+        <dt>Service Type</dt>
+        <dd>{{ctrl.loadBalancer.manifest.spec.type}} </dd>
+        <dt>Sess. Affinity</dt>
+        <dd>{{ctrl.loadBalancer.manifest.spec.sessionAffinity}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <div ng-if="!ctrl.loadBalancer.serverGroups.length">No workloads associated with this {{ctrl.loadBalancer.kind | robotToHuman}}.</div>
+        <dt ng-if="ctrl.loadBalancer.serverGroups.length">Workloads</dt>
         <dd ng-if="ctrl.loadBalancer.serverGroups.length">
           <ul>
             <li ng-repeat="serverGroup in ctrl.loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
@@ -66,38 +75,38 @@
             </li>
           </ul>
         </dd>
-      </dl>
-    </collapsible-section>
-    <collapsible-section heading="Status" expanded="true">
-      <div ng-if="!ctrl.loadBalancer.serverGroups.length">No server groups associated with this load balancer</div>
-      <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
-    </collapsible-section>
-
-    <collapsible-section heading="Load Balancer Details" expanded="true">
-      <dl>
-        <dt>Service Type</dt>
-        <dd>
-          {{ctrl.loadBalancer.manifest.spec.type}}
-        </dd>
-      </dl>
-      <dl>
-        <dt>Session Affinity</dt>
-        <dd>
-          {{ctrl.loadBalancer.manifest.spec.sessionAffinity}}
-        </dd>
-      </dl>
-      <dl ng-if="ctrl.loadBalancer.manifest.spec.clusterIP">
-        <dt>Cluster IP</dt>
-        <dd>
-          <a target="_blank" href="//{{ctrl.loadBalancer.manifest.spec.clusterIP}}">
-            {{ctrl.loadBalancer.manifest.spec.clusterIP}}
-          </a>
-          <copy-to-clipboard
-            class="copy-to-clipboard copy-to-clipboard-sm"
-            text="ctrl.loadBalancer.manifest.spec.clusterIP"
-            tool-tip="'Copy Cluster IP to clipboard'">
-          </copy-to-clipboard>
-        </dd>
+        <div ng-if="ctrl.loadBalancer.serverGroups.length">
+          <dt>Pod status</dt>
+          <dd>
+            <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
+          </dd>
+        </div>
+        <div ng-if="ctrl.loadBalancer.manifest.spec.clusterIP">
+          <dt>Cluster IP</dt>
+          <dd>
+            <a target="_blank" href="//{{ctrl.loadBalancer.manifest.spec.clusterIP}}">
+              {{ctrl.loadBalancer.manifest.spec.clusterIP}}
+            </a>
+            <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ctrl.loadBalancer.manifest.spec.clusterIP"
+              tool-tip="'Copy Cluster IP to clipboard'">
+            </copy-to-clipboard>
+          </dd>
+        </div>
+        <div ng-if="ctrl.loadBalancer.manifest.spec.loadBalancerIP">
+          <dt>Load Balancer IP</dt>
+          <dd>
+            <a target="_blank" href="//{{ctrl.loadBalancer.manifest.spec.loadBalancerIP}}">
+              {{ctrl.loadBalancer.manifest.spec.loadBalancerIP}}
+            </a>
+            <copy-to-clipboard
+                class="copy-to-clipboard copy-to-clipboard-sm"
+                text="ctrl.loadBalancer.manifest.spec.loadBalancerIP"
+                tool-tip="'Copy Load Balancer IP to clipboard'">
+            </copy-to-clipboard>
+          </dd>
+        </div>
       </dl>
       <dl ng-if="ctrl.loadBalancer.manifest.status.loadBalancer.ingress.length">
         <dt>Ingress</dt>
@@ -119,19 +128,6 @@
             class="copy-to-clipboard copy-to-clipboard-sm"
             text="ingress.ip"
             tool-tip="'Copy Ingress IP to clipboard'">
-          </copy-to-clipboard>
-        </dd>
-      </dl>
-      <dl ng-if="ctrl.loadBalancer.manifest.spec.loadBalancerIP">
-        <dt>Load Balancer IP</dt>
-        <dd>
-          <a target="_blank" href="//{{ctrl.loadBalancer.manifest.spec.loadBalancerIP}}">
-            {{ctrl.loadBalancer.manifest.spec.loadBalancerIP}}
-          </a>
-          <copy-to-clipboard
-            class="copy-to-clipboard copy-to-clipboard-sm"
-            text="ctrl.loadBalancer.manifest.spec.loadBalancerIP"
-            tool-tip="'Copy Load Balancer IP to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>

@@ -2,9 +2,10 @@ import { copy, IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
-import { Application, ILoadBalancer } from '@spinnaker/core';
+import { Application, ILoadBalancer, IManifest } from '@spinnaker/core';
 
 import { IKubernetesLoadBalancer } from './IKubernetesLoadBalancer';
+import { KubernetesManifestService } from '../../manifest/manifest.service';
 
 interface ILoadBalancerFromStateParams {
   accountId: string;
@@ -14,6 +15,7 @@ interface ILoadBalancerFromStateParams {
 
 class KubernetesLoadBalancerDetailsController implements IController {
   public state = { loading: true };
+  public manifest: IManifest;
   private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IKubernetesLoadBalancer;
 
@@ -29,7 +31,21 @@ class KubernetesLoadBalancerDetailsController implements IController {
     this.app
       .getDataSource('loadBalancers')
       .ready()
-      .then(() => this.extractLoadBalancer());
+      .then(() => {
+        this.extractLoadBalancer();
+        const unsubscribe = KubernetesManifestService.makeManifestRefresher(
+          this.app,
+          {
+            account: this.loadBalancerFromParams.accountId,
+            location: this.loadBalancerFromParams.region,
+            name: this.loadBalancerFromParams.name,
+          },
+          this,
+        );
+        this.$scope.$on('$destroy', () => {
+          unsubscribe();
+        });
+      });
   }
 
   public deleteLoadBalancer(): void {
