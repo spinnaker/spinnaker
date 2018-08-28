@@ -144,6 +144,16 @@ public class ContainerInformationService {
     return String.format("%s:%s", hostPrivateIpAddress, hostPort);
   }
 
+  public String getTaskZone(String accountName, String region, Task task) {
+    Instance ec2Instance = getEc2Instance(accountName, region, task);
+    if (ec2Instance != null) {
+      return ec2Instance.getPlacement().getAvailabilityZone();
+    }
+
+    // TODO for tasks not placed on an instance (e.g. Fargate), determine the zone from the network interface attachment
+    return null;
+  }
+
   public Instance getEc2Instance(String ecsAccount, String region, Task task){
     String containerInstanceCacheKey = Keys.getContainerInstanceKey(ecsAccount, region, task.getContainerInstanceArn());
     ContainerInstance containerInstance = containerInstanceCacheClient.get(containerInstanceCacheKey);

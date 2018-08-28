@@ -176,9 +176,8 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
 
     String address = containerInformationService.getTaskPrivateAddress(account, region, task);
     List<Map<String, Object>> healthStatus = containerInformationService.getHealthStatus(taskId, serviceName, account, region);
+    String availabilityZone = containerInformationService.getTaskZone(account, region, task);
 
-    com.amazonaws.services.ec2.model.Instance ec2Instance = containerInformationService.getEc2Instance(account, region, task);
-    String availabilityZone = ec2Instance.getPlacement().getAvailabilityZone();
     NetworkInterface networkInterface =
       !task.getContainers().isEmpty()
         && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()

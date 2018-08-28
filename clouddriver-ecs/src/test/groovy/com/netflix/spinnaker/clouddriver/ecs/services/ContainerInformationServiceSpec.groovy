@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.services
 
 import com.amazonaws.services.ec2.model.Instance
+import com.amazonaws.services.ec2.model.Placement
 import com.amazonaws.services.ecs.model.Container
 import com.amazonaws.services.ecs.model.LoadBalancer
 import com.amazonaws.services.ecs.model.NetworkBinding
@@ -334,6 +335,47 @@ class ContainerInformationServiceSpec extends Specification {
     then:
     IllegalArgumentException exception = thrown()
     exception.message == 'There cannot be more than 1 EC2 container instance for a given region and instance ID.'
+  }
+
+  def 'should return the zone of the container instance for a task'() {
+    given:
+    def task = new Task(containerInstanceArn: 'container-instance-arn')
+    def containerInstance = new ContainerInstance(ec2InstanceId: 'i-deadbeef')
+    def ecsAccount = new ECSCredentialsConfig.Account(
+      name: 'ecs-account',
+      awsAccount: 'aws-test-account'
+    )
+    def givenInstance = new Instance(
+      instanceId: 'i-deadbeef',
+      privateIpAddress: '0.0.0.0',
+      publicIpAddress: '127.0.0.1',
+      placement: new Placement(availabilityZone: 'us-west-1a')
+    )
+
+    containerInstanceCacheClient.get(_) >> containerInstance
+    ecsCredentialsConfig.getAccounts() >> [ecsAccount]
+    ecsInstanceCacheClient.find(_, _, _) >> [givenInstance]
+
+    when:
+    def retrievedZone = service.getTaskZone('ecs-account', 'us-west-1', task)
+
+    then:
+    retrievedZone == 'us-west-1a'
+  }
+
+  def 'should return null when there is no container instance for the task'() {
+    given:
+    def task = new Task(
+      containerInstanceArn: 'container-instance-arn'
+    )
+
+    containerInstanceCacheClient.get(_) >> null
+
+    when:
+    def retrievedZone = service.getTaskZone('test-account', 'us-west-1', task)
+
+    then:
+    retrievedZone == null
   }
 
   def 'should return a cluster name'() {

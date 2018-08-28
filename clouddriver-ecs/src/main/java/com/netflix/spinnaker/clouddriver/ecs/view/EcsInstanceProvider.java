@@ -67,23 +67,20 @@ public class EcsInstanceProvider implements InstanceProvider<EcsTask> {
       return null;
     }
 
-    key = Keys.getContainerInstanceKey(account, region, task.getContainerInstanceArn());
-    ContainerInstance containerInstance = containerInstanceCacheClient.get(key);
+    String serviceName = StringUtils.substringAfter(task.getGroup(), "service:");
+    Long launchTime = task.getStartedAt();
 
-    if (containerInstance != null) {
-      String serviceName = StringUtils.substringAfter(task.getGroup(), "service:");
-      Long launchTime = task.getStartedAt();
+    List<Map<String, Object>> healthStatus = containerInformationService.getHealthStatus(id, serviceName, account, region);
+    String address = containerInformationService.getTaskPrivateAddress(account, region, task);
+    String zone = containerInformationService.getTaskZone(account, region, task);
 
-      List<Map<String, Object>> healthStatus = containerInformationService.getHealthStatus(id, serviceName, account, region);
-      String address = containerInformationService.getTaskPrivateAddress(account, region, task);
+    NetworkInterface networkInterface =
+      task.getContainers() != null
+        && !task.getContainers().isEmpty()
+        && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
+        ? task.getContainers().get(0).getNetworkInterfaces().get(0) : null;
 
-      NetworkInterface networkInterface =
-        task.getContainers() != null
-          && !task.getContainers().isEmpty()
-          && !task.getContainers().get(0).getNetworkInterfaces().isEmpty()
-          ? task.getContainers().get(0).getNetworkInterfaces().get(0) : null;
-      ecsInstance = new EcsTask(id, launchTime, task.getLastStatus(), task.getDesiredStatus(), containerInstance.getAvailabilityZone(), healthStatus, address, networkInterface);
-    }
+    ecsInstance = new EcsTask(id, launchTime, task.getLastStatus(), task.getDesiredStatus(), zone, healthStatus, address, networkInterface);
 
     return ecsInstance;
   }
