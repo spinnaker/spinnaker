@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
@@ -129,6 +131,27 @@ public class Daemon {
   public static Supplier<Void> setDeploymentEnvironment(String deploymentName, boolean validate, DeploymentEnvironment deploymentEnvironment) {
     return () -> {
       ResponseUnwrapper.get(getService().setDeploymentEnvironment(deploymentName, validate, deploymentEnvironment));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setHaService(String deploymentName, String serviceName, boolean validate, HaService haService) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setHaService(deploymentName, serviceName, validate, haService));
+      return null;
+    };
+  }
+
+  public static Supplier<HaService> getHaService(String deploymentName, String serviceName, boolean validate) {
+    return () -> {
+      Object haService = ResponseUnwrapper.get(getService().getHaService(deploymentName, serviceName, validate));
+      return getObjectMapper().convertValue(haService, HaServices.translateHaServiceType(serviceName));
+    };
+  }
+
+  public static Supplier<Void> setHaServiceEnableDisable(String deploymentName, String serviceName, boolean validate, boolean enable) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setHaServiceEnabled(deploymentName, serviceName, validate, enable));
       return null;
     };
   }

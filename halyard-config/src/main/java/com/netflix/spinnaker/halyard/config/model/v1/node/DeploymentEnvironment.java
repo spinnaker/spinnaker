@@ -100,6 +100,7 @@ public class DeploymentEnvironment extends Node {
   private String location;
   private CustomSizing customSizing = new CustomSizing();
   private GitConfig gitConfig = new GitConfig();
+  @ValidForSpinnakerVersion(lowerBound = "1.10.0", message = "High availability services are not available prior to this release.")
   private HaServices haServices = new HaServices();
 
   public Boolean getUpdateVersions() {

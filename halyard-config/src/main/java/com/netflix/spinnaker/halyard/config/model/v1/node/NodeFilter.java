@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Authn;
@@ -175,6 +177,18 @@ public class NodeFilter implements Cloneable {
 
   public NodeFilter setDeploymentEnvironment() {
     matchers.add(Node.thisNodeAcceptor(DeploymentEnvironment.class));
+    return this;
+  }
+
+  public NodeFilter withAnyHaService() {
+    matchers.add(Node.thisNodeAcceptor(HaServices.class));
+    matchers.add(Node.thisNodeAcceptor(HaService.class));
+    return this;
+  }
+
+  public NodeFilter setHaService(String name) {
+    matchers.add(Node.thisNodeAcceptor(HaServices.class));
+    matchers.add(Node.namedNodeAcceptor(HaService.class, name));
     return this;
   }
 

@@ -16,17 +16,12 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.ha;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.deploy.ha;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.beust.jcommander.Parameters;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class ClouddriverHaService extends HaService {
-  String redisRoEndpoint;
-  String redisRwEndpoint;
-
+@Parameters(separators = "=")
+public class EchoHaServiceCommand extends AbstractNamedHaServiceCommand {
   @Override
-  public HaServiceType haServiceType() { return HaServiceType.CLOUDDRIVER; }
+  protected String getServiceName() { return "echo"; }
 }

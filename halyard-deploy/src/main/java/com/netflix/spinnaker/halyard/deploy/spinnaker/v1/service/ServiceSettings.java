@@ -64,12 +64,16 @@ public class ServiceSettings {
   Integer targetSize;
   Boolean skipLifeCycleManagement;
 
+  public ServiceSettings() {}
+
+  public ServiceSettings(String baseUrl) {
+    this.enabled = true;
+    this.baseUrl = baseUrl;
+    this.kubernetes = null;
+  }
+
   public ServiceSettings withOnlyBaseUrl() {
-    ServiceSettings settings = new ServiceSettings();
-    settings.setEnabled(getEnabled());
-    settings.setBaseUrl(getBaseUrl());
-    settings.setKubernetes(null);
-    return settings;
+    return new ServiceSettings(getBaseUrl());
   }
 
   void mergePreferThis(ServiceSettings other) {

@@ -23,6 +23,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Optional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -45,5 +48,17 @@ public class HaServices extends Node implements Cloneable {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
+  }
+
+  public static Class<? extends HaService> translateHaServiceType(String serviceName) {
+    Optional<? extends Class<?>> res = Arrays.stream(HaServices.class.getDeclaredFields())
+        .filter(f -> f.getName().equals(serviceName))
+        .map(Field::getType)
+        .findFirst();
+    if (res.isPresent()) {
+      return (Class<? extends HaService>)res.get();
+    } else {
+      throw new IllegalArgumentException("No high availability service with name \"" + serviceName + "\" handled by halyard");
+    }
   }
 }

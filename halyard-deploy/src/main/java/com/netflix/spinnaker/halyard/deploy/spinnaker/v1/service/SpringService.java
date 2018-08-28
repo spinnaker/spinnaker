@@ -55,7 +55,7 @@ abstract public class SpringService<T> extends SpinnakerService<T> {
     if (hasServiceOverrides(deploymentConfiguration)) {
       String overridesFilename = getCanonicalName() + "-overrides.yml";
       String overridesPath = Paths.get(getConfigOutputPath(), overridesFilename).toString();
-      result.add(spinnakerProfileFactory.getProfile(overridesFilename, overridesPath, deploymentConfiguration, getServiceOverrides(endpoints)));
+      result.add(spinnakerProfileFactory.getProfile(overridesFilename, overridesPath, deploymentConfiguration, getServiceOverrides(deploymentConfiguration, endpoints)));
     }
 
     return result;
@@ -97,7 +97,7 @@ abstract public class SpringService<T> extends SpinnakerService<T> {
     return Collections.emptyList();
   }
 
-  private SpinnakerRuntimeSettings getServiceOverrides(SpinnakerRuntimeSettings endpoints) {
+  protected SpinnakerRuntimeSettings getServiceOverrides(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return endpoints.newServiceOverrides(overrideServiceEndpoints());
   }
 }

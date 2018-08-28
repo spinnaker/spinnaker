@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
@@ -45,7 +46,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
 import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
-import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
@@ -177,6 +177,26 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body DeploymentEnvironment deploymentEnvironment);
+
+  @GET("/v1/config/deployments/{deploymentName}/deploymentEnvironment/haServices/{serviceName}/")
+  DaemonTask<Halconfig, Object> getHaService(
+      @Path("deploymentName") String deploymentName,
+      @Path("serviceName") String serviceName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/deploymentEnvironment/haServices/{serviceName}/")
+  DaemonTask<Halconfig, Object> setHaService(
+      @Path("deploymentName") String deploymentName,
+      @Path("serviceName") String serviceName,
+      @Query("validate") boolean validate,
+      @Body HaService haService);
+
+  @PUT("/v1/config/deployments/{deploymentName}/deploymentEnvironment/haServices/{serviceName}/enabled/")
+  DaemonTask<Halconfig, Void> setHaServiceEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Path("serviceName") String serviceName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
 
   @GET("/v1/config/deployments/{deploymentName}/features/")
   DaemonTask<Halconfig, Object> getFeatures(

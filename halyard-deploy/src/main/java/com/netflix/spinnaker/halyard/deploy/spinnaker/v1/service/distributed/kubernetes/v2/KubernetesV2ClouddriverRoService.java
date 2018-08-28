@@ -19,12 +19,14 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
 
+import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.StringBackedProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import java.nio.file.Paths;
 import java.util.List;
 import lombok.Data;
@@ -106,5 +108,16 @@ public class KubernetesV2ClouddriverRoService extends KubernetesV2ClouddriverSer
     return profiles;
   }
 
-  // TODO(joonlim): Issue 2934 - Override overrideServiceEndpoints for external Redis endpoint.
+  protected boolean hasServiceOverrides(DeploymentConfiguration deploymentConfiguration) {
+    HaServices haServices = deploymentConfiguration.getDeploymentEnvironment().getHaServices();
+    return haServices.getClouddriver().getRedisRoEndpoint() != null;
+  }
+
+  protected SpinnakerRuntimeSettings getServiceOverrides(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    SpinnakerRuntimeSettings serviceOverrides = super.getServiceOverrides(deploymentConfiguration, endpoints);
+
+    serviceOverrides.setServiceSettings(Type.REDIS, new ServiceSettings(deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().getRedisRoEndpoint()));
+
+    return serviceOverrides;
+  }
 }
