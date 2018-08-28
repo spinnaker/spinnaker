@@ -46,6 +46,8 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataPr
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.NullOpUserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
+import com.netflix.spinnaker.clouddriver.aws.event.AfterResizeEventHandler
+import com.netflix.spinnaker.clouddriver.aws.event.DefaultAfterResizeEventHandler
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
@@ -318,6 +320,12 @@ class AwsConfiguration {
   @Bean
   AmazonServerGroupProvider amazonServerGroupProvider(ApplicationContext applicationContext) {
     return new AmazonServerGroupProvider(applicationContext)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(AfterResizeEventHandler)
+  DefaultAfterResizeEventHandler defaultAfterResizeEventHandler() {
+    return new DefaultAfterResizeEventHandler();
   }
 
   class AmazonServerGroupProvider {
