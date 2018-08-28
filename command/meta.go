@@ -339,6 +339,7 @@ Global Options:
         --no-color                    Removes color from CLI output.
         --insecure=false              Ignore certificate errors during connection to endpoints.
         --quiet=false                 Squelch non-essential output.
+        --output <output format>      Formats CLI output.
 	`
 
 	return strings.TrimSpace(help)
