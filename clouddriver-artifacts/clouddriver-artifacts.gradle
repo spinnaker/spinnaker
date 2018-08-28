@@ -7,6 +7,6 @@ dependencies {
   compile spinnaker.dependency("korkArtifacts")
 
   compile spinnaker.dependency("googleStorage")
+  compile spinnaker.dependency("awsS3")
   compile "org.apache.commons:commons-compress:1.14"
-  compile "com.amazonaws:aws-java-sdk-s3:${spinnaker.version("aws")}"
 }
