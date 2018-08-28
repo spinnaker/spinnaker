@@ -15,6 +15,10 @@ if [ -z "$PROJECT_ID" ]; then
   exit 1
 fi
 
+if [ -f "precleanup.sh" ]; then
+  ./precleanup.sh
+fi
+
 SA_EMAIL=$(gcloud iam service-accounts list \
   --filter="displayName:$SERVICE_ACCOUNT_NAME" \
   --format='value(email)')
