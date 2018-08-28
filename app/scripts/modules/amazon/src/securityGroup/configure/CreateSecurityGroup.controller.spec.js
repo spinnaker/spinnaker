@@ -122,6 +122,7 @@ describe('Controller: CreateSecurityGroup', function() {
       this.$scope.securityGroup.credentials = 'test';
       this.$scope.securityGroup.regions = ['us-east-1', 'us-west-1'];
       this.$scope.securityGroup.vpcId = 'vpc2-te';
+      this.$scope.securityGroup.vpcName = 'vpc 2';
       this.ctrl.accountUpdated();
       this.$scope.$digest();
       expect(this.$scope.availableSecurityGroups.length).toBe(0);
@@ -158,6 +159,7 @@ describe('Controller: CreateSecurityGroup', function() {
       this.initializeCtrl();
       this.$scope.securityGroup.credentials = 'test';
       this.$scope.securityGroup.regions = ['us-east-1'];
+      this.$scope.securityGroup.vpcName = 'vpc 2';
       this.ctrl.regionUpdated();
       this.$scope.$digest();
       expect(this.$scope.securityGroup.vpcId).toBe('vpc2-te');
@@ -271,6 +273,8 @@ describe('Controller: CreateSecurityGroup', function() {
 
         this.$scope.securityGroup.credentials = 'prod';
         this.$scope.securityGroup.regions = ['us-east-1'];
+        this.$scope.securityGroup.vpcName = 'vpc 1';
+
         this.ctrl.regionUpdated();
         this.$scope.$digest();
 
@@ -283,6 +287,7 @@ describe('Controller: CreateSecurityGroup', function() {
         this.application = { attributes: { createTs: 10 } };
         this.initializeCtrl();
         this.$scope.securityGroup.vpcId = 'vpc2-te';
+        this.$scope.securityGroup.vpcName = 'vpc 2';
         this.$scope.securityGroup.credentials = 'test';
         this.$scope.securityGroup.regions = ['us-east-1'];
         this.ctrl.regionUpdated();

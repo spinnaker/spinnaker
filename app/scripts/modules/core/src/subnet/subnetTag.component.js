@@ -1,6 +1,5 @@
 'use strict';
 
-import { SubnetReader } from 'core/subnet/subnet.read.service';
 import { SubnetTag } from './SubnetTag';
 import { react2angular } from 'react2angular';
 

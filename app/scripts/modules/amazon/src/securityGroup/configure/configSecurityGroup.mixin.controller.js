@@ -169,7 +169,7 @@ module.exports = angular
         }
       }
 
-      const match = (available || []).find(vpc => vpc.ids.includes($scope.securityGroup.vpcId));
+      const match = (available || []).find(vpc => vpc.label === $scope.securityGroup.vpcName);
       $scope.securityGroup.vpcId = match ? match.ids[0] : null;
       this.vpcUpdated();
     };
@@ -214,6 +214,7 @@ module.exports = angular
 
       $scope.availableSecurityGroups = availableSecurityGroups;
       $scope.existingSecurityGroupNames = existingSecurityGroupNames;
+      $scope.state.securityGroupsLoaded = true;
       clearInvalidSecurityGroups();
     }
 
@@ -227,7 +228,11 @@ module.exports = angular
       var removed = $scope.state.removedRules,
         securityGroup = $scope.securityGroup;
       $scope.securityGroup.securityGroupIngress = securityGroup.securityGroupIngress.filter(rule => {
-        if (rule.accountName !== securityGroup.accountName || (rule.vpcId && rule.vpcId !== securityGroup.vpcId)) {
+        if (
+          rule.accountName &&
+          rule.vpcId &&
+          (rule.accountName !== securityGroup.accountName || rule.vpcId !== securityGroup.vpcId)
+        ) {
           return true;
         }
         if (rule.name && !$scope.availableSecurityGroups.includes(rule.name) && !removed.includes(rule.name)) {
@@ -264,7 +269,6 @@ module.exports = angular
     ctrl.initializeSecurityGroups = function() {
       return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
         setSecurityGroupRefreshTime();
-        $scope.state.securityGroupsLoaded = true;
         allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
         var region = $scope.securityGroup.regions[0];
