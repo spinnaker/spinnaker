@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
+
 package com.netflix.spinnaker.clouddriver.oracle.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -60,6 +61,14 @@ class OracleSecurityGroupCachingAgentSpec extends Specification {
     cacheResult.cacheResults.containsKey(Keys.Namespace.SECURITY_GROUPS.ns)
   }
 
+  Vcn newVcn(String displayName, String id, Vcn.LifecycleState lifecycleState) {
+    Vcn.builder().displayName(displayName).id(id).lifecycleState(lifecycleState).build()
+  }
+
+  SecurityList newSecurityList(String displayName, String id, SecurityList.LifecycleState lifecycleState, String vcnId) {
+    SecurityList.builder().displayName(displayName).id(id).lifecycleState(lifecycleState).vcnId(vcnId).build()
+  }
+  
   def "agent creates correct cache result items"() {
     setup:
     def creds = Mock(OracleNamedAccountCredentials)
@@ -69,11 +78,11 @@ class OracleSecurityGroupCachingAgentSpec extends Specification {
     def networkClient = Mock(VirtualNetworkClient)
     def vcnId = "ocid.vcn.123"
     def vcns = [
-      new Vcn(null, null, null, null, null, "My Network", null, vcnId, Vcn.LifecycleState.Available, null, null)
+      newVcn("My Network", vcnId, Vcn.LifecycleState.Available)
     ]
     def secLists = [
-      new SecurityList(null, "My Frontend SecList", null, "ocid.seclist.123", null, SecurityList.LifecycleState.Available, null, vcnId),
-      new SecurityList(null, "My Backend SecList", null, "ocid.seclist.234", null, SecurityList.LifecycleState.Available, null, vcnId)
+      newSecurityList("My Frontend SecList", "ocid.seclist.123", SecurityList.LifecycleState.Available, vcnId),
+      newSecurityList("My Backend SecList", "ocid.seclist.234", SecurityList.LifecycleState.Available, vcnId)
     ]
     networkClient.listVcns(_) >> ListVcnsResponse.builder().items(vcns).build()
     networkClient.listSecurityLists(_) >> ListSecurityListsResponse.builder().items(secLists).build()

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
+
 package com.netflix.spinnaker.clouddriver.oracle.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -59,6 +60,14 @@ class OracleSubnetCachingAgentSpec extends Specification {
     cacheResult.cacheResults.containsKey(SUBNETS.ns)
   }
 
+  Vcn newVcn(String displayName, String id, Vcn.LifecycleState lifecycleState) {
+    Vcn.builder().displayName(displayName).id(id).lifecycleState(lifecycleState).build()
+  }
+
+  Subnet newSubnet(String availabilityDomain, String displayName, String id, Subnet.LifecycleState lifecycleState, String vcnId) {
+    Subnet.builder().availabilityDomain(availabilityDomain).displayName(displayName).id(id).lifecycleState(lifecycleState).vcnId(vcnId).build()
+  }
+
   def "agent creates correct cache result item, filtering out unavailable subnets"() {
     setup:
     def creds = Mock(OracleNamedAccountCredentials)
@@ -66,12 +75,12 @@ class OracleSubnetCachingAgentSpec extends Specification {
     creds.region = Region.US_PHOENIX_1.regionId
     def networkClient = Mock(VirtualNetworkClient)
     def vcnId = "ocid.vcn.123"
-    def vcn = new Vcn(null, null, null, null, null, "My Network", null, vcnId, Vcn.LifecycleState.Available, null, null)
-    def subnet = new Subnet("AD1", null, null, null, "My Subnet", null, "ocid.subnet.123", Subnet.LifecycleState.Available, null, null, null, null, vcnId, null, null)
+    def vcn = newVcn("My Network", vcnId, Vcn.LifecycleState.Available)
+    def subnet = newSubnet("AD1", "My Subnet", "ocid.subnet.123", Subnet.LifecycleState.Available, vcnId)
     def subnets = [
       subnet,
-      new Subnet("AD1", null, null, null, "My Subnet 2", null, "ocid.subnet.234", Subnet.LifecycleState.Terminated, null, null, null, null, vcnId, null, null),
-      new Subnet("AD1", null, null, null, "My Subnet 3", null, "ocid.subnet.567", Subnet.LifecycleState.Provisioning, null, null, null, null, vcnId, null, null)
+      newSubnet("AD1", "My Subnet 2", "ocid.subnet.234", Subnet.LifecycleState.Terminated, vcnId),
+      newSubnet("AD1", "My Subnet 3", "ocid.subnet.567", Subnet.LifecycleState.Provisioning, vcnId)
     ]
 
     networkClient.listVcns(_) >> ListVcnsResponse.builder().items([vcn]).build()

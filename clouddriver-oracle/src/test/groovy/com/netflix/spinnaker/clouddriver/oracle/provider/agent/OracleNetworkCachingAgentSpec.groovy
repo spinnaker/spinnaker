@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
+
 package com.netflix.spinnaker.clouddriver.oracle.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -55,6 +56,10 @@ class OracleNetworkCachingAgentSpec extends Specification {
     cacheResult.cacheResults.containsKey(Keys.Namespace.NETWORKS.ns)
   }
 
+  Vcn newVcn(String displayName, String id, Vcn.LifecycleState lifecycleState) {
+    return Vcn.builder().displayName(displayName).id(id).lifecycleState(lifecycleState).build()
+  }
+  
   def "agent creates correct cache result item, filtering out unavailable vcns"() {
     setup:
     def creds = Mock(OracleNamedAccountCredentials)
@@ -63,12 +68,12 @@ class OracleNetworkCachingAgentSpec extends Specification {
     def networkClient = Mock(VirtualNetworkClient)
     def vcnId = "ocid.vcn.123"
     def vcnDisplayName = "My Network"
-    def vcn = new Vcn(null, null, null, null, null, vcnDisplayName, null, vcnId, Vcn.LifecycleState.Available, null, null)
+    def vcn = newVcn(vcnDisplayName, vcnId, Vcn.LifecycleState.Available)
     def vcns = [
       vcn,
-      new Vcn(null, null, null, null, null, "Another network", null,"ocid.vcn.321", Vcn.LifecycleState.Terminated, null, null),
-      new Vcn(null, null, null, null, null, "Yet Another network", null, "ocid.vcn.531", Vcn.LifecycleState.Terminating, null, null),
-      new Vcn(null, null, null, null, null, "Coming soon network", null, "ocid.vcn.878", Vcn.LifecycleState.Provisioning, null, null)
+      newVcn("Another network", "ocid.vcn.321", Vcn.LifecycleState.Terminated),
+      newVcn("Yet Another network", "ocid.vcn.531", Vcn.LifecycleState.Terminating),
+      newVcn("Coming soon network", "ocid.vcn.878", Vcn.LifecycleState.Provisioning)
     ]
 
     networkClient.listVcns(_) >> ListVcnsResponse.builder().items(vcns).build()

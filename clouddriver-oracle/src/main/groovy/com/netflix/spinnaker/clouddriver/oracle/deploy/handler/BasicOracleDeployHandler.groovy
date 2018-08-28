@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
+
 package com.netflix.spinnaker.clouddriver.oracle.deploy.handler
 
 import com.netflix.frigga.Names
@@ -70,8 +71,6 @@ class BasicOracleDeployHandler implements DeployHandler<BasicOracleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
 
-    task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
-
     Map<String, Object> launchConfig = [
       "availabilityDomain": description.availabilityDomain,
       "compartmentId"     : description.credentials.compartmentId,
@@ -81,13 +80,15 @@ class BasicOracleDeployHandler implements DeployHandler<BasicOracleDeployDescrip
       "subnetId"          : description.subnetId,
       "createdTime"       : System.currentTimeMillis()
     ]
+    int targetSize = description.targetSize?: (description.capacity?.desired?:0)
+    task.updateStatus BASE_PHASE, "Composing server group $serverGroupName with $targetSize instance(s) "
 
     def sg = new OracleServerGroup(
       name: serverGroupName,
       region: description.region,
       zone: description.availabilityDomain,
       launchConfig: launchConfig,
-      targetSize: description.capacity.desired,
+      targetSize: targetSize,
       credentials: description.credentials,
       loadBalancerId: description.loadBalancerId
     )

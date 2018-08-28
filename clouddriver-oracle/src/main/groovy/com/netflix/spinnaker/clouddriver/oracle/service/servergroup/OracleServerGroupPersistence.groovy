@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
+
 package com.netflix.spinnaker.clouddriver.oracle.service.servergroup
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.oracle.model.OracleServerGroup
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
@@ -52,6 +54,8 @@ class OracleServerGroupPersistence {
   private final String SERVERGROUP_BUCKET_NAME = "_spinnaker_server_group_data"
 
   private final Charset UTF_8_CHARSET = Charset.forName("UTF-8")
+
+  private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
   /**
    * Lists the server group names for the specified account.
@@ -169,14 +173,12 @@ class OracleServerGroupPersistence {
     // Save these to re-assign after ObjectMapper does its work.
     def credentials = sg.credentials
     sg.credentials = null
-    def objectMapper = new ObjectMapper();
     def json = objectMapper.writeValueAsString(sg);
     sg.credentials = credentials
     return json
   }
 
   private OracleServerGroup jsonToServerGroup(String json, OracleNamedAccountCredentials creds) {
-    def objectMapper = new ObjectMapper()
     def sg = objectMapper.readValue(json, OracleServerGroup.class)
     sg.credentials = creds
     return sg

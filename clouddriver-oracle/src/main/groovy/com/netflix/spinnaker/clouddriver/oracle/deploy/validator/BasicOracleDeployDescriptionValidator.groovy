@@ -9,22 +9,26 @@
 
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator
 
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.oracle.OracleOperation
-import com.netflix.spinnaker.clouddriver.oracle.deploy.description.ResizeOracleServerGroupDescription
+import com.netflix.spinnaker.clouddriver.oracle.deploy.description.BasicOracleDeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@OracleOperation(AtomicOperations.RESIZE_SERVER_GROUP)
-@Component("resizeOracleServerGroupDescriptionValidator")
-class ResizeOracleServerGroupDescriptionValidator extends StandardOracleAttributeValidator<ResizeOracleServerGroupDescription> {
-
+@OracleOperation(AtomicOperations.CREATE_SERVER_GROUP)
+@Component("basicOracleDeployDescriptionValidator")
+class BasicOracleDeployDescriptionValidator extends StandardOracleAttributeValidator<BasicOracleDeployDescription> {
+  
   @Override
-  void validate(List priorDescriptions, ResizeOracleServerGroupDescription description, Errors errors) {
-    context = "resizeServerGroupDescription"
-    validateNotEmptyString(errors, description.serverGroupName, "serverGroupName")
+  void validate(List priorDescriptions, BasicOracleDeployDescription description, Errors errors) {
+    context = "basicOracleDeployDescriptionValidator"
+    validateNotEmptyString(errors, description.application, "application")
     validateNotEmptyString(errors, description.region, "region")
     validateNotEmptyString(errors, description.accountName, "accountName")
+    validateNotEmptyString(errors, description.imageId, "imageId")
+    validateNotEmptyString(errors, description.shape, "shape")
     //TODO: check serviceLimits?
     Integer targetSize = description.targetSize?: (description.capacity?.desired?:0)
     validateNonNegative(errors, targetSize?:0, "targetSize")

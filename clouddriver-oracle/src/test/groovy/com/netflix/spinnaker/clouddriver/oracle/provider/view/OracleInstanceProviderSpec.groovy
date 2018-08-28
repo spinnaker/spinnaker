@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Oracle America, Inc.
+ * Copyright (c) 2017, 2018, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@ package com.netflix.spinnaker.clouddriver.oracle.provider.view
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ser.FilterProvider
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.model.HealthState
@@ -56,8 +58,10 @@ class OracleInstanceProviderSpec extends Specification {
       .shape("small")
       .lifecycleState(lifecycleState)
       .build()
-
-    def attributes = new ObjectMapper().convertValue(instance, new TypeReference<Map<String, Object>>() {})
+      
+    def attributes = new ObjectMapper()
+      .setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false))
+      .convertValue(instance, new TypeReference<Map<String, Object>>() {})
 
     return new DefaultCacheData(
       Keys.getInstanceKey(account, region, name, ocid),

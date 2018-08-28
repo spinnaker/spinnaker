@@ -7,6 +7,10 @@ build/
 *.iws
 TestScript.groovy
 .idea/
+.classpath
+.project
+.settings/
+bin/
 application.yml
 *.hprof
 README.html
