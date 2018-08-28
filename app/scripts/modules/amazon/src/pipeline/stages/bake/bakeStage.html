@@ -6,7 +6,7 @@
     <stage-config-field label="Regions">
       <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </stage-config-field>
-    <stage-config-field label="Package" help-key="pipeline.config.bake.package">
+    <stage-config-field label="{{stage.storeType === 'docker' ? 'Repo Path' : 'Package'}}" help-key="pipeline.config.bake.package">
       <input type="text" class="form-control input-sm"
              ng-model="stage.package"/>
     </stage-config-field>
@@ -112,19 +112,19 @@
                ng-min="viewState.minRootVolumeSize"
                ng-model="stage.rootVolumeSize"/> GB <span class="small">(minimum: {{viewState.minRootVolumeSize}})</span>
       </stage-config-field>
-      <stage-config-field label="Base Name">
+      <stage-config-field label="Base Name" ng-if="stage.storeType !== 'docker'">
         <input type="text" class="form-control input-sm"
                ng-model="stage.baseName"/>
       </stage-config-field>
-      <stage-config-field label="Base AMI" help-key="pipeline.config.bake.baseAmi">
+      <stage-config-field label="Base AMI" help-key="pipeline.config.bake.baseAmi"  ng-if="stage.storeType !== 'docker'">
         <input type="text" class="form-control input-sm"
                ng-model="stage.baseAmi"/>
       </stage-config-field>
-      <stage-config-field label="AMI Name" help-key="pipeline.config.bake.amiName">
+      <stage-config-field label="{{stage.storeType === 'docker' ? 'Docker Image Name' : 'AMI Name'}}" help-key="pipeline.config.bake.amiName">
         <input type="text" class="form-control input-sm"
                ng-model="stage.amiName"/>
       </stage-config-field>
-      <stage-config-field label="AMI Suffix" help-key="pipeline.config.bake.amiSuffix">
+      <stage-config-field label="{{stage.storeType === 'docker' ? 'Docker Image Prefix' : 'AMI Suffix'}}" help-key="pipeline.config.bake.amiSuffix">
         <input type="text" class="form-control input-sm"
                ng-model="stage.amiSuffix"/>
       </stage-config-field>
