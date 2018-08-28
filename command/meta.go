@@ -17,6 +17,7 @@ package command
 import (
 	"bufio"
 	"context"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
@@ -304,11 +305,20 @@ func (m *ApiMeta) Authenticate() error {
 			go http.ListenAndServe(":8085", nil)
 			// Note: leaving server connection open for scope of request, will be reaped on exit.
 
-			authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+			verifierBytes := make([]byte, 5)
+			if _, err := rand.Read(verifierBytes); err != nil {
+				m.Ui.Error("Could not generate random string for code_verifier")
+				return err
+			}
+			verifier := string(verifierBytes)
+			codeChallenge := oauth2.SetAuthURLParam("code_challenge", verifier)
+			codeVerifier := oauth2.SetAuthURLParam("code_verifier", verifier)
+
+			authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce, codeChallenge)
 			m.Ui.Output(fmt.Sprintf("Navigate to %s and authenticate", authURL))
 			code := m.Prompt()
 
-			newToken, err = config.Exchange(oauth2.NoContext, code)
+			newToken, err = config.Exchange(oauth2.NoContext, code, codeVerifier)
 			if err != nil {
 				return err
 			}
