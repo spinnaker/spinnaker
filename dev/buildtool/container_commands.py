@@ -184,23 +184,23 @@ class BuildContainerCommand(GradleCommandProcessor):
     """Helper function for repository_main."""
     options = self.options
     name = repository.name
+
     if name == 'spinnaker-monitoring':
       has_gradle_step = False
       name = 'monitoring-daemon'
       dirname = 'spinnaker-monitoring-daemon'
-      dockerfile = 'Dockerfile'
     else:
       has_gradle_step = True
       dirname = '.'
-      dockerfile = ('Dockerfile.slim'
-                    if repository.name not in ['echo']
-                    else 'Dockerfile')
 
-    dockerfile_path = os.path.join(repository.git_dir, dirname, dockerfile)
+    dockerfile_path = os.path.join(
+        repository.git_dir, dirname, 'Dockerfile.slim')
     if not os.path.exists(dockerfile_path):
-      logging.warning('No GCB config for %s because there is no %s',
-                      repository.name, dockerfile)
-      return None
+      dockerfile_path = os.path.join(repository.git_dir, dirname, 'Dockerfile')
+      if not os.path.exists(dockerfile_path):
+        logging.warning('No GCB config for %s because there is no Dockerfile',
+                        repository.name)
+        return None
 
     env_vars_list = [env
                      for env in options.container_env_vars.split(',')
@@ -211,6 +211,8 @@ class BuildContainerCommand(GradleCommandProcessor):
     steps = ([self.__make_gradle_gcb_step(name, env_vars_list)]
              if has_gradle_step
              else [])
+
+    dockerfile = os.path.basename(dockerfile_path)
     build_step = {
         'args': ['build', '-t', versioned_image, '-f', dockerfile, '.'],
         'env': env_vars_list,
@@ -224,7 +226,7 @@ class BuildContainerCommand(GradleCommandProcessor):
     config = {
         'images': [versioned_image],
         'options': {
-          'machineType': 'N1_HIGHCPU_8'
+            'machineType': 'N1_HIGHCPU_8'
         },
         'timeout': '3600s',
         'steps': steps
