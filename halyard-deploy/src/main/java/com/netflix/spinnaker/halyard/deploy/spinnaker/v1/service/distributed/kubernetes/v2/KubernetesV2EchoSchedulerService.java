@@ -19,11 +19,8 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.StringBackedProfileFactory;
 import java.nio.file.Paths;
 import java.util.List;
 import lombok.Data;
@@ -50,60 +47,7 @@ public class KubernetesV2EchoSchedulerService extends KubernetesV2EchoService {
 
     String filename = "echo-scheduler.yml";
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-
-    // TODO(joonlim): Issue 2934 - Delete once ./halconfig/echo-scheduler.yml is added to the echo repo
-    ArtifactService artifactService = getArtifactService();
-    profiles.add(new StringBackedProfileFactory() {
-      @Override
-      protected String getRawBaseProfile() {
-        return "";
-      }
-
-      @Override
-      protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration,
-          SpinnakerRuntimeSettings endpoints) {
-        String contents = String.join("\n",
-            "server:",
-            "  port: ${services.echo-scheduler.port:8089}",
-            "  address: ${services.echo-scheduler.host:localhost}",
-            "",
-            "scheduler:",
-            "  enabled: true",
-            "  threadPoolSize: 20",
-            "  triggeringEnabled: true",
-            "  pipelineConfigsPoller:",
-            "    enabled: true",
-            "    pollingIntervalMs: 30000",
-            "  cron:",
-            "    timezone: ${global.spinnaker.timezone:America/Los_Angeles}",
-            ""
-        );
-        profile.appendContents(contents);
-      }
-
-      @Override
-      public SpinnakerArtifact getArtifact() {
-        return SpinnakerArtifact.ECHO;
-      }
-
-      @Override
-      protected String commentPrefix() {
-        return "## ";
-      }
-
-      @Override
-      public ArtifactService getArtifactService() {
-        return artifactService;
-      }
-    }.getProfile(filename, path, deploymentConfiguration, endpoints));
-
-    // TODO(joonlim): Issue 2934 - Uncomment once ./halconfig/echo-scheduler.yml is added to the echo repo
-    /*
-    // Remove echo.yml in favor of echo-scheduler.yml
-    profiles = profiles.stream().filter(p -> !p.getName().equals("echo.yml")).collect(Collectors.toList());
-
     profiles.add(getEchoProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints));
-    */
 
     return profiles;
   }
