@@ -9,7 +9,7 @@ export interface IEphemeralPopoverProps {
 }
 
 export interface IEphemeralPopoverState {
-  ttl?: string;
+  ttl?: number;
 }
 
 export class EphemeralPopover extends React.Component<IEphemeralPopoverProps, IEphemeralPopoverState> {
@@ -24,7 +24,7 @@ export class EphemeralPopover extends React.Component<IEphemeralPopoverProps, IE
       const ephemeralTag = entityTags.tags.filter(x => x.name === 'spinnaker:ttl')[0];
       if (ephemeralTag) {
         return {
-          ttl: moment(ephemeralTag.value.expiry).fromNow(true),
+          ttl: ephemeralTag.value.expiry,
         };
       }
     }
@@ -34,10 +34,13 @@ export class EphemeralPopover extends React.Component<IEphemeralPopoverProps, IE
 
   private PopoverContent = () => {
     const { ttl } = this.state;
+    const isInPast = !!ttl && Date.now() > ttl;
+    const ttlPhrase = moment(ttl).fromNow();
 
     return (
       <div>
-        This server group will be automatically destroyed in <strong>{ttl}</strong>.
+        This server group {isInPast ? 'was scheduled to be' : 'will be'} automatically destroyed{' '}
+        <strong>{ttlPhrase}</strong>.
       </div>
     );
   };
