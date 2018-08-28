@@ -41,6 +41,7 @@ public class GoogleCredentials extends GoogleCommonCredentials {
 
     if (computeVersion.servicePath) {
       computeBuilder.setServicePath(computeVersion.servicePath)
+        .setBatchPath(computeVersion.batchPath)
     }
 
     return computeBuilder.build()
