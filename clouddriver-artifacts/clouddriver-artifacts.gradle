@@ -1,8 +1,6 @@
 dependencies {
   compile project(":clouddriver-core")
 
-  spinnaker.group('amazon')
-
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("bootWeb")
@@ -10,4 +8,5 @@ dependencies {
 
   compile spinnaker.dependency("googleStorage")
   compile "org.apache.commons:commons-compress:1.14"
+  compile "com.amazonaws:aws-java-sdk-s3:${spinnaker.version("aws")}"
 }
