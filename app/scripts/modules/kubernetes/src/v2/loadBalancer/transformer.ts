@@ -14,6 +14,12 @@ class KubernetesV2LoadBalancerTransformer {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instances = [];
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
+    (loadBalancer.serverGroups || []).forEach(serverGroup => {
+      serverGroup.cloudProvider = loadBalancer.provider;
+      (serverGroup.instances || []).forEach(instance => {
+        instance.cloudProvider = loadBalancer.provider;
+      });
+    });
     return this.$q.resolve(loadBalancer);
   }
 

@@ -10,18 +10,18 @@ module.exports = angular
   .module('spinnaker.gce.loadBalancer.transformer', [])
   .factory('gceLoadBalancerTransformer', function($q) {
     function updateHealthCounts(container) {
-      var instances = container.instances;
-      var serverGroups = container.serverGroups || [container];
+      const instances = container.instances;
+      const serverGroups = container.serverGroups || [container];
       container.instanceCounts = {
-        up: instances.filter(function(instance) {
+        up: instances.filter(instance => {
           return instance.health[0].state === 'InService';
         }).length,
-        down: instances.filter(function(instance) {
+        down: instances.filter(instance => {
           return instance.health[0].state === 'OutOfService';
         }).length,
-        outOfService: serverGroups.reduce(function(acc, serverGroup) {
+        outOfService: serverGroups.reduce((acc, serverGroup) => {
           return (
-            serverGroup.instances.filter(function(instance) {
+            serverGroup.instances.filter(instance => {
               return instance.healthState === 'OutOfService';
             }).length + acc
           );
