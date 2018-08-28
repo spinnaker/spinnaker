@@ -52,6 +52,7 @@ angular
     require('./pipeline/stages/resizeAsg/ecsResizeAsgStage').name,
     require('./pipeline/stages/scaleDownCluster/ecsScaleDownClusterStage').name,
     require('./pipeline/stages/shrinkCluster/ecsShrinkClusterStage').name,
+    require('./securityGroup/securityGroup.transformer.js').name,
     ECS_SERVERGROUP_MODULE,
   ])
   .config(function() {
@@ -71,6 +72,9 @@ angular
       instance: {
         detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
         detailsController: 'ecsInstanceDetailsCtrl',
+      },
+      securityGroup: {
+        transformer: 'ecsSecurityGroupTransformer',
       },
     });
   });
