@@ -5,10 +5,10 @@
         Account
       </div>
       <div class="col-md-7">
-        <account-select-field required read-only="command.viewState.readOnlyFields.credentials" component="command" field="account" accounts="command.backingData.accounts" provider="'oracle'"></account-select-field>
+        <account-select-field required read-only="command.viewState.readOnlyFields.credentials" component="command" field="account" accounts="command.backingData.accounts" provider="'oracle'" on-change="command.backingData.accountOnChange()"></account-select-field>
       </div>
     </div>
-    <region-select-field label-columns="3" component="command" field="region" account="command.account" provider="'oracle'" regions="command.backingData.filtered.regions"></region-select-field>
+    <region-select-field label-columns="3" component="command" field="region" account="command.account" provider="'oracle'" regions="command.backingData.filtered.regions" on-change="command.backingData.regionOnChange()"></region-select-field>
     <!-- VCN Selection (which will then filter subnets) -->
     <div class="form-group">
       <div class="col-md-3 sm-label-right">

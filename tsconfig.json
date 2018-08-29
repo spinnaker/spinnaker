@@ -35,7 +35,10 @@
       "appengine/": ["appengine/src"],
       "@spinnaker/kubernetes": ["kubernetes/src"],
       "kubernetes/*": ["kubernetes/src/*"],
-      "kubernetes/": ["kubernetes/src"]
+      "kubernetes/": ["kubernetes/src"],
+      "@spinnaker/oracle": ["oracle/src"],
+      "oracle/*": ["oracle/src/*"],
+      "oracle": ["oracle/src"]
     },
     "pretty": true,
     "removeComments": true,

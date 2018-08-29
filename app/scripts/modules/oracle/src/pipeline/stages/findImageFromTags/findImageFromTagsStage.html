@@ -1,0 +1,11 @@
+<div ng-controller="oracleFindImageFromTagsStageCtrl as findImageFromTagsCtrl" class="form-horizontal">
+  <stage-config-field label="Regions">
+    <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+  </stage-config-field>
+  <stage-config-field label="Pattern">
+    <map-editor model="stage.packageName" allow-empty="true"></map-editor>
+  </stage-config-field>
+  <stage-config-field label="Tags">
+    <map-editor model="stage.tags" allow-empty="true"></map-editor>
+  </stage-config-field>
+</div>
