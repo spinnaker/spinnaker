@@ -36,6 +36,7 @@ import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +59,8 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
   private final ExecutionLauncher executionLauncher;
   private final ExecutionRepository executionRepository;
 
+  private final String username;
+
   private final PollerSupport pollerSupport;
 
   private final Counter errorsCounter;
@@ -70,7 +73,8 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
                                          RetrySupport retrySupport,
                                          Registry registry,
                                          ExecutionLauncher executionLauncher,
-                                         ExecutionRepository executionRepository) {
+                                         ExecutionRepository executionRepository,
+                                         @Value("${pollers.restorePinnedServerGroups.username:spinnaker}") String username) {
     this(
       notificationClusterLock,
       objectMapper,
@@ -79,6 +83,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
       registry,
       executionLauncher,
       executionRepository,
+      username,
       new PollerSupport(objectMapper, retrySupport, oortService)
     );
   }
@@ -91,6 +96,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
                                   Registry registry,
                                   ExecutionLauncher executionLauncher,
                                   ExecutionRepository executionRepository,
+                                  String username,
                                   PollerSupport pollerSupport) {
     super(notificationClusterLock);
 
@@ -99,6 +105,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
     this.retrySupport = retrySupport;
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
+    this.username = username;
     this.pollerSupport = pollerSupport;
 
     this.errorsCounter = registry.counter("poller.restorePinnedServerGroups.errors");
@@ -142,11 +149,15 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
         List<Map<String, Object>> jobs = new ArrayList<>();
         jobs.add(buildDeleteEntityTagsOperation(pinnedServerGroupTag));
 
-        Optional<ServerGroup> serverGroup = pollerSupport.fetchServerGroup(
+        User systemUser = new User();
+        systemUser.setUsername(username);
+        systemUser.setAllowedAccounts(Collections.singletonList(pinnedServerGroupTag.account));
+
+        Optional<ServerGroup> serverGroup = AuthenticatedRequest.propagate(() -> pollerSupport.fetchServerGroup(
           pinnedServerGroupTag.account,
           pinnedServerGroupTag.location,
           pinnedServerGroupTag.serverGroup
-        );
+        ), systemUser).call();
 
         serverGroup.ifPresent(s -> {
           if (s.capacity.min.equals(pinnedServerGroupTag.pinnedCapacity.min)) {
@@ -159,10 +170,6 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
 
         Map<String, Object> cleanupOperation = buildCleanupOperation(pinnedServerGroupTag, serverGroup, jobs);
         log.info((String) cleanupOperation.get("name"));
-
-        User systemUser = new User();
-        systemUser.setUsername("spinnaker");
-        systemUser.setAllowedAccounts(Collections.singletonList(pinnedServerGroupTag.account));
 
         AuthenticatedRequest.propagate(() -> executionLauncher.start(
           Execution.ExecutionType.ORCHESTRATION,

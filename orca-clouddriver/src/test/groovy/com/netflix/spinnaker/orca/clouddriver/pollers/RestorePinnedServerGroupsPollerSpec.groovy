@@ -89,6 +89,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
       registry,
       executionLauncher,
       executionRepository,
+      "spinnaker",
       pollerSupport
     ]
   )
