@@ -101,7 +101,7 @@ public class LdapUserRolesProvider implements UserRolesProvider {
 
     // ExternalUser is used here as a simple data type to hold the username/roles combination.
     return users.stream()
-        .map(u -> u.setExternalRoles(loadRoles(u)))
+        .map(u -> new ExternalUser().setId(u.getId()).setExternalRoles(loadRoles(u)))
         .collect(Collectors.toMap(ExternalUser::getId, ExternalUser::getExternalRoles));
   }
 
