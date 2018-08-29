@@ -225,7 +225,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
       },
       () => {
         if (query.length >= MIN_SEARCH_LENGTH) {
-          this.query$.next(query);
+          this.query$.next(query.trim());
         } else if (!shouldKeepWarningVisible) {
           this.considerMinLengthWarning();
         }
