@@ -25,6 +25,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotifica
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.ecs.EcsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
@@ -145,6 +147,15 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
       OpenstackAccount openstackAccount = (OpenstackAccount) accountService.getProviderAccount(deploymentConfiguration.getName(), "openstack", openstackProvider.getPrimaryAccount());
       String firstRegion = openstackAccount.getRegions().get(0);
       bindings.put("openstack.default.region", firstRegion);
+    }
+
+    // Configure AWS
+    AwsProvider awsProvider = deploymentConfiguration.getProviders().getAws();
+    bindings.put("aws.default.account", awsProvider.getPrimaryAccount());
+    if (awsProvider.getPrimaryAccount() != null) {
+      AwsAccount awsAccount = (AwsAccount) accountService.getProviderAccount(deploymentConfiguration.getName(), "aws", awsProvider.getPrimaryAccount());
+      String firstRegion = awsAccount.getRegions().get(0).getName();
+      bindings.put("aws.default.region", firstRegion);
     }
 
     // Configure ECS
