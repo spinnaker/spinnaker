@@ -713,10 +713,12 @@ const Action = (props: {
   if (props.action.type === 'authenticate-oidc') {
     const clientId = props.action.authenticateOidcConfig.clientId;
 
+    const disableManualOidcDialog = get(AWSProviderSettings, 'loadBalancers.disableManualOidcDialog', false);
     const showOidcConfigs =
-      props.oidcConfigs &&
-      props.oidcConfigs.length > 0 &&
-      (!clientId || props.oidcConfigs.find(c => c.clientId === clientId));
+      disableManualOidcDialog ||
+      (props.oidcConfigs &&
+        props.oidcConfigs.length > 0 &&
+        (!clientId || props.oidcConfigs.find(c => c.clientId === clientId)));
     return (
       <div className="horizontal middle" style={{ height: '30px' }}>
         <span style={{ whiteSpace: 'pre' }}>auth with {CustomLabels.get('OIDC client')} </span>

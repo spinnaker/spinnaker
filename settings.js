@@ -55,6 +55,7 @@ window.spinnakerSettings = {
         // if true, VPC load balancers will be created as internal load balancers if the selected subnet has a purpose
         // tag that starts with "internal"
         inferInternalFlagFromSubnet: false,
+        disableManualOidcDialog: false,
       },
       useAmiBlockDeviceMappings: false,
     },
