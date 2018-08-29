@@ -38,6 +38,10 @@ public class DefaultAfterResizeEventHandler implements AfterResizeEventHandler {
   public void handle(AfterResizeEvent event) {
     AutoScalingGroup autoScalingGroup = event.getAutoScalingGroup();
 
+    if (event.getCapacity() == null || event.getCapacity().getDesired() == null) {
+      return;
+    }
+
     if (event.getCapacity().getDesired() > 0) {
       return;
     }

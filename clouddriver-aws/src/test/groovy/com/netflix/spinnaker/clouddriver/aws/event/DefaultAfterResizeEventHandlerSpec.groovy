@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class DefaultAfterResizeEventHandlerSpec extends Specification {
   def task = Mock(Task)
@@ -48,15 +49,19 @@ class DefaultAfterResizeEventHandlerSpec extends Specification {
   @Subject
   def eventHandler = new DefaultAfterResizeEventHandler()
 
-  def "should no-op if capacity > 0"() {
+  @Unroll
+  def "should no-op if desired capacity > 0 or not specified "() {
     given:
-    capacity.desired = 1
+    capacity.desired = desiredCapacity
 
     when:
     eventHandler.handle(event)
 
     then:
     0 * _
+
+    where:
+    desiredCapacity << [1, null]
   }
 
   def "should no-op if load balancers present"() {
