@@ -12,7 +12,7 @@ service AssetPluginRegistry {
 }
 
 message RegisterAssetPluginRequest {
-  string name = 1;
+  string vipAddress = 1;
   repeated TypeMetadata types = 2;
 }
 
@@ -25,7 +25,7 @@ service VetoPluginRegistry {
 }
 
 message RegisterVetoPluginRequest {
-  string name = 1;
+  string vipAddress = 1;
 }
 
 message RegisterVetoPluginResponse {

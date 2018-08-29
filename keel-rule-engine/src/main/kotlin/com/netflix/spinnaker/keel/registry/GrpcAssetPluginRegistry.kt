@@ -31,8 +31,8 @@ class GrpcAssetPluginRegistry(
     request
       .typesList
       .forEach { type ->
-        assetPlugins[type] = request.name
-        log.info("Registered asset plugin \"${request.name}\" supporting $type")
+        assetPlugins[type] = request.vipAddress
+        log.info("Registered asset plugin at \"${request.vipAddress}\" supporting $type")
       }
     responseObserver.apply {
       onNext(registerAssetPluginSuccessResponse)

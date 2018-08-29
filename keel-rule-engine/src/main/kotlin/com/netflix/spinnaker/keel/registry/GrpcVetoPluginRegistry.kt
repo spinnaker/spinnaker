@@ -26,8 +26,8 @@ class GrpcVetoPluginRegistry(
     request: RegisterVetoPluginRequest,
     responseObserver: StreamObserver<RegisterVetoPluginResponse>
   ) {
-    vetoPlugins.add(request.name)
-    log.info("Registered veto plugin \"${request.name}\"")
+    vetoPlugins.add(request.vipAddress)
+    log.info("Registered veto plugin at \"${request.vipAddress}\"")
     responseObserver.apply {
       onNext(
         RegisterVetoPluginResponse.newBuilder()

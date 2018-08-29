@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.plugin
 
+import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.keel.api.GrpcStubManager
 import com.netflix.spinnaker.keel.api.TypeMetadata
@@ -35,16 +36,28 @@ internal class PluginRegistrationTest {
       }
     }
   }
+  val keelRegistryAddress = "keel-test"
   val eurekaClient: EurekaClient = mock()
   val amazonAssetPlugin = mock<AssetPlugin>()
-  val registrar = PluginRegistrar(eurekaClient, listOf(amazonAssetPlugin))
+  val instanceInfo = InstanceInfo.Builder.newBuilder().run {
+    setAppName("keelplugins")
+    setASGName("keelplugins-test-aws-v005")
+    setVIPAddress("keelplugins-test-aws")
+    build()
+  }
+  val registrar = PluginRegistrar(
+    eurekaClient,
+    listOf(amazonAssetPlugin),
+    keelRegistryAddress,
+    instanceInfo
+  )
 
   @BeforeEach
   fun startRegistry() {
     grpc.startServer {
       addService(registry)
     }
-    whenever(eurekaClient.getNextServerFromEureka("keel", false)) doReturn grpc.instanceInfo
+    whenever(eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)) doReturn grpc.instanceInfo
     whenever(amazonAssetPlugin.supportedTypes) doReturn listOf(
       "aws.SecurityGroup",
       "aws.ClassicLoadBalancer"
@@ -59,7 +72,7 @@ internal class PluginRegistrationTest {
 
   @Test
   fun `registers plugins on startup`() {
-    registrar.registerPlugins()
+    registrar.onDiscoveryUp()
 
     expect(registeredTypes)
       .containsExactlyInAnyOrder(
@@ -68,7 +81,6 @@ internal class PluginRegistrationTest {
       )
   }
 }
-
 
 fun typeMetadataForKind(it: String) =
   TypeMetadata.newBuilder().setKind(it).build()

@@ -84,7 +84,7 @@ internal object PluginRegistrationSpec : Spek({
           RegisterAssetPluginRequest
             .newBuilder()
             .apply {
-              name = "aws-asset-plugin"
+              vipAddress = "aws-asset-plugin"
               addTypes(type)
             }
             .build(),
@@ -135,7 +135,7 @@ internal object PluginRegistrationSpec : Spek({
       given("plugins were registered") {
         sequenceOf("execution-window", "cloud-capacity").forEach {
           subject.register(
-            RegisterVetoPluginRequest.newBuilder().setName(it).build(),
+            RegisterVetoPluginRequest.newBuilder().setVipAddress(it).build(),
             responseHandler
           )
         }
