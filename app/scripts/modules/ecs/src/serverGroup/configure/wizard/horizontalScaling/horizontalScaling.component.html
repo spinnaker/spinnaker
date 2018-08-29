@@ -2,6 +2,22 @@
 
   <div class="form-group">
     <div class="col-md-5 sm-label-right">
+      Launch Type
+      <help-field key="ecs.launchtype"></help-field>
+    </div>
+    <div class="col-md-3">
+      <ui-select ng-model="$ctrl.command.launchType"
+                 class="form-control input-sm">
+        <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="launchType in $ctrl.command.backingData.launchTypes | filter: $select.search">
+          <span ng-bind-html="launchType | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right">
       Desired capacity
       <help-field key="ecs.capacity.desired"></help-field>
     </div>

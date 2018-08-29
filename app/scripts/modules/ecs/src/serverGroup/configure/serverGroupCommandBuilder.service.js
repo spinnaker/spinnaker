@@ -49,6 +49,7 @@ module.exports = angular
               max: 1,
               desired: 1,
             },
+            launchType: 'EC2',
             healthCheckType: 'EC2',
             selectedProvider: 'ecs',
             iamRole: defaultIamRole,

@@ -1,5 +1,5 @@
 import { module, IPromise, IQService } from 'angular';
-import { chain, extend, find, flatten, has, intersection, keys, some, xor } from 'lodash';
+import { chain, clone, extend, find, flatten, has, intersection, keys, some, xor } from 'lodash';
 
 import {
   AccountService,
@@ -57,6 +57,7 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   ecsClusters: IEcsClusterDescriptor[];
   iamRoles: IRoleDescriptor[];
   metricAlarms: IMetricAlarmDescriptor[];
+  launchTypes: string[];
   // subnetTypes: string;
   // securityGroups: string[]
 }
@@ -78,6 +79,7 @@ export class EcsServerGroupConfigurationService {
   // private enabledMetrics = ['GroupMinSize', 'GroupMaxSize', 'GroupDesiredCapacity', 'GroupInServiceInstances', 'GroupPendingInstances', 'GroupStandbyInstances', 'GroupTerminatingInstances', 'GroupTotalInstances'];
   // private healthCheckTypes = ['EC2', 'ELB'];
   // private terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
+  private launchTypes = ['EC2', 'FARGATE'];
 
   constructor(
     private $q: IQService,
@@ -96,6 +98,7 @@ export class EcsServerGroupConfigurationService {
   public configureUpdateCommand(command: IEcsServerGroupCommand): void {
     command.backingData = {
       // terminationPolicies: clone(this.terminationPolicies)
+      launchTypes: clone(this.launchTypes),
     } as IEcsServerGroupCommandBackingData;
   }
 
@@ -138,6 +141,7 @@ export class EcsServerGroupConfigurationService {
         ecsClusters: this.ecsClusterReader.listClusters(),
         metricAlarms: this.metricAlarmReader.listMetricAlarms(),
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
+        launchTypes: this.$q.when(clone(this.launchTypes)),
       })
       .then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
         let loadBalancerReloader = this.$q.when();
