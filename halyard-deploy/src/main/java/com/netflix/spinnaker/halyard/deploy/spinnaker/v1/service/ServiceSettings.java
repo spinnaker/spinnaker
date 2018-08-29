@@ -29,6 +29,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * These are the attributes of a service that can conceivably change between deployments to the exact same deployment
@@ -109,36 +110,18 @@ public class ServiceSettings {
     this.setEnv(fullEnvironment);
   }
 
-  private URIBuilder buildBaseUri() {
-    if (StringUtils.isEmpty(overrideBaseUrl)) {
-      return new URIBuilder()
-          .setScheme(getScheme())
-          .setPort(getPort())
-          .setHost(getAddress());
-    } else {
-      try {
-        return new URIBuilder(overrideBaseUrl);
-      } catch (URISyntaxException e) {
-        throw new HalException(Problem.Severity.FATAL, "Illegal override baseURL: " + overrideBaseUrl, e);
-      }
-    }
+  public String getBaseUrl() {
+    return buildBaseUri()
+        .map(b -> b.toString())
+        .orElse(null);
   }
 
   @JsonIgnore
   public String getAuthBaseUrl() {
     return buildBaseUri()
+        .get()
         .setUserInfo(getUsername(), getPassword())
         .toString();
-  }
-
-  public String getBaseUrl() {
-    if (baseUrl != null) {
-      return baseUrl;
-    }
-    if (getScheme() != null && getPort() != null && getAddress() != null) {
-      return buildBaseUri().toString();
-    }
-    return null;
   }
 
   @JsonIgnore
@@ -158,5 +141,29 @@ public class ServiceSettings {
     } catch (URISyntaxException e) {
       throw new HalException(Problem.Severity.FATAL, "Could not build metrics endpoint. This is probably a bug.", e);
     }
+  }
+
+  private Optional<URIBuilder> buildBaseUri() {
+    if (!StringUtils.isBlank(overrideBaseUrl)) {
+      try {
+        return Optional.of(new URIBuilder(overrideBaseUrl));
+      } catch (URISyntaxException e) {
+        throw new HalException(Problem.Severity.FATAL, "Illegal override baseURL: " + overrideBaseUrl, e);
+      }
+    }
+    if (!StringUtils.isBlank(baseUrl)) {
+      try {
+        return Optional.of(new URIBuilder(baseUrl));
+      } catch (URISyntaxException e) {
+        throw new HalException(Problem.Severity.FATAL, "Illegal baseURL: " + baseUrl, e);
+      }
+    }
+    if (getScheme() != null && getPort() != null && getAddress() != null) {
+      return Optional.of(new URIBuilder()
+          .setScheme(getScheme())
+          .setPort(getPort())
+          .setHost(getAddress()));
+    }
+    return Optional.empty();
   }
 }
