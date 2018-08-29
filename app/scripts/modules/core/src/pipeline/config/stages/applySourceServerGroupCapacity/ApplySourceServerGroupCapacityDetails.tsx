@@ -1,3 +1,4 @@
+import { StageFailureMessage } from 'core';
 import * as React from 'react';
 import { find, get } from 'lodash';
 
@@ -41,6 +42,8 @@ export class ApplySourceServerGroupCapacityDetails extends React.Component<
             </dl>
           </div>
         </div>
+
+        <StageFailureMessage stage={stage} message={stage.failureMessage} />
       </ExecutionDetailsSection>
     );
   }
