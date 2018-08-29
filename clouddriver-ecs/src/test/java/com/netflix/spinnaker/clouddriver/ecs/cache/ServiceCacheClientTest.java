@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache;
 
+import com.amazonaws.services.ecs.model.AwsVpcConfiguration;
 import com.amazonaws.services.ecs.model.DeploymentConfiguration;
 import com.amazonaws.services.ecs.model.LoadBalancer;
+import com.amazonaws.services.ecs.model.NetworkConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
@@ -26,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent;
 import org.junit.Test;
 import spock.lang.Subject;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -61,6 +64,11 @@ public class ServiceCacheClientTest extends CommonCacheClient {
     service.setTaskDefinition("arn:aws:ecs:" + REGION + ":012345678910:task-definition/test-task-def:1");
     service.setRoleArn("arn:aws:ecs:" + REGION + ":012345678910:service/test-role");
     service.setDeploymentConfiguration(new DeploymentConfiguration().withMinimumHealthyPercent(50).withMaximumPercent(100));
+    service.setNetworkConfiguration(new NetworkConfiguration()
+      .withAwsvpcConfiguration(new AwsVpcConfiguration()
+        .withSecurityGroups(Collections.singletonList("security-group-id"))
+        .withSubnets(Collections.singletonList("subnet-id"))
+      ));
     service.setLoadBalancers(Collections.singleton(loadBalancer));
     service.setDesiredCount(9001);
     service.setCreatedAt(new Date());
@@ -111,6 +119,18 @@ public class ServiceCacheClientTest extends CommonCacheClient {
 
     assertTrue("Expected the created at of the service to be " + service.getCreatedAt().getTime() + " but got " + ecsService.getCreatedAt(),
       service.getCreatedAt().getTime() == ecsService.getCreatedAt());
+
+    assertTrue("Expected the service to have 1 subnet but got " + ecsService.getSubnets().size(),
+      ecsService.getSubnets().size() == 1);
+
+    assertTrue("Expected the service to have subnet subnet-id but got " + ecsService.getSubnets().get(0),
+      ecsService.getSubnets().get(0).equals("subnet-id"));
+
+    assertTrue("Expected the service to have 1 security group but got " + ecsService.getSecurityGroups().size(),
+      ecsService.getSecurityGroups().size() == 1);
+
+    assertTrue("Expected the service to have security group security-group-id but got " + ecsService.getSecurityGroups().get(0),
+      ecsService.getSecurityGroups().get(0).equals("security-group-id"));
 
     assertTrue("Expected the service to have 1 load balancer but got " + ecsService.getLoadBalancers().size(),
       ecsService.getLoadBalancers().size() == 1);

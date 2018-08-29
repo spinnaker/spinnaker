@@ -77,6 +77,13 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
     attributes.put("maximumPercent", service.getDeploymentConfiguration().getMaximumPercent());
     attributes.put("minimumHealthyPercent", service.getDeploymentConfiguration().getMinimumHealthyPercent());
     attributes.put("loadBalancers", service.getLoadBalancers());
+
+    if (service.getNetworkConfiguration() != null &&
+        service.getNetworkConfiguration().getAwsvpcConfiguration() != null) {
+      attributes.put("subnets", service.getNetworkConfiguration().getAwsvpcConfiguration().getSubnets());
+      attributes.put("securityGroups", service.getNetworkConfiguration().getAwsvpcConfiguration().getSecurityGroups());
+    }
+
     attributes.put("createdAt", service.getCreatedAt().getTime());
 
     return attributes;

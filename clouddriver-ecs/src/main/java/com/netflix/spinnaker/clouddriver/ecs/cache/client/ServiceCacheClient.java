@@ -58,6 +58,8 @@ public class ServiceCacheClient extends AbstractCacheClient<Service> {
     service.setDesiredCount((Integer) attributes.get("desiredCount"));
     service.setMaximumPercent((Integer) attributes.get("maximumPercent"));
     service.setMinimumHealthyPercent((Integer) attributes.get("minimumHealthyPercent"));
+    service.setSubnets((List<String>)attributes.get("subnets"));
+    service.setSecurityGroups((List<String>)attributes.get("securityGroups"));
 
     if (attributes.containsKey("loadBalancers")) {
       List<Map<String, Object>> loadBalancers = (List<Map<String, Object>>) attributes.get("loadBalancers");

@@ -16,14 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
-import com.amazonaws.services.ecs.model.DeploymentConfiguration;
-import com.amazonaws.services.ecs.model.DescribeServicesRequest;
-import com.amazonaws.services.ecs.model.DescribeServicesResult;
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
-import com.amazonaws.services.ecs.model.ListServicesRequest;
-import com.amazonaws.services.ecs.model.ListServicesResult;
-import com.amazonaws.services.ecs.model.Service;
+import com.amazonaws.services.ecs.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -62,6 +55,9 @@ public class ServiceCacheTest extends CommonCachingAgent {
     service.setRoleArn(ROLE_ARN);
     service.setDeploymentConfiguration(new DeploymentConfiguration().withMinimumHealthyPercent(50).withMaximumPercent(100));
     service.setLoadBalancers(Collections.emptyList());
+    service.setNetworkConfiguration(new NetworkConfiguration().withAwsvpcConfiguration(
+      new AwsVpcConfiguration().withSecurityGroups(SECURITY_GROUP_1).withSubnets(SUBNET_ID_1)
+    ));
     service.setDesiredCount(1);
     service.setCreatedAt(new Date());
 
@@ -102,5 +98,11 @@ public class ServiceCacheTest extends CommonCachingAgent {
     Assert.assertTrue("Expected the created at of the service to be " + service.getCreatedAt().getTime() + " but got " + ecsService.getCreatedAt(), service.getCreatedAt().getTime() == ecsService.getCreatedAt());
     Assert.assertTrue("Expected the service to have 0 load balancer but got " + ecsService.getLoadBalancers().size(),
       ecsService.getLoadBalancers().size() == 0);
+    Assert.assertTrue("Expected the service to have 1 subnet but got " + ecsService.getSubnets().size(),ecsService.getSubnets().size() == 1);
+    assertTrue("Expected the service's subnet to be " + SUBNET_ID_1 + " but got " + ecsService.getSubnets().get(0),
+      SUBNET_ID_1.equals(ecsService.getSubnets().get(0)));
+    Assert.assertTrue("Expected the service to have 1 security group but got " + ecsService.getSecurityGroups().size(),ecsService.getSecurityGroups().size() == 1);
+    assertTrue("Expected the service's security group to be " + SECURITY_GROUP_1 + " but got " + ecsService.getSecurityGroups().get(0),
+      SECURITY_GROUP_1.equals(ecsService.getSecurityGroups().get(0)));
   }
 }

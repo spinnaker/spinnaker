@@ -62,6 +62,9 @@ public class CommonCachingAgent {
   static final String TASK_DEFINITION_ARN_1 = ECS_SERIVCE + "task-definition/hello_world:10";
   static final String TASK_DEFINITION_ARN_2 = ECS_SERIVCE + "task-definition/hello_world:20";
 
+  static final String SUBNET_ID_1 = "subnet-1234";
+  static final String SECURITY_GROUP_1 = "sg-1234";
+
   static final AmazonECS ecs = mock(AmazonECS.class);
   static final AmazonClientProvider clientProvider = mock(AmazonClientProvider.class);
   final ProviderCache providerCache = mock(ProviderCache.class);

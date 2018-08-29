@@ -36,5 +36,7 @@ public class Service {
   int maximumPercent;
   int minimumHealthyPercent;
   List<LoadBalancer> loadBalancers;
+  List<String> subnets;
+  List<String> securityGroups;
   long createdAt;
 }
