@@ -127,7 +127,7 @@ class BaseGateStatus(sk.SpinnakerStatus):
       return
     builder.make(entity, 'Exception Type', ex.get('exceptionType'),
                  relation='ERROR')
-    errors = ex.get('defaults', {}).get('errors')
+    errors = (ex.get('defaults') or ex.get('details', {})).get('errors')
     if errors:
       message = '\n'.join([' * ' + err for err in errors])
     else:
