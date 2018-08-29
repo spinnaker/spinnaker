@@ -89,7 +89,6 @@ module(PROJECTS_STATES_CONFIG, [
         label: 'Projects',
       },
     },
-    children: [project],
   };
 
   stateConfigProvider.addToRootState(allProjects);
