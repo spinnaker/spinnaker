@@ -2902,7 +2902,7 @@ hal config deploy ha [subcommands]
 ---
 ## hal config deploy ha clouddriver
 
-Manage and view Spinnaker configuration for the clouddriver high availability service
+Manage and view Spinnaker configuration for the clouddriver high availability service Manage and view Spinnaker configuration for the clouddriver high availability service. When clouddriver high availability is enabled, Halyard will deploy clouddriver as three separate services in order to increase availability: clouddriver-rw, clouddriver-ro, and clouddriver-caching. The clouddriver-rw service handles mutation operations sent via orca. The clouddriver-ro service handles read queries and does not perform write operations to redis. The clouddriver-caching service handles the periodic caching of cloud provider data, and is isolated from the rest of Spinnaker. The three services are configured to use the shared redis provisioned by Halyard, by default. To achieve more scale, a redis master endpoint and a redis slave endpoint can be supplied. The clouddriver-rw and clouddriver-caching services will use the redis master and the clouddriver-ro service will use the redis slave.
 
 #### Usage
 ```
@@ -2946,8 +2946,8 @@ hal config deploy ha clouddriver edit [parameters]
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--redis-ro-endpoint`: Set external Redis endpoint for clouddriver-ro.
- * `--redis-rw-endpoint`: Set external Redis endpoint for clouddriver-rw and clouddriver-caching.
+ * `--redis-master-endpoint`: Set external Redis endpoint for clouddriver-rw and clouddriver-caching. clouddriver-rw and clouddriver-caching are configured to use the shared Redis, by default.
+ * `--redis-slave-endpoint`: Set external Redis endpoint for clouddriver-ro. clouddriver-ro is configured to use the shared Redis, by default.
 
 
 ---
@@ -2968,7 +2968,7 @@ hal config deploy ha clouddriver enable [parameters]
 ---
 ## hal config deploy ha echo
 
-Manage and view Spinnaker configuration for the echo high availability service
+Manage and view Spinnaker configuration for the echo high availability service Manage and view Spinnaker configuration for the echo high availability service. When echo high availability is enabled, Halyard will deploy echo as two separate services in order to increase availability: echo-scheduler and echo-slave. The echo-scheduler service only handles Spinnaker cron-jobs and is isolated from the rest of Spinnaker.. The echo-slave handles everything else.
 
 #### Usage
 ```

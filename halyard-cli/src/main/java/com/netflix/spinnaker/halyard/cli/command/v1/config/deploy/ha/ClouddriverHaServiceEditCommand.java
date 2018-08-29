@@ -22,26 +22,25 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.ClouddriverHaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
-import java.net.URI;
 
 @Parameters(separators = "=")
 public class ClouddriverHaServiceEditCommand extends AbstractHaServiceEditCommand<ClouddriverHaService> {
   @Parameter(
-      names = "--redis-ro-endpoint",
-      description = "Set external Redis endpoint for clouddriver-ro. If this is not supplied, clouddriver-ro is configured to use the shared Redis."
+      names = "--redis-master-endpoint",
+      description = "Set external Redis endpoint for clouddriver-rw and clouddriver-caching. clouddriver-rw and clouddriver-caching are configured to use the shared Redis, by default."
   )
-  private String redisRoEndpoint;
+  private String redisMasterEndpoint;
 
   @Parameter(
-      names = "--redis-rw-endpoint",
-      description = "Set external Redis endpoint for clouddriver-rw and clouddriver-caching. If this is not supplied, clouddriver-rw and clouddriver-caching are configured to use the shared Redis."
+      names = "--redis-slave-endpoint",
+      description = "Set external Redis endpoint for clouddriver-ro. clouddriver-ro is configured to use the shared Redis, by default."
   )
-  private String redisRwEndpoint;
+  private String redisSlaveEndpoint;
 
   @Override
   protected HaService editHaService(ClouddriverHaService haService) {
-    haService.setRedisRoEndpoint(isSet(redisRoEndpoint) ? redisRoEndpoint : haService.getRedisRoEndpoint());
-    haService.setRedisRwEndpoint(isSet(redisRwEndpoint) ? redisRwEndpoint : haService.getRedisRwEndpoint());
+    haService.setRedisMasterEndpoint(isSet(redisMasterEndpoint) ? redisMasterEndpoint : haService.getRedisMasterEndpoint());
+    haService.setRedisSlaveEndpoint(isSet(redisSlaveEndpoint) ? redisSlaveEndpoint : haService.getRedisSlaveEndpoint());
 
     return haService;
   }
