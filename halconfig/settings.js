@@ -77,6 +77,20 @@ var dcos = {
     account: '{%dcos.default.account%}',
   },
 };
+var aws = {
+  defaults: {
+    account: '{%aws.default.account%}',
+    region: '{%aws.default.region%}',
+    iamRole: 'BaseIAMRole',
+  },
+  defaultSecurityGroups: [],
+  loadBalancers: {
+    // if true, VPC load balancers will be created as internal load balancers if the selected subnet has a purpose
+    // tag that starts with "internal"
+    inferInternalFlagFromSubnet: false,
+  },
+  useAmiBlockDeviceMappings: false,
+};
 var ecs = {
   defaults: {
     account: '{%ecs.default.account%}',
@@ -104,20 +118,7 @@ window.spinnakerSettings = {
   maxPipelineAgeDays: maxPipelineAgeDays,
   providers: {
     azure: azure,
-    aws: {
-      defaults: {
-        account: 'test',
-        region: 'us-east-1',
-        iamRole: 'BaseIAMRole',
-      },
-      defaultSecurityGroups: [],
-      loadBalancers: {
-        // if true, VPC load balancers will be created as internal load balancers if the selected subnet has a purpose
-        // tag that starts with "internal"
-        inferInternalFlagFromSubnet: false,
-      },
-      useAmiBlockDeviceMappings: false,
-    },
+    aws: aws,
     ecs: ecs,
     gce: gce,
     titus: {
