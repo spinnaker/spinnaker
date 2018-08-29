@@ -31,12 +31,8 @@ export class StateConfigProvider implements IServiceProvider {
   private root: INestedState = {
     name: 'home',
     abstract: true,
-    url: '?{debug:boolean}&{vis:boolean}&{trace:query}',
-    params: {
-      debug: { dynamic: true },
-      vis: { dynamic: true, value: false, squash: true },
-      trace: { dynamic: true, value: null, squash: true },
-    },
+    url: '?{debug:boolean}&{vis:query}&{trace:query}',
+    dynamic: true,
     children: [],
   };
 

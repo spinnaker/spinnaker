@@ -1,8 +1,7 @@
 declare const System: any;
-import { UIRouter, Glob, UIRouterPlugin } from '@uirouter/core';
+import { UIRouter, Transition, Glob, UIRouterPlugin } from '@uirouter/core';
 
 import { bootstrapModule } from './bootstrap.module';
-import { paramChangedHelper } from 'core/bootstrap';
 
 /**
  * Toggles the @uirouter/visualizer based on query parameter `vis` changing
@@ -11,7 +10,7 @@ import { paramChangedHelper } from 'core/bootstrap';
 bootstrapModule.run(($uiRouter: UIRouter) => {
   'ngInject';
 
-  let visualizerEnabled = false;
+  let visualizerEnabled: 'true' | 'false' = 'false';
   let VisualizerPlugin: { new (): UIRouterPlugin } = null;
 
   const loadVisualizer = () => {
@@ -30,7 +29,7 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
   };
 
   const createVisualizer = () => {
-    if (!visualizerEnabled) {
+    if (visualizerEnabled !== 'true') {
       return;
     }
 
@@ -49,19 +48,27 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
     plugin && $uiRouter.dispose(plugin);
   };
 
-  const toggleVisualizer = (enabled: boolean) => {
-    if (enabled === visualizerEnabled) {
-      return;
+  const toggleVisualizer = (trans: Transition) => {
+    const enabled: 'true' | 'false' = trans.paramsChanged().vis;
+    if (enabled === undefined) {
+      return null;
     }
+
+    if (enabled === visualizerEnabled) {
+      return trans.targetState().withParams({ vis: undefined });
+    }
+
     visualizerEnabled = enabled;
 
-    if (enabled) {
-      return createVisualizer();
-    } else {
-      return destroyVisualizer();
+    if (enabled === 'true') {
+      createVisualizer();
+    } else if (enabled === 'false') {
+      destroyVisualizer();
     }
+
+    return trans.targetState().withParams({ vis: undefined });
   };
 
   (window as any).vis = createVisualizer;
-  $uiRouter.transitionService.onBefore({}, paramChangedHelper('vis', toggleVisualizer));
+  $uiRouter.transitionService.onStart({}, toggleVisualizer);
 });
