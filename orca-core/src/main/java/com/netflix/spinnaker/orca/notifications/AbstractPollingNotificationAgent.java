@@ -68,7 +68,7 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
   }
 
   protected boolean tryAcquireLock() {
-    return clusterLock.tryAcquireLock(getNotificationType(), getPollingInterval());
+    return clusterLock.tryAcquireLock(getNotificationType(), getPollingIntervalUnit().toSeconds(getPollingInterval()));
   }
 
   @PreDestroy
