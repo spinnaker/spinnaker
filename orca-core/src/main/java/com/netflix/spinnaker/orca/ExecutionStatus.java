@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 public enum ExecutionStatus {
   /**
@@ -31,62 +30,62 @@ public enum ExecutionStatus {
    * The task is still running and the {@code Task} may be re-executed in order
    * to continue.
    */
-    RUNNING(false, false),
+  RUNNING(false, false),
 
   /**
    * The task is still running and the {@code Task} may be resumed in order
    * to continue.
    */
-    PAUSED(false, false),
+  PAUSED(false, false),
 
   /**
    * The task is complete but the pipeline should now be stopped pending a
    * trigger of some kind.
    */
-    SUSPENDED(false, false),
+  SUSPENDED(false, false),
 
   /**
    * The task executed successfully and the pipeline may now proceed to the next
    * task.
    */
-    SUCCEEDED(true, false),
+  SUCCEEDED(true, false),
 
   /**
    * The task execution failed,  but the pipeline may proceed to the next
    * task.
    */
-    FAILED_CONTINUE(true, false),
+  FAILED_CONTINUE(true, false),
 
   /**
    * The task failed and the failure was terminal. The pipeline will not
    * progress any further.
    */
-    TERMINAL(true, true),
+  TERMINAL(true, true),
 
   /**
    * The task was canceled. The pipeline will not progress any further.
    */
-    CANCELED(true, true),
+  CANCELED(true, true),
 
   /**
    * The step completed but is indicating that a decision path should be followed, not the default path.
    */
-    REDIRECT(false, false),
+  REDIRECT(false, false),
 
   /**
    * The task was stopped. The pipeline will not progress any further.
    */
-    STOPPED(true, true),
+  STOPPED(true, true),
 
   /**
    * The task was skipped and the pipeline will proceed to the next task.
    */
-    SKIPPED(true, false),
+  SKIPPED(true, false),
 
   /**
    * The task is not started and must be transitioned to NOT_STARTED.
    */
-    BUFFERED(false, false);
+  BUFFERED(false, false);
 
   /**
    * Indicates that the task/stage/pipeline has finished its work (successfully or not).

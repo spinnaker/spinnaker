@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
-import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -27,26 +26,23 @@ import com.netflix.spinnaker.orca.q.RescheduleExecution
 import com.netflix.spinnaker.orca.q.ResumeStage
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
-import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode
 import org.jetbrains.spek.subject.SubjectSpek
-import org.springframework.context.ApplicationEventPublisher
 
 object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
-  val publisher: ApplicationEventPublisher = mock()
 
   subject(CachingMode.GROUP) {
-    CancelExecutionHandler(queue, repository, publisher)
+    CancelExecutionHandler(queue, repository)
   }
 
-  fun resetMocks() = reset(queue, repository, publisher)
+  fun resetMocks() = reset(queue, repository)
 
   describe("cancelling an execution") {
     given("there are no paused stages") {
@@ -76,14 +72,6 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
 
       it("it triggers a reevaluate") {
         verify(queue).push(RescheduleExecution(pipeline))
-      }
-
-      it("publishes an execution complete event") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.status).isEqualTo(CANCELED)
-        })
       }
 
       it("does not send any further messages") {

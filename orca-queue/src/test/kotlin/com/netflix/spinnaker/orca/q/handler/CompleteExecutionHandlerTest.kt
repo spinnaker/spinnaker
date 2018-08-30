@@ -205,22 +205,18 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
         subject.handle(message)
       }
 
-      it("updates the pipeline status") {
-        verify(repository).updateStatus(PIPELINE, pipeline.id, stageStatus)
-      }
-
-      it("publishes an event") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          assertThat(it.executionType).isEqualTo(pipeline.type)
-          assertThat(it.executionId).isEqualTo(pipeline.id)
-          assertThat(it.status).isEqualTo(stageStatus)
-        })
-      }
-
       it("cancels other stages") {
         verify(queue).push(CancelStage(pipeline.stageByRef("2")))
         verify(queue).push(CancelStage(pipeline.stageByRef("3")))
         verifyNoMoreInteractions(queue)
+      }
+
+      it("does not update execution status") {
+        verify(repository, never()).updateStatus(any(), any(), any())
+      }
+
+      it("does not publish an event") {
+        verifyZeroInteractions(publisher)
       }
     }
   }

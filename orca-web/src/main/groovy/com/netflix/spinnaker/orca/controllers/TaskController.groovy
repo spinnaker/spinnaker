@@ -358,7 +358,6 @@ class TaskController {
         reason
       )
     }
-    executionRepository.updateStatus(PIPELINE, id, ExecutionStatus.CANCELED)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
