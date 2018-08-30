@@ -1,8 +1,8 @@
 # halconfig
 
 server:
-  port: ${services.clouddriver-rw.port:7002}
-  address: ${services.clouddriver-rw.host:localhost}
+  port: ${services.clouddriverRw.port:7002}
+  address: ${services.clouddriverRw.host:localhost}
 
 caching:
   redis:
