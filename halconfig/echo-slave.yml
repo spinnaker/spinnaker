@@ -1,8 +1,8 @@
 # halconfig
 
 server:
-  port: ${services.echo-slave.port:8089}
-  address: ${services.echo-slave.host:localhost}
+  port: ${services.echoSlave.port:8089}
+  address: ${services.echoSlave.host:localhost}
 
 scheduler:
   enabled: false

@@ -1,8 +1,8 @@
 # halconfig
 
 server:
-  port: ${services.echo-scheduler.port:8089}
-  address: ${services.echo-scheduler.host:localhost}
+  port: ${services.echoScheduler.port:8089}
+  address: ${services.echoScheduler.host:localhost}
 
 scheduler:
   enabled: true
