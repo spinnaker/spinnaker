@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -62,6 +64,19 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   IAPSecurityConfigProperties configProperties;
 
+  @Bean
+  public IAPAuthenticationFilter iapAuthenticationFilter() {
+    return new IAPAuthenticationFilter(
+      configProperties, permissionService, front50Service);
+  }
+
+  @Bean
+  public FilterRegistrationBean iapFilterRegistration(IAPAuthenticationFilter filter) {
+    FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+    registration.setEnabled(false);
+    return registration;
+  }
+
   @ConfigurationProperties("google.iap")
   @Data
   public static class IAPSecurityConfigProperties {
@@ -83,11 +98,7 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
       + "https://cloud.google.com/iap/docs/signed-headers-howto#verify_the_id_token_header.");
 
     authConfig.configure(http);
-
-    IAPAuthenticationFilter authFilter = new IAPAuthenticationFilter(
-      configProperties, permissionService, front50Service);
-
-    http.addFilterBefore(authFilter, BasicAuthenticationFilter.class);
+    http.addFilterBefore(iapAuthenticationFilter(), BasicAuthenticationFilter.class);
   }
 
   @Override

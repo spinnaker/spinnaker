@@ -26,7 +26,6 @@ import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
-import org.slf4j.Logger
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.context.SecurityContextHolder
@@ -35,7 +34,6 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import javax.servlet.FilterChain
-import javax.servlet.http.HttpServletResponse
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.interfaces.ECPrivateKey
@@ -86,7 +84,7 @@ class IAPAuthenticationFilterSpec extends Specification {
     filter.keyCache.put(publicKey, key)
 
     when:
-    filter.doFilter(request, response, chain)
+    filter.doFilterInternal(request, response, chain)
 
     then:
     1 * chain.doFilter(request, response)
@@ -128,7 +126,7 @@ class IAPAuthenticationFilterSpec extends Specification {
     filter.keyCache.put(publicKey, key)
 
     when:
-    filter.doFilter(request, response, chain)
+    filter.doFilterInternal(request, response, chain)
 
     then:
     1 * chain.doFilter(request, response)
@@ -138,7 +136,7 @@ class IAPAuthenticationFilterSpec extends Specification {
       .getAttribute(IAPAuthenticationFilter.signatureAttribute) == jwt.signature
 
     when:
-    filter.doFilter(request, response, chain)
+    filter.doFilterInternal(request, response, chain)
 
     then:
     1 * chain.doFilter(request, response)
@@ -147,7 +145,7 @@ class IAPAuthenticationFilterSpec extends Specification {
   }
 
   @Unroll
-  def "requests with invalid JWT payloads should exit with Forbidden status code"() {
+  def "requests with invalid JWT payloads should not login user"() {
 
     def request = new MockHttpServletRequest()
     def response = new MockHttpServletResponse()
@@ -166,7 +164,6 @@ class IAPAuthenticationFilterSpec extends Specification {
 
     @Subject IAPAuthenticationFilter filter = new IAPAuthenticationFilter(
       config, permissionService, front50Service)
-    filter.logger = Mock(Logger)
 
     // Add public key to key cache
     ECKey key = new ECKey.Builder(Curve.P_256, (ECPublicKey) keyPair.public)
@@ -182,25 +179,22 @@ class IAPAuthenticationFilterSpec extends Specification {
     jwt.sign(new ECDSASigner((ECPrivateKey) keyPair.private))
     request.addHeader(config.jwtHeader, jwt.serialize())
 
-    filter.doFilter(request, response, chain)
+    filter.doFilterInternal(request, response, chain)
 
     then:
     1 * chain.doFilter(request, response)
     1 * permissionService.login("test-email")
 
     when:
-    request = new MockHttpServletRequest()
-    response = new MockHttpServletResponse()
-
     def invalidJwt = new SignedJWT(header, invalidClaims)
     invalidJwt.sign(new ECDSASigner((ECPrivateKey) keyPair.private))
     request.addHeader(config.jwtHeader, invalidJwt.serialize())
 
-    filter.doFilter(request, response, chain)
+    filter.doFilterInternal(request, response, chain)
 
     then:
-    0 * chain.doFilter(request, response)
-    response.status == HttpServletResponse.SC_FORBIDDEN
+    1 * chain.doFilter(request, response)
+    0 * permissionService.login("test-email")
 
     where:
     invalidClaims                                                       | _

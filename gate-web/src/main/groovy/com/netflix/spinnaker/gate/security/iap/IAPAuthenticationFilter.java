@@ -37,20 +37,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.web.filter.OncePerRequestFilter;
 import retrofit.RetrofitError;
 
 /***
@@ -58,7 +54,8 @@ import retrofit.RetrofitError;
  * has been authenticated and authorized by IAP via Google OAuth2.0 and IAP's authorization service.
  * The user email from the payload used to create the Spinnaker user.
  */
-public class IAPAuthenticationFilter implements Filter {
+@Slf4j
+public class IAPAuthenticationFilter extends OncePerRequestFilter {
 
   private IAPSsoConfig.IAPSecurityConfigProperties configProperties;
 
@@ -70,8 +67,6 @@ public class IAPAuthenticationFilter implements Filter {
 
   private final Map<String, JWK> keyCache = new HashMap<>();
 
-  private Logger logger = LoggerFactory.getLogger(IAPAuthenticationFilter.class);
-
   public IAPAuthenticationFilter(
     IAPSsoConfig.IAPSecurityConfigProperties configProperties,
     PermissionService permissionService,
@@ -82,14 +77,12 @@ public class IAPAuthenticationFilter implements Filter {
   }
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
     throws IOException, ServletException {
-    HttpServletRequest req = (HttpServletRequest) request;
-    HttpServletResponse res = (HttpServletResponse) response;
-    HttpSession session = req.getSession();
+    HttpSession session = request.getSession();
 
     try {
-      String token = req.getHeader(configProperties.jwtHeader);
+      String token = request.getHeader(configProperties.jwtHeader);
       Preconditions.checkNotNull(token);
 
       SignedJWT jwt = SignedJWT.parse(token);
@@ -98,7 +91,7 @@ public class IAPAuthenticationFilter implements Filter {
 
       if (signatureInSession != null && signatureInSession.equals(jwt.getSignature())) {
         // Signature matches in previous request signatures in current session, skip validation.
-        chain.doFilter(req, res);
+        chain.doFilter(request, response);
         return;
       }
 
@@ -122,23 +115,11 @@ public class IAPAuthenticationFilter implements Filter {
       session.setAttribute(signatureAttribute, jwt.getSignature());
 
     } catch (Exception e) {
-      logger.error("Could not verify JWT Token", e);
-      res.sendError(HttpServletResponse.SC_FORBIDDEN, "Could not verify JWT Token");
-      session.invalidate();
-      return;
+      if (log.isDebugEnabled()) {
+        log.info("Could not verify JWT Token for request: " + request.getPathInfo(), e);
+      }
     }
-
-    chain.doFilter(req, res);
-  }
-
-  @Override
-  public void init(FilterConfig filterConfig) {
-
-  }
-
-  @Override
-  public void destroy() {
-
+    chain.doFilter(request, response);
   }
 
   private boolean isServiceAccount(String email) {
