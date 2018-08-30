@@ -56,23 +56,19 @@ class CompleteExecutionHandler(
         log.info("Execution ${execution.id} already completed with ${execution.status} status")
       } else {
         message.determineFinalStatus(execution) { status ->
-          var runningStages: Boolean = false
+          repository.updateStatus(execution.type, message.executionId, status)
+          publisher.publishEvent(
+            ExecutionComplete(this, message.executionType, message.executionId, status)
+          )
+          registry.counter(completedId.withTags(
+            "status", status.name,
+            "executionType", execution.type.name,
+            "application", execution.application
+          )).increment()
           if (status != SUCCEEDED) {
             execution.topLevelStages.filter { it.status == RUNNING }.forEach {
-              runningStages = true
               queue.push(CancelStage(it))
             }
-          }
-          if (!runningStages) {
-            repository.updateStatus(execution.type, message.executionId, status)
-            publisher.publishEvent(
-              ExecutionComplete(this, message.executionType, message.executionId, status)
-            )
-            registry.counter(completedId.withTags(
-              "status", status.name,
-              "executionType", execution.type.name,
-              "application", execution.application
-            )).increment()
           }
         }
       }
