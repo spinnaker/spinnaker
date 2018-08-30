@@ -19,11 +19,14 @@ package com.netflix.spinnaker.fiat.roles.github;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
 import com.netflix.spinnaker.fiat.roles.github.model.Team;
+import com.netflix.spinnaker.fiat.roles.github.model.Member;
 import com.netflix.spinnaker.fiat.roles.github.model.TeamMembership;
 import lombok.Data;
 import lombok.Setter;
@@ -42,9 +45,15 @@ import retrofit.client.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -68,7 +77,13 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   @Setter
   private GitHubProperties gitHubProperties;
 
-  private LoadingCache<CacheKey, Boolean> teamMembershipCache;
+  private ExecutorService executor = Executors.newSingleThreadExecutor();
+
+  private LoadingCache<String, Set<String>> membersCache;
+
+  private LoadingCache<String, List<Team>> teamsCache;
+
+  private LoadingCache<Long, Set<String>> teamMembershipCache;
 
   private static final String ACTIVE = "active";
 
@@ -77,27 +92,114 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     Assert.state(gitHubProperties.getOrganization() != null, "Supply an organization");
     Assert.state(gitHubProperties.getBaseUrl() != null, "Supply a base url");
 
+    this.initializeMembersCache();
+    this.initializeTeamsCache();
     this.initializeTeamMembershipCache();
+  }
+
+  private void initializeMembersCache() {
+    // Note if multiple github orgs is ever supported the maximumSize will need to change
+    this.membersCache = CacheBuilder.newBuilder()
+        .maximumSize(1) //This will only be a cache of one entry keyed by org name.
+        .refreshAfterWrite(this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
+        .build(new CacheLoader<String, Set<String>>() {
+          public Set<String> load(String key) {
+            Set<String> members = new HashSet<>();
+            int page = 1;
+            boolean hasMorePages = true;
+
+            do {
+              List<Member> membersPage = getMembersInOrgPaginated(key, page++);
+              membersPage.forEach(m -> members.add(m.getLogin().toLowerCase()));
+              if (membersPage.size() != gitHubProperties.paginationValue) {
+                hasMorePages = false;
+              }
+              log.debug("Got " + membersPage.size() + " members back. hasMorePages: " + hasMorePages);
+            } while (hasMorePages);
+
+            return members;
+          }
+
+          public ListenableFuture<Set<String>> reload(final String key, final Set<String> prev) {
+            ListenableFutureTask<Set<String>> task = ListenableFutureTask.create(new Callable<Set<String>>() {
+              public Set<String> call() {
+                return load(key);
+              }
+            });
+            executor.execute(task);
+            return task;
+          }
+        });
+  }
+
+  private void initializeTeamsCache() {
+    // Note if multiple github orgs is ever supported the maximumSize will need to change
+    this.teamsCache = CacheBuilder.newBuilder()
+        .maximumSize(1) // This will only be a cache of one entry keyed by org name.
+        .refreshAfterWrite(this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
+        .build(
+            new CacheLoader<String, List<Team>>() {
+              public List<Team> load(String key) {
+                List<Team> teams = new ArrayList<>();
+                int page = 1;
+                boolean hasMorePages = true;
+
+                do {
+                  List<Team> teamsPage = getTeamsInOrgPaginated(key, page++);
+                  teams.addAll(teamsPage);
+                  if (teamsPage.size() != gitHubProperties.paginationValue) {
+                    hasMorePages = false;
+                  }
+                  log.debug("Got " + teamsPage.size() + " teams back. hasMorePages: " + hasMorePages);
+                } while (hasMorePages);
+
+                return teams;
+              }
+
+              public ListenableFuture<List<Team>> reload(final String key, final List<Team> prev) {
+                ListenableFutureTask<List<Team>> task = ListenableFutureTask.create(new Callable<List<Team>>() {
+                  public List<Team> call() {
+                    return load(key);
+                  }
+                });
+                executor.execute(task);
+                return task;
+              }
+            });
   }
 
   private void initializeTeamMembershipCache() {
     this.teamMembershipCache = CacheBuilder.newBuilder()
-        .maximumSize(1000)
-        .expireAfterWrite(this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
-        .build(
-            new CacheLoader<CacheKey, Boolean>() {
-              public Boolean load(CacheKey key) {
-                try {
-                  TeamMembership response = gitHubClient.isMemberOfTeam(key.getTeamId(), key.getUsername());
-                  return (response.getState().equals(GithubTeamsUserRolesProvider.ACTIVE));
-                } catch (RetrofitError e) {
-                  if (e.getResponse().getStatus() != 404) {
-                    handleNon404s(e);
-                  }
-                }
-                return false;
+        .maximumSize(this.gitHubProperties.getMembershipCacheTeamsSize())
+        .refreshAfterWrite(this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
+        .build(new CacheLoader<Long, Set<String>>()
+        {
+          public Set<String> load(Long key) {
+            Set<String> memberships = new HashSet<>();
+            int page = 1;
+            boolean hasMorePages = true;
+            do {
+              List<Member> members = getMembersInTeamPaginated(key, page++);
+              members.forEach(m -> memberships.add(m.getLogin().toLowerCase()));
+              if (members.size() != gitHubProperties.paginationValue) {
+                hasMorePages = false;
+              }
+              log.debug("Got " + members.size() + " teams back. hasMorePages: " + hasMorePages);
+            } while (hasMorePages);
+
+            return memberships;
+          }
+
+          public ListenableFuture<Set<String>> reload(final Long key, final Set<String> prev) {
+            ListenableFutureTask<Set<String>> task = ListenableFutureTask.create(new Callable<Set<String>>() {
+              public Set<String> call() {
+                return load(key);
               }
             });
+            executor.execute(task);
+            return task;
+          }
+        });
   }
 
   @Override
@@ -139,45 +241,33 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   private boolean isMemberOfOrg(String username) {
     boolean isMemberOfOrg = false;
     try {
-      Response response = gitHubClient.isMemberOfOrganization(gitHubProperties.getOrganization(),
-                                                              username);
-      isMemberOfOrg = (response.getStatus() == 204);
-    } catch (RetrofitError e) {
-      if (e.getResponse().getStatus() != 404) {
-        handleNon404s(e);
-      }
+      isMemberOfOrg = this.membersCache.get(gitHubProperties.getOrganization()).contains(username.toLowerCase());
+    } catch (ExecutionException e) {
+      log.error("Failed to read from cache when getting org membership", e);
     }
-
     return isMemberOfOrg;
   }
 
   private List<Team> getTeams() {
-    List<Team> teams = new ArrayList<>();
-    int page = 1;
-    boolean hasMorePages = true;
-
-    do {
-      List<Team> teamsPage = getTeamsInOrgPaginated(page++);
-      teams.addAll(teamsPage);
-      if (teamsPage.size() != gitHubProperties.paginationValue) {
-        hasMorePages = false;
-      }
-      log.debug("Got " + teamsPage.size() + " teams back. hasMorePages: " + hasMorePages);
-    } while (hasMorePages);
-
-    return teams;
+    try {
+      return this.teamsCache.get(gitHubProperties.getOrganization());
+    } catch(ExecutionException e) {
+      log.error("Failed to read from cache when getting teams", e);
+    }
+    return Collections.emptyList();
   }
 
-  private List<Team> getTeamsInOrgPaginated(int page) {
+  private List<Team> getTeamsInOrgPaginated(String organization, int page) {
     List<Team> teams = new ArrayList<>();
     try {
       log.debug("Requesting page " + page + " of teams.");
-      teams = gitHubClient.getOrgTeams(gitHubProperties.getOrganization(),
+      teams = gitHubClient.getOrgTeams(organization,
                                        page,
                                        gitHubProperties.paginationValue);
     } catch (RetrofitError e) {
       if (e.getResponse().getStatus() != 404) {
         handleNon404s(e);
+        throw e;
       } else {
         log.error("404 when getting teams", e);
       }
@@ -186,9 +276,43 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     return teams;
   }
 
+  private List<Member> getMembersInOrgPaginated(String organization, int page) {
+    List<Member> members = new ArrayList<>();
+    try {
+      log.debug("Requesting page " + page + " of members.");
+      members = gitHubClient.getOrgMembers(organization, page, gitHubProperties.paginationValue);
+    } catch (RetrofitError e) {
+      if (e.getResponse().getStatus() != 404) {
+        handleNon404s(e);
+        throw e;
+      } else {
+        log.error("404 when getting members", e);
+      }
+    }
+
+    return members;
+  }
+
+  private List<Member> getMembersInTeamPaginated(Long teamId, int page) {
+    List<Member> members = new ArrayList<>();
+    try {
+      log.debug("Requesting page " + page + " of members team " + teamId + ".");
+      members = gitHubClient.getMembersOfTeam(teamId, page, gitHubProperties.paginationValue);
+    } catch (RetrofitError e) {
+      if (e.getResponse().getStatus() != 404) {
+        handleNon404s(e);
+        throw e;
+      } else {
+        log.error("404 when getting members of team", e);
+      }
+    }
+
+    return members;
+  }
+
   private boolean isMemberOfTeam(Team t, String username) {
     try {
-      return this.teamMembershipCache.get(new CacheKey(t.getId(), username));
+      return this.teamMembershipCache.get(t.getId()).contains(username.toLowerCase());
     } catch (ExecutionException e) {
       log.error("Failed to read from cache when getting team membership", e);
     }
@@ -231,7 +355,13 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
   }
 
   @Data
-  private class CacheKey {
+  private class OrgMembershipKey {
+    private final String organization;
+    private final String username;
+  }
+
+  @Data
+  private class TeamMembershipKey {
     private final Long teamId;
     private final String username;
   }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.roles.github.client;
 
 
+import com.netflix.spinnaker.fiat.roles.github.model.Member;
 import com.netflix.spinnaker.fiat.roles.github.model.Team;
 import com.netflix.spinnaker.fiat.roles.github.model.TeamMembership;
 import retrofit.client.Response;
@@ -45,6 +46,16 @@ public interface GitHubClient {
   List<Team> getOrgTeams(@Path("org") String org,
                          @Query("page") int page,
                          @Query("per_page") int paginationValue);
+
+  @GET("/orgs/{org}/members")
+  List<Member> getOrgMembers(@Path("org") String org, 
+                             @Query("page") int page, 
+                             @Query("per_page") int paginationValue);
+
+  @GET("/teams/{idTeam}/members")
+  List<Member> getMembersOfTeam(@Path("idTeam") Long idTeam, 
+                                @Query("page") int page,
+                                @Query("per_page") int paginationValue);
 
   @GET("/teams/{idTeam}/memberships/{username}")
   TeamMembership isMemberOfTeam(@Path("idTeam") Long idTeam,

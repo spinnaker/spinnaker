@@ -29,5 +29,7 @@ public class GitHubProperties {
   @Min(1L)
   Integer paginationValue = 100;
   @NotNull
-  Integer membershipCacheTTLSeconds = 60 * 60; // 1 hour
+  Integer membershipCacheTTLSeconds = 60 * 10; // 10 min time to refresh
+  @NotNull
+  Integer membershipCacheTeamsSize = 1000; // 1000 github teams
 }
