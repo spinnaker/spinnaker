@@ -53,7 +53,6 @@ public class ServiceSettings {
   String password;
   Map<String, String> env;
   String artifactId;
-  String baseUrl;
   String overrideBaseUrl;
   String location;
   KubernetesSettings kubernetes = new KubernetesSettings();
@@ -64,6 +63,7 @@ public class ServiceSettings {
   Boolean safeToUpdate;
   Integer targetSize;
   Boolean skipLifeCycleManagement;
+  String baseUrl;
 
   public ServiceSettings() {}
 
