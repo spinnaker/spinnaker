@@ -159,11 +159,6 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
                                                   Long startTime) {
 
     def pendingForceCacheUpdates = cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE)
-    log.debug(
-      "Force cache refresh clouddriver response was: {} (executionId: {})",
-      pendingForceCacheUpdates,
-      executionId
-    )
     boolean isRecent = (startTime != null) ? pendingForceCacheUpdates.find { it.cacheTime >= startTime } : false
 
     boolean finishedProcessing = true
