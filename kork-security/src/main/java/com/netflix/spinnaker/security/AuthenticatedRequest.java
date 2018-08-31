@@ -19,6 +19,7 @@ package com.netflix.spinnaker.security;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -156,7 +157,7 @@ public class AuthenticatedRequest {
   public static Optional<String> getSpinnakerAccounts(Object principal) {
     Object spinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS);
 
-    if (principal != null && principal instanceof User && !((User) principal).getAllowedAccounts().isEmpty()) {
+    if (principal instanceof User && !CollectionUtils.isEmpty(((User) principal).allowedAccounts)) {
       spinnakerAccounts = String.join(",", ((User) principal).getAllowedAccounts());
     }
 
