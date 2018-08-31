@@ -66,11 +66,13 @@ class RunTaskHandler(
   override fun handle(message: RunTask) {
     message.withTask { origStage, taskModel, task ->
       var stage = origStage
-      taskExecutionInterceptors.forEach { t -> stage = t.beforeTaskExecution(task, stage) }
-      val execution = stage.execution
+
       val thisInvocationStartTimeMs = clock.millis()
+      val execution = stage.execution
 
       try {
+        taskExecutionInterceptors.forEach { t -> stage = t.beforeTaskExecution(task, stage) }
+
         if (execution.isCanceled) {
           task.onCancel(stage)
           queue.push(CompleteTask(message, CANCELED))
