@@ -32,7 +32,7 @@ class OpenstackImageV2Provider implements OpenstackImageProvider, OpenstackReque
       .id(image.id)
       .status(image.status?.value())
       .size(image.size)
-      .location(image.locations?.get(0)?.toString())
+      .location(image.directUrl)
       .createdAt(image.createdAt?.time)
       .updatedAt(image.updatedAt?.time)
       .properties(properties)

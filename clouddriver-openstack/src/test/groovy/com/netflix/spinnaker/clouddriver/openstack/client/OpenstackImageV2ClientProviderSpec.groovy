@@ -23,7 +23,7 @@ import org.openstack4j.api.image.v2.ImageService
 import org.openstack4j.model.image.v2.Image
 import org.springframework.http.HttpStatus
 
-class OpenstackImageV1ClientProviderSpec extends OpenstackClientProviderSpec {
+class OpenstackImageV2ClientProviderSpec extends OpenstackClientProviderSpec {
 
   def "list images succeeds"() {
     setup:
@@ -31,7 +31,7 @@ class OpenstackImageV1ClientProviderSpec extends OpenstackClientProviderSpec {
     ImageService imageService = Mock(ImageService)
     def imageLocation = "http://example.com/image.iso"
     Image image = Mock(Image) {
-      getLocations() >> [imageLocation]
+      getDirectUrl() >> imageLocation
     }
 
     when:
