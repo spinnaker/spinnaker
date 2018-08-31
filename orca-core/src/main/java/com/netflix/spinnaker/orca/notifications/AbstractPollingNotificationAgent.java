@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.context.ApplicationListener;
 import rx.Observable;
 import rx.Scheduler;
@@ -38,6 +39,8 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
   protected final NotificationClusterLock clusterLock;
   protected Scheduler scheduler = Schedulers.io();
   protected Subscription subscription;
+
+  public static final String AGENT_MDC_KEY = "agentClass";
 
   public AbstractPollingNotificationAgent(NotificationClusterLock clusterLock) {
     this.clusterLock = clusterLock;
@@ -60,9 +63,12 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
       .filter(interval -> tryAcquireLock())
       .subscribe(interval -> {
         try {
+          MDC.put(AGENT_MDC_KEY, this.getClass().getSimpleName());
           tick();
         } catch (Exception e) {
           log.error("Error running agent tick", e);
+        } finally {
+          MDC.remove(AGENT_MDC_KEY);
         }
       });
   }

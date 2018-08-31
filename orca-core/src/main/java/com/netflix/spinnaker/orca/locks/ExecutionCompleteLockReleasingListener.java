@@ -6,9 +6,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+
+import static com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent.AGENT_MDC_KEY;
 
 @Component
 public class ExecutionCompleteLockReleasingListener implements ApplicationListener<ExecutionComplete> {
@@ -32,17 +35,23 @@ public class ExecutionCompleteLockReleasingListener implements ApplicationListen
       return;
     }
     if (event.getStatus().isHalt()) {
-      Execution execution = executionRepository.retrieve(event.getExecutionType(), event.getExecutionId());
-      execution.getStages().forEach(s -> {
-        if (AcquireLockStage.PIPELINE_TYPE.equals(s.getType())) {
-          try {
-            LockContext lc = s.mapTo("/lock", LockContext.LockContextBuilder.class).withStage(s).build();
-            lockManager.releaseLock(lc.getLockName(), lc.getLockValue(), lc.getLockHolder());
-          } catch (LockFailureException lfe) {
-            logger.info("Failure releasing lock in ExecutionCompleteLockReleasingListener - ignoring", lfe);
+      try {
+        MDC.put(AGENT_MDC_KEY, this.getClass().getSimpleName());
+
+        Execution execution = executionRepository.retrieve(event.getExecutionType(), event.getExecutionId());
+        execution.getStages().forEach(s -> {
+          if (AcquireLockStage.PIPELINE_TYPE.equals(s.getType())) {
+            try {
+              LockContext lc = s.mapTo("/lock", LockContext.LockContextBuilder.class).withStage(s).build();
+              lockManager.releaseLock(lc.getLockName(), lc.getLockValue(), lc.getLockHolder());
+            } catch (LockFailureException lfe) {
+              logger.info("Failure releasing lock in ExecutionCompleteLockReleasingListener - ignoring", lfe);
+            }
           }
-        }
-      });
+        });
+      } finally {
+        MDC.remove(AGENT_MDC_KEY);
+      }
     }
   }
 }

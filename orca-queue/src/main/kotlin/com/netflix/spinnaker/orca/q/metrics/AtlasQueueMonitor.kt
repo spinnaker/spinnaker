@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent.AGENT_MDC_KEY
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.*
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -99,24 +101,29 @@ class AtlasQueueMonitor
   fun checkForZombies() {
     if (!zombieCheckEnabled || activators.none { it.enabled } || !conch.tryAcquireLock("zombie", TimeUnit.MINUTES.toSeconds(5))) return
 
-    val startedAt = clock.instant()
-    val criteria = ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING)
-    repository.retrieve(PIPELINE, criteria)
-      .mergeWith(repository.retrieve(ORCHESTRATION, criteria))
-      .subscribeOn(zombieCheckScheduler.orElseGet(Schedulers::io))
-      .filter(this::hasBeenAroundAWhile)
-      .filter(this::queueHasNoMessages)
-      .doOnCompleted {
-        log.info("Completed zombie check in ${Duration.between(startedAt, clock.instant())}")
-      }
-      .subscribe {
-        log.error("Found zombie {} {} {} {}", it.type, value("application", it.application), it.name, value("executionId", it.id))
-        val tags = mutableListOf<Tag>(
-          BasicTag("application", it.application),
-          BasicTag("type", it.type.name)
-        )
-        registry.counter("queue.zombies", tags).increment()
-      }
+    try {
+      MDC.put(AGENT_MDC_KEY, this.javaClass.simpleName)
+      val startedAt = clock.instant()
+      val criteria = ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING)
+      repository.retrieve(PIPELINE, criteria)
+        .mergeWith(repository.retrieve(ORCHESTRATION, criteria))
+        .subscribeOn(zombieCheckScheduler.orElseGet(Schedulers::io))
+        .filter(this::hasBeenAroundAWhile)
+        .filter(this::queueHasNoMessages)
+        .doOnCompleted {
+          log.info("Completed zombie check in ${Duration.between(startedAt, clock.instant())}")
+        }
+        .subscribe {
+          log.error("Found zombie {} {} {} {}", it.type, value("application", it.application), it.name, value("executionId", it.id))
+          val tags = mutableListOf<Tag>(
+            BasicTag("application", it.application),
+            BasicTag("type", it.type.name)
+          )
+          registry.counter("queue.zombies", tags).increment()
+        }
+    } finally {
+        MDC.remove(AGENT_MDC_KEY)
+    }
   }
 
   @PostConstruct
