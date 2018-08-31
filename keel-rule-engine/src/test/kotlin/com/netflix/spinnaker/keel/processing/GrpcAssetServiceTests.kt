@@ -12,7 +12,7 @@ import com.netflix.spinnaker.keel.grpc.toProto
 import com.netflix.spinnaker.keel.grpc.toTypeMetaData
 import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
-import com.netflix.spinnaker.keel.registry.GrpcAssetPluginRegistry
+import com.netflix.spinnaker.keel.registry.GrpcPluginRegistry
 import com.netflix.spinnaker.keel.registry.UnsupportedAssetType
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argWhere
@@ -40,7 +40,7 @@ internal class GrpcAssetServiceTests {
   val grpc = GrpcStubManager(AssetPluginGrpc::newBlockingStub)
   val plugin: AssetPluginGrpc.AssetPluginImplBase = mock()
   val eureka: EurekaClient = mock()
-  val registry = GrpcAssetPluginRegistry(eureka)
+  val registry = GrpcPluginRegistry(eureka)
   val subject = GrpcAssetService(registry)
 
   @BeforeEach
@@ -53,7 +53,7 @@ internal class GrpcAssetServiceTests {
     whenever(eureka.getNextServerFromEureka(pluginAddress, false)) doReturn grpc.instanceInfo
 
     val responseCallback: StreamObserver<RegisterAssetPluginResponse> = mock()
-    registry.register(RegisterAssetPluginRequest.newBuilder().also {
+    registry.registerAssetPlugin(RegisterAssetPluginRequest.newBuilder().also {
       it.vipAddress = pluginAddress
       it.addTypes(asset.toTypeMetaData())
     }.build(), responseCallback)

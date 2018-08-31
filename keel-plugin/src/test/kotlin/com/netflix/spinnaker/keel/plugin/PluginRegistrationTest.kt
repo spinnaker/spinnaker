@@ -4,8 +4,8 @@ import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.keel.api.GrpcStubManager
 import com.netflix.spinnaker.keel.api.TypeMetadata
-import com.netflix.spinnaker.keel.api.engine.AssetPluginRegistryGrpc
-import com.netflix.spinnaker.keel.api.engine.AssetPluginRegistryGrpc.AssetPluginRegistryImplBase
+import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc
+import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc.PluginRegistryImplBase
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.instanceInfo
@@ -24,11 +24,11 @@ val registerSuccess = RegisterAssetPluginResponse.newBuilder().setSucceeded(true
 
 internal class PluginRegistrationTest {
 
-  val grpc = GrpcStubManager(AssetPluginRegistryGrpc::newBlockingStub)
+  val grpc = GrpcStubManager(PluginRegistryGrpc::newBlockingStub)
 
   val registeredTypes = mutableListOf<String>()
-  val registry: AssetPluginRegistryImplBase = object : AssetPluginRegistryImplBase() {
-    override fun register(request: RegisterAssetPluginRequest, responseObserver: StreamObserver<RegisterAssetPluginResponse>) {
+  val registry: PluginRegistryImplBase = object : PluginRegistryImplBase() {
+    override fun registerAssetPlugin(request: RegisterAssetPluginRequest, responseObserver: StreamObserver<RegisterAssetPluginResponse>) {
       registeredTypes.addAll(request.typesList.map(TypeMetadata::getKind))
       with(responseObserver) {
         onNext(registerSuccess)

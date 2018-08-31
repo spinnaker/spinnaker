@@ -7,8 +7,9 @@ option java_package = "com.netflix.spinnaker.keel.api.engine";
 
 import "Asset.proto";
 
-service AssetPluginRegistry {
-  rpc register (RegisterAssetPluginRequest) returns (RegisterAssetPluginResponse);
+service PluginRegistry {
+  rpc registerAssetPlugin (RegisterAssetPluginRequest) returns (RegisterAssetPluginResponse);
+  rpc registerVetoPlugin (RegisterVetoPluginRequest) returns (RegisterVetoPluginResponse);
 }
 
 message RegisterAssetPluginRequest {
@@ -18,10 +19,6 @@ message RegisterAssetPluginRequest {
 
 message RegisterAssetPluginResponse {
   bool succeeded = 1;
-}
-
-service VetoPluginRegistry {
-  rpc register (RegisterVetoPluginRequest) returns (RegisterVetoPluginResponse);
 }
 
 message RegisterVetoPluginRequest {
