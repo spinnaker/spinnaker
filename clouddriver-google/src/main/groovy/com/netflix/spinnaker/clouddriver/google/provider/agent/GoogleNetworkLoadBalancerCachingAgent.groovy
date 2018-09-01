@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.TargetPoolHealthRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
@@ -88,7 +90,17 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
       compute.forwardingRules().get(project, region, onDemandLoadBalancerName).queue(forwardingRulesRequest, frCallback)
     } else {
       ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
-      compute.forwardingRules().list(project, region).queue(forwardingRulesRequest, frlCallback)
+      new PaginatedRequest<ForwardingRuleList>(this) {
+        @Override
+        protected AbstractGoogleJsonClientRequest<ForwardingRuleList> request(String pageToken) {
+          return compute.forwardingRules().list(project, region).setPageToken(pageToken)
+        }
+
+        @Override
+        protected String getNextPageToken(ForwardingRuleList forwardingRuleList) {
+          return forwardingRuleList.getNextPageToken()
+        }
+      }.queue(forwardingRulesRequest, frlCallback, "NetworkLoadBalancerCaching.forwardingRules");
     }
 
     executeIfRequestsAreQueued(forwardingRulesRequest, "NetworkLoadBalancerCaching.forwardingRules")

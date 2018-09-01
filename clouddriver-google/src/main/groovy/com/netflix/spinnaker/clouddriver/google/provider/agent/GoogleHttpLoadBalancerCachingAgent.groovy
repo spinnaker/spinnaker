@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerH
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -96,7 +98,17 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
       compute.globalForwardingRules().get(project, onDemandLoadBalancerName).queue(forwardingRulesRequest, frCallback)
     } else {
       ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
-      compute.globalForwardingRules().list(project).queue(forwardingRulesRequest, frlCallback)
+      new PaginatedRequest<ForwardingRuleList>(this) {
+        @Override
+        AbstractGoogleJsonClientRequest<ForwardingRuleList> request(String pageToken) {
+          return compute.globalForwardingRules().list(project).setPageToken(pageToken)
+        }
+
+        @Override
+        String getNextPageToken(ForwardingRuleList forwardingRuleList) {
+          return forwardingRuleList.getNextPageToken()
+        }
+      }.queue(forwardingRulesRequest, frlCallback, "HttpLoadBalancerCaching.forwardingRules")
     }
 
     executeIfRequestsAreQueued(forwardingRulesRequest, "HttpLoadBalancerCaching.forwardingRules")
