@@ -177,11 +177,16 @@ def add_monitoring_context_labels(options):
         version_name = bom_name[:bom_name.find('-latest')]
       else:
         version_name = bom_name[:bom_name.rfind('-')]
+
   if version_name:
-    context_labels = 'version=' + version_name
+    context_labels = ['version=' + version_name]
+    if (version_name == 'master'
+        or version_name.startswith('release-')
+        or version_name.startswith('master-latest-')):
+      context_labels.append('official_version='+version_name)
     if options.monitoring_context_labels:
-      context_labels += ',' + options.monitoring_context_labels
-    options.monitoring_context_labels = context_labels
+      context_labels.append(options.monitoring_context_labels)
+    options.monitoring_context_labels = ','.join(context_labels)
 
 
 def init_options_and_registry(args, command_modules):
