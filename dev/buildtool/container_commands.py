@@ -195,7 +195,10 @@ class BuildContainerCommand(GradleCommandProcessor):
 
     dockerfile_path = os.path.join(
         repository.git_dir, dirname, 'Dockerfile.slim')
-    if not os.path.exists(dockerfile_path):
+    if not os.path.exists(dockerfile_path) or repository.name in ['echo']:
+      # Exclude echo from the slim docker builds since the alpine base image
+      # (which is used in the slim builds) is missing a package gRPC needs to
+      # establish pub/sub listeners.
       dockerfile_path = os.path.join(repository.git_dir, dirname, 'Dockerfile')
       if not os.path.exists(dockerfile_path):
         logging.warning('No GCB config for %s because there is no Dockerfile',
