@@ -20,5 +20,6 @@ apply from: "$rootDir/gradle/spek2.gradle"
 
 dependencies {
   testImplementation project(":keel-api-test")
+  testImplementation project(":keel-plugin")
   testImplementation "io.strikt:strikt-core:$striktVersion"
 }

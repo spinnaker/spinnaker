@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc
 import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc.PluginRegistryBlockingStub
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginRequest
+import com.netflix.spinnaker.keel.platform.NoSuchVip
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
@@ -71,10 +72,14 @@ class PluginRegistrar(
   }
 
   private val pluginRegistry: PluginRegistryBlockingStub by lazy {
-    eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)
-      ?.let(::createChannelTo)
-      ?.let(PluginRegistryGrpc::newBlockingStub)
-      ?: throw IllegalStateException("Can't find keel in Eureka")
+    try {
+      eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)
+        .let(::createChannelTo)
+        .let(PluginRegistryGrpc::newBlockingStub)
+    } catch (e: RuntimeException) {
+      throw NoSuchVip(keelRegistryAddress, e)
+      // TODO: need to fail health check in this case
+    }
   }
 
   fun createChannelTo(it: InstanceInfo): ManagedChannel =

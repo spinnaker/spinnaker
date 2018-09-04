@@ -5,6 +5,7 @@ apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   api project(":keel-api")
+  implementation project(":keel-common")
   implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
 
   testImplementation "io.strikt:strikt-protobuf:$striktVersion"

@@ -16,11 +16,12 @@
 
 include "keel-api",
   "keel-api-test",
-  "keel-plugin",
   "keel-aws",
   "keel-clouddriver",
+  "keel-common",
   "keel-grpc",
   "keel-orca",
+  "keel-plugin",
   "keel-retrofit",
   "keel-rule-engine",
   "keel-veto"

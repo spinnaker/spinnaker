@@ -9,7 +9,9 @@ import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc.PluginRegistryIm
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.instanceInfo
+import com.netflix.spinnaker.keel.platform.NoSuchVip
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
@@ -19,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.isEmpty
+import strikt.assertions.throws
 
 val registerSuccess = RegisterAssetPluginResponse.newBuilder().setSucceeded(true).build()
 
@@ -57,7 +61,6 @@ internal class PluginRegistrationTest {
     grpc.startServer {
       addService(registry)
     }
-    whenever(eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)) doReturn grpc.instanceInfo
     whenever(amazonAssetPlugin.supportedTypes) doReturn listOf(
       "aws.SecurityGroup",
       "aws.ClassicLoadBalancer"
@@ -72,6 +75,8 @@ internal class PluginRegistrationTest {
 
   @Test
   fun `registers plugins on startup`() {
+    whenever(eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)) doReturn grpc.instanceInfo
+
     registrar.onDiscoveryUp()
 
     expect(registeredTypes)
@@ -79,6 +84,17 @@ internal class PluginRegistrationTest {
         "aws.SecurityGroup",
         "aws.ClassicLoadBalancer"
       )
+  }
+
+  @Test
+  fun `throws exception if Keel VIP is invalid`() {
+    whenever(eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)) doThrow RuntimeException("No matches for the virtual host name :$keelRegistryAddress")
+
+    expect {
+      registrar.onDiscoveryUp()
+    }.throws<NoSuchVip>()
+
+    expect(registeredTypes).isEmpty()
   }
 }
 

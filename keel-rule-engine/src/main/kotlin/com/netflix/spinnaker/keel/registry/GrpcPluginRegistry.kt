@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginResponse
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
+import com.netflix.spinnaker.keel.platform.NoSuchVip
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.AbstractStub
@@ -68,15 +69,19 @@ class GrpcPluginRegistry(
   }
 
   fun <T : AbstractStub<T>> stubFor(name: String, stubFactory: (ManagedChannel) -> T): T =
-    eurekaClient
-      .getNextServerFromEureka(name, false)
-      .let { address ->
-        ManagedChannelBuilder
-          .forAddress(address.ipAddr, address.port)
-          .usePlaintext()
-          .build()
-          .let(stubFactory)
-      }
+    try {
+      eurekaClient
+        .getNextServerFromEureka(name, false)
+        .let { address ->
+          ManagedChannelBuilder
+            .forAddress(address.ipAddr, address.port)
+            .usePlaintext()
+            .build()
+            .let(stubFactory)
+        }
+    } catch (e: RuntimeException) {
+      throw NoSuchVip(name, e)
+    }
 }
 
 val registerAssetPluginSuccessResponse: RegisterAssetPluginResponse =
