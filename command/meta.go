@@ -81,18 +81,27 @@ type ApiMeta struct {
 func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 	f := flag.NewFlagSet(cmd, flag.ContinueOnError)
 
-	f.StringVar(&m.gateEndpoint, "gate-endpoint", "http://localhost:8084",
-		"Gate (API server) endpoint")
+	f.StringVar(&m.gateEndpoint, "gate-endpoint", "",
+		"Gate (API server) endpoint. Default http://localhost:8084.")
 	f.BoolVar(&m.ignoreCertErrors, "insecure", false, "Ignore Certificate Errors")
 	f.BoolVar(&m.quiet, "quiet", false, "Squelch non-essentual output")
 	f.BoolVar(&m.Color, "no-color", true, "Disable color")
 	// TODO(jacobkiefer): Codify the json-path as part of an OutputConfig or
 	// something similar. Sets the stage for yaml output, etc.
 	f.StringVar(&m.outputFormat, "output", "", "Configure output formatting")
-
 	f.Usage = func() {}
 
 	return f
+}
+
+func (m *ApiMeta) GateEndpoint() string {
+	if m.Config.Gate.Endpoint == "" && m.gateEndpoint == "" {
+		return "http://localhost:8084"
+	}
+	if m.gateEndpoint != "" {
+		return m.gateEndpoint
+	}
+	return m.Config.Gate.Endpoint
 }
 
 // Process will process the meta-parameters out of the arguments. This
@@ -163,7 +172,7 @@ func (m *ApiMeta) Process(args []string) ([]string, error) {
 	}
 
 	cfg := &gate.Configuration{
-		BasePath:      m.gateEndpoint,
+		BasePath:      m.GateEndpoint(),
 		DefaultHeader: make(map[string]string),
 		UserAgent:     fmt.Sprintf("%s/%s", version.UserAgent, version.String()),
 		HTTPClient:    client,

@@ -20,5 +20,8 @@ import (
 
 // Config is the CLI configuration kept in '~/.spin/config'.
 type Config struct {
+	Gate struct {
+		Endpoint string `yaml:"endpoint"`
+	} `yaml:"gate"`
 	Auth *auth.AuthConfig `yaml:"auth"`
 }
