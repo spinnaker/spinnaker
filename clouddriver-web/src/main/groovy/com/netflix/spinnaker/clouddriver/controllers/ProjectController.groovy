@@ -17,27 +17,18 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.configuration.ThreadPoolConfiguration
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
-import org.springframework.http.HttpStatus
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import rx.Observable
-import rx.Scheduler
-import rx.schedulers.Schedulers
 
 import com.netflix.spinnaker.clouddriver.model.ServerGroup.InstanceCounts as InstanceCounts
 
@@ -46,25 +37,14 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup.InstanceCounts as Ins
 @RequestMapping("/projects/{project}")
 class ProjectController {
 
-  private final Scheduler queryClusterScheduler
-
-  @Autowired
-  ProjectController(ThreadPoolConfiguration threadPoolConfiguration) {
-    this(Schedulers.from(newFixedThreadPool(threadPoolConfiguration.queryCluster)))
-  }
-
-  ProjectController(Scheduler queryClusterScheduler) {
-    this.queryClusterScheduler = queryClusterScheduler
-  }
-
   @Autowired
   Front50Service front50Service
 
   @Autowired
-  MessageSource messageSource
+  List<ClusterProvider> clusterProviders
 
   @Autowired
-  List<ClusterProvider> clusterProviders
+  RequestQueue requestQueue
 
   @RequestMapping(method= RequestMethod.GET, value = "/clusters")
   List<ClusterModel> getClusters(@PathVariable String project) {
@@ -81,7 +61,7 @@ class ProjectController {
     }
 
     List<String> applicationsToRetrieve = projectConfig.config.applications ?: []
-    Map<String, Set<Cluster>> allClusters = retrieveClusters(applicationsToRetrieve)
+    Map<String, Set<Cluster>> allClusters = retrieveClusters(project, applicationsToRetrieve)
 
     projectConfig.config.clusters.findResults { Map projectCluster ->
       List<String> applications = projectCluster.applications ?: projectConfig.config.applications
@@ -111,30 +91,29 @@ class ProjectController {
     }
   }
 
-  private Map<String, Set<Cluster>> retrieveClusters(List<String> applications) {
+  private Map<String, Set<Cluster>> retrieveClusters(String project, List<String> applications) {
     Map<String, Set<Cluster>> allClusters = [:]
-    def retrievedClusters = Observable.from(applications)
-        .flatMap { application ->
-      retrieveApplication(application).subscribeOn(queryClusterScheduler)
-    }
-    .observeOn(queryClusterScheduler).toList().toBlocking().single()
 
-    retrievedClusters.each {
-      if (!allClusters.containsKey(it.application)) {
-        allClusters.put(it.application, new HashSet<Cluster>())
+    for (String application: applications) {
+      for (RetrievedClusters clusters : retrieveApplication(project, application)) {
+        allClusters
+          .computeIfAbsent(clusters.application, { new HashSet<Cluster>() })
+          .addAll(clusters.clusters)
       }
-      allClusters[it.application].addAll(it.clusters)
     }
 
-    allClusters
+    return allClusters
   }
 
-  private Observable retrieveApplication(String application) {
-    return Observable.from(clusterProviders).flatMap({
-      Observable.from((it.getClusterDetails(application) ?: [:]).findResults {
-        new RetrievedClusters(application: application, clusters: it.value)
-      })
-    });
+  private List<RetrievedClusters> retrieveApplication(String project, String application) {
+    return clusterProviders.findResults { ClusterProvider provider ->
+      Map<String, Set<Cluster>> details = requestQueue.execute(project, { provider.getClusterDetails(application) }) ?: [:]
+      details ?
+        details.findResults {
+          it.value ? new RetrievedClusters(application: application, clusters: it.value) : null
+        } :
+        null
+    }.flatten()
   }
 
   static boolean nameMatches(String field, Names clusterName, Map projectCluster) {
@@ -236,12 +215,5 @@ class ProjectController {
     target.outOfService += sourceCounts.outOfService
     target.starting += sourceCounts.starting
     target.unknown += sourceCounts.unknown
-  }
-
-
-  private static ThreadPoolTaskExecutor newFixedThreadPool(int threadPoolSize) {
-    def executor = new ThreadPoolTaskExecutor(maxPoolSize: threadPoolSize, corePoolSize: threadPoolSize)
-    executor.afterPropertiesSet()
-    executor
   }
 }
