@@ -292,9 +292,13 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     const accounts = values.backingData.accounts;
     const readOnlyFields = values.viewState.readOnlyFields || {};
 
-    const selectedImage = values.amiName
-      ? values.backingData.filtered.images.find(image => image.imageName === values.amiName)
-      : undefined;
+    let selectedImage;
+    if (values.amiName && !values.amiName.includes('${')) {
+      selectedImage = values.amiName;
+    } else if (values.backingData.filtered.images) {
+      selectedImage = values.backingData.filtered.images.find(image => image.imageName === values.amiName);
+    }
+
     return (
       <div className="container-fluid form-horizontal">
         {values.regionIsDeprecated(values) && (
