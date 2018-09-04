@@ -18,7 +18,7 @@ package com.netflix.spinnaker.keel.registry
 import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.VetoPluginGrpc
-import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc
+import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc.PluginRegistryImplBase
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginRequest
@@ -29,13 +29,13 @@ import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.AbstractStub
 import io.grpc.stub.StreamObserver
+import org.lognet.springboot.grpc.GRpcService
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 
-@Component
+@GRpcService
 class GrpcPluginRegistry(
   private val eurekaClient: EurekaClient
-) : PluginRegistryGrpc.PluginRegistryImplBase() {
+) : PluginRegistryImplBase() {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val assetPlugins: MutableMap<TypeMetadata, String> = mutableMapOf()

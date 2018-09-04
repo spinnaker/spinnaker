@@ -1,13 +1,23 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
 apply from: "$rootDir/gradle/grpc.gradle"
+apply from: "$rootDir/gradle/junit4.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   api project(":keel-api")
+  api "org.lognet:grpc-spring-boot-starter:$springGrpcVersion"
   implementation project(":keel-common")
   implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
 
+  testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
+  testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
   testImplementation "io.strikt:strikt-protobuf:$striktVersion"
   testImplementation project(":keel-api-test")
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines "junit-jupiter", "junit-vintage"
+  }
 }

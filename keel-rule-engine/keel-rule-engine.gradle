@@ -8,6 +8,7 @@ dependencies {
   protobuf project(":keel-api")
 
   implementation project(":keel-common")
+  implementation "org.lognet:grpc-spring-boot-starter:$springGrpcVersion"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
   implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
   implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion"
