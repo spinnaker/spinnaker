@@ -82,6 +82,8 @@ swagger:
     - .*webhooks.*
     - /v2/.*
     - .*firewalls.*
+    - .*version.*
+    - .*pubsub.*
 
 hystrix:
   command:

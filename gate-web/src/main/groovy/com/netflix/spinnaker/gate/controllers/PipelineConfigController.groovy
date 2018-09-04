@@ -24,12 +24,9 @@ import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @Slf4j
 @CompileStatic
@@ -44,6 +41,7 @@ class PipelineConfigController {
   @Autowired
   OrcaServiceSelector orcaServiceSelector
 
+  @ApiOperation(value = "Get all pipeline configs.", response = HashMap.class, responseContainer = "List")
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllPipelineConfigs() {
     return HystrixFactory.newListCommand(HYSTRIX_GROUP, "getAllPipelineConfigs") {
@@ -51,6 +49,7 @@ class PipelineConfigController {
     }.execute()
   }
 
+  @ApiOperation(value = "Get pipeline config history.", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/{pipelineConfigId}/history", method = RequestMethod.GET)
   Collection<Map> getPipelineConfigHistory(@PathVariable("pipelineConfigId") String pipelineConfigId,
                                            @RequestParam(value = "limit", defaultValue = "20") int limit) {
@@ -59,6 +58,7 @@ class PipelineConfigController {
     }.execute()
   }
 
+  @ApiOperation(value = "Convert a pipeline config to a pipeline template.", response = String.class)
   @RequestMapping(value = "/{pipelineConfigId}/convertToTemplate", method = RequestMethod.GET)
   String convertPipelineConfigToPipelineTemplate(@PathVariable("pipelineConfigId") String pipelineConfigId) {
     Map pipelineConfig = HystrixFactory.newMapCommand(HYSTRIX_GROUP, "getPipelineConfig") {

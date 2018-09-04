@@ -15,6 +15,7 @@
 
 ## NOTE: This script is expected to be run from the root 'gate' directory
 
+rm -f swagger/swagger.json
 ./gradlew clean && ./gradlew gate-web:test --tests *GenerateSwagger*
 touch swagger/swagger.json
 cat gate-web/swagger.json | json_pp > swagger/swagger.json
