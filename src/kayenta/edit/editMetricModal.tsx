@@ -6,7 +6,7 @@ import { Option } from 'react-select';
 import { noop, HelpField } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryMetricConfig } from 'kayenta/domain';
+import { ICanaryMetricConfig, ICanaryMetricEffectSizeConfig } from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import Styleguide from 'kayenta/layout/styleguide';
@@ -81,6 +81,33 @@ function FilterTemplateSelector({ metricStore, template, templates, select }: IF
   );
 }
 
+function EffectSizeSummary({ effectSizes }: { effectSizes: ICanaryMetricEffectSizeConfig }) {
+  if (!effectSizes || Object.keys(effectSizes).length === 0) {
+    return null;
+  }
+
+  const {
+    allowedIncrease,
+    criticalIncrease,
+    allowedDecrease,
+    criticalDecrease
+  } = effectSizes;
+
+  return (
+    <FormRow label="Effect Sizes">
+      <div className="vertical">
+        {allowedIncrease && <span>Allowed Increase: <b>{allowedIncrease}</b></span>}
+        {criticalIncrease && <span>Critical Increase: <b>{criticalIncrease}</b></span>}
+        {allowedDecrease && <span>Allowed Decrease: <b>{allowedDecrease}</b></span>}
+        {criticalDecrease && <span>Critical Decrease: <b>{criticalDecrease}</b></span>}
+        <span className="body-small color-text-caption" style={{ marginTop: '5px' }}>
+          Effect sizes are not currently configurable via the UI.
+        </span>
+      </div>
+    </FormRow>
+  );
+}
+
 /*
  * Modal to edit metric details.
  */
@@ -106,6 +133,9 @@ function EditMetricModal({
   const direction = get(metric, ['analysisConfigurations', 'canary', 'direction'], 'either');
   const nanStrategy = get(metric, ['analysisConfigurations', 'canary', 'nanStrategy'], 'default');
   const critical = get(metric, ['analysisConfigurations', 'canary', 'critical'], false);
+  const effectSize = get<ICanaryMetricConfig, ICanaryMetricEffectSizeConfig>(
+    metric, ['analysisConfigurations', 'canary', 'effectSize']
+  );
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
   return (
@@ -184,6 +214,7 @@ function EditMetricModal({
               disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
           </FormRow>
+          <EffectSizeSummary effectSizes={effectSize} />
           <MetricConfigurerDelegator/>
         </Modal.Body>
         <Modal.Footer>

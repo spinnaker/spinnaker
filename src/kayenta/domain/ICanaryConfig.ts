@@ -22,6 +22,7 @@ export interface ICanaryMetricConfig {
   groups: string[];
   analysisConfigurations: {
     [key: string]: any;
+    effectSize?: ICanaryMetricEffectSizeConfig;
   };
   scopeName: string;
   isNew?: boolean;
@@ -45,6 +46,13 @@ export interface ICanaryClassifierConfig {
 export interface ICanaryClassifierThresholdsConfig {
   pass: number;
   marginal: number;
+}
+
+export interface ICanaryMetricEffectSizeConfig {
+  allowedIncrease?: number;
+  allowedDecrease?: number;
+  criticalIncrease?: number;
+  criticalDecrease?: number;
 }
 
 export interface ICanaryJudgeConfig {
