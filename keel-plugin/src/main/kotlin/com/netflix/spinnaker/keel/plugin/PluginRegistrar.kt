@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component
 class PluginRegistrar(
   private val eurekaClient: EurekaClient,
   private val plugins: List<KeelPlugin>,
-  @Value("\${keel.assetPluginRegistry.address:keel-test.us-west-2.spinnaker.netflix.net}") private val keelRegistryAddress: String,
+  @Value("\${keel.registry.address:keel-test.netflix.net:7001}") private val keelRegistryAddress: String,
   private val instanceInfo: InstanceInfo
 ) : ApplicationListener<RemoteStatusChangedEvent> {
 
