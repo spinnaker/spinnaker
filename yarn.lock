@@ -73,13 +73,13 @@
     d3-collection "1"
     d3-interpolate "1"
 
-"@spinnaker/amazon@^0.0.104":
-  version "0.0.104"
-  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.104.tgz#e1b3305cc11f1029deba0a2003be2a4f2ba1973e"
+"@spinnaker/amazon@^0.0.118":
+  version "0.0.118"
+  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.118.tgz#c3f5f6dc14dbbe3363cba622e9e0390b81f6d879"
 
-"@spinnaker/core@0.0.259":
-  version "0.0.259"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.259.tgz#614d15dec343b40b90387302f3ed28929198c39c"
+"@spinnaker/core@0.0.262":
+  version "0.0.262"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.262.tgz#7e9a956f5b5d422d1673742083392a99852c138c"
 
 "@spinnaker/styleguide@^1.0.1":
   version "1.0.1"
