@@ -1,6 +1,8 @@
 import { ICanaryJudgeResult } from './ICanaryJudgeResult';
 import { ICanaryClassifierThresholdsConfig, ICanaryConfig } from './ICanaryConfig';
 
+export const CANARY_EXECUTION_NO_PIPELINE_STATUS = 'no-parent-pipeline-execution';
+
 export interface ICanaryExecutionStatusResult {
   id: string // Added by Deck on load.
   complete: boolean;
@@ -27,12 +29,16 @@ export interface ICanaryResult {
 export interface ICanaryExecutionRequest {
   thresholds: ICanaryClassifierThresholdsConfig;
   scopes: {
-    [scopeName: string]: {
-      controlScope: ICanaryScope;
-      experimentScope: ICanaryScope;
-    };
+    [scopeName: string]: ICanaryScopePair;
   };
 }
+
+export type ICanaryScopesByName = ICanaryExecutionRequest['scopes'];
+
+export interface ICanaryScopePair {
+  controlScope: ICanaryScope;
+  experimentScope: ICanaryScope;
+};
 
 export interface ICanaryScope {
   scope: string;
@@ -40,4 +46,5 @@ export interface ICanaryScope {
   start: string;
   end: string;
   step: number;
+  extendedScopeParams?: { [param: string]: string };
 }

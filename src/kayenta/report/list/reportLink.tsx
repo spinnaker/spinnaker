@@ -8,13 +8,14 @@ interface IReportLinkOwnProps {
   configName: string;
   executionId: string;
   application: string;
+  children?: React.ReactNode;
 }
 
 interface IReportLinkStateProps {
   configId: string;
 }
 
-export const ReportLink = ({ configId, executionId }: IReportLinkOwnProps & IReportLinkStateProps) => {
+export const ReportLink = ({ configId, executionId, children }: IReportLinkOwnProps & IReportLinkStateProps) => {
   return (
     <Link
       targetState="^.reportDetail"
@@ -22,8 +23,9 @@ export const ReportLink = ({ configId, executionId }: IReportLinkOwnProps & IRep
         configId,
         runId: executionId,
       }}
-      linkText="Report"
-    />
+    >
+      {children}
+    </Link>
   );
 };
 

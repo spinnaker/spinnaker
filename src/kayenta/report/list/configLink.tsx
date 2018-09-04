@@ -21,8 +21,9 @@ export const ConfigLink = ({ configId, configName }: IConfigLinkOwnProps & IConf
       stateParams={{
         id: configId,
       }}
-      linkText={configName}
-    />
+    >
+      {configName}
+    </Link>
   );
 };
 

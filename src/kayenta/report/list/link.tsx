@@ -4,10 +4,10 @@ import { ReactInjector } from '@spinnaker/core';
 interface ILinkProps {
   targetState: string;
   stateParams: {[key: string]: any};
-  linkText: string;
+  children?: React.ReactNode;
 }
 
-export const Link = ({ targetState, stateParams, linkText }: ILinkProps) => {
+export const Link = ({ targetState, stateParams, children }: ILinkProps) => {
   const handleClick = () =>
     ReactInjector.$state.go(targetState, stateParams);
 
@@ -16,7 +16,7 @@ export const Link = ({ targetState, stateParams, linkText }: ILinkProps) => {
       className="clickable"
       onClick={handleClick}
     >
-      {linkText}
+      {children}
     </a>
   );
 };

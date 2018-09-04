@@ -14,7 +14,8 @@ export const PipelineLink = ({ parentPipelineExecutionId, application }: IParent
         application,
         executionId: parentPipelineExecutionId,
       }}
-      linkText="Pipeline"
-    />
+    >
+      Pipeline
+    </Link>
   );
 };

@@ -77,7 +77,7 @@
   }
 
   .table-row {
-    > div {
+    > div, > td {
       padding: .8rem 0;
     }
 
@@ -113,6 +113,16 @@
     &.background-white {
       background-color: var(--color-white);
     }
+  }
+
+  // As of 9/31/2018 this must be applied to a <th> for sticky table headers to work (not a <tr>/<thead>)
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=702927
+  .native-table-header {
+    position: sticky;
+    top: 0;
+    background-color: var(--color-alabaster);
+    // Borders don't work w/ position: sticky in this case
+    box-shadow: 0 1px 0 var(--color-divider);
   }
 
   .metric-list {
