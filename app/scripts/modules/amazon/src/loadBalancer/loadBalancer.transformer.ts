@@ -83,6 +83,8 @@ export class AwsLoadBalancerTransformer {
     serverGroups.forEach(serverGroup => {
       serverGroup.account = serverGroup.account || container.account;
       serverGroup.region = serverGroup.region || container.region;
+      serverGroup.cloudProvider = serverGroup.cloudProvider || container.cloudProvider;
+
       if (serverGroup.detachedInstances) {
         serverGroup.detachedInstances = (serverGroup.detachedInstances as any).map((instanceId: string) => {
           return { id: instanceId } as IInstance;
@@ -121,8 +123,9 @@ export class AwsLoadBalancerTransformer {
 
       tg.serverGroups = tg.serverGroups.map(serverGroup => {
         const account = accounts.find(x => x.name === serverGroup.account);
-        const cloudProvider = serverGroup.cloudProvider || (account && account.cloudProvider);
+        const cloudProvider = (account && account.cloudProvider) || serverGroup.cloudProvider;
 
+        serverGroup.cloudProvider = cloudProvider;
         serverGroup.instances.forEach(instance => {
           instance.cloudProvider = cloudProvider;
           instance.provider = cloudProvider;
