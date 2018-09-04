@@ -1,5 +1,5 @@
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
-import { IPipeline, IStage, IExpectedArtifact, IExecutionContext } from 'core/domain';
+import { Registry, IPipeline, IStage, IExpectedArtifact, IExecutionContext, IArtifact, IArtifactSource } from 'core';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 
 export class ExpectedArtifactService {
@@ -49,12 +49,36 @@ export class ExpectedArtifactService {
     };
   }
 
-  public static addNewArtifactTo(obj: any): IExpectedArtifact {
-    const artifact = ExpectedArtifactService.createEmptyArtifact('custom');
+  public static addArtifactTo(artifact: IExpectedArtifact, obj: any): IExpectedArtifact {
     if (obj.expectedArtifacts == null) {
       obj.expectedArtifacts = [];
     }
     obj.expectedArtifacts.push(artifact);
     return artifact;
+  }
+
+  public static addNewArtifactTo(obj: any): IExpectedArtifact {
+    return ExpectedArtifactService.addArtifactTo(ExpectedArtifactService.createEmptyArtifact('custom'), obj);
+  }
+
+  public static artifactFromExpected(expected: IExpectedArtifact): IArtifact | null {
+    if (expected && expected.matchArtifact) {
+      return expected.matchArtifact;
+    } else {
+      return null;
+    }
+  }
+
+  public static sourcesForPipelineStage(
+    pipeline: IPipeline,
+    stage: IStage,
+  ): Array<IArtifactSource<IPipeline | IStage>> {
+    type ArtifactSource = IArtifactSource<IPipeline | IStage>;
+    const sources: ArtifactSource[] = [{ source: pipeline, label: 'Pipeline Trigger' }];
+    PipelineConfigService.getAllUpstreamDependencies(pipeline, stage)
+      .filter(s => Registry.pipeline.getStageConfig(s).producesArtifacts)
+      .map(s => ({ source: s, label: 'Stage (' + s.name + ')' }))
+      .forEach(s => sources.push(s));
+    return sources;
   }
 }
