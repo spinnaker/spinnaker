@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.processing
+package com.netflix.spinnaker.keel.plugin
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetContainer
+import com.netflix.spinnaker.keel.api.TypeMetadata
+import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc.AssetPluginImplBase
 
-/**
- * Facade for gRPC asset plugins.
- */
-interface AssetService {
-  fun current(assetContainer: AssetContainer): CurrentAssetPair
-  fun converge(assetContainer: AssetContainer)
+abstract class AssetPlugin : KeelPlugin, AssetPluginImplBase() {
+  abstract val supportedTypes: Iterable<TypeMetadata>
 }
-
-data class CurrentAssetPair(
-  val desired: Asset,
-  val current: Asset?
-)
