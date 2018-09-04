@@ -16,7 +16,7 @@ export const CustomArtifactEditor = (props: IArtifactEditorProps) => {
     />
   );
   return (
-    <div className="col-md-12">
+    <div>
       <div className="form-group row">
         <label className={labelClassName + ' sm-label-right'}>Type</label>
         <div className="col-md-3">{input('type')}</div>
