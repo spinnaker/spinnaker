@@ -108,7 +108,7 @@ public class UserConfiguredUrlRestrictions {
         throw new IllegalArgumentException("unsupported URI scheme " + url);
       }
       if (!allowedHostnames.matcher(u.getHost()).matches()) {
-        throw new IllegalArgumentException("host not allowed " + u.getHost());
+        throw new IllegalArgumentException("Host not allowed " + u.getHost() + ". Host much match " + allowedHostnames.toString() + ".");
       }
 
       if (rejectLocalhost || rejectLinkLocal) {
