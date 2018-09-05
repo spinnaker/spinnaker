@@ -1544,28 +1544,22 @@ hystrix:
 
 
 class HaConfigurator(Configurator):
-  """Controls hal config deploy ha (only supported by Kubernetes v2 accounts)."""
+  """Controls hal config deploy ha (only supported by distributed deployments with a Kubernetes v2 account)."""
 
   def init_argument_parser(self, parser, defaults):
     """Implements interface."""
     add_parser_argument(
         parser, 'ha_clouddriver_enabled', defaults, False, type=bool,
-        help='Whether or not to deploy clouddriver in HA mode.'
-             ' clouddriver will be deployed as three separate services:'
-             ' clouddriver-caching, clouddriver-rw, and clouddriver-ro.')
+        help='Whether or not to deploy clouddriver in HA mode.')
     add_parser_argument(
         parser, 'ha_clouddriver_redis_master_endpoint', defaults, None,
-        help='The endpoint of the Redis service that is used by'
-             ' clouddriver-caching and clouddriver-rw')
+        help='The endpoint of the clouddriver Redis master service')
     add_parser_argument(
         parser, 'ha_clouddriver_redis_slave_endpoint', defaults, None,
-        help='The endpoint of the Redis service that is used by'
-             ' clouddriver-ro')
+        help='The endpoint of the clouddriver Redis slave service')
     add_parser_argument(
         parser, 'ha_echo_enabled', defaults, False, type=bool,
-        help='Whether or not to deploy echo in HA mode.'
-             ' echo will be deployed as two separate services:'
-             ' echo-scheduler and echo-slave.')
+        help='Whether or not to deploy echo in HA mode.')
 
   def validate_options(self, options):
     """Implements interface."""
