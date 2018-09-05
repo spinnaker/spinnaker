@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DestroyServerGroupStage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -30,7 +31,8 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 class CreateServerGroupStageSpec extends Specification {
   @Subject
   def createServerGroupStage = new CreateServerGroupStage(
-    rollbackClusterStage: new RollbackClusterStage(null, null)
+    rollbackClusterStage: new RollbackClusterStage(null, null),
+    destroyServerGroupStage: new DestroyServerGroupStage()
   )
 
   @Unroll
@@ -70,12 +72,48 @@ class CreateServerGroupStageSpec extends Specification {
     false                   | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || []
     true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | false      || []      // only rollback if task has failed
     true                    | "highlander"      | ["us-west-1": ["myapplication-stack-v001"]] | false      || []      // highlander is not supported
-    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [expectedContext([enableAndDisableOnly: true])]
-    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | true       || [expectedContext([disableOnly: true])]
+    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [expectedRollbackContext([enableAndDisableOnly: true])]
+    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | true       || [expectedRollbackContext([disableOnly: true])]
   }
 
+  def "should build DestroyStage when 'rollbackDestroyLatest' is enabled"() {
+    given:
+    def stage = stage {
+      context = [
+        "deploy.server.groups": deployServerGroups,
+        "application"         : "myapplication",
+        "account"             : "test",
+        "cloudProvider"       : "aws",
+        "strategy"            : strategy
+      ]
+    }
 
-  Map expectedContext(Map<String, Object> additionalRollbackContext) {
+    if (shouldDestroyOnFailure) {
+      stage.context.rollback = [
+        onFailure: true,
+        destroyLatest: true
+      ]
+    }
+
+    when:
+    def graph = StageGraphBuilder.afterStages(stage)
+    createServerGroupStage.onFailureStages(stage, graph)
+    def onFailureStageContexts = graph.build()*.getContext()
+
+    then:
+    onFailureStageContexts == expectedOnFailureStageContexts
+
+    where:
+    shouldDestroyOnFailure  | strategy          | deployServerGroups                          || expectedOnFailureStageContexts
+    true                    | null              | null                                        || []
+    false                   | null              | ["us-west-1": ["myapplication-stack-v001"]] || []
+    true                    | null              | ["us-west-1": ["myapplication-stack-v001"]] || [expectedDestroyContext()]
+    false                   | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] || []
+    true                    | "highlander"      | ["us-west-1": ["myapplication-stack-v001"]] || [expectedDestroyContext()] // highlander does not support rollback
+    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] || [expectedRollbackContext([enableAndDisableOnly: true]), expectedDestroyContext()]
+  }
+
+  Map expectedRollbackContext(Map<String, Object> additionalRollbackContext) {
     return [
       regions                  : ["us-west-1"],
       serverGroup              : "myapplication-stack-v001",
@@ -83,6 +121,18 @@ class CreateServerGroupStageSpec extends Specification {
       cloudProvider            : "aws",
       stageTimeoutMs           : TimeUnit.MINUTES.toMillis(30),
       additionalRollbackContext: additionalRollbackContext
+    ]
+  }
+
+  Map expectedDestroyContext() {
+    return [
+      cloudProvider    : "aws",
+      cloudProviderType: "aws",
+      cluster          : "myapplication-stack",
+      credentials      : "test",
+      region           : "us-west-1",
+      serverGroupName  : "myapplication-stack-v001",
+      stageTimeoutMs   : TimeUnit.MINUTES.toMillis(5)
     ]
   }
 }

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
@@ -49,6 +50,9 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
 
   @Autowired
   private RollbackClusterStage rollbackClusterStage
+
+  @Autowired
+  private DestroyServerGroupStage destroyServerGroupStage
 
   CreateServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -119,6 +123,22 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
         ]
       }
     }
+
+    if (stageData.rollback?.destroyLatest) {
+      graph.add {
+        it.type = destroyServerGroupStage.type
+        it.name = "Destroy ${stageData.serverGroup}"
+        it.context = [
+          "cloudProvider"     : stageData.cloudProvider,
+          "cloudProviderType" : stageData.cloudProvider,
+          "cluster"           : stageData.cluster,
+          "credentials"       : stageData.credentials,
+          "region"            : stageData.region,
+          "serverGroupName"   : stageData.serverGroup,
+          "stageTimeoutMs"    : MINUTES.toMillis(5) // timebox a destroy to 5 minutes
+        ]
+      }
+    }
   }
 
   private static class StageData {
@@ -153,5 +173,6 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
 
   private static class Rollback {
     Boolean onFailure
+    Boolean destroyLatest
   }
 }
