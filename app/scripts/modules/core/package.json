@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/core",
-  "version": "0.0.262",
+  "version": "0.0.263",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
