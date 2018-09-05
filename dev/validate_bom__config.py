@@ -1543,6 +1543,64 @@ hystrix:
     pass
 
 
+class HaConfigurator(Configurator):
+  """Controls hal config deploy ha (only supported by Kubernetes v2 accounts)."""
+
+  def init_argument_parser(self, parser, defaults):
+    """Implements interface."""
+    add_parser_argument(
+        parser, 'ha_clouddriver_enabled', defaults, False, type=bool,
+        help='Whether or not to deploy clouddriver in HA mode.'
+             ' clouddriver will be deployed as three separate services:'
+             ' clouddriver-caching, clouddriver-rw, and clouddriver-ro.')
+    add_parser_argument(
+        parser, 'ha_clouddriver_redis_master_endpoint', defaults, None,
+        help='The endpoint of the Redis service that is used by'
+             ' clouddriver-caching and clouddriver-rw')
+    add_parser_argument(
+        parser, 'ha_clouddriver_redis_slave_endpoint', defaults, None,
+        help='The endpoint of the Redis service that is used by'
+             ' clouddriver-ro')
+    add_parser_argument(
+        parser, 'ha_echo_enabled', defaults, False, type=bool,
+        help='Whether or not to deploy echo in HA mode.'
+             ' echo will be deployed as two separate services:'
+             ' echo-scheduler and echo-slave.')
+
+  def validate_options(self, options):
+    """Implements interface."""
+    # options.ha_enabled = (
+    #     options.ha_clouddriver_enabled
+    #     or options.ha_echo_enabled)
+    if options.ha_clouddriver_enabled:
+      if (options.ha_clouddriver_redis_master_endpoint is None) != (options.ha_clouddriver_redis_slave_endpoint is None):
+        raise ValueError('Either both --ha_clouddriver_redis_master_endpoint'
+                         ' and --ha_clouddriver_redis_slave_endpoint or neither'
+                         ' of them must be supplied.')
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if options.ha_clouddriver_enabled:
+      script.append('hal -q --log=info config deploy ha clouddriver enable')
+
+      ha_clouddriver_params = []
+      if options.ha_clouddriver_redis_master_endpoint is not None:
+        ha_clouddriver_params.extend(['--redis-master-endpoint',
+                                      options.ha_clouddriver_redis_master_endpoint])
+      if options.ha_clouddriver_redis_slave_endpoint is not None:
+        ha_clouddriver_params.extend(['--redis-slave-endpoint',
+                                      options.ha_clouddriver_redis_slave_endpoint])
+      if ha_clouddriver_params:
+        script.append('hal -q --log=info config deploy ha clouddriver edit {params}'
+                      .format(params=' '.join(ha_clouddriver_params)))
+
+    if options.ha_echo_enabled:
+      script.append('hal -q --log=info config deploy ha echo enable')
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    pass
+
 
 CONFIGURATOR_LIST = [
     MonitoringConfigurator(),
@@ -1563,7 +1621,8 @@ CONFIGURATOR_LIST = [
     SecurityConfigurator(),
     CanaryConfigurator(),
     GcsPubsubNotficationConfigurator(),
-    GooglePubsubConfigurator()
+    GooglePubsubConfigurator(),
+    HaConfigurator()
 ]
 
 
