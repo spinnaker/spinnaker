@@ -26,7 +26,7 @@ import lombok.EqualsAndHashCode;
 public class LdapRoleProvider extends RoleProvider {
   private final GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.LDAP;
 
-  private final String nodeName = "github";
+  private final String nodeName = "ldap";
 
   URI url;
   String managerDn;
