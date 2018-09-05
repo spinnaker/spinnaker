@@ -1,17 +1,16 @@
-import { copy, module } from 'angular';
+import { module } from 'angular';
 import { IArtifact, IExpectedArtifact } from 'core/domain';
 
-export function summarizeExpectedArtifact() {
+export function summarizeExpectedArtifact(excludeKeys = ['kind']) {
   return function(expected: IExpectedArtifact): string {
     if (!expected) {
       return '';
     }
 
-    const artifact = copy(expected.matchArtifact);
-    return Object.keys(artifact)
-      .filter((k: keyof IArtifact) => artifact[k])
-      .filter(k => k !== 'kind')
-      .map((k: keyof IArtifact) => `${k}: ${artifact[k]}`)
+    return Object.keys(expected.matchArtifact)
+      .filter((k: keyof IArtifact) => expected.matchArtifact[k])
+      .filter(k => !excludeKeys.includes(k))
+      .map((k: keyof IArtifact) => `${k}: ${expected.matchArtifact[k]}`)
       .join(', ');
   };
 }
