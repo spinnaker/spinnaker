@@ -64,7 +64,7 @@ val GrpcStubManager<*>.instanceInfo: InstanceInfo
     .newBuilder()
     .setAppName("grpc")
     .setIPAddr("localhost")
-    .setPort(port)
+    .setPort(7001) // yes, not the gRPC port. This is what real Eureka does
     .build()
 
 fun Server.shutdownWithin(timeout: Long, unit: TimeUnit) {

@@ -38,17 +38,17 @@ class GrpcPluginRegistry(
 ) : PluginRegistryImplBase() {
 
   private val log = LoggerFactory.getLogger(javaClass)
-  private val assetPlugins: MutableMap<TypeMetadata, String> = mutableMapOf()
-  private val vetoPlugins: MutableSet<String> = mutableSetOf()
+  private val assetPlugins: MutableMap<TypeMetadata, Pair<String, Int>> = mutableMapOf()
+  private val vetoPlugins: MutableSet<Pair<String, Int>> = mutableSetOf()
 
   fun pluginFor(type: TypeMetadata): AssetPluginGrpc.AssetPluginBlockingStub? =
-    assetPlugins[type]?.let { name ->
-      stubFor(name, AssetPluginGrpc::newBlockingStub)
+    assetPlugins[type]?.let { (vip, port) ->
+      stubFor(vip, port, AssetPluginGrpc::newBlockingStub)
     }
 
   fun <R> applyVetos(callback: (VetoPluginGrpc.VetoPluginBlockingStub) -> R): Iterable<R> =
     vetoPlugins
-      .map { name -> stubFor(name, VetoPluginGrpc::newBlockingStub) }
+      .map { (vip, port) -> stubFor(vip, port, VetoPluginGrpc::newBlockingStub) }
       .map(callback)
 
   override fun registerAssetPlugin(
@@ -58,7 +58,7 @@ class GrpcPluginRegistry(
     request
       .typesList
       .forEach { type ->
-        assetPlugins[type] = request.vipAddress
+        assetPlugins[type] = request.vipAddress to request.port
         log.info("Registered asset plugin at \"${request.vipAddress}\" supporting $type")
       }
     responseObserver.apply {
@@ -71,7 +71,7 @@ class GrpcPluginRegistry(
     request: RegisterVetoPluginRequest,
     responseObserver: StreamObserver<RegisterVetoPluginResponse>
   ) {
-    vetoPlugins.add(request.vipAddress)
+    vetoPlugins.add(request.vipAddress to request.port)
     log.info("Registered veto plugin at \"${request.vipAddress}\"")
     responseObserver.apply {
       onNext(
@@ -83,19 +83,19 @@ class GrpcPluginRegistry(
     }
   }
 
-  fun <T : AbstractStub<T>> stubFor(name: String, stubFactory: (ManagedChannel) -> T): T =
+  fun <T : AbstractStub<T>> stubFor(vip: String, port: Int, stubFactory: (ManagedChannel) -> T): T =
     try {
       eurekaClient
-        .getNextServerFromEureka(name, false)
+        .getNextServerFromEureka(vip, false)
         .let { address ->
           ManagedChannelBuilder
-            .forAddress(address.ipAddr, address.port)
+            .forAddress(address.ipAddr, port)
             .usePlaintext()
             .build()
             .let(stubFactory)
         }
     } catch (e: RuntimeException) {
-      throw NoSuchVip(name, e)
+      throw NoSuchVip(vip, e)
     }
 }
 

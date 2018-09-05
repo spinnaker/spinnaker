@@ -40,7 +40,7 @@ internal class PluginRegistrationTest {
       }
     }
   }
-  val keelRegistryAddress = "keel-test"
+  val keelRegistryVip = "keel-test"
   val eurekaClient: EurekaClient = mock()
   val amazonAssetPlugin = mock<AssetPlugin>()
   val instanceInfo = InstanceInfo.Builder.newBuilder().run {
@@ -49,12 +49,7 @@ internal class PluginRegistrationTest {
     setVIPAddress("keelplugins-test-aws")
     build()
   }
-  val registrar = PluginRegistrar(
-    eurekaClient,
-    listOf(amazonAssetPlugin),
-    keelRegistryAddress,
-    instanceInfo
-  )
+  lateinit var registrar: PluginRegistrar
 
   @BeforeEach
   fun startRegistry() {
@@ -65,6 +60,14 @@ internal class PluginRegistrationTest {
       "aws.SecurityGroup",
       "aws.ClassicLoadBalancer"
     ).map(::typeMetadataForKind)
+
+    registrar = PluginRegistrar(
+      eurekaClient,
+      listOf(amazonAssetPlugin),
+      keelRegistryVip,
+      grpc.port,
+      instanceInfo
+    )
   }
 
   @AfterEach
@@ -75,7 +78,7 @@ internal class PluginRegistrationTest {
 
   @Test
   fun `registers plugins on startup`() {
-    whenever(eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)) doReturn grpc.instanceInfo
+    whenever(eurekaClient.getNextServerFromEureka(keelRegistryVip, false)) doReturn grpc.instanceInfo
 
     registrar.onDiscoveryUp()
 
@@ -88,7 +91,7 @@ internal class PluginRegistrationTest {
 
   @Test
   fun `throws exception if Keel VIP is invalid`() {
-    whenever(eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)) doThrow RuntimeException("No matches for the virtual host name :$keelRegistryAddress")
+    whenever(eurekaClient.getNextServerFromEureka(keelRegistryVip, false)) doThrow RuntimeException("No matches for the virtual host name :$keelRegistryVip")
 
     expect {
       registrar.onDiscoveryUp()

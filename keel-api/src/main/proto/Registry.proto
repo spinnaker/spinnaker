@@ -14,7 +14,8 @@ service PluginRegistry {
 
 message RegisterAssetPluginRequest {
   string vipAddress = 1;
-  repeated TypeMetadata types = 2;
+  int32 port = 2;
+  repeated TypeMetadata types = 3;
 }
 
 message RegisterAssetPluginResponse {
@@ -23,6 +24,7 @@ message RegisterAssetPluginResponse {
 
 message RegisterVetoPluginRequest {
   string vipAddress = 1;
+  int32 port = 2;
 }
 
 message RegisterVetoPluginResponse {

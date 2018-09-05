@@ -55,6 +55,7 @@ internal class GrpcAssetServiceTests {
     val responseCallback: StreamObserver<RegisterAssetPluginResponse> = mock()
     registry.registerAssetPlugin(RegisterAssetPluginRequest.newBuilder().also {
       it.vipAddress = pluginAddress
+      it.port = grpc.port
       it.addTypes(asset.toTypeMetaData())
     }.build(), responseCallback)
     verify(responseCallback).onNext(argWhere {

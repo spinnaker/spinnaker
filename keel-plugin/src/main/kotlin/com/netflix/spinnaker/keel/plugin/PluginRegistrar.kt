@@ -35,7 +35,8 @@ import org.springframework.stereotype.Component
 class PluginRegistrar(
   private val eurekaClient: EurekaClient,
   private val plugins: List<KeelPlugin>,
-  @Value("\${keel.registry.address:keel-test.netflix.net:6565}") private val keelRegistryAddress: String,
+  @Value("\${keel.registry.address:keel-test.netflix.net:6565}") private val keelRegistryVip: String,
+  @Value("\${keel.registry.port:6565}") private val keelRegistryPort: Int,
   private val instanceInfo: InstanceInfo
 ) : ApplicationListener<RemoteStatusChangedEvent> {
 
@@ -55,6 +56,7 @@ class PluginRegistrar(
   }
 
   private fun KeelPlugin.registerWith(registry: PluginRegistryBlockingStub) {
+    log.info("Registering {} with Keel at {}", javaClass.simpleName, keelRegistryVip)
     when (this) {
       is AssetPlugin -> {
         val request = RegisterAssetPluginRequest
@@ -88,18 +90,18 @@ class PluginRegistrar(
 
   private val pluginRegistry: PluginRegistryBlockingStub by lazy {
     try {
-      eurekaClient.getNextServerFromEureka(keelRegistryAddress, false)
-        .let(::createChannelTo)
+      eurekaClient.getNextServerFromEureka(keelRegistryVip, false)
+        .let { createChannelTo(it, keelRegistryPort) }
         .let(PluginRegistryGrpc::newBlockingStub)
     } catch (e: RuntimeException) {
-      throw NoSuchVip(keelRegistryAddress, e)
+      throw NoSuchVip(keelRegistryVip, e)
       // TODO: need to fail health check in this case
     }
   }
 
-  fun createChannelTo(it: InstanceInfo): ManagedChannel =
+  fun createChannelTo(instance: InstanceInfo, port: Int = instance.port): ManagedChannel =
     ManagedChannelBuilder
-      .forAddress(it.ipAddr, it.port)
+      .forAddress(instance.ipAddr, port)
       .usePlaintext()
       .build()
 }
