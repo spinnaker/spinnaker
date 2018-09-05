@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 @Component
-@ConditionalOnExpression("${pollers.oldPipelineCleanup.enabled:false}")
+@ConditionalOnExpression("${pollers.oldPipelineCleanup.enabled:false} && !${executionRepository.sql.enabled:false}")
 public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   private static final List<String> COMPLETED_STATUSES = ExecutionStatus.COMPLETED.stream().map(Enum::toString).collect(Collectors.toList());

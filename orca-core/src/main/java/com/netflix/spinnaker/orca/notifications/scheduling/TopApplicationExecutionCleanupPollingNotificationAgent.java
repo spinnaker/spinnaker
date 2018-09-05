@@ -48,7 +48,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
 
 @Component
-@ConditionalOnExpression(value = "${pollers.topApplicationExecutionCleanup.enabled:false}")
+@ConditionalOnExpression("${pollers.topApplicationExecutionCleanup.enabled:false} && !${executionRepository.sql.enabled:false}")
 public class TopApplicationExecutionCleanupPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
