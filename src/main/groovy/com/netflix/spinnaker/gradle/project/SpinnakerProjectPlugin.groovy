@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gradle.project
 
 import com.netflix.spinnaker.gradle.dependency.SpinnakerDependencyPlugin
 import com.netflix.spinnaker.gradle.idea.SpinnakerIdeaConfigPlugin
+import com.netflix.spinnaker.gradle.license.SpinnakerLicenseReportPlugin
 import com.netflix.spinnaker.gradle.ospackage.OspackageBintrayPublishPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -30,5 +31,6 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
         project.plugins.apply(SpinnakerDependencyPlugin)
         project.plugins.apply(OspackageBintrayPublishPlugin)
         project.plugins.apply(SpinnakerProjectConventionsPlugin)
+        project.plugins.apply(SpinnakerLicenseReportPlugin)
     }
 }
