@@ -4,15 +4,24 @@ const helpContents: {[key: string]: string} = {
   'pipeline.config.canary.clusterPairs': `
         <p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
         <p>The version currently deployed in the baseline cluster will be used to create a new baseline server group, while the version created in the previous bake or Find Image stage will be deployed into the canary.</p>`,
-  'pipeline.config.canary.analysisType.realTimeAutomatic': `
-        <p>The <strong>Real Time (Automatic)</strong> analysis type means that the canary analysis will be performed over a time interval beginning at the moment of execution.</p>
-        <p>For this analysis type, Spinnaker will provision and clean up the baseline and canary server groups.</p>`,
-  'pipeline.config.canary.analysisType.realTime': `
-        <p>The <strong>Real Time (Manual)</strong> analysis type means that the canary analysis will be performed over a time interval beginning at the moment of execution.</p>
-        <p>For this analysis type, you are responsible for provisioning and cleaning up the baseline and canary server groups.</p>`,
-  'pipeline.config.canary.analysisType.retrospective': `
-        <p>The <strong>Retrospective</strong> analysis type means that the canary analysis will be performed over an explicitly-specified time interval (likely in the past).</p>
-        <p>For this analysis type, you are responsible for provisioning and cleaning up the baseline and canary server groups.</p>
+  'pipeline.config.canary.analysisType': `
+    <p>
+      <strong>Real Time</strong> analysis will be performed
+      over a time interval beginning at the moment of execution.
+      <ul>
+        <li>
+          <strong>Automatic:</strong> Spinnaker will provision and clean up the baseline and canary server groups.
+        </li>
+        <li>
+          <strong>Manual:</strong> You are responsible for provisioning and cleaning up the baseline and canary server groups.
+        </li>
+      </ul>
+    </p>
+    <p>
+      <strong>Retrospective</strong> analysis will be performed over an explicitly-specified time
+      interval (likely in the past). You are responsible for provisioning and cleaning up
+      the baseline and canary server groups.
+    </p>
   `,
   'pipeline.config.canary.resultStrategy': `
         <p>The result stategy is used to determine how to roll up a score if multiple clusters are participating in the canary.</p>

@@ -130,7 +130,7 @@ module(KAYENTA_CANARY_STAGE, [
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.RealTime, KayentaAnalysisType.Retrospective],
             'canaryConfig.scopes[0].experimentScope',
-            'Baseline Scope'
+            'Canary Scope'
           )
         },
         {

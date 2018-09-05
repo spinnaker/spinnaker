@@ -17,6 +17,7 @@
   <kayenta-stage-config-section title="Analysis Config">
 
     <stage-config-field label="Analysis Type"
+                        help-key="pipeline.config.canary.analysisType"
                         field-columns="3">
       <kayenta-analysis-type
         type="kayentaCanaryStageCtrl.stage.analysisType"
@@ -39,7 +40,6 @@
 
     <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTime, realTimeAutomatic">
       <stage-config-field label="Lifetime"
-                          help-key="pipeline.config.canary.analysisType"
                           field-columns="8"
                           ng-class="kayentaCanaryStageCtrl.getLifetimeClassnames()"
                           style="padding-left: 0; padding-right: 0;">
