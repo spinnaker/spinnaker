@@ -52,6 +52,10 @@ export class ReactModal {
       }
 
       const destroy = (resultHandler: (result: any) => void) => (result: any) => {
+        if (!mountNode) {
+          return;
+        }
+
         resultHandler(result);
         // Use react-bootstrap modal lifecycle, i.e. show=false, which triggers onExited
         show = false;

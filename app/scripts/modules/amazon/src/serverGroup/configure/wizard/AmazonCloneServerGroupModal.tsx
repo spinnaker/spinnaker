@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { get } from 'lodash';
 import { FormikErrors, FormikValues } from 'formik';
-import { IDeferred } from 'angular';
-import { $q } from 'ngimport';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import {
   Application,
@@ -57,8 +54,8 @@ export class AmazonCloneServerGroupModal extends React.Component<
     dismissModal: noop,
   };
 
+  private _isUnmounted = false;
   private refreshUnsubscribe: () => void;
-  private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
 
   public static show(props: IAmazonCloneServerGroupModalProps): Promise<IAmazonServerGroupCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
@@ -67,15 +64,6 @@ export class AmazonCloneServerGroupModal extends React.Component<
 
   constructor(props: IAmazonCloneServerGroupModalProps) {
     super(props);
-
-    const deferred = $q.defer();
-    const promise = deferred.promise;
-    this.$uibModalInstanceEmulation = {
-      result: promise,
-      close: () => this.props.dismissModal(),
-      dismiss: () => this.props.dismissModal(),
-    } as IModalServiceInstance;
-    Object.assign(this.$uibModalInstanceEmulation, { deferred });
 
     const requiresTemplateSelection = get(props, 'command.viewState.requiresTemplateSelection', false);
     if (!requiresTemplateSelection) {
@@ -89,7 +77,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
-        modalInstance: this.$uibModalInstanceEmulation,
+        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
         onTaskComplete: this.onTaskComplete,
       }),
     };
@@ -106,6 +94,10 @@ export class AmazonCloneServerGroupModal extends React.Component<
   }
 
   protected onApplicationRefresh(): void {
+    if (this._isUnmounted) {
+      return;
+    }
+
     const { command } = this.props;
     const { taskMonitor } = this.state;
     const cloneStage = taskMonitor.task.execution.stages.find((stage: IStage) => stage.type === 'cloneServerGroup');
@@ -167,6 +159,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
   };
 
   public componentWillUnmount(): void {
+    this._isUnmounted = true;
     if (this.refreshUnsubscribe) {
       this.refreshUnsubscribe();
     }

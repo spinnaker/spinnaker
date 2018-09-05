@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { cloneDeep, get } from 'lodash';
 import { FormikErrors } from 'formik';
-import { IDeferred, IPromise } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { $q } from 'ngimport';
+import { IPromise } from 'angular';
 
 import {
   AccountService,
@@ -48,9 +46,9 @@ export class CreateNetworkLoadBalancer extends React.Component<
     dismissModal: noop,
   };
 
+  private _isUnmounted = false;
   private refreshUnsubscribe: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
-  private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
 
   public static show(props: ICreateNetworkLoadBalancerProps): Promise<IAmazonNetworkLoadBalancerUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
@@ -69,15 +67,6 @@ export class CreateNetworkLoadBalancer extends React.Component<
       loadBalancerCommand,
       taskMonitor: null,
     };
-
-    const deferred = $q.defer();
-    const promise = deferred.promise;
-    this.$uibModalInstanceEmulation = {
-      result: promise,
-      close: () => this.props.dismissModal(),
-      dismiss: () => this.props.dismissModal(),
-    } as IModalServiceInstance;
-    Object.assign(this.$uibModalInstanceEmulation, { deferred });
   }
 
   protected certificateIdAsARN(
@@ -168,6 +157,10 @@ export class CreateNetworkLoadBalancer extends React.Component<
   }
 
   protected onApplicationRefresh(values: IAmazonNetworkLoadBalancerUpsertCommand): void {
+    if (this._isUnmounted) {
+      return;
+    }
+
     this.refreshUnsubscribe = undefined;
     this.props.dismissModal();
     this.setState({ taskMonitor: undefined });
@@ -187,6 +180,7 @@ export class CreateNetworkLoadBalancer extends React.Component<
   }
 
   public componentWillUnmount(): void {
+    this._isUnmounted = true;
     if (this.refreshUnsubscribe) {
       this.refreshUnsubscribe();
     }
@@ -212,7 +206,7 @@ export class CreateNetworkLoadBalancer extends React.Component<
       const taskMonitor = new TaskMonitor({
         application: app,
         title: `${isNew ? 'Creating' : 'Updating'} your load balancer`,
-        modalInstance: this.$uibModalInstanceEmulation,
+        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
         onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted),
       });
 

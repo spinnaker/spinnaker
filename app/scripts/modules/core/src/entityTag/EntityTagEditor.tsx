@@ -1,9 +1,6 @@
 import * as React from 'react';
-import { IDeferred } from 'angular';
-import { $q } from 'ngimport';
 import { Field, FieldProps, Form, Formik, FormikErrors, FormikProps } from 'formik';
 import { Modal } from 'react-bootstrap';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import {
   UUIDGenerator,
@@ -68,8 +65,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     onUpdate: noop,
   };
 
-  private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
-
   /** Shows the Entity Tag Editor modal */
   public static show(props: IEntityTagEditorProps): Promise<void> {
     return ReactModal.show(EntityTagEditor, props);
@@ -90,15 +85,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
       },
       isSubmitting: false,
     };
-
-    const deferred = $q.defer();
-    const promise = deferred.promise;
-    this.$uibModalInstanceEmulation = {
-      result: promise,
-      close: (result: any) => this.props.closeModal(result),
-      dismiss: (error: any) => this.props.dismissModal(error),
-    } as IModalServiceInstance;
-    Object.assign(this.$uibModalInstanceEmulation, { deferred });
   }
 
   private validate = (values: IEntityTagEditorValues): Partial<FormikErrors<IEntityTagEditorValues>> => {
@@ -111,7 +97,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
   private close = (args?: any): void => {
     this.props.dismissModal.apply(null, args);
-    this.$uibModalInstanceEmulation.deferred.resolve();
   };
 
   private upsertTag = (values: IEntityTagEditorValues): void => {
@@ -126,10 +111,13 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
     tag.value.message = values.message;
 
+    const onClose = (result: any) => this.props.closeModal(result);
+    const onDismiss = (result: any) => this.props.dismissModal(result);
+    const modalInstance = TaskMonitor.modalInstanceEmulation(onClose, onDismiss);
     const taskMonitor = new TaskMonitor({
       application,
+      modalInstance,
       title: `${isNew ? 'Create' : 'Update'} ${this.props.tag.value.type} for ${entityRef.entityId}`,
-      modalInstance: this.$uibModalInstanceEmulation,
       onTaskComplete: () => application.entityTags.refresh().then(() => onUpdate()),
     });
 

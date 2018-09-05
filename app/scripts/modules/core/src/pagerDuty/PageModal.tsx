@@ -1,9 +1,6 @@
-import { IDeferred } from 'angular';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { get } from 'lodash';
-import { $q } from 'ngimport';
 
 import {
   Application,
@@ -34,20 +31,9 @@ export interface IPageModalState {
 }
 
 export class PageModal extends React.Component<IPageModalProps, IPageModalState> {
-  private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
-
   constructor(props: IPageModalProps) {
     super(props);
     this.state = this.getDefaultState(props);
-
-    const deferred = $q.defer();
-    const promise = deferred.promise;
-    this.$uibModalInstanceEmulation = {
-      result: promise,
-      close: () => this.close(),
-      dismiss: () => this.close(),
-    } as IModalServiceInstance;
-    Object.assign(this.$uibModalInstanceEmulation, { deferred });
   }
 
   public componentWillReceiveProps(nextProps: IPageButtonProps): void {
@@ -89,7 +75,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
   public sendPage = (): void => {
     const taskMonitor = new TaskMonitor({
       title: `Sending page to ${this.state.pageCount} policies`,
-      modalInstance: this.$uibModalInstanceEmulation,
+      modalInstance: TaskMonitor.modalInstanceEmulation(() => this.close()),
       onTaskComplete: () => this.props.closeCallback(true),
     });
 

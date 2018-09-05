@@ -1,10 +1,7 @@
 import * as React from 'react';
-import { IDeferred } from 'angular';
 
 import { Modal } from 'react-bootstrap';
 import { cloneDeep, partition } from 'lodash';
-import { $q } from 'ngimport';
-import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import { Application, HelpField, NgReact, TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
@@ -47,20 +44,8 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     },
   };
 
-  private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
-
   constructor(props: IConfigBinModalProps) {
     super(props);
-
-    const deferred = $q.defer();
-    const promise = deferred.promise;
-    this.$uibModalInstanceEmulation = {
-      result: promise,
-      close: () => this.close(),
-      dismiss: () => this.close(),
-    } as IModalServiceInstance;
-    Object.assign(this.$uibModalInstanceEmulation, { deferred });
-
     // only want to touch expressions in this account; will retain others to add back on save
     const allExpressions = props.config.expressions;
 
@@ -174,7 +159,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     const taskMonitor = new TaskMonitor({
       application,
       title: `Update Config Bin metric forwarding`,
-      modalInstance: this.$uibModalInstanceEmulation,
+      modalInstance: TaskMonitor.modalInstanceEmulation(() => this.close()),
     });
 
     taskMonitor.submit(submitMethod);
