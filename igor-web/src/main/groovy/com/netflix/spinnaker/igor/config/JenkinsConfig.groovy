@@ -21,7 +21,9 @@ import com.netflix.spinnaker.igor.config.client.DefaultJenkinsOkHttpClientProvid
 import com.netflix.spinnaker.igor.config.client.DefaultJenkinsRetrofitRequestInterceptorProvider
 import com.netflix.spinnaker.igor.config.client.JenkinsOkHttpClientProvider
 import com.netflix.spinnaker.igor.config.client.JenkinsRetrofitRequestInterceptorProvider
+
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
+
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.squareup.okhttp.OkHttpClient
@@ -33,8 +35,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
+import retrofit.ErrorHandler
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
+import retrofit.RetrofitError
 import retrofit.client.OkClient
 import retrofit.converter.SimpleXMLConverter
 

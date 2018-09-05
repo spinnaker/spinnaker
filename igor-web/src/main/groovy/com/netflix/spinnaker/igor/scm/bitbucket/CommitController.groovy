@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.igor.scm.bitbucket
 
+import com.netflix.spinnaker.igor.config.BitBucketProperties
+import com.netflix.spinnaker.igor.exceptions.UnhandledDownstreamServiceErrorException
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.CompareCommitsResponse
-import com.netflix.spinnaker.igor.config.BitBucketProperties
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -67,12 +68,10 @@ class CommitController extends AbstractCommitController {
         commitsResponse.values = commitsResponse.values.subList(0, fromIndex + 1)
       }
     } catch (RetrofitError e) {
-      if (e.getKind() == RetrofitError.Kind.NETWORK) {
-        throw new RuntimeException("Could not find the server ${bitBucketMaster.baseUrl}")
-      } else if (e.response.status == 404) {
+      if (e.response.status == 404) {
         return getNotFoundCommitsResponse(projectKey, repositorySlug, requestParams.to, requestParams.from, bitBucketMaster.baseUrl)
       }
-      throw new RuntimeException("Unhandled bitbucket error for ${bitBucketMaster.baseUrl}", e)
+      throw new UnhandledDownstreamServiceErrorException("Unhandled bitbucket error for ${bitBucketMaster.baseUrl}", e)
     }
 
     commitsResponse.values.each {

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -84,12 +85,15 @@ class BuildControllerSpec extends Specification {
         buildMasters = Mock(BuildMasters)
         server = new MockWebServer()
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new BuildController(
-            executor: Executors.newSingleThreadExecutor(),
-            buildMasters: buildMasters,
-            objectMapper: new ObjectMapper(),
-            retrySupport: retrySupport
-        )).build()
+        mockMvc = MockMvcBuilders
+            .standaloneSetup(new BuildController(
+                executor: Executors.newSingleThreadExecutor(),
+                buildMasters: buildMasters,
+                objectMapper: new ObjectMapper(),
+                retrySupport: retrySupport
+            ))
+            .setControllerAdvice(new GenericExceptionHandlers())
+            .build()
     }
 
     void 'get the status of a build'() {
@@ -239,6 +243,7 @@ class BuildControllerSpec extends Specification {
             .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
 
         then:
+
         1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
         1 * buildMasters.map >> [MASTER: jenkinsService]
         response.status == HttpStatus.BAD_REQUEST.value()

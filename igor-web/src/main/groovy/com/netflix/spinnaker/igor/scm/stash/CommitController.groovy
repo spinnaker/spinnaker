@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.scm.stash
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
 import com.netflix.spinnaker.igor.scm.stash.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -44,7 +45,7 @@ class CommitController extends AbstractCommitController {
             commitsResponse = stashMaster.stashClient.getCompareCommits(projectKey, repositorySlug, requestParams)
         } catch (RetrofitError e) {
             if (e.getKind() == RetrofitError.Kind.NETWORK) {
-                throw new RuntimeException("Could not find the server ${stashMaster.baseUrl}")
+                throw new NotFoundException("Could not find the server ${stashMaster.baseUrl}")
             } else if (e.response.status == 404) {
                 return getNotFoundCommitsResponse(projectKey, repositorySlug, requestParams.to, requestParams.from, stashMaster.baseUrl)
             }

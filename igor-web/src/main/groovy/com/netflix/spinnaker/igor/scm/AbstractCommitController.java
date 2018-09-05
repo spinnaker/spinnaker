@@ -62,12 +62,6 @@ public abstract class AbstractCommitController {
         return Collections.singletonList(eMap);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Could not contact the server")
-    public void handleRuntimeException(RuntimeException ex) {
-        log.error("Could not contact the server", ex);
-    }
-
     @Autowired
     public void setExecutor(ExecutorService executor) {
         this.executor = executor;

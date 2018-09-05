@@ -25,20 +25,19 @@ import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import retrofit.RetrofitError
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
-
 /**
  * Converts validation errors into REST Messages
  */

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.igor.config.GitHubProperties
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -50,7 +51,7 @@ class CommitController extends AbstractCommitController {
             commitsResponse = master.gitHubClient.getCompareCommits(projectKey, repositorySlug, requestParams.to, requestParams.from)
         } catch (RetrofitError e) {
             if(e.getKind() == RetrofitError.Kind.NETWORK) {
-                throw new RuntimeException("Could not find the server ${master.baseUrl}")
+                throw new NotFoundException("Could not find the server ${master.baseUrl}")
             } else if(e.response.status == 404) {
                 return getNotFoundCommitsResponse(projectKey, repositorySlug, requestParams.to, requestParams.from, master.baseUrl)
             }

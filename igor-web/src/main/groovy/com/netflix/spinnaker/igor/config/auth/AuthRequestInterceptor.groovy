@@ -65,7 +65,6 @@ class AuthRequestInterceptor implements RequestInterceptor {
         }
 
         String toString() {
-            log.debug("Including Basic digest in Authorization header")
             return Credentials.basic(username, password)
         }
     }

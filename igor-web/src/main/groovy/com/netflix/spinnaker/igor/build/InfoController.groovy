@@ -23,16 +23,18 @@ import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
-import groovy.transform.InheritConstructors
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 
-import java.util.List
-
 import javax.servlet.http.HttpServletRequest
+
 /**
  * A controller that provides jenkins information
  */
@@ -129,7 +131,7 @@ class InfoController {
                 return buildCache.getJobNames(master)
             }
         } else {
-            throw new MasterNotFoundException("Master '${master}' does not exist")
+            throw new NotFoundException("Master '${master}' does not exist")
         }
     }
 
@@ -139,17 +141,8 @@ class InfoController {
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(3).join('/')
         def service = buildMasters.map[master]
         if (!service) {
-            throw new MasterNotFoundException("Master '${master}' does not exist")
+            throw new NotFoundException("Master '${master}' does not exist")
         }
         return service.getJobConfig(job)
     }
-
-    static class MasterResults {
-        String master
-        List<String> results = []
-    }
-
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @InheritConstructors
-    static class MasterNotFoundException extends RuntimeException {}
 }
