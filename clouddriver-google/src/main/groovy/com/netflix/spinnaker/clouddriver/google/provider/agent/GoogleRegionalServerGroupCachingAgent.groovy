@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.*
 import com.netflix.frigga.Names
@@ -41,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -147,10 +149,17 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     } else {
       InstanceGroupManagerCallbacks.InstanceGroupManagerListCallback igmlCallback =
         instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback(instanceTemplates, instances)
-      compute.regionInstanceGroupManagers()
-          .list(project, region)
-          .setMaxResults(maxMIGPageSize)
-          .queue(igmRequest, igmlCallback)
+      new PaginatedRequest<RegionInstanceGroupManagerList>(this) {
+        @Override
+        AbstractGoogleJsonClientRequest<RegionInstanceGroupManagerList> request (String pageToken) {
+          return compute.regionInstanceGroupManagers().list(project, region).setMaxResults(maxMIGPageSize).setPageToken(pageToken)
+        }
+
+        @Override
+        String getNextPageToken(RegionInstanceGroupManagerList instanceGroupManagerList) {
+          return instanceGroupManagerList.getNextPageToken()
+        }
+      }.queue(igmRequest, igmlCallback, "RegionalServerGroupCaching.igm")
     }
     executeIfRequestsAreQueued(igmRequest, "RegionalServerGroupCaching.igm")
     executeIfRequestsAreQueued(instanceGroupsRequest, "RegionalServerGroupCaching.instanceGroups")
@@ -402,18 +411,6 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
         def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
         compute.autoscalers().aggregatedList(project).queue(autoscalerRequest, autoscalerCallback)
-
-        def nextPageToken = instanceGroupManagerList.getNextPageToken()
-
-        if (nextPageToken) {
-          BatchRequest igmRequest = buildBatchRequest()
-          compute.regionInstanceGroupManagers()
-              .list(project, region)
-              .setPageToken(nextPageToken)
-              .setMaxResults(maxMIGPageSize)
-              .queue(igmRequest, this)
-          executeIfRequestsAreQueued(igmRequest, "RegionalServerGroupCaching.igm")
-        }
       }
     }
 

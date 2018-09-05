@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.services.compute.model.BackendService
-import com.google.api.services.compute.model.Region
+import com.google.api.services.compute.model.BackendServiceList
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -60,21 +62,44 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
 
   List<GoogleBackendService> loadBackendServices() {
     List<GoogleBackendService> ret = []
-    def globalBackendServices = timeExecute(
-        compute.backendServices().list(project),
-        "compute.backendServices.list",
-        TAG_SCOPE, SCOPE_GLOBAL
-    ).items as List
+
+    List<BackendService> globalBackendServices = new PaginatedRequest<BackendServiceList>(this) {
+      @Override
+      protected AbstractGoogleJsonClientRequest<BackendServiceList> request (String pageToken) {
+        return compute.backendServices().list(project).setPageToken(pageToken)
+      }
+
+      @Override
+      String getNextPageToken(BackendServiceList t) {
+        return t.getNextPageToken();
+      }
+    }
+    .timeExecute(
+      { BackendServiceList list -> list.getItems() },
+      "compute.backendServices.list",
+      TAG_SCOPE, SCOPE_GLOBAL
+    )
     if (globalBackendServices) {
       ret.addAll(globalBackendServices.collect { toGoogleBackendService(it, GoogleBackendService.BackendServiceKind.globalBackendService) })
     }
 
     credentials.regions.collect { it.name }.each { String region ->
-      def regionBackendServices = timeExecute(
-          compute.regionBackendServices().list(project, region),
-          "compute.regionBackendServices.list",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
-      )?.items as List
+      List<BackendService> regionBackendServices = new PaginatedRequest<BackendServiceList>(this) {
+        @Override
+        protected AbstractGoogleJsonClientRequest<BackendServiceList> request (String pageToken) {
+          return compute.regionBackendServices().list(project, region).setPageToken(pageToken)
+        }
+
+        @Override
+        String getNextPageToken(BackendServiceList t) {
+          return t.getNextPageToken();
+        }
+      }
+      .timeExecute(
+        { BackendServiceList list -> list.getItems()},
+        "compute.regionBackendServices.list",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
+      )
       if (regionBackendServices) {
         ret.addAll(regionBackendServices.collect { toGoogleBackendService(it, GoogleBackendService.BackendServiceKind.regionBackendService) })
       }

@@ -22,6 +22,9 @@ import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRe
 import com.netflix.spinnaker.clouddriver.google.provider.agent.AbstractGoogleCachingAgent;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 public abstract class PaginatedRequest<T> {
   private final AbstractGoogleCachingAgent cachingAgent;
@@ -42,6 +45,17 @@ public abstract class PaginatedRequest<T> {
         cachingAgent.executeIfRequestsAreQueued(batch, instrumentationContext);
       }
     });
+  }
+
+  public <U> List<U> timeExecute(Function<T, List<U>> itemExtractor, String api, String... tags) throws IOException {
+    String pageToken = null;
+    List<U> resultList = new ArrayList<>();
+    do {
+      T results = cachingAgent.timeExecute(request(pageToken), api, tags);
+      resultList.addAll(itemExtractor.apply(results));
+      pageToken = getNextPageToken(results);
+    } while (pageToken != null);
+    return resultList;
   }
 
   protected abstract String getNextPageToken(T t);

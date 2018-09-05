@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.model.HealthCheck
-import com.google.api.services.compute.model.HttpHealthCheck
-import com.google.api.services.compute.model.HttpsHealthCheck
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
+import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -70,11 +70,22 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
    */
   List<GoogleHealthCheck> loadHealthChecks() {
     List<GoogleHealthCheck> ret = []
-    def httpHealthChecks = timeExecute(
-        compute.httpHealthChecks().list(project),
-        "compute.httpHealthChecks.list",
-        TAG_SCOPE, SCOPE_GLOBAL
-    ).items as List
+
+    List<HttpHealthCheck> httpHealthChecks = new PaginatedRequest<HttpHealthCheckList>(this) {
+      @Override
+      protected AbstractGoogleJsonClientRequest<HttpHealthCheckList> request (String pageToken) {
+        return compute.httpHealthChecks().list(project).setPageToken(pageToken)
+      }
+
+      @Override
+      String getNextPageToken(HttpHealthCheckList t) {
+        return t.getNextPageToken();
+      }
+    }
+    .timeExecute(
+      { HttpHealthCheckList list -> list.getItems() },
+      "compute.httpHealthChecks.list", TAG_SCOPE, SCOPE_GLOBAL
+    )
     httpHealthChecks.each { HttpHealthCheck hc ->
       ret << new GoogleHealthCheck(
         name: hc.getName(),
@@ -90,11 +101,21 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       )
     }
 
-    def httpsHealthChecks = timeExecute(
-        compute.httpsHealthChecks().list(project),
-        "compute.httpsHealthChecks.list",
-        TAG_SCOPE, SCOPE_GLOBAL
-    ).items as List
+    List<HttpsHealthCheck> httpsHealthChecks = new PaginatedRequest<HttpsHealthCheckList>(this) {
+      @Override
+      protected AbstractGoogleJsonClientRequest<HttpsHealthCheckList> request (String pageToken) {
+        return compute.httpsHealthChecks().list(project).setPageToken(pageToken)
+      }
+
+      @Override
+      String getNextPageToken(HttpsHealthCheckList t) {
+        return t.getNextPageToken();
+      }
+    }
+    .timeExecute(
+      { HttpsHealthCheckList list -> list.getItems() },
+      "compute.httpsHealthChecks.list", TAG_SCOPE, SCOPE_GLOBAL
+    )
     httpsHealthChecks.each { HttpsHealthCheck hc ->
       ret << new GoogleHealthCheck(
         name: hc.getName(),
@@ -110,11 +131,21 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       )
     }
 
-    def healthChecks = timeExecute(
-        compute.healthChecks().list(project),
-        "compute.healthChecks.list",
-        TAG_SCOPE, SCOPE_GLOBAL
-    ).items as List
+    List<HealthCheck> healthChecks = new PaginatedRequest<HealthCheckList>(this) {
+      @Override
+      protected AbstractGoogleJsonClientRequest<HealthCheckList> request (String pageToken) {
+        return compute.healthChecks().list(project).setPageToken(pageToken)
+      }
+
+      @Override
+      String getNextPageToken(HealthCheckList t) {
+        return t.getNextPageToken();
+      }
+    }
+    .timeExecute(
+      { HealthCheckList list -> list.getItems() },
+      "compute.healthChecks.list", TAG_SCOPE, SCOPE_GLOBAL
+    )
     healthChecks.each { HealthCheck hc ->
       def newHC = new GoogleHealthCheck(
         name: hc.getName(),

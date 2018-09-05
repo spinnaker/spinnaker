@@ -17,13 +17,16 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.services.compute.model.Address
+import com.google.api.services.compute.model.AddressList
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -56,10 +59,22 @@ class GoogleGlobalAddressCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   List<Address> loadAddresses() {
-    timeExecute(compute.globalAddresses().list(project),
-                "compute.globalAddresses.list",
-                TAG_SCOPE,
-                SCOPE_GLOBAL).items as List
+    List<Address> globalAddresses = new PaginatedRequest<AddressList>(this) {
+      @Override
+      protected AbstractGoogleJsonClientRequest<AddressList> request (String pageToken) {
+        return compute.globalAddresses().list(project).setPageToken(pageToken)
+      }
+
+      @Override
+      String getNextPageToken(AddressList t) {
+        return t.getNextPageToken();
+      }
+    }
+    .timeExecute(
+      { AddressList list -> list.getItems() },
+      "compute.globalAddresses.list", TAG_SCOPE, SCOPE_GLOBAL
+    )
+    return globalAddresses
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Address> addressList) {

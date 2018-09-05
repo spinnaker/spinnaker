@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
@@ -43,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.googlecommon.GoogleExecutor
@@ -157,7 +159,17 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       } else {
         InstanceGroupManagerCallbacks.InstanceGroupManagerListCallback igmlCallback =
           instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback(instanceTemplates, instances)
-        compute.instanceGroupManagers().list(project, zone).setMaxResults(maxMIGPageSize).queue(igmRequest, igmlCallback)
+        new PaginatedRequest<InstanceGroupManagerList>(this) {
+          @Override
+          AbstractGoogleJsonClientRequest<InstanceGroupManagerList> request(String pageToken) {
+            return compute.instanceGroupManagers().list(project, zone).setMaxResults(maxMIGPageSize).setPageToken(pageToken)
+          }
+
+          @Override
+          String getNextPageToken(InstanceGroupManagerList instanceGroupManagerList) {
+            return instanceGroupManagerList.getNextPageToken()
+          }
+        }.queue(igmRequest, igmlCallback, "ZonalServerGroupCaching.igm")
       }
     }
     executeIfRequestsAreQueued(igmRequest, "ZonalServerGroupCaching.igm")
@@ -168,22 +180,22 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   static List<InstanceTemplate> fetchInstanceTemplates(Compute compute, String project) {
-    Boolean executedAtLeastOnce = false
-    String nextPageToken = null
-    List<InstanceTemplate> instanceTemplates = []
-    while (!executedAtLeastOnce || nextPageToken) {
-      InstanceTemplateList instanceTemplateList = GoogleExecutor.timeExecute(
-          GoogleExecutor.getRegistry(),
-          compute.instanceTemplates().list(project).setPageToken(nextPageToken),
-          "google.api",
-          "compute.instanceTemplates.list",
-          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL,
-          "account", AccountForClient.getAccount(compute))
+    List<InstanceTemplate> instanceTemplates = new PaginatedRequest<InstanceTemplateList>(this) {
+      @Override
+      protected AbstractGoogleJsonClientRequest<InstanceTemplateList> request (String pageToken) {
+        return compute.instanceTemplates().list(project).setPageToken(pageToken)
+      }
 
-      executedAtLeastOnce = true
-      nextPageToken = instanceTemplateList.getNextPageToken()
-      instanceTemplates.addAll(instanceTemplateList.getItems() ?: [])
-    }
+      @Override
+      String getNextPageToken(InstanceTemplateList t) {
+        return t.getNextPageToken();
+      }
+    }.timeExecute(
+      { InstanceTemplateList list -> list.getItems() },
+      "compute.instanceTemplates.list", GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL,
+      "account", AccountForClient.getAccount(compute)
+    )
+
     return instanceTemplates
   }
 
@@ -445,18 +457,6 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
 
         def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
         compute.autoscalers().aggregatedList(project).queue(autoscalerRequest, autoscalerCallback)
-
-        def nextPageToken = instanceGroupManagerList.getNextPageToken()
-
-        if (nextPageToken) {
-          BatchRequest igmRequest = buildBatchRequest()
-          compute.instanceGroupManagers()
-              .list(project, zone)
-              .setPageToken(nextPageToken)
-              .setMaxResults(maxMIGPageSize)
-              .queue(igmRequest, this)
-          executeIfRequestsAreQueued(igmRequest, "ZonalServerGroupCaching.igm")
-        }
       }
     }
 
