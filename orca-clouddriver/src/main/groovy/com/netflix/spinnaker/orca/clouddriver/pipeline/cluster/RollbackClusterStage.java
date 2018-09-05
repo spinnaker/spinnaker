@@ -37,17 +37,6 @@ import java.util.stream.Collectors;
 public class RollbackClusterStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "rollbackCluster";
 
-  private final RollbackServerGroupStage rollbackServerGroupStage;
-
-  private final WaitStage waitStage;
-
-  @Autowired
-  public RollbackClusterStage(RollbackServerGroupStage rollbackServerGroupStage,
-                              WaitStage waitStage) {
-    this.rollbackServerGroupStage = rollbackServerGroupStage;
-    this.waitStage = waitStage;
-  }
-
   @Override
   public void taskGraph(
     @Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
@@ -83,7 +72,7 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       }
 
       context.put("rollbackContext", rollbackContext);
-      context.put("type", rollbackServerGroupStage.getType());
+      context.put("type", RollbackServerGroupStage.PIPELINE_CONFIG_TYPE);
       context.put("region", region);
       context.put("credentials", stageData.credentials);
       context.put("cloudProvider", stageData.cloudProvider);
@@ -92,7 +81,7 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       context.putAll(propagateParentStageContext(parent.getParent()));
 
       graph.append((it) -> {
-        it.setType(rollbackServerGroupStage.getType());
+        it.setType(RollbackServerGroupStage.PIPELINE_CONFIG_TYPE);
         it.setName("Rollback " + region);
         it.setContext(context);
       });
@@ -100,7 +89,7 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       if (stageData.waitTimeBetweenRegions != null && regionsToRollback.indexOf(region) < regionsToRollback.size() - 1) {
         // only add the waitStage if we're not the very last region!
         graph.append((it) -> {
-          it.setType(waitStage.getType());
+          it.setType(WaitStage.STAGE_TYPE);
           it.setName("Wait after " + region);
           it.setContext(Collections.singletonMap("waitTime", stageData.waitTimeBetweenRegions));
         });

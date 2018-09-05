@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DestroyServerGroupStage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -31,7 +30,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 class CreateServerGroupStageSpec extends Specification {
   @Subject
   def createServerGroupStage = new CreateServerGroupStage(
-    rollbackClusterStage: new RollbackClusterStage(null, null),
+    rollbackClusterStage: new RollbackClusterStage(),
     destroyServerGroupStage: new DestroyServerGroupStage()
   )
 
