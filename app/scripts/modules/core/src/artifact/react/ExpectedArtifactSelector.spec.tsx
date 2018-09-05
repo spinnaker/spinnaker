@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { mount, ReactWrapper } from 'enzyme';
+import { mount } from 'enzyme';
 import { ExpectedArtifactService, IExpectedArtifact } from 'core';
 import { ExpectedArtifactSelector } from './ExpectedArtifactSelector';
 
@@ -20,7 +20,7 @@ describe('<ExpectedArtifactSelector/>', () => {
           offeredArtifactTypes={[/.*gcs.*/]}
         />,
       );
-      const filteredArtifacts = sel.find('TetheredSelect').prop('options');
+      const filteredArtifacts = sel.find('TetheredSelect').prop('options') as any[];
       expect(filteredArtifacts.length).toBe(1);
       expect(filteredArtifacts[0].expectedArtifact.matchArtifact.type).toBe('gcs/object');
     });
@@ -38,7 +38,7 @@ describe('<ExpectedArtifactSelector/>', () => {
           offeredArtifactTypes={[/.*gcs.*/, /.*docker.*/]}
         />,
       );
-      const filteredArtifacts = sel.find('TetheredSelect').prop('options');
+      const filteredArtifacts = sel.find('TetheredSelect').prop('options') as any[];
       expect(filteredArtifacts.length).toBe(2);
       expect(filteredArtifacts[0].expectedArtifact.matchArtifact.type).toBe('gcs/object');
       expect(filteredArtifacts[1].expectedArtifact.matchArtifact.type).toBe('docker/image');
@@ -55,7 +55,7 @@ describe('<ExpectedArtifactSelector/>', () => {
           excludedArtifactTypes={[/.*gcs.*/]}
         />,
       );
-      const filteredArtifacts = sel.find('TetheredSelect').prop('options');
+      const filteredArtifacts = sel.find('TetheredSelect').prop('options') as any[];
       expect(filteredArtifacts.length).toBe(1);
       expect(filteredArtifacts[0].expectedArtifact.matchArtifact.type).toBe('docker/image');
     });
@@ -73,7 +73,7 @@ describe('<ExpectedArtifactSelector/>', () => {
           excludedArtifactTypes={[/.*gcs.*/]}
         />,
       );
-      const filteredArtifacts = sel.find('TetheredSelect').prop('options');
+      const filteredArtifacts = sel.find('TetheredSelect').prop('options') as any[];
       expect(filteredArtifacts.length).toBe(1);
       expect(filteredArtifacts[0].expectedArtifact.matchArtifact.type).toBe('docker/image');
     });
@@ -87,7 +87,7 @@ describe('<ExpectedArtifactSelector/>', () => {
           excludedArtifactTypes={[/.*gcs.*/, /.*docker.*/]}
         />,
       );
-      const filteredArtifacts = sel.find('TetheredSelect').prop('options');
+      const filteredArtifacts = sel.find('TetheredSelect').prop('options') as any[];
       expect(filteredArtifacts.length).toBe(0);
     });
   });
@@ -98,13 +98,15 @@ describe('<ExpectedArtifactSelector/>', () => {
       const sel = mount(
         <ExpectedArtifactSelector expectedArtifacts={artifacts} onChange={_ea => {}} onRequestCreate={() => {}} />,
       );
-      expect(sel.find('TetheredSelect').prop('options').length).toBe(2);
+      const options = sel.find('TetheredSelect').prop('options') as any[];
+      expect(options.length).toBe(2);
     });
 
     it('doesnt provide an option to create a new artifact when an onRequestCreate prop is not given', () => {
       const artifacts = [artifact('GCS', 'gcs/object')];
       const sel = mount(<ExpectedArtifactSelector expectedArtifacts={artifacts} onChange={_ea => {}} />);
-      expect(sel.find('TetheredSelect').prop('options').length).toBe(1);
+      const options = sel.find('TetheredSelect').prop('options') as any[];
+      expect(options.length).toBe(1);
     });
   });
 });
