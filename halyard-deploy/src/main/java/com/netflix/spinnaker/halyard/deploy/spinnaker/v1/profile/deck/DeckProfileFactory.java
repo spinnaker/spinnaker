@@ -154,8 +154,10 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("aws.default.account", awsProvider.getPrimaryAccount());
     if (awsProvider.getPrimaryAccount() != null) {
       AwsAccount awsAccount = (AwsAccount) accountService.getProviderAccount(deploymentConfiguration.getName(), "aws", awsProvider.getPrimaryAccount());
-      String firstRegion = awsAccount.getRegions().get(0).getName();
-      bindings.put("aws.default.region", firstRegion);
+      AwsProvider.AwsRegion firstRegion = awsAccount.getRegions().get(0);
+      if (firstRegion != null) {
+        bindings.put("aws.default.region", firstRegion.getName());
+      }
     }
 
     // Configure ECS
