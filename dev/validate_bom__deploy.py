@@ -51,29 +51,27 @@ SPINNAKER_SERVICES = [
     'clouddriver', 'echo', 'fiat', 'front50', 'gate', 'igor', 'orca',
     'rosco', 'kayenta', 'monitoring'
 ]
-HA_SERVICES = {
-  'clouddriver': ['clouddriver-caching', 'clouddriver-rw', 'clouddriver-ro'],
-  'echo': ['echo-scheduler', 'echo-slave']
-}
 
 
-def spinnaker_services(options):
-  """Return list of Spinnaker services based on options (command line args).
+def replace_ha_services(services, options):
+  """Replace services with their HA services.
 
-  Args:
-    options: [dict] of (<option-name>: <option-value>)
-
-  Returns:
-    list of Spinnaker services as strings.
+  Given a list of services and options, return a new list of services where
+  services that are enabled for HA are replaced with their HA counterparts.
   """
 
-  services = list(SPINNAKER_SERVICES)
-  for ha_service in HA_SERVICES:
-    if options['ha_{service}_enabled'.format(service=ha_service)]:
-      # Replace service with its HA services
-      i = services.index(ha_service)
-      services[i : i + 1] = HA_SERVICES[ha_service]
-  return services
+  transform_map = {}
+  if options.ha_clouddriver_enabled:
+    transform_map['clouddriver'] = \
+        ['clouddriver-caching', 'clouddriver-rw', 'clouddriver-ro']
+  if options.ha_echo_enabled:
+    transform_map['echo'] = \
+        ['echo-scheduler', 'echo-slave']
+
+  transformed_services = []
+  for service in services:
+    transformed_services.extend(transform_map.get(service, [service]))
+  return transformed_services
 
 
 def ensure_empty_ssh_key(path, user):
@@ -278,7 +276,7 @@ class BaseValidateBomDeployer(object):
             message, os.path.join(log_dir, service + '.log'))
 
     logging.info('Collecting server log files into "%s"', log_dir)
-    all_services = spinnaker_services(self.options)
+    all_services = replace_ha_services(SPINNAKER_SERVICES, self.options)
     all_services.extend(HALYARD_SERVICES)
     thread_pool = ThreadPool(len(all_services))
     thread_pool.map(fetch_service_log, all_services)
@@ -577,7 +575,7 @@ class KubernetesV2ValidateBomDeployer(BaseValidateBomDeployer):
 
     retcode, stdout = run_subprocess(
         '{command}'
-        ' | gawk -F "[[:space:]]+" "/{service}-v/ {{print \\$1}}"'
+        ' | gawk -F "[[:space:]]+" "/{service}/ {{print \\$1}}"'
         ' | tail -1'.format(
             command=kubectl_command, service=service),
         shell=True)
@@ -640,19 +638,19 @@ class KubernetesV2ValidateBomDeployer(BaseValidateBomDeployer):
 
     containers = [service]
     if options.monitoring_install_which:
-      containers.append('spin-monitoring-daemon')
+      containers.append('monitoring-daemon')
 
     for container in containers:
-      if container == 'spin-monitoring-daemon':
+      if container == 'monitoring-daemon':
         path = os.path.join(log_dir, service + '_monitoring.log')
       else:
         path = os.path.join(log_dir, service + '.log')
       retcode, stdout = run_subprocess(
           'kubectl -n {namespace} -c {container} {context} logs {pod}'
-          .format(namespace=k8s_namespace,
+          .format(namespace=k8s_v2_namespace,
                   container=container,
-                  context=('--context {0}'.format(options.k8s_account_context)
-                           if options.k8s_account_context
+                  context=('--context {0}'.format(options.k8s_v2_account_context)
+                           if options.k8s_v2_account_context
                            else ''),
                   pod=service_pod),
           shell=True)
@@ -1446,7 +1444,7 @@ def make_deployer(options, metrics):
           'A "distributed" deployment requires --deploy_distributed_platform'))
     if options.deploy_distributed_platform == 'kubernetes':
       spin_klass = KubernetesValidateBomDeployer
-    if options.ha_enabled:
+    elif options.deploy_distributed_platform == 'kubernetes_v2':
       spin_klass = KubernetesV2ValidateBomDeployer
     else:
       raise_and_log_error(ConfigError(
