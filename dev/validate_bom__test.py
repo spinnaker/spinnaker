@@ -400,6 +400,9 @@ class ValidateBomTestController(object):
     self.__service_port_map = {
         # These are critical to most tests.
         'clouddriver': 7002,
+        'clouddriver-caching': 7002,
+        'clouddriver-rw': 7002,
+        'clouddriver-ro': 7002,
         'gate': 8084,
         'front50': 8080,
 
@@ -407,7 +410,9 @@ class ValidateBomTestController(object):
         'orca': 8083,
         'rosco': 8087,
         'igor': 8088,
-        'echo': 8089
+        'echo': 8089,
+        'echo-scheduler': 8089,
+        'echo-slave': 8089
     }
 
   def __load_bindings(self, path):
@@ -735,6 +740,18 @@ class ValidateBomTestController(object):
 
     services = set(requires.pop('services', []))
     services.add(spec.pop('api'))
+
+    ha_services = {
+      'clouddriver': ['clouddriver-caching', 'clouddriver-rw', 'clouddriver-ro'],
+      'echo': ['echo-scheduler', 'echo-slave']
+    }
+    for ha_service in ha_services:
+      if (ha_service in services
+          and self.options['ha_{service}_enabled'.format(service=ha_service)]):
+        # Replace service with its HA services
+        services.remove(ha_service)
+        for split_service in ha_services[ha_service]:
+          services.add(split_service)
 
     if requires:
       raise_and_log_error(

@@ -45,12 +45,35 @@ from buildtool import (
 
 
 SUPPORTED_DEPLOYMENT_TYPES = ['localdebian', 'distributed']
-SUPPORTED_DISTRIBUTED_PLATFORMS = ['kubernetes']
+SUPPORTED_DISTRIBUTED_PLATFORMS = ['kubernetes', 'kubernetes_v2']
 HALYARD_SERVICES = ['halyard']
 SPINNAKER_SERVICES = [
     'clouddriver', 'echo', 'fiat', 'front50', 'gate', 'igor', 'orca',
     'rosco', 'kayenta', 'monitoring'
 ]
+HA_SERVICES = {
+  'clouddriver': ['clouddriver-caching', 'clouddriver-rw', 'clouddriver-ro'],
+  'echo': ['echo-scheduler', 'echo-slave']
+}
+
+
+def spinnaker_services(options):
+  """Return list of Spinnaker services based on options (command line args).
+
+  Args:
+    options: [dict] of (<option-name>: <option-value>)
+
+  Returns:
+    list of Spinnaker services as strings.
+  """
+
+  services = list(SPINNAKER_SERVICES)
+  for ha_service in HA_SERVICES:
+    if options['ha_{service}_enabled'.format(service=ha_service)]:
+      # Replace service with its HA services
+      i = services.index(ha_service)
+      services[i : i + 1] = HA_SERVICES[ha_service]
+  return services
 
 
 def ensure_empty_ssh_key(path, user):
@@ -255,7 +278,7 @@ class BaseValidateBomDeployer(object):
             message, os.path.join(log_dir, service + '.log'))
 
     logging.info('Collecting server log files into "%s"', log_dir)
-    all_services = list(SPINNAKER_SERVICES)
+    all_services = spinnaker_services(self.options)
     all_services.extend(HALYARD_SERVICES)
     thread_pool = ThreadPool(len(all_services))
     thread_pool.map(fetch_service_log, all_services)
@@ -481,6 +504,141 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
     service_pod = self.__get_pod_name(k8s_namespace, service)
 
     containers = ['spin-' + service]
+    if options.monitoring_install_which:
+      containers.append('spin-monitoring-daemon')
+
+    for container in containers:
+      if container == 'spin-monitoring-daemon':
+        path = os.path.join(log_dir, service + '_monitoring.log')
+      else:
+        path = os.path.join(log_dir, service + '.log')
+      retcode, stdout = run_subprocess(
+          'kubectl -n {namespace} -c {container} {context} logs {pod}'
+          .format(namespace=k8s_namespace,
+                  container=container,
+                  context=('--context {0}'.format(options.k8s_account_context)
+                           if options.k8s_account_context
+                           else ''),
+                  pod=service_pod),
+          shell=True)
+      write_data_to_secure_path(stdout, path)
+
+
+class KubernetesV2ValidateBomDeployer(BaseValidateBomDeployer):
+  """Concrete deployer used to deploy Hal onto Google Cloud Platform.
+
+  This class is not intended to be constructed directly. Instead see the
+  free function make_deployer() in this module.
+  """
+  def __init__(self, options, metrics, **kwargs):
+    super(KubernetesV2ValidateBomDeployer, self).__init__(
+        options, metrics, **kwargs)
+
+  @classmethod
+  def init_platform_argument_parser(cls, parser, defaults):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for the free function init_argument_parser().
+    """
+    add_parser_argument(
+        parser, 'deploy_k8s_v2_namespace', defaults, 'spinnaker',
+        help='Namespace for the account Spinnaker is deployed into.')
+
+  @classmethod
+  def validate_options_helper(cls, options):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for make_deployer().
+    """
+    if options.deploy_distributed_platform != 'kubernetes_v2':
+      return
+
+    if not options.k8s_v2_account_name:
+      raise_and_log_error(
+          ConfigError('--deploy_distributed_platform="kubernetes_v2" requires'
+                      ' a --k8s_v2_account_name be configured.'))
+
+    if hasattr(options, "injected_deploy_spinnaker_account"):
+      raise_and_log_error(
+          UnexpectedError('deploy_spinnaker_account was already set to "{0}"'
+                          .format(options.injected_deploy_spinnaker_account)))
+    options.injected_deploy_spinnaker_account = options.k8s_v2_account_name
+
+  def __get_pod_name(self, k8s_v2_namespace, service):
+    """Determine the pod name for the deployed service."""
+    options = self.options
+    flags = ' --namespace {namespace} --logtostderr=false'.format(
+        namespace=k8s_v2_namespace)
+    kubectl_command = 'kubectl {context} get pods {flags}'.format(
+        context=('--context {0}'.format(options.k8s_v2_account_context)
+                 if options.k8s_v2_account_context
+                 else ''),
+        flags=flags)
+
+    retcode, stdout = run_subprocess(
+        '{command}'
+        ' | gawk -F "[[:space:]]+" "/{service}-v/ {{print \\$1}}"'
+        ' | tail -1'.format(
+            command=kubectl_command, service=service),
+        shell=True)
+    pod = stdout.strip()
+    if not pod:
+      message = 'There is no pod for "{service}" in {namespace}'.format(
+          service=service, namespace=k8s_v2_namespace)
+      raise_and_log_error(ConfigError(message, cause='NoPod'))
+
+    if retcode != 0:
+      message = 'Could not find pod for "{service}".: {error}'.format(
+          service=service,
+          error=stdout.strip())
+      raise_and_log_error(ExecutionError(message, program='kubectl'))
+    else:
+      logging.debug('pod "%s" -> %s', service, stdout)
+
+    return stdout.strip()
+
+  def do_make_port_forward_command(self, service, local_port, remote_port):
+    """Implements interface."""
+    options = self.options
+    k8s_v2_namespace = options.deploy_k8s_v2_namespace
+    service_pod = self.__get_pod_name(k8s_v2_namespace, service)
+
+    return [
+        'kubectl', '--namespace', k8s_v2_namespace,
+        'port-forward', service_pod,
+        '{local}:{remote}'.format(local=local_port, remote=remote_port)
+    ]
+
+  def do_deploy(self, script, files_to_upload):
+    """Implements the BaseBomValidateDeployer interface."""
+    # This is not yet supported in this script.
+    # To deploy spinnaker to kubernetes, you need to go through
+    # a halyard VM deployment. Halyard itself can be deployed to K8s.
+    # This script doesnt.
+    super(KubernetesV2ValidateBomDeployer, self).do_deploy(
+        script, files_to_upload)
+
+  def do_undeploy(self):
+    """Implements the BaseBomValidateDeployer interface."""
+    super(KubernetesV2ValidateBomDeployer, self).do_undeploy()
+    # kubectl delete namespace spinnaker
+
+  def do_fetch_service_log_file(self, service, log_dir):
+    """Retrieve log file for the given service's pod.
+
+    Args:
+      service: [string] The service's log to get
+      log_dir: [string] The directory name to write the logs into.
+    """
+    if service == 'monitoring':
+      # monitoring is in a sidecar of each service
+      return
+
+    options = self.options
+    k8s_v2_namespace = options.deploy_k8s_v2_namespace
+    service_pod = self.__get_pod_name(k8s_v2_namespace, service)
+
+    containers = [service]
     if options.monitoring_install_which:
       containers.append('spin-monitoring-daemon')
 
@@ -1288,6 +1446,8 @@ def make_deployer(options, metrics):
           'A "distributed" deployment requires --deploy_distributed_platform'))
     if options.deploy_distributed_platform == 'kubernetes':
       spin_klass = KubernetesValidateBomDeployer
+    if options.ha_enabled:
+      spin_klass = KubernetesV2ValidateBomDeployer
     else:
       raise_and_log_error(ConfigError(
           'Unknown --deploy_distributed_platform.'
@@ -1399,3 +1559,4 @@ def init_argument_parser(parser, defaults):
   AzureValidateBomDeployer.init_platform_argument_parser(parser, defaults)
   GoogleValidateBomDeployer.init_platform_argument_parser(parser, defaults)
   KubernetesValidateBomDeployer.init_platform_argument_parser(parser, defaults)
+  KubernetesV2ValidateBomDeployer.init_platform_argument_parser(parser, defaults)
