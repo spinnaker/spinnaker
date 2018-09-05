@@ -1,4 +1,7 @@
 apply plugin: "java-library"
 
 dependencies {
+  implementation "org.springframework.boot:spring-boot:$bootVersion"
+  implementation "org.slf4j:slf4j-api:$slf4jVersion"
+  implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
 }
