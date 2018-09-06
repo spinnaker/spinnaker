@@ -154,6 +154,7 @@ class AppengineGcsPubsubTestScenario(sk.SpinnakerTestScenario):
 
     self.bucket = bindings['TEST_GCS_BUCKET']
     self.__test_repository_url = 'gs://' + self.bucket
+    self.__pipeline_id = None
 
 
   def create_app(self):
