@@ -74,27 +74,15 @@ class AuthenticatedRequestFilter implements Filter {
     def spinnakerExecutionId = null
 
     try {
-      if (request.isSecure()) {
-        ((X509Certificate[]) request.getAttribute(X509_CERTIFICATE))?.each {
-          def emailSubjectName = it.getSubjectAlternativeNames().find {
-            it.find { it.toString() == RFC822_NAME_ID }
-          }?.get(1)
-
-          spinnakerUser = spinnakerUser ?: emailSubjectName
-        }
+      def session = ((HttpServletRequest) request).getSession(false)
+      def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
+      if (!securityContext) {
+        securityContext = SecurityContextHolder.getContext()
       }
-
-      if (!spinnakerUser) {
-        def session = ((HttpServletRequest) request).getSession(false)
-        def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
-        if (!securityContext) {
-          securityContext = SecurityContextHolder.getContext()
-        }
-        def principal = securityContext?.authentication?.principal
-        if (principal && principal instanceof User) {
-          spinnakerUser = principal.username
-          spinnakerAccounts = principal.allowedAccounts.join(",")
-        }
+      def principal = securityContext?.authentication?.principal
+      if (principal && principal instanceof User) {
+        spinnakerUser = principal.username
+        spinnakerAccounts = principal.allowedAccounts.join(",")
       }
     } catch (Exception e) {
       log.error("Unable to extract spinnaker user and account information", e)
@@ -113,6 +101,17 @@ class AuthenticatedRequestFilter implements Filter {
     }
     if (forceNewSpinnakerRequestId) {
       spinnakerRequestId = UUID.randomUUID().toString()
+    }
+
+    // only extract from the x509 certificate if `spinnakerUser` has not been supplied as a header
+    if (request.isSecure() && !spinnakerUser) {
+      ((X509Certificate[]) request.getAttribute(X509_CERTIFICATE))?.each {
+        def emailSubjectName = it.getSubjectAlternativeNames().find {
+          it.find { it.toString() == RFC822_NAME_ID }
+        }?.get(1)
+
+        spinnakerUser = emailSubjectName
+      }
     }
 
     try {
