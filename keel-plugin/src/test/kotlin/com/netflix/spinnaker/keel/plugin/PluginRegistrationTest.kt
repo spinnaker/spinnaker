@@ -20,8 +20,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.expect
-import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.containsKeys
+import strikt.assertions.get
 import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
 import strikt.assertions.throws
 
 val registerSuccess = RegisterAssetPluginResponse.newBuilder().setSucceeded(true).build()
@@ -30,10 +32,12 @@ internal class PluginRegistrationTest {
 
   val grpc = GrpcStubManager(PluginRegistryGrpc::newBlockingStub)
 
-  val registeredTypes = mutableListOf<String>()
+  val registeredTypes = mutableMapOf<String, Pair<String, Int>>()
   val registry: PluginRegistryImplBase = object : PluginRegistryImplBase() {
     override fun registerAssetPlugin(request: RegisterAssetPluginRequest, responseObserver: StreamObserver<RegisterAssetPluginResponse>) {
-      registeredTypes.addAll(request.typesList.map(TypeMetadata::getKind))
+      request.typesList.map(TypeMetadata::getKind).forEach { kind ->
+        registeredTypes[kind] = request.vipAddress to request.port
+      }
       with(responseObserver) {
         onNext(registerSuccess)
         onCompleted()
@@ -49,6 +53,7 @@ internal class PluginRegistrationTest {
     setVIPAddress("keelplugins-test-aws")
     build()
   }
+  val localGrpcPort = 1337
   lateinit var registrar: PluginRegistrar
 
   @BeforeEach
@@ -66,6 +71,7 @@ internal class PluginRegistrationTest {
       listOf(amazonAssetPlugin),
       keelRegistryVip,
       grpc.port,
+      localGrpcPort,
       instanceInfo
     )
   }
@@ -82,11 +88,11 @@ internal class PluginRegistrationTest {
 
     registrar.onDiscoveryUp()
 
-    expect(registeredTypes)
-      .containsExactlyInAnyOrder(
-        "aws.SecurityGroup",
-        "aws.ClassicLoadBalancer"
-      )
+    expect(registeredTypes) {
+      containsKeys("aws.SecurityGroup", "aws.ClassicLoadBalancer")
+      get("aws.SecurityGroup").isEqualTo(instanceInfo.vipAddress to localGrpcPort)
+      get("aws.ClassicLoadBalancer").isEqualTo(instanceInfo.vipAddress to localGrpcPort)
+    }
   }
 
   @Test
@@ -101,5 +107,5 @@ internal class PluginRegistrationTest {
   }
 }
 
-fun typeMetadataForKind(it: String) =
+fun typeMetadataForKind(it: String): TypeMetadata =
   TypeMetadata.newBuilder().setKind(it).build()

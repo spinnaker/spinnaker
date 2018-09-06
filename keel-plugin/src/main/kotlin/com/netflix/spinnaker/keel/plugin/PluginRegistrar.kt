@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.platform.NoSuchVip
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
+import org.lognet.springboot.grpc.context.LocalRunningGrpcPort
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationListener
@@ -37,6 +38,7 @@ class PluginRegistrar(
   private val plugins: List<KeelPlugin>,
   @Value("\${keel.registry.address:keel-test.netflix.net:6565}") private val keelRegistryVip: String,
   @Value("\${keel.registry.port:6565}") private val keelRegistryPort: Int,
+  @LocalRunningGrpcPort private val localGrpcPort: Int,
   private val instanceInfo: InstanceInfo
 ) : ApplicationListener<RemoteStatusChangedEvent> {
 
@@ -63,6 +65,7 @@ class PluginRegistrar(
           .newBuilder()
           .apply {
             vipAddress = instanceInfo.vipAddress
+            port = localGrpcPort
             addAllTypes(supportedTypes)
           }
           .build()
@@ -77,6 +80,7 @@ class PluginRegistrar(
           .newBuilder()
           .apply {
             vipAddress = instanceInfo.vipAddress
+            port = localGrpcPort
           }
           .build()
         registry.registerVetoPlugin(request).let { response ->

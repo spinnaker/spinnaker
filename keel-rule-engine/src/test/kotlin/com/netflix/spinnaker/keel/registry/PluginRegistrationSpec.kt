@@ -53,8 +53,6 @@ internal object PluginRegistrationSpec : Spek({
       addService(object : AssetPluginImplBase() {})
     }
 
-    val port = grpc.port
-
     whenever(eurekaClient.getNextServerFromEureka(any(), eq(false))) doReturn grpc.instanceInfo
   }
 
@@ -158,5 +156,4 @@ internal object PluginRegistrationSpec : Spek({
       }
     }
   }
-
 })

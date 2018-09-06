@@ -35,12 +35,11 @@ import strikt.assertions.isNotEmpty
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
 
-
 @RunWith(SpringRunner::class)
 @SpringBootTest(
   classes = [TestPlugin::class],
   webEnvironment = RANDOM_PORT,
-  properties = ["grpc.enableReflection=true"]
+  properties = ["grpc.enableReflection=true", "grpc.port=6565", "local.grpc.port=6565"]
 )
 internal class GrpcStartupTest {
 
@@ -49,8 +48,6 @@ internal class GrpcStartupTest {
   lateinit var grpcServerRunner: GRpcServerRunner
 
   @Autowired(required = false)
-
-
   lateinit var channel: ManagedChannel
 
   @Autowired

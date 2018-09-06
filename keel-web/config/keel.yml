@@ -24,3 +24,10 @@ keiko:
 redis:
   connection: redis://localhost:6379
 #  connectionPrevious: null
+
+grpc:
+  port: 6565
+
+local:
+  grpc:
+    port: 6565
