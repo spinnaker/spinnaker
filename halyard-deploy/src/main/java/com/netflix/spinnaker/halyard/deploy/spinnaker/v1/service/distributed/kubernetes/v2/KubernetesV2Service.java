@@ -175,14 +175,36 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
         .addBinding("volumes", volumes);
 
+    String version = makeValidLabel(details.getDeploymentConfiguration().getVersion());
+    if (version.isEmpty()) {
+      version = "unknown";
+    }
+
     return new JinjaJarResource("/kubernetes/manifests/deployment.yml")
         .addBinding("name", getService().getCanonicalName())
         .addBinding("namespace", namespace)
         .addBinding("replicas", targetSize)
-        .addBinding("version", details.getDeploymentConfiguration().getVersion())
+        .addBinding("version", version)
         .addBinding("podAnnotations", settings.getKubernetes().getPodAnnotations())
         .addBinding("podSpec", podSpec.toString())
         .toString();
+  }
+
+  default boolean characterAlphanumeric(String value, int index) {
+    return Character.isAlphabetic(value.charAt(index)) || Character.isDigit(value.charAt(index));
+  }
+
+  default String makeValidLabel(String value) {
+    value = value.replaceAll("/[^A-Za-z0-9-_.]/", "");
+    while (!value.isEmpty() && !characterAlphanumeric(value, 0)) {
+      value = value.substring(1);
+    }
+
+    while (!value.isEmpty() && !characterAlphanumeric(value, value.length() - 1)) {
+      value = value.substring(0, value.length() - 1);
+    }
+
+    return value;
   }
 
   default String buildContainer(String name, AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings, List<ConfigSource> configSources, Map<String, String> env) {
