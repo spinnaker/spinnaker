@@ -37,16 +37,23 @@ module.exports = angular
       return result;
     }
 
-    if ($scope.stage.context) {
-      if (
-        ($scope.stage.context.commits && $scope.stage.context.commits.length > 0) ||
-        !areJarDiffsEmpty($scope.stage.context.jarDiffs)
-      ) {
-        $scope.configSections.push('changes');
+    function evaluateSections() {
+      $scope.configSections = ['deploymentConfig', 'taskStatus', 'artifactStatus'];
+
+      if ($scope.stage.context) {
+        if (
+          ($scope.stage.context.commits && $scope.stage.context.commits.length > 0) ||
+          !areJarDiffsEmpty($scope.stage.context.jarDiffs)
+        ) {
+          $scope.configSections.push('changes');
+        }
       }
     }
 
+    evaluateSections();
+
     let initialized = () => {
+      evaluateSections();
       $scope.detailsSection = $stateParams.details;
 
       var context = $scope.stage.context || {},
