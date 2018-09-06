@@ -55,7 +55,7 @@ class CacheController {
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}/{type}")
   Collection<Map> pendingOnDemands(@PathVariable String cloudProvider,
                                    @PathVariable String type,
-                                   @RequestParam(name = "id", required = false) String id) {
+                                   @RequestParam(value = "id", required = false) String id) {
     OnDemandAgent.OnDemandType onDemandType = getOnDemandType(type)
     onDemandCacheUpdaters.findAll {
       it.handles(onDemandType, cloudProvider)
