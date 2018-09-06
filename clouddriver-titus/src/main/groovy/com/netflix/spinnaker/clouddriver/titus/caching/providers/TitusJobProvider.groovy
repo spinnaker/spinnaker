@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusJobStatus
+import groovy.util.logging.Slf4j
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +34,7 @@ import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLSession
 
 @Component
+@Slf4j
 class TitusJobProvider implements JobProvider<TitusJobStatus> {
 
   String platform = "titus"
@@ -65,7 +67,9 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
   TitusJobStatus collectJob(String account, String location, String id) {
     TitusClient titusClient = titusClientProvider.getTitusClient(accountCredentialsProvider.getCredentials(account), location)
     Job job = titusClient.getJobAndAllRunningAndCompletedTasks(id)
-    new TitusJobStatus(job, account, location)
+    TitusJobStatus jobStatus = new TitusJobStatus(job, account, location)
+    log.info("run job lookup for ${id} : status ${jobStatus.jobState}")
+    return jobStatus
   }
 
   @Override
