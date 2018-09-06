@@ -2,9 +2,10 @@ from .handler import Handler
 from .pull_request_event import GetBaseBranch, GetPullRequest, GetTitle, GetRepo
 from gh import ReleaseBranchFor, ParseCommitMessage
 
-bad_contents = '### Instructions (that you should delete before submitting):'
+bad_contents = (['### Instructions (that you should delete before submitting):', 
+    'We prefer small, well tested pull requests.'])
 message = ('Please delete the pull request instructions from the body of your pull request message.\n\n' 
-        + 'The instructions start with the line:\n\n> {}\n\n'.format(bad_contents)
+        + 'The instructions start with the line:\n\n> {}\n\n'
         + 'You can reopen your pull request when this has been addressed.')
 
 class PullRequestMessageHandler(Handler):
@@ -30,8 +31,10 @@ class PullRequestMessageHandler(Handler):
         if pull_request.body is None:
             return
 
-        if bad_contents in pull_request.body:
-            pull_request.create_issue_comment(message)
-            pull_request.edit(state='closed')
+        for bad_message in bad_contents
+            if bad_message in pull_request.body:
+                pull_request.create_issue_comment(message.format(bad_message))
+                pull_request.edit(state='closed')
+                break
 
 PullRequestMessageHandler()
