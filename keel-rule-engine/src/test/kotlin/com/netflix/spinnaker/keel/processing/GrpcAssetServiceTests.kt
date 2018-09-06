@@ -49,12 +49,12 @@ internal class GrpcAssetServiceTests {
       addService(plugin)
     }
 
-    val pluginAddress = "aws-plugin"
-    whenever(eureka.getNextServerFromEureka(pluginAddress, false)) doReturn grpc.instanceInfo
+    val pluginVip = "aws-plugin"
+    whenever(eureka.getNextServerFromEureka(pluginVip, false)) doReturn grpc.instanceInfo
 
     val responseCallback: StreamObserver<RegisterAssetPluginResponse> = mock()
     registry.registerAssetPlugin(RegisterAssetPluginRequest.newBuilder().also {
-      it.vipAddress = pluginAddress
+      it.vip = pluginVip
       it.port = grpc.port
       it.addTypes(asset.toTypeMetaData())
     }.build(), responseCallback)

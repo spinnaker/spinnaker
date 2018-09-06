@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component
 class PluginRegistrar(
   private val eurekaClient: EurekaClient,
   private val plugins: List<KeelPlugin>,
-  @Value("\${keel.registry.address:keel-test.netflix.net:6565}") private val keelRegistryVip: String,
+  @Value("\${keel.registry.vip:keel-test.netflix.net:6565}") private val keelRegistryVip: String,
   @Value("\${keel.registry.port:6565}") private val keelRegistryPort: Int,
   @LocalRunningGrpcPort private val localGrpcPort: Int,
   private val instanceInfo: InstanceInfo
@@ -64,7 +64,7 @@ class PluginRegistrar(
         val request = RegisterAssetPluginRequest
           .newBuilder()
           .apply {
-            vipAddress = instanceInfo.vipAddress
+            vip = instanceInfo.vipAddress
             port = localGrpcPort
             addAllTypes(supportedTypes)
           }
@@ -79,7 +79,7 @@ class PluginRegistrar(
         val request = RegisterVetoPluginRequest
           .newBuilder()
           .apply {
-            vipAddress = instanceInfo.vipAddress
+            vip = instanceInfo.vipAddress
             port = localGrpcPort
           }
           .build()

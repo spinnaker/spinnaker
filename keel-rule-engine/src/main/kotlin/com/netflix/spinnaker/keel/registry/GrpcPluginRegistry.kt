@@ -58,8 +58,8 @@ class GrpcPluginRegistry(
     request
       .typesList
       .forEach { type ->
-        assetPlugins[type] = request.vipAddress to request.port
-        log.info("Registered asset plugin at \"${request.vipAddress}\" supporting $type")
+        assetPlugins[type] = request.vip to request.port
+        log.info("Registered asset plugin supporting {} at vip: {} port: {}", type, request.vip, request.port)
       }
     responseObserver.apply {
       onNext(registerAssetPluginSuccessResponse)
@@ -71,8 +71,8 @@ class GrpcPluginRegistry(
     request: RegisterVetoPluginRequest,
     responseObserver: StreamObserver<RegisterVetoPluginResponse>
   ) {
-    vetoPlugins.add(request.vipAddress to request.port)
-    log.info("Registered veto plugin at \"${request.vipAddress}\"")
+    vetoPlugins.add(request.vip to request.port)
+    log.info("Registered veto plugin at vip: {} port: {}", request.vip, request.port)
     responseObserver.apply {
       onNext(
         RegisterVetoPluginResponse.newBuilder()

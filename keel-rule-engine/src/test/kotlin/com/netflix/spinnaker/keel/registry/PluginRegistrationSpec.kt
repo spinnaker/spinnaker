@@ -82,7 +82,8 @@ internal object PluginRegistrationSpec : Spek({
           RegisterAssetPluginRequest
             .newBuilder()
             .apply {
-              vipAddress = "aws-asset-plugin"
+              vip = "aws-asset-plugin"
+              port = 6565
               addTypes(type)
             }
             .build(),
@@ -133,7 +134,7 @@ internal object PluginRegistrationSpec : Spek({
       given("plugins were registered") {
         sequenceOf("execution-window", "cloud-capacity").forEach {
           subject.registerVetoPlugin(
-            RegisterVetoPluginRequest.newBuilder().setVipAddress(it).build(),
+            RegisterVetoPluginRequest.newBuilder().setVip(it).build(),
             responseHandler
           )
         }
