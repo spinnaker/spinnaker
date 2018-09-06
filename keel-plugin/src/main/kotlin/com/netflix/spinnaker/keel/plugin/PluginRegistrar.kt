@@ -28,7 +28,6 @@ import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import org.lognet.springboot.grpc.context.LocalRunningGrpcPort
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 
@@ -36,8 +35,7 @@ import org.springframework.stereotype.Component
 class PluginRegistrar(
   private val eurekaClient: EurekaClient,
   private val plugins: List<KeelPlugin>,
-  @Value("\${keel.registry.vip:keel-test.netflix.net:6565}") private val keelRegistryVip: String,
-  @Value("\${keel.registry.port:6565}") private val keelRegistryPort: Int,
+  private val properties: PluginProperties,
   @LocalRunningGrpcPort private val localGrpcPort: Int,
   private val instanceInfo: InstanceInfo
 ) : ApplicationListener<RemoteStatusChangedEvent> {
@@ -58,7 +56,7 @@ class PluginRegistrar(
   }
 
   private fun KeelPlugin.registerWith(registry: PluginRegistryBlockingStub) {
-    log.info("Registering {} with Keel at {}", javaClass.simpleName, keelRegistryVip)
+    log.info("Registering {} with Keel at {} port {}", javaClass.simpleName, properties.registryVip, properties.registryPort)
     when (this) {
       is AssetPlugin -> {
         val request = RegisterAssetPluginRequest
@@ -94,11 +92,11 @@ class PluginRegistrar(
 
   private val pluginRegistry: PluginRegistryBlockingStub by lazy {
     try {
-      eurekaClient.getNextServerFromEureka(keelRegistryVip, false)
-        .let { createChannelTo(it, keelRegistryPort) }
+      eurekaClient.getNextServerFromEureka(properties.registryVip, false)
+        .let { createChannelTo(it, properties.registryPort) }
         .let(PluginRegistryGrpc::newBlockingStub)
     } catch (e: RuntimeException) {
-      throw NoSuchVip(keelRegistryVip, e)
+      throw NoSuchVip(properties.registryVip, e)
       // TODO: need to fail health check in this case
     }
   }

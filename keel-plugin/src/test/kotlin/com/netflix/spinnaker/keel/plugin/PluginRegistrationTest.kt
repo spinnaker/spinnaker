@@ -69,8 +69,10 @@ internal class PluginRegistrationTest {
     registrar = PluginRegistrar(
       eurekaClient,
       listOf(amazonAssetPlugin),
-      keelRegistryVip,
-      grpc.port,
+      PluginProperties().apply {
+        registryVip = keelRegistryVip
+        registryPort = grpc.port
+      },
       localGrpcPort,
       instanceInfo
     )

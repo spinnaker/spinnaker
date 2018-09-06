@@ -19,9 +19,11 @@ import org.junit.runner.RunWith
 import org.lognet.springboot.grpc.GRpcServerRunner
 import org.lognet.springboot.grpc.GRpcService
 import org.lognet.springboot.grpc.autoconfigure.GRpcServerProperties
+import org.lognet.springboot.grpc.context.LocalRunningGrpcPort
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -39,8 +41,9 @@ import java.util.concurrent.TimeUnit.SECONDS
 @SpringBootTest(
   classes = [TestPlugin::class],
   webEnvironment = RANDOM_PORT,
-  properties = ["grpc.enableReflection=true", "grpc.port=6565", "local.grpc.port=6565"]
+  properties = ["grpc.enableReflection=true"]
 )
+@EnableConfigurationProperties(PluginProperties::class)
 internal class GrpcStartupTest {
 
   @Autowired(required = false)
@@ -60,13 +63,14 @@ internal class GrpcStartupTest {
   fun setupChannels() {
     if (gRpcServerProperties.isEnabled) {
       channel = ManagedChannelBuilder
-        .forAddress("localhost", getPort())
+        .forAddress("localhost", grpcPort)
         .usePlaintext()
         .build()
     }
   }
 
-  fun getPort() = gRpcServerProperties.port
+  @LocalRunningGrpcPort
+  var grpcPort: Int = 0
 
   @After
   fun shutdownChannels() {
@@ -104,7 +108,7 @@ internal class GrpcStartupTest {
   @Test
   fun `can invoke RPC endpoints on the plugin`() {
     val response = ManagedChannelBuilder
-      .forAddress("localhost", getPort())
+      .forAddress("localhost", grpcPort)
       .usePlaintext()
       .build()
       .let(VetoPluginGrpc::newFutureStub)
