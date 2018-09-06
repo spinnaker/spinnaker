@@ -95,6 +95,10 @@ function Install-AllPackages($packageNames){
       else {
         &"choco" install $packageName --yes
       }
+      
+      if ($LastExitCode -ne 0) {
+        exit $LastExitCode
+      }
     }
 }
 
