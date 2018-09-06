@@ -205,9 +205,10 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     self.test_google = bindings['TEST_GOOGLE']
     self.test_aws = bindings['TEST_AWS']
     # This test has been exceeding the default timeout of 13 minutes for the Jenkins agent,
-    # so increase the timeout to 20 minutes
+    # so increase the timeout to 20 minutes.
     self.jenkins_agent = sk.JenkinsAgent(bindings['JENKINS_URL'],
-        bindings['JENKINS_AUTH_PATH'], self.agent, None, 1200)
+                                         bindings['JENKINS_AUTH_PATH'],
+                                         self.agent, None, 1200)
     self.run_tests = True
 
     if not (self.test_google or self.test_aws):
@@ -614,7 +615,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             token=self.bindings['JENKINS_TOKEN'],
             status_class=gate.GatePipelineStatus,
             status_path=path,
-            max_wait_secs=480),  # Allow 8 mins to bake and deploy
+            max_wait_secs=780), # Allow 13 mins to bake and deploy.
         contract=builder.build(),
         cleanup=self.delete_baked_image)
 
@@ -635,7 +636,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             title='run_destroy_pipeline',
             data='',
             path=path,
-            max_wait_secs=480),  # Allow 8 mins to disable and destroy
+            max_wait_secs=780), # Allow 13 mins to disable and destroy.
         contract=jc.Contract())
 
   def new_jenkins_build_operation(self):
