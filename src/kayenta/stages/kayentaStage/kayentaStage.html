@@ -186,7 +186,7 @@
     </kayenta-stage-config-section>
   </for-analysis-type>
 
-  <kayenta-stage-config-section title="Baseline + Canary Server Groups">
+  <kayenta-stage-config-section title="Baseline + Canary Pair">
     <section-header ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
       <span
         uib-tooltip="Click to populate with expressions for resolving control
@@ -273,7 +273,7 @@
               <tr ng-if="!kayentaCanaryStageCtrl.stage.deployments.serverGroupPairs.length">
                 <td colspan="4">
                   <button class="btn btn-block btn-sm add-new" ng-click="kayentaCanaryStageCtrl.addPair()">
-                    <span class="glyphicon glyphicon-plus-sign"></span> Create baseline / canary pair
+                    <span class="glyphicon glyphicon-plus-sign"></span> Add Baseline + Canary Pair
                   </button>
                 </td>
               </tr>

@@ -371,8 +371,8 @@ export class KayentaStageController implements IComponentController {
 
   private loadProviders = async (): Promise<string[]> => {
     const providers = await AccountService.listProviders(this.$scope.application);
-    // TODO(dpeach): allow providers other than gce.
-    return this.providers = providers.filter(p => p === 'gce');
+    // TODO: Open up to all providers.
+    return this.providers = providers.filter(p => ['gce', 'aws', 'titus'].includes(p));;
   };
 
   public handleProviderChange = async (): Promise<void> => {
@@ -459,19 +459,30 @@ export class KayentaStageController implements IComponentController {
 
     delete command.strategy;
     try {
-      const result = await this.$uibModal
-        .open({
+      const title = 'Add Baseline + Canary Pair';
+      const application = this.$scope.application;
+
+      let result;
+      if (config.CloneServerGroupModal) {
+        // react
+        result = await config.CloneServerGroupModal.show({
+          title,
+          application,
+          command,
+        });
+      } else {
+        // angular
+        result = await this.$uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
           controller: `${config.cloneServerGroupController} as ctrl`,
           size: 'lg',
           resolve: {
-            title: () => 'Add Server Group Pair',
-            application: () => this.$scope.application,
+            title: () => title,
+            application: () => application,
             serverGroupCommand: () => command,
           },
-        })
-        .result;
-
+        }).result;
+      }
       const control = this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(result),
         experiment = cloneDeep(control);
 
@@ -503,37 +514,49 @@ export class KayentaStageController implements IComponentController {
     serverGroup.provider = serverGroup.provider || serverGroup.cloudProvider;
     const config = CloudProviderRegistry.getValue(serverGroup.cloudProvider, 'serverGroup');
     try {
-      const result = await this.$uibModal.open({
-        templateUrl: config.cloneServerGroupTemplateUrl,
-        controller: `${config.cloneServerGroupController} as ctrl`,
-        size: 'lg',
-        resolve: {
-          title: () => `Configure ${type[0].toUpperCase() + type.substring(1)} Server Group`,
-          application: () => this.$scope.application,
-          serverGroupCommand: async () => {
-            const command =
-              await this.serverGroupCommandBuilder.buildServerGroupCommandFromPipeline(
-                this.$scope.application,
-                serverGroup,
-                null,
-                null
-              );
-            command.viewState = {
-              ...command.viewState,
-              disableStrategySelection: true,
-              hideClusterNamePreview: true,
-              readOnlyFields: {
-                credentials: true,
-                region: true,
-                subnet: true,
-                useSourceCapacity: true
-              },
-            };
-            delete command.strategy;
-            return command;
-          }
+      const title = `Configure ${type[0].toUpperCase() + type.substring(1)} Server Group`
+      const application = this.$scope.application;
+
+      const command = await this.serverGroupCommandBuilder.buildServerGroupCommandFromPipeline(
+        application,
+        serverGroup,
+        null,
+        null
+      );
+      command.viewState = {
+        ...command.viewState,
+        disableStrategySelection: true,
+        hideClusterNamePreview: true,
+        readOnlyFields: {
+          credentials: true,
+          region: true,
+          subnet: true,
+          useSourceCapacity: true
+        },
+      };
+      delete command.strategy;
+
+      let result;
+      if (config.CloneServerGroupModal) {
+        // react
+        result = await config.CloneServerGroupModal.show({
+          title,
+          application,
+          command,
+        });
+      } else {
+        // angular
+        result = await this.$uibModal.open({
+          templateUrl: config.cloneServerGroupTemplateUrl,
+          controller: `${config.cloneServerGroupController} as ctrl`,
+          size: 'lg',
+          resolve: {
+            title: () => title,
+            application: () => application,
+            serverGroupCommand: () => command,
           },
         }).result;
+      }
 
       this.stage.deployments.serverGroupPairs[index][type] =
         this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(result);
