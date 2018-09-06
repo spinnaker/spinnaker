@@ -22,8 +22,8 @@ export class DeployManifestArtifactDelegate implements IExpectedArtifactSelector
     this.sources = ExpectedArtifactService.sourcesForPipelineStage(this.$scope.$parent.pipeline, this.$scope.stage);
     this.kinds = Registry.pipeline
       .getArtifactKinds()
-      .filter(a => a.isMatch)
-      .filter(a => !this.getExcludedArtifactTypes().find(t => t.test(a.type)));
+      .filter((a: IArtifactKindConfig) => a.isMatch)
+      .filter((a: IArtifactKindConfig) => !this.getExcludedArtifactTypes().find(t => t.test(a.type)));
     this.refreshExpectedArtifacts();
   }
 
