@@ -18,30 +18,57 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.provider;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
+import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.*;
+import static java.util.Collections.emptyMap;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 @RequiredArgsConstructor
 @Getter
 public class CloudFoundryProvider extends AgentSchedulerAware implements SearchableProvider {
-  // todo(jkschneider): add default caches
-  final Set<String> defaultCaches = Collections.emptySet();
-  final Map<String, String> urlMappingTemplates = Collections.emptyMap();
-  // todo(jkschneider): add search result hydrator
-  final Map<SearchableResource, SearchResultHydrator> searchResultHydrators = Collections.emptyMap();
+  private final Set<String> defaultCaches = Stream.of(
+    APPLICATIONS.getNs(),
+    CLUSTERS.getNs(),
+    SERVER_GROUPS.getNs(),
+    INSTANCES.getNs(),
+    LOAD_BALANCERS.getNs()
+  ).collect(toSet());
+
+  private final Map<SearchableResource, SearchResultHydrator> searchResultHydrators = Stream.of(
+    new SearchableResource(APPLICATIONS.getNs(), "cloudfoundry")
+  ).collect(toMap(identity(), res -> new ApplicationSearchResultHydrator()));
+
+  private final Map<String, String> urlMappingTemplates = emptyMap();
   private final String id = "cloudfoundry";
   private final String providerName = CloudFoundryProvider.class.getName();
+
   private final Collection<Agent> agents;
 
+  static class ApplicationSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
+    @Override
+    public Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      // needed by deck to render correctly in infrastructure search results
+      result.put("application", result.get("name"));
+      return result;
+    }
+  }
+
+  @Nullable
   @Override
   public Map<String, String> parseKey(String key) {
-    // todo(jkschneider): parse keys
-    return Collections.emptyMap();
+    return Keys.parse(key).orElse(null);
   }
 }

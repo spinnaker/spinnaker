@@ -16,25 +16,31 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CloudFoundryLoadBalancerTest {
-  private CloudFoundryOrganization org = new CloudFoundryOrganization("orgId", "org");
+  private CloudFoundryOrganization org = CloudFoundryOrganization.builder().id("orgId").name("org").build();
 
-  private CloudFoundryLoadBalancer loadBalancer = new CloudFoundryLoadBalancer(
-    "dev",
-    "id",
-    "host",
-    "path",
-    8080,
-    new CloudFoundrySpace("spaceId", "space", org),
-    new CloudFoundryDomain("domainId", "domain", org),
-    emptySet()
-  );
+  private CloudFoundryLoadBalancer loadBalancer = CloudFoundryLoadBalancer.builder()
+    .account("dev")
+    .id("id")
+    .host("host")
+    .path("path")
+    .port(8080)
+    .space(CloudFoundrySpace.builder().id("spaceId").name("space").organization(org).build())
+    .domain(CloudFoundryDomain.builder().id("domainId").name("domain").organization(org).build())
+    .mappedApps(singleton(CloudFoundryServerGroup.builder().name("demo-dev-v001").instances(emptySet()).build()))
+    .build();
 
   @Test
-  void getName() {
+  void serialization() throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+    assertThat(mapper.writeValueAsString(loadBalancer)).doesNotContain("mappedApps");
   }
 }

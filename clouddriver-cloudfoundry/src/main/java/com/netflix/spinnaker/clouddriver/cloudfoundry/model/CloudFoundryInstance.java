@@ -16,43 +16,51 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.Value;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RequiredArgsConstructor
-@ToString
+@Value
 @EqualsAndHashCode(of = {"appGuid", "key"}, callSuper = false)
-@Getter
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@JsonDeserialize(builder = CloudFoundryInstance.CloudFoundryInstanceBuilder.class)
 public class CloudFoundryInstance extends CloudFoundryModel implements Instance {
-  private final String appGuid;
+  @JsonView(Views.Cache.class)
+  String appGuid;
 
   /*
    * A sequence number that may get recycled when instances come and go.
    */
-  private final String key;
+  @JsonView(Views.Cache.class)
+  String key;
 
-  private final HealthState healthState;
-  private final String details;
-  private final Long launchTime;
-  private final String zone;
+  @JsonView(Views.Cache.class)
+  HealthState healthState;
+
+  @JsonView(Views.Cache.class)
+  String details;
+
+  @JsonView(Views.Cache.class)
+  Long launchTime;
+
+  @JsonView(Views.Cache.class)
+  String zone;
 
   @Override
   public List<Map<String, Object>> getHealth() {
     Map<String, Object> health = new HashMap<>();
     health.put("healthClass", "platform");
-    health.put("state", healthState.toString());
+    health.put("state", (healthState == null ? HealthState.Unknown : healthState).toString());
     return Collections.singletonList(health);
   }
 

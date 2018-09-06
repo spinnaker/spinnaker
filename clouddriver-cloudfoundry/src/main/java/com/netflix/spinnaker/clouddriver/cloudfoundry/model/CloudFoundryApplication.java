@@ -16,30 +16,42 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.Application;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+import lombok.experimental.Wither;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.*;
 
-@RequiredArgsConstructor
-@Getter
+@Value
+@EqualsAndHashCode(of = "name")
+@Builder
+@JsonDeserialize(builder = CloudFoundryApplication.CloudFoundryApplicationBuilder.class)
+@JsonIgnoreProperties("clusters")
 public class CloudFoundryApplication implements Application {
-  private final String name;
+  @JsonView(Views.Cache.class)
+  String name;
 
-  @JsonIgnore
-  private final List<CloudFoundryCluster> clusters;
-
-  private final Map<String, String> attributes;
+  @Wither
+  @JsonView(Views.Relationship.class)
+  Set<CloudFoundryCluster> clusters;
 
   @Override
   public Map<String, Set<String>> getClusterNames() {
-    return clusters.stream().collect(groupingBy(CloudFoundryCluster::getAccountName,
+    return clusters == null ? emptyMap() : clusters.stream().collect(groupingBy(CloudFoundryCluster::getAccountName,
       mapping(CloudFoundryCluster::getName, toSet())));
+  }
+
+  @Override
+  public Map<String, String> getAttributes() {
+    return emptyMap();
   }
 }

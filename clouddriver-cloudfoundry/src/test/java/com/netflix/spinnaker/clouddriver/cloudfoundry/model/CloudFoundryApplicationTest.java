@@ -18,26 +18,22 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CloudFoundryApplicationTest {
   @Test
   void getClusterNamesGroupsByAccount() {
-    CloudFoundryApplication app = new CloudFoundryApplication(
-      "app",
-      Arrays.asList(
-        new CloudFoundryCluster("dev", "app-dev1", emptySet(), emptySet()),
-        new CloudFoundryCluster("dev", "app-dev2", emptySet(), emptySet()),
-        new CloudFoundryCluster("prod", "app-prod", emptySet(), emptySet())
-      ),
-      emptyMap()
-    );
+    CloudFoundryApplication app = new CloudFoundryApplication("app", Stream.of(
+      new CloudFoundryCluster("dev", "app-dev1", emptySet()),
+      new CloudFoundryCluster("dev", "app-dev2", emptySet()),
+      new CloudFoundryCluster("prod", "app-prod", emptySet())
+    ).collect(toSet()));
 
     Map<String, Set<String>> clusterNames = app.getClusterNames();
 

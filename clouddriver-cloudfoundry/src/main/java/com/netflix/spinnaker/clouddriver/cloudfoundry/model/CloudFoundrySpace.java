@@ -16,17 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Builder;
+import lombok.Value;
 
-@AllArgsConstructor
-@ToString
-@Getter
+@Value
+@Builder
+@JsonDeserialize(builder = CloudFoundrySpace.CloudFoundrySpaceBuilder.class)
+@JsonIgnoreProperties("region")
 public class CloudFoundrySpace {
-  private final String id;
-  private final String name;
+  @JsonView(Views.Cache.class)
+  String id;
+
+  @JsonView(Views.Cache.class)
+  String name;
+
+  @JsonView(Views.Cache.class)
   CloudFoundryOrganization organization;
 
   public static CloudFoundrySpace fromRegion(String region) {
@@ -55,8 +62,7 @@ public class CloudFoundrySpace {
     return result;
   }
 
-  @JsonIgnore
-  String getRegion() {
+  public String getRegion() {
     return organization.getName() + " > " + name;
   }
 }

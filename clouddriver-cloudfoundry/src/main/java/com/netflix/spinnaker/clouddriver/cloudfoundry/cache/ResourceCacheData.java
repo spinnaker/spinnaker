@@ -23,14 +23,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+
 @Getter
-class ResourceCacheData implements CacheData {
+public class ResourceCacheData implements CacheData {
   final String id;
   final Map<String, Collection<String>> relationships;
   final Map<String, Object> attributes;
   final int ttlSeconds = -1;
 
-  ResourceCacheData(String id, Object resource, Map<String, Collection<String>> relationships) {
+  public ResourceCacheData(String id, Object resource, Map<String, Collection<String>> relationships) {
     this.id = id;
 
     this.attributes = new HashMap<>();

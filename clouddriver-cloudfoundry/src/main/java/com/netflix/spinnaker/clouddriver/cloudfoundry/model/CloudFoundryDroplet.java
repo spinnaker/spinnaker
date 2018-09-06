@@ -17,27 +17,41 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.Image;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.Value;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
-@RequiredArgsConstructor
-@ToString
+@Value
 @EqualsAndHashCode(of = "id")
-@Getter
+@Builder
+@JsonDeserialize(builder = CloudFoundryDroplet.CloudFoundryDropletBuilder.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CloudFoundryDroplet implements Image {
+  @JsonView(Views.Cache.class)
   String id;
+
+  @JsonView(Views.Cache.class)
   String name;
-  CloudFoundrySpace space;
+
+  @JsonView(Views.Cache.class)
   String stack;
+
+  @JsonView(Views.Cache.class)
   Collection<CloudFoundryBuildpack> buildpacks;
+
+  @JsonView(Views.Cache.class)
+  @Nullable
+  CloudFoundrySpace space;
+
+  @JsonView(Views.Cache.class)
+  @Nullable
   CloudFoundryPackage sourcePackage;
-  String packageChecksum;
 
   @Override
   public String getRegion() {

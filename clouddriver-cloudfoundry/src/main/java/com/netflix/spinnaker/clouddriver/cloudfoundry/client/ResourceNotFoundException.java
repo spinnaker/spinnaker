@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
-class CloudFoundryRegion {
-  private final String name;
+class ResourceNotFoundException extends Exception {
 }

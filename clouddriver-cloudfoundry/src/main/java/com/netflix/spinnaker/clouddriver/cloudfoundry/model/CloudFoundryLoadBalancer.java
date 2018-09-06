@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.moniker.Moniker;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.Value;
+import lombok.experimental.Wither;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -35,31 +36,45 @@ import java.util.Set;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
-@RequiredArgsConstructor
-@ToString
+@Value
 @EqualsAndHashCode(of = "id", callSuper = false)
-@Getter
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@JsonDeserialize(builder = CloudFoundryLoadBalancer.CloudFoundryLoadBalancerBuilder.class)
+@JsonIgnoreProperties("mappedApps")
 public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadBalancer, Cloneable {
   private static final Moniker EMPTY_MONIKER = new Moniker();
 
-  private final String account;
-  private final String id;
-  @Nullable
-  private final String host;
-  @Nullable
-  private final String path;
-  @Nullable
-  private final Integer port;
-  private final CloudFoundrySpace space;
-  private final CloudFoundryDomain domain;
+  @JsonView(Views.Cache.class)
+  String account;
 
-  @JsonIgnore
-  private final Set<CloudFoundryServerGroup> mappedApps;
+  @JsonView(Views.Cache.class)
+  String id;
+
+  @JsonView(Views.Cache.class)
+  @Nullable
+  String host;
+
+  @JsonView(Views.Cache.class)
+  @Nullable
+  String path;
+
+  @JsonView(Views.Cache.class)
+  @Nullable
+  Integer port;
+
+  @JsonView(Views.Cache.class)
+  CloudFoundrySpace space;
+
+  @JsonView(Views.Cache.class)
+  CloudFoundryDomain domain;
+
+  @Wither
+  @JsonView(Views.Relationship.class)
+  Set<CloudFoundryServerGroup> mappedApps;
 
   @JsonProperty
   public String getName() {
-    return host + "." + domain + "." + getName() + (port == null ? "" : "-" + port) + (path == null ? "" : "/" + path);
+    return host + "." + domain.getName() + (port == null ? "" : "-" + port) + (path == null ? "" : "/" + path);
   }
 
   @Override

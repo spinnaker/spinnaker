@@ -16,20 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Builder;
+import lombok.Value;
+
 /*
  * A package is an application’s ‘source code’; either raw bits for your application or a pointer to these bits.
  */
+@Value
+@Builder
+@JsonDeserialize(builder = CloudFoundryPackage.CloudFoundryPackageBuilder.class)
 public class CloudFoundryPackage {
   /*
    * This endpoint downloads the bits of an existing package.
    */
-  private String downloadUrl;
+  @JsonView(Views.Cache.class)
+  String downloadUrl;
 
-  public String getDownloadUrl() {
-    return downloadUrl;
-  }
+  @JsonView(Views.Cache.class)
+  String checksumType;
 
-  public void setDownloadUrl(String downloadUrl) {
-    this.downloadUrl = downloadUrl;
-  }
+  @JsonView(Views.Cache.class)
+  String checksum;
 }

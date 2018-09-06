@@ -16,5 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Builder;
+import lombok.Value;
+
+@Value
+@Builder
+@JsonDeserialize(builder = CloudFoundryBuildpack.CloudFoundryBuildpackBuilder.class)
 public class CloudFoundryBuildpack {
+  @JsonView(Views.Cache.class)
+  String name;
+
+  @JsonView(Views.Cache.class)
+  String detectOutput;
+
+  @JsonView(Views.Cache.class)
+  String version;
+
+  @JsonView(Views.Cache.class)
+  String buildpackName;
 }

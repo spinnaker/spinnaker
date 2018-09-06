@@ -16,21 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Value;
 
 import javax.annotation.Nullable;
 
-@AllArgsConstructor
-@ToString
+@Value
+@Builder
+@JsonDeserialize(builder = CloudFoundryDomain.CloudFoundryDomainBuilder.class)
 @EqualsAndHashCode(of = "id")
-@Getter
 public class CloudFoundryDomain {
-  private final String id;
-  private final String name;
-
+  @JsonView(Views.Cache.class)
   @Nullable
-  private final CloudFoundryOrganization organization;
+  String id;
+
+  @JsonView(Views.Cache.class)
+  String name;
+
+  @JsonView(Views.Cache.class)
+  @Nullable
+  CloudFoundryOrganization organization;
 }

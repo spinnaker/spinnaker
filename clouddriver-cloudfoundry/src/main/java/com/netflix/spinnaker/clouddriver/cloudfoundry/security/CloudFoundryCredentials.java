@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import lombok.Getter;
@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Getter
+@JsonIgnoreProperties({"credentials", "client"})
 public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryClient> {
   private final String name;
   private final String environment;
@@ -34,12 +35,15 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
   @Deprecated
   private final List<String> requiredGroupMembership = Collections.emptyList();
 
-  @JsonIgnore
   private final CloudFoundryClient credentials;
 
   public CloudFoundryCredentials(String name, String apiHost, String userName, String password, String environment) {
     this.name = name;
     this.environment = environment;
     this.credentials = new CloudFoundryClient(name, apiHost, userName, password);
+  }
+
+  public CloudFoundryClient getClient() {
+    return credentials;
   }
 }

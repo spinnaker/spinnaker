@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryCachingAgent;
@@ -41,11 +39,10 @@ public class CloudFoundryProviderConfig {
 
   @Bean
   @DependsOn("cloudFoundryAccountCredentials")
-  public CloudFoundryProvider cloudFoundryProvider(AccountCredentialsRepository accountCredentialsRepository,
-                                                   ObjectMapper objectMapper) {
+  public CloudFoundryProvider cloudFoundryProvider(AccountCredentialsRepository accountCredentialsRepository) {
     CloudFoundryProvider provider = new CloudFoundryProvider(
       Collections.newSetFromMap(new ConcurrentHashMap<>()));
-    synchronizeCloudFoundryProvider(provider, accountCredentialsRepository, objectMapper);
+    synchronizeCloudFoundryProvider(provider, accountCredentialsRepository);
     return provider;
   }
 
@@ -57,17 +54,14 @@ public class CloudFoundryProviderConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   public CloudFoundryProviderSynchronizer synchronizeCloudFoundryProvider(CloudFoundryProvider cloudFoundryProvider,
-                                                                          AccountCredentialsRepository accountCredentialsRepository,
-                                                                          ObjectMapper objectMapper) {
+                                                                          AccountCredentialsRepository accountCredentialsRepository) {
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(cloudFoundryProvider);
     Set<CloudFoundryCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
       CloudFoundryCredentials.class);
 
-    objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
     cloudFoundryProvider.getAgents().addAll(allAccounts.stream()
       .map(credentials -> !scheduledAccounts.contains(credentials.getName()) ?
-        new CloudFoundryCachingAgent(credentials, objectMapper) :
+        new CloudFoundryCachingAgent(credentials.getName(), credentials.getClient()) :
         null)
       .filter(Objects::nonNull)
       .collect(Collectors.toList()));

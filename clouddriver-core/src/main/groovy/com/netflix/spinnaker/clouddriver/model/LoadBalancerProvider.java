@@ -35,11 +35,11 @@ import java.util.Set;
 public interface LoadBalancerProvider<T extends LoadBalancer> {
   String getCloudProvider();
 
-  List<Item> list();
+  List<? extends Item> list();
 
   Item get(String name);
 
-  List<Details> byAccountAndRegionAndName(String account, String region, String name);
+  List<? extends Details> byAccountAndRegionAndName(String account, String region, String name);
 
   /**
    * Returns all load balancers related to an application based on one of the following criteria:
@@ -59,14 +59,14 @@ public interface LoadBalancerProvider<T extends LoadBalancer> {
     String getName();
 
     @JsonProperty("accounts")
-    List<ByAccount> getByAccounts();
+    List<? extends ByAccount> getByAccounts();
   }
 
   interface ByAccount {
     String getName();
 
     @JsonProperty("regions")
-    List<ByRegion> getByRegions();
+    List<? extends ByRegion> getByRegions();
   }
 
   interface ByRegion {
@@ -74,7 +74,7 @@ public interface LoadBalancerProvider<T extends LoadBalancer> {
     String getName();
 
     @JsonProperty("loadBalancers")
-    List<Details> getLoadBalancers();
+    List<? extends Details> getLoadBalancers();
   }
 
   interface Details { }

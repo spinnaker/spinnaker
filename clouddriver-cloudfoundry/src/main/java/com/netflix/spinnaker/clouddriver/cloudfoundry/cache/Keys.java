@@ -18,25 +18,25 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.cache;
 
 import com.netflix.spinnaker.clouddriver.cache.KeyParser;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider.ID;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.*;
+import static java.util.Collections.emptyMap;
 
 @Component("CloudFoundryInfraKeys")
 public class Keys implements KeyParser {
-
-  @Nullable
-  public static Map<String, String> parse(String key) {
+  public static Optional<Map<String, String>> parse(String key) {
     String[] parts = key.split(":");
 
     if (parts.length < 2 || !parts[0].equals(ID)) {
-      return null;
+      return Optional.empty();
     }
 
     Map<String, String> result = new HashMap<>();
@@ -68,10 +68,10 @@ public class Keys implements KeyParser {
       result.put("name", parts[3]);
       result.put("region", parts[4]);
     } else {
-      return null;
+      return Optional.empty();
     }
 
-    return result;
+    return Optional.of(result);
   }
 
   public static String getApplicationKey(String app) {
@@ -119,13 +119,13 @@ public class Keys implements KeyParser {
 
   @Override
   public String getCloudProvider() {
-    // This is intentionally 'aws'. See in todos in SearchController#search for why.
+    // This is intentionally 'aws'. Refer to todos in SearchController#search for why.
     return "aws";
   }
 
   @Override
   public Map<String, String> parseKey(String key) {
-    return parse(key);
+    return parse(key).orElse(emptyMap());
   }
 
   @Override
@@ -138,7 +138,8 @@ public class Keys implements KeyParser {
     return false;
   }
 
-  enum Namespace {
+  @Getter
+  public enum Namespace {
     APPLICATIONS("applications"),
     LOAD_BALANCERS("loadBalancers"),
     CLUSTERS("clusters"),

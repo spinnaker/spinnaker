@@ -16,14 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.model.Image;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Builder;
+import lombok.Value;
 
-@RequiredArgsConstructor
-@Getter
+@Value
+@Builder
+@JsonDeserialize(builder = CloudFoundryImage.CloudFoundryImageBuilder.class)
 public class CloudFoundryImage implements Image {
-  private final String id;
-  private final String name;
-  private final String region;
+  @JsonView(Views.Cache.class)
+  String id;
+
+  @JsonView(Views.Cache.class)
+  String name;
+
+  @JsonView(Views.Cache.class)
+  String region;
 }

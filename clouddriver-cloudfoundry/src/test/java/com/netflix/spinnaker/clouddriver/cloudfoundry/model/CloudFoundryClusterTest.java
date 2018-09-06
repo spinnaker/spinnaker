@@ -22,7 +22,7 @@ import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CloudFoundryClusterTest {
-  private CloudFoundryCluster cluster = new CloudFoundryCluster("dev", "app-dev-detail", emptySet(), emptySet());
+  private CloudFoundryCluster cluster = new CloudFoundryCluster("dev", "app-dev-detail", emptySet());
 
   @Test
   void getStack() {

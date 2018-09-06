@@ -16,23 +16,47 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
-import lombok.AllArgsConstructor;
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
+import lombok.experimental.Wither;
 
 import java.util.Set;
 
-@AllArgsConstructor
+import static java.util.Collections.emptySet;
+
+@Value
 @EqualsAndHashCode(of = {"name", "accountName"}, callSuper = false)
-@Getter
+@Builder
+@JsonDeserialize(builder = CloudFoundryCluster.CloudFoundryClusterBuilder.class)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class CloudFoundryCluster extends CloudFoundryModel implements Cluster {
-  private final String accountName;
-  private final String name;
-  private final Set<CloudFoundryServerGroup> serverGroups;
-  private final Set<CloudFoundryLoadBalancer> loadBalancers;
+
+  @JsonView(Views.Cache.class)
+  String accountName;
+
+  @JsonView(Views.Cache.class)
+  String name;
+
+  @Wither
+  @JsonView(Views.Relationship.class)
+  Set<CloudFoundryServerGroup> serverGroups;
+
+  /**
+   * Load balancers are read from the server group model, and don't make sense on cluster.
+   * There is no practical impact to leaving this empty.
+   */
+  @Override
+  public Set<? extends LoadBalancer> getLoadBalancers() {
+    return emptySet();
+  }
 
   public String getStack() {
     return Names.parseName(name).getStack();
