@@ -155,6 +155,7 @@ export class ExecutionFilterService {
           config,
           executions: [],
           targetAccounts: this.extractAccounts(config),
+          fromTemplate: (config && config.type === 'templatedPipeline') || false,
         }),
       );
     } else {
@@ -166,6 +167,7 @@ export class ExecutionFilterService {
             config,
             executions: [],
             targetAccounts: this.extractAccounts(config),
+            fromTemplate: (config && config.type === 'templatedPipeline') || false,
           });
         });
     }
