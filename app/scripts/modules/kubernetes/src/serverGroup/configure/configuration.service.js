@@ -95,7 +95,7 @@ module.exports = angular
         }
 
         return {
-          name: (image.repository || image.name.replace(/[.]/, '-'))
+          name: (image.repository || image.name.replace(/[.]/g, '-'))
             .replace(/_/g, '')
             .replace(/[\/ ]/g, '-')
             .toLowerCase(),
