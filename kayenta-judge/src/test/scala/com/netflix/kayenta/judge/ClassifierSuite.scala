@@ -212,6 +212,7 @@ class ClassifierSuite extends FunSuite{
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Increase)
 
     assert(result.classification == High)
+    assert(!result.critical)
   }
 
   test("Mann-Whitney Classifier Directional Test: Low Metric"){
@@ -306,6 +307,7 @@ class ClassifierSuite extends FunSuite{
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
 
     assert(result.classification == High)
+    assert(!result.critical)
   }
 
   test("Mann-Whitney Classifier Test - Mean Ratio Effect Size: High"){
@@ -426,6 +428,84 @@ class ClassifierSuite extends FunSuite{
     assert(result.classification == Pass)
   }
 
+  test("Mann-Whitney Classifier Test - Critical Effect Size: Critical High"){
+    val experimentData = Array(20.0, 22.0, 21.0, 25.0, 30.0)
+    val controlData = Array(1.0, 2.2, 1.1, 2.5, 3.0)
+
+    val experimentMetric = Metric("high-critical-metric", experimentData, "canary")
+    val controlMetric = Metric("high-critical-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95, criticalThresholds = (1.0, 1.2))
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either, isCriticalMetric = true)
+
+    assert(result.classification == High)
+    assert(result.critical)
+  }
+
+  test("Mann-Whitney Classifier Test - Critical Effect Size: Critical Low"){
+    val experimentData = Array(2.0, 2.0, 2.0, 2.0, 3.0)
+    val controlData = Array(10.0, 20.2, 10.1, 20.5, 30.0)
+
+    val experimentMetric = Metric("low-critical-metric", experimentData, "canary")
+    val controlMetric = Metric("low-critical-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95, criticalThresholds = (1.2, 1.0))
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either, isCriticalMetric = true)
+
+    assert(result.classification == Low)
+    assert(result.critical)
+  }
+
+  test("Mann-Whitney Classifier Test - Critical Effect Size: High"){
+    val experimentData = Array(20.0, 22.0, 21.0, 25.0, 30.0)
+    val controlData = Array(1.0, 2.2, 1.1, 2.5, 3.0)
+
+    val experimentMetric = Metric("high-metric", experimentData, "canary")
+    val controlMetric = Metric("high-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(
+      tolerance = 0.10,
+      confLevel = 0.95,
+      effectSizeThresholds = (1.0, 5.0),
+      criticalThresholds = (1.0, 13.0))
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either, isCriticalMetric = true)
+
+    assert(result.classification == High)
+    assert(!result.critical)
+  }
+
+  test("Mann-Whitney Classifier Test - Critical Effect Size: Pass"){
+    val experimentData = Array(20.0, 22.0, 21.0, 25.0, 30.0)
+    val controlData = Array(1.0, 2.2, 1.1, 2.5, 3.0)
+
+    val experimentMetric = Metric("pass-metric", experimentData, "canary")
+    val controlMetric = Metric("pass-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(
+      tolerance = 0.10,
+      confLevel = 0.95,
+      effectSizeThresholds = (1.0, 13.0),
+      criticalThresholds = (1.0, 15.0))
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either, isCriticalMetric = true)
+
+    assert(result.classification == Pass)
+    assert(!result.critical)
+  }
+
+  test("Mann-Whitney Classifier Test - Critical Effect Size: Critical High (Default Thresholds)"){
+    val experimentData = Array(20.0, 22.0, 21.0, 25.0, 30.0)
+    val controlData = Array(1.0, 2.2, 1.1, 2.5, 3.0)
+
+    val experimentMetric = Metric("high-metric", experimentData, "canary")
+    val controlMetric = Metric("high-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either, isCriticalMetric = true)
+
+    assert(result.classification == High)
+    assert(result.critical)
+  }
+
   test("Mann-Whitney Tied Observations") {
     val experimentData = Array(1.0, 1.0, 1.0)
     val controlData = Array(1.0, 1.0)
@@ -476,6 +556,20 @@ class ClassifierSuite extends FunSuite{
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
 
     assert(result.classification == Nodata)
+  }
+
+  test("Mann-Whitney Missing Experiment Data: Critical Metric") {
+    val experimentData = Array[Double]()
+    val controlData = Array(1.0, 2.0, 3.0, 4.0, 5.0)
+
+    val experimentMetric = Metric("test-critical-metric", experimentData, "canary")
+    val controlMetric = Metric("test-critical-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease, isCriticalMetric = true)
+
+    assert(result.classification == Nodata)
+    assert(result.critical)
   }
 
   test("Mann-Whitney Missing Experiment Data with NaN Replacement") {

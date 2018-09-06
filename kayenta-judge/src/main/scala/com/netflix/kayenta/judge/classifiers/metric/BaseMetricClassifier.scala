@@ -55,10 +55,14 @@ object NaNStrategy {
   }
 }
 
-case class MetricClassification(classification: MetricClassificationLabel, reason: Option[String], deviation: Double)
+case class MetricClassification(classification: MetricClassificationLabel,
+                                reason: Option[String],
+                                deviation: Double,
+                                critical: Boolean)
 
 abstract class BaseMetricClassifier {
   def classify(control: Metric, experiment: Metric,
                direction: MetricDirection = MetricDirection.Either,
-               nanStrategy: NaNStrategy = NaNStrategy.Remove): MetricClassification
+               nanStrategy: NaNStrategy = NaNStrategy.Remove,
+               isCriticalMetric: Boolean = false): MetricClassification
 }

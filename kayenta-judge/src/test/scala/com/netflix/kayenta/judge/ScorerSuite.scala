@@ -271,6 +271,27 @@ class ScorerSuite extends FunSuite {
     assert(scores.summaryScore == 50.0)
   }
 
+  test("Weighted Sum Group Scorer: Two Metrics, one good (normal), one nodata (critical)") {
+    val groupWeights = Map[String, Double]()
+    val weightedSumScorer = new WeightedSumScorer(groupWeights)
+
+    val passMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-pass")
+      .classification(Pass.toString)
+      .groups(List[String]("test-group").asJava)
+      .build()
+
+    val nodataMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-nodata")
+      .critical(true)
+      .classification(Nodata.toString)
+      .groups(List[String]("test-group").asJava)
+      .build()
+
+    val scores = weightedSumScorer.score(List(passMetric, nodataMetric))
+    assert(scores.summaryScore == 0.0)
+  }
+
   test("Weighted Sum Group Scorer: Two Groups (Unequal Weight), Four Metrics") {
     val groupWeights = Map[String, Double]("group1" -> 15.0, "group2" -> 85.0)
     val weightedSumScorer = new WeightedSumScorer(groupWeights)

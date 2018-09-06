@@ -37,26 +37,27 @@ class RandomClassifier(labels: List[MetricClassificationLabel] = List(Pass, High
   override def classify(control: Metric,
                         experiment: Metric,
                         direction: MetricDirection,
-                        nanStrategy: NaNStrategy): MetricClassification = {
+                        nanStrategy: NaNStrategy,
+                        isCriticalMetric: Boolean): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
       if (nanStrategy == NaNStrategy.Remove) {
-        return MetricClassification(Nodata, None, 0.0)
+        return MetricClassification(Nodata, None, 0.0, isCriticalMetric)
       } else {
-        return MetricClassification(Pass, None, 1.0)
+        return MetricClassification(Pass, None, 1.0, critical = false)
       }
     }
 
     //Check if the experiment and control data are equal
     if (experiment.values.sameElements(control.values)){
-      return MetricClassification(Pass, None, 1.0)
+      return MetricClassification(Pass, None, 1.0, critical = false)
     }
 
     val ratio = StatUtils.mean(experiment.values)/StatUtils.mean(control.values)
     val randomClassificationLabel = getRandomLabel(labels)
 
-    MetricClassification(randomClassificationLabel, None, ratio)
+    MetricClassification(randomClassificationLabel, None, ratio, isCriticalMetric)
   }
 
 }

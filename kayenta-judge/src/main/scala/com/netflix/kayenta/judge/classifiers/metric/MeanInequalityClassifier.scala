@@ -30,14 +30,15 @@ class MeanInequalityClassifier extends BaseMetricClassifier {
   override def classify(control: Metric,
                         experiment: Metric,
                         direction: MetricDirection,
-                        nanStrategy: NaNStrategy): MetricClassification = {
+                        nanStrategy: NaNStrategy,
+                        isCriticalMetric: Boolean): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
       if (nanStrategy == NaNStrategy.Remove) {
-        return MetricClassification(Nodata, None, 0.0)
+        return MetricClassification(Nodata, None, 0.0, isCriticalMetric)
       } else {
-        return MetricClassification(Pass, None, 1.0)
+        return MetricClassification(Pass, None, 1.0, critical = false)
       }
     }
 
@@ -47,14 +48,14 @@ class MeanInequalityClassifier extends BaseMetricClassifier {
 
     if ((direction == MetricDirection.Increase || direction == MetricDirection.Either) && experimentMean > controlMean)  {
       val reason = s"The ${experiment.label} mean was greater than the ${control.label} mean"
-      return MetricClassification(High, Some(reason), ratio)
+      return MetricClassification(High, Some(reason), ratio, isCriticalMetric)
 
     } else if ((direction == MetricDirection.Decrease || direction == MetricDirection.Either) && experimentMean < controlMean) {
       val reason = s"The ${experiment.label} mean was less than the ${control.label} mean"
-      return MetricClassification(Low, Some(reason), ratio)
+      return MetricClassification(Low, Some(reason), ratio, isCriticalMetric)
     }
 
-    MetricClassification(Pass, None, 1.0)
+    MetricClassification(Pass, None, 1.0, critical = false)
   }
 
 }

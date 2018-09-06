@@ -24,11 +24,11 @@ class ThresholdScoreClassifier(passThreshold: Double, warningThreshold: Double) 
   override def classify(scoreResults: ScoreResult): ScoreClassification = {
     val score = scoreResults.summaryScore
     if(score >= passThreshold){
-      ScoreClassification(Pass, None, score)
+      ScoreClassification(Pass, scoreResults.reason, score)
     }else if(score >= warningThreshold){
-      ScoreClassification(Marginal, None, score)
+      ScoreClassification(Marginal, scoreResults.reason, score)
     }else{
-      ScoreClassification(Fail, None, score)
+      ScoreClassification(Fail, scoreResults.reason, score)
     }
   }
 
