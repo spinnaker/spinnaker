@@ -1,4 +1,5 @@
 import { IController, IScope } from 'angular';
+import { get } from 'lodash';
 
 import {
   IKubernetesManifestCommandMetadata,
@@ -6,7 +7,11 @@ import {
   KubernetesManifestCommandBuilder,
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
-import { ExpectedArtifactService, IExpectedArtifact, ArtifactTypePatterns } from '@spinnaker/core';
+import { ArtifactTypePatterns, ExpectedArtifactSelectorViewController } from '@spinnaker/core';
+
+import { DeployManifestArtifactDelegate } from './deployManifestArtifactDelegate';
+
+const excludedArtifactTypes = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -17,9 +22,9 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public textSource = 'text';
   public artifactSource = 'artifact';
   public sources = [this.textSource, this.artifactSource];
-  public excludedManifestArtifactPatterns = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
 
-  public expectedArtifacts: IExpectedArtifact[];
+  public manifestArtifactDelegate: DeployManifestArtifactDelegate;
+  public manifestArtifactController: ExpectedArtifactSelectorViewController;
 
   constructor(private $scope: IScope) {
     'ngInject';
@@ -39,11 +44,19 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
 
       this.metadata = builtCommand.metadata;
       this.state.loaded = true;
+      this.manifestArtifactDelegate.setAccounts(get(this, ['metadata', 'backingData', 'artifactAccounts'], []));
+      this.manifestArtifactController.updateAccounts(this.manifestArtifactDelegate.getSelectedExpectedArtifact());
     });
 
-    this.expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
-      $scope.stage,
-      $scope.$parent.pipeline,
+    this.manifestArtifactDelegate = new DeployManifestArtifactDelegate($scope, excludedArtifactTypes);
+    this.manifestArtifactController = new ExpectedArtifactSelectorViewController(this.manifestArtifactDelegate);
+  }
+
+  public canShowAccountSelect() {
+    return (
+      this.$scope.showCreateArtifactForm &&
+      this.manifestArtifactController.accountsForArtifact.length > 1 &&
+      this.manifestArtifactDelegate.getSelectedExpectedArtifact() != null
     );
   }
 }

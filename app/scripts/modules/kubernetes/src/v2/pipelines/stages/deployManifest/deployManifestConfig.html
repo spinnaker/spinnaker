@@ -25,21 +25,37 @@
     <kubernetes-manifest-entry ng-if="ctrl.$scope.stage.source === ctrl.textSource"
                                command="ctrl.$scope.stage">
     </kubernetes-manifest-entry>
-    <expected-artifact-selector ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
-                                command="ctrl.$scope.stage"
-                                id="ctrl.$scope.stage.manifestArtifactId"
-                                account="ctrl.$scope.stage.manifestArtifactAccount"
-                                accounts="ctrl.metadata.backingData.artifactAccounts"
-                                expected-artifacts="ctrl.expectedArtifacts"
-                                help-field-key="kubernetes.manifest.expectedArtifact"
-                                excluded-artifact-types="ctrl.excludedManifestArtifactPatterns"
-                                show-icons="true">
-    </expected-artifact-selector>
+    <stage-config-field label="Expected Artifact" help-key="kubernetes.manifest.expectedArtifact" field-columns="8">
+      <expected-artifact-selector-react ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+                                  expected-artifacts="ctrl.$scope.expectedArtifacts"
+                                  selected="ctrl.manifestArtifactDelegate.getSelectedExpectedArtifact()"
+                                  on-change="ctrl.manifestArtifactController.onArtifactChange"
+                                  on-request-create="ctrl.manifestArtifactController.onRequestCreate"
+                                  excluded-artifact-types="ctrl.manifestArtifactDelegate.getExcludedArtifactTypes()"
+                                  requesting-new="ctrl.$scope.showCreateArtifactForm"
+                                  >
+      </expected-artifact-selector-react>
+    </stage-config-field>
+    <stage-config-field label="Artifact Account" field-columns="8" ng-if="ctrl.canShowAccountSelect()">
+      <artifact-account-selector-react
+        accounts="ctrl.manifestArtifactController.accountsForArtifact"
+        selected="ctrl.manifestArtifactDelegate.getSelectedAccount()"
+        on-change="ctrl.manifestArtifactController.onAccountChange"
+        >
+      </artifact-account-selector-react>
+    </stage-config-field>
+    <expected-artifact-editor-react ng-if="ctrl.$scope.showCreateArtifactForm"
+                                    kinds="ctrl.manifestArtifactDelegate.getSupportedArtifactKinds()"
+                                    sources="ctrl.manifestArtifactDelegate.getExpectedArtifactSources()"
+                                    accounts="ctrl.manifestArtifactDelegate.getExpectedArtifactAccounts()"
+                                    on-save="ctrl.manifestArtifactController.onArtifactCreated"
+    >
+    </expected-artifact-editor-react>
     <hr>
     <expected-artifact-multi-selector command="ctrl.$scope.stage"
                                       ids-field="requiredArtifactIds"
                                       artifact-label="Req. Artifacts To Bind"
-                                      expected-artifacts="ctrl.expectedArtifacts"
+                                      expected-artifacts="ctrl.$scope.expectedArtifacts"
                                       help-field-key="kubernetes.manifest.requiredArtifactsToBind"
                                       show-icons="true">
     </expected-artifact-multi-selector>
