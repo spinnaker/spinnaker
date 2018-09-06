@@ -18,7 +18,6 @@ package com.netflix.spinnaker.keel.grpc
 import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.processing.AssetService
 import com.netflix.spinnaker.keel.processing.CurrentAssetPair
-import com.netflix.spinnaker.keel.registry.GrpcPluginRegistry
 import com.netflix.spinnaker.keel.registry.UnsupportedAssetType
 import org.springframework.stereotype.Component
 import com.netflix.spinnaker.keel.api.Asset as AssetProto

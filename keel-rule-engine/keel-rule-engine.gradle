@@ -18,6 +18,7 @@ dependencies {
 
   testImplementation "io.strikt:strikt-protobuf:$striktVersion"
   testImplementation project(":keel-api-test")
+  testImplementation project(":keel-rule-engine-tck")
   testImplementation "io.grpc:grpc-netty:$grpcVersion"
 }
 

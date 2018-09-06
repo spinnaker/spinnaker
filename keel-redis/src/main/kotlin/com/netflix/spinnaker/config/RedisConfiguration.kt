@@ -24,4 +24,4 @@ import org.springframework.context.annotation.Import
 @Configuration
 @ComponentScan("com.netflix.spinnaker.keel.redis")
 @Import(JedisClientConfiguration::class, DynomiteClientConfiguration::class)
-open class RedisConfiguration
+class RedisConfiguration

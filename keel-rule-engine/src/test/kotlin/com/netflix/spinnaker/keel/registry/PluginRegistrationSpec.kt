@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.instanceInfo
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc.AssetPluginBlockingStub
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc.AssetPluginImplBase
+import com.netflix.spinnaker.keel.grpc.GrpcPluginRegistry
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.check
 import com.nhaarman.mockito_kotlin.doReturn
@@ -63,7 +64,7 @@ internal object PluginRegistrationSpec : Spek({
 
   describe("registering an asset plugin") {
     given("no plugin is registered for an asset type") {
-      val subject = GrpcPluginRegistry(eurekaClient)
+      val subject = GrpcPluginRegistry(eurekaClient, InMemoryPluginRepository())
       it("no stub is returned for an unknown asset type") {
         subject.pluginFor(type).let {
           expect(it).isNull()
@@ -72,7 +73,7 @@ internal object PluginRegistrationSpec : Spek({
     }
 
     given("a plugin is registered for an asset type") {
-      val subject = GrpcPluginRegistry(eurekaClient)
+      val subject = GrpcPluginRegistry(eurekaClient, InMemoryPluginRepository())
       val responseHandler: StreamObserver<RegisterAssetPluginResponse> = mock()
 
       afterGroup { reset(responseHandler) }
@@ -112,7 +113,7 @@ internal object PluginRegistrationSpec : Spek({
     val vetoCallback: (VetoPluginBlockingStub) -> Any = mock()
 
     given("no plugins are registered") {
-      val subject = GrpcPluginRegistry(eurekaClient)
+      val subject = GrpcPluginRegistry(eurekaClient, InMemoryPluginRepository())
 
       afterGroup { reset(vetoCallback) }
 
@@ -126,7 +127,7 @@ internal object PluginRegistrationSpec : Spek({
     }
 
     given("a veto plugin is registered") {
-      val subject = GrpcPluginRegistry(eurekaClient)
+      val subject = GrpcPluginRegistry(eurekaClient, InMemoryPluginRepository())
       val responseHandler: StreamObserver<RegisterVetoPluginResponse> = mock()
 
       afterGroup { reset(responseHandler, vetoCallback) }

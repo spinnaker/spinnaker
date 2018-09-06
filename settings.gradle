@@ -22,8 +22,10 @@ include "keel-api",
   "keel-grpc",
   "keel-orca",
   "keel-plugin",
+  "keel-redis",
   "keel-retrofit",
   "keel-rule-engine",
+  "keel-rule-engine-tck",
   "keel-veto"
 
 rootProject.name = "keel"

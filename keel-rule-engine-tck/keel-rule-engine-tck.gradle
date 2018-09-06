@@ -1,0 +1,8 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/spek.gradle"
+
+dependencies {
+  api "org.jetbrains.spek:spek-api:$spekVersion"
+  implementation project(":keel-rule-engine")
+  implementation "io.strikt:strikt-core:$striktVersion"
+}

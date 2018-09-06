@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-  compile project(":keel-core")
-  compile "com.netflix.spinnaker.kork:kork-jedis:$korkVersion"
-  compile "com.netflix.spinnaker.kork:kork-dynomite:$korkVersion"
+apply plugin: "java-library"
+apply plugin: "kotlin-spring"
+apply from: "$rootDir/gradle/spek.gradle"
 
-  testCompile "com.netflix.spinnaker.kork:kork-jedis-test:$korkVersion"
-  testCompile project(":keel-test")
+dependencies {
+  implementation project(":keel-rule-engine")
+  implementation "com.netflix.spinnaker.kork:kork-jedis:$korkVersion"
+  implementation "com.netflix.spinnaker.kork:kork-dynomite:$korkVersion"
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+
+  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test:$korkVersion"
+  testImplementation project(":keel-rule-engine-tck")
 }
