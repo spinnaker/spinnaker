@@ -168,7 +168,7 @@ module.exports = angular
       const getConfig = image => {
         if (image.fromContext) {
           return {
-            match: a => b => a.stageId === b.stageId,
+            match: other => other.fromContext && other.stageId === image.stageId,
             fieldsToCopy: matchImage => {
               const { cluster, pattern, repository } = matchImage;
               return { cluster, pattern, repository };
@@ -176,12 +176,16 @@ module.exports = angular
           };
         } else if (image.fromTrigger) {
           return {
-            match: a => b => a.registry === b.registry && a.repository === b.repository && a.tag === b.tag,
+            match: other =>
+              other.fromTrigger &&
+              other.registry === image.registry &&
+              other.repository === image.repository &&
+              other.tag === image.tag,
             fieldsToCopy: () => ({}),
           };
         } else if (image.fromArtifact) {
           return {
-            match: a => b => a.stageId === b.stageId,
+            match: other => other.fromArtifact && other.stageId === image.stageId,
             fieldsToCopy: matchImage => {
               const { name } = matchImage;
               return { name };
@@ -201,7 +205,7 @@ module.exports = angular
         if (imageConfig.skipProcessing) {
           result.push(container);
         } else {
-          let matchingImage = upstreamImages.find(imageConfig.match(imageDescription));
+          let matchingImage = upstreamImages.find(imageConfig.match);
           if (matchingImage) {
             Object.assign(imageDescription, imageConfig.fieldsToCopy(matchingImage));
             result.push(container);
