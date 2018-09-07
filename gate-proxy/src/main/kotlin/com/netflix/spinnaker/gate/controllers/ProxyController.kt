@@ -25,11 +25,16 @@ import javax.servlet.http.HttpServletRequest
 
 import com.netflix.spinnaker.config.ProxyConfigurationProperties
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.squareup.okhttp.RequestBody
+import com.squareup.okhttp.internal.http.HttpMethod
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import java.net.SocketException
+import java.util.stream.Collectors
+
+import org.springframework.web.bind.annotation.RequestMethod.*
 
 @RestController
 @RequestMapping(value = ["/proxies"])
@@ -39,11 +44,16 @@ class ProxyController(val objectMapper: ObjectMapper,
 
   val proxyInvocationsId = registry.createId("proxy.invocations")
 
-  @GetMapping(value = ["/{proxy}/**"])
-  fun get(@PathVariable(value = "proxy") proxy: String,
+  @RequestMapping(value = ["/{proxy}/**"], method = [GET, POST])
+  fun any(@PathVariable(value = "proxy") proxy: String,
           @RequestParam requestParams: Map<String, String>,
           httpServletRequest: HttpServletRequest): ResponseEntity<Any> {
+    return request(proxy, requestParams, httpServletRequest)
+  }
 
+  private fun request(proxy: String,
+                      requestParams: Map<String, String>,
+                      httpServletRequest: HttpServletRequest): ResponseEntity<Any> {
     val proxyConfig = proxyConfigurationProperties
       .proxies
       .find { it.id.equals(proxy, true) } ?: throw InvalidRequestException("No proxy config found with id '$proxy'")
@@ -61,11 +71,21 @@ class ProxyController(val objectMapper: ObjectMapper,
 
     var statusCode = 0
     var contentType = "text/plain"
-    var responseBody : String
+    var responseBody: String
 
     try {
+      val method = httpServletRequest.method
+      val body = if (HttpMethod.permitsRequestBody(method)) {
+        RequestBody.create(
+          com.squareup.okhttp.MediaType.parse(httpServletRequest.contentType),
+          httpServletRequest.reader.lines().collect(Collectors.joining(System.lineSeparator()))
+        )
+      } else {
+        null
+      }
+
       val response = proxyConfig.okHttpClient.newCall(
-        Request.Builder().url(proxiedUrl).build()
+        Request.Builder().url(proxiedUrl).method(method, body).build()
       ).execute()
       statusCode = response.code()
       contentType = response.header("Content-Type")
@@ -79,9 +99,10 @@ class ProxyController(val objectMapper: ObjectMapper,
 
     registry.counter(
       proxyInvocationsId
-      .withTag("proxy", proxy)
-      .withTag("status", "${statusCode.toString()[0]}xx")
-      .withTag("statusCode", statusCode.toString())
+        .withTag("proxy", proxy)
+        .withTag("method", httpServletRequest.method)
+        .withTag("status", "${statusCode.toString()[0]}xx")
+        .withTag("statusCode", statusCode.toString())
     ).increment()
 
     val responseObj = if (responseBody.startsWith("{")) {
