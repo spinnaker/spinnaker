@@ -46,7 +46,7 @@ class AmazonInstanceTypeProvider implements InstanceTypeProvider<AmazonInstanceT
   }
 
   boolean includeInstance(AmazonInstanceType amazonInstanceType) {
-    def excludedType = amazonInstanceTypeProviderConfiguration?.excluded?.find { it.name == amazonInstanceType.name }
+    def excludedType = amazonInstanceTypeProviderConfiguration?.excluded?.find { amazonInstanceType.name =~ /^$it.name/ }
     if (!excludedType) {
       return true
     }

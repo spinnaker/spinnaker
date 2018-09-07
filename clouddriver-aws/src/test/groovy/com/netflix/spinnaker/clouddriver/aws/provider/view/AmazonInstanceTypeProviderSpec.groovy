@@ -69,7 +69,8 @@ class AmazonInstanceTypeProviderSpec extends Specification {
     given:
     config.setExcluded([
         new AmazonInstanceTypeProviderConfiguration.InstanceTypeOption('m1.regionfiltered', ['us-east-1']),
-        new AmazonInstanceTypeProviderConfiguration.InstanceTypeOption('m1.allfiltered')])
+        new AmazonInstanceTypeProviderConfiguration.InstanceTypeOption('m1.allfiltered'),
+        new AmazonInstanceTypeProviderConfiguration.InstanceTypeOption('m2.*')])
 
     when:
     def result = provider.getAll()
@@ -119,6 +120,10 @@ class AmazonInstanceTypeProviderSpec extends Specification {
             account         : 'test',
             region          : 'us-west-2',
             name            : 'm1.allfiltered']),
+        itData('m2.filtered', [
+          account         : 'test',
+          region          : 'us-west-2',
+          name            : 'm2.filtered']),
     ]
   }
 
