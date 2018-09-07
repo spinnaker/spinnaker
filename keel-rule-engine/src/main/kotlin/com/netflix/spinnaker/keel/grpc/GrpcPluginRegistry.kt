@@ -1,3 +1,18 @@
+/*
+ * Copyright 2018 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.netflix.spinnaker.keel.grpc
 
 import com.netflix.discovery.EurekaClient
@@ -10,6 +25,7 @@ import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginResponse
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import com.netflix.spinnaker.keel.platform.NoSuchVip
+import com.netflix.spinnaker.keel.registry.AssetType
 import com.netflix.spinnaker.keel.registry.PluginAddress
 import com.netflix.spinnaker.keel.registry.PluginRepository
 import io.grpc.ManagedChannel
@@ -29,7 +45,7 @@ class GrpcPluginRegistry(
 
   fun pluginFor(type: TypeMetadata): AssetPluginGrpc.AssetPluginBlockingStub? =
     pluginRepository
-      .assetPluginFor(type)
+      .assetPluginFor(AssetType(type.kind, type.apiVersion))
       ?.let { (vip, port) ->
         stubFor(vip, port, AssetPluginGrpc::newBlockingStub)
       }
@@ -47,7 +63,10 @@ class GrpcPluginRegistry(
     request
       .typesList
       .forEach { type ->
-        pluginRepository.addAssetPluginFor(type, PluginAddress(request.vip, request.port))
+        pluginRepository.addAssetPluginFor(
+          AssetType(type.kind, type.apiVersion),
+          PluginAddress(request.vip, request.port)
+        )
         log.info("Registered asset plugin supporting {} at vip: {} port: {}", type, request.vip, request.port)
       }
     responseObserver.apply {
