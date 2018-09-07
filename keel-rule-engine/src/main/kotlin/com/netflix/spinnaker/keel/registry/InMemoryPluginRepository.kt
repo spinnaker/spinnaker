@@ -25,6 +25,8 @@ class InMemoryPluginRepository : PluginRepository {
   private val assetPlugins: MutableMap<AssetType, PluginAddress> = mutableMapOf()
   private val vetoPlugins: MutableSet<PluginAddress> = mutableSetOf()
 
+  override fun assetPlugins(): Iterable<PluginAddress> = assetPlugins.values
+
   override fun vetoPlugins(): Iterable<PluginAddress> = vetoPlugins
 
   override fun addVetoPlugin(address: PluginAddress) {

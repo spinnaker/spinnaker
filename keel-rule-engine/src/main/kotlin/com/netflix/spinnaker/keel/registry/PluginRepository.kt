@@ -20,6 +20,8 @@ interface PluginRepository {
 
   fun addVetoPlugin(address: PluginAddress)
 
+  fun assetPlugins(): Iterable<PluginAddress>
+
   fun assetPluginFor(type: AssetType): PluginAddress?
 
   fun addAssetPluginFor(type: AssetType, address: PluginAddress)

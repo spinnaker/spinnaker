@@ -34,6 +34,13 @@ class RedisPluginRepository(private val redisPool: JedisPool) : PluginRepository
   private val objectMapper = ObjectMapper()
     .apply { registerModule(KotlinModule()) }
 
+  override fun assetPlugins(): Iterable<PluginAddress> =
+    redisPool.resource.use { redis ->
+      redis
+        .hvals("keel.plugins.asset")
+        .map { objectMapper.readValue<PluginAddress>(it) }
+    }
+
   override fun vetoPlugins(): Iterable<PluginAddress> =
     redisPool.resource.use { redis ->
       redis

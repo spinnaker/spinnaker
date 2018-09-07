@@ -20,6 +20,7 @@ import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import strikt.api.Assertion
 import strikt.api.expect
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
@@ -48,7 +49,13 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
       }
     }
 
-    it("returns an empty iterator from assetPluginsFor") {
+    it("returns no asset plugins") {
+      expect(subject.assetPlugins()) {
+        isEmpty()
+      }
+    }
+
+    it("returns no veto plugins") {
       expect(subject.vetoPlugins()) {
         isEmpty()
       }
@@ -61,6 +68,12 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
 
     beforeGroup {
       subject.addAssetPluginFor(securityGroup, address)
+    }
+
+    it("returns the plugin in the list of asset plugins") {
+      expect(subject.assetPlugins()) {
+        containsExactly(address)
+      }
     }
 
     it("returns the plugin address by type") {
