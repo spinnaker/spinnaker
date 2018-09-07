@@ -51,9 +51,11 @@ public class PubSubUtils {
     return queueUrl;
   }
 
+  /**
+   * Returns the subscription arn resulting from subscribing the queueARN to the topicARN
+   */
   public static String subscribeToTopic(AmazonSNS amazonSNS, ARN topicARN, ARN queueARN) {
-    amazonSNS.subscribe(topicARN.getArn(), "sqs", queueARN.getArn());
-    return topicARN.getArn();
+    return amazonSNS.subscribe(topicARN.getArn(), "sqs", queueARN.getArn()).getSubscriptionArn();
   }
 
   /**
