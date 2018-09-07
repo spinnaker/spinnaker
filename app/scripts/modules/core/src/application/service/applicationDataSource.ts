@@ -444,7 +444,6 @@ export class ApplicationDataSource implements IDataSourceConfig {
             this.afterLoad(this.application);
           }
           this.addAlerts();
-          this.dataUpdated();
         });
         this.refreshQueue.forEach(d => d.resolve());
         this.refreshQueue.length = 0;
