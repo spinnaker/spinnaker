@@ -31,7 +31,7 @@ class PullRequestMessageHandler(Handler):
         if pull_request.body is None:
             return
 
-        for bad_message in bad_contents
+        for bad_message in bad_contents:
             if bad_message in pull_request.body:
                 pull_request.create_issue_comment(message.format(bad_message))
                 pull_request.edit(state='closed')
