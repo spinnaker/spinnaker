@@ -16,6 +16,7 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
 apply from: "$rootDir/gradle/spek.gradle"
+apply from: "$rootDir/gradle/junit4.gradle"
 
 dependencies {
   implementation project(":keel-rule-engine")
@@ -23,6 +24,15 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-dynomite:$korkVersion"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
 
+  testImplementation "io.strikt:strikt-core:$striktVersion"
   testImplementation "com.netflix.spinnaker.kork:kork-jedis-test:$korkVersion"
   testImplementation project(":keel-rule-engine-tck")
+  testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
+  testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines "junit-vintage", "spek"
+  }
 }

@@ -15,11 +15,16 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.registry.PluginRepository
 import com.netflix.spinnaker.kork.PlatformComponents
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
+import javax.annotation.PostConstruct
 
 object MainDefaults {
   val PROPS = mapOf(
@@ -39,7 +44,22 @@ object MainDefaults {
   "com.netflix.spinnaker.keel"
 ])
 @Import(PlatformComponents::class)
-class RuleEngineApp
+class RuleEngineApp {
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  @Autowired
+  lateinit var pluginRepository: PluginRepository
+
+  @Autowired
+  lateinit var assetRepository: AssetRepository
+
+  @PostConstruct
+  fun initialStatus() {
+    log.info("Using {} plugin repository implementation", pluginRepository.javaClass.simpleName)
+    log.info("Using {} asset repository implementation", assetRepository.javaClass.simpleName)
+  }
+}
 
 fun main(vararg args: String) {
   SpringApplicationBuilder()
