@@ -169,8 +169,8 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
             <label>
               <input
                 type="checkbox"
-                value={values.instanceMonitoring ? 'true' : 'false'}
-                onChange={e => setFieldValue('instanceMonitoring', e.target.value === 'true')}
+                checked={values.instanceMonitoring}
+                onChange={e => setFieldValue('instanceMonitoring', e.target.checked)}
               />{' '}
               Enable Instance Monitoring{' '}
             </label>
@@ -184,8 +184,8 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
             <label>
               <input
                 type="checkbox"
-                value={values.ebsOptimized ? 'true' : 'false'}
-                onChange={e => setFieldValue('ebsOptimized', e.target.value === 'true')}
+                checked={values.ebsOptimized}
+                onChange={e => setFieldValue('ebsOptimized', e.target.checked)}
               />{' '}
               Optimize Instances for EBS
             </label>
