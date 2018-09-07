@@ -125,13 +125,14 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
   }
 
   private List<GoogleServerGroup> constructServerGroups(ProviderCache providerCache, String onDemandServerGroupName = null) {
+    GoogleRegionalServerGroupCachingAgent cachingAgent = this
     List<GoogleServerGroup> serverGroups = []
 
     BatchRequest igmRequest = buildBatchRequest()
     BatchRequest instanceGroupsRequest = buildBatchRequest()
     BatchRequest autoscalerRequest = buildBatchRequest()
 
-    List<InstanceTemplate> instanceTemplates = GoogleZonalServerGroupCachingAgent.fetchInstanceTemplates(compute, project)
+    List<InstanceTemplate> instanceTemplates = GoogleZonalServerGroupCachingAgent.fetchInstanceTemplates(cachingAgent, compute, project)
     List<GoogleInstance> instances = GCEUtil.fetchInstances(this, credentials)
 
     InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(

@@ -134,6 +134,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   private List<GoogleServerGroup> constructServerGroups(ProviderCache providerCache, String onDemandServerGroupName = null) {
+    GoogleZonalServerGroupCachingAgent cachingAgent = this
     List<String> zones = credentials.getZonesFromRegion(region)
     List<GoogleServerGroup> serverGroups = []
 
@@ -141,7 +142,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     BatchRequest instanceGroupsRequest = buildBatchRequest()
     BatchRequest autoscalerRequest = buildBatchRequest()
 
-    List<InstanceTemplate> instanceTemplates = fetchInstanceTemplates(compute, project)
+    List<InstanceTemplate> instanceTemplates = fetchInstanceTemplates(cachingAgent, compute, project)
     List<GoogleInstance> instances = GCEUtil.fetchInstances(this, credentials)
 
     zones?.each { String zone ->
@@ -159,7 +160,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       } else {
         InstanceGroupManagerCallbacks.InstanceGroupManagerListCallback igmlCallback =
           instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback(instanceTemplates, instances)
-        new PaginatedRequest<InstanceGroupManagerList>(this) {
+        new PaginatedRequest<InstanceGroupManagerList>(cachingAgent) {
           @Override
           AbstractGoogleJsonClientRequest<InstanceGroupManagerList> request(String pageToken) {
             return compute.instanceGroupManagers().list(project, zone).setMaxResults(maxMIGPageSize).setPageToken(pageToken)
@@ -179,8 +180,8 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     serverGroups
   }
 
-  static List<InstanceTemplate> fetchInstanceTemplates(Compute compute, String project) {
-    List<InstanceTemplate> instanceTemplates = new PaginatedRequest<InstanceTemplateList>(this) {
+  static List<InstanceTemplate> fetchInstanceTemplates(AbstractGoogleCachingAgent cachingAgent, Compute compute, String project) {
+    List<InstanceTemplate> instanceTemplates = new PaginatedRequest<InstanceTemplateList>(cachingAgent) {
       @Override
       protected AbstractGoogleJsonClientRequest<InstanceTemplateList> request (String pageToken) {
         return compute.instanceTemplates().list(project).setPageToken(pageToken)

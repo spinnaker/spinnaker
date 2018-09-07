@@ -52,7 +52,10 @@ public abstract class PaginatedRequest<T> {
     List<U> resultList = new ArrayList<>();
     do {
       T results = cachingAgent.timeExecute(request(pageToken), api, tags);
-      resultList.addAll(itemExtractor.apply(results));
+      List<U> newItems = itemExtractor.apply(results);
+      if (newItems != null) {
+        resultList.addAll(newItems);
+      }
       pageToken = getNextPageToken(results);
     } while (pageToken != null);
     return resultList;

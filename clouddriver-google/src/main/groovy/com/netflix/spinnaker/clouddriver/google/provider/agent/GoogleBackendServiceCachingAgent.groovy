@@ -63,7 +63,8 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
   List<GoogleBackendService> loadBackendServices() {
     List<GoogleBackendService> ret = []
 
-    List<BackendService> globalBackendServices = new PaginatedRequest<BackendServiceList>(this) {
+    GoogleBackendServiceCachingAgent cachingAgent = this
+    List<BackendService> globalBackendServices = new PaginatedRequest<BackendServiceList>(cachingAgent) {
       @Override
       protected AbstractGoogleJsonClientRequest<BackendServiceList> request (String pageToken) {
         return compute.backendServices().list(project).setPageToken(pageToken)
@@ -84,7 +85,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
     }
 
     credentials.regions.collect { it.name }.each { String region ->
-      List<BackendService> regionBackendServices = new PaginatedRequest<BackendServiceList>(this) {
+      List<BackendService> regionBackendServices = new PaginatedRequest<BackendServiceList>(cachingAgent) {
         @Override
         protected AbstractGoogleJsonClientRequest<BackendServiceList> request (String pageToken) {
           return compute.regionBackendServices().list(project, region).setPageToken(pageToken)
