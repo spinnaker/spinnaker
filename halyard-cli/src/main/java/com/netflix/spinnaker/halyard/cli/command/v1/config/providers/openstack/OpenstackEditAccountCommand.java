@@ -17,12 +17,6 @@ public class OpenstackEditAccountCommand extends AbstractEditAccountCommand<Open
   }
 
   @Parameter(
-          names = "--environment",
-          description = OpenstackCommandProperties.ENVIRONMENT_DESCRIPTION
-  )
-  private String environment;
-
-  @Parameter(
           names = "--account-type",
           description = OpenstackCommandProperties.ACCOUNT_TYPE_DESCRIPTION
   )
@@ -120,7 +114,6 @@ public class OpenstackEditAccountCommand extends AbstractEditAccountCommand<Open
     account.setHeatTemplateLocation(isSet(heatTemplateLocation) ? heatTemplateLocation : account.getHeatTemplateLocation());
     account.setConsulConfig(isSet(consulConfig) ? consulConfig : account.getConsulConfig());
     account.setAccountType(isSet(accountType) ? accountType : account.getAccountType());
-    account.setEnvironment(isSet(environment) ? environment : account.getEnvironment());
     account.setAuthUrl(isSet(authUrl) ? authUrl : account.getAuthUrl());
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setPassword(isSet(password) ? password : account.getPassword());

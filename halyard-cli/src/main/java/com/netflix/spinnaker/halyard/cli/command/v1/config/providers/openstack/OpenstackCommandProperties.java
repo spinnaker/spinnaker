@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.openstack;
 
 public class OpenstackCommandProperties {
-  static final String ENVIRONMENT_DESCRIPTION = "The name of your Openstack environment.";
-
   static final String ACCOUNT_TYPE_DESCRIPTION = "The type of Openstack account.";
 
   static final String AUTH_URL_DESCRIPTION = "The auth url of your cloud, usually found in the Horizon console under Compute > Access & Security > API Access > url for Identity. Must be Keystone v3";

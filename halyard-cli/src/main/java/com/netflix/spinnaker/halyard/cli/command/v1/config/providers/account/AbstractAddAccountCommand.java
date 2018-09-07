@@ -69,6 +69,13 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
   )
   private Provider.ProviderVersion providerVersion;
 
+  @Parameter(
+        names = "--environment",
+        arity = 1,
+        description = AccountCommandProperties.ENVIRONMENT_DESCRIPTION
+  )
+  private String environment;
+
   protected abstract Account buildAccount(String accountName);
 
   protected abstract Account emptyAccount();
@@ -98,6 +105,7 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
     account.getPermissions().add(Authorization.READ, readPermissions);
     account.getPermissions().add(Authorization.WRITE, writePermissions);
     account.setProviderVersion(providerVersion);
+    account.setEnvironment(isSet(environment) ? environment : account.getEnvironment());
     String providerName = getProviderName();
 
     String currentDeployment = getCurrentDeployment();

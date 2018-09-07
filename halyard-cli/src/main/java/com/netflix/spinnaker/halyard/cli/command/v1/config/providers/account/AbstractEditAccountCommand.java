@@ -109,6 +109,13 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
   )
   private Provider.ProviderVersion providerVersion;
 
+  @Parameter(
+        names = "--environment",
+        arity = 1,
+        description = AccountCommandProperties.ENVIRONMENT_DESCRIPTION
+  )
+  private String environment;
+
   protected abstract Account editAccount(T account);
 
   public String getDescription() {
@@ -157,6 +164,8 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
     permissions.add(Authorization.WRITE, resolvedWritePermissions);
 
     account.setProviderVersion(isSet(providerVersion) ? providerVersion : account.getProviderVersion());
+
+    account.setEnvironment(isSet(environment) ? environment : account.getEnvironment());
 
     if (originaHash == account.hashCode()) {
       AnsiUi.failure("No changes supplied.");

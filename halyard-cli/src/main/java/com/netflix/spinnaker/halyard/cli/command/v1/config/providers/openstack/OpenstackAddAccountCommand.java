@@ -16,11 +16,6 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
     return "openstack";
   }
 
-  @Parameter(
-      names = "--environment",
-      description = OpenstackCommandProperties.ENVIRONMENT_DESCRIPTION
-  )
-  private String environment;
 
   @Parameter(
       names = "--account-type",
@@ -126,7 +121,6 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
     account.setAuthUrl(authUrl)
         .setUsername(username)
         .setPassword(password)
-        .setEnvironment(environment)
         .setAccountType(accountType)
         .setHeatTemplateLocation(heatTemplateLocation)
         .setProjectName(projectName)

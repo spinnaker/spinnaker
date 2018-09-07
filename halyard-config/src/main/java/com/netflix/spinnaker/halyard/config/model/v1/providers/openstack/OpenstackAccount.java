@@ -14,7 +14,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class OpenstackAccount extends Account {
   private String accountName;
-  private String environment;
   private String accountType;
   private String authUrl;
   private String username;
