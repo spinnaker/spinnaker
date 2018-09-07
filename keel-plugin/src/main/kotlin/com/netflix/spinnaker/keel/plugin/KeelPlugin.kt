@@ -17,5 +17,8 @@ package com.netflix.spinnaker.keel.plugin
 
 import io.grpc.BindableService
 
-interface KeelPlugin : BindableService
+interface KeelPlugin : BindableService {
+  val name: String
+    get() = javaClass.simpleName
+}
 

@@ -83,6 +83,7 @@ internal object PluginRegistrationSpec : Spek({
           RegisterAssetPluginRequest
             .newBuilder()
             .apply {
+              name = "AWS plugin"
               vip = "aws-asset-plugin"
               port = 6565
               addTypes(type)

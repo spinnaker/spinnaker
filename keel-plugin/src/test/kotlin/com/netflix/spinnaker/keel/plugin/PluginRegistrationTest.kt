@@ -61,6 +61,7 @@ internal class PluginRegistrationTest {
     grpc.startServer {
       addService(registry)
     }
+    whenever(amazonAssetPlugin.name) doReturn "Amazon plugin"
     whenever(amazonAssetPlugin.supportedTypes) doReturn listOf(
       "aws.SecurityGroup",
       "aws.ClassicLoadBalancer"

@@ -17,10 +17,14 @@ package com.netflix.spinnaker.keel.grpc
 
 import com.google.protobuf.ByteString
 import com.netflix.spinnaker.keel.api.TypeMetadata
+import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
+import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginRequest
 import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.PartialAsset
+import com.netflix.spinnaker.keel.registry.AssetType
+import com.netflix.spinnaker.keel.registry.PluginAddress
 import com.netflix.spinnaker.keel.api.Asset as AssetProto
 import com.netflix.spinnaker.keel.api.AssetContainer as AssetContainerProto
 import com.netflix.spinnaker.keel.api.AssetId as AssetIdProto
@@ -128,3 +132,13 @@ fun PartialAssetProto.fromProto(): PartialAsset =
     kind = typeMetadata.kind,
     spec = spec.value.toByteArray()
   )
+
+
+fun RegisterAssetPluginRequest.toPluginAddress() =
+  PluginAddress(name, vip, port)
+
+fun RegisterVetoPluginRequest.toPluginAddress() =
+  PluginAddress(name, vip, port)
+
+fun TypeMetadata.toAssetType() =
+  AssetType(kind, apiVersion)

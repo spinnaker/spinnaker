@@ -64,7 +64,7 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
 
   given("an asset plugin is registered") {
 
-    val address = PluginAddress("${securityGroup.kind}.vip", 6565)
+    val address = PluginAddress("Amazon security group", "${securityGroup.kind}.vip", 6565)
 
     beforeGroup {
       subject.addAssetPluginFor(securityGroup, address)
@@ -91,8 +91,8 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
 
   given("a veto plugin is registered") {
 
-    val address1 = PluginAddress("veto1.vip", 6565)
-    val address2 = PluginAddress("veto2.vip", 6565)
+    val address1 = PluginAddress("Veto 1", "veto1.vip", 6565)
+    val address2 = PluginAddress("Veto 2", "veto2.vip", 6565)
 
     beforeGroup {
       with(subject) {

@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.registry
 
 data class PluginAddress(
+  val name: String,
   val vip: String,
   val port: Int
 )

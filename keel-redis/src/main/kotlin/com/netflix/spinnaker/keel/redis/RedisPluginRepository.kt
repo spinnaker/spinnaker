@@ -72,15 +72,17 @@ class RedisPluginRepository(private val redisPool: JedisPool) : PluginRepository
       redis
         .smembers("keel.plugins.veto")
         .map { objectMapper.readValue<PluginAddress>(it) }
-        .forEach { log.info("Veto plugin at {}", it) }
+        .forEach { log.info("'{}' veto plugin at {}, port {}", it.name, it.vip, it.port) }
       redis
         .hgetAll("keel.plugins.asset")
         .map { (type, address) ->
           with(objectMapper) {
-            readValue<PluginAddress>(type) to readValue<PluginAddress>(address)
+            readValue<AssetType>(type) to readValue<PluginAddress>(address)
           }
         }
-        .forEach { log.info("Asset plugin for {} at {}", it.first, it.second) }
+        .forEach { (type, address) ->
+          log.info("'{}' asset plugin supporting {} at {}, port {}", address.name, type, address.vip, address.port)
+        }
     }
   }
 

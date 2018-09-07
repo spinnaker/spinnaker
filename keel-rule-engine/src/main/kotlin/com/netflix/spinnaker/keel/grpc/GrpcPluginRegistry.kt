@@ -26,7 +26,6 @@ import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginResponse
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import com.netflix.spinnaker.keel.platform.NoSuchVip
 import com.netflix.spinnaker.keel.registry.AssetType
-import com.netflix.spinnaker.keel.registry.PluginAddress
 import com.netflix.spinnaker.keel.registry.PluginRepository
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
@@ -46,14 +45,14 @@ class GrpcPluginRegistry(
   fun pluginFor(type: TypeMetadata): AssetPluginGrpc.AssetPluginBlockingStub? =
     pluginRepository
       .assetPluginFor(AssetType(type.kind, type.apiVersion))
-      ?.let { (vip, port) ->
+      ?.let { (_, vip, port) ->
         stubFor(vip, port, AssetPluginGrpc::newBlockingStub)
       }
 
   fun <R> applyVetos(callback: (VetoPluginGrpc.VetoPluginBlockingStub) -> R): Iterable<R> =
     pluginRepository
       .vetoPlugins()
-      .map { (vip, port) -> stubFor(vip, port, VetoPluginGrpc::newBlockingStub) }
+      .map { (_, vip, port) -> stubFor(vip, port, VetoPluginGrpc::newBlockingStub) }
       .map(callback)
 
   override fun registerAssetPlugin(
@@ -64,8 +63,8 @@ class GrpcPluginRegistry(
       .typesList
       .forEach { type ->
         pluginRepository.addAssetPluginFor(
-          AssetType(type.kind, type.apiVersion),
-          PluginAddress(request.vip, request.port)
+          type.toAssetType(),
+          request.toPluginAddress()
         )
         log.info("Registered asset plugin supporting {} at vip: {} port: {}", type, request.vip, request.port)
       }
@@ -79,7 +78,7 @@ class GrpcPluginRegistry(
     request: RegisterVetoPluginRequest,
     responseObserver: StreamObserver<RegisterVetoPluginResponse>
   ) {
-    pluginRepository.addVetoPlugin(PluginAddress(request.vip, request.port))
+    pluginRepository.addVetoPlugin(request.toPluginAddress())
     log.info("Registered veto plugin at vip: {} port: {}", request.vip, request.port)
     responseObserver.apply {
       onNext(

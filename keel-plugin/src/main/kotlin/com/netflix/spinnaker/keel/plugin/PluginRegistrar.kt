@@ -61,10 +61,11 @@ class PluginRegistrar(
       is AssetPlugin -> {
         val request = RegisterAssetPluginRequest
           .newBuilder()
-          .apply {
-            vip = instanceInfo.vipAddress
-            port = localGrpcPort
-            addAllTypes(supportedTypes)
+          .also {
+            it.name = name
+            it.vip = instanceInfo.vipAddress
+            it.port = localGrpcPort
+            it.addAllTypes(supportedTypes)
           }
           .build()
         registry.registerAssetPlugin(request).let { response ->
@@ -76,9 +77,10 @@ class PluginRegistrar(
       is VetoPlugin -> {
         val request = RegisterVetoPluginRequest
           .newBuilder()
-          .apply {
-            vip = instanceInfo.vipAddress
-            port = localGrpcPort
+          .also {
+            it.name = name
+            it.vip = instanceInfo.vipAddress
+            it.port = localGrpcPort
           }
           .build()
         registry.registerVetoPlugin(request).let { response ->
