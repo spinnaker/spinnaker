@@ -5,11 +5,17 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.JedisPool
 
 internal object RedisPluginRepositoryTests : PluginRepositoryTests<RedisPluginRepository>(
-  ::createRedisRepository,
-  embeddedRedis::destroy
+  factory = ::createRedisRepository,
+  clear = ::flushRedis,
+  shutdownHook = embeddedRedis::destroy
 )
 
-val embeddedRedis = EmbeddedRedis.embed()
-val jedisPool = embeddedRedis.pool as JedisPool
+private val embeddedRedis = EmbeddedRedis.embed()
+private val pool = embeddedRedis.pool as JedisPool
 
-fun createRedisRepository() = RedisPluginRepository(jedisPool)
+private fun createRedisRepository() = RedisPluginRepository(pool)
+
+@Suppress("UNUSED_PARAMETER")
+private fun flushRedis(repository: RedisPluginRepository) {
+  pool.resource.use { redis -> redis.flushAll() }
+}

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.registry.PluginAddress
 import com.netflix.spinnaker.keel.registry.PluginRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import javax.annotation.PostConstruct
 
@@ -34,41 +35,47 @@ class RedisPluginRepository(private val redisPool: JedisPool) : PluginRepository
   private val objectMapper = ObjectMapper()
     .apply { registerModule(KotlinModule()) }
 
+  override fun allPlugins(): Iterable<PluginAddress> =
+    inRedis { redis ->
+      (redis.hvals("keel.plugins.asset") + redis.smembers("keel.plugins.veto"))
+        .map { this@RedisPluginRepository.objectMapper.readValue<PluginAddress>(it) }
+    }
+
   override fun assetPlugins(): Iterable<PluginAddress> =
-    redisPool.resource.use { redis ->
+    inRedis { redis ->
       redis
         .hvals("keel.plugins.asset")
         .map { objectMapper.readValue<PluginAddress>(it) }
     }
 
   override fun vetoPlugins(): Iterable<PluginAddress> =
-    redisPool.resource.use { redis ->
+    inRedis { redis ->
       redis
         .smembers("keel.plugins.veto")
         .map { objectMapper.readValue<PluginAddress>(it) }
     }
 
   override fun addVetoPlugin(address: PluginAddress) {
-    redisPool.resource.use { redis ->
+    inRedis { redis ->
       redis.sadd("keel.plugins.veto", address.serialized)
     }
   }
 
   override fun assetPluginFor(type: AssetType): PluginAddress? =
-    redisPool.resource.use { redis ->
+    inRedis { redis ->
       redis.hget("keel.plugins.asset", type.serialized)
         ?.let { objectMapper.readValue(it) }
     }
 
   override fun addAssetPluginFor(type: AssetType, address: PluginAddress) {
-    redisPool.resource.use { redis ->
+    inRedis { redis ->
       redis.hset("keel.plugins.asset", type.serialized, address.serialized)
     }
   }
 
   @PostConstruct
   fun logKnownPlugins() {
-    redisPool.resource.use { redis ->
+    inRedis { redis ->
       redis
         .smembers("keel.plugins.veto")
         .map { objectMapper.readValue<PluginAddress>(it) }
@@ -88,4 +95,7 @@ class RedisPluginRepository(private val redisPool: JedisPool) : PluginRepository
 
   private val Any.serialized: String
     get() = objectMapper.writeValueAsString(this)
+
+  private fun <T> inRedis(operation: (Jedis) -> T): T =
+    redisPool.resource.use(operation)
 }

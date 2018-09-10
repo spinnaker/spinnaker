@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.keel.registry
 
 interface PluginRepository {
+  fun allPlugins(): Iterable<PluginAddress>
+
   fun vetoPlugins(): Iterable<PluginAddress>
 
   fun addVetoPlugin(address: PluginAddress)

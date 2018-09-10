@@ -28,6 +28,7 @@ import strikt.assertions.isNull
 
 abstract class PluginRepositoryTests<T : PluginRepository>(
   factory: () -> T,
+  clear: (T) -> Unit,
   shutdownHook: () -> Unit = {}
 ) : Spek({
 
@@ -42,7 +43,11 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
     apiVersion = "1.0"
   )
 
+  afterGroup { shutdownHook() }
+
   given("no plugins are stored") {
+    afterGroup { clear(subject) }
+
     it("returns null from assetPluginsFor") {
       expect(subject.assetPluginFor(securityGroup)) {
         isNull()
@@ -60,14 +65,27 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
         isEmpty()
       }
     }
+
+    it("returns no plugins") {
+      expect(subject.allPlugins()) {
+        isEmpty()
+      }
+    }
   }
 
   given("an asset plugin is registered") {
-
     val address = PluginAddress("Amazon security group", "${securityGroup.kind}.vip", 6565)
 
     beforeGroup {
       subject.addAssetPluginFor(securityGroup, address)
+    }
+
+    afterGroup { clear(subject) }
+
+    it("returns the plugin address in the list of all plugins") {
+      expect(subject.allPlugins()) {
+        containsExactly(address)
+      }
     }
 
     it("returns the plugin in the list of asset plugins") {
@@ -90,7 +108,6 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
   }
 
   given("a veto plugin is registered") {
-
     val address1 = PluginAddress("Veto 1", "veto1.vip", 6565)
     val address2 = PluginAddress("Veto 2", "veto2.vip", 6565)
 
@@ -98,6 +115,14 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
       with(subject) {
         addVetoPlugin(address1)
         addVetoPlugin(address2)
+      }
+    }
+
+    afterGroup { clear(subject) }
+
+    it("returns the plugin address in the list of all plugins") {
+      expect(subject.allPlugins()) {
+        containsExactlyInAnyOrder(address1, address2)
       }
     }
 
