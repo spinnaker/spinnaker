@@ -29,6 +29,7 @@ public class CanaryExecutionRequest {
   @NotNull
   protected Map<String, CanaryScopePair> scopes;
 
+  @NotNull
   protected CanaryClassifierThresholdsConfig thresholds;
 
   protected List<Metadata> metadata;

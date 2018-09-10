@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.controllers;
 
+import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryJudge;
 import com.netflix.kayenta.canary.CanaryJudgeConfig;
@@ -65,7 +66,9 @@ public class CanaryJudgesController {
   public CanaryJudgeResult judge(@RequestParam(required = false) final String configurationAccountName,
                                  @RequestParam(required = false) final String storageAccountName,
                                  @RequestParam(required = false) final String canaryConfigId,
-                                 @RequestParam(required = false) final String metricSetPairListId) {
+                                 @RequestParam(required = false) final String metricSetPairListId,
+                                 @RequestParam final Double passThreshold,
+                                 @RequestParam final Double marginalThreshold) {
     String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
                                                                                            AccountCredentials.Type.CONFIGURATION_STORE,
                                                                                            accountCredentialsRepository);
@@ -103,7 +106,8 @@ public class CanaryJudgesController {
     }
 
     List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedStorageAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    CanaryClassifierThresholdsConfig canaryClassifierThresholdsConfig = CanaryClassifierThresholdsConfig.builder().pass(passThreshold).marginal(marginalThreshold).build();
 
-    return canaryJudge.judge(canaryConfig, canaryConfig.getClassifier().getScoreThresholds(), metricSetPairList);
+    return canaryJudge.judge(canaryConfig, canaryClassifierThresholdsConfig, metricSetPairList);
   }
 }

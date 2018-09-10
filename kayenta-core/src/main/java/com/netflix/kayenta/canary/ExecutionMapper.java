@@ -387,14 +387,9 @@ public class ExecutionMapper {
           .put("experimentRefidPrefix", CanaryStageNames.REFID_FETCH_EXPERIMENT_PREFIX)
           .build());
 
-    CanaryClassifierThresholdsConfig orchestratorScoreThresholds = canaryExecutionRequest.getThresholds();
-
+    final CanaryClassifierThresholdsConfig orchestratorScoreThresholds = canaryExecutionRequest.getThresholds();
     if (orchestratorScoreThresholds == null) {
-      if (canaryConfig.getClassifier() == null || canaryConfig.getClassifier().getScoreThresholds() == null) {
-        throw new IllegalArgumentException("Classifier thresholds must be specified in either the canary config, or the execution request.");
-      }
-      // The score thresholds were not explicitly passed in from the orchestrator (i.e. Spinnaker), so just use the canary config values.
-      orchestratorScoreThresholds = canaryConfig.getClassifier().getScoreThresholds();
+      throw new IllegalArgumentException("Execution request must contain thresholds");
     }
 
     String canaryExecutionRequestJSON = objectMapper.writeValueAsString(canaryExecutionRequest);

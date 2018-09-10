@@ -33,8 +33,4 @@ public class CanaryClassifierConfig {
   @Singular
   @Getter
   private Map<String, Double> groupWeights;
-
-  @NotNull
-  @Getter
-  private CanaryClassifierThresholdsConfig scoreThresholds;
 }
