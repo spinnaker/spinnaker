@@ -25,8 +25,8 @@
     <kubernetes-manifest-entry ng-if="ctrl.$scope.stage.source === ctrl.textSource"
                                command="ctrl.$scope.stage">
     </kubernetes-manifest-entry>
-    <stage-config-field label="Expected Artifact" help-key="kubernetes.manifest.expectedArtifact" field-columns="8">
-      <expected-artifact-selector-react ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+    <stage-config-field label="Expected Artifact" help-key="kubernetes.manifest.expectedArtifact" field-columns="8" ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
+      <expected-artifact-selector-react
                                   expected-artifacts="ctrl.$scope.expectedArtifacts"
                                   selected="ctrl.manifestArtifactDelegate.getSelectedExpectedArtifact()"
                                   on-change="ctrl.manifestArtifactController.onArtifactChange"
