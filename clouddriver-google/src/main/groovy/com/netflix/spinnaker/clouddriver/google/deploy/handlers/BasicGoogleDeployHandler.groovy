@@ -364,12 +364,12 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     }
 
     if (autoscalerIsSpecified(description)) {
-      GCEUtil.calibrateTargetSizeWithAutoscaler(description)
-
       if (description.capacity) {
         description.autoscalingPolicy.minNumReplicas = description.capacity.min
         description.autoscalingPolicy.maxNumReplicas = description.capacity.max
       }
+
+      GCEUtil.calibrateTargetSizeWithAutoscaler(description)
     }
 
     if (description.source?.useSourceCapacity && description.source?.region && description.source?.serverGroupName) {
