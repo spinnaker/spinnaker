@@ -332,10 +332,12 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
               retryCount++
             }
             nextServerGroupName = resolveJobName(description, submitJobRequest, task, titusClient)
-            task.updateStatus BASE_PHASE, "Retrying with ${nextServerGroupName} after ${tries} attempts ${System.currentTimeMillis()}"
+            task.updateStatus BASE_PHASE, "Retrying with ${nextServerGroupName} after ${retryCount} attempts ${System.currentTimeMillis()}"
             throw e;
           }
-          if (e.status.code == Status.UNAVAILABLE.code) {
+          if (e.status.code == Status.UNAVAILABLE.code || e.status.code == Status.DEADLINE_EXCEEDED.code) {
+            retryCount++
+            task.updateStatus BASE_PHASE, "Retrying after ${retryCount} attempts ${System.currentTimeMillis()}"
             throw e;
           } else {
             log.error("Could not submit job and not retrying for status ${e.status} ", e)
