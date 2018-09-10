@@ -1,5 +1,5 @@
 import { IController, IScope } from 'angular';
-import { get } from 'lodash';
+import { get, defaults } from 'lodash';
 
 import {
   IKubernetesManifestCommandMetadata,
@@ -7,11 +7,7 @@ import {
   KubernetesManifestCommandBuilder,
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
-import { ArtifactTypePatterns, ExpectedArtifactSelectorViewController } from '@spinnaker/core';
-
-import { DeployManifestArtifactDelegate } from './deployManifestArtifactDelegate';
-
-const excludedArtifactTypes = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
+import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate } from '@spinnaker/core';
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -23,7 +19,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public artifactSource = 'artifact';
   public sources = [this.textSource, this.artifactSource];
 
-  public manifestArtifactDelegate: DeployManifestArtifactDelegate;
+  public manifestArtifactDelegate: NgManifestArtifactDelegate;
   public manifestArtifactController: ExpectedArtifactSelectorViewController;
 
   constructor(private $scope: IScope) {
@@ -34,21 +30,18 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
       this.$scope.stage.moniker,
     ).then((builtCommand: IKubernetesManifestCommandData) => {
       if (this.$scope.stage.isNew) {
-        Object.assign(this.$scope.stage, builtCommand.command);
-        this.$scope.stage.source = this.textSource;
+        defaults(this.$scope.stage, builtCommand.command, {
+          manifestArtifactAccount: '',
+          source: this.textSource,
+        });
       }
-
-      if (!this.$scope.stage.manifestArtifactAccount) {
-        this.$scope.stage.manifestArtifactAccount = '';
-      }
-
       this.metadata = builtCommand.metadata;
       this.state.loaded = true;
       this.manifestArtifactDelegate.setAccounts(get(this, ['metadata', 'backingData', 'artifactAccounts'], []));
       this.manifestArtifactController.updateAccounts(this.manifestArtifactDelegate.getSelectedExpectedArtifact());
     });
 
-    this.manifestArtifactDelegate = new DeployManifestArtifactDelegate($scope, excludedArtifactTypes);
+    this.manifestArtifactDelegate = new NgManifestArtifactDelegate($scope);
     this.manifestArtifactController = new ExpectedArtifactSelectorViewController(this.manifestArtifactDelegate);
   }
 

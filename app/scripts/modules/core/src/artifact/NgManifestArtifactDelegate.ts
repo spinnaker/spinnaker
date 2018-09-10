@@ -9,16 +9,19 @@ import {
   IExpectedArtifactSelectorViewControllerDelegate,
   IStage,
   IPipeline,
-} from '@spinnaker/core';
+} from 'core';
+import { ArtifactTypePatterns } from './ArtifactTypes';
 
 type ManifestArtifactSource = IArtifactSource<IStage | IPipeline>;
 
-export class DeployManifestArtifactDelegate implements IExpectedArtifactSelectorViewControllerDelegate {
+const defaultExcludedArtifactTypes = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
+
+export class NgManifestArtifactDelegate implements IExpectedArtifactSelectorViewControllerDelegate {
   private sources: ManifestArtifactSource[];
   private kinds: IArtifactKindConfig[];
   private accounts: IArtifactAccount[];
 
-  constructor(private $scope: IScope, private excludedArtifactTypes: RegExp[]) {
+  constructor(private $scope: IScope, private excludedArtifactTypes = defaultExcludedArtifactTypes) {
     this.sources = ExpectedArtifactService.sourcesForPipelineStage(this.$scope.$parent.pipeline, this.$scope.stage);
     this.kinds = Registry.pipeline
       .getArtifactKinds()
