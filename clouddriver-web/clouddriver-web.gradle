@@ -27,22 +27,9 @@ repositories {
 }
 
 dependencies {
-  compile project(':clouddriver-aws')
-  compile project(':clouddriver-ecs')
-  compile project(':clouddriver-azure')
-  compile project(':clouddriver-appengine')
+  compile project(':clouddriver-core')
+  compile project(':clouddriver-security')
   compile project(':clouddriver-artifacts')
-  compile project(':clouddriver-google')
-  compile project(':clouddriver-kubernetes')
-  compile project(':clouddriver-openstack')
-  compile project(':clouddriver-docker')
-  compile project(':clouddriver-eureka')
-  compile project(':clouddriver-elasticsearch')
-  compile project(':clouddriver-elasticsearch-aws')
-  compile project(':clouddriver-oracle')
-  compile project(':clouddriver-dcos')
-  compile project(':clouddriver-titus')
-  compile project(':clouddriver-cloudfoundry')
 
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('korkWeb')
@@ -53,6 +40,16 @@ dependencies {
   testCompile ("org.springframework.boot:spring-boot-starter-test")
   //this brings in the jetty GzipFilter which boot will autoconfigure
   runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
+
+  //Some controller tests rely on models from aws and gcp
+  testCompile project(':clouddriver-aws')
+  testCompile project(':clouddriver-elasticsearch')
+  testCompile project(':clouddriver-google')
+
+  // Add each included cloud provider project as a runtime dependency
+  gradle.includedCloudProviderProjects.each {
+    runtime project(":${it}")
+  }
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)

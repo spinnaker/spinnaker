@@ -16,97 +16,51 @@
 
 rootProject.name = "clouddriver"
 
-enum Platform {
-  ALL,
-  APPENGINE,
-  AWS, // Any thoughts on renaming this provider to EC2?
-  AZURE,
-  CLOUDFOUNDRY,
-  DCOS,
-  GCE,
-  GCP,
-  KUBERNETES,
-  OPENSTACK,
-  ORACLE,
-  TITUS,
-}
-
-// Core requirements.
+// We can include only the included cloud providers once we detangle clouddriver-web tests
 include 'cats:cats-core',
-        'cats:cats-redis',
-        'cats:cats-dynomite',
-        'cats:cats-test',
-        'clouddriver-artifacts', // Will need to be detangled.
-        'clouddriver-core',
-        'clouddriver-elasticsearch',
-        'clouddriver-security', // Detangle.
-        'clouddriver-web'
+  'cats:cats-dynomite',
+  'cats:cats-redis',
+  'cats:cats-test',
+  'clouddriver-appengine',
+  'clouddriver-artifacts',
+  'clouddriver-aws',
+  'clouddriver-azure',
+  'clouddriver-cloudfoundry',
+  'clouddriver-consul',
+  'clouddriver-core',
+  'clouddriver-dcos',
+  'clouddriver-docker',
+  'clouddriver-ecs',
+  'clouddriver-elasticsearch',
+  'clouddriver-elasticsearch-aws',
+  'clouddriver-eureka',
+  'clouddriver-google',
+  'clouddriver-google-common',
+  'clouddriver-kubernetes',
+  'clouddriver-openstack',
+  'clouddriver-oracle',
+  'clouddriver-security',
+  'clouddriver-titus',
+  'clouddriver-web'
 
-def includePlatform(Platform platform) {
-  switch(platform) {
-    case Platform.APPENGINE:
-      include 'clouddriver-appengine',
-              'clouddriver-google-common'
-      break
-    case Platform.AWS:
-      include 'clouddriver-aws',
-              'clouddriver-ecs',
-              'clouddriver-eureka', // Pull into separate "Discover" platform, along with cd-consul?
-              'clouddriver-elasticsearch-aws'
-      break
-    case Platform.AZURE:
-      include 'clouddriver-azure'
-      break
-    case Platform.CLOUDFOUNDRY:
-      include 'clouddriver-cloudfoundry'
-      break
-    case Platform.DCOS:
-      include 'clouddriver-dcos'
-      break
-    case Platform.GCE:
-      include 'clouddriver-consul',
-              'clouddriver-google',
-              'clouddriver-google-common'
-      break
-    case Platform.GCP:
-      includePlatform(Platform.APPENGINE)
-      includePlatform(Platform.GCE)
-      includePlatform(Platform.KUBERNETES)
-      break
-    case Platform.KUBERNETES:
-      include 'clouddriver-kubernetes',
-              'clouddriver-docker'
-      break
-    case  Platform.OPENSTACK:
-      include 'clouddriver-openstack'
-      break
-    case Platform.ORACLE:
-      include 'clouddriver-oracle'
-      break
-    case Platform.TITUS:
-      includePlatform(Platform.AWS)
-      include 'clouddriver-titus'
-      break
-    case Platform.ALL: // fallthrough
-    default:
-      includePlatform(Platform.APPENGINE)
-      includePlatform(Platform.AWS)
-      includePlatform(Platform.AZURE)
-      includePlatform(Platform.CLOUDFOUNDRY)
-      includePlatform(Platform.DCOS)
-      includePlatform(Platform.GCE)
-      includePlatform(Platform.GCP)
-      includePlatform(Platform.KUBERNETES)
-      includePlatform(Platform.OPENSTACK)
-      includePlatform(Platform.ORACLE)
-      includePlatform(Platform.TITUS)
-      break
-  }
-}
+def cloudProviderProjects = [
+  'appengine':  [':clouddriver-appengine', ':clouddriver-google-common'],
+  'aws': [':clouddriver-aws', ':clouddriver-ecs', ':clouddriver-eureka', ':clouddriver-elasticsearch-aws'], // Pull cd-eureka separate "Discover" platform, along with cd-consul?
+  'azure': [':clouddriver-azure'],
+  'cloudfoundry': [':clouddriver-cloudfoundry'],
+  'dcos': [':clouddriver-dcos'],
+  'gce': [':clouddriver-consul', ':clouddriver-google', ':clouddriver-google-common'],
+  'kubernetes': [':clouddriver-kubernetes', ':clouddriver-docker'],
+  'openstack': [':clouddriver-openstack'],
+  'oracle': [':clouddriver-oracle']
+]
+cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
+cloudProviderProjects.put('titus', cloudProviderProjects['aws'] + ':clouddriver-titus')
+cloudProviderProjects.put('all', cloudProviderProjects.collectMany {_, proj -> proj}) // Include all cloud providers.
 
-includePlatforms.split(",").each {
-  includePlatform(it)
-}
+// Set as an ext variable so that build scripts can access it
+gradle.ext.includedCloudProviderProjects = includeCloudProviders.split(',')
+  .collectMany { cloudProviderProjects[it.toLowerCase()] }
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
