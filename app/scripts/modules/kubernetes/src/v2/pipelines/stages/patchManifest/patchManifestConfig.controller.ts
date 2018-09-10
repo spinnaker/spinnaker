@@ -1,11 +1,6 @@
 import { IController, IScope } from 'angular';
 import { get, defaults } from 'lodash';
-import {
-  ExpectedArtifactService,
-  ExpectedArtifactSelectorViewController,
-  NgManifestArtifactDelegate,
-  IExpectedArtifact,
-} from '@spinnaker/core';
+import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate } from '@spinnaker/core';
 import { IPatchOptions, MergeStrategy } from './patchOptionsForm.component';
 import {
   IKubernetesManifestCommandMetadata,
