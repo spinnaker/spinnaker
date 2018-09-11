@@ -244,7 +244,7 @@ export class EcsServerGroupConfigurationService {
       command.backingData.filtered.securityGroupNames = chain(allSecurityGroups)
         .filter({ vpcId: vpcId })
         .map('name')
-        .value();
+        .value() as string[];
     }
   }
 
