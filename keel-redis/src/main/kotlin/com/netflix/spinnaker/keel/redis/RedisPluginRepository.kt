@@ -22,13 +22,16 @@ import com.netflix.spinnaker.keel.registry.AssetType
 import com.netflix.spinnaker.keel.registry.PluginAddress
 import com.netflix.spinnaker.keel.registry.PluginRepository
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
 import javax.annotation.PostConstruct
 
 @Component
-class RedisPluginRepository(private val redisPool: JedisPool) : PluginRepository {
+class RedisPluginRepository(
+  @Qualifier("redisPool") private val redisPool: Pool<Jedis>
+) : PluginRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -38,7 +41,7 @@ class RedisPluginRepository(private val redisPool: JedisPool) : PluginRepository
   override fun allPlugins(): Iterable<PluginAddress> =
     inRedis { redis ->
       (redis.hvals("keel.plugins.asset") + redis.smembers("keel.plugins.veto"))
-        .map { this@RedisPluginRepository.objectMapper.readValue<PluginAddress>(it) }
+        .map { objectMapper.readValue<PluginAddress>(it) }
     }
 
   override fun assetPlugins(): Iterable<PluginAddress> =

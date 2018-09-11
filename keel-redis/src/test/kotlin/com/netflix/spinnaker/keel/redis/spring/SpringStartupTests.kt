@@ -7,7 +7,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.test.context.junit4.SpringRunner
 import strikt.api.expect
 import strikt.assertions.isA
@@ -15,8 +15,8 @@ import strikt.assertions.isA
 @RunWith(SpringRunner::class)
 @SpringBootTest(
   classes = [RuleEngineApp::class],
-  webEnvironment = RANDOM_PORT,
-  properties = ["redis.connection=redis://localhost:6379"]
+  webEnvironment = NONE,
+  properties = ["redis.connection=redis://localhost:\${redisServer.port:6379}"]
 )
 internal class SpringStartupTests {
 
