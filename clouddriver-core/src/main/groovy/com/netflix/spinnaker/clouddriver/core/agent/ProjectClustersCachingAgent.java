@@ -423,7 +423,7 @@ public class ProjectClustersCachingAgent implements CachingAgent, CustomSchedule
     ServerGroup.ImageSummary imageSummary = imageSummaries.get(0);
 
     Map<String, Object> buildInfo = imageSummary.getBuildInfo();
-    if (!buildInfo.containsKey("jenkins")) {
+    if (buildInfo == null || !buildInfo.containsKey("jenkins")) {
       return new JenkinsBuildInfo();
     }
     if (!(buildInfo.get("jenkins") instanceof Map)) {
@@ -444,7 +444,7 @@ public class ProjectClustersCachingAgent implements CachingAgent, CustomSchedule
     }
     ServerGroup.ImageSummary imageSummary = imageSummaries.get(0);
     Map<String, Object> buildInfo = imageSummary.getBuildInfo();
-    if (!buildInfo.containsKey("images")) {
+    if (buildInfo == null || !buildInfo.containsKey("images")) {
       return null;
     }
 
