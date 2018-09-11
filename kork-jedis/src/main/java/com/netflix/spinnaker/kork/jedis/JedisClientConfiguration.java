@@ -17,21 +17,40 @@ package com.netflix.spinnaker.kork.jedis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Configuration
 @Import(RedisClientConfiguration.class)
 public class JedisClientConfiguration {
 
+  /**
+   * Backwards compatibility with pre-kork redis config.
+   *
+   * Services can override this pool config to provide their own default pool config.
+   * Individual clients can also override their own pool config.
+   */
   @Bean
-  JedisClientDelegateFactory jedisClientDelegateFactory(Registry registry, ObjectMapper objectMapper) {
-    return new JedisClientDelegateFactory(registry, objectMapper);
+  @ConditionalOnMissingBean(GenericObjectPoolConfig.class)
+  @ConfigurationProperties("redis")
+  public GenericObjectPoolConfig redisPoolConfig() {
+    return new GenericObjectPoolConfig();
+  }
+
+  @Bean
+  public JedisClientDelegateFactory jedisClientDelegateFactory(Registry registry,
+                                                        ObjectMapper objectMapper,
+                                                        GenericObjectPoolConfig redisPoolConfig) {
+    return new JedisClientDelegateFactory(registry, objectMapper, redisPoolConfig);
   }
 
   @Bean

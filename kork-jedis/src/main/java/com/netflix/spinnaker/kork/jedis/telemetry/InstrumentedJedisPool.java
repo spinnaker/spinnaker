@@ -16,14 +16,23 @@
 package com.netflix.spinnaker.kork.jedis.telemetry;
 
 import com.netflix.spectator.api.Registry;
+import org.apache.commons.pool2.PooledObjectFactory;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class InstrumentedJedisPool extends JedisPool {
 
   private final Registry registry;
   private final JedisPool delegated;
   private final String poolName;
+
+  private GenericObjectPool<Jedis> delegateInternalPool;
 
   public InstrumentedJedisPool(Registry registry, JedisPool delegated) {
     this(registry, delegated, "unnamed");
@@ -33,6 +42,19 @@ public class InstrumentedJedisPool extends JedisPool {
     this.registry = registry;
     this.delegated = delegated;
     this.poolName = poolName;
+
+    getInternalPoolReference();
+  }
+
+  @SuppressWarnings("unchecked")
+  private void getInternalPoolReference() {
+    try {
+      Field f = delegated.getClass().getDeclaredField("internalPool");
+      f.setAccessible(true);
+      delegateInternalPool = (GenericObjectPool<Jedis>) f.get(delegated);
+    } catch (NoSuchFieldException|IllegalAccessException e) {
+      throw new IllegalStateException("Could not get reference to delegate's internal pool", e);
+    }
   }
 
   @Override
@@ -48,6 +70,67 @@ public class InstrumentedJedisPool extends JedisPool {
   @Override
   protected void returnBrokenResourceObject(Jedis resource) {
     super.returnBrokenResourceObject(unwrapResource(resource));
+  }
+
+  @Override
+  public void close() {
+    delegated.close();
+  }
+
+  @Override
+  public boolean isClosed() {
+    return delegated.isClosed();
+  }
+
+  @Override
+  public void initPool(GenericObjectPoolConfig poolConfig, PooledObjectFactory<Jedis> factory) {
+    delegated.initPool(poolConfig, factory);
+  }
+
+  @Override
+  public void destroy() {
+    delegated.destroy();
+  }
+
+  @Override
+  protected void closeInternalPool() {
+    try {
+      Method m = delegated.getClass().getDeclaredMethod("closeInternalPool");
+      m.setAccessible(true);
+      m.invoke(delegated);
+    } catch (NoSuchMethodException|InvocationTargetException|IllegalAccessException e) {
+      throw new IllegalStateException("Could not invoke close internal pool on delegate", e);
+    }
+  }
+
+  @Override
+  public int getNumActive() {
+    return delegateInternalPool.getNumActive();
+  }
+
+  @Override
+  public int getNumIdle() {
+    return delegateInternalPool.getNumIdle();
+  }
+
+  @Override
+  public int getNumWaiters() {
+    return delegateInternalPool.getNumWaiters();
+  }
+
+  @Override
+  public long getMeanBorrowWaitTimeMillis() {
+    return delegateInternalPool.getMeanBorrowWaitTimeMillis();
+  }
+
+  @Override
+  public long getMaxBorrowWaitTimeMillis() {
+    return delegateInternalPool.getMaxBorrowWaitTimeMillis();
+  }
+
+  @Override
+  public void addObjects(int count) {
+    delegated.addObjects(count);
   }
 
   private Jedis unwrapResource(Jedis jedis) {

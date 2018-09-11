@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.jedis;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientConfiguration.Driver;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import java.util.Map;
 
@@ -27,10 +28,14 @@ public class JedisClientDelegateFactory implements RedisClientDelegateFactory<Je
 
   private Registry registry;
   private ObjectMapper objectMapper;
+  private GenericObjectPoolConfig objectPoolConfig;
 
-  public JedisClientDelegateFactory(Registry registry, ObjectMapper objectMapper) {
+  public JedisClientDelegateFactory(Registry registry,
+                                    ObjectMapper objectMapper,
+                                    GenericObjectPoolConfig objectPoolConfig) {
     this.registry = registry;
     this.objectMapper = objectMapper;
+    this.objectPoolConfig = objectPoolConfig;
   }
 
   @Override
@@ -43,7 +48,7 @@ public class JedisClientDelegateFactory implements RedisClientDelegateFactory<Je
     JedisDriverProperties props = objectMapper.convertValue(properties, JedisDriverProperties.class);
     return new JedisClientDelegate(
       name,
-      new JedisPoolFactory(registry).build(name, props)
+      new JedisPoolFactory(registry).build(name, props, objectPoolConfig)
     );
   }
 }

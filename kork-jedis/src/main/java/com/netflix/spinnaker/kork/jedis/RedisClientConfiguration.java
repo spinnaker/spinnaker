@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
+import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.jedis.exception.RedisClientFactoryNotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,59 +54,74 @@ public class RedisClientConfiguration {
                                                         Optional<List<RedisClientDelegate>> otherRedisClientDelegates) {
     List<RedisClientDelegate> clients = new ArrayList<>();
 
-    // Backwards compat with `redis.connection` and no `redis.clients` defined.
-    if (redisClientConfigurations.clients == null || redisClientConfigurations.clients.isEmpty()) {
-      clients.add(createClient("primaryDefault", REDIS, new HashMap<>(), redisClientConfigurations));
-    }
-
     redisClientConfigurations.clients.forEach((name, config) -> {
       if (config.primary != null) {
-        clients.add(createClient(
-          RedisClientSelector.getName(true, name),
-          config.primary.driver,
-          config.primary.config,
-          redisClientConfigurations
-        ));
+        clients.add(getClientFactoryForDriver(config.primary.driver).build(name, config.primary.config));
       }
       if (config.previous != null) {
-        clients.add(createClient(
-          RedisClientSelector.getName(false, name),
-          config.previous.driver,
-          config.previous.config,
-          redisClientConfigurations
-        ));
+        clients.add(getClientFactoryForDriver(config.previous.driver).build(name, config.previous.config));
       }
     });
     otherRedisClientDelegates.ifPresent(clients::addAll);
+
+    // Backwards compat with `redis.connection` and `redis.connectionPrevious`
+    createDefaultClientIfNotExists(clients, ConnectionCompatibility.PRIMARY, redisClientConfigurations);
+    createDefaultClientIfNotExists(clients, ConnectionCompatibility.PREVIOUS, redisClientConfigurations);
+
     return clients;
   }
 
-  private RedisClientDelegate createClient(String name,
-                                           Driver driver,
-                                           Map<String, Object> properties,
-                                           ClientConfigurationWrapper rootConfig) {
-    // Pre-kork redis configuration days, Redis used alternative config structure. This wee block will map the
-    // connection information from the deprecated format to the new format _if_ the old format values are present and
-    // new format values are missing
-    if (driver == REDIS) {
-      Optional.ofNullable(rootConfig.connection).map(v -> {
-        if (!Optional.ofNullable(properties.get("connection")).isPresent()) {
-          properties.put("connection", v);
-        }
-        return v;
-      });
+  private void createDefaultClientIfNotExists(List<RedisClientDelegate> clients,
+                                              ConnectionCompatibility connection,
+                                              ClientConfigurationWrapper rootConfig) {
+
+    String name;
+    if (connection == ConnectionCompatibility.PRIMARY) {
+      name = "primaryDefault";
+    } else {
+      name = "previousDefault";
+    }
+
+    if (clients.stream().noneMatch(c -> name.equals(c.name()))) {
+      Map<String, Object> properties = new HashMap<>();
+
+      // Pre-kork redis configuration days, Redis used alternative config structure. This wee block will map the
+      // connection information from the deprecated format to the new format _if_ the old format values are present and
+      // new format values are missing
+      if (connection == ConnectionCompatibility.PRIMARY) {
+        Optional.ofNullable(rootConfig.connection).map(v -> {
+          if (!Optional.ofNullable(properties.get("connection")).isPresent()) {
+            properties.put("connection", v);
+          }
+          return v;
+        });
+      } else {
+        Optional.ofNullable(rootConfig.connectionPrevious).map(v -> {
+          if (!Optional.ofNullable(properties.get("connection")).isPresent()) {
+            properties.put("connection", v);
+          }
+          return v;
+        });
+      }
       Optional.ofNullable(rootConfig.timeoutMs).map(v -> {
         if (!Optional.ofNullable(properties.get("timeoutMs")).isPresent()) {
           properties.put("timeoutMs", v);
         }
         return v;
       });
+
+      if (Strings.isNullOrEmpty((String) properties.get("connection"))) {
+        return;
+      }
+
+      clients.add(getClientFactoryForDriver(REDIS).build(name, properties));
     }
-    return getClientFactoryForDriver(driver).build(name, properties);
   }
 
   @Bean
-  public RedisClientSelector redisClientSelector(@Qualifier("namedRedisClients") List<RedisClientDelegate> redisClientDelegates) {
+  public RedisClientSelector redisClientSelector(
+    @Qualifier("namedRedisClients") List<RedisClientDelegate> redisClientDelegates
+  ) {
     return new RedisClientSelector(redisClientDelegates);
   }
 
@@ -114,6 +130,17 @@ public class RedisClientConfiguration {
       .filter(it -> it.supports(driver))
       .findFirst()
       .orElseThrow(() -> new RedisClientFactoryNotFound("Could not find factory for driver: " + driver.name()));
+  }
+
+  private enum ConnectionCompatibility {
+    PRIMARY("connection"),
+    PREVIOUS("connectionPrevious");
+
+    private final String value;
+
+    ConnectionCompatibility(String value) {
+      this.value = value;
+    }
   }
 
   public enum Driver {
@@ -135,6 +162,11 @@ public class RedisClientConfiguration {
      * Backwards compatibility of pre-kork config format
      */
     String connection;
+
+    /**
+     * Backwards compatibility of pre-kork config format
+     */
+    String connectionPrevious;
 
     /**
      * Backwards compatibility of pre-kork config format

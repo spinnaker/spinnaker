@@ -26,6 +26,7 @@ import redis.clients.jedis.Protocol;
 import redis.clients.util.Pool;
 
 import java.net.URI;
+import java.util.Optional;
 
 public class JedisPoolFactory {
 
@@ -39,7 +40,7 @@ public class JedisPoolFactory {
     this.registry = registry;
   }
 
-  public Pool<Jedis> build(String name, JedisDriverProperties properties) {
+  public Pool<Jedis> build(String name, JedisDriverProperties properties, GenericObjectPoolConfig objectPoolConfig) {
     if (properties.connection == null || "".equals(properties.connection)) {
       throw new MissingRequiredConfiguration("Jedis client must have a connection defined");
     }
@@ -50,13 +51,13 @@ public class JedisPoolFactory {
     int port = redisConnection.getPort() == -1 ? Protocol.DEFAULT_PORT : redisConnection.getPort();
     int database = parseDatabase(redisConnection.getPath());
     String password = parsePassword(redisConnection.getUserInfo());
-    GenericObjectPoolConfig objectPoolConfig = properties.poolConfig;
+    GenericObjectPoolConfig poolConfig = Optional.ofNullable(properties.poolConfig).orElse(objectPoolConfig);
     boolean isSSL = redisConnection.getScheme().equals("rediss");
 
     return new InstrumentedJedisPool(
       registry,
       // Pool name should always be "null", as setting this is incompat with some SaaS Redis offerings
-      new JedisPool(objectPoolConfig, host, port, properties.timeoutMs, password, database, null, isSSL),
+      new JedisPool(poolConfig, host, port, properties.timeoutMs, password, database, null, isSSL),
       name
     );
   }
