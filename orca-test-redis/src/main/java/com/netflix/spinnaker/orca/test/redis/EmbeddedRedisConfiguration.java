@@ -18,8 +18,8 @@ public class EmbeddedRedisConfiguration {
     return redis;
   }
 
-  @Bean public Pool<Jedis> jedisPool() {
-    return redisServer().getPool();
+  @Bean public Pool<Jedis> jedisPool(EmbeddedRedis redisServer) {
+    return redisServer.getPool();
   }
 
   @Bean public RedisClientDelegate redisClientDelegate(Pool<Jedis> jedisPool) {
