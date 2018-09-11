@@ -17,6 +17,14 @@ export interface IRequestBuilder {
   put?: (data: any) => IPromise<any>;
 }
 
+export class InvalidAPIResponse extends Error {
+  public data: { message: string };
+  constructor(message: string, public originalResult: any) {
+    super(message);
+    this.data = { message };
+  }
+}
+
 export class API {
   private static defaultParams = {
     timeout: SETTINGS.pollSchedule * 2 + 5000,
@@ -24,6 +32,8 @@ export class API {
       'X-RateLimit-App': 'deck',
     },
   };
+
+  public static readonly invalidContentMessage = 'API response was neither JSON nor zero-length html or text';
 
   private static getData(result: any): IPromise<any> {
     return $q((resolve, reject) => {
@@ -34,7 +44,7 @@ export class API {
         const isZeroLengthText = contentType.includes('text/plain') && result.data === '';
         if (!(isJson || isZeroLengthHtml || isZeroLengthText)) {
           AuthenticationInitializer.reauthenticateUser();
-          reject(result);
+          reject(new InvalidAPIResponse(API.invalidContentMessage, result));
         }
       }
 

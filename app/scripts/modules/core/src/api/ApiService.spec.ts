@@ -1,7 +1,7 @@
 import Spy = jasmine.Spy;
 import { mock, noop } from 'angular';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
-import { API } from './ApiService';
+import { API, InvalidAPIResponse } from './ApiService';
 import { SETTINGS } from 'core/config/settings';
 
 describe('API Service', function() {
@@ -80,6 +80,50 @@ describe('API Service', function() {
       expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
       expect(rejected).toBe(false);
       expect(succeeded).toBe(true);
+    });
+
+    it('rejects the request promise with an error when content mismatch occurs', () => {
+      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
+      $httpBackend
+        .expectGET(`${baseUrl}/bad`)
+        .respond(200, '<html>this is the authentication page</html>', { 'content-type': 'text/html' });
+
+      let err: any;
+      API.one('bad')
+        .get()
+        .catch((e: any) => (err = e));
+
+      $httpBackend.flush();
+      expect(err instanceof InvalidAPIResponse).toBeTruthy();
+    });
+
+    it('returns a string error message in the format expected by UI components when content mismatch occurs', () => {
+      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
+      $httpBackend
+        .expectGET(`${baseUrl}/bad`)
+        .respond(200, '<html>this is the authentication page</html>', { 'content-type': 'text/html' });
+
+      let message = '';
+      API.one('bad')
+        .get()
+        .catch((err: any) => (message = err.data.message));
+
+      $httpBackend.flush();
+      expect(message).toBe(API.invalidContentMessage);
+    });
+
+    it('returns a copy of the original response when content mismatch occurs', () => {
+      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
+      const serverResult = { foo: 'bar' };
+      $httpBackend.expectGET(`${baseUrl}/bad`).respond(200, serverResult, { 'content-type': 'foobar/json' });
+
+      let receivedResult = null;
+      API.one('bad')
+        .get()
+        .catch((err: any) => (receivedResult = err.originalResult.data));
+
+      $httpBackend.flush();
+      expect(receivedResult).toEqual(serverResult);
     });
   });
 
