@@ -384,6 +384,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
   private String resolveJobName(TitusDeployDescription description, SubmitJobRequest submitJobRequest, Task task, TitusClient titusClient) {
     if(submitJobRequest.getJobType() == 'batch'){
+      submitJobRequest.withJobName(description.application)
       return description.application
     }
     TitusServerGroupNameResolver serverGroupNameResolver = new TitusServerGroupNameResolver(titusClient, description.region)
