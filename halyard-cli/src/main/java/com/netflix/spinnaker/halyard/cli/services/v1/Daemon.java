@@ -102,6 +102,10 @@ public class Daemon {
     };
   }
 
+  public static Supplier<List<DeploymentConfiguration>> getDeployments() {
+    return () -> ResponseUnwrapper.get(getService().getDeployments());
+  }
+
   public static Supplier<String> getCurrentDeployment() {
     return () -> ResponseUnwrapper.get(getService().getCurrentDeployment());
   }

@@ -158,6 +158,7 @@
  * [**hal config features**](#hal-config-features)
  * [**hal config features edit**](#hal-config-features-edit)
  * [**hal config generate**](#hal-config-generate)
+ * [**hal config list**](#hal-config-list)
  * [**hal config metric-stores**](#hal-config-metric-stores)
  * [**hal config metric-stores datadog**](#hal-config-metric-stores-datadog)
  * [**hal config metric-stores datadog disable**](#hal-config-metric-stores-datadog-disable)
@@ -629,6 +630,7 @@ hal config [parameters] [subcommands]
  * `edit`: Configure top-level, global configuration parameters.
  * `features`: Display the state of Spinnaker's feature flags.
  * `generate`: Generate the full Spinnaker config for your current deployment. This does _not_ apply that configuration to your running Spinnaker installation. That either needs to be done manually, or with `hal deploy apply`.
+ * `list`: Lists all deployments
  * `metric-stores`: Configure Spinnaker's metric stores. Metrics stores are used to store metrics for the various Spinnaker micro-services. These metrics are not related in any way to canary deployments. The technologies backing both are similar, but metrics stores are places to push metrics regarding Spinnaker metrics, whereas canary metrics stores are used to pull metrics to analyze deployments. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
  * `notification`: Display the state of Spinnaker's notification settings.
  * `provider`: Configure, validate, and view the specified provider.
@@ -3078,6 +3080,21 @@ Generate the full Spinnaker config for your current deployment. This does _not_ 
 #### Usage
 ```
 hal config generate [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config list
+
+Lists all deployments
+
+#### Usage
+```
+hal config list [parameters]
 ```
 
 #### Parameters
