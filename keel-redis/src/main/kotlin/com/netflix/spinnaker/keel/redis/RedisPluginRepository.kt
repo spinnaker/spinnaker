@@ -39,49 +39,49 @@ class RedisPluginRepository(
     .apply { registerModule(KotlinModule()) }
 
   override fun allPlugins(): Iterable<PluginAddress> =
-    inRedis { redis ->
+    withRedis { redis ->
       (redis.hvals("keel.plugins.asset") + redis.smembers("keel.plugins.veto"))
-        .map { objectMapper.readValue<PluginAddress>(it) }
+        .map(this::parsePluginAddress)
     }
 
   override fun assetPlugins(): Iterable<PluginAddress> =
-    inRedis { redis ->
+    withRedis { redis ->
       redis
         .hvals("keel.plugins.asset")
-        .map { objectMapper.readValue<PluginAddress>(it) }
+        .map(this::parsePluginAddress)
     }
 
   override fun vetoPlugins(): Iterable<PluginAddress> =
-    inRedis { redis ->
+    withRedis { redis ->
       redis
         .smembers("keel.plugins.veto")
-        .map { objectMapper.readValue<PluginAddress>(it) }
+        .map(this::parsePluginAddress)
     }
 
   override fun addVetoPlugin(address: PluginAddress) {
-    inRedis { redis ->
+    withRedis { redis ->
       redis.sadd("keel.plugins.veto", address.serialized)
     }
   }
 
   override fun assetPluginFor(type: AssetType): PluginAddress? =
-    inRedis { redis ->
+    withRedis { redis ->
       redis.hget("keel.plugins.asset", type.serialized)
-        ?.let { objectMapper.readValue(it) }
+        ?.let(this::parsePluginAddress)
     }
 
   override fun addAssetPluginFor(type: AssetType, address: PluginAddress) {
-    inRedis { redis ->
+    withRedis { redis ->
       redis.hset("keel.plugins.asset", type.serialized, address.serialized)
     }
   }
 
   @PostConstruct
   fun logKnownPlugins() {
-    inRedis { redis ->
+    withRedis { redis ->
       redis
         .smembers("keel.plugins.veto")
-        .map { objectMapper.readValue<PluginAddress>(it) }
+        .map(this::parsePluginAddress)
         .forEach { log.info("'{}' veto plugin at {}, port {}", it.name, it.vip, it.port) }
       redis
         .hgetAll("keel.plugins.asset")
@@ -99,6 +99,9 @@ class RedisPluginRepository(
   private val Any.serialized: String
     get() = objectMapper.writeValueAsString(this)
 
-  private fun <T> inRedis(operation: (Jedis) -> T): T =
+  private fun <T> withRedis(operation: (Jedis) -> T): T =
     redisPool.resource.use(operation)
+
+  private fun parsePluginAddress(it: String) =
+    objectMapper.readValue<PluginAddress>(it)
 }
