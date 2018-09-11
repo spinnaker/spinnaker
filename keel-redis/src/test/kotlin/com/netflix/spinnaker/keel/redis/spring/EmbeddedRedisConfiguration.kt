@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.redis.spring
 
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,9 +18,9 @@ class EmbeddedRedisConfiguration {
     }
 
   @Bean
-  fun redisPool(redisServer: EmbeddedRedis): Pool<Jedis> {
+  fun redisClientDelegate(redisServer: EmbeddedRedis): RedisClientDelegate {
     log.info("[redisPool] Using embedded Redis server on port {}", redisServer.port)
-    return redisServer.pool
+    return JedisClientDelegate("primaryDefault", redisServer.pool)
   }
 
   @Bean

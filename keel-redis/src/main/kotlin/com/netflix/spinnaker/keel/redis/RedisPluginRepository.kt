@@ -21,16 +21,13 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.registry.AssetType
 import com.netflix.spinnaker.keel.registry.PluginAddress
 import com.netflix.spinnaker.keel.registry.PluginRepository
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Component
-import redis.clients.jedis.Jedis
-import redis.clients.util.Pool
+import redis.clients.jedis.JedisCommands
 import javax.annotation.PostConstruct
 
-@Component
 class RedisPluginRepository(
-  @Qualifier("redisPool") private val redisPool: Pool<Jedis>
+  private val redisClient: RedisClientDelegate
 ) : PluginRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -99,8 +96,8 @@ class RedisPluginRepository(
   private val Any.serialized: String
     get() = objectMapper.writeValueAsString(this)
 
-  private fun <T> withRedis(operation: (Jedis) -> T): T =
-    redisPool.resource.use(operation)
+  private fun <T> withRedis(operation: (JedisCommands) -> T): T =
+    redisClient.withCommandsClient(operation)
 
   private fun parsePluginAddress(it: String) =
     objectMapper.readValue<PluginAddress>(it)
