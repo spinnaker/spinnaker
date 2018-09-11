@@ -132,7 +132,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
   @Override
   public List<Job> findJobsByApplication(String application) {
-    JobQuery.Builder jobQuery = JobQuery.newBuilder().putFilteringCriteria("appName", application);
+    JobQuery.Builder jobQuery = JobQuery.newBuilder().putFilteringCriteria("appName", application).putFilteringCriteria("jobType", "SERVICE");
     return getJobs(jobQuery, false);
   }
 
