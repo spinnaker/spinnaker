@@ -36,7 +36,8 @@ enum Namespace {
   HEALTH,
   ON_DEMAND,
   RESERVATION_REPORTS,
-  RESERVED_INSTANCES
+  RESERVED_INSTANCES,
+  PROJECT_CLUSTERS
 
   public final String ns
   final Set<String> fields

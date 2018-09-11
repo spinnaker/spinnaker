@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.core.NoopAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.core.NoopCloudProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfig
 import com.netflix.spinnaker.clouddriver.core.agent.CleanupPendingOnDemandCachesAgent
+import com.netflix.spinnaker.clouddriver.core.agent.ProjectClustersCachingAgent
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
@@ -87,6 +89,7 @@ import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
 import org.springframework.web.client.RestTemplate
 
+import javax.inject.Provider
 import java.time.Clock
 
 @Configuration
@@ -266,9 +269,13 @@ class CloudDriverConfig {
   @Bean
   CoreProvider coreProvider(RedisCacheOptions redisCacheOptions,
                             RedisClientDelegate redisClientDelegate,
+                            Front50Service front50Service,
+                            ObjectMapper objectMapper,
+                            Provider<List<ClusterProvider>> clusterProviders,
                             ApplicationContext applicationContext) {
     return new CoreProvider([
-      new CleanupPendingOnDemandCachesAgent(redisCacheOptions, redisClientDelegate, applicationContext)
+      new CleanupPendingOnDemandCachesAgent(redisCacheOptions, redisClientDelegate, applicationContext),
+      new ProjectClustersCachingAgent(front50Service, objectMapper, clusterProviders)
     ])
   }
 
