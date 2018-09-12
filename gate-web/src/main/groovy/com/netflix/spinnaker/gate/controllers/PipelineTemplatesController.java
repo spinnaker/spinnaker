@@ -19,26 +19,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.services.PipelineTemplateService;
+import com.netflix.spinnaker.gate.services.PipelineTemplateService.PipelineTemplateDependent;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/pipelineTemplates")
@@ -52,7 +41,9 @@ public class PipelineTemplatesController {
   private ObjectMapper objectMapper;
 
   @Autowired
-  public PipelineTemplatesController(PipelineTemplateService pipelineTemplateService, TaskService taskService, ObjectMapper objectMapper) {
+  public PipelineTemplatesController(PipelineTemplateService pipelineTemplateService,
+                                     TaskService taskService,
+                                     ObjectMapper objectMapper) {
     this.pipelineTemplateService = pipelineTemplateService;
     this.taskService = taskService;
     this.objectMapper = objectMapper;
@@ -150,6 +141,15 @@ public class PipelineTemplatesController {
     operation.put("job", jobs);
 
     return taskService.create(operation);
+  }
+
+  @ApiOperation(value = "List all pipelines that implement a pipeline template", response = List.class)
+  @RequestMapping(value = "/{id}/dependents", method = RequestMethod.GET)
+  public List<PipelineTemplateDependent> listPipelineTemplateDependents(
+    @PathVariable String id,
+    @RequestParam(value = "recursive", required = false) boolean recursive
+  ) {
+    return pipelineTemplateService.getTemplateDependents(id, recursive);
   }
 
   private String getNameFromTemplate(PipelineTemplate template) {

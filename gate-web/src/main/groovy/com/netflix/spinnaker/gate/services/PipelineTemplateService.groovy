@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.gate.services
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -22,6 +24,8 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @CompileStatic
 @Component
@@ -50,5 +54,26 @@ class PipelineTemplateService {
 
   Map resolve(String source, String executionId, String pipelineConfigId) {
     orcaServiceSelector.withContext(RequestContext.get()).resolvePipelineTemplate(source, executionId, pipelineConfigId)
+  }
+
+  List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId, boolean recursive) {
+    front50Service.getPipelineTemplateDependents(templateId, recursive).collect {
+      new PipelineTemplateDependent(
+        application: (String) it.application ?: "UNKNOWN",
+        pipelineConfigId: (String) it.id ?: "UNKNOWN",
+        pipelineName: (String) it.name ?: "UNKNOWN"
+      )
+    }
+  }
+
+  static class PipelineTemplateDependent {
+    @JsonProperty
+    String application
+
+    @JsonProperty
+    String pipelineConfigId
+
+    @JsonProperty
+    String pipelineName
   }
 }
