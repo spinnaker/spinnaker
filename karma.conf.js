@@ -49,6 +49,8 @@ module.exports = function(config) {
       require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
       require('karma-sourcemap-loader'),
+      require('karma-super-dots-reporter'),
+      require('karma-mocha-reporter'),
     ],
 
     // list of files / patterns to exclude
@@ -66,7 +68,10 @@ module.exports = function(config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['dots'],
+    reporters: ['super-dots', 'mocha'],
+    mochaReporter: {
+      output: 'minimal',
+    },
 
     // put test results in a well known file if 'jenkins' reporter is being used
     junitReporter: {
