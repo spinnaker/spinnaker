@@ -37,7 +37,6 @@ export class EntityTagsReader {
           (t.entityRef.region === '*' || t.entityRef.region === serverGroup.region),
       );
     });
-    application.getDataSource('serverGroups').dataUpdated();
   }
 
   public static addTagsToLoadBalancers(application: Application): void {
@@ -54,7 +53,6 @@ export class EntityTagsReader {
           t.entityRef.region === loadBalancer.region,
       );
     });
-    application.getDataSource('loadBalancers').dataUpdated();
   }
 
   public static addTagsToSecurityGroups(application: Application): void {
@@ -71,7 +69,6 @@ export class EntityTagsReader {
           t.entityRef.region === securityGroup.region,
       );
     });
-    application.getDataSource('securityGroups').dataUpdated();
   }
 
   public static getEntityTagsForId(entityType: string, entityId: string): IPromise<IEntityTags[]> {
