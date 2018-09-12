@@ -18,11 +18,10 @@ package com.netflix.kayenta.judge
 
 import java.util
 
-import com.netflix.kayenta.canary.results.{CanaryAnalysisResult, CanaryJudgeGroupScore, CanaryJudgeResult, CanaryJudgeScore}
+import com.netflix.kayenta.canary.results.{CanaryAnalysisResult, CanaryJudgeResult}
 import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfig, CanaryJudge}
 import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Pass}
-import com.netflix.kayenta.judge.classifiers.score.ThresholdScoreClassifier
-import com.netflix.kayenta.judge.scorers.WeightedSumScorer
+import com.netflix.kayenta.judge.scorers.ScoringHelper
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics
 import com.netflix.kayenta.metrics.MetricSetPair
 import org.springframework.stereotype.Component
@@ -80,42 +79,8 @@ class RandomDummyJudge extends CanaryJudge {
         .build()
     }
 
-    val groupWeights = Option(canaryConfig.getClassifier.getGroupWeights) match {
-      case Some(groups) => groups.asScala.mapValues(_.toDouble).toMap
-      case None => Map[String, Double]()
-    }
-
-    val weightedSumScorer = new WeightedSumScorer(groupWeights)
-    val scores = weightedSumScorer.score(metricResults)
-
-    val scoreClassifier = new ThresholdScoreClassifier(scoreThresholds.getPass, scoreThresholds.getMarginal)
-    val scoreClassification = scoreClassifier.classify(scores)
-
-    val groupScores = scores.groupScores match {
-      case None => List(CanaryJudgeGroupScore.builder().build())
-      case Some(groups) => groups.map{ group =>
-        CanaryJudgeGroupScore.builder()
-          .name(group.name)
-          .score(group.score)
-          .classification("")
-          .classificationReason("")
-          .build()
-      }
-    }
-
-    val summaryScore = CanaryJudgeScore.builder()
-      .score(scoreClassification.score)
-      .classification(scoreClassification.classification.toString)
-      .classificationReason(scoreClassification.reason.getOrElse(""))
-      .build()
-
-    val results = metricResults.asJava
-    CanaryJudgeResult.builder()
-      .judgeName(judgeName)
-      .score(summaryScore)
-      .results(results)
-      .groupScores(groupScores.asJava)
-      .build()
+    val scoringHelper = new ScoringHelper(judgeName)
+    scoringHelper.score(canaryConfig, scoreThresholds, metricResults)
   }
 
 }

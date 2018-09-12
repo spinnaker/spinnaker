@@ -65,8 +65,8 @@ public class CanaryJudgesController {
   @RequestMapping(value = "/judge", method = RequestMethod.POST)
   public CanaryJudgeResult judge(@RequestParam(required = false) final String configurationAccountName,
                                  @RequestParam(required = false) final String storageAccountName,
-                                 @RequestParam(required = false) final String canaryConfigId,
-                                 @RequestParam(required = false) final String metricSetPairListId,
+                                 @RequestParam final String canaryConfigId,
+                                 @RequestParam final String metricSetPairListId,
                                  @RequestParam final Double passThreshold,
                                  @RequestParam final Double marginalThreshold) {
     String resolvedConfigurationAccountName = CredentialsHelper.resolveAccountByNameOrType(configurationAccountName,
