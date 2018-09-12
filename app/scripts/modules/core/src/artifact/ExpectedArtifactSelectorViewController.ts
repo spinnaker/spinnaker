@@ -7,7 +7,8 @@ export interface IExpectedArtifactSelectorViewControllerDelegate {
   getExpectedArtifactAccounts(): IArtifactAccount[];
   getSelectedAccount(): IArtifactAccount;
   getExpectedArtifactSources(): Array<IArtifactSource<any>>;
-  getExcludedArtifactTypes(): RegExp[];
+  getOfferedArtifactTypes?(): RegExp[];
+  getExcludedArtifactTypes?(): RegExp[];
   getSupportedArtifactKinds(): IArtifactKindConfig[];
   setSelectedExpectedArtifact(e: IExpectedArtifact): void;
   setSelectedArtifactAccount(a: IArtifactAccount): void;

@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { IMoniker } from 'core/naming/IMoniker';
-import { ILoadBalancer, ISecurityGroup, ISubnet, IEntityTags } from 'core/domain';
+import { ILoadBalancer, ISecurityGroup, ISubnet, IEntityTags, IPipeline, IStage } from 'core/domain';
 import { ICapacity } from 'core/serverGroup/serverGroupWriter.service';
 import { IDeploymentStrategy } from 'core/deploymentStrategy';
 import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityGroupReader.service';
@@ -53,6 +53,8 @@ export interface IServerGroupCommandViewState {
   useSimpleCapacity: boolean;
   usePreferredZones: boolean;
   mode: string;
+  pipeline?: IPipeline;
+  stage?: IStage;
 }
 
 export interface IServerGroupCommandBackingDataFiltered {
@@ -100,6 +102,7 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
   freeFormDetails?: string;
   healthCheckType: string;
   iamRole: string;
+  imageArtifactId?: string;
   instanceType: string;
   interestingHealthProviderNames: string[];
   loadBalancers: string[];

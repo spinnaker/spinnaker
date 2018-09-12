@@ -3,7 +3,7 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { IMAGE_READER } from '@spinnaker/core';
+import { IMAGE_READER, ExpectedArtifactSelectorViewController, NgGCEImageArtifactDelegate } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.basicSettings.controller', [
@@ -93,4 +93,11 @@ module.exports = angular
     };
 
     this.imageSources = ['artifact', 'priorStage'];
+
+    const gceImageDelegate = new NgGCEImageArtifactDelegate($scope);
+    $scope.gceImageArtifact = {
+      showCreateArtifactForm: false,
+      delegate: gceImageDelegate,
+      controller: new ExpectedArtifactSelectorViewController(gceImageDelegate),
+    };
   });

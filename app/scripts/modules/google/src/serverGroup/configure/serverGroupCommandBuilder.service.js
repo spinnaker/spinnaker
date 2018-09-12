@@ -485,6 +485,8 @@ module.exports = angular
 
         var expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
         var viewState = {
+          pipeline,
+          stage: currentStage,
           instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
           expectedArtifacts: expectedArtifacts,

@@ -58,13 +58,24 @@
                              image-sources="basicSettingsCtrl.imageSources"
                              help-field-key="gce.image.source">
       </image-source-selector>
-      <expected-artifact-selector ng-if="command.imageSource === 'artifact'"
-                                  command="command"
-                                  id="command.imageArtifactId"
-                                  expected-artifacts="command.viewState.expectedArtifacts"
-                                  help-field-key="gce.image.artifact"
-                                  show-icons="true">
-      </expected-artifact-selector>
+      <stage-config-field label="Expected Artifact" help-key="gce.image.artifact" field-columns="8" ng-if="command.imageSource === 'artifact'">
+        <expected-artifact-selector-react
+                                    expected-artifacts="command.viewState.expectedArtifacts"
+                                    selected="gceImageArtifact.delegate.getSelectedExpectedArtifact()"
+                                    on-change="gceImageArtifact.controller.onArtifactChange"
+                                    on-request-create="gceImageArtifact.controller.onRequestCreate"
+                                    offered-artifact-types="gceImageArtifact.delegate.getOfferedArtifactTypes()"
+                                    requesting-new="gceImageArtifact.showCreateArtifactForm"
+                                    >
+        </expected-artifact-selector-react>
+      </stage-config-field>
+      <expected-artifact-editor-react ng-if="gceImageArtifact.showCreateArtifactForm"
+                                      kinds="gceImageArtifact.delegate.getSupportedArtifactKinds()"
+                                      sources="gceImageArtifact.delegate.getExpectedArtifactSources()"
+                                      on-save="gceImageArtifact.controller.onArtifactCreated"
+                                      show-accounts="false"
+      >
+      </expected-artifact-editor-react>
     </div>
     <div class="form-group" ng-if="!command.viewState.disableImageSelection">
       <div class="col-md-3 sm-label-right">
