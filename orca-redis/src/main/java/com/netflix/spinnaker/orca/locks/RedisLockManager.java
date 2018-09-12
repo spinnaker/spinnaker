@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.orca.locks;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static java.util.Arrays.asList;
+import static net.logstash.logback.argument.StructuredArguments.kv;
 
 @Component
 public class RedisLockManager implements LockManager {
@@ -27,9 +27,9 @@ public class RedisLockManager implements LockManager {
   private final LockingConfigurationProperties lockingConfigurationProperties;
 
   @Autowired
-  public RedisLockManager(RedisClientDelegate redisClientDelegate,
+  public RedisLockManager(RedisClientSelector redisClientSelector,
                           LockingConfigurationProperties lockingConfigurationProperties) {
-    this.redisClientDelegate = redisClientDelegate;
+    this.redisClientDelegate = redisClientSelector.primary("default");
     this.lockingConfigurationProperties = lockingConfigurationProperties;
     if (!redisClientDelegate.supportsScripting()) {
       throw new IllegalArgumentException(

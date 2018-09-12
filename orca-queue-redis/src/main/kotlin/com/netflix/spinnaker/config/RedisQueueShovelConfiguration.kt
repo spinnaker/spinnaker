@@ -17,13 +17,14 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.config.RedisConfiguration
-import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
-import com.netflix.spinnaker.q.redis.RedisQueue
+import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
+import com.netflix.spinnaker.kork.jedis.JedisPoolFactory
 import com.netflix.spinnaker.orca.q.QueueShovel
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.migration.SerializationMigrator
+import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
+import com.netflix.spinnaker.q.redis.RedisQueue
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.BeanInitializationException
 import org.springframework.beans.factory.annotation.Qualifier
@@ -37,7 +38,7 @@ import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.time.Clock
 import java.time.Duration
-import java.util.*
+import java.util.Optional
 
 @Configuration
 @ConditionalOnExpression("\${queue.redis.enabled:true}")
@@ -55,7 +56,15 @@ class RedisQueueShovelConfiguration {
       throw BeanInitializationException("previous Redis connection must not be the same as current connection")
     }
 
-    return RedisConfiguration.createPool(redisPoolConfig, previousConnection, timeout, registry, "previousQueueJedisPool")
+    return JedisPoolFactory(registry).build(
+      "previousQueue",
+      JedisDriverProperties().apply {
+        connection = previousConnection
+        timeoutMs = timeout
+        poolConfig = redisPoolConfig
+      },
+      redisPoolConfig
+    )
   }
 
   @Bean(name = ["previousQueue"])

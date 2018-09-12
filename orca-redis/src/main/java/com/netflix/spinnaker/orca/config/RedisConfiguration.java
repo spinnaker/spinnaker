@@ -83,11 +83,10 @@ public class RedisConfiguration {
   }
 
   @Bean
-  public NotificationClusterLock redisNotificationClusterLock(RedisClientDelegate redisClientDelegate) {
-    return new RedisNotificationClusterLock(redisClientDelegate);
+  public NotificationClusterLock redisNotificationClusterLock(RedisClientSelector redisClientSelector) {
+    return new RedisNotificationClusterLock(redisClientSelector);
   }
 
-  @Deprecated // rz - Kept for backwards compat with old connection configs
   @Bean
   @ConfigurationProperties("redis")
   public GenericObjectPoolConfig redisPoolConfig() {
@@ -96,120 +95,5 @@ public class RedisConfiguration {
     config.setMaxIdle(100);
     config.setMinIdle(25);
     return config;
-  }
-
-  @Deprecated // rz - Kept for backwards compat with old connection configs
-  @Bean(name = "jedisPool")
-  @Primary
-  public Pool<Jedis> jedisPool(
-    @Value("${redis.connection:redis://localhost:6379}") String connection,
-    @Value("${redis.timeout:2000}") int timeout,
-    GenericObjectPoolConfig redisPoolConfig,
-    Registry registry
-  ) {
-    return createPool(redisPoolConfig, connection, timeout, registry, "jedisPool");
-  }
-
-  @Deprecated // rz - Kept for backwards compat with old connection configs
-  @Bean(name = "jedisPoolPrevious")
-  @ConditionalOnProperty("redis.connectionPrevious")
-  @ConditionalOnExpression("'${redis.connection}' != '${redis.connectionPrevious}'")
-  JedisPool jedisPoolPrevious(
-    @Value("${redis.connectionPrevious:#{null}}") String previousConnection,
-    @Value("${redis.timeout:2000}") int timeout,
-    Registry registry
-  ) {
-    return createPool(null, previousConnection, timeout, registry, "jedisPoolPrevious");
-  }
-
-  @Deprecated // rz - Kept for backwards compat with old connection configs
-  @Bean(name = "redisClientDelegate")
-  @Primary
-  RedisClientDelegate redisClientDelegate(
-    @Qualifier("jedisPool") Pool<Jedis> jedisPool
-  ) {
-    return new JedisClientDelegate("primaryDefault", jedisPool);
-  }
-
-  @Deprecated // rz - Kept for backwards compat with old connection configs
-  @Bean(name = "previousRedisClientDelegate")
-  @ConditionalOnBean(name = "jedisPoolPrevious")
-  RedisClientDelegate previousRedisClientDelegate(
-    @Qualifier("jedisPoolPrevious") JedisPool jedisPoolPrevious
-  ) {
-    return new JedisClientDelegate("previousDefault", jedisPoolPrevious);
-  }
-
-  @Deprecated // rz - Kept for backwards compat with old connection configs
-  @Bean
-  HealthIndicator redisHealth(
-    @Qualifier("jedisPool") Pool<Jedis> jedisPool
-  ) {
-    try {
-      final Pool<Jedis> src = jedisPool;
-      final Field poolAccess = Pool.class.getDeclaredField("internalPool");
-      poolAccess.setAccessible(true);
-      GenericObjectPool<Jedis> internal = (GenericObjectPool<Jedis>) poolAccess.get(jedisPool);
-      return () -> {
-        Jedis jedis = null;
-        Health.Builder health;
-        try {
-          jedis = src.getResource();
-          if ("PONG".equals(jedis.ping())) {
-            health = Health.up();
-          } else {
-            health = Health.down();
-          }
-        } catch (Exception ex) {
-          health = Health.down(ex);
-        } finally {
-          if (jedis != null) jedis.close();
-        }
-        health.withDetail("maxIdle", internal.getMaxIdle());
-        health.withDetail("minIdle", internal.getMinIdle());
-        health.withDetail("numActive", internal.getNumActive());
-        health.withDetail("numIdle", internal.getNumIdle());
-        health.withDetail("numWaiters", internal.getNumWaiters());
-
-        return health.build();
-      };
-    } catch (IllegalAccessException | NoSuchFieldException e) {
-      throw new BeanCreationException("Error creating Redis health indicator", e);
-    }
-  }
-
-  @Deprecated // rz - Kept for backwards compat with old connection configs
-  public static JedisPool createPool(
-    GenericObjectPoolConfig redisPoolConfig,
-    String connection,
-    int timeout,
-    Registry registry,
-    String poolName
-  ) {
-    URI redisConnection = URI.create(connection);
-
-    String host = redisConnection.getHost();
-    int port = redisConnection.getPort() == -1 ? Protocol.DEFAULT_PORT : redisConnection.getPort();
-
-    String redisConnectionPath = isNotEmpty(redisConnection.getPath()) ? redisConnection.getPath() : "/" + DEFAULT_DATABASE;
-    int database = Integer.parseInt(redisConnectionPath.split("/", 2)[1]);
-
-    String password = redisConnection.getUserInfo() != null ? redisConnection.getUserInfo().split(":", 2)[1] : null;
-
-    JedisPool jedisPool = new JedisPool(redisPoolConfig != null ? redisPoolConfig : new GenericObjectPoolConfig(), host, port, timeout, password, database, null);
-    final Field poolAccess;
-    try {
-      poolAccess = Pool.class.getDeclaredField("internalPool");
-      poolAccess.setAccessible(true);
-      GenericObjectPool<Jedis> pool = (GenericObjectPool<Jedis>) poolAccess.get(jedisPool);
-      registry.gauge(registry.createId("redis.connectionPool.maxIdle", "poolName", poolName), pool, (GenericObjectPool<Jedis> p) -> Integer.valueOf(p.getMaxIdle()).doubleValue());
-      registry.gauge(registry.createId("redis.connectionPool.minIdle", "poolName", poolName), pool, (GenericObjectPool<Jedis> p) -> Integer.valueOf(p.getMinIdle()).doubleValue());
-      registry.gauge(registry.createId("redis.connectionPool.numActive", "poolName", poolName), pool, (GenericObjectPool<Jedis> p) -> Integer.valueOf(p.getNumActive()).doubleValue());
-      registry.gauge(registry.createId("redis.connectionPool.numIdle", "poolName", poolName), pool, (GenericObjectPool<Jedis> p) -> Integer.valueOf(p.getMaxIdle()).doubleValue());
-      registry.gauge(registry.createId("redis.connectionPool.numWaiters", "poolName", poolName), pool, (GenericObjectPool<Jedis> p) -> Integer.valueOf(p.getMaxIdle()).doubleValue());
-      return jedisPool;
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new BeanCreationException("Error creating Redis pool", e);
-    }
   }
 }

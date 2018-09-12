@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.notifications;
 
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 
 import javax.annotation.Nonnull;
 
@@ -23,8 +24,8 @@ public class RedisNotificationClusterLock implements NotificationClusterLock {
 
   private final RedisClientDelegate redisClientDelegate;
 
-  public RedisNotificationClusterLock(RedisClientDelegate redisClientDelegate) {
-    this.redisClientDelegate = redisClientDelegate;
+  public RedisNotificationClusterLock(RedisClientSelector redisClientSelector) {
+    this.redisClientDelegate = redisClientSelector.primary("default");
   }
 
   @Override

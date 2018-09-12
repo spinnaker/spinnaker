@@ -3,6 +3,7 @@ package com.netflix.spinnaker.orca.locks
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.Shared
@@ -41,7 +42,7 @@ class RedisLockManagerSpec extends Specification {
     def cfg = new LockingConfigurationProperties(dynamicConfigService)
     cfg.setLearningMode(false)
     cfg.setEnabled(true)
-    redisLockManager = new RedisLockManager(new JedisClientDelegate(pool), cfg)
+    redisLockManager = new RedisLockManager(new RedisClientSelector([new JedisClientDelegate("primaryDefault", pool)]), cfg)
   }
 
   private LockManager.LockValue lv(String id) {
