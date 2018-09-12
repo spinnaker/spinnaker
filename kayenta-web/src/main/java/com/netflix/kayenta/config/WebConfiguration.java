@@ -17,12 +17,16 @@
 package com.netflix.kayenta.config;
 
 import com.google.common.collect.ImmutableList;
+import com.netflix.kayenta.filters.KayentaCorsFilter;
 import com.netflix.kayenta.interceptors.MetricsInterceptor;
 import com.netflix.spectator.api.Registry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -44,5 +48,12 @@ public class WebConfiguration extends WebMvcConfigurerAdapter {
         ImmutableList.of("BasicErrorController")
       )
     );
+  }
+
+  @Bean
+  FilterRegistrationBean simpleCORSFilter() {
+    FilterRegistrationBean frb = new FilterRegistrationBean(new KayentaCorsFilter());
+    frb.setOrder(Ordered.HIGHEST_PRECEDENCE);
+    return frb;
   }
 }
