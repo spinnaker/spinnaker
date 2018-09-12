@@ -22,10 +22,10 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 @InheritConstructors
 class KubernetesOperationException extends RuntimeException {
   KubernetesOperationException(String operation, KubernetesClientException e) {
-    super("$operation failed: ${e.status?.message ?: e.message}".toString(), e)
+    super("$operation failed: ${e.status?.toString() ?: e.message}".toString(), e)
   }
 
   KubernetesOperationException(String account, String operation, KubernetesClientException e) {
-    super("$operation for account $account failed: ${e.status?.message ?: e.message}".toString(), e)
+    super("$operation for account $account failed: ${e.status?.toString() ?: e.message}".toString(), e)
   }
 }
