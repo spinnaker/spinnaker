@@ -66,7 +66,7 @@ describe('serverGroupWriter', function() {
 
       const application: TestApplication = applicationModelBuilder.createApplication(
         'app',
-        ApplicationDataSourceRegistry.getDataSources(),
+        ...ApplicationDataSourceRegistry.getDataSources(),
       ) as TestApplication;
       application.tasks = {
         refresh: noop,
@@ -83,7 +83,7 @@ describe('serverGroupWriter', function() {
     beforeEach(() => {
       const application: Application = applicationModelBuilder.createApplication(
         'app',
-        ApplicationDataSourceRegistry.getDataSources(),
+        ...ApplicationDataSourceRegistry.getDataSources(),
       );
       command = {
         viewState: {

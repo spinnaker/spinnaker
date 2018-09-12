@@ -61,7 +61,7 @@ describe('Application Model', function() {
     ) {
       return $q.when(groupsByName || []);
     });
-    application = applicationModelBuilder.createApplication('app', ApplicationDataSourceRegistry.getDataSources());
+    application = applicationModelBuilder.createApplication('app', ...ApplicationDataSourceRegistry.getDataSources());
     application.refresh();
     $scope.$digest();
   }

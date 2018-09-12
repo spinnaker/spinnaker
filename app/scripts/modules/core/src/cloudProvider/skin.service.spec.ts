@@ -1,7 +1,7 @@
-import { mock, IRootScopeService, IScope, IQService } from 'angular';
+import { IQService, IRootScopeService, IScope, mock } from 'angular';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application';
 
 import { SkinService } from './skin.service';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application';
 
 describe('Service: SkinService', () => {
   let appBuilder: ApplicationModelBuilder, scope: IScope, $q: IQService;
@@ -42,24 +42,26 @@ describe('Service: SkinService', () => {
     });
 
     it('scrapes application server groups to determine skin if possible', () => {
-      const app = appBuilder.createApplication('myApp', [
+      const app = appBuilder.createApplication(
+        'myApp',
         {
           key: 'serverGroups',
-          data: [
-            {
-              name: 'myServerGroup',
-              account: 'v2-k8s-account',
-              cloudProvider: 'kubernetes',
-              instances: [{ id: 'my-instance-id' }],
-              serverGroups: [],
-            },
-          ],
+          loader: () =>
+            $q.resolve([
+              {
+                name: 'myServerGroup',
+                account: 'v2-k8s-account',
+                cloudProvider: 'kubernetes',
+                instances: [{ id: 'my-instance-id' }],
+                serverGroups: [],
+              },
+            ]),
+          onLoad: (_app, data) => $q.resolve(data),
         },
         {
           key: 'loadBalancers',
-          data: [],
         },
-      ]);
+      );
 
       SkinService.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual('v2');
@@ -69,23 +71,25 @@ describe('Service: SkinService', () => {
     });
 
     it('scrapes application load balancers to determine skin if possible', () => {
-      const app = appBuilder.createApplication('myApp', [
+      const app = appBuilder.createApplication(
+        'myApp',
         {
           key: 'loadBalancers',
-          data: [
-            {
-              name: 'myLoadBalancer',
-              account: 'v2-k8s-account',
-              cloudProvider: 'kubernetes',
-              instances: [{ id: 'my-instance-id' }],
-            },
-          ],
+          loader: () =>
+            $q.resolve([
+              {
+                name: 'myLoadBalancer',
+                account: 'v2-k8s-account',
+                cloudProvider: 'kubernetes',
+                instances: [{ id: 'my-instance-id' }],
+              },
+            ]),
+          onLoad: (_app, data) => $q.resolve(data),
         },
         {
           key: 'serverGroups',
-          data: [],
         },
-      ]);
+      );
 
       SkinService.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual('v2');
@@ -95,29 +99,31 @@ describe('Service: SkinService', () => {
     });
 
     it("scrapes application load balancers' server groups to determine skin if possible", () => {
-      const app = appBuilder.createApplication('myApp', [
+      const app = appBuilder.createApplication(
+        'myApp',
         {
           key: 'loadBalancers',
-          data: [
-            {
-              name: 'myLoadBalancer',
-              account: 'v2-k8s-account',
-              cloudProvider: 'kubernetes',
-              instances: [],
-              serverGroups: [
-                {
-                  isDisabled: true,
-                  instances: [{ id: 'my-instance-id' }],
-                },
-              ],
-            },
-          ],
+          loader: () =>
+            $q.resolve([
+              {
+                name: 'myLoadBalancer',
+                account: 'v2-k8s-account',
+                cloudProvider: 'kubernetes',
+                instances: [],
+                serverGroups: [
+                  {
+                    isDisabled: true,
+                    instances: [{ id: 'my-instance-id' }],
+                  },
+                ],
+              },
+            ]),
+          onLoad: (_app, data) => $q.resolve(data),
         },
         {
           key: 'serverGroups',
-          data: [],
         },
-      ]);
+      );
 
       SkinService.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
         expect(skin).toEqual('v2');

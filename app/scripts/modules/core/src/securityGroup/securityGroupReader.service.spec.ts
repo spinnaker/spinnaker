@@ -1,15 +1,15 @@
 import { mock } from 'angular';
 
 import { API } from 'core/api/ApiService';
+import { Application } from 'core/application/application.model';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { InfrastructureCaches } from 'core/cache';
+import { ISecurityGroup } from 'core/domain';
+import { ISecurityGroupDetail, SECURITY_GROUP_READER, SecurityGroupReader } from './securityGroupReader.service';
 import {
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   SecurityGroupTransformerService,
 } from './securityGroupTransformer.service';
-import { SECURITY_GROUP_READER, SecurityGroupReader, ISecurityGroupDetail } from './securityGroupReader.service';
-import { ISecurityGroup } from 'core/domain';
-import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { Application } from 'core/application/application.model';
-import { InfrastructureCaches } from 'core/cache';
 
 describe('Service: securityGroupReader', function() {
   let $q: ng.IQService,
@@ -59,29 +59,32 @@ describe('Service: securityGroupReader', function() {
       'app',
       {
         key: 'securityGroups',
-        data: [],
-        ready: () => $q.when(null),
+        loader: () => $q.resolve([]),
+        onLoad: (_app, _data) => $q.resolve(_data),
       },
       {
         key: 'serverGroups',
-        data: [],
-        ready: () => $q.when(null),
-        loaded: true,
+        loader: () => $q.resolve([]),
+        onLoad: (_app, _data) => $q.resolve(_data),
       },
       {
         key: 'loadBalancers',
-        data: [
-          {
-            name: 'my-elb',
-            account: 'test',
-            region: 'us-east-1',
-            securityGroups: ['not-cached'],
-          },
-        ],
-        ready: () => $q.when(null),
-        loaded: true,
+        loader: () =>
+          $q.resolve([
+            {
+              name: 'my-elb',
+              account: 'test',
+              region: 'us-east-1',
+              securityGroups: ['not-cached'],
+            },
+          ]),
+        onLoad: (_app, _data) => $q.resolve(_data),
       },
     );
+
+    application.serverGroups.refresh();
+    application.loadBalancers.refresh();
+    $scope.$digest();
 
     $http.expectGET(`${API.baseUrl}/securityGroups`).respond(200, {
       test: {
@@ -138,28 +141,28 @@ describe('Service: securityGroupReader', function() {
       },
       {
         key: 'serverGroups',
-        ready: () => $q.when(null),
-        loaded: true,
-      },
-      {
-        securityGroupsIndex: {},
+        loader: () => $q.resolve([]),
+        onLoad: (_app, _data) => $q.resolve(_data),
       },
       {
         key: 'loadBalancers',
-        ready: () => $q.when(null),
-        loaded: true,
+        loader: () =>
+          $q.resolve([
+            {
+              name: 'my-elb',
+              account: 'test',
+              region: 'us-east-1',
+              securityGroups: ['not-cached'],
+            },
+          ]),
+        onLoad: (_app, _data) => $q.resolve(_data),
       },
     );
-    application.getDataSource('securityGroups').data = [];
-    application.getDataSource('serverGroups').data = [];
-    application.getDataSource('loadBalancers').data = [
-      {
-        name: 'my-elb',
-        account: 'test',
-        region: 'us-east-1',
-        securityGroups: ['not-cached'],
-      },
-    ];
+
+    application.getDataSource('securityGroups').refresh();
+    application.getDataSource('serverGroups').refresh();
+    application.getDataSource('loadBalancers').refresh();
+    $scope.$digest();
 
     $http.expectGET(API.baseUrl + '/securityGroups').respond(200, {
       test: {

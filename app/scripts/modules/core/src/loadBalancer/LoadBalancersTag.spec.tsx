@@ -10,8 +10,8 @@ import { IServerGroup } from 'core/domain';
 import { HoverablePopover } from 'core/presentation';
 
 describe('<LoadBalancersTag />', () => {
-  const lb1 = { name: 'lb1', account: 'prod', region: 'us-east-1', vpcId: 'vpc-1' },
-    lb2 = { name: 'lb2', account: 'prod', region: 'us-east-1' };
+  const lb1 = { name: 'lb1', account: 'prod', region: 'us-east-1', vpcId: 'vpc-1' };
+  const lb2 = { name: 'lb2', account: 'prod', region: 'us-east-1' };
 
   let $q: IQService, $scope: IScope, application: Application, component: ReactWrapper<ILoadBalancersTagProps, any>;
 
@@ -23,10 +23,11 @@ describe('<LoadBalancersTag />', () => {
       $scope = $rootScope.$new();
       application = applicationModelBuilder.createApplication('app', {
         key: 'loadBalancers',
-        loader: () => $q.when(null),
-        onLoad: () => $q.when(null),
-        loaded: true,
+        loader: () => $q.resolve(application.loadBalancers.data),
+        onLoad: (_app, data) => $q.resolve(data),
       });
+      application.loadBalancers.refresh();
+      $scope.$digest();
     }),
   );
 
