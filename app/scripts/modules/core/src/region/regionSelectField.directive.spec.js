@@ -5,8 +5,6 @@ import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 describe('Directives: regionSelectField', function() {
   const angular = require('angular');
 
-  require('./regionSelectField.directive.html');
-
   beforeEach(function() {
     window.module(require('./regionSelectField.directive.js').name, CACHE_INITIALIZER_SERVICE, function($provide) {
       $provide.decorator('cacheInitializer', function() {
