@@ -23,8 +23,6 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class InstrumentedJedisPool extends JedisPool {
 
@@ -42,19 +40,20 @@ public class InstrumentedJedisPool extends JedisPool {
     this.registry = registry;
     this.delegated = delegated;
     this.poolName = poolName;
-
-    getInternalPoolReference();
   }
 
   @SuppressWarnings("unchecked")
-  private void getInternalPoolReference() {
-    try {
-      Field f = delegated.getClass().getDeclaredField("internalPool");
-      f.setAccessible(true);
-      delegateInternalPool = (GenericObjectPool<Jedis>) f.get(delegated);
-    } catch (NoSuchFieldException|IllegalAccessException e) {
-      throw new IllegalStateException("Could not get reference to delegate's internal pool", e);
+  private GenericObjectPool<Jedis> getInternalPoolReference() {
+    if (delegateInternalPool == null) {
+      try {
+        Field f = delegated.getClass().getDeclaredField("internalPool");
+        f.setAccessible(true);
+        delegateInternalPool = (GenericObjectPool<Jedis>) f.get(delegated);
+      } catch (NoSuchFieldException|IllegalAccessException e) {
+        throw new IllegalStateException("Could not get reference to delegate's internal pool", e);
+      }
     }
+    return delegateInternalPool;
   }
 
   @Override
@@ -84,7 +83,7 @@ public class InstrumentedJedisPool extends JedisPool {
 
   @Override
   public void initPool(GenericObjectPoolConfig poolConfig, PooledObjectFactory<Jedis> factory) {
-    delegated.initPool(poolConfig, factory);
+    // Explicitly not initializing the pool here, as the delegated pool will initialize itself
   }
 
   @Override
@@ -94,38 +93,32 @@ public class InstrumentedJedisPool extends JedisPool {
 
   @Override
   protected void closeInternalPool() {
-    try {
-      Method m = delegated.getClass().getDeclaredMethod("closeInternalPool");
-      m.setAccessible(true);
-      m.invoke(delegated);
-    } catch (NoSuchMethodException|InvocationTargetException|IllegalAccessException e) {
-      throw new IllegalStateException("Could not invoke close internal pool on delegate", e);
-    }
+    // Explicitly not calling this; destroy and initPool are the only references to this method
   }
 
   @Override
   public int getNumActive() {
-    return delegateInternalPool.getNumActive();
+    return getInternalPoolReference().getNumActive();
   }
 
   @Override
   public int getNumIdle() {
-    return delegateInternalPool.getNumIdle();
+    return getInternalPoolReference().getNumIdle();
   }
 
   @Override
   public int getNumWaiters() {
-    return delegateInternalPool.getNumWaiters();
+    return getInternalPoolReference().getNumWaiters();
   }
 
   @Override
   public long getMeanBorrowWaitTimeMillis() {
-    return delegateInternalPool.getMeanBorrowWaitTimeMillis();
+    return getInternalPoolReference().getMeanBorrowWaitTimeMillis();
   }
 
   @Override
   public long getMaxBorrowWaitTimeMillis() {
-    return delegateInternalPool.getMaxBorrowWaitTimeMillis();
+    return getInternalPoolReference().getMaxBorrowWaitTimeMillis();
   }
 
   @Override
