@@ -77,11 +77,9 @@ public class AnsiFormatUtils {
   private static String formatYaml(Object yaml) {
     if(List.class.isInstance(yaml)) {
       return getYamlParser().dump(getObjectMapper().convertValue(yaml, List.class));
-    } else if(Map.class.isInstance(yaml)) {
-      return getYamlParser().dump(getObjectMapper().convertValue(yaml, Map.class));
     }
 
-    throw new RuntimeException("Unsupported class: " + yaml.getClass().getName());
+    return getYamlParser().dump(getObjectMapper().convertValue(yaml, Map.class));
   }
 
   private static String formatJson(Object json) {
