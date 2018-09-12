@@ -20,10 +20,12 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestIdInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestLoggingInterceptor
+import com.netflix.spinnaker.gate.interceptors.RequestSheddingInterceptor
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider
 import com.netflix.spinnaker.gate.ratelimit.RateLimiter
 import com.netflix.spinnaker.gate.ratelimit.RateLimitingInterceptor
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -58,6 +60,9 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
   RateLimiter rateLimiter
 
   @Autowired
+  DynamicConfigService dynamicConfigService
+
+  @Autowired
   Registry spectatorRegistry
 
   @Value('${rateLimit.learning:true}')
@@ -85,6 +90,7 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
     }
 
     registry.addInterceptor(new RequestContextInterceptor())
+    registry.addInterceptor(new RequestSheddingInterceptor(dynamicConfigService, this.registry))
   }
 
   @Bean
