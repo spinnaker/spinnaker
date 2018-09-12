@@ -45,13 +45,13 @@ public class IAPConfig {
       this.audience = iap.getAudience();
     }
     if (StringUtils.isNotEmpty(iap.getJwtHeader())) {
-      this.audience = iap.getJwtHeader();
+      this.jwtHeader = iap.getJwtHeader();
     }
     if (StringUtils.isNotEmpty(iap.getIssuerId())) {
-      this.audience = iap.getIssuerId();
+      this.issuerId = iap.getIssuerId();
     }
     if (StringUtils.isNotEmpty(iap.getIapVerifyKeyUrl())) {
-      this.audience = iap.getIapVerifyKeyUrl();
+      this.iapVerifyKeyUrl = iap.getIapVerifyKeyUrl();
     }
   }
 }

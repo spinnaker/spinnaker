@@ -6359,7 +6359,7 @@ hal config security authn iap disable [parameters]
 ---
 ## hal config security authn iap edit
 
-Google Cloud Identity-Aware Proxy (IAP) is an authentication model that utilizes Google OAuth2.0 and an authorization service to provide access control for users of GCP. After a user has been authenticated and authorized by IAP's service, a JWT token is passed along which Spinnaker uses to check for authenticity and to get the user email from the payload and sign the user in.
+Google Cloud Identity-Aware Proxy (IAP) is an authentication model that utilizes Google OAuth2.0 and an authorization service to provide access control for users of GCP. After a user has been authenticated and authorized by IAP's service, a JWT token is passed along which Spinnaker uses to check for authenticity and to get the user email from the payload and sign the user in. To configure IAP, set the audience field retrieved from the IAP console.
 
 #### Usage
 ```
