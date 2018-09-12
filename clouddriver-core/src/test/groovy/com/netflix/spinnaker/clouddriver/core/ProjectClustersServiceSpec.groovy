@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.core.agent
+package com.netflix.spinnaker.clouddriver.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
@@ -28,19 +26,18 @@ import spock.lang.Specification
 
 import javax.inject.Provider
 
-class ProjectClustersCachingAgentSpec extends Specification {
+import static com.netflix.spinnaker.clouddriver.core.ProjectClustersService.ClusterModel
+
+class ProjectClustersServiceSpec extends Specification {
 
   @Shared
-  ProjectClustersCachingAgent subject
+  ProjectClustersService subject
 
   @Shared
   Front50Service front50Service
 
   @Shared
   ClusterProvider clusterProvider
-
-  @Shared
-  ProviderCache providerCache
 
   @Shared
   Map projectConfig = [
@@ -51,12 +48,14 @@ class ProjectClustersCachingAgentSpec extends Specification {
     ]
   ]
 
+  @Shared
+  List<String> allowList = ["Spinnaker"]
+
   def setup() {
     front50Service = Mock()
     clusterProvider = Mock()
-    providerCache = Mock()
 
-    subject = new ProjectClustersCachingAgent(
+    subject = new ProjectClustersService(
       front50Service,
       new ObjectMapper(),
       new Provider<List<ClusterProvider>>() {
@@ -70,10 +69,10 @@ class ProjectClustersCachingAgentSpec extends Specification {
 
   void "returns an empty list without trying to retrieve applications when no clusters are configured"() {
     when:
-    CacheResult result = subject.loadData(providerCache)
+    def result = subject.getProjectClusters(allowList)
 
     then:
-    cachedClusters(result, "Spinnaker").isEmpty()
+    result["Spinnaker"].isEmpty()
     1 * front50Service.searchForProjects(_, _) >> { [projectConfig] }
     0 * _
   }
@@ -84,8 +83,8 @@ class ProjectClustersCachingAgentSpec extends Specification {
     ]
 
     when:
-    CacheResult result = subject.loadData(providerCache)
-    def clusters = cachedClusters(result, "Spinnaker")
+    def result = subject.getProjectClusters(allowList)
+    def clusters = result["Spinnaker"]
 
     then:
     clusters.size() == 1
@@ -136,8 +135,8 @@ class ProjectClustersCachingAgentSpec extends Specification {
     ]
 
     when:
-    CacheResult result = subject.loadData(providerCache)
-    def clusters = cachedClusters(result, "Spinnaker")
+    def result = subject.getProjectClusters(allowList)
+    def clusters = result["Spinnaker"]
 
     then:
     clusters.size() == 1
@@ -170,8 +169,8 @@ class ProjectClustersCachingAgentSpec extends Specification {
     ]
 
     when:
-    CacheResult result = subject.loadData(providerCache)
-    def clusters = cachedClusters(result, "Spinnaker")
+    def result = subject.getProjectClusters(allowList)
+    def clusters = result["Spinnaker"]
 
     then:
     clusters.size() == 1
@@ -203,8 +202,8 @@ class ProjectClustersCachingAgentSpec extends Specification {
     ]
 
     when:
-    CacheResult result = subject.loadData(providerCache)
-    def clusters = cachedClusters(result, "Spinnaker")
+    def result = subject.getProjectClusters(allowList)
+    def clusters = result["Spinnaker"]
 
     then:
     clusters.size() == 1
@@ -249,8 +248,8 @@ class ProjectClustersCachingAgentSpec extends Specification {
     disabledServerGroup.disabled = true
 
     when:
-    CacheResult result = subject.loadData(providerCache)
-    def clusters = cachedClusters(result, "Spinnaker")
+    def result = subject.getProjectClusters(allowList)
+    def clusters = result["Spinnaker"]
 
     then:
     clusters.size() == 1
@@ -281,8 +280,8 @@ class ProjectClustersCachingAgentSpec extends Specification {
     ]
 
     when:
-    CacheResult result = subject.loadData(providerCache)
-    def clusters = cachedClusters(result, "Spinnaker")
+    def result = subject.getProjectClusters(allowList)
+    def clusters = result["Spinnaker"]
 
     then:
     clusters.size() == 1
@@ -332,8 +331,8 @@ class ProjectClustersCachingAgentSpec extends Specification {
     disabledServerGroup.disabled = true
 
     when:
-    CacheResult result = subject.loadData(providerCache)
-    def clusters = cachedClusters(result, "Spinnaker")
+    def result = subject.getProjectClusters(allowList)
+    def clusters = result["Spinnaker"]
     def eastCluster = clusters[0].applications[0].clusters.find { it.region == "us-east-1"}
     def westCluster = clusters[0].applications[0].clusters.find { it.region == "us-west-1"}
 
@@ -381,12 +380,8 @@ class ProjectClustersCachingAgentSpec extends Specification {
     ]
   }
 
-  private static ProjectClustersCachingAgent.MutableCacheData mutableCacheData(CacheResult result) {
-    return result.cacheResults.projectClusters[0]
-  }
-
-  private static List<ProjectClustersCachingAgent.ClusterModel> cachedClusters(CacheResult result, String projectName) {
-    return (List<ProjectClustersCachingAgent.ClusterModel>) mutableCacheData(result).attributes[projectName]
+  private static List<ClusterModel> cachedClusters(Map<String, List<ClusterModel>> result, String projectName) {
+    return result[projectName]
   }
 
   TestServerGroup makeServerGroup(String account,

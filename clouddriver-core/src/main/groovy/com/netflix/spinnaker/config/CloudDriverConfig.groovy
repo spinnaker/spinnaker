@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.core.CloudProvider
 import com.netflix.spinnaker.clouddriver.core.DynomiteConfig
 import com.netflix.spinnaker.clouddriver.core.NoopAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.core.NoopCloudProvider
+import com.netflix.spinnaker.clouddriver.core.ProjectClustersService
 import com.netflix.spinnaker.clouddriver.core.RedisConfig
 import com.netflix.spinnaker.clouddriver.core.agent.CleanupPendingOnDemandCachesAgent
 import com.netflix.spinnaker.clouddriver.core.agent.ProjectClustersCachingAgent
@@ -78,9 +79,11 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -99,6 +102,7 @@ import java.time.Clock
   CacheConfig
 ])
 @PropertySource(value = "classpath:META-INF/clouddriver-core.properties", ignoreResourceNotFound = true)
+@EnableConfigurationProperties(ProjectClustersCachingAgentProperties)
 class CloudDriverConfig {
 
   @Bean
@@ -267,15 +271,24 @@ class CloudDriverConfig {
   }
 
   @Bean
+  ProjectClustersService projectClustersService(Front50Service front50Service,
+                                                ObjectMapper objectMapper,
+                                                Provider<List<ClusterProvider>> clusterProviders) {
+    return new ProjectClustersService(front50Service, objectMapper, clusterProviders)
+  }
+
+  @Bean
   CoreProvider coreProvider(RedisCacheOptions redisCacheOptions,
                             RedisClientDelegate redisClientDelegate,
-                            Front50Service front50Service,
-                            ObjectMapper objectMapper,
-                            Provider<List<ClusterProvider>> clusterProviders,
-                            ApplicationContext applicationContext) {
+                            ApplicationContext applicationContext,
+                            ProjectClustersService projectClustersService,
+                            ProjectClustersCachingAgentProperties projectClustersCachingAgentProperties) {
     return new CoreProvider([
       new CleanupPendingOnDemandCachesAgent(redisCacheOptions, redisClientDelegate, applicationContext),
-      new ProjectClustersCachingAgent(front50Service, objectMapper, clusterProviders)
+      new ProjectClustersCachingAgent(
+        projectClustersService,
+        projectClustersCachingAgentProperties
+      )
     ])
   }
 
