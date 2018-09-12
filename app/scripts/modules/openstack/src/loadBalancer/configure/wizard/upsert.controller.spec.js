@@ -105,7 +105,8 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
       this.mockApplication = applicationModelBuilder.createApplication('app', {
         key: 'loadBalancers',
         lazy: false,
-        data: this.testData.loadBalancerList,
+        loader: () => $q.resolve(_.clone(this.testData.loadBalancerList)),
+        onLoad: (_app, data) => $q.resolve(data),
       });
       spyOn(this.mockApplication.loadBalancers, 'refresh').and.callThrough();
       this.mockApplication.loadBalancers.onNextRefresh = jasmine
@@ -233,6 +234,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
             beforeEach(function() {
               this.$scope.loadBalancer.account = 'account2';
               this.ctrl.accountUpdated();
+              this.$scope.$digest();
             });
 
             it('- updates the list of load balancer names', function() {

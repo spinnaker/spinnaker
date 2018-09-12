@@ -122,7 +122,7 @@ module.exports = angular
     }
 
     function updateLoadBalancerNames() {
-      var account = $scope.loadBalancer.credentials;
+      var account = $scope.loadBalancer.credentials || $scope.loadBalancer.account;
 
       const accountLoadBalancersByRegion = {};
       application
