@@ -19,6 +19,8 @@ dependencies {
 
   compile 'io.github.resilience4j:resilience4j-retry:0.13.1'
 
+  compile 'org.apache.commons:commons-lang3'
+
   testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
   testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
 

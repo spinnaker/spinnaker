@@ -79,6 +79,7 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   @JsonView(Views.Cache.class)
   Long createdTime;
 
+  @Wither
   @JsonView(Views.Cache.class)
   List<CloudFoundryServiceInstance> serviceInstances;
 

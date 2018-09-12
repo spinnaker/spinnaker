@@ -32,8 +32,7 @@ import java.util.stream.Stream;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.*;
 import static java.util.Collections.emptyMap;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
+import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
 
 @RequiredArgsConstructor
@@ -47,9 +46,8 @@ public class CloudFoundryProvider extends AgentSchedulerAware implements Searcha
     LOAD_BALANCERS.getNs()
   ).collect(toSet());
 
-  private final Map<SearchableResource, SearchResultHydrator> searchResultHydrators = Stream.of(
-    new SearchableResource(APPLICATIONS.getNs(), "cloudfoundry")
-  ).collect(toMap(identity(), res -> new ApplicationSearchResultHydrator()));
+  private final Map<SearchableResource, SearchResultHydrator> searchResultHydrators =
+    singletonMap(new SearchableResource(APPLICATIONS.getNs(), "cloudfoundry"), new ApplicationSearchResultHydrator());
 
   private final Map<String, String> urlMappingTemplates = emptyMap();
   private final String id = "cloudfoundry";

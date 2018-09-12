@@ -20,8 +20,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.exceptions.OperationTimedOutException
 import groovy.util.logging.Slf4j
 
+import java.util.function.Consumer
 import java.util.function.Function
-import java.util.function.Predicate
+import java.util.function.Supplier
 
 /**
  * A poller with an upper time limit combined with a Fibonacci-based backoff.
@@ -45,7 +46,14 @@ class OperationPoller {
     this(asyncOperationTimeoutSecondsDefault, asyncOperationMaxPollingIntervalSeconds)
     this.threadSleeper = threadSleeper
   }
-/**
+
+  public <T> T waitForOperation(Supplier<T> operation, Function<T, Boolean> ifDone,
+                                Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+    (T) waitForOperation({ operation.get() }, { T t -> ifDone.apply(t) },
+      timeoutSeconds, task, resourceString, basePhase)
+  }
+
+  /**
    * Wrap an operational closure with a back off algorithm to check until completed.
    *
    * @param operation - a closure to perform an operation and return a testable value

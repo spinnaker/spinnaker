@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.CreateApplication;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateApplication;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.InstanceStatus;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;

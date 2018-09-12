@@ -24,10 +24,10 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
 @AllArgsConstructor
@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 public class CloudFoundryServerGroupNameResolver extends AbstractServerGroupNameResolver {
   private static final String PHASE = "DEPLOY";
 
+  String account;
   CloudFoundryClusterProvider clusters;
   CloudFoundrySpace space;
 
@@ -50,8 +51,9 @@ public class CloudFoundryServerGroupNameResolver extends AbstractServerGroupName
 
   @Override
   public List<TakenSlot> getTakenSlots(String clusterName) {
-    return clusters.getClusters().values().stream()
-      .flatMap(Collection::stream)
+    return clusters.getClusters()
+      .getOrDefault(account, emptySet())
+      .stream()
       .flatMap(cluster -> cluster.getServerGroups().stream())
       .filter(serverGroup -> {
         Names names = Names.parseName(serverGroup.getName());

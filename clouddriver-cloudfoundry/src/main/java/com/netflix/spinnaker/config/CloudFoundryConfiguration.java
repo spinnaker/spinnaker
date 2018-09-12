@@ -19,6 +19,7 @@ package com.netflix.spinnaker.config;
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentialsInitializer;
+import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +47,14 @@ public class CloudFoundryConfiguration {
   @Bean
   CloudFoundryCredentialsInitializer cloudFoundryCredentialsInitializer() {
     return new CloudFoundryCredentialsInitializer();
+  }
+
+  @Bean
+  OperationPoller cloudFoundryOperationPoller(CloudFoundryConfigurationProperties properties) {
+    return new OperationPoller(
+      properties.getAsyncOperationTimeoutSecondsDefault(),
+      properties.getAsyncOperationMaxPollingIntervalSeconds()
+    );
   }
 
   public static class CloudFoundryProviderSynchronizer {

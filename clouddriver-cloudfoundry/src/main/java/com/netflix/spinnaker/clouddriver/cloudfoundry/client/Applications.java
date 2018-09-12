@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.CreateApplication;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
@@ -89,8 +88,9 @@ public class Applications {
 
   @Nullable
   public String findServerGroupId(String name, String spaceId) {
-    return api.all(null, singletonList(name), singletonList(spaceId)).getResources().stream()
-      .findFirst().map(Application::getGuid).orElse(null);
+    return safelyCall(() -> api.all(null, singletonList(name), singletonList(spaceId)))
+      .flatMap(page -> page.getResources().stream().findFirst().map(Application::getGuid))
+      .orElse(null);
   }
 
   private CloudFoundryServerGroup map(Application application) {
@@ -171,7 +171,9 @@ public class Applications {
             .id(apiDroplet.getGuid())
             .name(application.getName() + "-droplet")
             .stack(apiDroplet.getStack())
-            .buildpacks(apiDroplet.getBuildpacks().stream()
+            .buildpacks(Optional.ofNullable(apiDroplet.getBuildpacks())
+              .orElse(emptyList())
+              .stream()
               .map(bp -> CloudFoundryBuildpack.builder()
                 .name(bp.getName())
                 .detectOutput(bp.getDetectOutput())
@@ -179,7 +181,8 @@ public class Applications {
                 .buildpackName(bp.getBuildpackName())
                 .build()
               )
-              .collect(toList()))
+              .collect(toList())
+            )
             .space(space)
             .sourcePackage(cfPackage)
             .build()
@@ -213,6 +216,7 @@ public class Applications {
       .createdTime(application.getCreatedAt().toInstant().toEpochMilli())
       .serviceInstances(cloudFoundryServices)
       .instances(instances)
+      .state(state)
       .build();
   }
 
@@ -240,7 +244,7 @@ public class Applications {
     safelyCall(() -> api.deleteAppInstance(guid, index));
   }
 
-  public CloudFoundryServerGroup createApplication(String appName, CloudFoundrySpace space, String buildpack,
+  public CloudFoundryServerGroup createApplication(String appName, CloudFoundrySpace space, @Nullable String buildpack,
                                                    Map<String, String> environmentVariables) throws CloudFoundryApiException {
     Map<String, ToOneRelationship> relationships = new HashMap<>();
     relationships.put("space", new ToOneRelationship(new Relationship(space.getId())));
@@ -250,8 +254,10 @@ public class Applications {
       .orElseThrow(() -> new CloudFoundryApiException("Cloud Foundry signaled that application creation succeeded but failed to provide a response."));
   }
 
-  public void scaleApplication(String guid, Integer instances, Integer memInMb, Integer diskInMb) throws CloudFoundryApiException {
-    if (memInMb == null && diskInMb == null && instances == null) {
+  public void scaleApplication(String guid, @Nullable Integer instances, @Nullable Integer memInMb, @Nullable Integer diskInMb) throws CloudFoundryApiException {
+    if ((memInMb == null || memInMb == 0)
+      && (diskInMb == null || diskInMb == 0)
+      && (instances == null || instances == 0)) {
       return;
     }
     safelyCall(() -> api.scaleApplication(guid, new ScaleApplication(instances, memInMb, diskInMb)));
@@ -294,7 +300,7 @@ public class Applications {
       .orElseThrow(() -> new CloudFoundryApiException("Cloud Foundry signaled that build creation succeeded but failed to provide a response."));
   }
 
-  public boolean buildCompleted(String buildGuid) throws CloudFoundryApiException {
+  public Boolean buildCompleted(String buildGuid) throws CloudFoundryApiException {
     switch (safelyCall(() -> api.getBuild(buildGuid)).map(Build::getState).orElse(Build.State.FAILED)) {
       case FAILED:
         throw new CloudFoundryApiException("Failed to build droplet");
@@ -329,7 +335,7 @@ public class Applications {
   }
 
   @Nullable
-  ProcessStats.State getProcessState(String appGuid) throws CloudFoundryApiException {
+  public ProcessStats.State getProcessState(String appGuid) throws CloudFoundryApiException {
     return safelyCall(() -> this.api.findProcessStatsById(appGuid))
       .flatMap(pr -> pr.getResources().stream().findAny().map(ProcessStats::getState))
       .orElse(null);

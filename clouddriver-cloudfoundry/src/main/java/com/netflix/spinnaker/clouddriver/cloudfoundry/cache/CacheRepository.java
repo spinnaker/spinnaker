@@ -67,8 +67,9 @@ public class CacheRepository {
 
   private CloudFoundryApplication applicationFromCacheData(CacheData appData, Detail detail) {
     CloudFoundryApplication app = objectMapper.convertValue(appData.getAttributes().get("resource"), CloudFoundryApplication.class);
-    if (detail.equals(Detail.NONE))
+    if (detail.equals(Detail.NONE)) {
       return app.withClusters(emptySet());
+    }
     return app.withClusters(findClustersByKeys(appData.getRelationships().get(CLUSTERS.getNs()), Detail.NONE));
   }
 
@@ -85,8 +86,9 @@ public class CacheRepository {
 
   private CloudFoundryCluster clusterFromCacheData(CacheData clusterData, Detail detail) {
     CloudFoundryCluster cluster = objectMapper.convertValue(clusterData.getAttributes().get("resource"), CloudFoundryCluster.class);
-    if (detail.equals(Detail.NONE))
+    if (detail.equals(Detail.NONE)) {
       return cluster.withServerGroups(emptySet());
+    }
     return cluster.withServerGroups(findServerGroupsByKeys(clusterData.getRelationships().get(SERVER_GROUPS.getNs()), detail.deep()));
   }
 
@@ -103,8 +105,9 @@ public class CacheRepository {
 
   private CloudFoundryServerGroup serverGroupFromCacheData(CacheData serverGroupData, Detail detail) {
     CloudFoundryServerGroup serverGroup = objectMapper.convertValue(serverGroupData.getAttributes().get("resource"), CloudFoundryServerGroup.class);
-    if (detail.equals(Detail.NONE))
+    if (detail.equals(Detail.NONE)) {
       return serverGroup.withLoadBalancerNames(emptySet()).withInstances(emptySet());
+    }
     return serverGroup
       .withLoadBalancerNames(findLoadBalancersByKeys(serverGroupData.getRelationships().get(LOAD_BALANCERS.getNs()), Detail.NONE).stream()
         .map(CloudFoundryLoadBalancer::getName)
@@ -120,8 +123,9 @@ public class CacheRepository {
 
   private CloudFoundryLoadBalancer loadBalancerFromCacheData(CacheData lbData, Detail detail) {
     CloudFoundryLoadBalancer loadBalancer = objectMapper.convertValue(lbData.getAttributes().get("resource"), CloudFoundryLoadBalancer.class);
-    if (detail.equals(Detail.NONE))
+    if (detail.equals(Detail.NONE)) {
       return loadBalancer;
+    }
 
     // the server groups populated here will have an empty load balancer names set to avoid a cyclic call back to findLoadBalancersByKeys
     return loadBalancer.withMappedApps(findServerGroupsByKeys(lbData.getRelationships().get(SERVER_GROUPS.getNs()), Detail.NONE));

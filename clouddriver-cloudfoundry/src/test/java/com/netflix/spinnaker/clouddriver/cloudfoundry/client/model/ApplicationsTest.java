@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Applications;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 class ApplicationsTest {
   @Test
@@ -30,5 +34,17 @@ class ApplicationsTest {
 
     assertThatThrownBy(() -> client.getApplications().all())
       .isInstanceOf(CloudFoundryApiException.class);
+  }
+
+  @Test
+  void dontScaleApplicationIfInputsAreNullOrZero() {
+    ApplicationService applicationService = mock(ApplicationService.class);
+
+    Applications apps = new Applications("pws", applicationService, null);
+
+    apps.scaleApplication("id", null, null, null);
+    apps.scaleApplication("id", 0, 0, 0);
+
+    verify(applicationService, never()).scaleApplication(any(), any());
   }
 }

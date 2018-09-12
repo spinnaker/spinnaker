@@ -44,7 +44,7 @@ public class CloudFoundryApiException extends RuntimeException {
   }
 
   private static String getMessage(String... errors) {
-    return "Cloud Foundry API returned with error(s): \n " +
-      stream(errors).filter(Objects::nonNull).map(err -> "* " + err).collect(Collectors.joining("\n "));
+    return "Cloud Foundry API returned with error(s): " +
+      stream(errors).filter(Objects::nonNull).collect(Collectors.joining(" and "));
   }
 }

@@ -96,13 +96,13 @@ public class Routes {
 
     List<String> queryParams = new ArrayList<>();
     queryParams.add("host:" + host);
-    queryParams.add("organization_guid" + orgId);
+    queryParams.add("organization_guid:" + orgId);
     if (domainId != null)
-      queryParams.add("domain_guid" + domainId);
+      queryParams.add("domain_guid:" + domainId);
     if (path != null)
-      queryParams.add("path" + path);
+      queryParams.add("path:" + path);
     if (port != null)
-      queryParams.add("port" + port.toString());
+      queryParams.add("port:" + port.toString());
 
     return collectPageResources("route mappings", pg -> api.all(pg, queryParams))
       .stream().findFirst().map(this::map).orElse(null);
@@ -126,23 +126,8 @@ public class Routes {
     }
   }
 
-  @Nullable
-  public CloudFoundryLoadBalancer findById(String loadBalancerId) throws CloudFoundryApiException {
-    Resource<Route> routeResource = safelyCall(() -> api.findById(loadBalancerId)).orElse(null);
-    return routeResource != null ? map(routeResource) : null;
-  }
-
   public List<CloudFoundryLoadBalancer> all() throws CloudFoundryApiException {
     List<Resource<Route>> routeResources = collectPageResources("routes", pg -> api.all(pg, null));
-    List<CloudFoundryLoadBalancer> loadBalancers = new ArrayList<>(routeResources.size());
-    for (Resource<Route> routeResource : routeResources) {
-      loadBalancers.add(map(routeResource));
-    }
-    return loadBalancers;
-  }
-
-  public List<CloudFoundryLoadBalancer> allAppRoutes(String appGuid) throws CloudFoundryApiException {
-    List<Resource<Route>> routeResources = collectPageResources("routes", pg -> api.allAppRoutes(pg, appGuid));
     List<CloudFoundryLoadBalancer> loadBalancers = new ArrayList<>(routeResources.size());
     for (Resource<Route> routeResource : routeResources) {
       loadBalancers.add(map(routeResource));

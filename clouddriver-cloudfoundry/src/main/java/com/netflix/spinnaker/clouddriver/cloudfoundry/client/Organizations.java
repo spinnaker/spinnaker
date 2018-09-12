@@ -20,14 +20,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Organization;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -62,18 +61,13 @@ public class Organizations {
     }
   }
 
-  @Nullable
-  public CloudFoundryOrganization findByName(String orgName) throws CloudFoundryApiException {
-    Page<Organization> page = safelyCall(() -> api.all(null, Collections.singletonList("name:" + orgName))).orElse(null);
-
-    if (page == null)
-      return null;
-
-    return page.getResources().stream().findAny()
-      .map(org -> CloudFoundryOrganization.builder()
-        .id(org.getMetadata().getGuid())
-        .name(org.getEntity().getName())
-        .build())
-      .orElse(null);
+  public Optional<CloudFoundryOrganization> findByName(String orgName) throws CloudFoundryApiException {
+    return safelyCall(() -> api.all(null, Collections.singletonList("name:" + orgName)))
+      .flatMap(page -> page.getResources().stream().findAny()
+        .map(org -> CloudFoundryOrganization.builder()
+          .id(org.getMetadata().getGuid())
+          .name(org.getEntity().getName())
+          .build())
+      );
   }
 }

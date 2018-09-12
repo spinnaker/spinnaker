@@ -35,6 +35,7 @@ import java.util.Set;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
@@ -51,7 +52,6 @@ public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadB
   String id;
 
   @JsonView(Views.Cache.class)
-  @Nullable
   String host;
 
   @JsonView(Views.Cache.class)
@@ -74,7 +74,7 @@ public class CloudFoundryLoadBalancer extends CloudFoundryModel implements LoadB
 
   @JsonProperty
   public String getName() {
-    return host + "." + domain.getName() + (port == null ? "" : "-" + port) + (path == null ? "" : "/" + path);
+    return host + "." + domain.getName() + (port == null ? "" : "-" + port) + (isEmpty(path) ? "" : "/" + path);
   }
 
   @Override

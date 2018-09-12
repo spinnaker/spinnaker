@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
@@ -26,7 +27,6 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Response;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
-import lombok.extern.slf4j.Slf4j;
 import okio.Buffer;
 import okio.BufferedSource;
 import retrofit.RequestInterceptor;
@@ -46,7 +46,6 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-@Slf4j
 public class CloudFoundryClient {
   private final String apiHost;
   private final String user;
@@ -107,6 +106,7 @@ public class CloudFoundryClient {
             case 502:
             case 503:
             case 504:
+              // after retries fail, the response body for these status codes will get wrapped up into a CloudFoundryApiException
               throw new RetryableApiException();
           }
 
@@ -138,6 +138,7 @@ public class CloudFoundryClient {
     ObjectMapper mapper = new ObjectMapper();
     mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     mapper.registerModule(new JavaTimeModule());
 
     this.jacksonConverter = new JacksonConverter(mapper);
