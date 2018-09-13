@@ -5,4 +5,5 @@ export interface IArtifactEditorProps {
   onChange: (a: IArtifact) => void;
   labelColumns: number;
   fieldColumns: number;
+  singleColumn?: boolean;
 }

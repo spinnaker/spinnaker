@@ -118,13 +118,26 @@
         </div>
       </div>
 
-      <expected-artifact-selector ng-if="command.fromArtifact"
-                                  command="command"
-                                  id="command.expectedArtifactId"
-                                  expected-artifacts="command.backingData.expectedArtifacts"
-                                  show-icons="true"
-                                  field-columns="7">
-      </expected-artifact-selector>
+      <stage-config-field label="Expected Artifact" field-columns="7" ng-if="command.fromArtifact">
+        <expected-artifact-selector-react
+                                    expected-artifacts="command.backingData.expectedArtifacts"
+                                    selected="gcsArtifactDelegate.getSelectedExpectedArtifact()"
+                                    on-change="gcsArtifactController.onArtifactChange"
+                                    on-request-create="gcsArtifactController.onRequestCreate"
+                                    offered-artifact-types="gcsArtifactDelegate.getOfferedArtifactTypes()"
+                                    requesting-new="showCreateArtifactForm"
+                                    >
+        </expected-artifact-selector-react>
+      </stage-config-field>
+      <expected-artifact-editor-react ng-if="showCreateArtifactForm"
+                                      kinds="gcsArtifactDelegate.getSupportedArtifactKinds()"
+                                      sources="gcsArtifactDelegate.getExpectedArtifactSources()"
+                                      on-save="gcsArtifactController.onArtifactCreated"
+                                      show-accounts="false"
+                                      single-column="true"
+                                      field-columns="7"
+      >
+      </expected-artifact-editor-react>
 
       <div class="form-group" ng-if="!command.fromArtifact">
         <div class="col-md-3 sm-label-right">
@@ -223,14 +236,26 @@
         </div>
       </div>
 
-      <expected-artifact-selector ng-if="command.fromArtifact"
-                                  command="command"
-                                  id="command.expectedArtifactId"
-                                  expected-artifacts="command.backingData.expectedArtifacts"
-                                  show-icons="true"
-                                  field-columns="7"
-                                  offered-artifact-types="basicSettingsCtrl.containerImageArtifactTypes">
-      </expected-artifact-selector>
+      <stage-config-field label="Expected Artifact" field-columns="7" ng-if="command.fromArtifact">
+        <expected-artifact-selector-react
+                                    expected-artifacts="command.backingData.expectedArtifacts"
+                                    selected="containerArtifactDelegate.getSelectedExpectedArtifact()"
+                                    on-change="containerArtifactController.onArtifactChange"
+                                    on-request-create="containerArtifactController.onRequestCreate"
+                                    offered-artifact-types="containerArtifactDelegate.getOfferedArtifactTypes()"
+                                    requesting-new="showCreateArtifactForm"
+                                    >
+        </expected-artifact-selector-react>
+      </stage-config-field>
+      <expected-artifact-editor-react ng-if="showCreateArtifactForm"
+                                      kinds="containerArtifactDelegate.getSupportedArtifactKinds()"
+                                      sources="containerArtifactDelegate.getExpectedArtifactSources()"
+                                      on-save="containerArtifactController.onArtifactCreated"
+                                      show-accounts="false"
+                                      single-column="true"
+                                      field-columns="7"
+      >
+      </expected-artifact-editor-react>
 
       <div class="form-group" ng-if="!command.fromArtifact">
         <div class="col-md-3 sm-label-right">

@@ -64,6 +64,8 @@ export interface IViewState {
   mode: string;
   submitButtonLabel: string;
   disableStrategySelection: boolean;
+  stage?: IStage;
+  pipeline?: IPipeline;
 }
 
 export class AppengineServerGroupCommandBuilder {
@@ -142,6 +144,10 @@ export class AppengineServerGroupCommandBuilder {
     _stage: IStage,
     pipeline: IPipeline,
   ): IPromise<{
+    viewState: {
+      stage: IStage;
+      pipeline: IPipeline;
+    };
     backingData: {
       triggerOptions: Array<IAppengineGitTrigger | IAppengineJenkinsTrigger>;
       expectedArtifacts: IExpectedArtifact[];
@@ -150,6 +156,10 @@ export class AppengineServerGroupCommandBuilder {
     // We can't copy server group configuration for App Engine, and can't build the full command here because we don't have
     // access to the application.
     return this.$q.when({
+      viewState: {
+        pipeline,
+        stage: _stage,
+      },
       backingData: {
         triggerOptions: AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline),
         expectedArtifacts: AppengineServerGroupCommandBuilder.getExpectedArtifacts(pipeline),
@@ -172,6 +182,11 @@ export class AppengineServerGroupCommandBuilder {
             ...command.backingData,
             triggerOptions: AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline),
             expectedArtifacts: AppengineServerGroupCommandBuilder.getExpectedArtifacts(pipeline),
+          },
+          viewState: {
+            ...command.viewState,
+            stage: _stage,
+            pipeline,
           },
         } as IAppengineServerGroupCommand;
         return command;

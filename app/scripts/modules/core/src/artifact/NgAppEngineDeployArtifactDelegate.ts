@@ -11,24 +11,17 @@ import {
   IPipeline,
 } from 'core';
 import { ExpectedArtifactSelectorViewControllerAngularDelegate } from './ExpectedArtifactSelectorViewControllerAngularDelegate';
-import { ArtifactTypePatterns } from './ArtifactTypes';
 
-const offeredArtifactTypes: RegExp[] = [ArtifactTypePatterns.GCE_MACHINE_IMAGE];
-
-export class NgGCEImageArtifactDelegate
+export class NgAppEngineDeployArtifactDelegate
   extends ExpectedArtifactSelectorViewControllerAngularDelegate<IArtifactSource<IStage | IPipeline>>
   implements IExpectedArtifactSelectorViewControllerDelegate {
-  // TODO(sbws): Add UI components for a gce/image expected artifact kind, currently user must define custom.
-  protected kinds: IArtifactKindConfig[] = Registry.pipeline
-    .getArtifactKinds()
-    .filter((a: IArtifactKindConfig) => a.key === 'custom');
-  // This is always empty for GCE images.
-  protected accounts: IArtifactAccount[] = [];
-
-  constructor(protected $scope: IScope) {
+  constructor(protected $scope: IScope, protected offeredArtifactTypes: RegExp[] = null) {
     super($scope);
     const { viewState } = $scope.command;
     this.sources = ExpectedArtifactService.sourcesForPipelineStage(viewState.pipeline, viewState.stage);
+    this.kinds = Registry.pipeline.getArtifactKinds().filter((a: IArtifactKindConfig) => {
+      return a.isMatch && (a.key === 'custom' || offeredArtifactTypes.find(oat => oat.test(a.type)));
+    });
     this.refreshExpectedArtifacts();
   }
 
@@ -38,7 +31,7 @@ export class NgGCEImageArtifactDelegate
   }
 
   public getSelectedExpectedArtifact(): IExpectedArtifact {
-    return (this.getExpectedArtifacts() || []).find(ea => ea.id === this.$scope.command.imageArtifactId);
+    return (this.getExpectedArtifacts() || []).find(ea => ea.id === this.$scope.command.expectedArtifactId);
   }
 
   public getExpectedArtifactAccounts(): IArtifactAccount[] {
@@ -50,12 +43,12 @@ export class NgGCEImageArtifactDelegate
   }
 
   public getOfferedArtifactTypes(): RegExp[] {
-    return offeredArtifactTypes;
+    return this.offeredArtifactTypes;
   }
 
   public setSelectedExpectedArtifact(e: IExpectedArtifact): void {
-    this.$scope.command.imageArtifactId = e.id;
-    this.$scope.gceImageArtifact.showCreateArtifactForm = false;
+    this.$scope.command.expectedArtifactId = e.id;
+    this.$scope.showCreateArtifactForm = false;
     this.$scope.$apply();
   }
 
@@ -64,11 +57,11 @@ export class NgGCEImageArtifactDelegate
   }
 
   public createArtifact(): void {
-    this.$scope.gceImageArtifact.showCreateArtifactForm = true;
+    this.$scope.showCreateArtifactForm = true;
     this.$scope.$apply();
   }
 
   public refreshExpectedArtifacts(): void {
-    this.$scope.command.viewState.expectedArtifacts = this.getExpectedArtifacts();
+    this.$scope.command.backingData.expectedArtifacts = this.getExpectedArtifacts();
   }
 }

@@ -25,6 +25,8 @@ export interface IExpectedArtifactEditorProps {
   showIcons?: boolean;
   showAccounts?: boolean;
   className?: string;
+  fieldColumns: number;
+  singleColumn: boolean;
 }
 
 interface IExpectedArtifactEditorState {
@@ -46,6 +48,8 @@ export class ExpectedArtifactEditor extends React.Component<
   public static defaultProps = {
     showIcons: true,
     showAccounts: true,
+    fieldColumns: 8,
+    singleColumn: false,
   };
 
   constructor(props: IExpectedArtifactEditorProps) {
@@ -102,11 +106,15 @@ export class ExpectedArtifactEditor extends React.Component<
   private availableKinds = () => {
     const kinds = this.props.kinds || [];
     const accounts = this.props.accounts || [];
-    return kinds.filter(k => k.key === 'custom' || accounts.find(a => a.types.includes(k.type)));
+    if (this.props.showAccounts) {
+      return kinds.filter(k => k.key === 'custom' || accounts.find(a => a.types.includes(k.type)));
+    } else {
+      return kinds.slice(0);
+    }
   };
 
   public render() {
-    const { sources, showIcons, showAccounts } = this.props;
+    const { sources, showIcons, showAccounts, fieldColumns, singleColumn } = this.props;
     const { expectedArtifact, source, account } = this.state;
     const accounts = this.accountsForExpectedArtifact(expectedArtifact);
     const artifact = ExpectedArtifactService.artifactFromExpected(expectedArtifact);
@@ -115,10 +123,10 @@ export class ExpectedArtifactEditor extends React.Component<
     const EditCmp = kind && kind.editCmp;
     return (
       <>
-        <StageConfigField label="Artifact Source" fieldColumns={8}>
+        <StageConfigField label="Artifact Source" fieldColumns={fieldColumns}>
           <ExpectedArtifactSourceSelector sources={sources} selected={source} onChange={this.onSourceChange} />
         </StageConfigField>
-        <StageConfigField label="Artifact Kind" fieldColumns={8}>
+        <StageConfigField label="Artifact Kind" fieldColumns={fieldColumns}>
           <ExpectedArtifactKindSelector
             kinds={kinds}
             selected={kind}
@@ -127,12 +135,20 @@ export class ExpectedArtifactEditor extends React.Component<
           />
         </StageConfigField>
         {showAccounts && (
-          <StageConfigField label="Artifact Account" fieldColumns={8}>
+          <StageConfigField label="Artifact Account" fieldColumns={fieldColumns}>
             <ArtifactAccountSelector accounts={accounts} selected={account} onChange={this.onAccountChange} />
           </StageConfigField>
         )}
-        {EditCmp && <EditCmp artifact={artifact} onChange={this.onArtifactEdit} labelColumns={3} fieldColumns={3} />}
-        <StageConfigField label="" fieldColumns={8}>
+        {EditCmp && (
+          <EditCmp
+            artifact={artifact}
+            onChange={this.onArtifactEdit}
+            labelColumns={3}
+            fieldColumns={fieldColumns}
+            singleColumn={singleColumn}
+          />
+        )}
+        <StageConfigField label="" fieldColumns={fieldColumns}>
           <button onClick={this.onSave} className="btn btn-block btn-primary btn-sm">
             Confirm
           </button>
@@ -157,5 +173,7 @@ module(EXPECTED_ARTIFACT_EDITOR_COMPONENT_REACT, [
     'showIcons',
     'showAccounts',
     'className',
+    'fieldColumns',
+    'singleColumn',
   ]),
 );
