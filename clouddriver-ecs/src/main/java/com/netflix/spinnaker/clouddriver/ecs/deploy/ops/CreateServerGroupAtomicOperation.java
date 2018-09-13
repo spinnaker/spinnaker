@@ -31,6 +31,7 @@ import com.amazonaws.services.ecs.model.KeyValuePair;
 import com.amazonaws.services.ecs.model.ListServicesRequest;
 import com.amazonaws.services.ecs.model.ListServicesResult;
 import com.amazonaws.services.ecs.model.LoadBalancer;
+import com.amazonaws.services.ecs.model.LogConfiguration;
 import com.amazonaws.services.ecs.model.NetworkConfiguration;
 import com.amazonaws.services.ecs.model.PortMapping;
 import com.amazonaws.services.ecs.model.RegisterTaskDefinitionRequest;
@@ -71,8 +72,13 @@ import java.util.stream.Collectors;
 public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation<CreateServerGroupDescription, DeploymentResult> {
 
   private static final String NECESSARY_TRUSTED_SERVICE = "ecs-tasks.amazonaws.com";
-  public static final String AWSVPC_NETWORK_MODE = "awsvpc";
-  public static final String FARGATE_LAUNCH_TYPE = "FARGATE";
+  protected static final String AWSVPC_NETWORK_MODE = "awsvpc";
+  protected static final String FARGATE_LAUNCH_TYPE = "FARGATE";
+  protected static final String NO_IAM_ROLE = "None (No IAM role)";
+
+  protected static final String DOCKER_LABEL_KEY_SERVERGROUP = "spinnaker.servergroup";
+  protected static final String DOCKER_LABEL_KEY_STACK = "spinnaker.stack";
+  protected static final String DOCKER_LABEL_KEY_DETAIL = "spinnaker.detail";
 
   @Autowired
   EcsCloudMetricService ecsCloudMetricService;
@@ -97,15 +103,15 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
 
     AmazonECS ecs = getAmazonEcsClient();
 
-    String serverGroupVersion = inferNextServerGroupVersion(ecs);
+    String newServerGroupVersion = inferNextServerGroupVersion(ecs);
 
     String ecsServiceRole = inferAssumedRoleArn(credentials);
 
     updateTaskStatus("Creating Amazon ECS Task Definition...");
-    TaskDefinition taskDefinition = registerTaskDefinition(ecs, ecsServiceRole, serverGroupVersion);
+    TaskDefinition taskDefinition = registerTaskDefinition(ecs, ecsServiceRole, newServerGroupVersion);
     updateTaskStatus("Done creating Amazon ECS Task Definition...");
 
-    Service service = createService(ecs, taskDefinition, ecsServiceRole, serverGroupVersion);
+    Service service = createService(ecs, taskDefinition, ecsServiceRole, newServerGroupVersion);
 
     String resourceId = registerAutoScalingGroup(credentials, service);
 
@@ -119,10 +125,17 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
     return makeDeploymentResult(service);
   }
 
-  private TaskDefinition registerTaskDefinition(AmazonECS ecs, String ecsServiceRole, String version) {
+  protected TaskDefinition registerTaskDefinition(AmazonECS ecs, String ecsServiceRole, String newServerGroupVersion) {
+    RegisterTaskDefinitionRequest request = makeTaskDefinitionRequest(ecsServiceRole, newServerGroupVersion);
 
+    RegisterTaskDefinitionResult registerTaskDefinitionResult = ecs.registerTaskDefinition(request);
+
+    return registerTaskDefinitionResult.getTaskDefinition();
+  }
+
+  protected RegisterTaskDefinitionRequest makeTaskDefinitionRequest(String ecsServiceRole, String newServerGroupVersion) {
     Collection<KeyValuePair> containerEnvironment = new LinkedList<>();
-    containerEnvironment.add(new KeyValuePair().withName("SERVER_GROUP").withValue(version));
+    containerEnvironment.add(new KeyValuePair().withName("SERVER_GROUP").withValue(newServerGroupVersion));
     containerEnvironment.add(new KeyValuePair().withName("CLOUD_STACK").withValue(description.getStack()));
     containerEnvironment.add(new KeyValuePair().withName("CLOUD_DETAIL").withValue(description.getFreeFormDetails()));
 
@@ -143,12 +156,37 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
     portMappings.add(portMapping);
 
     ContainerDefinition containerDefinition = new ContainerDefinition()
-      .withName(version)
+      .withName(newServerGroupVersion)
       .withEnvironment(containerEnvironment)
       .withPortMappings(portMappings)
       .withCpu(description.getComputeUnits())
       .withMemoryReservation(description.getReservedMemory())
       .withImage(description.getDockerImageAddress());
+
+    Map<String, String> labelsMap = new HashMap<>();
+    if (description.getDockerLabels() != null) {
+      labelsMap.putAll(description.getDockerLabels());
+    }
+
+    if (description.getStack() != null) {
+      labelsMap.put(DOCKER_LABEL_KEY_STACK, description.getStack());
+    }
+
+    if (description.getFreeFormDetails() != null) {
+      labelsMap.put(DOCKER_LABEL_KEY_DETAIL, description.getFreeFormDetails());
+    }
+
+    labelsMap.put(DOCKER_LABEL_KEY_SERVERGROUP, getNextServiceName(newServerGroupVersion));
+
+    containerDefinition.withDockerLabels(labelsMap);
+
+    if (description.getLogDriver() != null && !"None".equals(description.getLogDriver())) {
+      LogConfiguration logConfiguration = new LogConfiguration()
+        .withLogDriver(description.getLogDriver())
+        .withOptions(description.getLogOptions());
+
+      containerDefinition.withLogConfiguration(logConfiguration);
+    }
 
     Collection<ContainerDefinition> containerDefinitions = new LinkedList<>();
     containerDefinitions.add(containerDefinition);
@@ -160,7 +198,7 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
       request.withNetworkMode(description.getNetworkMode());
     }
 
-    if (!description.getIamRole().equals("None (No IAM role)")) {
+    if (!NO_IAM_ROLE.equals(description.getIamRole()) && description.getIamRole() != null) {
       checkRoleTrustRelations(description.getIamRole());
       request.setTaskRoleArn(description.getIamRole());
     }
@@ -175,15 +213,13 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
       request.setMemory(description.getReservedMemory().toString());
     }
 
-    RegisterTaskDefinitionResult registerTaskDefinitionResult = ecs.registerTaskDefinition(request);
-
-    return registerTaskDefinitionResult.getTaskDefinition();
+    return request;
   }
 
-  private Service createService(AmazonECS ecs, TaskDefinition taskDefinition, String ecsServiceRole, String version) {
-    String serviceName = getNextServiceName(version);
+  private Service createService(AmazonECS ecs, TaskDefinition taskDefinition, String ecsServiceRole, String newServerGroupVersion) {
+    String serviceName = getNextServiceName(newServerGroupVersion);
     Collection<LoadBalancer> loadBalancers = new LinkedList<>();
-    loadBalancers.add(retrieveLoadBalancer(version));
+    loadBalancers.add(retrieveLoadBalancer(newServerGroupVersion));
 
     Integer desiredCount = description.getCapacity().getDesired();
     String taskDefinitionArn = taskDefinition.getTaskDefinitionArn();

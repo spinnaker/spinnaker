@@ -36,6 +36,9 @@ import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 
+import static com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation.DOCKER_LABEL_KEY_SERVERGROUP
+import static com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation.NO_IAM_ROLE
+
 class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
   def iamClient = Mock(AmazonIdentityManagement)
   def iamPolicyReader = Mock(IamPolicyReader)
@@ -225,5 +228,112 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     result.getServerGroupNames().contains("us-west-1:" + serviceName)
     result.getServerGroupNameByRegion().containsKey('us-west-1')
     result.getServerGroupNameByRegion().get('us-west-1').contains(serviceName)
+  }
+
+  def 'should create default Docker labels'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getDockerLabels() >> null
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+
+    then:
+    def labels = request.getContainerDefinitions().get(0).getDockerLabels()
+    labels.get(DOCKER_LABEL_KEY_SERVERGROUP) == 'mygreatapp-stack1-details2-v0011'
+    labels.get(CreateServerGroupAtomicOperation.DOCKER_LABEL_KEY_STACK) == 'stack1'
+    labels.get(CreateServerGroupAtomicOperation.DOCKER_LABEL_KEY_DETAIL) == 'details2'
+  }
+
+  def 'should create custom Docker labels'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getDockerLabels() >> ['label1': 'value1', 'fruit':'tomato']
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+
+    then:
+    def labels = request.getContainerDefinitions().get(0).getDockerLabels()
+    labels.get('label1') == 'value1'
+    labels.get('fruit') == 'tomato'
+  }
+
+  def 'should not allow overwriting Spinnaker Docker labels'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    def dockerLabels = [:]
+    dockerLabels.put(DOCKER_LABEL_KEY_SERVERGROUP, 'some-value-we-dont-want-to-see')
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getDockerLabels() >> dockerLabels
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+
+    then:
+    def labels = request.getContainerDefinitions().get(0).getDockerLabels()
+    labels.get(DOCKER_LABEL_KEY_SERVERGROUP) == 'mygreatapp-stack1-details2-v0011'
+    labels.get(DOCKER_LABEL_KEY_SERVERGROUP) != 'some-value-we-dont-want-to-see'
+  }
+
+
+  def 'should allow selecting the logDriver'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+    description.getLogDriver() >> 'some-log-driver'
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+
+    then:
+    request.getContainerDefinitions().get(0).getLogConfiguration().getLogDriver() == 'some-log-driver'
+  }
+
+  def 'should allow empty logOptions'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+    description.getLogDriver() >> 'some-log-driver'
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+
+    then:
+    request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == null
+  }
+
+  def 'should allow registering logOptions'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+    description.getLogDriver() >> 'some-log-driver'
+    def logOptions = ['key1': '1value', 'key2': 'value2']
+    description.getLogOptions() >> logOptions
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+
+    then:
+    request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == logOptions
   }
 }
