@@ -251,9 +251,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       Set<String> securityGroups = []
       description.securityGroups?.each { providedSecurityGroup ->
+        task.updateStatus BASE_PHASE, "Resolving Security Group ${providedSecurityGroup}... ${System.currentTimeMillis()}"
         if (awsLookupUtil.securityGroupIdExists(account, region, providedSecurityGroup)) {
           securityGroups << providedSecurityGroup
         } else {
+          task.updateStatus BASE_PHASE, "Resolving Security Group name ${providedSecurityGroup}... ${System.currentTimeMillis()}"
           String convertedSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, providedSecurityGroup)
           if (!convertedSecurityGroup) {
             throw new RuntimeException("Security Group ${providedSecurityGroup} cannot be found")
@@ -261,6 +263,8 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
           securityGroups << convertedSecurityGroup
         }
       }
+
+      task.updateStatus BASE_PHASE, "Finished resolving Security Groups... ${System.currentTimeMillis()}"
 
       if (description.jobType == 'service' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups && description.useApplicationDefaultSecurityGroup != false) {
         String applicationSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, description.application)
