@@ -16,6 +16,8 @@
 
 package com.netflix.kayenta.judge.scorers
 
+import java.util
+
 import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfig}
 import com.netflix.kayenta.canary.results.{CanaryAnalysisResult, CanaryJudgeGroupScore, CanaryJudgeResult, CanaryJudgeScore}
 import com.netflix.kayenta.judge.classifiers.score.{ScoreClassification, ThresholdScoreClassifier}
@@ -23,6 +25,12 @@ import com.netflix.kayenta.judge.classifiers.score.{ScoreClassification, Thresho
 import scala.collection.JavaConverters._
 
 class ScoringHelper(judgeName: String) {
+
+  def score(canaryConfig: CanaryConfig,
+            scoreThresholds: CanaryClassifierThresholdsConfig,
+            metricResults: util.List[CanaryAnalysisResult]): CanaryJudgeResult = {
+    score(canaryConfig, scoreThresholds, metricResults.asScala.toList)
+  }
 
   def score(canaryConfig: CanaryConfig,
             scoreThresholds: CanaryClassifierThresholdsConfig,
