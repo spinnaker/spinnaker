@@ -64,12 +64,12 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
     and:
     def dateContext = Mock(MissedPipelineTriggerCompensationJob.DateContext)
-    dateContext.now() >> getDateOffset(50)
+    dateContext.triggerWindowCeiling() >> getDateOffset(50)
     dateContext.triggerWindowFloor() >> getDateOffset(0)
     dateContext.getClock() >> Clock.system(ZoneId.of('America/Los_Angeles'))
 
     def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
-      pipelineInitiator, registry, /* not used */ 30000, /* not used */ 'America/Los_Angeles', true, 900000, 20, dateContext)
+      pipelineInitiator, registry, /* not used */ 30000, 2000, /* not used */ 'America/Los_Angeles', true, 900000, 20, dateContext)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
@@ -103,7 +103,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
     and:
     def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
-      pipelineInitiator, registry, 30000L, 'America/Los_Angeles', true, 900000, 20)
+      pipelineInitiator, registry, 30000L, 2000L, 'America/Los_Angeles', true, 900000, 20)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
@@ -154,7 +154,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
     def dateContext = Mock(MissedPipelineTriggerCompensationJob.DateContext)
     def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
-      pipelineInitiator, registry, 30000, 'America/Los_Angeles', true, 900000, 20, dateContext)
+      pipelineInitiator, registry, 30000L, 2000L, 'America/Los_Angeles', true, 900000, 20, dateContext)
 
     when:
     def result = compensationJob.missedExecution(expr, lastExecution, windowFloor, now)
@@ -164,15 +164,15 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
     where:
     // windowFloorMinutes is a little weird: This is the time marker the windowFloor is located at.
-    // If we had a `now` of 40 and our `windowFloorMs = 1800000` (30m), `windowFloorMinutes` would be `10`.
+    // If we had a `triggerWindowCeiling` of 40 and our `windowFloorMs = 1800000` (30m), `windowFloorMinutes` would be `10`.
     cronExpression     | lastExecutionMinutes | windowFloorMinutes | nowMinutes || missedExecution
-    '* 0/30 * * * ? *' | 0                    | 0                  | 0          || false  // lastExecution was now and floor is now; no missed execution
+    '* 0/30 * * * ? *' | 0                    | 0                  | 0          || false  // lastExecution was triggerWindowCeiling and floor is triggerWindowCeiling; no missed execution
     '* 0/30 * * * ? *' | 0                    | 30                 | 90         || true   // lastExecution was 90 minutes ago, floor is at 30m mark; no missed execution
     '* 0/30 * * * ? *' | null                 | 9                  | 39         || true   // trigger in window and no last execution; missed execution!
     '* 0/30 * * * ? *' | 29                   | 9                  | 39         || true   // lastExecution was before trigger time in window; missed execution!
     '* 0/30 * * * ? *' | 30                   | 9                  | 39         || false  // lastExecution lines up with trigger time in window; no missed execution
     '* 0/30 * * * ? *' | 31                   | 9                  | 39         || false  // lastExecution was after trigger time in window; no missed execution
-    '* 0/30 * * * ? *' | 60                   | 30                 | 60         || false  // lastExecution was now, floor 30m mark; no missed execution (maybe redundant case)
+    '* 0/30 * * * ? *' | 60                   | 30                 | 60         || false  // lastExecution was triggerWindowCeiling, floor 30m mark; no missed execution (maybe redundant case)
     '* 0/30 * * * ? *' | 30                   | 0                  | 70         || true   // lastExecution was 40 minutes ago, floor is at 0m mark; missed execution (60m)
   }
 
@@ -202,11 +202,11 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     def lastExecutionTs = 1527008402073
     def lastExecution = new Date(lastExecutionTs) // day 1 at 10:00:02
     def now = new Date(lastExecutionTs + TimeUnit.HOURS.toMillis(24) + TimeUnit.MINUTES.toMillis(5)) // day 2 at 10:05:02
-    def windowFloor = new Date(now.getTime() - TimeUnit.MINUTES.toMillis(30))   // now - 30m
+    def windowFloor = new Date(now.getTime() - TimeUnit.MINUTES.toMillis(30))   // triggerWindowCeiling - 30m
 
     def dateContext = Mock(MissedPipelineTriggerCompensationJob.DateContext)
     def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
-      pipelineInitiator, registry, 30000, 'America/Los_Angeles', true, 900000, 20, dateContext)
+      pipelineInitiator, registry, 30000L, 2000L, 'America/Los_Angeles', true, 900000, 20, dateContext)
 
     when:
     def missedExecution = compensationJob.missedExecution(expr, lastExecution, windowFloor, now)
@@ -217,14 +217,14 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
 
   def 'verify that the present is a fleeting moment, the past is no more'() {
     def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
-      pipelineInitiator, registry, 30000, 'America/Los_Angeles', true, 900000, 20)
+      pipelineInitiator, registry, 30000L, 2000L, 'America/Los_Angeles', true, 900000, 20)
 
     def sleepyTimeMs = 100
 
     when:
-    def t1 = compensationJob.dateContext.now().toInstant()
+    def t1 = compensationJob.dateContext.triggerWindowCeiling().toInstant()
     sleep(sleepyTimeMs)
-    def t2 = compensationJob.dateContext.now().toInstant()
+    def t2 = compensationJob.dateContext.triggerWindowCeiling().toInstant()
 
     then:
     t2 > t1

@@ -83,12 +83,13 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        PipelineInitiator pipelineInitiator,
                                        Registry registry,
                                        @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
+                                       @Value('${scheduler.compensationJob.toleranceMs:30000}') long compensationWindowToleranceMs, // 30 seconds
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
                                        @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
                                        @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
                                        @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize) {
 
-    this(scheduler, pipelineCache, orcaService, pipelineInitiator, registry, compensationWindowMs, timeZoneId,
+    this(scheduler, pipelineCache, orcaService, pipelineInitiator, registry, compensationWindowMs, compensationWindowToleranceMs, timeZoneId,
       enableRecurring, recurringPollIntervalMs, pipelineFetchSize, null)
   }
 
@@ -98,6 +99,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        PipelineInitiator pipelineInitiator,
                                        Registry registry,
                                        @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
+                                       @Value('${scheduler.compensationJob.toleranceMs:30000}') long compensationWindowToleranceMs, // 30 seconds
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
                                        @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
                                        @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
@@ -111,7 +113,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     this.enableRecurring = enableRecurring
     this.recurringPollInterval = Duration.ofMillis(recurringPollIntervalMs)
     this.pipelineFetchSize = pipelineFetchSize
-    this.dateContext = dateContext ?: DateContext.fromCompensationWindow(timeZoneId, compensationWindowMs)
+    this.dateContext = dateContext ?: DateContext.fromCompensationWindow(timeZoneId, compensationWindowMs, compensationWindowToleranceMs)
   }
 
   @Override
@@ -203,7 +205,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
         CronExpression expr = getCronExpression(trigger)
         expr.timeZone = TimeZone.getTimeZone(dateContext.clock.zone)
 
-        if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor(), dateContext.now(), pipeline)) {
+        if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor(), dateContext.triggerWindowCeiling(), pipeline)) {
           pipelineInitiator.call(pipeline.withTrigger(trigger))
         }
       } catch (ParseException e) {
@@ -250,15 +252,15 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   }
 
   /**
-   * We have a missed execution if there is a valid date D in [windowFloor..now] such that:
+   * We have a missed execution if there is a valid date D in [windowFloor..triggerWindowCeiling] such that:
    *   D satisfies the cron expression expr
-   *   there is no execution E in lastExecutions such that E is in [D..now]
+   *   there is no execution E in lastExecutions such that E is in [D..triggerWindowCeiling]
    */
-  boolean missedExecution(CronExpression expr, Date lastExecution, Date windowFloor, Date now,
+  boolean missedExecution(CronExpression expr, Date lastExecution, Date windowFloor, Date windowCeiling,
                                  Pipeline pipeline = null) {
-    def validTriggerDate = getLastValidTimeInWindow(expr, windowFloor, now)
+    def validTriggerDate = getLastValidTimeInWindow(expr, windowFloor, windowCeiling)
 
-    // there is no date in [windowFloor..now] that satisfies the cron expression, so no trigger
+    // there is no date in [windowFloor..triggerWindowCeiling] that satisfies the cron expression, so no trigger
     if (validTriggerDate == null) {
       return false
     }
@@ -271,9 +273,8 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
         kv('pipelineConfigId', pipeline?.id), kv('lastExecution', lastExecution),
         kv('validTriggerDate', validTriggerDate))
 
-      def delayMillis = now.getTime() - validTriggerDate.getTime()
+      def delayMillis = windowCeiling.getTime() - validTriggerDate.getTime()
       registry.timer("triggers.cronMisfires").record(delayMillis, TimeUnit.MILLISECONDS)
-
     }
 
     return missed
@@ -288,23 +289,25 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   static class DateContext {
     Clock clock
     long compensationWindowMs
+    long compensationWindowToleranceMs
 
-    DateContext(Clock clock, long compensationWindowMs) {
+    DateContext(Clock clock, long compensationWindowMs, long compensationWindowToleranceMs) {
       this.clock = clock
       this.compensationWindowMs = compensationWindowMs
+      this.compensationWindowToleranceMs = compensationWindowToleranceMs
     }
 
     Date triggerWindowFloor() {
-      return Date.from(now().toInstant().minus(compensationWindowMs, ChronoUnit.MILLIS))
+      return Date.from(triggerWindowCeiling().toInstant().minusMillis(compensationWindowMs))
     }
 
-    Date now() {
-      return Date.from(Instant.now(clock))
+    Date triggerWindowCeiling() {
+      return Date.from(Instant.now(clock).minusMillis(compensationWindowToleranceMs))
     }
 
-    static DateContext fromCompensationWindow(String timeZoneId, long compensationWindowMs) {
+    static DateContext fromCompensationWindow(String timeZoneId, long compensationWindowMs, long compensationWindowToleranceMs) {
       Clock clock = Clock.system(ZoneId.of(timeZoneId))
-      return new DateContext(clock, compensationWindowMs)
+      return new DateContext(clock, compensationWindowMs, compensationWindowToleranceMs)
     }
   }
 }
