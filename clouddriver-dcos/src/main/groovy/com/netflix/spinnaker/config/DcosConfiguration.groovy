@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.mapper.DeployDcosServerGroupDescriptionToAppMapper
@@ -54,8 +55,8 @@ class DcosConfiguration {
   }
 
   @Bean
-  DcosHealthIndicator dcosHealthIndicator(AccountCredentialsProvider accountCredentialsProvider, DcosClientProvider dcosClientProvider) {
-    new DcosHealthIndicator(accountCredentialsProvider, dcosClientProvider)
+  DcosHealthIndicator dcosHealthIndicator(Registry registry, AccountCredentialsProvider accountCredentialsProvider, DcosClientProvider dcosClientProvider) {
+    new DcosHealthIndicator(registry, accountCredentialsProvider, dcosClientProvider)
   }
 
   @Bean
@@ -76,5 +77,3 @@ class DcosConfiguration {
     new PollingDcosDeploymentMonitor(operationPoller)
   }
 }
-
-
