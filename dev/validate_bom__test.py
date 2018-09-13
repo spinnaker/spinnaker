@@ -968,7 +968,7 @@ def init_argument_parser(parser, defaults):
 
   add_parser_argument(
       parser, 'test_default_quota',
-      defaults, '',
+      defaults, 'appengine_deployments=1',
       help='Default quota parameters for values used in the --test_profiles.'
            ' This does not include GCE quota values, which are determined'
            ' at runtime. These value can be further overriden by --test_quota.'
