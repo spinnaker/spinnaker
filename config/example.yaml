@@ -1,5 +1,7 @@
 # NOTE: Copy this file to ~/.spin/config
 
+gate:
+  endpoint: https://my-spinnaker-gate:8084
 auth:
   enabled: true
   x509:
