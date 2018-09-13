@@ -20,5 +20,5 @@ type BasicConfig struct {
 }
 
 func (b *BasicConfig) IsValid() bool {
-	return (b.Username != "" && b.Password != "")
+	return b.Username != "" && b.Password != ""
 }

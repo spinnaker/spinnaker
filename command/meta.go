@@ -299,7 +299,7 @@ func (m *ApiMeta) Authenticate() error {
 		if auth.OAuth2.CachedToken != nil {
 			// Look up cached credentials to save oauth2 roundtrip.
 			token := auth.OAuth2.CachedToken
-			tokenSource := config.TokenSource(oauth2.NoContext, token)
+			tokenSource := config.TokenSource(context.TODO(), token)
 			newToken, err = tokenSource.Token()
 			if err != nil {
 				m.Ui.Error(fmt.Sprintf("Could not refresh token from source: %v", tokenSource))
@@ -327,7 +327,7 @@ func (m *ApiMeta) Authenticate() error {
 			m.Ui.Output(fmt.Sprintf("Navigate to %s and authenticate", authURL))
 			code := m.Prompt()
 
-			newToken, err = config.Exchange(oauth2.NoContext, code, codeVerifier)
+			newToken, err = config.Exchange(context.TODO(), code, codeVerifier)
 			if err != nil {
 				return err
 			}

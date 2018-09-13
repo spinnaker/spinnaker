@@ -28,8 +28,8 @@ auth:
 
     # See https://www.spinnaker.io/setup/security/authentication/oauth/providers/
     # to see examples for acquiring clientId/clientSecret.
-    clientId: 
-    clientSecret: 
+    clientId:
+    clientSecret:
     scopes:
-      - scope1
-      - scope2
+    - scope1
+    - scope2

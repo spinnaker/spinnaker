@@ -31,7 +31,6 @@ func ParseOutputFormat(outputFormat string) (*OutputFormat, error) {
 	switch {
 	case outputFormat == "":
 		return format, nil
-		break
 	case strings.HasPrefix(outputFormat, "jsonpath="):
 		toks := strings.Split(outputFormat, "=")
 		if len(toks) != 2 {
@@ -41,7 +40,6 @@ func ParseOutputFormat(outputFormat string) (*OutputFormat, error) {
 		break
 	default:
 		return nil, errors.New(fmt.Sprintf("Failed to parse output format flag value: %s", outputFormat))
-		break
 	}
 	return format, nil
 }
