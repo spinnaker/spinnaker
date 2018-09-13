@@ -109,4 +109,10 @@ class UtilsSuite extends FunSuite {
     assert(MapUtils.get(map, "list", "b") === Some(List("2")))
     assert(MapUtils.get(map, "list", "c") === None)
   }
+
+  test("MapUtils get of a double works when it's an Integer") {
+    val foo: java.util.Map[String, Object] = new java.util.HashMap()
+    foo.put("bar", new Integer(42))
+    assert(MapUtils.getAsDoubleWithDefault(1.0, foo, "bar") === 42.0);
+  }
 }

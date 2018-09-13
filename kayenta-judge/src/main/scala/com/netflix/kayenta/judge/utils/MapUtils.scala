@@ -49,6 +49,12 @@ object MapUtils {
   }
 
   def getAsDoubleWithDefault(default: Double, data: Any, path: String*): Double = {
-    get(data, path: _*).getOrElse(default).asInstanceOf[Double]
+    val item = get(data, path: _*).getOrElse(default)
+    item match {
+      case integer: Integer =>
+        integer.toDouble
+      case _ =>
+        item.asInstanceOf[Double]
+    }
   }
 }
