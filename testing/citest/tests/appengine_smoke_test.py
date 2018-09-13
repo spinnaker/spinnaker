@@ -195,7 +195,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         'configFiles': [self.__app_yaml],
         'type': 'createServerGroup',
         'cloudProvider': 'appengine',
-        'region': self.bindings['TEST_GCE_REGION']
+        'region': 'us-central'
       }
     storageAccountName = self.bindings.get('TEST_STORAGE_ACCOUNT_NAME')
     if storageAccountName is not None:
@@ -233,7 +233,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         'application': self.TEST_APP,
         'cloudProvider': 'appengine',
         'provider': 'appengine',
-        'region': self.bindings['TEST_GCE_REGION'],
+        'region': 'us-central',
         'repositoryUrl': self.__test_repository_url,
         'stack': self.TEST_STACK
     }
@@ -262,7 +262,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
             'loadBalancerName': self.__lb_name,
             'migrateTraffic': False,
             'name': self.__lb_name,
-            'region': self.bindings['TEST_GCE_REGION'],
+            'region': 'us-central',
             'splitDescription': {
                 'allocationDescriptions': [
                 {
