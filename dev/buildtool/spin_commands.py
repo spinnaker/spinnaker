@@ -99,7 +99,6 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       context = '%s-%s' % (dist_arch.dist, dist_arch.arch)
       logfile = self.get_logfile_path(
           repository.name + '-build-' + context)
-      logging.info('Building spin binary for %s', dist_arch)
       labels = {'repository': repository.name,
                 'dist': dist_arch.dist,
                 'arch': dist_arch.arch}
@@ -126,6 +125,7 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       # Unset ReleasePhase tag for proper versions.
       ldflags = '-ldflags "-X {pref}.Version={gate_version} -X {pref}.ReleasePhase="'.format(pref=prefix,
                                                                                              gate_version=gate_semver)
+      logging.info('Building spin binary for %s with ldflags: %s', dist_arch, ldflags)
       cmd = 'go build {ldflags} .'.format(ldflags=ldflags)
       self.metrics.time_call(
           'GoBuild', labels, self.metrics.default_determine_outcome_labels,
