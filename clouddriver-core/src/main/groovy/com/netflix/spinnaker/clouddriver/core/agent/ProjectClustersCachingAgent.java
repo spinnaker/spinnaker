@@ -66,7 +66,7 @@ public class ProjectClustersCachingAgent implements CachingAgent, CustomSchedule
       Collections.singletonList(
         new MutableCacheData(
           "v1",
-          new HashMap<>(projectClustersService.getProjectClusters(properties.getAllowList())),
+          new HashMap<>(projectClustersService.getProjectClusters(properties.getNormalizedAllowList())),
           Collections.emptyMap()
         )
       )

@@ -48,15 +48,10 @@ public class ProjectClustersService {
   }
 
   public Map<String, List<ClusterModel>> getProjectClusters(List<String> projectNames) {
-    List<Map> projects = front50Service.searchForProjects(Collections.emptyMap(), 1000);
-
     Map<String, List<ProjectClustersService.ClusterModel>> projectClusters = new HashMap<>();
 
-    for (Map projectMap : projects) {
-      String projectName = (String) projectMap.getOrDefault("name", "UNKNOWN");
-      if (!projectNames.contains(projectName)) {
-        continue;
-      }
+    for (String projectName : projectNames) {
+      Map projectMap = front50Service.getProject(projectName);
 
       Project project;
       try {
@@ -68,6 +63,7 @@ public class ProjectClustersService {
 
       if (project.config.clusters.isEmpty()) {
         projectClusters.put(project.name, Collections.emptyList());
+        log.debug("Project '{}' does not have any clusters", projectName);
         continue;
       }
 

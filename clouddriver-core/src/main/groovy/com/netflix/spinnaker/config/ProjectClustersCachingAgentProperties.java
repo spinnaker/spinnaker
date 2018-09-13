@@ -31,13 +31,17 @@ public class ProjectClustersCachingAgentProperties {
   List<String> allowList = new ArrayList<>();
 
   public List<String> getAllowList() {
-    return allowList.stream()
-      .filter(p -> !Strings.isNullOrEmpty(p))
-      .map(String::toLowerCase)
-      .collect(Collectors.toList());
+    return allowList;
   }
 
   public void setAllowList(List<String> allowList) {
     this.allowList = allowList;
+  }
+
+  public List<String> getNormalizedAllowList() {
+    return allowList.stream()
+      .filter(p -> !Strings.isNullOrEmpty(p))
+      .map(String::toLowerCase)
+      .collect(Collectors.toList());
   }
 }

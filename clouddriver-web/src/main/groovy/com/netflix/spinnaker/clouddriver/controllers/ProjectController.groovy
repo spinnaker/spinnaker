@@ -51,7 +51,7 @@ class ProjectController {
 
   @RequestMapping(method= RequestMethod.GET, value = "/clusters")
   List<ClusterModel> getClusters(@PathVariable String project) {
-    if (projectClustersCachingAgentProperties.getAllowList().contains(project.toLowerCase())) {
+    if (projectClustersCachingAgentProperties.getNormalizedAllowList().contains(project.toLowerCase())) {
       CacheData cacheData = cacheView.get(Namespace.PROJECT_CLUSTERS.ns, "v1")
       if (cacheData == null) {
         throw new NotFoundException("Projects not cached")
