@@ -169,6 +169,8 @@ module.exports = angular
         }
       }
 
+      // When cloning a security group, if a user chooses a different account to clone to, but wants to retain the same VPC in this new account, it was not possible.
+      // We matched the vpc ids from one account to another but they are never the same. In order to ensure that users still retain their VPC choice, irrespective of the account, we switched to using vpc names instead of vpc ids
       const match = (available || []).find(vpc => vpc.label === $scope.securityGroup.vpcName);
       $scope.securityGroup.vpcId = match ? match.ids[0] : null;
       this.vpcUpdated();

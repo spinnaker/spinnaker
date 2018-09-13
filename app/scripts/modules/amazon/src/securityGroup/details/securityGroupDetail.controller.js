@@ -12,6 +12,8 @@ import {
   FirewallLabels,
 } from '@spinnaker/core';
 
+import { VpcReader } from '../../vpc/VpcReader';
+
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.details.controller', [
     require('@uirouter/angularjs').default,
@@ -51,6 +53,12 @@ module.exports = angular
           securityGroup.vpcId,
           securityGroup.name,
         )
+        .then(function(details) {
+          return VpcReader.getVpcName(details.vpcId).then(name => {
+            details.vpcName = name;
+            return details;
+          });
+        })
         .then(function(details) {
           $scope.state.loading = false;
 
