@@ -71,12 +71,7 @@ class CatsSearchProviderSpec extends Specification {
 
     then:
     catsSearchProvider.cachedIdentifiersByType.get() == [
-      "instances": instanceIdentifiers.collect {
-        [
-          originalKey: it.toLowerCase(),
-          "_id"      : it.toLowerCase()
-        ]
-      }
+      "instances": instanceIdentifiers.collect { it.toLowerCase() }
     ]
   }
 
