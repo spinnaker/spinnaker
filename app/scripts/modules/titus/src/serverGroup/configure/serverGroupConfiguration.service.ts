@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IPromise, module } from 'angular';
 import { chain, flatten, intersection, xor } from 'lodash';
 import { $q } from 'ngimport';
 import { Subject } from 'rxjs';
@@ -15,11 +15,21 @@ import {
   LOAD_BALANCER_READ_SERVICE,
   ICluster,
   IAccountDetails,
+  SECURITY_GROUP_READER,
+  SecurityGroupReader,
+  IVpc,
+  ISecurityGroup,
 } from '@spinnaker/core';
-import { IAmazonApplicationLoadBalancer, IAmazonLoadBalancer, IAmazonServerGroupCommandDirty } from '@spinnaker/amazon';
+import {
+  IAmazonApplicationLoadBalancer,
+  IAmazonLoadBalancer,
+  IAmazonServerGroupCommandDirty,
+  VpcReader,
+} from '@spinnaker/amazon';
 
 export interface ITitusServerGroupCommandBackingData extends IServerGroupCommandBackingData {
   accounts: string[];
+  vpcs: IVpc[];
 }
 
 export interface ITitusServerGroupCommandViewState extends IServerGroupCommandViewState {
@@ -54,10 +64,15 @@ export interface ITitusServerGroupCommand extends IServerGroupCommand {
   viewState: ITitusServerGroupCommandViewState;
   targetGroups: string[];
   removedTargetGroups: string[];
+  backingData: ITitusServerGroupCommandBackingData;
 }
 
 export class TitusServerGroupConfigurationService {
-  constructor(private cacheInitializer: CacheInitializerService, private loadBalancerReader: LoadBalancerReader) {
+  constructor(
+    private cacheInitializer: CacheInitializerService,
+    private loadBalancerReader: LoadBalancerReader,
+    private securityGroupReader: SecurityGroupReader,
+  ) {
     'ngInject';
   }
 
@@ -83,11 +98,13 @@ export class TitusServerGroupConfigurationService {
       }
       cmd.viewState.dirty = { ...(cmd.viewState.dirty || {}), ...result.dirty };
       this.configureLoadBalancerOptions(cmd);
+      this.configureSecurityGroupOptions(cmd);
       return result;
     };
 
     cmd.regionChanged = (command: ITitusServerGroupCommand) => {
       this.configureLoadBalancerOptions(command);
+      this.configureSecurityGroupOptions(command);
       return {};
     };
   }
@@ -106,6 +123,8 @@ export class TitusServerGroupConfigurationService {
     return $q
       .all({
         credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('titus'),
+        securityGroups: this.securityGroupReader.getAllSecurityGroups(),
+        vpcs: VpcReader.listVpcs(),
         images: [],
       })
       .then((backingData: any) => {
@@ -114,12 +133,79 @@ export class TitusServerGroupConfigurationService {
         backingData.filtered.regions = backingData.credentialsKeyedByAccount[cmd.credentials].regions;
         cmd.backingData = backingData;
 
-        // this.configureLoadBalancerOptions(cmd);
-
-        return $q.all([this.refreshLoadBalancers(cmd)]).then(() => {
+        return $q.all([this.refreshLoadBalancers(cmd), this.refreshSecurityGroups(cmd, false)]).then(() => {
           this.attachEventHandlers(cmd);
         });
       });
+  }
+
+  private getVpcId(command: ITitusServerGroupCommand): string {
+    const credentials = this.getCredentials(command);
+    const match = command.backingData.vpcs.find(
+      vpc =>
+        vpc.name === credentials.awsVpc &&
+        vpc.account === credentials.awsAccount &&
+        vpc.region === this.getRegion(command) &&
+        vpc.cloudProvider === 'aws',
+    );
+    return match ? match.id : null;
+  }
+
+  private getRegionalSecurityGroups(command: ITitusServerGroupCommand): ISecurityGroup[] {
+    const newSecurityGroups: any = command.backingData.securityGroups[this.getAwsAccount(command)] || { aws: {} };
+    return chain<ISecurityGroup>(newSecurityGroups.aws[this.getRegion(command)])
+      .filter({ vpcId: this.getVpcId(command) })
+      .sortBy('name')
+      .value();
+  }
+
+  private configureSecurityGroupOptions(command: ITitusServerGroupCommand): void {
+    const currentOptions = command.backingData.filtered.securityGroups;
+    const newRegionalSecurityGroups = this.getRegionalSecurityGroups(command);
+    const isExpression =
+      typeof command.securityGroups === 'string' && (command.securityGroups as string).includes('${');
+    if (currentOptions && command.securityGroups && !isExpression) {
+      // not initializing - we are actually changing groups
+      const currentGroupNames: string[] = command.securityGroups.map((groupId: string) => {
+        const match = currentOptions.find(o => o.id === groupId);
+        return match ? match.name : groupId;
+      });
+
+      const matchedGroups = command.securityGroups
+        .map((groupId: string) => {
+          const securityGroup: any = currentOptions.find(o => o.id === groupId || o.name === groupId);
+          return securityGroup ? securityGroup.name : null;
+        })
+        .map((groupName: string) => newRegionalSecurityGroups.find(g => g.name === groupName))
+        .filter((group: any) => group);
+
+      const matchedGroupNames: string[] = matchedGroups.map(g => g.name);
+      const removed: string[] = xor(currentGroupNames, matchedGroupNames);
+      command.securityGroups = matchedGroups.map(g => g.id);
+      if (removed.length) {
+        command.dirty.securityGroups = removed;
+      }
+    }
+    command.backingData.filtered.securityGroups = newRegionalSecurityGroups.sort((a, b) => {
+      if (command.securityGroups.includes(a.id)) {
+        return -1;
+      }
+      if (command.securityGroups.includes(b.id)) {
+        return 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  public refreshSecurityGroups(command: ITitusServerGroupCommand, skipCommandReconfiguration: boolean): IPromise<void> {
+    return this.cacheInitializer.refreshCache('securityGroups').then(() => {
+      return this.securityGroupReader.getAllSecurityGroups().then((securityGroups: any) => {
+        command.backingData.securityGroups = securityGroups;
+        if (!skipCommandReconfiguration) {
+          this.configureSecurityGroupOptions(command);
+        }
+      });
+    });
   }
 
   private getCredentials(command: ITitusServerGroupCommand): IAccountDetails {
@@ -181,7 +267,8 @@ export class TitusServerGroupConfigurationService {
 }
 
 export const TITUS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.titus.serverGroup.configure.service';
-module(TITUS_SERVER_GROUP_CONFIGURATION_SERVICE, [CACHE_INITIALIZER_SERVICE, LOAD_BALANCER_READ_SERVICE]).service(
-  'titusServerGroupConfigurationService',
-  TitusServerGroupConfigurationService,
-);
+module(TITUS_SERVER_GROUP_CONFIGURATION_SERVICE, [
+  CACHE_INITIALIZER_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
+  SECURITY_GROUP_READER,
+]).service('titusServerGroupConfigurationService', TitusServerGroupConfigurationService);
