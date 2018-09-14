@@ -6,7 +6,7 @@
     <div ng-if="!state.loaded" style="height: 200px">
       <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
     </div>
-    <v2-modal-wizard ng-show="state.loaded" heading="{{title}}" task-monitor="taskMonitor" dismiss="$dismiss()">
+    <v2-modal-wizard ng-if="state.loaded" heading="{{title}}" task-monitor="taskMonitor" dismiss="$dismiss()">
       <v2-wizard-page key="location" label="Basic Settings">
         <ng-include src="pages.basicSettings"></ng-include>
       </v2-wizard-page>
