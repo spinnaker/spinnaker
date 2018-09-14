@@ -13,6 +13,7 @@ export interface IWizardPageProps {
   ref?: () => void;
   revalidate?: () => void;
   setWaiting?: (section: string, isWaiting: boolean) => void;
+  note?: React.ReactElement<any>;
 }
 
 export interface IWizardPageState {
@@ -77,7 +78,7 @@ export function wizardPage<P = {}>(
     };
 
     public render() {
-      const { done, mandatory } = this.props;
+      const { done, mandatory, note } = this.props;
       const { hasErrors, isDirty, label } = this.state;
       const showDone = done || !mandatory;
       const className = classNames({
@@ -93,6 +94,7 @@ export function wizardPage<P = {}>(
           </div>
           <div className="wizard-page-body">
             <WrappedComponent {...this.props} dirtyCallback={this.dirtyCallback} ref={this.handleWrappedRef} />
+            {note && <div className="row">{note}</div>}
           </div>
         </div>
       );
