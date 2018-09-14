@@ -16,7 +16,7 @@ import {
   ICluster,
   IAccountDetails,
 } from '@spinnaker/core';
-import { IAmazonApplicationLoadBalancer, IAmazonLoadBalancer } from '@spinnaker/amazon';
+import { IAmazonApplicationLoadBalancer, IAmazonLoadBalancer, IAmazonServerGroupCommandDirty } from '@spinnaker/amazon';
 
 export interface ITitusServerGroupCommandBackingData extends IServerGroupCommandBackingData {
   accounts: string[];
@@ -26,7 +26,7 @@ export interface ITitusServerGroupCommandViewState extends IServerGroupCommandVi
   accountChangedStream: Subject<{}>;
   regionChangedStream: Subject<{}>;
   groupsRemovedStream: Subject<{}>;
-  removedGroups: string[];
+  dirty: IAmazonServerGroupCommandDirty;
 }
 
 export interface ITitusServerGroupCommand extends IServerGroupCommand {
@@ -66,7 +66,7 @@ export class TitusServerGroupConfigurationService {
   }
 
   private attachEventHandlers(cmd: ITitusServerGroupCommand) {
-    cmd.viewState.removedGroups = [];
+    cmd.viewState.dirty = {};
     cmd.credentialsChanged = () => {
       const result = { dirty: {} };
       const backingData = cmd.backingData;
@@ -114,9 +114,9 @@ export class TitusServerGroupConfigurationService {
         backingData.filtered.regions = backingData.credentialsKeyedByAccount[cmd.credentials].regions;
         cmd.backingData = backingData;
 
-        this.configureLoadBalancerOptions(cmd);
+        // this.configureLoadBalancerOptions(cmd);
 
-        return $q.all([]).then(() => {
+        return $q.all([this.refreshLoadBalancers(cmd)]).then(() => {
           this.attachEventHandlers(cmd);
         });
       });
@@ -165,7 +165,7 @@ export class TitusServerGroupConfigurationService {
       const matched = intersection(allTargetGroups, currentTargetGroups);
       const removedTargetGroups = xor(matched, currentTargetGroups);
       command.targetGroups = intersection(allTargetGroups, matched);
-      command.removedTargetGroups = removedTargetGroups;
+      command.viewState.dirty.targetGroups = removedTargetGroups;
     }
     (command.backingData.filtered as any).targetGroups = allTargetGroups;
   }
