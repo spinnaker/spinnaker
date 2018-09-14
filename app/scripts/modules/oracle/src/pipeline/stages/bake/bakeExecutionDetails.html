@@ -4,28 +4,24 @@
     <div class="row">
       <div class="col-md-6">
         <dl class="dl-narrow dl-horizontal">
-          <dt if-multiple-providers>Provider</dt>
-          <dd if-multiple-providers>Oracle</dd>
-          <dt>Image</dt>
-          <dd><ocid ocid="stage.context.ami"></ocid></dd>
-          <dt>Region</dt>
-          <dd>{{stage.context.region}}</dd>
-          <dt>Package</dt>
-          <dd>{{stage.context.package}}</dd>
+          <dt>Provider</dt>
+          <dd>oracle</dd>
+          <dt>Image Name</dt>
+          <dd>{{stage.context.amiName}}</dd>
+          <dt ng-if="stage.context.package">Package</dt>
+          <dd ng-if="stage.context.package">{{stage.context.package}}</dd>
+          <dt ng-if="stage.context.accountName">Account</dt>
+          <dd ng-if="stage.context.accountName">{{stage.context.accountName}}</dd>
         </dl>
       </div>
       <div class="col-md-6">
         <dl class="dl-narrow dl-horizontal">
-          <dt>Base OS</dt>
+          <dt>Base Image</dt>
           <dd>{{stage.context.baseOs}}</dd>
-          <dt>Label</dt>
-          <dd>{{stage.context.baseLabel}}</dd>
           <dt ng-if="roscoMode || stage.context.rebake">Rebake</dt>
           <dd ng-if="roscoMode || stage.context.rebake">{{stage.context.rebake || false}}</dd>
           <dt ng-if="stage.context.templateFileName">Template</dt>
           <dd ng-if="stage.context.templateFileName">{{stage.context.templateFileName}}</dd>
-          <dt ng-if="stage.context.accountName">Account Name</dt>
-          <dd ng-if="stage.context.accountName">{{stage.context.accountName}}</dd>
           <dt ng-if="stage.context.varFileName">Var File</dt>
           <dd ng-if="stage.context.varFileName">{{stage.context.varFileName}}</dd>
         </dl>

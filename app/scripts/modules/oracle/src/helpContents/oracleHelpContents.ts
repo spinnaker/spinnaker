@@ -11,13 +11,17 @@ const helpContents = [
   },
   {
     key: 'oracle.pipeline.config.bake.baseOsOption',
-    value: '<p>The base operating system from which the image will be created.</p>',
+    value: '<p>The base image from which the image will be created.</p>',
+  },
+  {
+    key: 'oracle.pipeline.config.bake.image_name',
+    value: '<p>The base name of the image that will be created.</p>',
   },
   {
     key: 'oracle.pipeline.config.bake.package',
     value:
       '<p>The name of the package you want installed (without any version identifiers).</p>' +
-      '<p>For example: <i>curl</i>.</p>',
+      '<p>If there are multiple packages (space separated), then they will be installed in the order they are entered.</p>',
   },
   {
     key: 'oracle.pipeline.config.bake.upgrade',
@@ -38,18 +42,6 @@ const helpContents = [
   {
     key: 'oracle.pipeline.config.bake.account_name',
     value: '<p>The name of Oracle <i>account</i> that will be used during the baking process.</p>',
-  },
-  {
-    key: 'oracle.pipeline.config.bake.network',
-    value: '<p>The name of Oracle <i>network</i> that will be used during the baking process.</p>',
-  },
-  {
-    key: 'oracle.pipeline.config.bake.availability_domain',
-    value: '<p>The Oracle <i>availability domain</i> that will be used during the baking process.</p>',
-  },
-  {
-    key: 'oracle.pipeline.config.bake.subnet_ocid',
-    value: '<p>The Oracle <i>subnet</i> that will be used during the baking process.</p>',
   },
 ];
 

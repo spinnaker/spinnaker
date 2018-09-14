@@ -14,7 +14,7 @@ module(ORACLE_MODULE, [
   // Cache
   require('./cache/cacheConfigurer.service.js').name,
   // Pipeline
-  require('./pipeline/stages/bake/bakeStage.js').name,
+  require('./pipeline/stages/bake/ociBakeStage.js').name,
   require('./pipeline/stages/destroyAsg/destroyAsgStage.js').name,
   require('./pipeline/stages/disableAsg/disableAsgStage.js').name,
   require('./pipeline/stages/findAmi/findAmiStage.js').name,
