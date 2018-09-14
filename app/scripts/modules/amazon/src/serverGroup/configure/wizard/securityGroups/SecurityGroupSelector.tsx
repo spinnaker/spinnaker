@@ -63,7 +63,7 @@ export class SecurityGroupSelector extends React.Component<ISecurityGroupSelecto
               {helpKey && <HelpField key={helpKey} />}
             </div>
           )}
-          <div className="col-md-9">
+          <div className="col-md-8">
             <VirtualizedSelect
               options={availableGroupOptions}
               onChange={this.onChange}

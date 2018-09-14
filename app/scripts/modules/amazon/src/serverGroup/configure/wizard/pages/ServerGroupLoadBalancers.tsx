@@ -9,7 +9,6 @@ import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.servic
 export interface IServerGroupLoadBalancersProps {
   hideLoadBalancers?: boolean;
   hideTargetGroups?: boolean;
-  note?: React.ReactElement<any>;
 }
 
 export interface IServerGroupLoadBalancersState {
@@ -87,7 +86,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
   };
 
   public render() {
-    const { hideLoadBalancers, hideTargetGroups, note, values } = this.props;
+    const { hideLoadBalancers, hideTargetGroups, values } = this.props;
     const { dirty } = values.viewState;
     const { refreshed, refreshing, showVpcLoadBalancers } = this.state;
 
@@ -119,7 +118,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
             </div>
           )}
           <div className="form-group">
-            <div className="col-md-4 sm-label-right">
+            <div className="col-md-3 sm-label-right">
               <b>Target Groups </b>
               <HelpField id="aws.loadBalancer.targetGroups" />
             </div>
@@ -250,7 +249,6 @@ class ServerGroupLoadBalancersImpl extends React.Component<
       <div className="row">
         {targetGroupSection}
         {loadBalancersSection}
-        {note}
       </div>
     );
   }

@@ -7,12 +7,7 @@ import { SecurityGroupSelector } from '../securityGroups/SecurityGroupSelector';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 import { ServerGroupSecurityGroupsRemoved } from '../securityGroups/ServerGroupSecurityGroupsRemoved';
 
-export interface IServerGroupSecurityGroupsState {}
-
-class ServerGroupSecurityGroupsImpl extends React.Component<
-  IWizardPageProps & FormikProps<IAmazonServerGroupCommand>,
-  IServerGroupSecurityGroupsState
-> {
+class ServerGroupSecurityGroupsImpl extends React.Component<IWizardPageProps & FormikProps<IAmazonServerGroupCommand>> {
   public static get LABEL() {
     return FirewallLabels.get('Firewalls');
   }
