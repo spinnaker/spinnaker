@@ -1,0 +1,60 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
+  <form name="form" role="form">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h3>Rollback {{ctrl.serverGroup.name}}</h3>
+    </div>
+    <div class="form-group">
+    </div>
+    <div class="row">
+      <div class="col-sm-3 sm-label-right">
+        Restore to
+      </div>
+      <div class="col-md-7">
+        <ui-select ng-model="ctrl.command.rollbackContext.restoreServerGroupName"
+                   class="form-control input-sm"
+                   ng-required="true"
+                   ng-if="ctrl.command.rollbackType === 'EXPLICIT'">
+          <ui-select-match placeholder="Select...">{{ctrl.label($select.selected)}}</ui-select-match>
+          <ui-select-choices group-by="ctrl.group" repeat="serverGroup.name as serverGroup in ctrl.allServerGroups">
+            <span ng-bind-html="ctrl.label(serverGroup)"></span>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+
+    <task-reason command="command"></task-reason>
+
+    <div class="row">
+      <div class="col-sm-4 sm-label-right">
+        Rollback Operations
+      </div>
+    </div>
+
+    <div class="row" ng-if="ctrl.command.rollbackType === 'EXPLICIT'">
+      <div class="col-sm-11 col-sm-offset-1">
+        <ol>
+          <li>Enable <em>{{ ctrl.command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em></li>
+          <li>Disable {{ ctrl.serverGroup.name }}</li>
+          <li>Restore minimum capacity of <em>{{ ctrl.command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> [
+            <strong>min</strong>: {{ ctrl.previousServerGroup.capacity.min }}
+            ]
+          </li>
+        </ol>
+        <p>
+          This rollback will affect server groups in {{ ctrl.serverGroup.account }} ({{ ctrl.serverGroup.region }}).
+        </p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button ng-disabled="ctrl.taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">
+        Cancel
+      </button>
+      <submit-button ng-if="form.$valid" is-disabled="form.$invalid || ctrl.taskMonitor.submitting"
+                     label="command.viewState.submitButtonLabel"
+                     submitting="ctrl.taskMonitor.submitting" on-click="ctrl.submit()" is-new="true"></submit-button>
+    </div>
+  </form>
+</div>

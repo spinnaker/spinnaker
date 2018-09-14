@@ -1,0 +1,13 @@
+<form name="form" role="form">
+  <v2-modal-wizard heading="Resize {{serverGroup.name}}" task-monitor="ctrl.taskMonitor" dismiss="$dismiss()">
+    <v2-wizard-page key="resize-settings" label="Resize Settings" mark-complete-on-view="false">
+      <ng-include src="ctrl.pages.resizeCapacity"></ng-include>
+    </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button ng-disabled="ctrl.taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button ng-if="form.$valid" is-disabled="form.$invalid || ctrl.taskMonitor.submitting"
+                   label="command.viewState.submitButtonLabel"
+                   submitting="ctrl.taskMonitor.submitting" on-click="ctrl.submit()" is-new="true"></submit-button>
+  </div>
+</form>
