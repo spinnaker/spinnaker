@@ -20,14 +20,14 @@ import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import strikt.api.Assertion
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import java.lang.System.nanoTime
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
-import java.util.Random
+import java.util.*
 
 internal object ValidateAssetTreeHandlerSpec : Spek({
 
@@ -212,7 +212,7 @@ fun randomBytes(length: Int = 20) =
   ByteArray(length).also(Random(nanoTime())::nextBytes)
 
 infix fun <T> T.expect(block: Assertion.Builder<T>.() -> Unit) =
-  expect(this, block)
+  expectThat(this, block)
 
 fun <T> Iterable<T>.head(): List<T> = listOf(first())
 fun <T> Iterable<T>.tail(): List<T> = drop(1)

@@ -19,7 +19,7 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import strikt.api.Assertion
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEqualTo
@@ -49,27 +49,19 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
     afterGroup { clear(subject) }
 
     it("returns null from assetPluginsFor") {
-      expect(subject.assetPluginFor(securityGroup)) {
-        isNull()
-      }
+      expectThat(subject.assetPluginFor(securityGroup)).isNull()
     }
 
     it("returns no asset plugins") {
-      expect(subject.assetPlugins()) {
-        isEmpty()
-      }
+      expectThat(subject.assetPlugins()).isEmpty()
     }
 
     it("returns no veto plugins") {
-      expect(subject.vetoPlugins()) {
-        isEmpty()
-      }
+      expectThat(subject.vetoPlugins()).isEmpty()
     }
 
     it("returns no plugins") {
-      expect(subject.allPlugins()) {
-        isEmpty()
-      }
+      expectThat(subject.allPlugins()).isEmpty()
     }
   }
 
@@ -83,27 +75,21 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
     afterGroup { clear(subject) }
 
     it("returns the plugin address in the list of all plugins") {
-      expect(subject.allPlugins()) {
-        containsExactly(address)
-      }
+      expectThat(subject.allPlugins()).containsExactly(address)
     }
 
     it("returns the plugin in the list of asset plugins") {
-      expect(subject.assetPlugins()) {
-        containsExactly(address)
-      }
+      expectThat(subject.assetPlugins()).containsExactly(address)
     }
 
     it("returns the plugin address by type") {
-      expect(subject.assetPluginFor(securityGroup)) {
-        isNotNull().isEqualTo(address)
-      }
+      expectThat(subject.assetPluginFor(securityGroup))
+        .isNotNull()
+        .isEqualTo(address)
     }
 
     it("does not return the plugin address for a different type") {
-      expect(subject.assetPluginFor(loadBalancer)) {
-        isNull()
-      }
+      expectThat(subject.assetPluginFor(loadBalancer)).isNull()
     }
   }
 
@@ -118,13 +104,11 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
     afterGroup { clear(subject) }
 
     it("returns the plugin only once in the list of all plugins") {
-      expect(subject.allPlugins())
-        .containsExactly(address)
+      expectThat(subject.allPlugins()).containsExactly(address)
     }
 
     it("returns the plugin only once in the list of asset plugins") {
-      expect(subject.assetPlugins())
-        .containsExactly(address)
+      expectThat(subject.assetPlugins()).containsExactly(address)
     }
   }
 
@@ -142,13 +126,13 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
     afterGroup { clear(subject) }
 
     it("returns the plugin address in the list of all plugins") {
-      expect(subject.allPlugins()) {
+      expectThat(subject.allPlugins()) {
         containsExactlyInAnyOrder(address1, address2)
       }
     }
 
     it("returns the plugin") {
-      expect(subject.vetoPlugins()) {
+      expectThat(subject.vetoPlugins()) {
         containsExactlyInAnyOrder(address1, address2)
       }
     }

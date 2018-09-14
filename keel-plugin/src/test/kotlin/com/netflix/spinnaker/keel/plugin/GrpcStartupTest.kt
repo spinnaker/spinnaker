@@ -30,7 +30,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.test.context.junit4.SpringRunner
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
@@ -100,7 +100,7 @@ internal class GrpcStartupTest {
     }).onNext(request)
 
     latch.await(1, SECONDS)
-    expect(discoveredServiceNames)
+    expectThat(discoveredServiceNames)
       .isNotEmpty()
       .contains(VetoPluginGrpc.SERVICE_NAME)
   }
@@ -113,7 +113,9 @@ internal class GrpcStartupTest {
       .build()
       .let(VetoPluginGrpc::newFutureStub)
       .allow(Asset.getDefaultInstance())
-    expect(response.get()).map(AllowResponse::getDecision).isEqualTo(proceed)
+    expectThat(response.get())
+      .map(AllowResponse::getDecision)
+      .isEqualTo(proceed)
   }
 }
 

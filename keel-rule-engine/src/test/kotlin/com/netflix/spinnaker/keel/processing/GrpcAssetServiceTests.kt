@@ -28,8 +28,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
-import strikt.api.expect
-import strikt.api.throws
+import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.contentEquals
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
@@ -77,7 +77,7 @@ internal class GrpcAssetServiceTests {
 
   @Test
   fun `current throws an exception if no registered plugin supports an asset type`() {
-    throws<UnsupportedAssetType> {
+    expectThrows<UnsupportedAssetType> {
       subject.current(asset.copy(kind = "ElasticLoadBalancer:aws:prod:us-west-2:keel").wrap())
     }
 
@@ -96,7 +96,7 @@ internal class GrpcAssetServiceTests {
     }
 
     subject.current(asset.wrap()).also { result ->
-      expect(result.current).isNull()
+      expectThat(result.current).isNull()
     }
   }
 
@@ -110,9 +110,9 @@ internal class GrpcAssetServiceTests {
     }
 
     subject.current(asset.wrap()).also { result ->
-      expect(result.current) {
-        isNotNull().isIdenticalTo(asset)
-      }
+      expectThat(result.current)
+        .isNotNull()
+        .isIdenticalTo(asset)
     }
   }
 

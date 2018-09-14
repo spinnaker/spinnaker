@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.api
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 internal object TestAssetPluginSpec : Spek({
@@ -31,11 +31,13 @@ internal object TestAssetPluginSpec : Spek({
       }
         .build()
 
-      grpc.withChannel {
-        val response = it.current(request)
+      grpc.withChannel { stub ->
+        val response = stub.current(request)
 
-        expect(response.desired).isEqualTo(request.asset)
-        expect(response.current).isEqualTo(request.asset)
+        expectThat(response) {
+          map { it.desired }.isEqualTo(request.asset)
+          map { it.current }.isEqualTo(request.asset)
+        }
       }
     }
   }

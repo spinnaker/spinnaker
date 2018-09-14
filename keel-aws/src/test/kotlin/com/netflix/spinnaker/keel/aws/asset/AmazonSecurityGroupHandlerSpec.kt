@@ -50,6 +50,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import strikt.api.Assertion
 import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
@@ -59,7 +60,7 @@ import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import strikt.protobuf.unpack
 import strikt.protobuf.unpacksTo
-import java.util.UUID
+import java.util.*
 
 internal object AmazonSecurityGroupHandlerSpec : Spek({
 
@@ -129,8 +130,10 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
       }
 
       it("returns null") {
-        expect(response.hasCurrent()).isFalse()
-        expect(response.hasDesired()).isTrue()
+        expect {
+          that(response.hasCurrent()).isFalse()
+          that(response.hasDesired()).isTrue()
+        }
       }
     }
 
@@ -166,7 +169,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
       }
 
       it("returns the security group") {
-        expect(response) {
+        expectThat(response) {
           map { it.hasCurrent() }.isTrue()
           map { it.current.spec }
             .unpacksTo<SecurityGroup>()
@@ -232,7 +235,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
       it("upserts the security group via Orca") {
         argumentCaptor<OrchestrationRequest>().apply {
           verify(orcaService).orchestrate(capture())
-          expect(firstValue) {
+          expectThat(firstValue) {
             application.isEqualTo(securityGroup.application)
             job.hasSize(1)
           }
@@ -295,7 +298,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
       it("upserts the security group via Orca") {
         argumentCaptor<OrchestrationRequest>().apply {
           verify(orcaService).orchestrate(capture())
-          expect(firstValue) {
+          expectThat(firstValue) {
             application.isEqualTo(securityGroup.application)
             job.hasSize(1)
             job[0]["securityGroupIngress"].isA<List<*>>()

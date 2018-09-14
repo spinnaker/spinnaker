@@ -30,7 +30,7 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
@@ -67,7 +67,7 @@ internal object PluginRegistrationSpec : Spek({
       val subject = GrpcPluginRegistry(eurekaClient, InMemoryPluginRepository())
       it("no stub is returned for an unknown asset type") {
         subject.pluginFor(type).let {
-          expect(it).isNull()
+          expectThat(it).isNull()
         }
       }
     }
@@ -96,7 +96,7 @@ internal object PluginRegistrationSpec : Spek({
       it("the registration request succeeds") {
         inOrder(responseHandler) {
           verify(responseHandler).onNext(check {
-            expect(it.succeeded).isTrue()
+            expectThat(it.succeeded).isTrue()
           })
           verify(responseHandler).onCompleted()
         }
@@ -104,7 +104,7 @@ internal object PluginRegistrationSpec : Spek({
 
       it("the registry can now supply a stub for talking to the plugin") {
         subject.pluginFor(type).let {
-          expect(it).isNotNull().isA<AssetPluginBlockingStub>()
+          expectThat(it).isNotNull().isA<AssetPluginBlockingStub>()
         }
       }
     }
@@ -144,7 +144,7 @@ internal object PluginRegistrationSpec : Spek({
 
       it("the registration request succeeds") {
         verify(responseHandler, times(2)).onNext(check {
-          expect(it.succeeded).isTrue()
+          expectThat(it.succeeded).isTrue()
         })
       }
 
@@ -154,7 +154,7 @@ internal object PluginRegistrationSpec : Spek({
 
       it("the registry can now supply a stub for talking to the plugin") {
         verify(vetoCallback, times(2)).invoke(check {
-          expect(it).isA<VetoPluginBlockingStub>()
+          expectThat(it).isA<VetoPluginBlockingStub>()
         })
       }
     }

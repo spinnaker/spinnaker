@@ -13,7 +13,7 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
@@ -79,7 +79,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
     subject.store(asset)
 
-    expect(subject.get(asset.id)).isEqualTo(asset)
+    expectThat(subject.get(asset.id)).isEqualTo(asset)
   }
 
   @Test
@@ -93,7 +93,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
     subject.store(asset)
 
-    expect(subject.lastKnownState(asset.id))
+    expectThat(subject.lastKnownState(asset.id))
       .isNotNull()
       .map { it.first }
       .isEqualTo(Unknown)
@@ -120,10 +120,9 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
     argumentCaptor<Asset>().apply {
       verify(callback, times(2)).invoke(capture())
-      expect(allValues) {
-        hasSize(2)
-        containsExactlyInAnyOrder(asset1, asset2)
-      }
+      expectThat(allValues)
+        .hasSize(2)
+        .containsExactlyInAnyOrder(asset1, asset2)
     }
   }
 
@@ -142,7 +141,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
     )
     subject.store(asset2)
 
-    expect(subject.get(asset1.id))
+    expectThat(subject.get(asset1.id))
       .isNotNull()
       .map(Asset::spec)
       .isEqualTo(asset2.spec)

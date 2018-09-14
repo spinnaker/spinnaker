@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.api
 
+import com.netflix.spinnaker.keel.api.Decision.halt
+import com.netflix.spinnaker.keel.api.Decision.proceed
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -7,7 +9,7 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.gherkin.Feature
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 internal object SimpleVetoPluginSpec : Spek({
@@ -43,7 +45,7 @@ internal object SimpleVetoPluginSpec : Spek({
           .build()
 
         grpc.withChannel { stub ->
-          expect(stub.allow(request).decision).isEqualTo(Decision.proceed)
+          expectThat(stub.allow(request).decision).isEqualTo(proceed)
         }
       }
     }
@@ -69,7 +71,7 @@ internal object SimpleVetoPluginSpec : Spek({
           .build()
 
         grpc.withChannel { stub ->
-          expect(stub.allow(request).decision).isEqualTo(Decision.halt)
+          expectThat(stub.allow(request).decision).isEqualTo(halt)
         }
       }
     }

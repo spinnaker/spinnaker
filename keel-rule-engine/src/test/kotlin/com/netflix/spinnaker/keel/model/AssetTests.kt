@@ -3,10 +3,10 @@ package com.netflix.spinnaker.keel.model
 import com.netflix.spinnaker.keel.processing.randomBytes
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEqualTo
-import java.util.Base64
+import java.util.*
 
 internal class AssetTests {
   @TestFactory
@@ -20,7 +20,7 @@ internal class AssetTests {
       }
       .map { (asset1, asset2) ->
         dynamicTest("fingerprints of 2 assets with spec ${asset1.spec.base64} match") {
-          expect(asset1.fingerprint).isEqualTo(asset2.fingerprint)
+          expectThat(asset1.fingerprint).isEqualTo(asset2.fingerprint)
         }
       }
 
@@ -35,7 +35,7 @@ internal class AssetTests {
       }
       .map { (asset1, asset2) ->
         dynamicTest("fingerprints of 2 assets with specs ${asset1.spec.base64} and ${asset2.spec.base64} do not match") {
-          expect(asset1.fingerprint).isNotEqualTo(asset2.fingerprint)
+          expectThat(asset1.fingerprint).isNotEqualTo(asset2.fingerprint)
         }
       }
 

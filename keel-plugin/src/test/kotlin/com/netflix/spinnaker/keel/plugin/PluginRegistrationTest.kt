@@ -19,7 +19,7 @@ import io.grpc.stub.StreamObserver
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.containsKeys
 import strikt.assertions.get
 import strikt.assertions.isEmpty
@@ -91,7 +91,7 @@ internal class PluginRegistrationTest {
 
     registrar.onDiscoveryUp()
 
-    expect(registeredTypes) {
+    expectThat(registeredTypes) {
       containsKeys("aws.SecurityGroup", "aws.ClassicLoadBalancer")
       get("aws.SecurityGroup").isEqualTo(instanceInfo.vipAddress to localGrpcPort)
       get("aws.ClassicLoadBalancer").isEqualTo(instanceInfo.vipAddress to localGrpcPort)
@@ -102,11 +102,11 @@ internal class PluginRegistrationTest {
   fun `throws exception if Keel VIP is invalid`() {
     whenever(eurekaClient.getNextServerFromEureka(keelRegistryVip, false)) doThrow RuntimeException("No matches for the virtual host name :$keelRegistryVip")
 
-    expect {
+    expectThat {
       registrar.onDiscoveryUp()
     }.throws<NoSuchVip>()
 
-    expect(registeredTypes).isEmpty()
+    expectThat(registeredTypes).isEmpty()
   }
 }
 

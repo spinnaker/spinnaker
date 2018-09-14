@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE
 import org.springframework.test.context.junit4.SpringRunner
-import strikt.api.expect
+import strikt.api.expectThat
 import strikt.assertions.isA
 
 @RunWith(SpringRunner::class)
@@ -25,6 +25,6 @@ internal class SpringStartupTests {
 
   @Test
   fun `uses RedisPluginRepository`() {
-    expect(pluginRepository).isA<RedisPluginRepository>()
+    expectThat(pluginRepository).isA<RedisPluginRepository>()
   }
 }
