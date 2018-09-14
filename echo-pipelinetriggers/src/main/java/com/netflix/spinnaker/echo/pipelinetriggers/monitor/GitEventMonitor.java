@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -38,7 +37,6 @@ import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.Observable;
 import rx.functions.Action1;
 
 /**
@@ -52,30 +50,22 @@ public class GitEventMonitor extends TriggerMonitor {
 
   private static final String GITHUB_SECURE_SIGNATURE_HEADER = "X-Hub-Signature";
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
-  private final PipelineCache pipelineCache;
-
   @Autowired
   public GitEventMonitor(@NonNull PipelineCache pipelineCache,
                          @NonNull Action1<Pipeline> subscriber,
                          @NonNull Registry registry) {
-    super(subscriber, registry);
-    this.pipelineCache = pipelineCache;
+    super(pipelineCache, subscriber, registry);
   }
 
   @Override
-  public void processEvent(Event event) {
-    super.validateEvent(event);
-    if (!event.getDetails().getType().equalsIgnoreCase(GitEvent.TYPE)) {
-      return;
-    }
+  protected boolean handleEventType(String eventType) {
+    return eventType.equalsIgnoreCase(GitEvent.TYPE);
+  }
 
-    GitEvent buildEvent = objectMapper.convertValue(event, GitEvent.class);
-    Observable.just(buildEvent)
-      .doOnNext(this::onEchoResponse)
-      .zipWith(pipelineCache.getPipelines(), TriggerMatchParameters::new)
-      .subscribe(triggerEachMatch());
+
+  @Override
+  protected GitEvent convertEvent(Event event) {
+    return objectMapper.convertValue(event, GitEvent.class);
   }
 
   @Override

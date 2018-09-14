@@ -18,11 +18,12 @@ import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatc
 import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
+import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
+import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
@@ -38,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.Observable;
 import rx.functions.Action1;
 
 @Component @Slf4j
@@ -49,32 +49,22 @@ public class WebhookEventMonitor extends TriggerMonitor {
   private static final TypeReference<List<Artifact>> ARTIFACT_LIST =
       new TypeReference<List<Artifact>>() {};
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
-  private final PipelineCache pipelineCache;
-
   @Autowired
   public WebhookEventMonitor(@NonNull PipelineCache pipelineCache,
                              @NonNull Action1<Pipeline> subscriber,
                              @NonNull Registry registry) {
-    super(subscriber, registry);
-    this.pipelineCache = pipelineCache;
+    super(pipelineCache, subscriber, registry);
   }
 
   @Override
-  public void processEvent(Event event) {
-    super.validateEvent(event);
-    if (event.getDetails().getType() == null) {
-      return;
-    }
+  protected boolean handleEventType(String eventType) {
+    return eventType != null;
+  }
 
-    /* Need to create WebhookEvent, since TriggerEvent is abstract */
-    WebhookEvent webhookEvent = objectMapper.convertValue(event, WebhookEvent.class);
 
-    Observable.just(webhookEvent)
-      .doOnNext(this::onEchoResponse)
-      .zipWith(pipelineCache.getPipelines(), TriggerMatchParameters::new)
-      .subscribe(triggerEachMatch());
+  @Override
+  protected WebhookEvent convertEvent(Event event) {
+    return objectMapper.convertValue(event, WebhookEvent.class);
   }
 
   @Override

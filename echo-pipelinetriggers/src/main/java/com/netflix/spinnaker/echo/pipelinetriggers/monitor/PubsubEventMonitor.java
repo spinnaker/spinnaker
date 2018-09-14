@@ -19,7 +19,6 @@ package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -36,7 +35,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang.StringUtils;
-import rx.Observable;
 import rx.functions.Action1;
 
 /**
@@ -47,30 +45,21 @@ public class PubsubEventMonitor extends TriggerMonitor {
 
   public static final String PUBSUB_TRIGGER_TYPE = "pubsub";
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
-  private final PipelineCache pipelineCache;
-
   public PubsubEventMonitor(@NonNull PipelineCache pipelineCache,
                             @NonNull Action1<Pipeline> subscriber,
                             @NonNull Registry registry) {
-    super(subscriber, registry);
-    this.pipelineCache = pipelineCache;
+    super(pipelineCache, subscriber, registry);
   }
 
   @Override
-  public void processEvent(Event event) {
-    super.validateEvent(event);
-    if (!event.getDetails().getType().equalsIgnoreCase(PubsubEvent.TYPE)) {
-      return;
-    }
+  protected boolean handleEventType(String eventType) {
+    return eventType.equalsIgnoreCase(PubsubEvent.TYPE);
+  }
 
-    PubsubEvent pubsubEvent = objectMapper.convertValue(event, PubsubEvent.class);
 
-    Observable.just(pubsubEvent)
-      .doOnNext(this::onEchoResponse)
-      .zipWith(pipelineCache.getPipelines(), TriggerMatchParameters::new)
-      .subscribe(triggerEachMatch());
+  @Override
+  protected PubsubEvent convertEvent(Event event) {
+    return objectMapper.convertValue(event, PubsubEvent.class);
   }
 
   @Override

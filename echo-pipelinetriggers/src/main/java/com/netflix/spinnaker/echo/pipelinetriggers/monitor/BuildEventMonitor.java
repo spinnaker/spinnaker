@@ -19,7 +19,6 @@ package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
@@ -38,7 +37,6 @@ import lombok.NonNull;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.Observable;
 import rx.functions.Action1;
 
 /**
@@ -49,30 +47,21 @@ public class BuildEventMonitor extends TriggerMonitor {
 
   public static final String[] BUILD_TRIGGER_TYPES = {"jenkins", "travis", "wercker"};
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
-  private final PipelineCache pipelineCache;
-
   @Autowired
   public BuildEventMonitor(@NonNull PipelineCache pipelineCache,
                            @NonNull Action1<Pipeline> subscriber,
                            @NonNull Registry registry) {
-    super(subscriber, registry);
-    this.pipelineCache = pipelineCache;
+    super(pipelineCache, subscriber, registry);
   }
 
   @Override
-  public void processEvent(Event event) {
-    super.validateEvent(event);
-    if (!event.getDetails().getType().equalsIgnoreCase(BuildEvent.TYPE)) {
-      return;
-    }
+  protected boolean handleEventType(String eventType) {
+    return eventType.equalsIgnoreCase(BuildEvent.TYPE);
+  }
 
-    BuildEvent buildEvent = objectMapper.convertValue(event, BuildEvent.class);
-    Observable.just(buildEvent)
-      .doOnNext(this::onEchoResponse)
-      .zipWith(pipelineCache.getPipelines(), TriggerMatchParameters::new)
-      .subscribe(triggerEachMatch());
+  @Override
+  protected BuildEvent convertEvent(Event event) {
+    return objectMapper.convertValue(event, BuildEvent.class);
   }
 
   @Override

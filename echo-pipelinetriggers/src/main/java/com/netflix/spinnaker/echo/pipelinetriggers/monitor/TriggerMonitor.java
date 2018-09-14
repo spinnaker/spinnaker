@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.events.EchoEventListener;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
+import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -50,6 +52,8 @@ public abstract class TriggerMonitor implements EchoEventListener {
 
   protected final Action1<Pipeline> subscriber;
   protected final Registry registry;
+  protected final ObjectMapper objectMapper = new ObjectMapper();
+  protected final PipelineCache pipelineCache;
 
   protected void validateEvent(Event event) {
     if (event.getDetails() == null) {
@@ -59,10 +63,25 @@ public abstract class TriggerMonitor implements EchoEventListener {
     }
   }
 
-  public TriggerMonitor(@NonNull Action1<Pipeline> subscriber,
+  public TriggerMonitor(@NonNull PipelineCache pipelineCache,
+                        @NonNull Action1<Pipeline> subscriber,
                         @NonNull Registry registry) {
     this.subscriber = subscriber;
     this.registry = registry;
+    this.pipelineCache = pipelineCache;
+  }
+
+  public void processEvent(Event event) {
+    validateEvent(event);
+    if (!handleEventType(event.getDetails().getType())) {
+      return;
+    }
+
+    TriggerEvent triggerEvent = convertEvent(event);
+    Observable.just(triggerEvent)
+      .doOnNext(this::onEchoResponse)
+      .zipWith(pipelineCache.getPipelines(), TriggerMatchParameters::new)
+      .subscribe(triggerEachMatch());
   }
 
   protected boolean matchesPattern(String s, String pattern) {
@@ -111,6 +130,10 @@ public abstract class TriggerMonitor implements EchoEventListener {
       }
     };
   }
+
+  protected abstract boolean handleEventType(String eventType);
+
+  protected abstract TriggerEvent convertEvent(Event event);
 
   protected abstract boolean isSuccessfulTriggerEvent(TriggerEvent event);
 
