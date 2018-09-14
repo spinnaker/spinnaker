@@ -33,7 +33,7 @@ import retrofit.client.OkClient
 @Configuration
 @Import(OkHttpClientConfiguration::class)
 @EnableConfigurationProperties
-open class RetrofitConfiguration {
+open class KeelRetrofitConfiguration {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -53,7 +53,8 @@ open class RetrofitConfiguration {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   open fun retrofitClient(@Qualifier("okHttpClientConfiguration") okHttpClientConfig: OkHttpClientConfiguration,
                           interceptors: Set<Interceptor>?): OkClient {
-    val userAgent = "Spinnaker-${System.getProperty("spring.application.name", "unknown")}/${javaClass.`package`.implementationVersion ?: "1.0"}"
+    val userAgent = "Spinnaker-${System.getProperty("spring.application.name", "unknown")}/${javaClass.`package`.implementationVersion
+      ?: "1.0"}"
     val cfg = okHttpClientConfig.create().apply {
       networkInterceptors().add(Interceptor { chain ->
         chain.proceed(chain.request().newBuilder()
@@ -67,11 +68,12 @@ open class RetrofitConfiguration {
       }
 
       connectionPool = ConnectionPool(maxIdleConnections, keepAliveDurationMs)
-      retryOnConnectionFailure = this@RetrofitConfiguration.retryOnConnectionFailure
+      retryOnConnectionFailure = retryOnConnectionFailure
     }
     return OkClient(cfg)
   }
 
-  @Bean open fun retrofitLogLevel(@Value("\${retrofit.logLevel:BASIC}") retrofitLogLevel: String)
-    = RestAdapter.LogLevel.valueOf(retrofitLogLevel)
+  @Bean
+  open fun retrofitLogLevel(@Value("\${retrofit.logLevel:BASIC}") retrofitLogLevel: String) =
+    RestAdapter.LogLevel.valueOf(retrofitLogLevel)
 }

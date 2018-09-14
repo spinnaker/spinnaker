@@ -17,7 +17,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.keel.retrofit.KeelRetrofitConfiguration
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -31,7 +31,7 @@ import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 
 @Configuration
-@Import(RetrofitConfiguration::class)
+@Import(KeelRetrofitConfiguration::class)
 @ComponentScan("com.netflix.spinnaker.keel.orca")
 open class OrcaConfiguration {
 
