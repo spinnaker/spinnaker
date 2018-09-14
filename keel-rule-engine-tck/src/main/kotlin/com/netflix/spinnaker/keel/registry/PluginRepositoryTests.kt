@@ -107,6 +107,27 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
     }
   }
 
+  given("an asset plugin supporting multiple asset kinds is registered") {
+    val address = PluginAddress("Amazon security group", "ec2plugin.vip", 6565)
+
+    beforeGroup {
+      subject.addAssetPluginFor(securityGroup, address)
+      subject.addAssetPluginFor(loadBalancer, address)
+    }
+
+    afterGroup { clear(subject) }
+
+    it("returns the plugin only once in the list of all plugins") {
+      expect(subject.allPlugins())
+        .containsExactly(address)
+    }
+
+    it("returns the plugin only once in the list of asset plugins") {
+      expect(subject.assetPlugins())
+        .containsExactly(address)
+    }
+  }
+
   given("a veto plugin is registered") {
     val address1 = PluginAddress("Veto 1", "veto1.vip", 6565)
     val address2 = PluginAddress("Veto 2", "veto2.vip", 6565)

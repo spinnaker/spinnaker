@@ -38,14 +38,20 @@ class RedisPluginRepository(
   override fun allPlugins(): Iterable<PluginAddress> =
     withRedis { redis ->
       (redis.hvals("keel.plugins.asset") + redis.smembers("keel.plugins.veto"))
+        .asSequence()
         .map(this::parsePluginAddress)
+        .distinct()
+        .toList()
     }
 
   override fun assetPlugins(): Iterable<PluginAddress> =
     withRedis { redis ->
       redis
         .hvals("keel.plugins.asset")
+        .asSequence()
         .map(this::parsePluginAddress)
+        .distinct()
+        .toList()
     }
 
   override fun vetoPlugins(): Iterable<PluginAddress> =
