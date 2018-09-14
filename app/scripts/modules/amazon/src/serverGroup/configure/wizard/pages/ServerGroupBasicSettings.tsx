@@ -238,8 +238,6 @@ class ServerGroupBasicSettingsImpl extends React.Component<
       serverGroup: latestServerGroup.name,
     };
 
-    // TODO: Dismiss the modal
-
     const { $state } = ReactInjector;
     if ($state.is('home.applications.application.insight.clusters')) {
       $state.go('.serverGroup', params);

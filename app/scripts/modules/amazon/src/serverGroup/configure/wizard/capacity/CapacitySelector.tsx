@@ -1,13 +1,12 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
 
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
-import { HelpField } from '@spinnaker/core';
-import { IMinMaxDesiredProps } from './AmazonMinMaxDesired';
+import { HelpField, IServerGroupCommand } from '@spinnaker/core';
+import { IMinMaxDesiredProps } from './MinMaxDesired';
 
 export interface ICapacitySelectorProps {
-  command: IAmazonServerGroupCommand;
-  setFieldValue: (field: keyof IAmazonServerGroupCommand, value: any, shouldValidate?: boolean) => void;
+  command: IServerGroupCommand;
+  setFieldValue: (field: keyof IServerGroupCommand, value: any, shouldValidate?: boolean) => void;
   MinMaxDesired: React.ComponentClass<IMinMaxDesiredProps>;
 }
 

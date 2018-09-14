@@ -1,14 +1,14 @@
 import * as React from 'react';
-import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
+import { IServerGroupCommand } from '@spinnaker/core';
 
 export interface IMinMaxDesiredProps {
-  command: IAmazonServerGroupCommand;
+  command: IServerGroupCommand;
   fieldChanged: (fieldName: string, value: string) => void;
 }
 
-export interface IAmazonMinMaxDesiredState {}
+export interface IMinMaxDesiredState {}
 
-export class AmazonMinMaxDesired extends React.Component<IMinMaxDesiredProps, IAmazonMinMaxDesiredState> {
+export class MinMaxDesired extends React.Component<IMinMaxDesiredProps, IMinMaxDesiredState> {
   public render() {
     const { command, fieldChanged } = this.props;
     return (

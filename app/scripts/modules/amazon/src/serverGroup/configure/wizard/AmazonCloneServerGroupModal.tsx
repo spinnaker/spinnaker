@@ -204,7 +204,6 @@ export class AmazonCloneServerGroupModal extends React.Component<
         submitButtonLabel={command.viewState.submitButtonLabel}
         validate={this.validate}
       >
-        {/* <ServerGroupTemplateSelection /> */}
         <ServerGroupBasicSettings app={application} done={true} />
         <ServerGroupLoadBalancers done={true} />
         <ServerGroupSecurityGroups done={true} />

@@ -1,12 +1,16 @@
 import * as React from 'react';
 
-import { Application, DeployInitializer, FirewallLabels, ITemplateSelectionText } from '@spinnaker/core';
-
-import { IAmazonServerGroupCommand } from '../serverGroupConfiguration.service';
+import {
+  Application,
+  DeployInitializer,
+  FirewallLabels,
+  IServerGroupCommand,
+  ITemplateSelectionText,
+} from '@spinnaker/core';
 
 export interface IServerGroupTemplateSelectionProps {
   app: Application;
-  command: IAmazonServerGroupCommand;
+  command: IServerGroupCommand;
   onDismiss: () => void;
   onTemplateSelected: () => void;
 }
