@@ -10,21 +10,18 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.AbstractBaseImageCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 
-/**
- * Interact with the aws provider
- */
 @Parameters(separators = "=")
-public class OracleCommand extends AbstractNamedProviderCommand {
-  protected String getProviderName() {
-    return Provider.ProviderType.ORACLE.getName();
-  }
+public class OracleBaseImageCommand extends AbstractBaseImageCommand {
+    protected String getProviderName() {
+        return Provider.ProviderType.ORACLE.getName();
+    }
 
-  public OracleCommand() {
-    super();
-    registerSubcommand(new OracleAccountCommand());
-    registerSubcommand(new OracleBakeryCommand());
-  }
+    public OracleBaseImageCommand() {
+        super();
+        registerSubcommand(new OracleAddBaseImageCommand());
+        registerSubcommand(new OracleEditBaseImageCommand());
+    }
 }

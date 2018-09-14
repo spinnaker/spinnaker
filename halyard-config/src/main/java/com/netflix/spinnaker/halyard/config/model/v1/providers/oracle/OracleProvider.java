@@ -11,11 +11,11 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.oracle;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.OracleBMCSPersistentStore;
-import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.OraclePersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleBakeryDefaults;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
-public class OracleProvider extends Provider<OracleAccount> {
+public class OracleProvider extends HasImageProvider<OracleAccount, OracleBakeryDefaults> {
   @Override
   public ProviderType providerType() {
     return ProviderType.ORACLE;
@@ -25,7 +25,14 @@ public class OracleProvider extends Provider<OracleAccount> {
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
-  
+
+  @Override
+  public OracleBakeryDefaults emptyBakeryDefaults() {
+    OracleBakeryDefaults result = new OracleBakeryDefaults();
+    result.setTemplateFile("oci.json");
+    return result;
+  }
+
   public static OracleProvider mergeOracleBMCSProvider(OracleProvider oracle, OracleBMCSProvider bmcs) {
     if (oracle.getPrimaryAccount() == null && bmcs.getPrimaryAccount() != null) {
       return convertFromOracleBMCSProvider(bmcs);

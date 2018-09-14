@@ -302,6 +302,14 @@
  * [**hal config provider oracle account edit**](#hal-config-provider-oracle-account-edit)
  * [**hal config provider oracle account get**](#hal-config-provider-oracle-account-get)
  * [**hal config provider oracle account list**](#hal-config-provider-oracle-account-list)
+ * [**hal config provider oracle bakery**](#hal-config-provider-oracle-bakery)
+ * [**hal config provider oracle bakery base-image**](#hal-config-provider-oracle-bakery-base-image)
+ * [**hal config provider oracle bakery base-image add**](#hal-config-provider-oracle-bakery-base-image-add)
+ * [**hal config provider oracle bakery base-image delete**](#hal-config-provider-oracle-bakery-base-image-delete)
+ * [**hal config provider oracle bakery base-image edit**](#hal-config-provider-oracle-bakery-base-image-edit)
+ * [**hal config provider oracle bakery base-image get**](#hal-config-provider-oracle-bakery-base-image-get)
+ * [**hal config provider oracle bakery base-image list**](#hal-config-provider-oracle-bakery-base-image-list)
+ * [**hal config provider oracle bakery edit**](#hal-config-provider-oracle-bakery-edit)
  * [**hal config provider oracle disable**](#hal-config-provider-oracle-disable)
  * [**hal config provider oracle enable**](#hal-config-provider-oracle-enable)
  * [**hal config pubsub**](#hal-config-pubsub)
@@ -5963,6 +5971,156 @@ hal config provider oracle account list [parameters]
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider oracle bakery
+
+Manage and view Spinnaker configuration for the oracle provider's image bakery configuration.
+
+#### Usage
+```
+hal config provider oracle bakery [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `base-image`: Manage and view Spinnaker configuration for the oracle provider's base image.
+ * `edit`: Edit the oracle provider's bakery default options.
+
+---
+## hal config provider oracle bakery base-image
+
+Manage and view Spinnaker configuration for the oracle provider's base image.
+
+#### Usage
+```
+hal config provider oracle bakery base-image [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a base image for the oracle provider's bakery.
+ * `delete`: Delete a specific oracle base image by name.
+ * `edit`: Edit a base image for the oracle provider's bakery.
+ * `get`: Get the specified base image details for the oracle provider.
+ * `list`: List the base image names for the oracle provider.
+
+---
+## hal config provider oracle bakery base-image add
+
+Add a base image for the oracle provider's bakery.
+
+#### Usage
+```
+hal config provider oracle bakery base-image add BASE-IMAGE [parameters]
+```
+
+#### Parameters
+`BASE-IMAGE`: The name of the base image to operate on.
+ * `--base-image-id`: (*Required*) The OCID of the base image ID for the baking configuration.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--detailed-description`: A long description to help human operators identify the image.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--package-type`: This is used to help Spinnaker's bakery download the build artifacts you supply it with. For example, specifying 'deb' indicates that your artifacts will need to be fetched from a debian repository.
+ * `--short-description`: A short description to help human operators identify the image.
+ * `--ssh-user-name`: (*Required*) The ssh username for the baking configuration.
+ * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
+
+
+---
+## hal config provider oracle bakery base-image delete
+
+Delete a specific oracle base image by name.
+
+#### Usage
+```
+hal config provider oracle bakery base-image delete BASE-IMAGE [parameters]
+```
+
+#### Parameters
+`BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider oracle bakery base-image edit
+
+Edit a base image for the oracle provider's bakery.
+
+#### Usage
+```
+hal config provider oracle bakery base-image edit BASE-IMAGE [parameters]
+```
+
+#### Parameters
+`BASE-IMAGE`: The name of the base image to operate on.
+ * `--base-image-id`: (*Required*) The OCID of the base image ID for the baking configuration.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--detailed-description`: A long description to help human operators identify the image.
+ * `--id`: This is the identifier used by your cloud to find this base image.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--package-type`: This is used to help Spinnaker's bakery download the build artifacts you supply it with. For example, specifying 'deb' indicates that your artifacts will need to be fetched from a debian repository.
+ * `--short-description`: A short description to help human operators identify the image.
+ * `--ssh-user-name`: The ssh username for the baking configuration.
+ * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
+
+
+---
+## hal config provider oracle bakery base-image get
+
+Get the specified base image details for the oracle provider.
+
+#### Usage
+```
+hal config provider oracle bakery base-image get BASE-IMAGE [parameters]
+```
+
+#### Parameters
+`BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider oracle bakery base-image list
+
+List the base image names for the oracle provider.
+
+#### Usage
+```
+hal config provider oracle bakery base-image list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider oracle bakery edit
+
+Edit the oracle provider's bakery default options.
+
+#### Usage
+```
+hal config provider oracle bakery edit [parameters]
+```
+
+#### Parameters
+ * `--availability-domain`: The name of the Availability Domain within which a new instance is launched and provisioned.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--instance-shape`: The shape for allocated to a newly created instance.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--subnet-id`: The name of the subnet within which a new instance is launched and provisioned.
+ * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
 
 
 ---

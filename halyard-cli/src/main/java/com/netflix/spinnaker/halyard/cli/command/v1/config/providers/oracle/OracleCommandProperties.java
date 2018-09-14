@@ -16,4 +16,11 @@ public class OracleCommandProperties {
   public static final String SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION = "Path to the private key in PEM format";
   public static final String TENANCY_ID_DESCRIPTION = "Provide the OCID of the Oracle Tenancy to use.";
   public static final String REGION_DESCRIPTION = "An Oracle region (e.g., us-phoenix-1)";
+
+  public static final String INSTANCE_SHAPE_DESCRIPTION = "The shape for allocated to a newly created instance.";
+  public static final String AVAILABILITY_DOMAIN_DESCRIPTION = "The name of the Availability Domain within which a new instance is launched and provisioned.";
+  public static final String SUBNET_ID_DESCRIPTION = "The name of the subnet within which a new instance is launched and provisioned.";
+
+  public static final String BASE_IMAGE_ID_DESCRIPTION = "The OCID of the base image ID for the baking configuration.";
+  public static final String SSH_USER_NAME_DESCRIPTION = "The ssh username for the baking configuration.";
 }
