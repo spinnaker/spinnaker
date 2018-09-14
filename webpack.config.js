@@ -57,7 +57,6 @@ function configure(env, webpackOpts) {
         '@spinnaker/docker': path.join(__dirname, 'app', 'scripts', 'modules', 'docker', 'src'),
         amazon: path.join(__dirname, 'app', 'scripts', 'modules', 'amazon', 'src'),
         '@spinnaker/amazon': path.join(__dirname, 'app', 'scripts', 'modules', 'amazon', 'src'),
-        '@spinnaker/titus': path.join(__dirname, 'app', 'scripts', 'modules', 'titus', 'src'),
         google: path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
         '@spinnaker/google': path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
         kubernetes: path.join(__dirname, 'app', 'scripts', 'modules', 'kubernetes', 'src'),
@@ -84,6 +83,8 @@ function configure(env, webpackOpts) {
         '@spinnaker/oracle': path.join(__dirname, 'app', 'scripts', 'modules', 'oracle', 'src'),
         cloudfoundry: path.join(__dirname, 'app', 'scripts', 'modules', 'cloudfoundry', 'src'),
         '@spinnaker/cloudfoundry': path.join(__dirname, 'app', 'scripts', 'modules', 'cloudfoundry', 'src'),
+        titus: path.join(__dirname, 'app', 'scripts', 'modules', 'titus', 'src'),
+        '@spinnaker/titus': path.join(__dirname, 'app', 'scripts', 'modules', 'titus', 'src'),
       },
     },
     module: {
