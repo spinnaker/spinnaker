@@ -54,6 +54,7 @@ public class EurekaComponents {
   }
 
   @Bean
+  @Primary
   public EurekaClient eurekaClient(DiscoveryClient discoveryClient) {
     return discoveryClient;
   }
