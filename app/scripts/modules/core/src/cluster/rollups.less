@@ -120,11 +120,8 @@ table.instances {
     &:hover,
     &.active,
     &.highlighted {
-      height: @instance-height - 1;
-      margin-top: 0;
-      margin-bottom: 1px;
-      border: 1px solid var(--color-mineshaft);
-      box-shadow: 0 0 3px 1px var(--color-concrete);
+      border: none;
+      box-shadow: 0 0 3px 1px var(--color-concrete), inset 0 0 0 1px var(--color-mineshaft);
       z-index: 2;
     }
 
