@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Subscription } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
-import { Application } from 'core/application';
+import { Application, ApplicationDataSource, IFetchStatus } from 'core/application';
 import { Refresher } from 'core/presentation/refresher/Refresher';
 
 export interface IApplicationRefresherProps {
@@ -14,66 +14,53 @@ export interface IApplicationRefresherState {
 }
 
 export class ApplicationRefresher extends React.Component<IApplicationRefresherProps, IApplicationRefresherState> {
-  private activeStateRefreshUnsubscribe: () => void;
-  private activeStateChangeSubscription: Subscription;
-  private stopListeningToAppRefresh: Function;
+  private app$ = new Subject<Application>();
+  private destroy$ = new Subject();
+
+  public state = {
+    refreshing: false,
+    lastRefresh: 0,
+  };
 
   constructor(props: IApplicationRefresherProps) {
     super(props);
-    this.configureApplicationEventListeners(props.app);
-    this.state = Object.assign(this.parseRefreshState(props));
-  }
 
-  private resetActiveStateRefreshStream(props: IApplicationRefresherProps): void {
-    if (this.activeStateRefreshUnsubscribe) {
-      this.activeStateRefreshUnsubscribe();
-    }
-    const activeState = props.app.activeState || props.app;
-    this.activeStateRefreshUnsubscribe = activeState.onRefresh(null, () => {
-      this.setState(this.parseRefreshState(props));
-    });
+    this.app$
+      .filter(app => !!app)
+      .distinctUntilChanged()
+      // follow the data source from the active tab
+      .switchMap(app => app.activeDataSource$)
+      .startWith(null)
+      .mergeMap((dataSource: ApplicationDataSource) => {
+        // If there is no active data source (e.g., on config tab), use the application's status.
+        const fetchStatus$: Observable<IFetchStatus> = (dataSource && dataSource.status$) || props.app.status$;
+        return fetchStatus$.filter(fetchStatus => ['FETCHING', 'FETCHED', 'ERROR'].includes(fetchStatus.status));
+      })
+      .takeUntil(this.destroy$)
+      .subscribe(fetchStatus => this.update(fetchStatus));
+
+    this.app$.next(props.app);
   }
 
   public componentWillReceiveProps(nextProps: IApplicationRefresherProps) {
-    this.configureApplicationEventListeners(nextProps.app);
+    this.app$.next(nextProps.app);
   }
 
-  private configureApplicationEventListeners(app: Application): void {
-    app.ready().then(() => this.setState(this.parseRefreshState(this.props)));
-    this.clearApplicationListeners();
-    this.activeStateChangeSubscription = app.activeStateChangeStream.subscribe(() => {
-      this.resetActiveStateRefreshStream(this.props);
-      this.setState(this.parseRefreshState(this.props));
-    });
-    this.stopListeningToAppRefresh = app.onRefresh(null, () => {
-      this.setState(this.parseRefreshState(this.props));
-    });
+  public componentWillUnmount() {
+    this.destroy$.next();
   }
 
-  private clearApplicationListeners(): void {
-    if (this.activeStateChangeSubscription) {
-      this.activeStateChangeSubscription.unsubscribe();
-    }
-    if (this.stopListeningToAppRefresh) {
-      this.stopListeningToAppRefresh();
+  private update(fetchStatus: IFetchStatus): void {
+    if (fetchStatus.status === 'FETCHING') {
+      this.setState({ refreshing: true });
+    } else if (fetchStatus.status === 'FETCHED') {
+      this.setState({ refreshing: false, lastRefresh: fetchStatus.lastRefresh });
+    } else {
+      this.setState({ refreshing: false });
     }
   }
 
-  private parseRefreshState(props: IApplicationRefresherProps): IApplicationRefresherState {
-    const activeState = props.app.activeState || props.app;
-    return {
-      lastRefresh: activeState.lastRefresh,
-      refreshing: activeState.loading,
-    };
-  }
-
-  public componentWillUnmount(): void {
-    this.clearApplicationListeners();
-  }
-
-  public handleRefresh = (): void => {
-    // Force set refreshing to true since we are forcing the refresh
-    this.setState({ refreshing: true });
+  private handleRefresh = (): void => {
     this.props.app.refresh(true);
   };
 

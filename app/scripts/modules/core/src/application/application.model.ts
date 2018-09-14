@@ -1,9 +1,10 @@
-import { ILogService, IPromise, IQService, IScope } from 'angular';
+import { IPromise, IScope } from 'angular';
 import { map, union, uniq } from 'lodash';
-import { Subject, Subscription } from 'rxjs';
+import { $log, $q } from 'ngimport';
+import { Observable, ReplaySubject, Subject, Subscription } from 'rxjs';
 
-import { ApplicationDataSource } from './service/applicationDataSource';
-import { ICluster } from '../domain/ICluster';
+import { ICluster } from 'core/domain';
+import { ApplicationDataSource, IDataSourceConfig, IFetchStatus } from './service/applicationDataSource';
 
 export class Application {
   [k: string]: any;
@@ -80,21 +81,48 @@ export class Application {
    */
   public activeState: ApplicationDataSource = null;
 
-  // Since active state changes don't use $scope, we can just make the Subject public
+  public activeDataSource$ = new ReplaySubject<ApplicationDataSource>(1);
+  /** @deprecated use activeDataSource$ */
   public activeStateChangeStream: Subject<any> = new Subject();
 
   private refreshStream: Subject<any> = new Subject();
-
   private refreshFailureStream: Subject<any> = new Subject();
+
+  // Stream of fetch status
+  public status$: Observable<IFetchStatus>;
 
   private dataLoader: Subscription;
 
-  constructor(
-    private applicationName: string,
-    private scheduler: any,
-    private $q: IQService,
-    private $log: ILogService,
-  ) {}
+  constructor(private applicationName: string, private scheduler: any, dataSourceConfigs: IDataSourceConfig[]) {
+    dataSourceConfigs.forEach(config => this.addDataSource(config));
+    this.status$ = Observable.combineLatest(this.dataSources.map(ds => ds.status$)).map(statuses =>
+      this.getDerivedApplicationStatus(statuses),
+    );
+  }
+
+  private getDerivedApplicationStatus(statuses: IFetchStatus[]): IFetchStatus {
+    const ERROR_STATUS = statuses.some(({ status }) => status === 'ERROR') ? 'ERROR' : undefined;
+    const FETCHING_STATUS = statuses.some(({ status }) => status === 'FETCHING') ? 'FETCHING' : undefined;
+    const FETCHED_STATUS = statuses.some(({ status }) => status === 'FETCHED') ? 'FETCHED' : undefined;
+
+    const rolledUpStatus: IFetchStatus['status'] =
+      ERROR_STATUS || FETCHING_STATUS || FETCHED_STATUS || 'NOT_INITIALIZED';
+
+    const allFetched = statuses.every(({ status }) => status === 'FETCHED');
+    const lastFetch = statuses.reduce((latest, status) => Math.max(latest, status.lastRefresh || 0), 0);
+
+    return {
+      status: rolledUpStatus,
+      lastRefresh: allFetched ? lastFetch : this.lastRefresh,
+      data: undefined,
+    };
+  }
+
+  private addDataSource(config: IDataSourceConfig) {
+    const dataSource = new ApplicationDataSource(config, this);
+    this.dataSources.push(dataSource);
+    this[config.key] = dataSource;
+  }
 
   /**
    * Returns a data source based on its key. Data sources can be accessed on the application directly via the key,
@@ -115,7 +143,7 @@ export class Application {
   public refresh(forceRefresh?: boolean): IPromise<any> {
     // refresh hidden data sources but do not consider their results when determining when the refresh completes
     this.dataSources.filter(ds => !ds.visible).forEach(ds => ds.refresh(forceRefresh));
-    return this.$q
+    return $q
       .all(this.dataSources.filter(ds => ds.visible).map(source => source.refresh(forceRefresh)))
       .then(() => this.applicationLoadSuccess(), error => this.applicationLoadError(error));
   }
@@ -127,7 +155,7 @@ export class Application {
    * not useful - it's only useful to watch the promise itself
    */
   public ready(): IPromise<any> {
-    return this.$q.all(
+    return $q.all(
       this.dataSources.filter(ds => ds.onLoad !== undefined && ds.visible).map(dataSource => dataSource.ready()),
     );
   }
@@ -171,15 +199,16 @@ export class Application {
     this.scheduler.unsubscribe();
   }
 
-  public setActiveState(state: ApplicationDataSource = null): void {
-    if (this.activeState !== state) {
-      this.activeState = state;
+  public setActiveState(dataSource: ApplicationDataSource = null): void {
+    if (this.activeState !== dataSource) {
+      this.activeState = dataSource;
+      this.activeDataSource$.next(dataSource);
       this.activeStateChangeStream.next(null);
     }
   }
 
   private applicationLoadError(err: Error): void {
-    this.$log.error(err, 'Failed to load application, will retry on next scheduler execution.');
+    $log.error(err, 'Failed to load application, will retry on next scheduler execution.');
     this.refreshFailureStream.next(err);
   }
 

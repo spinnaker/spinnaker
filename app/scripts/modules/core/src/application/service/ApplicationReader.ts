@@ -1,8 +1,7 @@
 import { IPromise } from 'angular';
-import { $q, $log, $filter } from 'ngimport';
 
-import { API } from 'core/api/ApiService';
-import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
+import { API } from 'core/api';
+import { SchedulerFactory } from 'core/scheduler';
 import { Application } from '../application.model';
 import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
@@ -47,10 +46,11 @@ export class ApplicationReader {
       .withParams({ expand: expand })
       .get()
       .then((fromServer: Application) => {
-        const application: Application = new Application(fromServer.name, SchedulerFactory.createScheduler(), $q, $log);
+        const configs: IDataSourceConfig[] = ApplicationDataSourceRegistry.getDataSources();
+        const application: Application = new Application(fromServer.name, SchedulerFactory.createScheduler(), configs);
         application.attributes = fromServer.attributes;
         this.splitAttributes(application.attributes, ['accounts', 'cloudProviders']);
-        this.addDataSources(application);
+        this.setDisabledDataSources(application);
         application.refresh();
         return application;
       });
@@ -72,19 +72,10 @@ export class ApplicationReader {
     });
   }
 
-  private static addDataSources(application: Application): void {
-    const dataSources: IDataSourceConfig[] = ApplicationDataSourceRegistry.getDataSources();
-    dataSources.forEach((ds: IDataSourceConfig) => {
-      const dataSource: ApplicationDataSource = new ApplicationDataSource(ds, application, $q, $log, $filter);
-      application.dataSources.push(dataSource);
-      application[ds.key] = dataSource;
-    });
-    this.setDisabledDataSources(application);
-  }
-
   public static setDisabledDataSources(application: Application) {
-    const allDataSources: ApplicationDataSource[] = application.dataSources,
-      appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
+    const allDataSources: ApplicationDataSource[] = application.dataSources;
+    const appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
+
     if (!appDataSources) {
       allDataSources.filter(ds => ds.optIn).forEach(ds => this.setDataSourceDisabled(ds, application, true));
       if (InferredApplicationWarningService.isInferredApplication(application)) {

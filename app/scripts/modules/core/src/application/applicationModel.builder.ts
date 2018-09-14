@@ -1,43 +1,28 @@
 import { module } from 'angular';
-
 import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry';
 import { SchedulerFactory } from 'core/scheduler/SchedulerFactory';
 import { Application } from './application.model';
 
-import { ApplicationDataSource, IDataSourceConfig } from './service/applicationDataSource';
+import { IDataSourceConfig } from './service/applicationDataSource';
 
 export class ApplicationModelBuilder {
-  constructor(private $log: ng.ILogService, private $q: ng.IQService, private $filter: any) {
-    'ngInject';
-  }
-
-  /**
-   * This is mostly used in tests
-   */
+  /** This is mostly used in tests */
   public createApplicationForTests(name: string, ...dataSources: IDataSourceConfig[]): Application {
-    const application = new Application(name, SchedulerFactory.createScheduler(), this.$q, this.$log);
-    dataSources.forEach(ds => this.addDataSource(ds, application));
-    return application;
+    return new Application(name, SchedulerFactory.createScheduler(), dataSources);
   }
 
   public createStandaloneApplication(name: string): Application {
-    const application = new Application(name, SchedulerFactory.createScheduler(), this.$q, this.$log);
+    const application = new Application(name, SchedulerFactory.createScheduler(), []);
     application.isStandalone = true;
     return application;
   }
 
   public createNotFoundApplication(name: string): Application {
-    const application = new Application(name, SchedulerFactory.createScheduler(), this.$q, this.$log);
-    this.addDataSource({ key: 'serverGroups', lazy: true }, application);
+    const config: IDataSourceConfig = { key: 'serverGroups', lazy: true };
+    const application = new Application(name, SchedulerFactory.createScheduler(), [config]);
     application.notFound = true;
     return application;
-  }
-
-  private addDataSource(config: IDataSourceConfig, application: Application): void {
-    const source = new ApplicationDataSource(config, application, this.$q, this.$log, this.$filter);
-    application.dataSources.push(source);
-    application[config.key] = source;
   }
 }
 

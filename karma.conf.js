@@ -67,7 +67,6 @@ module.exports = function(config) {
     // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
     logLevel: config.DEBUG,
 
-    // jUnit Report output
     reporters: ['super-dots', 'mocha'],
     mochaReporter: {
       output: 'minimal',

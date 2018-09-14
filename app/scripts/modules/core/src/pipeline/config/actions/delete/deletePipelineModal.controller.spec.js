@@ -7,12 +7,13 @@ describe('Controller: deletePipelineModal', function() {
   beforeEach(window.module(require('./delete.module.js').name, APPLICATION_MODEL_BUILDER));
   beforeEach(
     window.inject(function($controller, $rootScope, $log, $q, $state, applicationModelBuilder) {
+      this.$rootScope = $rootScope;
       this.$q = $q;
       this.application = applicationModelBuilder.createApplicationForTests('app', {
         key: 'pipelineConfigs',
         lazy: true,
-        loader: () => this.$q.when(null),
-        onLoad: () => this.$q.when(null),
+        loader: () => this.$q.when(this.application.pipelineConfigs.data),
+        onLoad: (_app, data) => this.$q.when(data),
       });
       this.initializeController = function(pipeline) {
         this.$state = $state;
@@ -40,6 +41,8 @@ describe('Controller: deletePipelineModal', function() {
       ];
 
       this.application.pipelineConfigs.activate();
+      this.$rootScope.$digest();
+
       this.application.pipelineConfigs.data = [this.pipelines[0], this.pipelines[1], this.pipelines[2]];
       this.initializeController(this.pipelines[1]);
     });

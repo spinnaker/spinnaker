@@ -9,11 +9,12 @@ describe('Controller: renamePipelineModal', function() {
   beforeEach(
     window.inject(function($controller, $rootScope, $log, $q, applicationModelBuilder) {
       this.$q = $q;
+      this.$rootScope = $rootScope;
       this.application = applicationModelBuilder.createApplicationForTests('app', {
         key: 'pipelineConfigs',
         lazy: true,
-        loader: () => this.$q.when(null),
-        onLoad: () => this.$q.when(null),
+        loader: () => this.$q.when(this.application.pipelineConfigs.data),
+        onLoad: (_app, data) => this.$q.when(data),
       });
       this.initializeController = function(pipeline) {
         this.$scope = $rootScope.$new();
@@ -34,6 +35,7 @@ describe('Controller: renamePipelineModal', function() {
     this.pipelines = [{ name: 'a' }, { name: 'b' }, { name: 'c' }];
 
     this.application.pipelineConfigs.activate();
+    this.$rootScope.$digest();
     this.application.pipelineConfigs.data = [this.pipelines[0], this.pipelines[1], this.pipelines[2]];
     this.initializeController(this.pipelines[1]);
   });

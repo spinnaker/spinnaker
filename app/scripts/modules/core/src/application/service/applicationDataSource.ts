@@ -1,12 +1,22 @@
-import { IDeferred, ILogService, IPromise, IQService, IScope } from 'angular';
+import { IPromise, IScope } from 'angular';
 import { get } from 'lodash';
-import { Subject, Subscription } from 'rxjs';
+import { $log, $q } from 'ngimport';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+
+import { IEntityTags } from 'core/domain';
+import { robotToHuman } from 'core/presentation';
+import { ReactInjector } from 'core/reactShims';
+import { FirewallLabels } from 'core/securityGroup';
+import { toIPromise } from 'core/utils';
 
 import { Application } from '../application.model';
-import { IEntityTags } from 'core/domain/IEntityTags';
-import { FirewallLabels } from 'core/securityGroup/label/FirewallLabels';
-import { ReactInjector } from 'core/reactShims';
-import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
+
+export interface IFetchStatus {
+  status: 'NOT_INITIALIZED' | 'FETCHING' | 'FETCHED' | 'ERROR';
+  error?: any;
+  lastRefresh: number;
+  data: any;
+}
 
 export interface IDataSourceConfig {
   /**
@@ -244,49 +254,75 @@ export class ApplicationDataSource implements IDataSourceConfig {
 
   /**
    * A timestamp indicating the last time the data source was successfully refreshed
+   * @deprecated use the streams
    */
   public lastRefresh: number;
 
-  public refresh$: Subject<void> = new Subject();
+  /** This subject is used to cancel the internal subscription */
+  private destroy$ = new Subject<void>();
 
-  public refreshFailure$: Subject<any> = new Subject();
-
-  /**
-   * Simple counter used to track the most recent refresh call to avoid data stomping
-   * when multiple force refresh calls occur
-   * (will go away when we switch from Promises to Observables)
-   */
-  private currentLoadCall = 0;
+  /** This subject is used to trigger a new fetch */
+  private fetchRequest$ = new Subject<void>();
 
   /**
-   * Dumb queue to fire when the most recent refresh call finishes
-   * (will go away when we switch from Promises to Observables)
+   * Stream of IFetchStatus.
+   * Updated when the status and/or data changes.
+   * Starts with NOT_INITIALIZED
    */
-  private refreshQueue: Array<IDeferred<void>> = [];
+  public status$ = new BehaviorSubject<IFetchStatus>({
+    status: 'NOT_INITIALIZED',
+    lastRefresh: 0,
+    error: null,
+    data: this.data,
+  });
+
+  /** BehaviorSubject of data changes, starts by emitting the current value */
+  public data$ = new BehaviorSubject<any>(this.data);
+
+  /**
+   * Stream of data changes
+   * @deprecated use data$.skip(1) instead
+   */
+  public refresh$: Observable<any> = this.data$.skip(1);
+
+  /** Stream of failed IFetchStatus */
+  private refreshFailure$ = this.status$.skip(1).filter(({ status }) => status === 'ERROR');
+
+  /** Stream that throws fetch failures. */
+  private throwFailures$ = this.refreshFailure$.map(({ error }) => {
+    throw error;
+  });
+
+  /** A stream that either emits the next data change, or throws */
+  private nextRefresh$ = Observable.merge(this.data$.skip(1), this.throwFailures$).take(1);
 
   /**
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated
    * independent of the execution data source's refresh cycle
    */
-  public dataUpdated(): void {
+  public dataUpdated(data?: any | undefined): void {
     if (this.loaded) {
-      this.refresh$.next(null);
+      this.updateData(data !== undefined ? data : this.data);
     }
   }
 
-  constructor(
-    config: IDataSourceConfig,
-    private application: Application,
-    private $q: IQService,
-    private $log: ILogService,
-    private $filter: any,
-  ) {
+  /** Applies status and status flags */
+  private statusUpdated(fetchStatus: IFetchStatus) {
+    const { status } = fetchStatus;
+
+    this.status = fetchStatus;
+    this.loaded = status === 'FETCHED' || this.loaded;
+    this.loading = status === 'FETCHING';
+    this.loadFailure = status === 'ERROR';
+    this.lastRefresh = fetchStatus.lastRefresh;
+
+    this.debug(`status: ${fetchStatus.status}`);
+  }
+
+  constructor(config: IDataSourceConfig, private application: Application) {
     Object.assign(this, config);
 
-    if (!config.label && this.$filter) {
-      this.label = robotToHuman(config.key);
-    }
-    this.label = FirewallLabels.get(this.label);
+    this.label = FirewallLabels.get(config.label || robotToHuman(config.key));
 
     if (!config.activeState && this.sref) {
       this.activeState = '**' + this.sref + '.**';
@@ -296,6 +332,39 @@ export class ApplicationDataSource implements IDataSourceConfig {
       ReactInjector.$uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
       ReactInjector.$uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
     }
+
+    const fetchStream$ = this.fetchRequest$
+      .do(() => this.debug('fetch requested...'))
+      .switchMap(() => {
+        return Observable.fromPromise(this.loader(this.application))
+          .mergeMap(data => this.onLoad(this.application, data))
+          .map(data => ({ status: 'FETCHED', lastRefresh: Date.now(), data }))
+          .catch(error => Observable.of({ status: 'ERROR', lastRefresh: this.lastRefresh, data: this.data, error }))
+          .startWith({ status: 'FETCHING', lastRefresh: this.lastRefresh, data: this.data });
+      })
+      .startWith(this.status$.value)
+      .takeUntil(this.destroy$) as Observable<IFetchStatus>;
+
+    // Some data sources expect other data sources to exist on the application
+    // Wait one tick before processing the stream so all data sources are registered
+    const nextTick$ = Observable.fromPromise($q.resolve());
+
+    fetchStream$.withLatestFrom(nextTick$).subscribe(([fetchStatus, _void]) => {
+      // Update mutable flags
+      this.statusUpdated(fetchStatus);
+
+      if (fetchStatus.status === 'FETCHED') {
+        this.updateData(fetchStatus.data);
+        this.afterLoad && this.afterLoad(this.application);
+        this.addAlerts();
+      }
+
+      this.status$.next(fetchStatus);
+    });
+  }
+
+  public destroy() {
+    this.destroy$.next();
   }
 
   /**
@@ -303,26 +372,15 @@ export class ApplicationDataSource implements IDataSourceConfig {
    *
    * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed.
    *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
-   * @param method the method to call the next time the data source refreshes
-   * @param failureMethod (optional) a method to call if the data source refresh fails
+   * @param callback the method to call the next time the data source refreshes
+   * @param onError (optional) a method to call if the data source refresh fails
    * @return a method to call to unsubscribe
    */
-  public onNextRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
-    const success: Subscription = this.refresh$.take(1).subscribe(method);
-    let failure: Subscription = null;
-    if (failureMethod) {
-      failure = this.refreshFailure$.take(1).subscribe(failureMethod);
-    }
-    const unsubscribe = () => {
-      success.unsubscribe();
-      if (failure) {
-        failure.unsubscribe();
-      }
-    };
-    if ($scope) {
-      $scope.$on('$destroy', () => unsubscribe());
-    }
-    return unsubscribe;
+  public onNextRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
+    const subscription = this.nextRefresh$.subscribe(data => callback(data), error => onError && onError(error));
+
+    $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
+    return () => subscription.unsubscribe();
   }
 
   /**
@@ -331,26 +389,20 @@ export class ApplicationDataSource implements IDataSourceConfig {
    *
    * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed.
    *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
-   * @param method the method to call the next time the data source refreshes
-   * @param failureMethod (optional) a method to call if the data source refresh fails
+   * @param callback the method to call the next time the data source refreshes
+   * @param onError (optional) a method to call if the data source refresh fails
    * @return a method to call to unsubscribe
    */
-  public onRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
-    const success: Subscription = this.refresh$.subscribe(method);
-    let failure: Subscription = null;
-    if (failureMethod) {
-      failure = this.refreshFailure$.subscribe(failureMethod);
-    }
-    const unsubscribe = () => {
-      success.unsubscribe();
-      if (failure) {
-        failure.unsubscribe();
-      }
-    };
-    if ($scope) {
-      $scope.$on('$destroy', () => unsubscribe());
-    }
-    return unsubscribe;
+  public onRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
+    const failures$ = this.refreshFailure$.mergeMap(({ error }) => {
+      onError && onError(error);
+      return Observable.empty();
+    });
+
+    const subscription = Observable.merge(this.data$.skip(1), failures$).subscribe(data => callback(data));
+
+    $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
+    return () => subscription.unsubscribe();
   }
 
   /**
@@ -365,18 +417,24 @@ export class ApplicationDataSource implements IDataSourceConfig {
    *
    * @returns {IPromise<T>}
    */
-  public ready(): IPromise<void> {
-    const deferred = this.$q.defer<void>();
+  public ready(): IPromise<any> {
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
-      deferred.resolve();
-    } else if (this.loadFailure) {
-      deferred.reject();
-    } else {
-      this.refresh$.take(1).subscribe(deferred.resolve);
-      this.refreshFailure$.take(1).subscribe(deferred.reject);
+      return $q.resolve(this.data);
     }
-    deferred.promise.catch(() => {});
-    return deferred.promise;
+
+    return toIPromise(this.nextRefresh$);
+  }
+
+  /**
+   * Sets the "active" flag to true and, if the data source has not been loaded, immediately calls "refresh()"
+   */
+  public activate(): void {
+    if (!this.active) {
+      this.active = true;
+      if (!this.loaded) {
+        this.refresh();
+      }
+    }
   }
 
   /**
@@ -384,6 +442,12 @@ export class ApplicationDataSource implements IDataSourceConfig {
    */
   public deactivate(): void {
     this.active = false;
+  }
+
+  private updateData(data: any) {
+    this.data = data || [];
+    this.data$.next(this.data);
+    this.debug(`this.data = ${JSON.stringify(this.data)}`);
   }
 
   /**
@@ -402,77 +466,23 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * @param forceRefresh
    * @returns {any}
    */
-  public refresh(forceRefresh?: boolean): IPromise<void> {
-    const deferred = this.$q.defer<void>();
-    this.refreshQueue.push(deferred);
-    if (!this.loader || this.disabled) {
-      this.data.length = 0;
-      this.loading = false;
-      this.loaded = true;
-      return this.$q.when(null);
-    }
-    if (this.lazy && !this.active) {
-      this.data.length = 0;
+  public refresh(forceRefresh?: boolean): IPromise<any> {
+    this.debug(`refresh(${forceRefresh})`);
+    if (!this.loader || this.disabled || (this.lazy && !this.active)) {
       this.loaded = false;
-      return this.$q.when(null);
+      this.updateData([]);
+      return $q.resolve(this.data);
     }
+
+    const promise = toIPromise(this.data$.skip(1).take(1));
+
     if (this.loading && !forceRefresh) {
-      this.$log.info(`${this.key} still loading, skipping refresh`);
-      return this.$q.when(null);
+      $log.info(`${this.key} still loading, skipping refresh`);
+    } else {
+      this.fetchRequest$.next();
     }
-    this.loading = true;
 
-    this.currentLoadCall += 1;
-    const loadCall = this.currentLoadCall;
-    this.loader(this.application)
-      .then(result => {
-        if (loadCall < this.currentLoadCall) {
-          // discard, more recent call has come in
-          // TODO: this will all be cleaner with Observables
-          this.$log.debug(`Discarding load #${loadCall} for ${this.key} - current is #${this.currentLoadCall}`);
-          return;
-        }
-        this.onLoad(this.application, result).then(data => {
-          if (data) {
-            this.data = data;
-          }
-          this.loaded = true;
-          this.loading = false;
-          this.loadFailure = false;
-          this.lastRefresh = new Date().getTime();
-          if (this.afterLoad) {
-            this.afterLoad(this.application);
-          }
-          this.addAlerts();
-          this.dataUpdated();
-        });
-        this.refreshQueue.forEach(d => d.resolve());
-        this.refreshQueue.length = 0;
-      })
-      .catch(rejection => {
-        if (loadCall === this.currentLoadCall) {
-          this.$log.warn(`Error retrieving ${this.key}`, rejection);
-          this.loading = false;
-          this.loadFailure = true;
-          this.refreshFailure$.next(rejection);
-          // resolve, don't reject - the refreshFailureStream and loadFailure flags signal the rejection
-          this.refreshQueue.forEach(d => d.resolve(rejection));
-          this.refreshQueue.length = 0;
-        }
-      });
-    return deferred.promise;
-  }
-
-  /**
-   * Sets the "active" flag to true and, if the data source has not been loaded, immediately calls "refresh()"
-   */
-  public activate(): void {
-    if (!this.active) {
-      this.active = true;
-      if (!this.loaded) {
-        this.refresh();
-      }
-    }
+    return promise;
   }
 
   private addAlerts(): void {
@@ -482,5 +492,10 @@ export class ApplicationDataSource implements IDataSourceConfig {
         .filter((d: any) => get(d, 'entityTags.alerts.length', 0))
         .map((d: any) => d['entityTags'] as IEntityTags);
     }
+  }
+
+  private debug(_message: string) {
+    // tslint:disable-next-line
+    // console.log(`DEBUG ${this.application.name}.${this.key}: ${_message}`);
   }
 }
