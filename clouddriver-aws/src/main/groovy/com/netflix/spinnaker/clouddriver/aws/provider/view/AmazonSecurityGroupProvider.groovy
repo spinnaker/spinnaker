@@ -108,8 +108,16 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId), true)[0]
   }
 
+  AmazonSecurityGroup get(boolean includeRules, String account, String region, String name, String vpcId) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId), includeRules)[0]
+  }
+
   AmazonSecurityGroup getById(String account, String region, String securityGroupId, String vpcId) {
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', securityGroupId, region, account, vpcId), true)[0]
+  }
+
+  AmazonSecurityGroup getById(boolean includeRules, String account, String region, String securityGroupId, String vpcId) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', securityGroupId, region, account, vpcId), includeRules)[0]
   }
 
   Collection<AmazonSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
