@@ -59,7 +59,7 @@ public class AtlasConfiguration {
 
   @Bean
   MetricsService atlasMetricsService(AtlasConfigurationProperties atlasConfigurationProperties,
-                                     AccountCredentialsRepository accountCredentialsRepository) throws IOException {
+                                     AccountCredentialsRepository accountCredentialsRepository) {
     AtlasMetricsService.AtlasMetricsServiceBuilder atlasMetricsServiceBuilder = AtlasMetricsService.builder();
 
     for (AtlasManagedAccount atlasManagedAccount : atlasConfigurationProperties.getAccounts()) {
@@ -81,6 +81,7 @@ public class AtlasConfiguration {
           .name(name)
           .credentials(atlasCredentials)
           .fetchId(atlasManagedAccount.getFetchId())
+          .recommendedLocations(atlasManagedAccount.getRecommendedLocations())
           .backendUpdater(updater);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {

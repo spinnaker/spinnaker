@@ -19,8 +19,10 @@ package com.netflix.kayenta.atlas.backends;
 import com.netflix.kayenta.atlas.model.Backend;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class BackendDatabase {
 
@@ -52,5 +54,14 @@ public class BackendDatabase {
 
   public synchronized void update(List<Backend> newBackends) {
     backends = newBackends;
+  }
+
+  public synchronized List<String> getLocations() {
+    ArrayList<String> locations = new ArrayList<>();
+
+    for (Backend backend : backends) {
+      locations.addAll(backend.getTargets());
+    }
+    return locations.stream().distinct().collect(Collectors.toList());
   }
 }

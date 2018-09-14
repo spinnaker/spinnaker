@@ -34,7 +34,9 @@ package com.netflix.kayenta.atlas.model;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Builder
 @ToString
@@ -46,6 +48,10 @@ public class Backend {
   @NotNull
   @Getter
   private String cname;
+
+  @NotNull
+  @Getter
+  private String target;
 
   @NotNull
   @Getter
@@ -72,12 +78,41 @@ public class Backend {
   @Getter
   private String description;
 
-  public String getUri(String method, String deployment, String dataset, String region, String environment) {
-    String ret = cname
+  public List<String> getTargets() {
+    ArrayList<String> ret = new ArrayList<>();
+
+    ret.add(target.replace("$(deployment)", deployment).replace("$(dataset)", dataset));
+
+    if (regions != null) {
+      ArrayList<String> newList = new ArrayList<>();
+      for (String region : regions) {
+        for (String item : ret) {
+          newList.add(item.replace("$(region)", region));
+        }
+      }
+      ret = newList;
+    }
+
+    if (environments != null) {
+      ArrayList<String> newList = new ArrayList<>();
+      for (String environment : environments) {
+        for (String item : ret) {
+          newList.add(item.replace("$(env)", environment));
+        }
+      }
+      ret = newList;
+    }
+
+    return ret.stream().distinct().collect(Collectors.toList());
+  }
+
+  public String getUri(String scheme, String deployment, String dataset, String region, String environment) {
+    String relativeReference = cname
       .replace("$(deployment)", deployment)
       .replace("$(dataset)", dataset)
       .replace("$(region)", region)
       .replace("$(env)", environment);
-    return method + "://" + ret;
+
+    return scheme + "://" + relativeReference;
   }
 }

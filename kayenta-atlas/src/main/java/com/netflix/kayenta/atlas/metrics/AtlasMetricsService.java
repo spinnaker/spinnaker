@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -81,11 +80,17 @@ public class AtlasMetricsService implements MetricsService {
     return accountNames.contains(accountName);
   }
 
+  private AtlasNamedAccountCredentials getCredentials(String accountName) {
+    return (AtlasNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+  }
+
   @Override
   public List<MetricSet> queryMetrics(String accountName,
                                       CanaryConfig canaryConfig,
                                       CanaryMetricConfig canaryMetricConfig,
-                                      CanaryScope canaryScope) throws IOException {
+                                      CanaryScope canaryScope) {
 
     OkHttpClient okHttpClient = new OkHttpClient();
     // TODO: (mgraff, duftler) -- we should find out the defaults, and if too small, make this reasonable / configurable
@@ -99,9 +104,7 @@ public class AtlasMetricsService implements MetricsService {
     }
 
     AtlasCanaryScope atlasCanaryScope = (AtlasCanaryScope)canaryScope;
-    AtlasNamedAccountCredentials credentials = (AtlasNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    AtlasNamedAccountCredentials credentials = getCredentials(accountName);
     Optional<Backend> backend = credentials.getBackendUpdater().getBackendDatabase().getOne(atlasCanaryScope.getDeployment(),
                                                                                             atlasCanaryScope.getDataset(),
                                                                                             atlasCanaryScope.getLocation(),

@@ -110,4 +110,5 @@ swagger:
     - /metadata.*
     - /metricSetList.*
     - /metricSetPairList.*
+    - /metricServices.*
     - /pipeline.*

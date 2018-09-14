@@ -24,6 +24,7 @@ import lombok.Data;
 import lombok.Singular;
 
 import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.List;
 
 @Builder
@@ -37,16 +38,33 @@ public class AtlasNamedAccountCredentials implements AccountCredentials<AtlasCre
   @Singular
   private List<Type> supportedTypes;
 
-  @NotNull
-  private AtlasCredentials credentials;
-
-  private String fetchId;
-
   @Override
   public String getType() {
     return "atlas";
   }
 
+  @NotNull
+  private AtlasCredentials credentials;
+
+  private String fetchId;
+
+  private List<String> recommendedLocations;
+
   @JsonIgnore
   private BackendUpdater backendUpdater;
+
+  @Override
+  public List<String> getLocations() {
+    return getBackendUpdater().getBackendDatabase().getLocations();
+  }
+
+  @Override
+  public List<String> getRecommendedLocations() {
+    if (recommendedLocations == null) {
+      return Collections.emptyList();
+    } else {
+      return recommendedLocations;
+    }
+  }
+
 }

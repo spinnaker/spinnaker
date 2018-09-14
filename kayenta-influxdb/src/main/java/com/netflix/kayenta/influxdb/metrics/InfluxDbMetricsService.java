@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.influxdb.metrics;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +73,7 @@ public class InfluxDbMetricsService implements MetricsService {
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String accountName, CanaryConfig canaryConfig, CanaryMetricConfig canaryMetricConfig, CanaryScope canaryScope) throws IOException {
+  public List<MetricSet> queryMetrics(String accountName, CanaryConfig canaryConfig, CanaryMetricConfig canaryMetricConfig, CanaryScope canaryScope) {
 	  
     InfluxDbNamedAccountCredentials accountCredentials = (InfluxDbNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)

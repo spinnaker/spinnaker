@@ -25,7 +25,6 @@ import java.util.Optional;
 @Builder
 @Data
 @Slf4j
-// TODO: Not sure what kind of credentials or configuration is really required here yet.
 public class AtlasCredentials {
 
   private static String applicationVersion =

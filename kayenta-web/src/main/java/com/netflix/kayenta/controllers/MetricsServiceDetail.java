@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,34 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.atlas.config;
+package com.netflix.kayenta.controllers;
 
-import com.netflix.kayenta.security.AccountCredentials;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
-@Data
-public class AtlasManagedAccount {
+@Builder
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class MetricsServiceDetail {
+  @Getter
+  @NonNull
+  String name;
 
-  @NotNull
-  private String name;
+  @Getter
+  @NonNull
+  String type;
 
-  private List<AccountCredentials.Type> supportedTypes;
+  // See comment in kayenta-core AccountCredentials
+  @Getter
+  @NonNull
+  List<String> recommendedLocations;
 
-  @NotNull
-  private String backendsJsonBaseUrl;
-
-  private String fetchId;
-
-  private List<String> recommendedLocations;
+  // See comment in kayenta-core AccountCredentials
+  @Getter
+  @NonNull
+  List<String> locations;
 }

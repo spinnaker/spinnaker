@@ -284,7 +284,7 @@ public class PrometheusMetricsService implements MetricsService {
   }
 
   @Override
-  public List<Map> getMetadata(String metricsAccountName, String filter) throws IOException {
+  public List<Map> getMetadata(String metricsAccountName, String filter) {
     if (!StringUtils.isEmpty(filter)) {
       String lowerCaseFilter = filter.toLowerCase();
 
@@ -302,7 +302,7 @@ public class PrometheusMetricsService implements MetricsService {
   }
 
   @Scheduled(fixedDelayString = "#{@prometheusConfigurationProperties.metadataCachingIntervalMS}")
-  public void updateMetricDescriptorsCache() throws IOException {
+  public void updateMetricDescriptorsCache() {
     Set<AccountCredentials> accountCredentialsSet =
       CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
 
