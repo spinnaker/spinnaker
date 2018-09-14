@@ -1,0 +1,51 @@
+<div>
+  <div class="form-group">
+    <div class="col-md-12">
+      <p>Scale the servergroup.</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-4"><b>Instances</b></div>
+    <div class="col-md-4"><b>Mem Mb</b></div>
+    <div class="col-md-4"><b>Disk Mb</b></div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-12">Current</div>
+    <div class="col-md-4"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="currentSize.instanceCount"
+                                 readonly/>
+    </div>
+    <div class="col-md-4"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="currentSize.memInMb"
+                                 readonly/>
+    </div>
+    <div class="col-md-4"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="currentSize.diskInMb"
+                                 readonly/>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-12">Resize to</div>
+    <div class="col-md-4"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="command.instanceCount"
+                                 min="0"
+                                 required
+    /></div>
+    <div class="col-md-4"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="command.memInMb"
+                                 required
+                                 min="32"
+    /></div>
+    <div class="col-md-4"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="command.diskInMb"
+                                 required
+                                 min="32"
+    /></div>
+  </div>
+</div>

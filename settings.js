@@ -28,7 +28,7 @@ var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED
 window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
-  defaultProviders: ['aws', 'gce', 'azure', 'kubernetes', 'dcos', 'openstack', 'oracle', 'ecs'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cloudfoundry', 'kubernetes', 'dcos', 'openstack', 'oracle', 'ecs'],
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
   authEndpoint: authEndpoint,
@@ -58,6 +58,11 @@ window.spinnakerSettings = {
         disableManualOidcDialog: false,
       },
       useAmiBlockDeviceMappings: false,
+    },
+    cloudfoundry: {
+      defaults: {
+        account: 'my-cloudfoundry-account',
+      },
     },
     ecs: {
       defaults: {

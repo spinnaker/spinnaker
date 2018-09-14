@@ -38,7 +38,10 @@
       "kubernetes/": ["kubernetes/src"],
       "@spinnaker/oracle": ["oracle/src"],
       "oracle/*": ["oracle/src/*"],
-      "oracle": ["oracle/src"]
+      "oracle": ["oracle/src"],
+      "@spinnaker/cloudfoundry": ["cloudfoundry/src"],
+      "cloudfoundry/*": ["cloudfoundry/src/*"],
+      "cloudfoundry/": ["cloudfoundry/src"]
     },
     "pretty": true,
     "removeComments": true,

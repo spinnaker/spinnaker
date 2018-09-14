@@ -1,0 +1,81 @@
+<div class="details-panel">
+  <div class="header" ng-if="ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
+  </div>
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <span class="glyphicon glyphicon-hdd {{ctrl.instance.healthState}}"></span>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{ctrl.instance ? ctrl.instance.name : ctrl.instanceIdNotFound}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Instance Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading && ctrl.instance">
+    <collapsible-section heading="Instance Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Launched</dt>
+        <dd ng-if="ctrl.instance.launchTime">{{ctrl.instance.launchTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="ctrl.instance.account" pad="right"></account-tag>{{}}
+        </dd>
+        <dt ng-if="ctrl.instance.serverGroup">Server Group</dt>
+        <dd ng-if="ctrl.instance.serverGroup">
+          <a ui-sref="^.serverGroup({region: ctrl.instance.region,
+                                     accountId: ctrl.instance.account,
+                                     serverGroup: ctrl.instance.serverGroup,
+                                     provider: 'cloudfoundry'})">{{ctrl.instance.serverGroup}}</a>
+        </dd>
+        <dt>Region</dt>
+        <dd>{{ctrl.instance.region}}</dd>
+        <appengine-conditional-dt-dd component="ctrl.instance" key="vmZoneName" label="Zone"></appengine-conditional-dt-dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>
+          <span class="glyphicon glyphicon-{{ctrl.instance.healthState}}-triangle"></span>
+        </dt>
+        <dd>{{ctrl.instance.healthState}}</dd>
+        <div ng-if="ctrl.instance.details">
+          <dt>Details</dt>
+          <dd>{{ctrl.instance.details}}</dd>
+        </div>
+      </dl>
+    </collapsible-section>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading && !ctrl.instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
+  </div>
+</div>

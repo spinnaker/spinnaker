@@ -82,6 +82,8 @@ function configure(env, webpackOpts) {
         '@spinnaker/appengine': path.join(__dirname, 'app', 'scripts', 'modules', 'appengine', 'src'),
         oracle: path.join(__dirname, 'app', 'scripts', 'modules', 'oracle', 'src'),
         '@spinnaker/oracle': path.join(__dirname, 'app', 'scripts', 'modules', 'oracle', 'src'),
+        cloudfoundry: path.join(__dirname, 'app', 'scripts', 'modules', 'cloudfoundry', 'src'),
+        '@spinnaker/cloudfoundry': path.join(__dirname, 'app', 'scripts', 'modules', 'cloudfoundry', 'src'),
       },
     },
     module: {

@@ -13,12 +13,14 @@ import { ORACLE_MODULE } from '@spinnaker/oracle';
 import { KAYENTA_MODULE } from '@spinnaker/kayenta';
 import { TITUS_MODULE } from '@spinnaker/titus';
 import { ECS_MODULE } from '@spinnaker/ecs';
+import { CLOUD_FOUNDRY_MODULE } from '@spinnaker/cloudfoundry';
 
 module('netflix.spinnaker', [
   CORE_MODULE,
   AMAZON_MODULE,
   GOOGLE_MODULE,
   ECS_MODULE,
+  CLOUD_FOUNDRY_MODULE,
   require('./modules/azure/azure.module.js').name,
   KUBERNETES_V1_MODULE,
   OPENSTACK_MODULE,
