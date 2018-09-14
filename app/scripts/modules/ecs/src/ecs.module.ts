@@ -14,6 +14,7 @@ import { PLACEMENT_STRATEGY_SERVICE } from './placementStrategy/placementStrateg
 import './ecs.help';
 import { COMMON_MODULE } from './common/common.module';
 import { ECS_SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
+import { ECS_SERVER_GROUP_LOGGING } from './serverGroup/configure/wizard/logging/logging.component';
 
 import './logo/ecs.logo.less';
 
@@ -36,7 +37,7 @@ angular
     require('./serverGroup/configure/wizard/advancedSettings/advancedSettings.component').name,
     require('./serverGroup/configure/wizard/verticalScaling/verticalScaling.component').name,
     require('./serverGroup/configure/wizard/horizontalScaling/horizontalScaling.component').name,
-    require('./serverGroup/configure/wizard/logging/logging.component').name,
+    ECS_SERVER_GROUP_LOGGING,
     ECS_NETWORKING_SECTION,
     ECS_CLUSTER_READ_SERVICE,
     METRIC_ALARM_READ_SERVICE,
