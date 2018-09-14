@@ -195,7 +195,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   }
 
   default String makeValidLabel(String value) {
-    value = value.replaceAll("/[^A-Za-z0-9-_.]/", "");
+    value = value.replaceAll("[^A-Za-z0-9-_.]", "");
     while (!value.isEmpty() && !characterAlphanumeric(value, 0)) {
       value = value.substring(1);
     }
