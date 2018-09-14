@@ -43,4 +43,12 @@
       <!-- TODO - implement handling of custom placement strategies and constraints -->
     </div>
   </div>
+
+  <div class="form-group">
+    <div class="sm-label-left">
+      <b>Docker labels (optional)</b>
+      <help-field key="ecs.dockerLabels"></help-field>
+    </div>
+    <map-editor model="$ctrl.command.dockerLabels" allow-empty="true"></map-editor>
+  </div>
 </div>

@@ -36,6 +36,12 @@ const helpContents: { [key: string]: string } = {
     '<p>awsvpc is the only networking mode that allows you to use Elastic Network Interfaces (ENI).  The default value converts to Bridge on Linux, and NAT on Windows.</p>',
   'ecs.subnet': '<p>The subnet group on which your server group will be deployed.</p>',
   'ecs.securityGroups': '<p>The security group(s) name(s) your containers are deployed with.</p>',
+  'ecs.dockerLabels':
+    '<p>Additional labels applied to your Docker container.  This metadata can be used to identify your containers, or in conjunction with logging options.  Maps directly to the <a href="https://docs.docker.com/engine/reference/commandline/run/#set-metadata-on-container--l---label---label-file"><b>--label</b> Docker flag</a>.</p> <p>Spinnaker will automatically add the spinnaker.servergroup, spinnaker.stack, spinnaker.detail labels for non-null values.</p>',
+  'ecs.logDriver':
+    '<p>The container\'s logging driver.  This directly maps to the <a href="https://docs.docker.com/config/containers/logging/configure/#configure-the-default-logging-driver"><b>--log-driver</b> Docker flag.</a></p>',
+  'ecs.logOptions':
+    '<p>A map of log options.  This directly maps with the <a href="https://docs.docker.com/config/containers/logging/log_tags/"><b>--log-opt</b> Docker flag  </a></p>',
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

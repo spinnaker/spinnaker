@@ -57,6 +57,7 @@ module.exports = angular
         require('./horizontalScaling/horizontalScaling.html'),
       ),
       networking: overrideRegistry.getTemplate('ecs.serverGroup.networking', require('./networking/networking.html')),
+      logging: overrideRegistry.getTemplate('ecs.serverGroup.logging', require('./logging/logging.html')),
       advancedSettings: overrideRegistry.getTemplate(
         'ecs.serverGroup.advancedSettings',
         require('./advancedSettings/advancedSettings.html'),
