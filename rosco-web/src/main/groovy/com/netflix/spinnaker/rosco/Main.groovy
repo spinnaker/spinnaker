@@ -22,6 +22,7 @@ import com.netflix.spinnaker.rosco.providers.azure.config.RoscoAzureConfiguratio
 import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import com.netflix.spinnaker.rosco.providers.openstack.config.RoscoOpenstackConfiguration
+import com.netflix.spinnaker.rosco.providers.oracle.config.RoscoOracleConfiguration
 import com.netflix.spinnaker.rosco.services.ServiceConfig
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
@@ -57,6 +58,7 @@ import javax.servlet.Filter
   RoscoDockerConfiguration,
   RoscoGoogleConfiguration,
   RoscoOpenstackConfiguration,
+  RoscoOracleConfiguration,
   LocalJobConfig
 ])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])

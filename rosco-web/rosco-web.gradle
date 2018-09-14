@@ -38,6 +38,7 @@ ospackage {
   configurationFile('/opt/rosco/config/packer/aws-ebs.json')
   configurationFile('/opt/rosco/config/packer/azure-linux.json')
   configurationFile('/opt/rosco/config/packer/gce.json')
+  configurationFile('/opt/rosco/config/packer/oci.json')
   configurationFile('/opt/rosco/config/packer/install_packages.sh')
 
   from('../docker') {
