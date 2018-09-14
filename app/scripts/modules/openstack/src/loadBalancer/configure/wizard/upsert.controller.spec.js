@@ -102,7 +102,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
         result: $q.when(null),
       };
 
-      this.mockApplication = applicationModelBuilder.createApplication('app', {
+      this.mockApplication = applicationModelBuilder.createApplicationForTests('app', {
         key: 'loadBalancers',
         lazy: false,
         loader: () => $q.resolve(_.clone(this.testData.loadBalancerList)),

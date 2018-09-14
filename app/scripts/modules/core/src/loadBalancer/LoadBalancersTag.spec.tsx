@@ -21,7 +21,7 @@ describe('<LoadBalancersTag />', () => {
     mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
       $q = _$q_;
       $scope = $rootScope.$new();
-      application = applicationModelBuilder.createApplication('app', {
+      application = applicationModelBuilder.createApplicationForTests('app', {
         key: 'loadBalancers',
         loader: () => $q.resolve(application.loadBalancers.data),
         onLoad: (_app, data) => $q.resolve(data),

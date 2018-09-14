@@ -42,7 +42,7 @@ describe('Service: SkinService', () => {
     });
 
     it('scrapes application server groups to determine skin if possible', () => {
-      const app = appBuilder.createApplication(
+      const app = appBuilder.createApplicationForTests(
         'myApp',
         {
           key: 'serverGroups',
@@ -71,7 +71,7 @@ describe('Service: SkinService', () => {
     });
 
     it('scrapes application load balancers to determine skin if possible', () => {
-      const app = appBuilder.createApplication(
+      const app = appBuilder.createApplicationForTests(
         'myApp',
         {
           key: 'loadBalancers',
@@ -99,7 +99,7 @@ describe('Service: SkinService', () => {
     });
 
     it("scrapes application load balancers' server groups to determine skin if possible", () => {
-      const app = appBuilder.createApplication(
+      const app = appBuilder.createApplicationForTests(
         'myApp',
         {
           key: 'loadBalancers',

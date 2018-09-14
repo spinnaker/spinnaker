@@ -24,7 +24,7 @@ describe('Controller: awsInstanceDetailsCtrl', function() {
         });
       };
 
-      application = applicationModelBuilder.createApplication(
+      application = applicationModelBuilder.createApplicationForTests(
         'app',
         { key: 'loadBalancers', lazy: true },
         { key: 'serverGroups', lazy: true },

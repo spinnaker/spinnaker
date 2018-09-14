@@ -26,7 +26,7 @@ xdescribe('CreatePipelineModal', () => {
       $q = _$q_;
       $scope = $rootScope.$new();
       initializeComponent = (configs = []) => {
-        application = applicationModelBuilder.createApplication(
+        application = applicationModelBuilder.createApplicationForTests(
           'app',
           {
             key: 'pipelineConfigs',

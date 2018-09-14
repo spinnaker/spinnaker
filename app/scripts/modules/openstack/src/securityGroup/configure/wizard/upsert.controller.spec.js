@@ -65,7 +65,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
         close: jasmine.createSpy(),
         result: $q.when(null),
       };
-      let application = applicationModelBuilder.createApplication('app', {
+      let application = applicationModelBuilder.createApplicationForTests('app', {
         key: 'securityGroups',
         onLoad: angular.noop,
         loader: angular.noop,

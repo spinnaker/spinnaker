@@ -14,7 +14,7 @@ describe('Controller: MultipleInstances', function() {
       scope = $rootScope.$new();
 
       this.createController = function(serverGroups) {
-        let application = applicationModelBuilder.createApplication('app', { key: 'serverGroups', lazy: true });
+        let application = applicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
         application.serverGroups.data = serverGroups;
         application.serverGroups.loaded = true;
         this.application = application;

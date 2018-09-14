@@ -8,7 +8,7 @@ describe('Controller: deletePipelineModal', function() {
   beforeEach(
     window.inject(function($controller, $rootScope, $log, $q, $state, applicationModelBuilder) {
       this.$q = $q;
-      this.application = applicationModelBuilder.createApplication('app', {
+      this.application = applicationModelBuilder.createApplicationForTests('app', {
         key: 'pipelineConfigs',
         lazy: true,
         loader: () => this.$q.when(null),

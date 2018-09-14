@@ -23,7 +23,7 @@ describe('Service: inferredApplicationWarning', () => {
     let configuredApp: Application, inferredApp: Application;
 
     beforeEach(function() {
-      configuredApp = applicationModelBuilder.createApplication('myConfiguredApp');
+      configuredApp = applicationModelBuilder.createApplicationForTests('myConfiguredApp');
       configuredApp.attributes.email = 'email@email.email';
 
       inferredApp = applicationModelBuilder.createNotFoundApplication('myInferredApp');

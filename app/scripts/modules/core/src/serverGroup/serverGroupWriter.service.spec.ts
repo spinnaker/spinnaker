@@ -64,7 +64,7 @@ describe('serverGroupWriter', function() {
         })
         .respond(200, { ref: '/1' });
 
-      const application: TestApplication = applicationModelBuilder.createApplication(
+      const application: TestApplication = applicationModelBuilder.createApplicationForTests(
         'app',
         ...ApplicationDataSourceRegistry.getDataSources(),
       ) as TestApplication;
@@ -81,7 +81,7 @@ describe('serverGroupWriter', function() {
 
     let command: IServerGroupCommand;
     beforeEach(() => {
-      const application: Application = applicationModelBuilder.createApplication(
+      const application: Application = applicationModelBuilder.createApplicationForTests(
         'app',
         ...ApplicationDataSourceRegistry.getDataSources(),
       );

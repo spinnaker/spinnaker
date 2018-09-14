@@ -41,7 +41,7 @@ describe('Component: Application Data Source Editor', () => {
   );
 
   beforeEach(() => {
-    application = applicationModelBuilder.createApplication(
+    application = applicationModelBuilder.createApplicationForTests(
       'app',
       {
         key: 'optionalSource',

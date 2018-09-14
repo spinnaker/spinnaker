@@ -48,7 +48,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
       spyOn(AccountService, 'listAllAccounts').and.returnValue($q.when(accounts));
 
       initializeController(null);
-      $ctrl.application = applicationBuilder.createApplication('app', {
+      $ctrl.application = applicationBuilder.createApplicationForTests('app', {
         key: 'serverGroups',
         loader: () => $q.resolve([]),
         onLoad: (_app, data) => $q.resolve(data),

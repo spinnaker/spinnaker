@@ -13,7 +13,7 @@ describe('ServerGroupWarningMessageService', () => {
   beforeEach(
     mock.inject((_applicationModelBuilder_: ApplicationModelBuilder) => {
       applicationModelBuilder = _applicationModelBuilder_;
-      app = applicationModelBuilder.createApplication('app');
+      app = applicationModelBuilder.createApplicationForTests('app');
     }),
   );
 

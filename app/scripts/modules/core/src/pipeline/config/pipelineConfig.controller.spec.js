@@ -16,7 +16,10 @@ describe('Controller: PipelineConfigCtrl', function() {
   );
 
   it('should initialize immediately if pipeline configs are already present', function() {
-    const application = applicationModelBuilder.createApplication('app', { key: 'pipelineConfigs', lazy: true });
+    const application = applicationModelBuilder.createApplicationForTests('app', {
+      key: 'pipelineConfigs',
+      lazy: true,
+    });
     application.pipelineConfigs.data = [{ id: 'a' }];
     application.pipelineConfigs.loaded = true;
 
@@ -32,7 +35,10 @@ describe('Controller: PipelineConfigCtrl', function() {
   });
 
   it('should wait until pipeline configs are loaded before initializing', function() {
-    const application = applicationModelBuilder.createApplication('app', { key: 'pipelineConfigs', lazy: true });
+    const application = applicationModelBuilder.createApplicationForTests('app', {
+      key: 'pipelineConfigs',
+      lazy: true,
+    });
     spyOn(application.pipelineConfigs, 'activate').and.callFake(angular.noop);
     let vm = controller('PipelineConfigCtrl', {
       $scope: scope,

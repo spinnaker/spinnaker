@@ -55,7 +55,7 @@ describe('Service: securityGroupReader', function() {
   it('attaches load balancer to firewall usages', function() {
     let data: any[] = null;
 
-    const application: Application = applicationModelBuilder.createApplication(
+    const application: Application = applicationModelBuilder.createApplicationForTests(
       'app',
       {
         key: 'securityGroups',
@@ -103,7 +103,7 @@ describe('Service: securityGroupReader', function() {
 
   it('adds firewall names across accounts, falling back to the ID if none found', function() {
     let details: ISecurityGroupDetail = null;
-    const application: Application = applicationModelBuilder.createApplication('app');
+    const application: Application = applicationModelBuilder.createApplicationForTests('app');
     application['securityGroupsIndex'] = {
       test: { 'us-east-1': { 'sg-2': { name: 'matched' } } },
       prod: { 'us-east-1': { 'sg-2': { name: 'matched-prod' } } },
@@ -134,7 +134,7 @@ describe('Service: securityGroupReader', function() {
 
   it('should clear cache, then reload firewalls and try again if a firewall is not found', function() {
     let data: ISecurityGroup[] = null;
-    const application: Application = applicationModelBuilder.createApplication(
+    const application: Application = applicationModelBuilder.createApplicationForTests(
       'app',
       {
         key: 'securityGroups',

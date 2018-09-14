@@ -36,7 +36,7 @@ describe('<Executions/>', () => {
     mock.inject((_$timeout_: ITimeoutService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
       scope = $rootScope.$new();
       $timeout = _$timeout_;
-      application = applicationModelBuilder.createApplication(
+      application = applicationModelBuilder.createApplicationForTests(
         'app',
         { key: 'executions', lazy: true },
         { key: 'pipelineConfigs', lazy: true },

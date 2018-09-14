@@ -15,7 +15,7 @@ export class ApplicationModelBuilder {
   /**
    * This is mostly used in tests
    */
-  public createApplication(name: string, ...dataSources: IDataSourceConfig[]): Application {
+  public createApplicationForTests(name: string, ...dataSources: IDataSourceConfig[]): Application {
     const application = new Application(name, SchedulerFactory.createScheduler(), this.$q, this.$log);
     dataSources.forEach(ds => this.addDataSource(ds, application));
     return application;

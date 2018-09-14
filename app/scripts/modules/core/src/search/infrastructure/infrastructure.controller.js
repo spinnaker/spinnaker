@@ -130,7 +130,7 @@ module.exports = angular
       });
     }
 
-    this.createApplication = () => {
+    this.createApplicationForTests = () => {
       $uibModal
         .open({
           scope: $scope,
@@ -168,7 +168,7 @@ module.exports = angular
     this.menuActions = [
       {
         displayName: 'Create Application',
-        action: this.createApplication,
+        action: this.createApplicationForTests,
       },
       {
         displayName: 'Create Project',

@@ -51,7 +51,7 @@ describe('Service: instance writer', function() {
         zone: 'a',
         launchTime: 2,
       };
-      const application: Application = applicationModelBuilder.createApplication('app', {
+      const application: Application = applicationModelBuilder.createApplicationForTests('app', {
         key: 'serverGroups',
         lazy: true,
       });
@@ -111,7 +111,7 @@ describe('Service: instance writer', function() {
     });
 
     it('only sends jobs for groups with instances', () => {
-      const application: Application = applicationModelBuilder.createApplication('app');
+      const application: Application = applicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupB, {
         name: 'i-234',
         id: 'i-234',
@@ -143,7 +143,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes additional job properties for terminate and shrink', () => {
-      const application: Application = applicationModelBuilder.createApplication('app');
+      const application: Application = applicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-234',
         id: 'i-234',
@@ -177,7 +177,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes a useful descriptor on terminate instances', () => {
-      const application: Application = applicationModelBuilder.createApplication('app');
+      const application: Application = applicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
         id: 'i-123',
@@ -203,7 +203,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes a useful descriptor on reboot instances', function() {
-      const application: Application = applicationModelBuilder.createApplication('app');
+      const application: Application = applicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
         id: 'i-123',
@@ -229,7 +229,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes a useful descriptor on disable in discovery', function() {
-      const application: Application = applicationModelBuilder.createApplication('app');
+      const application: Application = applicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
         id: 'i-123',
@@ -255,7 +255,7 @@ describe('Service: instance writer', function() {
     });
 
     it('includes a useful descriptor on enable in discovery', function() {
-      const application: Application = applicationModelBuilder.createApplication('app');
+      const application: Application = applicationModelBuilder.createApplicationForTests('app');
       addInstance(serverGroupA, {
         name: 'i-123',
         id: 'i-123',

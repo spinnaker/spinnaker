@@ -110,7 +110,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       } as any;
 
       service.configureCommand(
-        applicationModelBuilder.createApplication('name', { key: 'loadBalancers', lazy: true }),
+        applicationModelBuilder.createApplicationForTests('name', { key: 'loadBalancers', lazy: true }),
         command,
       );
       $scope.$digest();
@@ -143,7 +143,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       } as any;
 
       service.configureCommand(
-        applicationModelBuilder.createApplication('name', { key: 'loadBalancers', lazy: true }),
+        applicationModelBuilder.createApplicationForTests('name', { key: 'loadBalancers', lazy: true }),
         command,
       );
       $scope.$digest();
@@ -182,7 +182,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       } as any;
 
       service.configureCommand(
-        applicationModelBuilder.createApplication('name', { key: 'loadBalancers', lazy: true }),
+        applicationModelBuilder.createApplicationForTests('name', { key: 'loadBalancers', lazy: true }),
         command,
       );
       $scope.$digest();

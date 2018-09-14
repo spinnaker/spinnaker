@@ -40,7 +40,10 @@ describe('Pipeline Data Source', function() {
 
   function configureApplication() {
     ApplicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
-    application = applicationModelBuilder.createApplication('app', ...ApplicationDataSourceRegistry.getDataSources());
+    application = applicationModelBuilder.createApplicationForTests(
+      'app',
+      ...ApplicationDataSourceRegistry.getDataSources(),
+    );
     application.refresh();
     $scope.$digest();
   }

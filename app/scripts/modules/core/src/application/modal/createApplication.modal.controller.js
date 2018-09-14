@@ -83,7 +83,7 @@ module.exports = angular
       goIdle();
     };
 
-    this.createApplication = () => {
+    this.createApplicationForTests = () => {
       return ApplicationWriter.createApplication(this.application).then(
         waitUntilApplicationIsCreated,
         createApplicationFailure,
@@ -121,6 +121,6 @@ module.exports = angular
       if (this.data.cloudProviders.length === 1) {
         this.application.cloudProviders = this.data.cloudProviders;
       }
-      this.createApplication();
+      this.createApplicationForTests();
     };
   });

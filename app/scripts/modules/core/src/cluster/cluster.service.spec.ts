@@ -41,7 +41,7 @@ describe('Service: Cluster', function() {
         $http = $httpBackend;
         clusterService = _clusterService_;
 
-        application = applicationModelBuilder.createApplication(
+        application = applicationModelBuilder.createApplicationForTests(
           'app',
           { key: 'serverGroups' },
           { key: 'runningExecutions' },

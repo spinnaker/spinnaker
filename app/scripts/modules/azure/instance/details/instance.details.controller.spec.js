@@ -13,7 +13,7 @@ describe('Controller: azureInstanceDetailsCtrl', function() {
       scope = $rootScope.$new();
       $q = _$q_;
 
-      application = applicationModelBuilder.createApplication(
+      application = applicationModelBuilder.createApplicationForTests(
         'app',
         { key: 'loadBalancers', lazy: true },
         { key: 'serverGroups', lazy: true },
