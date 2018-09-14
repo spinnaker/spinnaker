@@ -17,7 +17,7 @@ export interface IExpectedArtifactSelectorViewControllerDelegate {
 }
 
 export class ExpectedArtifactSelectorViewController {
-  public accountsForArtifact: IArtifactAccount[];
+  public accountsForArtifact: IArtifactAccount[] = [];
 
   constructor(private delegate: IExpectedArtifactSelectorViewControllerDelegate) {}
 

@@ -34,10 +34,6 @@ export class NgAppEngineDeployArtifactDelegate
     return (this.getExpectedArtifacts() || []).find(ea => ea.id === this.$scope.command.expectedArtifactId);
   }
 
-  public getExpectedArtifactAccounts(): IArtifactAccount[] {
-    return this.accounts;
-  }
-
   public getSelectedAccount(): IArtifactAccount {
     return null;
   }
@@ -49,16 +45,14 @@ export class NgAppEngineDeployArtifactDelegate
   public setSelectedExpectedArtifact(e: IExpectedArtifact): void {
     this.$scope.command.expectedArtifactId = e.id;
     this.$scope.showCreateArtifactForm = false;
-    this.$scope.$apply();
+    this.scopeApply();
   }
 
-  public setSelectedArtifactAccount(_a: IArtifactAccount): void {
-    return;
-  }
+  public setSelectedArtifactAccount(_a: IArtifactAccount): void {}
 
   public createArtifact(): void {
     this.$scope.showCreateArtifactForm = true;
-    this.$scope.$apply();
+    this.scopeApply();
   }
 
   public refreshExpectedArtifacts(): void {

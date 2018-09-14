@@ -47,10 +47,6 @@ export class NgManifestArtifactDelegate
     return this.getExpectedArtifacts().find(ea => ea.id === id);
   };
 
-  public getExpectedArtifactAccounts = (): IArtifactAccount[] => {
-    return this.accounts;
-  };
-
   public getSelectedAccount = (): IArtifactAccount => {
     const accountName = this.$scope.stage.manifestArtifactAccount;
     if (accountName == null) {
@@ -59,14 +55,10 @@ export class NgManifestArtifactDelegate
     return this.getExpectedArtifactAccounts().find(a => a.name === accountName);
   };
 
-  public setAccounts = (accounts: IArtifactAccount[]) => {
-    this.accounts = [...accounts];
-  };
-
   public setSelectedExpectedArtifact = (expectedArtifact: IExpectedArtifact) => {
     this.$scope.showCreateArtifactForm = false;
     this.$scope.stage.manifestArtifactId = expectedArtifact.id;
-    this.$scope.$apply();
+    this.scopeApply();
   };
 
   public setSelectedArtifactAccount(account: IArtifactAccount) {
@@ -75,12 +67,12 @@ export class NgManifestArtifactDelegate
     } else {
       this.$scope.stage.manifestArtifactAccount = '';
     }
-    this.$scope.$apply();
+    this.scopeApply();
   }
 
   public createArtifact() {
     this.$scope.showCreateArtifactForm = true;
-    this.$scope.$apply();
+    this.scopeApply();
   }
 
   public refreshExpectedArtifacts() {

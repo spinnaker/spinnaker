@@ -15,4 +15,16 @@ export abstract class ExpectedArtifactSelectorViewControllerAngularDelegate<Arti
   public getSupportedArtifactKinds(): IArtifactKindConfig[] {
     return this.kinds;
   }
+
+  public getExpectedArtifactAccounts(): IArtifactAccount[] {
+    return this.accounts;
+  }
+
+  public setAccounts = (accounts: IArtifactAccount[]) => {
+    this.accounts = [...accounts];
+  };
+
+  protected scopeApply() {
+    this.$scope.$evalAsync();
+  }
 }

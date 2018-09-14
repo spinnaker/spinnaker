@@ -12,3 +12,4 @@ export * from './ExpectedArtifactSelectorViewController';
 export * from './NgManifestArtifactDelegate';
 export * from './NgGCEImageArtifactDelegate';
 export * from './NgAppEngineDeployArtifactDelegate';
+export * from './NgBakeManifestArtifactDelegate';

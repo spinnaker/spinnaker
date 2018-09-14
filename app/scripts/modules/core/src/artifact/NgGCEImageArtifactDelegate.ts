@@ -22,8 +22,6 @@ export class NgGCEImageArtifactDelegate
   protected kinds: IArtifactKindConfig[] = Registry.pipeline
     .getArtifactKinds()
     .filter((a: IArtifactKindConfig) => a.key === 'custom');
-  // This is always empty for GCE images.
-  protected accounts: IArtifactAccount[] = [];
 
   constructor(protected $scope: IScope) {
     super($scope);
@@ -41,10 +39,6 @@ export class NgGCEImageArtifactDelegate
     return (this.getExpectedArtifacts() || []).find(ea => ea.id === this.$scope.command.imageArtifactId);
   }
 
-  public getExpectedArtifactAccounts(): IArtifactAccount[] {
-    return this.accounts;
-  }
-
   public getSelectedAccount(): IArtifactAccount {
     return null;
   }
@@ -56,7 +50,7 @@ export class NgGCEImageArtifactDelegate
   public setSelectedExpectedArtifact(e: IExpectedArtifact): void {
     this.$scope.command.imageArtifactId = e.id;
     this.$scope.gceImageArtifact.showCreateArtifactForm = false;
-    this.$scope.$apply();
+    this.scopeApply();
   }
 
   public setSelectedArtifactAccount(_a: IArtifactAccount): void {
@@ -65,7 +59,7 @@ export class NgGCEImageArtifactDelegate
 
   public createArtifact(): void {
     this.$scope.gceImageArtifact.showCreateArtifactForm = true;
-    this.$scope.$apply();
+    this.scopeApply();
   }
 
   public refreshExpectedArtifacts(): void {
