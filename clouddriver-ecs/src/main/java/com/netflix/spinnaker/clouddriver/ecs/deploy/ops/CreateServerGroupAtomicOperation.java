@@ -135,6 +135,15 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
 
   protected RegisterTaskDefinitionRequest makeTaskDefinitionRequest(String ecsServiceRole, String newServerGroupVersion) {
     Collection<KeyValuePair> containerEnvironment = new LinkedList<>();
+
+    // Set all user defined environment variables
+    final Map<String, String> environmentVariables = description.getEnvironmentVariables();
+    if(environmentVariables != null) {
+      for (Map.Entry<String, String> entry : environmentVariables.entrySet()) {
+        containerEnvironment.add(new KeyValuePair().withName(entry.getKey()).withValue(entry.getValue()));
+      }
+    }
+
     containerEnvironment.add(new KeyValuePair().withName("SERVER_GROUP").withValue(newServerGroupVersion));
     containerEnvironment.add(new KeyValuePair().withName("CLOUD_STACK").withValue(description.getStack()));
     containerEnvironment.add(new KeyValuePair().withName("CLOUD_DETAIL").withValue(description.getFreeFormDetails()));

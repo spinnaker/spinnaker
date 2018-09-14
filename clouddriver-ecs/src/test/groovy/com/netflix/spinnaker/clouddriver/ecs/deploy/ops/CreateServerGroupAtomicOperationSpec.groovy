@@ -67,7 +67,6 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
   def service = new Service(serviceName: "${serviceName}")
 
-
   def 'should create a service'() {
     given:
     def description = new CreateServerGroupDescription(
@@ -335,5 +334,83 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == logOptions
+  }
+
+  def 'should generate a RegisterTaskDefinitionRequest object'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+    description.getApplication() >> 'v1'
+    description.getStack() >> 'kcats'
+    description.getFreeFormDetails() >> 'liated'
+    description.ecsClusterName = 'test-cluster'
+    description.iamRole = 'None (No IAM role)'
+    description.getContainerPort() >> 1337
+    description.targetGroup = 'target-group-arn'
+    description.getPortProtocol() >> 'tcp'
+    description.getComputeUnits() >> 9001
+    description.getReservedMemory() >> 9001
+    description.getDockerImageAddress() >> 'docker-image-url'
+    description.capacity = new ServerGroup.Capacity(1, 1, 1)
+    description.availabilityZones = ['us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c']]
+    description.autoscalingPolicies = []
+    description.placementStrategySequence = []
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", "v1")
+
+    then:
+    result.getTaskRoleArn() == null
+    result.getFamily() == "v1-kcats-liated"
+
+    result.getContainerDefinitions().size() == 1
+    def containerDefinition = result.getContainerDefinitions().first()
+    containerDefinition.name == 'v1'
+    containerDefinition.image == 'docker-image-url'
+    containerDefinition.cpu == 9001
+    containerDefinition.memoryReservation == 9001
+
+    containerDefinition.portMappings.size() == 1
+    def portMapping = containerDefinition.portMappings.first()
+    portMapping.getHostPort() == 0
+    portMapping.getContainerPort() == 1337
+    portMapping.getProtocol() == 'tcp'
+
+    containerDefinition.environment.size() == 3
+    def environments = [:]
+    for(elem in containerDefinition.environment){
+      environments.put(elem.getName(), elem.getValue())
+    }
+    environments.get("SERVER_GROUP") == "v1"
+    environments.get("CLOUD_STACK") == "kcats"
+    environments.get("CLOUD_DETAIL") == "liated"
+  }
+
+  def 'should set additional environment variables'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+    description.getApplication() >> 'v1'
+    description.getStack() >> 'kcats'
+    description.getFreeFormDetails() >> 'liated'
+    description.getEnvironmentVariables() >> ["ENVIRONMENT_1" : "test1", "ENVIRONMENT_2" : "test2"]
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    RegisterTaskDefinitionRequest result = operation.makeTaskDefinitionRequest("test-role", "v1")
+
+    then:
+    result.getContainerDefinitions().size() == 1
+    def containerDefinition = result.getContainerDefinitions().first()
+    containerDefinition.environment.size() == 5
+    def environments = [:]
+    for(elem in containerDefinition.environment){
+      environments.put(elem.getName(), elem.getValue())
+    }
+    environments.get("SERVER_GROUP") == "v1"
+    environments.get("CLOUD_STACK") == "kcats"
+    environments.get("CLOUD_DETAIL") == "liated"
+    environments.get("ENVIRONMENT_1") == "test1"
+    environments.get("ENVIRONMENT_2") == "test2"
   }
 }

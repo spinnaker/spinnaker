@@ -25,7 +25,9 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @EcsOperation(AtomicOperations.CREATE_SERVER_GROUP)
@@ -39,6 +41,12 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     "attribute:ecs.instance-type",
     "attribute:ecs.os-type",
     "attribute:ecs.ami-id"
+  );
+
+  private static final Set<String> RESERVED_ENVIRONMENT_VARIABLES = Sets.newHashSet(
+    "SERVER_GROUP",
+    "CLOUD_STACK",
+    "CLOUD_DETAIL"
   );
 
   public EcsCreateServerGroupDescriptionValidator() {
@@ -128,6 +136,14 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
       }
     } else {
       rejectValue(errors, "reservedMemory", "not.nullable");
+    }
+
+    // Verify that the environment variables set by the user do not contain reserved values
+    if (createServerGroupDescription.getEnvironmentVariables() != null) {
+      if(!Collections.disjoint(createServerGroupDescription.getEnvironmentVariables().keySet(),
+        RESERVED_ENVIRONMENT_VARIABLES)) {
+        rejectValue(errors, "environmentVariables", "invalid");
+      }
     }
 
   }

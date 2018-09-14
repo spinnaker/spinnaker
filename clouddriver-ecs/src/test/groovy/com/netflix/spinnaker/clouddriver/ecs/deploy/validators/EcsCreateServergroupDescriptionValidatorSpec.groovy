@@ -79,6 +79,32 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     1 * errors.rejectValue('availabilityZones', "${getDescriptionName()}.availabilityZones.must.have.only.one")
   }
 
+  void 'should fail when environment variables contain reserved key'() {
+    given:
+    def description = (CreateServerGroupDescription) getDescription()
+    description.environmentVariables = ['SERVER_GROUP':'invalid', 'tag_1':'valid_tag']
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('environmentVariables', "${getDescriptionName()}.environmentVariables.invalid")
+  }
+
+  void 'should pass with correct environment variables'() {
+    given:
+    def description = getDescription()
+    description.environmentVariables = ['TAG_1':'valid_tag_1', 'TAG_2':'valid_tag_2']
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors.rejectValue(_, _)
+  }
+
 
   @Override
   AbstractECSDescription getNulledDescription() {
