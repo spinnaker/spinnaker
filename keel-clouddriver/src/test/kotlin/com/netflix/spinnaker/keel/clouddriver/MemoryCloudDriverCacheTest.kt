@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.clouddriver
 
-import com.natpryce.hamkrest.*
-import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
@@ -10,7 +8,11 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Test
-import kotlin.reflect.KClass
+import strikt.api.expectThat
+import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
+import strikt.assertions.throws
 
 object MemoryCloudDriverCacheTest {
 
@@ -50,8 +52,10 @@ object MemoryCloudDriverCacheTest {
     whenever(cloudDriver.getCredential("prod")) doReturn Credential("prod", "aws")
 
     subject.securityGroupSummaryBy("prod", "us-east-1", "sg-2").let { securityGroupSummary ->
-      securityGroupSummary.name shouldEqual "bar"
-      securityGroupSummary.id shouldEqual "sg-2"
+      expectThat(securityGroupSummary) {
+        map { it.name }.isEqualTo("bar")
+        map { it.id }.isEqualTo("sg-2")
+      }
     }
   }
 
@@ -59,8 +63,10 @@ object MemoryCloudDriverCacheTest {
   fun `an invalid security group id throws an exception`() {
     whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn securityGroupSummaries
 
-    val block = { subject.securityGroupSummaryBy("prod", "us-east-1", "sg-4") }
-    block shouldThrow isA<ResourceNotFound>()
+    expectThat {
+      subject.securityGroupSummaryBy("prod", "us-east-1", "sg-4")
+    }
+      .throws<ResourceNotFound>()
   }
 
   @Test
@@ -68,9 +74,11 @@ object MemoryCloudDriverCacheTest {
     whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
 
     subject.networkBy("vpc-2").let { vpc ->
-      vpc.name shouldEqual "vpcName"
-      vpc.account shouldEqual "test"
-      vpc.region shouldEqual "us-west-2"
+      expectThat(vpc) {
+        map { it.name }.isEqualTo("vpcName")
+        map { it.account }.isEqualTo("test")
+        map { it.region }.isEqualTo("us-west-2")
+      }
     }
   }
 
@@ -78,8 +86,8 @@ object MemoryCloudDriverCacheTest {
   fun `an invalid VPC id throws an exception`() {
     whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
 
-    val block = { subject.networkBy("vpc-5") }
-    block shouldThrow isA<ResourceNotFound>()
+    expectThat { subject.networkBy("vpc-5") }
+      .throws<ResourceNotFound>()
   }
 
   @Test
@@ -87,7 +95,7 @@ object MemoryCloudDriverCacheTest {
     whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
 
     subject.networkBy("vpcName", "test", "us-west-2").let { vpc ->
-      vpc.id shouldEqual "vpc-2"
+      expectThat(vpc.id).isEqualTo("vpc-2")
     }
   }
 
@@ -95,8 +103,10 @@ object MemoryCloudDriverCacheTest {
   fun `an invalid VPC name and region throws an exception`() {
     whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
 
-    val block = { subject.networkBy("invalid", "prod", "us-west-2") }
-    block shouldThrow isA<ResourceNotFound>()
+    expectThat {
+      subject.networkBy("invalid", "prod", "us-west-2")
+    }
+      .throws<ResourceNotFound>()
   }
 
   @Test
@@ -104,7 +114,8 @@ object MemoryCloudDriverCacheTest {
     whenever(cloudDriver.listSubnets("aws")) doReturn subnets
 
     subject.availabilityZonesBy("test", "vpc-2", "us-west-2").let { zones ->
-      zones shouldEqual setOf("us-west-2a", "us-west-2b", "us-west-2c")
+      expectThat(zones)
+        .containsExactlyInAnyOrder("us-west-2a", "us-west-2b", "us-west-2c")
     }
   }
 
@@ -112,15 +123,8 @@ object MemoryCloudDriverCacheTest {
   fun `an invalid account, VPC id and region returns an empty set`() {
     whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
 
-    subject.availabilityZonesBy("test", "vpc-2", "ew-west-1") shouldMatch isEmpty
+    expectThat(
+      subject.availabilityZonesBy("test", "vpc-2", "ew-west-1")
+    ).isEmpty()
   }
-}
-
-infix fun <T> T.shouldEqual(expected: T) {
-  shouldMatch(equalTo(expected))
-}
-
-@Suppress("UNCHECKED_CAST")
-inline infix fun <reified T : Throwable> (() -> Any?).shouldThrow(matcher: Matcher<T>) {
-  (this as () -> Unit) shouldMatch throws(matcher)
 }

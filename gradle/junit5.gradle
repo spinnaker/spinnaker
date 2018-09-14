@@ -21,7 +21,6 @@ repositories {
 dependencies {
   testCompile "org.junit.platform:junit-platform-runner:$junitVersion"
   testCompile "com.nhaarman:mockito-kotlin:$mockitoVersion"
-  testCompile "com.natpryce:hamkrest:$hamkrestVersion"
   testCompile "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
   testCompile "org.junit.jupiter:junit-jupiter-params:$jupiterVersion"
 

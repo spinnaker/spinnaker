@@ -6,9 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.jonpeterson.jackson.module.versioning.VersioningModule
-import com.natpryce.hamkrest.equalTo
-import com.natpryce.hamkrest.should.shouldMatch
-import com.natpryce.hamkrest.should.shouldNotMatch
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
@@ -23,6 +20,9 @@ import retrofit.client.Request
 import retrofit.client.Response
 import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedByteArray
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import java.net.URL
 
 abstract class BaseModelParsingTest<out T> {
@@ -57,8 +57,9 @@ abstract class BaseModelParsingTest<out T> {
 
     val response = cloudDriver.call()
 
-    response shouldNotMatch equalTo<T?>(null)
-    response shouldMatch equalTo(expected)
+    expectThat(response)
+      .isNotNull()
+      .isEqualTo(expected)
   }
 }
 

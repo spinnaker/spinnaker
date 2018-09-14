@@ -1,4 +1,3 @@
 dependencies {
   compile project(":keel-core")
-  compile "com.natpryce:hamkrest:$hamkrestVersion"
 }
