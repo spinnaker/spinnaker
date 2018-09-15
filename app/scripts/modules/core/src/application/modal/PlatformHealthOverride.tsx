@@ -27,7 +27,7 @@ export class PlatformHealthOverride extends React.Component<IPlatformHealthOverr
             onChange={this.clicked}
           />
           Consider only {this.props.platformHealthType} health
-        </label>
+        </label>{' '}
         <HelpField id="application.platformHealthOnly" expand={this.props.showHelpDetails} />
       </div>
     );
