@@ -18,8 +18,10 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public abstract class AbstractCloudFoundryLoadBalancerDescription extends AbstractCloudFoundryDescription {
   CloudFoundrySpace space;
 }

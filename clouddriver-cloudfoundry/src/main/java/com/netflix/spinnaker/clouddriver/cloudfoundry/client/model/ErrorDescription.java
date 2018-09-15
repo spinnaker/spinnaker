@@ -87,7 +87,8 @@ public class ErrorDescription {
     ROUTE_HOST_TAKEN("CF-RouteHostTaken"),
     ROUTE_PATH_TAKEN("CF-RoutePathTaken"),
     ROUTE_PORT_TAKEN("CF-RoutePortTaken"),
-    RESOURCE_NOT_FOUND("CF-ResourceNotFound");
+    RESOURCE_NOT_FOUND("CF-ResourceNotFound"),
+    SERVICE_ALREADY_EXISTS("60002");
 
     private final String code;
 

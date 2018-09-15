@@ -20,9 +20,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.RouteMapping;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
@@ -89,38 +91,38 @@ public class Routes {
   }
 
   @Nullable
-  private CloudFoundryLoadBalancer findLoadBalancer(String host, @Nullable String path, @Nullable Integer port,
-                                                    @Nullable String domainId, String spaceId) throws CloudFoundryApiException {
+  public CloudFoundryLoadBalancer find(RouteId routeId, String spaceId) throws CloudFoundryApiException {
     CloudFoundrySpace id = spaces.findById(spaceId);
     String orgId = id.getOrganization().getId();
 
     List<String> queryParams = new ArrayList<>();
-    queryParams.add("host:" + host);
+    queryParams.add("host:" + routeId.getHost());
     queryParams.add("organization_guid:" + orgId);
-    if (domainId != null)
-      queryParams.add("domain_guid:" + domainId);
-    if (path != null)
-      queryParams.add("path:" + path);
-    if (port != null)
-      queryParams.add("port:" + port.toString());
+    queryParams.add("domain_guid:" + routeId.getDomainGuid());
+    if (routeId.getPath() != null)
+      queryParams.add("path:" + routeId.getPath());
+    if (routeId.getPort() != null)
+      queryParams.add("port:" + routeId.getPort().toString());
 
     return collectPageResources("route mappings", pg -> api.all(pg, queryParams))
       .stream().findFirst().map(this::map).orElse(null);
   }
 
   @Nullable
-  private CloudFoundryLoadBalancer loadBalancerFromUri(String uri, String spaceId) throws CloudFoundryApiException {
+  public RouteId toRouteId(String uri) throws CloudFoundryApiException {
     Pattern pattern = Pattern.compile("^([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_.-]+)(:[0-9]+)?([/a-zA-Z0-9_-]+)?$");
     Matcher matcher = pattern.matcher(uri);
     if (matcher.find()) {
-      return CloudFoundryLoadBalancer.builder()
-        .account(account)
-        .host(matcher.group(1))
-        .domain(domains.findByName(matcher.group(2)))
-        .port(matcher.group(3) == null ? null : Integer.parseInt(matcher.group(3).substring(1)))
-        .path(matcher.group(4))
-        .space(spaces.findById(spaceId))
-        .build();
+      CloudFoundryDomain domain = domains.findByName(matcher.group(2)).orElse(null);
+      if (domain == null) {
+        return null;
+      }
+      RouteId routeId = new RouteId();
+      routeId.setHost(matcher.group(1));
+      routeId.setDomainGuid(domain.getId());
+      routeId.setPort(matcher.group(3) == null ? null : Integer.parseInt(matcher.group(3).substring(1)));
+      routeId.setPath(matcher.group(4));
+      return routeId;
     } else {
       return null;
     }
@@ -135,9 +137,9 @@ public class Routes {
     return loadBalancers;
   }
 
-  public CloudFoundryLoadBalancer createRoute(String host, @Nullable String path, @Nullable Integer port, @Nullable String domainId, String spaceId)
+  public CloudFoundryLoadBalancer createRoute(RouteId routeId, String spaceId)
     throws CloudFoundryApiException {
-    Route route = new Route(host, path, port, domainId, spaceId);
+    Route route = new Route(routeId, spaceId);
     try {
       Resource<Route> newRoute = safelyCall(() -> api.createRoute(route))
         .orElseThrow(() -> new CloudFoundryApiException("Cloud Foundry signaled that route creation succeeded but failed to provide a response."));
@@ -150,20 +152,11 @@ public class Routes {
         case ROUTE_HOST_TAKEN:
         case ROUTE_PATH_TAKEN:
         case ROUTE_PORT_TAKEN:
-          return this.findLoadBalancer(host, path, port, domainId, spaceId);
+          return this.find(routeId, spaceId);
         default:
           throw e;
       }
     }
-  }
-
-  @Nullable
-  public CloudFoundryLoadBalancer findByLoadBalancerName(String loadBalancerName, String spaceId) throws CloudFoundryApiException {
-    CloudFoundryLoadBalancer loadBalancer = loadBalancerFromUri(loadBalancerName, spaceId);
-    if (loadBalancer == null)
-      return null;
-    return findLoadBalancer(loadBalancer.getHost(), loadBalancer.getPath(), loadBalancer.getPort(),
-      loadBalancer.getDomain() == null ? null : loadBalancer.getDomain().getId(), loadBalancer.getSpace().getId());
   }
 
   public void deleteRoute(String loadBalancerGuid) throws CloudFoundryApiException {

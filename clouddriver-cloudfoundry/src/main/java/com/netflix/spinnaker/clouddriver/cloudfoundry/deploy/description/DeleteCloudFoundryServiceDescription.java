@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
-import lombok.AllArgsConstructor;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Delegate;
+import lombok.EqualsAndHashCode;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-public class Route {
-  @JsonIgnore
-  @Delegate
-  private RouteId routeId = new RouteId();
-
-  private String spaceGuid;
+@EqualsAndHashCode(callSuper = true)
+public class DeleteCloudFoundryServiceDescription extends AbstractCloudFoundryDescription {
+  String serviceName;
+  CloudFoundrySpace space;
 }

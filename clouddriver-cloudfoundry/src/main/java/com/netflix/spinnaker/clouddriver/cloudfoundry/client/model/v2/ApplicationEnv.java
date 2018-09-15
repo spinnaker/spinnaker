@@ -29,6 +29,6 @@ public class ApplicationEnv {
   @Data
   public static class SystemEnv {
     @JsonProperty("VCAP_SERVICES")
-    private Map<String, List<ServiceInstanceInfo>> vcapServices;
+    private Map<String, List<ServiceInstance>> vcapServices;
   }
 }

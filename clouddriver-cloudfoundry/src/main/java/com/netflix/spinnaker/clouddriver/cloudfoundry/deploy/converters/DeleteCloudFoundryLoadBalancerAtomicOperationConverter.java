@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeleteCloudFoundryLoadBalancerAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -43,13 +45,20 @@ public class DeleteCloudFoundryLoadBalancerAtomicOperationConverter extends Abst
     DeleteCloudFoundryLoadBalancerDescription converted = getObjectMapper().convertValue(input, DeleteCloudFoundryLoadBalancerDescription.class);
     converted.setClient(getClient(input));
 
+    CloudFoundryClient client = converted.getClient();
     return ((Collection<String>) input.get("regions")).stream()
-      .map(region -> findSpace(region, converted.getClient()))
+      .map(region -> findSpace(region, client))
       .filter(Optional::isPresent)
       .findFirst()
       .flatMap(identity())
-      .map(space -> converted.setLoadBalancer(converted.getClient()
-        .getRoutes().findByLoadBalancerName(input.get("loadBalancerName").toString(), space.getId())))
+      .map(space -> {
+        String routePath = input.get("loadBalancerName").toString();
+        RouteId routeId = client.getRoutes().toRouteId(routePath);
+        if (routeId == null) {
+          throw new IllegalArgumentException("Invalid format or domain for route '" + routePath + "'");
+        }
+        return converted.setLoadBalancer(client.getRoutes().find(routeId, space.getId()));
+      })
       .orElseThrow(() -> new IllegalArgumentException("Unable to find the space(s) that this load balancer was expected to be in."));
   }
 }

@@ -16,16 +16,37 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.CreateServiceBinding;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstanceInfo;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import retrofit.client.Response;
 import retrofit.http.*;
 
+import java.util.List;
+
 public interface ServiceInstanceService {
   @GET("/v2/spaces/{guid}/service_instances")
-  Page<ServiceInstanceInfo> all(@Query("page") Integer page, @Path("guid") String spaceGuid, @Query("q") String queryParam);
+  Page<ServiceInstance> all(@Query("page") Integer page, @Path("guid") String spaceGuid, @Query("q") String queryParam);
 
   @POST("/v2/service_bindings?accepts_incomplete=true")
   Response createServiceBinding(@Body CreateServiceBinding body);
+
+  @GET("/v2/spaces/{guid}/service_instances")
+  Page<ServiceInstance> findAllServiceInstancesBySpaceId(@Path("guid") String spaceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
+
+  @GET("/v2/services")
+  Page<Service> findService(@Query("page") Integer page, @Query("q") List<String> queryParams);
+
+  @GET("/v2/service_plans")
+  Page<ServicePlan> findServicePlans(@Query("page") Integer page, @Query("q") List<String> queryParams);
+
+  @POST("/v2/service_instances?accepts_incomplete=false")
+  Response createServiceInstance(@Body CreateServiceInstance body);
+
+  @PUT("/v2/service_instances/{guid}?accepts_incomplete=false")
+  Response updateServiceInstance(@Path("guid") String serviceInstanceGuid, @Body CreateServiceInstance body);
+
+  @GET("/v2/service_instances/{guid}/service_bindings")
+  Page<ServiceBinding> getBindingsForServiceInstance(@Path("guid") String serviceInstanceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
+
+  @DELETE("/v2/service_instances/{guid}?accepts_incomplete=false")
+  Response deleteServiceInstance(@Path("guid") String serviceInstanceGuid);
 }

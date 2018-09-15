@@ -16,20 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Delegate;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-public class Route {
-  @JsonIgnore
-  @Delegate
-  private RouteId routeId = new RouteId();
-
-  private String spaceGuid;
+public class ServiceInstance {
+  private String name;
+  private String plan;
+  private String servicePlanGuid;
 }

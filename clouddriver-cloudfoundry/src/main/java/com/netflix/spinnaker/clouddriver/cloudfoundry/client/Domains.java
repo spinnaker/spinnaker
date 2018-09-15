@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -77,9 +78,8 @@ public class Domains {
     }
   }
 
-  @Nullable
-  public CloudFoundryDomain findByName(String domainName) throws CloudFoundryApiException {
-    return all().stream().filter(d -> d.getName().equals(domainName)).findFirst().orElse(null);
+  public Optional<CloudFoundryDomain> findByName(String domainName) throws CloudFoundryApiException {
+    return all().stream().filter(d -> d.getName().equals(domainName)).findFirst();
   }
 
   public List<CloudFoundryDomain> all() throws CloudFoundryApiException {

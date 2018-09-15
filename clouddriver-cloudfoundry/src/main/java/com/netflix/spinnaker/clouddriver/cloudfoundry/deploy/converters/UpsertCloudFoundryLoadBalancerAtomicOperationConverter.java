@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UpsertCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.UpsertCloudFoundryLoadBalancerAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -36,12 +37,14 @@ public class UpsertCloudFoundryLoadBalancerAtomicOperationConverter extends Abst
   @Override
   public UpsertCloudFoundryLoadBalancerDescription convertDescription(Map input) {
     UpsertCloudFoundryLoadBalancerDescription converted = getObjectMapper().convertValue(input, UpsertCloudFoundryLoadBalancerDescription.class);
-    converted.setClient(getClient(input));
-    findSpace(converted.getRegion(), converted.getClient())
+    CloudFoundryClient client = getClient(input);
+    converted.setClient(client);
+    findSpace(converted.getRegion(), client)
       .map(converted::setSpace)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'."));
-    converted.setDomain(converted.getClient()
-      .getDomains().findByName(input.get("domain").toString()));
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'"));
+    String domainName = input.get("domain").toString();
+    converted.setDomain(client.getDomains().findByName(domainName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find domain '" + domainName + "'")));
     return converted;
   }
 }

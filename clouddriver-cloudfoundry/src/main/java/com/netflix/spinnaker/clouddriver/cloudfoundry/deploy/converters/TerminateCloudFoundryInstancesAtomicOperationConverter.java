@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.Termina
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.TerminateCloudFoundryInstancesAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

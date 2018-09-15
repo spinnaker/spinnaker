@@ -16,5 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-class ResourceNotFoundException extends Exception {
+class ResourceNotFoundException extends RuntimeException {
+  ResourceNotFoundException(String message) {
+    super(message);
+  }
+
+  ResourceNotFoundException() {
+  }
 }

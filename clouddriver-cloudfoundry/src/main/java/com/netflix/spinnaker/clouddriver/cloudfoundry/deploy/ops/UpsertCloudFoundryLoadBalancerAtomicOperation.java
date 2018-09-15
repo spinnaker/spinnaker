@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.UpsertCloudFoundryLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -40,8 +41,8 @@ public class UpsertCloudFoundryLoadBalancerAtomicOperation implements AtomicOper
     getTask().updateStatus(PHASE, "Creating load balancer in '" + description.getRegion() + "'");
 
     CloudFoundryClient client = description.getClient();
-    CloudFoundryLoadBalancer loadBalancer = client.getRoutes().createRoute(description.getHost(), description.getPath(),
-      description.getPort(), description.getDomain().getId(), description.getSpace().getId());
+    CloudFoundryLoadBalancer loadBalancer = client.getRoutes().createRoute(new RouteId(description.getHost(), description.getPath(), description.getPort(), description.getDomain().getId()),
+      description.getSpace().getId());
 
     if (loadBalancer != null) {
       getTask().updateStatus(PHASE, "Done creating load balancer");

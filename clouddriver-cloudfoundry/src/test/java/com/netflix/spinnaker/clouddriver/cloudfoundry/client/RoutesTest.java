@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -32,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 class RoutesTest {
   @Test
-  void loadBalancerFromUri() {
+  void toRouteId() {
     CloudFoundryDomain domain = CloudFoundryDomain.builder()
       .id("domainGuid")
       .name("apps.calabasas.cf-app.com")
@@ -40,7 +43,7 @@ class RoutesTest {
 
     Domains domains = mock(Domains.class);
     when(domains.findById(eq("domainGuid"))).thenReturn(domain);
-    when(domains.findByName(eq("apps.calabasas.cf-app.com"))).thenReturn(domain);
+    when(domains.findByName(eq("apps.calabasas.cf-app.com"))).thenReturn(Optional.of(domain));
 
     Spaces spaces = mock(Spaces.class);
     when(spaces.findById(any())).thenReturn(CloudFoundrySpace.fromRegion("myorg > dev"));
@@ -55,11 +58,10 @@ class RoutesTest {
     when(routeService.routeMappings(any(), any())).thenReturn(new Page<>());
 
     Routes routes = new Routes("pws", routeService, null, domains, spaces);
-    CloudFoundryLoadBalancer loadBalancer = routes.findByLoadBalancerName("demo1-prod.apps.calabasas.cf-app.com/path", "doesnotmatter");
-
-    assertThat(loadBalancer).isNotNull();
-    assertThat(loadBalancer.getHost()).isEqualTo("demo1-prod");
-    assertThat(loadBalancer.getDomain()).isEqualTo(domain);
-    assertThat(loadBalancer.getPath()).isEqualTo("/path");
+    RouteId routeId = routes.toRouteId("demo1-prod.apps.calabasas.cf-app.com/path");
+    assertThat(routeId).isNotNull();
+    assertThat(routeId.getHost()).isEqualTo("demo1-prod");
+    assertThat(routeId.getDomainGuid()).isEqualTo("domainGuid");
+    assertThat(routeId.getPath()).isEqualTo("/path");
   }
 }

@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Delegate;
+
+import javax.annotation.Nullable;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class Route {
-  @JsonIgnore
-  @Delegate
-  private RouteId routeId = new RouteId();
+public class RouteId {
+  private String host;
+  private String path;
 
-  private String spaceGuid;
+  @Nullable
+  private Integer port;
+
+  private String domainGuid;
 }
