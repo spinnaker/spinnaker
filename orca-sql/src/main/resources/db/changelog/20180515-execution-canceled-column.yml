@@ -1,0 +1,50 @@
+databaseChangeLog:
+- changeSet:
+    id: add-canceled-column
+    author: robzienert
+    changes:
+    - addColumn:
+        tableName: pipelines
+        columns:
+        - column:
+            name: canceled
+            type: boolean
+            afterColumn: build_time
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+    - addColumn:
+        tableName: orchestrations
+        columns:
+        - column:
+            name: canceled
+            type: boolean
+            afterColumn: build_time
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+    - createIndex:
+        indexName: pipeline_canceled_idx
+        tableName: pipelines
+        columns:
+        - column:
+            name: canceled
+    - createIndex:
+        indexName: orchestration_canceled_idx
+        tableName: orchestrations
+        columns:
+        - column:
+            name: canceled
+    rollback:
+    - dropIndex:
+        indexName: orchestration_canceled_idx
+        tableName: orchestrations
+    - dropIndex:
+        indexName: pipeline_canceled_idx
+        tableName: pipelines
+    - dropColumn:
+        tableName: orchestrations
+        columnName: canceled
+    - dropColumn:
+        tableName: pipelines
+        columnName: canceled

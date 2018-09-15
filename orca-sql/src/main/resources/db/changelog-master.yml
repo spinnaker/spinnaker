@@ -1,0 +1,28 @@
+databaseChangeLog:
+- include:
+    file: changelog/20180424-initial-schema.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20180515-execution-canceled-column.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20180510-add-legacy-id-fields.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20180521-status-enum.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20180530-add-legacy-id-constraints.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20180601-add-healthcheck-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20180724-partitions.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20180724-indices.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20180905-add-application-status-build_time-index.yml
+    relativeToChangelogFile: true

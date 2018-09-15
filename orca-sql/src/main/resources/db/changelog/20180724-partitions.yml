@@ -1,0 +1,88 @@
+databaseChangeLog:
+- changeSet:
+    id: partition-updated-executions
+    author: rzienert
+    changes:
+    - addColumn:
+        tableName: orchestrations
+        columns:
+        - column:
+            name: partition
+            type: varchar(32)
+            afterColumn: legacy_id
+        - column:
+            name: updated_at
+            type: bigint
+            afterColumn: build_time
+    - addColumn:
+        tableName: pipelines
+        columns:
+        - column:
+            name: partition
+            type: varchar(32)
+            afterColumn: legacy_id
+        - column:
+            name: updated_at
+            type: bigint
+            afterColumn: build_time
+    - addColumn:
+        tableName: orchestration_stages
+        columns:
+        - column:
+            name: updated_at
+            type: bigint
+            afterColumn: status
+    - addColumn:
+        tableName: pipeline_stages
+        columns:
+        - column:
+            name: updated_at
+            type: bigint
+            afterColumn: status
+    rollback:
+    - dropColumn:
+        tableName: orchestrations
+        columnName: partition
+    - dropColumn:
+        tableName: orchestrations
+        columnName: updated_at
+    - dropColumn:
+        tableName: pipelines
+        columnName: partition
+    - dropColumn:
+        tableName: pipelines
+        columnName: updated_at
+    - dropColumn:
+        tableName: orchestration_stages
+        columnName: updated_at
+    - dropColumn:
+        tableName: pipeline_stages
+        columnName: updated_at
+
+- changeSet:
+    id: add-partition-indexes
+    author: rzienert
+    changes:
+    - createIndex:
+        indexName: pipelines_partition_updated_idx
+        tableName: pipelines
+        columns:
+        - column:
+            name: updated_at
+        - column:
+            name: partition
+    - createIndex:
+        indexName: orchestrations_partition_updated_idx
+        tableName: orchestrations
+        column:
+        - column:
+            name: updated_at
+        - column:
+            name: partition
+    rollback:
+    - dropIndex:
+        indexName: pipelines_partition_updated_idx
+        tableName: pipelines
+    - dropIndex:
+        indexName: orchestrations_partition_updated_idx
+        tableName: orchestrations

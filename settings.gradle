@@ -44,7 +44,9 @@ include "orca-extensionpoint",
   "orca-pipelinetemplate",
   "orca-validation",
   "orca-qos",
-  "orca-migration"
+  "orca-migration",
+  "orca-sql",
+  "orca-sql-mysql"
 
 rootProject.name = "orca"
 

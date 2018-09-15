@@ -1,0 +1,289 @@
+databaseChangeLog:
+- changeSet:
+    id: create-pipelines-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: pipelines
+        columns:
+        - column:
+            name: id
+            type: char(26)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: config_id
+            type: char(36)
+        - column:
+            name: application
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: status
+            type: varchar(45)
+            constraints:
+              nullable: false
+        - column:
+            name: build_time
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: body
+            type: longtext
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: pipelines
+
+- changeSet:
+    id: create-pipelines-indices
+    author: robzienert
+    changes:
+    - createIndex:
+        indexName: pipeline_application_status_buildtime_idx
+        tableName: pipelines
+        columns:
+        - column:
+            name: application
+        - column:
+            name: status
+        - column:
+            name: build_time
+    - createIndex:
+        indexName: pipeline_status_buildtime_idx
+        tableName: pipelines
+        columns:
+        - column:
+            name: status
+        - column:
+            name: build_time
+    - createIndex:
+        indexName: pipeline_config_status_idx
+        tableName: pipelines
+        columns:
+        - column:
+            name: config_id
+        - column:
+            name: status
+    rollback:
+    - dropIndex:
+        indexName: pipeline_application_status_buildtime_idx
+        tableName: pipelines
+    - dropIndex:
+        indexName: pipeline_status_buildtime_idx
+        tableName: pipelines
+    - dropIndex:
+        indexName: pipeline_config_status_idx
+        tableName: pipelines
+
+- changeSet:
+    id: create-pipeline-stages-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: pipeline_stages
+        columns:
+        - column:
+            name: id
+            type: char(26)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: execution_id
+            type: char(26)
+            constraints:
+              nullable: false
+        - column:
+            name: status
+            type: varchar(45)
+            constraints:
+              nullable: false
+        - column:
+            name: body
+            type: longtext
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: pipeline_stages
+
+- changeSet:
+    id: create-pipeline-stages-indices
+    author: robzienert
+    changes:
+    - createIndex:
+        indexName: pipelinestage_status_idx
+        tableName: pipeline_stages
+        columns:
+        - column:
+            name: execution_id
+        - column:
+            name: status
+    rollback:
+    - dropIndex:
+        indexName: pipelinestage_status_idx
+        tableName: pipeline_stages
+
+- changeSet:
+    id: create-orchestrations-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: orchestrations
+        columns:
+        - column:
+            name: id
+            type: char(26)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: status
+            type: varchar(45)
+            constraints:
+              nullable: false
+        - column:
+            name: application
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: build_time
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: body
+            type: longtext
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: orchestrations
+
+- changeSet:
+    id: create-orchestrations-indices
+    author: robzienert
+    changes:
+    - createIndex:
+        indexName: orchestration_application_status_buildtime_idx
+        tableName: orchestrations
+        columns:
+        - column:
+            name: application
+        - column:
+            name: status
+        - column:
+            name: build_time
+    - createIndex:
+        indexName: orchestration_status_buildtime_idx
+        tableName: orchestrations
+        columns:
+        - column:
+            name: status
+        - column:
+            name: build_time
+    rollback:
+    - dropIndex:
+        indexName: orchestration_application_status_buildtime_idx
+        tableName: orchestrations
+    - dropIndex:
+        indexName: orchestration_status_buildtime_idx
+        tableName: orchestrations
+
+- changeSet:
+    id: create-orchestration-stages-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: orchestration_stages
+        columns:
+        - column:
+            name: id
+            type: char(26)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: execution_id
+            type: char(26)
+            constraints:
+              nullable: false
+        - column:
+            name: status
+            type: varchar(45)
+            constraints:
+              nullable: false
+        - column:
+            name: body
+            type: longtext
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: orchestration_stages
+
+- changeSet:
+    id: create-orchestration-stages-indices
+    author: robzienert
+    changes:
+    - createIndex:
+        indexName: orchestrationstage_status_idx
+        tableName: orchestration_stages
+        columns:
+        - column:
+            name: execution_id
+        - column:
+            name: status
+    rollback:
+    - dropIndex:
+        indexName: orchestrationstage_status_idx
+        tableName: orchestration_stages
+
+- changeSet:
+    id: create-correlationids-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: correlation_ids
+        columns:
+        - column:
+            name: id
+            type: varchar(255)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: orchestration_id
+            type: char(26)
+        - column:
+            name: pipeline_id
+            type: char(26)
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: correlation_ids

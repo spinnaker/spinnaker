@@ -52,6 +52,8 @@ dependencies {
   compile project(":orca-keel")
   compile project(":orca-qos")
   compile project(":orca-migration")
+  compile project(":orca-sql")
+  compile project(":orca-sql-mysql")
 
   runtime spinnaker.dependency("kork")
   compile spinnaker.dependency('korkExceptions')

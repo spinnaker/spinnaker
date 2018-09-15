@@ -30,6 +30,7 @@ dependencies {
   testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
   testRuntime "org.junit.vintage:junit-vintage-engine:$junitLegacyVersion"
   testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spekVersion"
+  testCompile "io.strikt:strikt-core:0.11.5"
 }
 
 test {

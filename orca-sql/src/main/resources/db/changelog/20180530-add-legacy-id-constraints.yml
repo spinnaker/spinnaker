@@ -1,0 +1,37 @@
+databaseChangeLog:
+- changeSet:
+    id: add-legacy-id-constraints
+    author: cthielen
+
+    changes:
+    - addUniqueConstraint:
+        tableName: orchestrations
+        constraintName: orchestrations_legacy_id_unique
+        columnNames: legacy_id
+    - addUniqueConstraint:
+        tableName: orchestration_stages
+        constraintName: orchestration_stages_legacy_id_unique
+        columnNames: legacy_id
+    - addUniqueConstraint:
+        tableName: pipelines
+        constraintName: pipelines_legacy_id_unique
+        columnNames: legacy_id
+    - addUniqueConstraint:
+        tableName: pipeline_stages
+        constraintName: pipeline_stages_legacy_id_unique
+        columnNames: legacy_id
+
+    rollback:
+    - dropUniqueConstraint:
+        tableName: orchestrations
+        constraintName: orchestrations_legacy_id_unique
+    - dropUniqueConstraint:
+        tableName: orchestration_stages
+        constraintName: orchestration_stages_legacy_id_unique
+    - dropUniqueConstraint:
+        tableName: pipelines
+        constraintName: pipelines_legacy_id_unique
+    - dropUniqueConstraint:
+        tableName: pipeline_stages
+        constraintName: pipeline_stages_legacy_id_unique
+

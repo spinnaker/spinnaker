@@ -1,0 +1,31 @@
+databaseChangeLog:
+- changeSet:
+   id: modify-status-column-enum
+   author: afeldman
+   changes:
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `pipelines` MODIFY COLUMN `status` ENUM("NOT_STARTED", "BUFFERED", "RUNNING", "PAUSED", "SUSPENDED", "SUCCEEDED", "FAILED_CONTINUE", "TERMINAL", "CANCELED", "REDIRECT", "STOPPED", "SKIPPED") NOT NULL DEFAULT "NOT_STARTED"
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `pipeline_stages` MODIFY COLUMN `status` ENUM("NOT_STARTED", "BUFFERED", "RUNNING", "PAUSED", "SUSPENDED", "SUCCEEDED", "FAILED_CONTINUE", "TERMINAL", "CANCELED", "REDIRECT", "STOPPED", "SKIPPED") NOT NULL DEFAULT "NOT_STARTED"
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `orchestrations` MODIFY COLUMN `status` ENUM("NOT_STARTED", "BUFFERED", "RUNNING", "PAUSED", "SUSPENDED", "SUCCEEDED", "FAILED_CONTINUE", "TERMINAL", "CANCELED", "REDIRECT", "STOPPED", "SKIPPED") NOT NULL DEFAULT "NOT_STARTED"
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `orchestration_stages` MODIFY COLUMN `status` ENUM("NOT_STARTED", "BUFFERED", "RUNNING", "PAUSED", "SUSPENDED", "SUCCEEDED", "FAILED_CONTINUE", "TERMINAL", "CANCELED", "REDIRECT", "STOPPED", "SKIPPED") NOT NULL DEFAULT "NOT_STARTED"
+
+   rollback:
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `pipelines` MODIFY COLUMN `status` varchar(45) NOT NULL
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `pipeline_stages` MODIFY COLUMN `status` varchar(45) NOT NULL
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `orchestrations` MODIFY COLUMN `status` varchar(45) NOT NULL
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `orchestration_stages` MODIFY COLUMN `status` varchar(45) NOT NULL

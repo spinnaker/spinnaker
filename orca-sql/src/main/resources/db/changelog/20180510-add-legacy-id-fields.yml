@@ -1,0 +1,81 @@
+databaseChangeLog:
+- changeSet:
+    id: add-legacy-id-fields
+    author: cthielen
+
+    changes:
+    - addColumn:
+        tableName: orchestrations
+        columns:
+        - column:
+            name: legacy_id
+            type: varchar(500)
+            afterColumn: id
+    - addColumn:
+        tableName: orchestration_stages
+        afterColumn: id
+        columns:
+        - column:
+            name: legacy_id
+            type: varchar(500)
+            afterColumn: id
+    - addColumn:
+        tableName: pipelines
+        afterColumn: id
+        columns:
+        - column:
+            name: legacy_id
+            type: varchar(500)
+            afterColumn: id
+    - addColumn:
+        tableName: pipeline_stages
+        afterColumn: id
+        columns:
+        - column:
+            name: legacy_id
+            type: varchar(500)
+            afterColumn: id
+
+    rollback:
+    - dropColumn:
+        tableName: orchestrations
+        columnName: legacy_id
+    - dropColumn:
+        tableName: orchestration_stages
+        columnName: legacy_id
+    - dropColumn:
+        tableName: pipelines
+        columnName: legacy_id
+    - dropColumn:
+        tableName: pipeline_stages
+        columnName: legacy_id
+
+
+- changeSet:
+    id: create-legacy-id-indexes
+    author: cthielen
+    changes:
+    - createIndex:
+        indexName: pipelines_legacy_id_idx
+        tableName: pipelines
+        columns:
+        - column:
+            name: legacy_id
+    - createIndex:
+        indexName: pipeline_stages_legacy_id_idx
+        tableName: pipeline_stages
+        columns:
+        - column:
+            name: legacy_id
+    - createIndex:
+        indexName: orchestrations_legacy_id_idx
+        tableName: orchestrations
+        columns:
+        - column:
+            name: legacy_id
+    - createIndex:
+        indexName: orchestration_stages_legacy_id_idx
+        tableName: orchestration_stages
+        columns:
+        - column:
+            name: legacy_id
