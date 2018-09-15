@@ -56,6 +56,10 @@ module.exports = angular
         securityGroups: [],
         imageId: defaults.imageId,
         migrationPolicy: { type: 'systemDefault' },
+        organization: '',
+        tag: '',
+        registry: '',
+        repository: '',
       };
 
       return $q.when(command);
@@ -118,6 +122,10 @@ module.exports = angular
           useSimpleCapacity: serverGroup.capacity.min === serverGroup.capacity.max,
           mode: mode,
         },
+        organization: '',
+        tag: '',
+        registry: '',
+        repository: '',
       };
 
       if (serverGroup.efs) {

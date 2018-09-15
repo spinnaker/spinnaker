@@ -119,6 +119,7 @@ module.exports = {
   externals: [
     '@spinnaker/core',
     '@spinnaker/amazon',
+    '@spinnaker/docker',
     'exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js',
     nodeExternals({ modulesDir: '../../../../node_modules' }),
   ],

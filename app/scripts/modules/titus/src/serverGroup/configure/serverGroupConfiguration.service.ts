@@ -39,8 +39,10 @@ export interface ITitusServerGroupCommandViewState extends IServerGroupCommandVi
   dirty: IAmazonServerGroupCommandDirty;
 }
 
+export type Constraint = 'ExclusiveHost' | 'UniqueHost' | 'ZoneBalance';
 export interface ITitusServerGroupCommand extends IServerGroupCommand {
   cluster?: ICluster;
+  deferredInitialization?: boolean;
   registry: string;
   imageId: string;
   organization: string;
@@ -65,6 +67,14 @@ export interface ITitusServerGroupCommand extends IServerGroupCommand {
   targetGroups: string[];
   removedTargetGroups: string[];
   backingData: ITitusServerGroupCommandBackingData;
+  labels: { [key: string]: string };
+  containerAttributes: { [key: string]: string };
+  env: { [key: string]: string };
+  migrationPolicy: {
+    type: string;
+  };
+  softConstraints: Constraint[];
+  hardConstraints: Constraint[];
 }
 
 export class TitusServerGroupConfigurationService {
@@ -81,7 +91,6 @@ export class TitusServerGroupConfigurationService {
   }
 
   private attachEventHandlers(cmd: ITitusServerGroupCommand) {
-    cmd.viewState.dirty = {};
     cmd.credentialsChanged = () => {
       const result = { dirty: {} };
       const backingData = cmd.backingData;
@@ -113,6 +122,7 @@ export class TitusServerGroupConfigurationService {
     cmd.viewState.accountChangedStream = new Subject();
     cmd.viewState.regionChangedStream = new Subject();
     cmd.viewState.groupsRemovedStream = new Subject();
+    cmd.viewState.dirty = {};
     cmd.onStrategyChange = (command: ITitusServerGroupCommand, strategy: IDeploymentStrategy) => {
       // Any strategy other than None or Custom should force traffic to be enabled
       if (strategy.key !== '' && strategy.key !== 'custom') {
@@ -251,7 +261,11 @@ export class TitusServerGroupConfigurationService {
       const matched = intersection(allTargetGroups, currentTargetGroups);
       const removedTargetGroups = xor(matched, currentTargetGroups);
       command.targetGroups = intersection(allTargetGroups, matched);
-      command.viewState.dirty.targetGroups = removedTargetGroups;
+      if (removedTargetGroups && removedTargetGroups.length > 0) {
+        command.viewState.dirty.targetGroups = removedTargetGroups;
+      } else {
+        delete command.viewState.dirty.targetGroups;
+      }
     }
     (command.backingData.filtered as any).targetGroups = allTargetGroups;
   }

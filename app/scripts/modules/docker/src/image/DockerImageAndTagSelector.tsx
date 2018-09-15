@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
-import { trim, uniq } from 'lodash';
+import { groupBy, reduce, trim, uniq } from 'lodash';
 
 import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip, Spinner } from '@spinnaker/core';
 
@@ -60,87 +60,63 @@ export class DockerImageAndTagSelector extends React.Component<
     };
   }
 
-  private uniqMapEntries(map: { [key: string]: string[] }): void {
-    Object.keys(map).forEach(k => {
-      map[k] = uniq(map[k]);
-    });
-  }
-
   private getAccountMap(images: IDockerImage[]): { [key: string]: string[] } {
-    const results: { [key: string]: string[] } = images.reduce(
-      (map: { [key: string]: string[] }, image: IDockerImage) => {
-        const key = image.account;
-        if (!key) {
-          return map;
-        }
-
-        const parts: string[] = image.repository.split('/');
-        parts.pop();
-        const org: string = parts.join('/');
-        if (!map[key]) {
-          map[key] = [];
-        }
-        map[key].push(org);
-
-        return map;
+    const groupedImages = groupBy(images.filter(image => image.account), 'account');
+    return reduce<IDockerImage[], { [key: string]: string[] }>(
+      groupedImages,
+      (acc, image, key) => {
+        acc[key] = uniq(
+          image.map(
+            i =>
+              `${i.repository
+                .split('/')
+                .slice(0, -1)
+                .join('/')}`,
+          ),
+        );
+        return acc;
       },
       {},
     );
-    this.uniqMapEntries(results);
-    return results;
   }
 
   private getRegistryMap(images: IDockerImage[]) {
     return images.reduce(
-      (map: { [key: string]: string }, image: IDockerImage) => {
-        map[image.account] = image.registry;
-        return map;
+      (m: { [key: string]: string }, image: IDockerImage) => {
+        m[image.account] = image.registry;
+        return m;
       },
       {} as { [key: string]: string },
     );
   }
 
   private getOrganizationMap(images: IDockerImage[]): { [key: string]: string[] } {
-    const results: { [key: string]: string[] } = images.reduce(
-      (map: { [key: string]: string[] }, image: IDockerImage) => {
-        if (!image.repository) {
-          return map;
-        }
-
-        const parts = image.repository.split('/');
-        parts.pop();
-        const key = `${image.account}/${parts.join('/')}`;
-        if (!map[key]) {
-          map[key] = [];
-        }
-        map[key].push(image.repository);
-        return map;
+    const extractGroupByKey = (image: IDockerImage) =>
+      `${image.account}/${image.repository
+        .split('/')
+        .slice(0, -1)
+        .join('/')}`;
+    const groupedImages = groupBy(images.filter(image => image.repository), extractGroupByKey);
+    return reduce<IDockerImage[], { [key: string]: string[] }>(
+      groupedImages,
+      (acc, image, key) => {
+        acc[key] = uniq(image.map(i => i.repository));
+        return acc;
       },
       {},
     );
-    this.uniqMapEntries(results);
-    return results;
   }
 
   private getRepositoryMap(images: IDockerImage[]) {
-    const results: { [key: string]: string[] } = images.reduce(
-      (map: { [key: string]: string[] }, image: IDockerImage) => {
-        if (!image.repository) {
-          return map;
-        }
-
-        const key: string = image.repository;
-        if (!map[key]) {
-          map[key] = [];
-        }
-        map[key].push(image.tag);
-        return map;
+    const groupedImages = groupBy(images.filter(image => image.account), 'repository');
+    return reduce<IDockerImage[], { [key: string]: string[] }>(
+      groupedImages,
+      (acc, image, key) => {
+        acc[key] = uniq(image.map(i => i.tag));
+        return acc;
       },
       {},
     );
-
-    this.uniqMapEntries(results);
-    return results;
   }
 
   private getOrganizationsList(accountMap: { [key: string]: string[] }) {
@@ -216,13 +192,16 @@ export class DockerImageAndTagSelector extends React.Component<
     }
 
     this.setState({
-      accountOptions: newAccounts.map(a => ({ label: a, value: a })), // def internal state
-      organizationOptions: organizations.filter(o => o).map(o => ({ label: o, value: o })),
+      accountOptions: newAccounts.sort().map(a => ({ label: a, value: a })), // def internal state
+      organizationOptions: organizations
+        .filter(o => o)
+        .sort()
+        .map(o => ({ label: o, value: o })),
       imagesLoaded: true, // def internal state
       organizationMap,
       repositoryMap,
-      repositoryOptions: repositories.map(r => ({ label: r, value: r })),
-      tagOptions: tags.map(t => ({ label: t, value: t })),
+      repositoryOptions: repositories.sort().map(r => ({ label: r, value: r })),
+      tagOptions: tags.sort().map(t => ({ label: t, value: t })),
     });
   }
 
@@ -352,7 +331,7 @@ export class DockerImageAndTagSelector extends React.Component<
                 <Select
                   value={organization}
                   disabled={imagesRefreshing}
-                  onChange={(o: Option<string>) => this.valueChanged('organization', o.value)}
+                  onChange={(o: Option<string>) => this.valueChanged('organization', (o && o.value) || '')}
                   placeholder="No organization"
                   options={organizationOptions}
                 />

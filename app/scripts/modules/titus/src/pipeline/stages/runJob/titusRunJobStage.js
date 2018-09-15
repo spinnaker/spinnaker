@@ -40,6 +40,8 @@ module.exports = angular
     let vm = this;
     $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
+    $scope.regions = [];
+
     if (!stage.cluster) {
       stage.cluster = {};
     }
@@ -71,7 +73,7 @@ module.exports = angular
           delete stage.cluster.region;
         }
       } else {
-        $scope.regions = null;
+        $scope.regions = [];
       }
     };
 
