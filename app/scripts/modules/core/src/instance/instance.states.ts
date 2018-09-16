@@ -97,6 +97,8 @@ module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).con
         overrides: () => {
           return {};
         },
+        moniker: (): any => null,
+        environment: (): any => null,
       },
       data: {
         pageTitleDetails: {
