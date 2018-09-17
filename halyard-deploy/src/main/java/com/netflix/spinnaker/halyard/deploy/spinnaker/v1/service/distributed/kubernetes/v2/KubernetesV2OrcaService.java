@@ -80,7 +80,7 @@ public class KubernetesV2OrcaService extends OrcaService implements KubernetesV2
   protected List<Type> overrideServiceEndpoints() {
     return Arrays.asList(
         Type.CLOUDDRIVER_RW,
-        Type.ECHO_SLAVE
+        Type.ECHO_REPLICA
     );
   }
 }

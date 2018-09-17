@@ -20,7 +20,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
@@ -69,7 +68,7 @@ public class KubernetesV2GateService extends GateService implements KubernetesV2
   protected List<Type> overrideServiceEndpoints() {
     return Arrays.asList(
         Type.CLOUDDRIVER_RO,
-        Type.ECHO_SLAVE
+        Type.ECHO_REPLICA
     );
   }
 }
