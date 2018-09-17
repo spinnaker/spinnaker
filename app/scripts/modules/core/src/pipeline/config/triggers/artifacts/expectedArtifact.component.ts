@@ -13,6 +13,16 @@ class ExpectedArtifactController implements IComponentController {
 
     this.usePriorExecution = this.$attrs.$attr.hasOwnProperty('usePriorExecution');
   }
+
+  public onUseDefaultArtifactChanged() {
+    const {
+      expectedArtifact: { useDefaultArtifact, defaultArtifact, matchArtifact },
+    } = this;
+    if (useDefaultArtifact && defaultArtifact.type == null) {
+      defaultArtifact.type = matchArtifact.type;
+      defaultArtifact.kind = matchArtifact.kind;
+    }
+  }
 }
 
 class ExpectedArtifactComponent implements IComponentOptions {
@@ -48,7 +58,7 @@ class ExpectedArtifactComponent implements IComponentOptions {
         <label class="col-md-4 sm-label-right">
           Use Default Artifact
         </label>
-        <input class="col-md-1" type="checkbox" ng-model="ctrl.expectedArtifact.useDefaultArtifact">
+        <input class="col-md-1" type="checkbox" ng-model="ctrl.expectedArtifact.useDefaultArtifact" ng-change="ctrl.onUseDefaultArtifactChanged()">
       </div>
       <div class="form-group row" ng-show="ctrl.expectedArtifact.useDefaultArtifact" style="height: 30px">
         <div class="col-md-3">
