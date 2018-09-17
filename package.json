@@ -24,7 +24,8 @@
     "test": "karma start",
     "tslint": "tslint --project tsconfig.json",
     "int": "protractor protractor.conf.js",
-    "precommit": "pretty-quick --staged"
+    "precommit": "pretty-quick --staged",
+    "modules": "./gradle/buildModules.sh"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free-webfonts": "^1.0.9",

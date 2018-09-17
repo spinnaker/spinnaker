@@ -11,7 +11,9 @@ before_install:
 - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.5.1
 - sh -e /etc/init.d/xvfb start
 install: gradle/installViaTravis.sh
-script: gradle/buildViaTravis.sh
+script:
+  - gradle/buildViaTravis.sh
+  - gradle/buildModules.sh
 before_cache: gradle/prepCaches.sh
 cache:
   directories:

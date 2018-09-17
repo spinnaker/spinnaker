@@ -31,4 +31,3 @@ else
   ./gradlew -Prelease.useLastTag=true build
 
 fi
-
