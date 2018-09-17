@@ -154,6 +154,12 @@ describe('PipelineConfigService', () => {
     });
 
     describe('getAvailableUpstreamStages', () => {
+      it('handles null inputs', () => {
+        expect(() => {
+          PipelineConfigService.getAllUpstreamDependencies(null, null);
+        }).not.toThrow();
+      });
+
       it('filters out provided stage', () => {
         expectCandidates(a, [b, c, d]);
         expectCandidates(b, [a, c, d]);

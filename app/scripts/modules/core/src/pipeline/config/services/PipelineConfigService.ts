@@ -123,6 +123,9 @@ export class PipelineConfigService {
   }
 
   public static getAllUpstreamDependencies(pipeline: IPipeline, stage: IStage): IStage[] {
+    if (!pipeline || !stage) {
+      return [];
+    }
     let upstreamStages: IStage[] = [];
     if (stage.requisiteStageRefIds && stage.requisiteStageRefIds.length) {
       pipeline.stages.forEach((stageToTest: IStage) => {
