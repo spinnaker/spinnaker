@@ -40,6 +40,7 @@ import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
@@ -49,7 +50,11 @@ import org.springframework.scheduling.annotation.EnableAsync
 
 @Configuration
 @EnableAsync
-@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
+@EnableAutoConfiguration(exclude = [
+  BatchAutoConfiguration,
+  GroovyTemplateAutoConfiguration,
+  DataSourceAutoConfiguration
+])
 @Import([
   PlatformComponents,
   WebConfiguration,
