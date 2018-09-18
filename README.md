@@ -1,45 +1,58 @@
 # Spinnaker Canary UI
 
-## Prerequisites
+## Development
 
-Make sure that [node](http://nodejs.org/download/) and [yarn](https://yarnpkg.com/en/docs/install) are installed on your
-system. The minimum versions for each are listed in `package.json`.
+Make sure that [node](http://nodejs.org/download/) and [yarn](https://yarnpkg.com/en/docs/install)
+are installed on your machine. The minimum versions for each are listed in `package.json`.
 
-## Quick Start
+To develop this module, run it as a [Deck](https://github.com/spinnaker/deck) dependency.
 
-Run the following commands (in the root directory) to get all dependencies installed in Deck and to start the server:
+From the root of this repository, run
 
-* `yarn`
-* `yarn start`
+```bash
+npm link
+```
 
-The app will start up on [localhost:9000](localhost:9000).
+From the root of the main Deck repository, run
 
-## Environment variables
+```bash
+npm link @spinnaker/kayenta
+```
 
-* `API_HOST` overrides the default Spinnaker API host.
-* `METRIC_STORE` sets the default metric store that will be used when creating
-   new canary configs (e.g., `atlas`, `stackdriver`, `prometheus`).
-* `REDUX_LOGGER` toggles browser logging for interactions with the Redux store.
-* `CANARY_STAGES_ENABLED` enables Kayenta canary stages.
+You should only have to run these commands once.
 
-For example, `API_HOST=http://localhost:8084 CANARY_STAGES_ENABLED=true yarn start` will run Deck 
-with `https://localhost:8084` as the API host and Kayenta canary stages enabled.
+Next, run `WATCH=true yarn lib` at the root of this repository. In a separate terminal,
+run `yarn start` at the root of the main Deck repository.
+
+### Environment Variables
+
+`deck-kayenta` uses feature and development flags. These are fully configurable within `settings.js`,
+but it is usually easier to pass the flags as environment variables.
+
+These are good defaults:
+
+```bash
+REDUX_LOGGER=true \
+API_HOST=http://localhost:8084 \
+METRIC_STORE=stackdriver \
+CANARY_STAGES_ENABLED=true \
+TEMPLATES_ENABLED=true \
+yarn start
+```
+
+## Publishing @spinnaker/kayenta
+
+This module is published as an NPM package. The current publishing process is manual:
+
+- Create a pull request that increments `package.json`'s patch version - e.g., to `0.0.57`.
+- Once the pull request has been merged, run `npm publish` from the root of this repo if you have the NPM permissions to do so. If you don't, ask someone from `@spinnaker/reviewers` to publish the package.
+
+Once `@spinnaker/kayenta` has been published, it's likely that
+you'll want to update the main Deck repository: to do so, run `yarn add @spinnaker/kayenta@latest`
+in the main Deck repository, then open a pull request.
+
+If you'd like to automate this process, we'd appreciate it.
 
 ## Testing
 
-To run the tests within the application, run `yarn run test`.
-
-#### NOTE
-Developing things locally? You will want to run [gate](https://github.com/spinnaker/gate) 
-locally (which runs on port 8084) and [kayenta](https://github.com/spinnaker/kayenta) (which runs on port 8090).
-
-
-You also will need to provide the following fields to your `gate-local.yml` config:
-
-```
-services:
-  kayenta:
-    enabled: true
-    canaryConfigStore: true
-    baseUrl: http://localhost:8090
-```
+To run `deck-kayenta`'s tests, run `yarn test`.
