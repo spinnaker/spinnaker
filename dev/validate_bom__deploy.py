@@ -618,7 +618,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
           ' {user}@{ip}'
-          ' ./{script_name}'
+          ' bash -l -c ./{script_name}'
           .format(user=self.hal_user,
                   ip=self.instance_ip,
                   ssh_key=self.__ssh_key_path,
