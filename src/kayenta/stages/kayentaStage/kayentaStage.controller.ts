@@ -372,7 +372,7 @@ export class KayentaStageController implements IComponentController {
   private loadProviders = async (): Promise<string[]> => {
     const providers = await AccountService.listProviders(this.$scope.application);
     // TODO: Open up to all providers.
-    return this.providers = providers.filter(p => ['gce', 'aws', 'titus'].includes(p));;
+    return this.providers = providers.filter(p => ['gce', 'aws', 'titus'].includes(p));
   };
 
   public handleProviderChange = async (): Promise<void> => {
@@ -455,6 +455,17 @@ export class KayentaStageController implements IComponentController {
         },
         useSourceCapacity: false,
       },
+      imageSourceText: `
+        <p>This dialogue will configure two server groups.</p>
+        <p>
+          The <b>Baseline</b> server group's image will be resolved
+          from the <b>Newest</b> server group
+          in the <b>Baseline Version</b> cluster defined in this stage.
+        </p>
+        <p>
+          The <b>Canary</b> server group's image will be resolved from
+          an upstream <b>Bake</b> or <b>Find Image</b> stage.
+        </p>`,
     };
 
     delete command.strategy;
@@ -533,6 +544,7 @@ export class KayentaStageController implements IComponentController {
           subnet: true,
           useSourceCapacity: true
         },
+        imageSourceText: this.resolveImageSourceText(type),
       };
       delete command.strategy;
 
@@ -568,4 +580,14 @@ export class KayentaStageController implements IComponentController {
   public deletePair = (index: number): void => {
     (this.stage.deployments.serverGroupPairs || []).splice(index, 1);
   };
+
+  private resolveImageSourceText(type: keyof IKayentaServerGroupPair): string {
+    if (type === 'experiment') {
+      return `This server group's image will be resolved from an upstream
+        <b>Bake</b> or <b>Find Image</b> stage.`;
+    } else {
+      return `This server group's image will be resolved from the <b>Newest</b>
+        server group in the <b>Baseline Version</b> cluster defined in this stage.`;
+    }
+  }
 }
