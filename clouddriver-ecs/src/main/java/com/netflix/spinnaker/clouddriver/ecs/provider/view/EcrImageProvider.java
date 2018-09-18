@@ -20,6 +20,7 @@ import com.amazonaws.services.ecr.AmazonECR;
 import com.amazonaws.services.ecr.model.DescribeImagesRequest;
 import com.amazonaws.services.ecr.model.DescribeImagesResult;
 import com.amazonaws.services.ecr.model.ImageDetail;
+import com.amazonaws.services.ecr.model.ImageIdentifier;
 import com.amazonaws.services.ecr.model.ListImagesRequest;
 import com.amazonaws.services.ecr.model.ListImagesResult;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -89,13 +91,11 @@ public class EcrImageProvider implements ImageRepositoryProvider {
 
     AmazonECR amazonECR = amazonClientProvider.getAmazonEcr(credentials, region, false);
 
-    ListImagesResult result = amazonECR.listImages(new ListImagesRequest().withRegistryId(accountId).withRepositoryName(repository));
-    DescribeImagesResult imagesResult = amazonECR.describeImages(new DescribeImagesRequest().withRegistryId(accountId).withRepositoryName(repository).withImageIds(result.getImageIds()));
+    List<ImageIdentifier> imageIds = getImageIdentifiers(amazonECR, accountId, repository, identifier, isTag);
+    DescribeImagesResult imagesResult = amazonECR.describeImages(new DescribeImagesRequest().withRegistryId(accountId).withRepositoryName(repository).withImageIds(imageIds));
 
     // TODO - what is the user interface we want to have here?  We should discuss with Lars and Ethan from the community as this whole thing will undergo a big refactoring
-    List<ImageDetail> imagesWithThisIdentifier = imagesResult.getImageDetails().stream()
-      .filter(imageDetail -> imageFilter(imageDetail, identifier, isTag))
-      .collect(Collectors.toList());
+    List<ImageDetail> imagesWithThisIdentifier = imagesResult.getImageDetails();
 
     if (imagesWithThisIdentifier.size() > 1) {
       throw new IllegalArgumentException("More than 1 image has this " + (isTag ? "tag" : "digest") + "!  This is currently not supported.");
@@ -117,10 +117,10 @@ public class EcrImageProvider implements ImageRepositoryProvider {
     return Collections.singletonList(ecsDockerImage);
   }
 
-  private boolean imageFilter(ImageDetail imageDetail, String identifier, boolean isTag) {
+  private boolean imageFilter(ImageIdentifier imageIdentifier, String identifier, boolean isTag) {
     return isTag ?
-      imageDetail.getImageTags() != null && imageDetail.getImageTags().contains(identifier) :
-      imageDetail.getImageDigest().equals(identifier);
+      imageIdentifier.getImageTag() != null && imageIdentifier.getImageTag().equals(identifier) :
+      imageIdentifier.getImageDigest().equals(identifier);
   }
 
   private NetflixAmazonCredentials getCredentials(String accountId) {
@@ -133,6 +133,29 @@ public class EcrImageProvider implements ImageRepositoryProvider {
       }
     }
     throw new NotFoundException(String.format("AWS account %s was not found.  Please specify a valid account name", accountId));
+  }
+
+  private List<ImageIdentifier> getImageIdentifiers(AmazonECR ecr, String accountId, String repository, String identifier, boolean isTag) {
+    List<ImageIdentifier> imageIdentifiers = new ArrayList<ImageIdentifier>();
+    String token = null;
+
+    ListImagesRequest request = new ListImagesRequest()
+      .withRegistryId(accountId)
+      .withRepositoryName(repository);
+
+    do {
+      ListImagesResult result = ecr.listImages(request);
+      result.getImageIds().stream()
+        .filter(imageId -> imageFilter(imageId, identifier, isTag))
+        .forEachOrdered(imageIdentifiers::add);
+
+      token = result.getNextToken();
+      if (token != null) {
+        request.setNextToken(token);
+      }
+    } while (token != null);
+
+    return imageIdentifiers;
   }
 
 

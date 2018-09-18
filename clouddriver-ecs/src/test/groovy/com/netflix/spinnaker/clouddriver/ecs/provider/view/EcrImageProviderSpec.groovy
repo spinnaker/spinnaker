@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
 import com.amazonaws.services.ecr.AmazonECR
+import com.amazonaws.services.ecr.model.DescribeImagesRequest
 import com.amazonaws.services.ecr.model.DescribeImagesResult
 import com.amazonaws.services.ecr.model.ImageDetail
+import com.amazonaws.services.ecr.model.ImageIdentifier
 import com.amazonaws.services.ecr.model.ListImagesResult
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
@@ -78,7 +80,7 @@ class EcrImageProviderSpec extends Specification {
 
     amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
     accountCredentialsProvider.getAll() >> [TestCredential.named('')]
-    amazonECR.listImages(_) >> new ListImagesResult()
+    amazonECR.listImages(_) >> new ListImagesResult().withImageIds(Collections.emptyList())
     amazonECR.describeImages(_) >> new DescribeImagesResult().withImageDetails(imageDetail)
 
     def expectedListOfImages = [new EcsDockerImage(
@@ -116,7 +118,7 @@ class EcrImageProviderSpec extends Specification {
 
     amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
     accountCredentialsProvider.getAll() >> [TestCredential.named('')]
-    amazonECR.listImages(_) >> new ListImagesResult()
+    amazonECR.listImages(_) >> new ListImagesResult().withImageIds(Collections.emptyList())
     amazonECR.describeImages(_) >> new DescribeImagesResult().withImageDetails(imageDetail)
 
     def expectedListOfImages = [new EcsDockerImage(
@@ -197,5 +199,58 @@ class EcrImageProviderSpec extends Specification {
     then:
     final IllegalArgumentException error = thrown()
     error.message == "The repository URI provided does not belong to a region that the credentials have access to or the region is not valid."
+  }
+
+  def 'should find the image in a repository with a large number of images'() {
+    given:
+    def tag = 'latest'
+    def region = 'us-west-1'
+    def repoName = 'too-many'
+    def accountId = '123456789012'
+    def digest = 'sha256:deadbeef785192c146085da66a4261e25e79a6210103433464eb7f79deadbeef'
+    def url = accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + ':' + tag
+    def imageId = new ImageIdentifier().withImageTag(tag).withImageDigest(digest)
+    def creationDate = new Date()
+
+    def amazonECR = Mock(AmazonECR)
+
+    amazonClientProvider.getAmazonEcr(_, _, _) >> amazonECR
+    accountCredentialsProvider.getAll() >> [TestCredential.named('')]
+
+    amazonECR.listImages(_) >>> [
+      new ListImagesResult()
+        .withImageIds(new ImageIdentifier().withImageTag("notlatest1").withImageDigest("sha256:aaa"))
+        .withNextToken("next1"),
+      new ListImagesResult()
+        .withImageIds(new ImageIdentifier().withImageTag("notlatest2").withImageDigest("sha256:bbb"))
+        .withImageIds(imageId)
+        .withNextToken(null),
+    ]
+    amazonECR.describeImages(
+      new DescribeImagesRequest()
+        .withRegistryId(accountId)
+        .withRepositoryName(repoName)
+        .withImageIds(imageId)
+    ) >> new DescribeImagesResult()
+      .withImageDetails(new ImageDetail(
+        imageTags: [tag],
+        repositoryName: repoName,
+        registryId: accountId,
+        imageDigest: digest,
+        imagePushedAt: creationDate,
+      ))
+
+    def expectedImages = [new EcsDockerImage(
+      region: region,
+      imageName: accountId + '.dkr.ecr.' + region + '.amazonaws.com/' + repoName + '@' + digest,
+      amis: ['us-west-1': Collections.singletonList(digest)],
+      attributes: [creationDate: creationDate],
+    )]
+
+    when:
+    def retrievedListOfImages = provider.findImage(url)
+
+    then:
+    retrievedListOfImages == expectedImages
   }
 }
