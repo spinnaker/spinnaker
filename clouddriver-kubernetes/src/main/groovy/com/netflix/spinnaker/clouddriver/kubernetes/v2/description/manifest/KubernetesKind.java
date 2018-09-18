@@ -44,20 +44,22 @@ public class KubernetesKind {
   public static KubernetesKind HORIZONTAL_POD_AUTOSCALER = new KubernetesKind("horizontalpodautoscaler", "hpa");
   public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing");
   public static KubernetesKind JOB = new KubernetesKind("job");
+  public static KubernetesKind MUTATING_WEBHOOK_CONFIGURATION = new KubernetesKind("mutatingwebhookconfiguration");
+  public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns", false, false);
+  public static KubernetesKind NETWORK_POLICY = new KubernetesKind("networkPolicy", "netpol", true, true);
+  public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv", false, false);
+  public static KubernetesKind PERSISTENT_VOLUME_CLAIM = new KubernetesKind("persistentVolumeClaim", "pvc");
   public static KubernetesKind POD = new KubernetesKind("pod", "po", true, true);
   public static KubernetesKind POD_DISRUPTION_BUDGET = new KubernetesKind("podDisruptionBudget");
   public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs", true, true);
   public static KubernetesKind ROLE = new KubernetesKind("role", false);
   public static KubernetesKind ROLE_BINDING = new KubernetesKind("roleBinding", false);
-  public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns", false, false);
-  public static KubernetesKind NETWORK_POLICY = new KubernetesKind("networkPolicy", "netpol", true, true);
-  public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv", false, false);
-  public static KubernetesKind PERSISTENT_VOLUME_CLAIM = new KubernetesKind("persistentVolumeClaim", "pvc");
   public static KubernetesKind SECRET = new KubernetesKind("secret");
   public static KubernetesKind SERVICE = new KubernetesKind("service", "svc", true, true);
   public static KubernetesKind SERVICE_ACCOUNT = new KubernetesKind("serviceAccount", "sa");
   public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet", null, true, true);
   public static KubernetesKind STORAGE_CLASS = new KubernetesKind("storageClass", "sc", false, false);
+  public static KubernetesKind VALIDATING_WEBHOOK_CONFIGURATION = new KubernetesKind("validatingwebhookconfiguration");
 
   // special kind that should never be assigned to a manifest, used only to represent objects whose kind is not in spinnaker's registry
   public static KubernetesKind NONE = new KubernetesKind("none", null, true, false);
