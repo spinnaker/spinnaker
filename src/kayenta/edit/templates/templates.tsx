@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { Tooltip } from '@spinnaker/core';
 
 import { ICanaryState } from 'kayenta/reducers';
 import { Table, ITableColumn } from 'kayenta/layout/table';
@@ -9,6 +8,8 @@ import { configTemplatesSelector } from 'kayenta/selectors';
 import * as Creators from 'kayenta/actions/creators';
 import EditTemplateModal from './editModal';
 import { DisableableButton, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+
+import './templates.less';
 
 interface ITemplatesStateProps {
   templates: ITemplate[];
@@ -35,23 +36,23 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
     {
       width: 1,
       getContent: t => (
-        <div className="horizontal center">
-          <Tooltip value="Edit Template">
-            <i
-              className="fa fa-edit"
-              data-name={t.name}
-              data-value={t.value}
-              onClick={edit}
-              style={{marginTop: '1px'}}
-            />
-          </Tooltip>
-          <Tooltip value="Delete Template">
-            <i
-              className="fa fa-trash"
-              data-name={t.name}
-              onClick={remove}
-            />
-          </Tooltip>
+        <div className="horizontal center templates-action-buttons">
+          <button
+            className="link"
+            data-name={t.name}
+            data-value={t.value}
+            onClick={edit}
+            style={{marginTop: '1px'}}
+          >
+            Edit
+          </button>
+          <button
+            className="link"
+            data-name={t.name}
+            onClick={remove}
+          >
+            Delete
+          </button>
         </div>
       ),
     }
