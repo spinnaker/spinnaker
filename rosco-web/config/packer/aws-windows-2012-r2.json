@@ -21,7 +21,8 @@
     "package_type": "",
     "packages": "",
     "upgrade": "",
-    "configDir": null
+    "configDir": null,
+    "chocolateyVersion": ""
   },
 
   "builders": [
@@ -76,7 +77,8 @@
         "repository={{user `repository`}}",
         "package_type={{user `package_type`}}",
         "packages={{user `packages`}}",
-        "upgrade={{user `upgrade`}}"
+        "upgrade={{user `upgrade`}}",
+        "chocolateyVersion={{user `chocolateyVersion`}}"
       ],
       "pause_before": "30s"
     }
