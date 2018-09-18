@@ -414,7 +414,7 @@ class ValidateBomTestController(object):
         'igor': 8088,
         'echo': 8089,
         'echo-scheduler': 8089,
-        'echo-slave': 8089
+        'echo-replica': 8089
     }
 
   def __replace_ha_api_service(self, service, options):
@@ -422,7 +422,7 @@ class ValidateBomTestController(object):
     if options.ha_clouddriver_enabled:
       transform_map['clouddriver'] = 'clouddriver-rw'
     if options.ha_echo_enabled:
-      transform_map['echo'] = ['echo-slave']
+      transform_map['echo'] = ['echo-replica']
 
     return transform_map.get(service, service)
 
