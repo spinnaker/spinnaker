@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.core;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
@@ -265,6 +266,7 @@ public class ProjectClustersService {
       clusters.addAll(regionClusters.values());
     }
 
+    @JsonProperty
     Long getLastPush() {
       long lastPush = 0;
       for (RegionClusterModel cluster : clusters) {
@@ -285,6 +287,7 @@ public class ProjectClustersService {
       this.region = region;
     }
 
+    @JsonProperty
     Long getLastPush() {
       long max = 0;
       for (DeployedBuild build : builds) {
