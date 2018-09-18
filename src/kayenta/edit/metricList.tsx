@@ -1,14 +1,16 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
-import * as classNames from 'classnames';
-import { noop, Tooltip } from '@spinnaker/core';
+import { cloneDeep } from 'lodash';
+import { noop } from '@spinnaker/core';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
 import { ITableColumn, Table } from 'kayenta/layout/table';
 import ChangeMetricGroupModal from './changeMetricGroupModal';
 import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
+
+import './metricList.less';
 
 interface IMetricListStateProps {
   selectedGroup: string;
@@ -23,6 +25,7 @@ interface IMetricListStateProps {
 interface IMetricListDispatchProps {
   addMetric: (event: any) => void;
   editMetric: (event: any) => void;
+  copyMetric: (metric: ICanaryMetricConfig) => void;
   removeMetric: (event: any) => void;
   openChangeMetricGroupModal: (event: any) => void;
 }
@@ -30,12 +33,12 @@ interface IMetricListDispatchProps {
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, editMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal, metricStore, disableEdit }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, editMetric, copyMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal, metricStore, disableEdit }: IMetricListStateProps & IMetricListDispatchProps) {
 
   const columns: ITableColumn<ICanaryMetricConfig>[] = [
     {
       label: 'Metric Name',
-      width: 6,
+      width: 4,
       getContent: metric => <span>{metric.name || '(new)'}</span>,
     },
     {
@@ -45,32 +48,38 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
       hide: !showGroups,
     },
     {
-      width: 1,
+      width: 3,
       getContent: metric => (
-        <div className="horizontal center">
-          <Tooltip value="Edit Metric">
-            <i
-              className="fa fa-edit"
-              data-id={metric.id}
-              onClick={editMetric}
-            />
-          </Tooltip>
-          <Tooltip value="Change Metric Group">
-            <i
-              className="far fa-folder"
-              data-id={metric.id}
-              onClick={openChangeMetricGroupModal}
-            />
-          </Tooltip>
-          <Tooltip value="Delete Metric">
-            <i
-              className={classNames('fa', 'fa-trash', {
-                disabled: disableEdit,
-              })}
-              data-id={metric.id}
-              onClick={disableEdit ? noop : removeMetric}
-            />
-          </Tooltip>
+        <div className="horizontal center metrics-action-buttons">
+          <button
+            className="link"
+            data-id={metric.id}
+            onClick={editMetric}
+          >
+            Edit
+          </button>
+          <button
+            className="link"
+            data-id={metric.id}
+            onClick={openChangeMetricGroupModal}
+          >
+            Move Group
+          </button>
+          <button
+            className="link"
+            data-id={metric.id}
+            onClick={() => copyMetric(metric)}
+          >
+            Copy
+          </button>
+          <button
+            className="link"
+            data-id={metric.id}
+            disabled={disableEdit}
+            onClick={disableEdit ? noop : removeMetric}
+          >
+            Delete
+          </button>
         </div>
       ),
     }
@@ -147,6 +156,13 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           isNew: true,
         }
       }));
+    },
+    copyMetric: (metric: ICanaryMetricConfig) => {
+      const metricCopy: ICanaryMetricConfig = cloneDeep(metric);
+      metricCopy.id = '[new]';
+      metricCopy.isNew = true;
+      metricCopy.name = '';
+      dispatch(Creators.addMetric({ metric: metricCopy }));
     },
     editMetric: (event: any) => {
       dispatch(Creators.editMetricBegin({ id: event.target.dataset.id }));
