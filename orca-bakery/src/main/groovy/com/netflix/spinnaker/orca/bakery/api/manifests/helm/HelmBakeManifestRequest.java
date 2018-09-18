@@ -27,4 +27,6 @@ import lombok.EqualsAndHashCode;
 public class HelmBakeManifestRequest extends BakeManifestRequest {
   @JsonProperty("namespace")
   String namespace;
+  @JsonProperty("outputArtifactName")
+  String outputArtifactName;
 }

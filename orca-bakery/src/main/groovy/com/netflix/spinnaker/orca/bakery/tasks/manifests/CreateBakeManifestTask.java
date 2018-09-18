@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -66,22 +67,34 @@ public class CreateBakeManifestTask implements RetryableTask {
   public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
 
-    List<ExpectedArtifactPair> expectedArtifacts = objectMapper.convertValue(context.get("inputArtifacts"), new TypeReference<List<ExpectedArtifactPair>>() {});
+    List<InputArtifactPair> inputArtifactsObj = objectMapper.convertValue(context.get("inputArtifacts"), new TypeReference<List<InputArtifactPair>>() {});
     List<Artifact> inputArtifacts;
 
-    if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
-      throw new IllegalArgumentException("At least one expected artifact to bake must be supplied");
+    if (inputArtifactsObj == null || inputArtifactsObj.isEmpty()) {
+      throw new IllegalArgumentException("At least one input artifact to bake must be supplied");
     }
 
-    inputArtifacts = expectedArtifacts.stream()
+    inputArtifacts = inputArtifactsObj.stream()
         .map(p -> {
           Artifact a = artifactResolver.getBoundArtifactForId(stage, p.getId());
           if (a == null) {
-            throw new IllegalArgumentException(stage.getExecution().getId() + ": Expected artifact " + p.getId() + " could not be found in the execution");
+            throw new IllegalArgumentException(stage.getExecution().getId() + ": Input artifact " + p.getId() + " could not be found in the execution");
           }
           a.setArtifactAccount(p.getAccount());
           return a;
         }).collect(Collectors.toList());
+
+    List<ExpectedArtifact> expectedArtifacts = objectMapper.convertValue(context.get("expectedArtifacts"), new TypeReference<List<ExpectedArtifact>>() {});
+
+    if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
+      throw new IllegalArgumentException("At least one expected artifact to baked manifest must be supplied");
+    }
+
+    if (expectedArtifacts.size() > 1) {
+      throw new IllegalArgumentException("Too many artifacts provided as expected");
+    }
+
+    String outputArtifactName = expectedArtifacts.get(0).getMatchArtifact().getName();
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     request.setInputArtifacts(inputArtifacts);
@@ -89,6 +102,7 @@ public class CreateBakeManifestTask implements RetryableTask {
     request.setOutputName((String) context.get("outputName"));
     request.setOverrides(objectMapper.convertValue(context.get("overrides"), new TypeReference<Map<String, Object>>() { }));
     request.setNamespace((String) context.get("namespace"));
+    request.setOutputArtifactName(outputArtifactName);
 
     log.info("Requesting {}", request);
     Artifact result = bakery.bakeManifest(request);
@@ -100,7 +114,7 @@ public class CreateBakeManifestTask implements RetryableTask {
   }
 
   @Data
-  private static class ExpectedArtifactPair {
+  private static class InputArtifactPair {
     String id;
     String account;
   }
