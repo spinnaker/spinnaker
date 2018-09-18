@@ -368,6 +368,6 @@ configure_defaults
 install_java
 install_halyard
 
-su -c "hal -v" -s /bin/bash $HAL_USER
+su -l -c "hal -v" -s /bin/bash $HAL_USER
 
 configure_bash_completion
