@@ -108,6 +108,8 @@ from buildtool import (
     TimeoutError,
     UnexpectedError)
 
+from validate_bom__deploy import replace_ha_services
+
 
 ForwardedPort = collections.namedtuple('ForwardedPort', ['child', 'port'])
 
@@ -400,6 +402,9 @@ class ValidateBomTestController(object):
     self.__service_port_map = {
         # These are critical to most tests.
         'clouddriver': 7002,
+        'clouddriver-caching': 7002,
+        'clouddriver-rw': 7002,
+        'clouddriver-ro': 7002,
         'gate': 8084,
         'front50': 8080,
 
@@ -407,8 +412,19 @@ class ValidateBomTestController(object):
         'orca': 8083,
         'rosco': 8087,
         'igor': 8088,
-        'echo': 8089
+        'echo': 8089,
+        'echo-scheduler': 8089,
+        'echo-slave': 8089
     }
+
+  def __replace_ha_api_service(self, service, options):
+    transform_map = {}
+    if options.ha_clouddriver_enabled:
+      transform_map['clouddriver'] = 'clouddriver-rw'
+    if options.ha_echo_enabled:
+      transform_map['echo'] = ['echo-slave']
+
+    return transform_map.get(service, service)
 
   def __load_bindings(self, path):
     with open(path, 'r') as stream:
@@ -733,8 +749,10 @@ class ValidateBomTestController(object):
                                   'IncompatableConfig', metric_labels)
         return False
 
-    services = set(requires.pop('services', []))
-    services.add(spec.pop('api'))
+    services = set(replace_ha_services(
+        requires.pop('services', []), self.options))
+    services.add(self.__replace_ha_api_service(
+        spec.pop('api'), self.options))
 
     if requires:
       raise_and_log_error(
@@ -815,7 +833,7 @@ class ValidateBomTestController(object):
       This does not consider quota, which is checked later.
     """
     options = self.options
-    microservice_api = spec.get('api')
+    microservice_api = self.__replace_ha_api_service(spec.get('api'), options)
     test_rel_path = spec.pop('path', None) or os.path.join(
         'citest', 'tests', '{0}.py'.format(test_name))
     args = spec.pop('args', {})

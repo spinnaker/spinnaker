@@ -1563,9 +1563,9 @@ class HaConfigurator(Configurator):
 
   def validate_options(self, options):
     """Implements interface."""
-    # options.ha_enabled = (
-    #     options.ha_clouddriver_enabled
-    #     or options.ha_echo_enabled)
+    options.ha_enabled = (
+        options.ha_clouddriver_enabled
+        or options.ha_echo_enabled)
     if options.ha_clouddriver_enabled:
       if (options.ha_clouddriver_redis_master_endpoint is None) != (options.ha_clouddriver_redis_slave_endpoint is None):
         raise ValueError('Either both --ha_clouddriver_redis_master_endpoint'
