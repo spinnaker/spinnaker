@@ -89,6 +89,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
     viewState.submitButtonLabel = 'Add';
     viewState.hideClusterNamePreview = baseCommand.viewState.hideClusterNamePreview || false;
     viewState.templatingEnabled = true;
+    viewState.imageSourceText = baseCommand.viewState.imageSourceText;
     Object.assign(command, baseCommand.viewState.overrides || {});
     Object.assign(baseCommand, command);
   }

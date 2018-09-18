@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Option } from 'react-select';
 import { FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
+import * as DOMPurify from 'dompurify';
 
 import {
   NgReact,
@@ -380,6 +381,14 @@ class ServerGroupBasicSettingsImpl extends React.Component<
           <div className="form-group row slide-in">
             <div className="col-sm-9 col-sm-offset-2 error-message">
               <span>{errors.freeFormDetails}</span>
+            </div>
+          </div>
+        )}
+        {values.viewState.imageSourceText && (
+          <div className="form-group">
+            <div className="col-md-3 sm-label-right">Image Source</div>
+            <div className="col-md-7" style={{ marginTop: '5px' }}>
+              <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(values.viewState.imageSourceText) }} />
             </div>
           </div>
         )}

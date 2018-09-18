@@ -71,7 +71,7 @@ module.exports = angular
     ];
 
     function configureCommand(application, command) {
-      var imageLoader;
+      let imageLoader;
       if (command.viewState.disableImageSelection) {
         imageLoader = $q.when(null);
       } else {
@@ -142,7 +142,7 @@ module.exports = angular
 
           return $q
             .all([loadBalancerReloader, securityGroupReloader, networkReloader, healthCheckReloader])
-            .then(function() {
+            .then(() => {
               gceTagManager.register(command);
               attachEventHandlers(command);
             });

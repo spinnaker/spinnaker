@@ -43,6 +43,7 @@ export interface IServerGroupCommandViewState {
   disableNoTemplateSelection?: boolean;
   disableStrategySelection?: boolean;
   hideClusterNamePreview?: boolean;
+  imageSourceText?: string;
   overrides: any;
   overriddenStorageDescription?: string;
   readOnlyFields: { [field: string]: boolean };
