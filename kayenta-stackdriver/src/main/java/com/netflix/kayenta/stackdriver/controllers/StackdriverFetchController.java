@@ -116,6 +116,10 @@ public class StackdriverFetchController {
         .builder()
         .metricType(metricType);
 
+    if (!StringUtils.isEmpty(resourceType)) {
+      stackdriverCanaryMetricSetQueryConfigBuilder.resourceType(resourceType);
+    }
+
     if (!CollectionUtils.isEmpty(groupByFields)) {
       stackdriverCanaryMetricSetQueryConfigBuilder.groupByFields(groupByFields);
     }
@@ -140,10 +144,6 @@ public class StackdriverFetchController {
 
     if (!StringUtils.isEmpty(project)) {
       extendedScopeParams.put("project", project);
-    }
-
-    if (!StringUtils.isEmpty(resourceType)) {
-      extendedScopeParams.put("resourceType", resourceType);
     }
 
     canaryScope.setExtendedScopeParams(extendedScopeParams);

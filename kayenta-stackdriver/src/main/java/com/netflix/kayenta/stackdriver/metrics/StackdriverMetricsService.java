@@ -111,12 +111,29 @@ public class StackdriverMetricsService implements MetricsService {
     String projectId = stackdriverCanaryScope.getProject();
     String location = stackdriverCanaryScope.getLocation();
     String scope = stackdriverCanaryScope.getScope();
-    String resourceType = stackdriverCanaryScope.getResourceType();
-    String crossSeriesReducer = stackdriverCanaryScope.getCrossSeriesReducer();
-    String perSeriesAligner = stackdriverCanaryScope.getPerSeriesAligner();
+    String resourceType =
+      StringUtils.hasText(stackdriverMetricSetQuery.getResourceType())
+      ? stackdriverMetricSetQuery.getResourceType()
+      : stackdriverCanaryScope.getResourceType();
+    String crossSeriesReducer =
+      StringUtils.hasText(stackdriverMetricSetQuery.getCrossSeriesReducer())
+      ? stackdriverMetricSetQuery.getCrossSeriesReducer()
+      : StringUtils.hasText(stackdriverCanaryScope.getCrossSeriesReducer())
+        ? stackdriverCanaryScope.getCrossSeriesReducer()
+        : "REDUCE_MEAN";
+    String perSeriesAligner =
+      StringUtils.hasText(stackdriverMetricSetQuery.getPerSeriesAligner())
+      ? stackdriverMetricSetQuery.getPerSeriesAligner()
+      : StringUtils.hasText(stackdriverCanaryScope.getPerSeriesAligner())
+        ? stackdriverCanaryScope.getPerSeriesAligner()
+        : "ALIGN_MEAN";
 
     if (StringUtils.isEmpty(projectId)) {
       projectId = stackdriverCredentials.getProject();
+    }
+
+    if (StringUtils.isEmpty(resourceType)) {
+      throw new IllegalArgumentException("Resource type is required.");
     }
 
     if (StringUtils.isEmpty(stackdriverCanaryScope.getStart())) {
@@ -138,10 +155,6 @@ public class StackdriverMetricsService implements MetricsService {
     // TODO(duftler): Replace direct string-manipulating with helper functions.
     // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource type.
     if (StringUtils.isEmpty(customFilter)) {
-      if (StringUtils.isEmpty(resourceType)) {
-        throw new IllegalArgumentException("Resource type is required.");
-      }
-
       if ("gce_instance".equals(resourceType)) {
         if (StringUtils.isEmpty(location)) {
           throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'gce_instance'.");

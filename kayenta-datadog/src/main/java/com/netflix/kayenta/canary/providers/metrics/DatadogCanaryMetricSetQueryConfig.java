@@ -33,12 +33,14 @@ import javax.validation.constraints.NotNull;
 @JsonTypeName("datadog")
 public class DatadogCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
+  public static final String SERVICE_TYPE = "datadog";
+
   @NotNull
   @Getter
   private String metricName;
 
   @Override
   public String getServiceType() {
-    return "datadog";
+    return SERVICE_TYPE;
   }
 }

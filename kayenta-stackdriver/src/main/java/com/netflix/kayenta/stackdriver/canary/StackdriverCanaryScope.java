@@ -30,12 +30,21 @@ public class StackdriverCanaryScope extends CanaryScope {
 
   private String project;
 
-  @NotNull
+  /**
+   * @deprecated Use resourceType on StackdriverCanaryMetricSetQueryConfig instead.
+   */
+  @Deprecated
   private String resourceType;
 
-  @NotNull
-  private String crossSeriesReducer = "REDUCE_MEAN";
+  /**
+   * @deprecated Use crossSeriesReducer on StackdriverCanaryMetricSetQueryConfig instead.
+   */
+  @Deprecated
+  private String crossSeriesReducer;
 
-  @NotNull
-  private String perSeriesAligner = "ALIGN_MEAN";
+  /**
+   * @deprecated Use perSeriesAligner on StackdriverCanaryMetricSetQueryConfig instead.
+   */
+  @Deprecated
+  private String perSeriesAligner;
 }

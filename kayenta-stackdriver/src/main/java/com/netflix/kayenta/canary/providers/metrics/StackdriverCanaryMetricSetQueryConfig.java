@@ -32,9 +32,18 @@ public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQue
 
   public static final String SERVICE_TYPE = "stackdriver";
 
+  @Getter
+  private String resourceType;
+
   @NotNull
   @Getter
   private String metricType;
+
+  @Getter
+  private String crossSeriesReducer;
+
+  @Getter
+  private String perSeriesAligner;
 
   @NotNull
   @Getter

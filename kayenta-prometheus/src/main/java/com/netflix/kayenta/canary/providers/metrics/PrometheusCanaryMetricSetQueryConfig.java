@@ -30,6 +30,8 @@ import java.util.List;
 @JsonTypeName("prometheus")
 public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
+  public static final String SERVICE_TYPE = "prometheus";
+
   @NotNull
   @Getter
   private String metricName;
@@ -48,6 +50,6 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
 
   @Override
   public String getServiceType() {
-    return "prometheus";
+    return SERVICE_TYPE;
   }
 }

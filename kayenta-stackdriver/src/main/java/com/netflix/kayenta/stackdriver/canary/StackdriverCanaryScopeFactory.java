@@ -48,7 +48,9 @@ public class StackdriverCanaryScopeFactory implements CanaryScopeFactory {
         stackdriverCanaryScope.setProject(extendedScopeParams.get("project"));
       }
 
-      stackdriverCanaryScope.setResourceType(extendedScopeParams.getOrDefault("resourceType", "gce_instance"));
+      if (extendedScopeParams.containsKey("resourceType")) {
+        stackdriverCanaryScope.setResourceType(extendedScopeParams.get("resourceType"));
+      }
 
       if (extendedScopeParams.containsKey("crossSeriesReducer")) {
         stackdriverCanaryScope.setCrossSeriesReducer(extendedScopeParams.get("crossSeriesReducer"));

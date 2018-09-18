@@ -29,12 +29,14 @@ import javax.validation.constraints.NotNull;
 @JsonTypeName("atlas")
 public class AtlasCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
+  public static final String SERVICE_TYPE = "atlas";
+
   @NotNull
   @Getter
   private String q;
 
   @Override
   public String getServiceType() {
-    return "atlas";
+    return SERVICE_TYPE;
   }
 }
