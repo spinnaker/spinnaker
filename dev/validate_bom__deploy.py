@@ -378,6 +378,9 @@ class BaseValidateBomDeployer(object):
       if options.injected_deploy_spinnaker_account:
         type_args.extend(['--account-name',
                           options.injected_deploy_spinnaker_account])
+      if options.deploy_distributed_platform == 'kubernetes_v2':
+        script.append('hal -q --log=info config deploy edit --location {namespace}'
+            .format(namespace=self.options.deploy_k8s_v2_namespace))
 
     script.append('hal -q --log=info config deploy edit {args}'
                   .format(args=' '.join(type_args)))
