@@ -8,6 +8,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Test
+import strikt.api.catching
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
@@ -63,9 +64,9 @@ object MemoryCloudDriverCacheTest {
   fun `an invalid security group id throws an exception`() {
     whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn securityGroupSummaries
 
-    expectThat {
+    expectThat(catching {
       subject.securityGroupSummaryBy("prod", "us-east-1", "sg-4")
-    }
+    })
       .throws<ResourceNotFound>()
   }
 
@@ -86,7 +87,7 @@ object MemoryCloudDriverCacheTest {
   fun `an invalid VPC id throws an exception`() {
     whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
 
-    expectThat { subject.networkBy("vpc-5") }
+    expectThat(catching { subject.networkBy("vpc-5") })
       .throws<ResourceNotFound>()
   }
 
@@ -103,9 +104,9 @@ object MemoryCloudDriverCacheTest {
   fun `an invalid VPC name and region throws an exception`() {
     whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
 
-    expectThat {
+    expectThat(catching {
       subject.networkBy("invalid", "prod", "us-west-2")
-    }
+    })
       .throws<ResourceNotFound>()
   }
 

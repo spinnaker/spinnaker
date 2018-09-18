@@ -19,6 +19,8 @@ import io.grpc.stub.StreamObserver
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.catching
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsKeys
 import strikt.assertions.get
@@ -102,11 +104,13 @@ internal class PluginRegistrationTest {
   fun `throws exception if Keel VIP is invalid`() {
     whenever(eurekaClient.getNextServerFromEureka(keelRegistryVip, false)) doThrow RuntimeException("No matches for the virtual host name :$keelRegistryVip")
 
-    expectThat {
-      registrar.onDiscoveryUp()
-    }.throws<NoSuchVip>()
+    expect {
+      that(catching {
+        registrar.onDiscoveryUp()
+      }).throws<NoSuchVip>()
 
-    expectThat(registeredTypes).isEmpty()
+      that(registeredTypes).isEmpty()
+    }
   }
 }
 

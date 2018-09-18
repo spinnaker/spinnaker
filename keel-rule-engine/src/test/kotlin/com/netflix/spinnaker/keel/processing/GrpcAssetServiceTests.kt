@@ -28,12 +28,13 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion
+import strikt.api.catching
 import strikt.api.expectThat
-import strikt.api.expectThrows
 import strikt.assertions.contentEquals
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import strikt.assertions.throws
 import com.netflix.spinnaker.keel.api.Asset as AssetProto
 import com.netflix.spinnaker.keel.api.AssetContainer as AssetContainerProto
 
@@ -77,9 +78,9 @@ internal class GrpcAssetServiceTests {
 
   @Test
   fun `current throws an exception if no registered plugin supports an asset type`() {
-    expectThrows<UnsupportedAssetType> {
+    expectThat(catching {
       subject.current(asset.copy(kind = "ElasticLoadBalancer:aws:prod:us-west-2:keel").wrap())
-    }
+    }).throws<UnsupportedAssetType>()
 
     verifyZeroInteractions(plugin)
   }
