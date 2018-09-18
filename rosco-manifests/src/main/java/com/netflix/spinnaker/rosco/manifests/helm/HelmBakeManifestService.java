@@ -68,7 +68,7 @@ public class HelmBakeManifestService {
 
     return Artifact.builder()
         .type("embedded/base64")
-        .name(recipe.getName())
+        .name(request.getOutputArtifactName())
         .reference(Base64.getEncoder().encodeToString(bakeStatus.getStdOut().getBytes()))
         .build();
   }

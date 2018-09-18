@@ -12,6 +12,7 @@ import java.util.Map;
 public class BakeManifestRequest {
   TemplateRenderer templateRenderer;
   String outputName;
+  String outputArtifactName;
   List<Artifact> inputArtifacts;
   Map<String, Object> overrides;
 
