@@ -54,6 +54,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -346,7 +347,9 @@ public class StackdriverMetricsService implements MetricsService {
         Map<String, String> labels = monitoredResource.getLabels();
 
         if (labels != null) {
-          metricSetBuilder.tags(labels);
+          Map<String, String> prunedLabels = new HashMap<>(labels);
+          prunedLabels.remove("project_id");
+          metricSetBuilder.tags(prunedLabels);
         }
       }
 
