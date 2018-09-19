@@ -239,6 +239,7 @@ public class RedisLockManager implements RefreshableLockManager {
 
       return new AcquireLockResponse<>(lock, workResult, status, null, tryLockReleaseQuietly(lock, true));
     } catch (Exception e) {
+      log.error(e.getMessage());
       boolean lockWasReleased = tryLockReleaseQuietly(lock, false);
 
       if (e instanceof LockCallbackException) {
