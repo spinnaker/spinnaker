@@ -124,24 +124,35 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     return cachedDefaultNamespace;
   }
 
-  public String lookupDefaultNamespace() {
-    String namespace = defaultNamespace;
+  private Optional<String> serviceAccountNamespace() {
     try {
-      Optional<String> serviceAccountNamespace = Files.lines(serviceAccountNamespacePath, StandardCharsets.UTF_8).findFirst();
-      namespace = serviceAccountNamespace.orElse("");
+      return Files.lines(serviceAccountNamespacePath, StandardCharsets.UTF_8).findFirst();
     } catch (IOException e) {
-      try {
-        namespace = jobExecutor.defaultNamespace(this);
-      } catch (KubectlException ke) {
-        log.debug("Failure looking up desired namespace, defaulting to {}", defaultNamespace, ke);
+      log.debug("Failure looking up desired namespace", e);
+      return Optional.empty();
+    }
+  }
+
+  private Optional<String> kubectlNamespace() {
+    try {
+      return Optional.of(jobExecutor.defaultNamespace(this));
+    } catch (KubectlException e) {
+      log.debug("Failure looking up desired namespace", e);
+      return Optional.empty();
+    }
+  }
+
+  public String lookupDefaultNamespace() {
+    try {
+      if (serviceAccount) {
+        return serviceAccountNamespace().orElse(defaultNamespace);
+      } else {
+        return kubectlNamespace().orElse(defaultNamespace);
       }
     } catch (Exception e) {
       log.debug("Error encountered looking up default namespace, defaulting to {}", defaultNamespace, e);
+      return defaultNamespace;
     }
-    if (StringUtils.isEmpty(namespace)) {
-      namespace = defaultNamespace;
-    }
-    return namespace;
   }
 
   @Getter
