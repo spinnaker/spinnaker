@@ -193,12 +193,12 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
         accountName = vpc.account
         region = vpc.region
         vpcName = vpc.name
-        inboundRulesOrBuilderList.apply {
-          addInboundRules(SecurityGroupRule.newBuilder().setReferenceRule(
+        inboundRuleOrBuilderList.apply {
+          addInboundRule(SecurityGroupRule.newBuilder().setReferenceRule(
             ReferenceRule.newBuilder().apply {
               protocol = "tcp"
               name = "otherapp"
-              addPortRanges(PortRange.newBuilder().apply {
+              addPortRange(PortRange.newBuilder().apply {
                 startPort = 8080
                 endPort = 8081
               })
@@ -250,12 +250,12 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
 
       val securityGroupRule = SecurityGroupRules.newBuilder()
         .apply {
-          inboundRulesOrBuilderList.apply {
-            addInboundRules(SecurityGroupRule.newBuilder().setCidrRule(
+          inboundRuleOrBuilderList.apply {
+            addInboundRule(SecurityGroupRule.newBuilder().setCidrRule(
               CidrRule.newBuilder().apply {
                 protocol = "tcp"
                 blockRange = "10.0.0.0/16"
-                addPortRanges(PortRange.newBuilder().apply {
+                addPortRange(PortRange.newBuilder().apply {
                   startPort = 443
                   endPort = 443
                 })
@@ -276,8 +276,8 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
             }
             spec = securityGroup.pack()
           }
-          partialAssetsOrBuilderList.apply {
-            addPartialAssets(PartialAsset.newBuilder().apply {
+          partialAssetOrBuilderList.apply {
+            addPartialAsset(PartialAsset.newBuilder().apply {
               idBuilder.value = "id"
               typeMetadataBuilder.apply {
                 kind = "aws.SecurityGroupRule"

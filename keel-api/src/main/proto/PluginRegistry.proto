@@ -16,7 +16,7 @@ message RegisterAssetPluginRequest {
   string name = 1;
   string vip = 2;
   int32 port = 3;
-  repeated TypeMetadata types = 4;
+  repeated TypeMetadata type = 4;
 }
 
 message RegisterAssetPluginResponse {

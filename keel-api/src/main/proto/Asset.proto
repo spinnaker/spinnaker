@@ -23,7 +23,7 @@ message PartialAsset {
 
 message AssetContainer {
   Asset asset = 1;
-  repeated PartialAsset partialAssets = 2;
+  repeated PartialAsset partialAsset = 2;
 }
 
 message AssetId {

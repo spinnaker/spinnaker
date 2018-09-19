@@ -37,7 +37,7 @@ internal class PluginRegistrationTest {
   val registeredTypes = mutableMapOf<String, Pair<String, Int>>()
   val registry: PluginRegistryImplBase = object : PluginRegistryImplBase() {
     override fun registerAssetPlugin(request: RegisterAssetPluginRequest, responseObserver: StreamObserver<RegisterAssetPluginResponse>) {
-      request.typesList.map(TypeMetadata::getKind).forEach { kind ->
+      request.typeList.map(TypeMetadata::getKind).forEach { kind ->
         registeredTypes[kind] = request.vip to request.port
       }
       with(responseObserver) {

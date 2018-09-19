@@ -12,12 +12,12 @@ message ClassicLoadBalancer {
   string name = 2;
   string accountName = 3;
   string region = 4;
-  repeated string securityGroupNames = 5;
+  repeated string securityGroupName = 5;
   string vpcName = 6;
   string subnets = 7;
   AvailabilityZoneConfig availabilityZones = 8;
   Scheme scheme = 9;
-  repeated ClassicListener listeners = 10;
+  repeated ClassicListener listener = 10;
   HealthCheckSpec healthCheck = 11;
 }
 
@@ -32,7 +32,7 @@ message AutomaticAvailabilityZoneConfig {
 }
 
 message ManualAvailabilityZoneConfig {
-  repeated string availabilityZones = 1;
+  repeated string availabilityZone = 1;
 }
 
 enum Scheme {

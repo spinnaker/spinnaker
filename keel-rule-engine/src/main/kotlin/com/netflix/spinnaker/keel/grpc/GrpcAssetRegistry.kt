@@ -21,7 +21,7 @@ class GrpcAssetRegistry(
     with(request.asset) {
       log.info("Upserting asset {}", asset.id)
 
-      val upserted = listOf(asset.fromProto()) + partialAssetsList.map { it.fromProto() }
+      val upserted = listOf(asset.fromProto()) + partialAssetList.map { it.fromProto() }
       upserted.forEach(assetRepository::store)
 
       with(responseObserver) {

@@ -65,7 +65,7 @@ class PluginRegistrar(
             it.name = name
             it.vip = instanceInfo.vipAddress
             it.port = localGrpcPort
-            it.addAllTypes(supportedTypes)
+            it.addAllType(supportedTypes)
           }
           .build()
         registry.registerAssetPlugin(request).let { response ->

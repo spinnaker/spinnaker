@@ -48,14 +48,14 @@ class AmazonSecurityGroupHandler(
      val securityGroupAsset = assetContainer.asset.spec
       .unpack<SecurityGroupProto>()
       .toBuilder().apply {
-        assetContainer.partialAssetsList
+        assetContainer.partialAssetList
           .map { it.spec.unpack(SecurityGroupRules::class.java) }
           .forEach { rules ->
-            inboundRulesOrBuilderList.apply {
-              addAllInboundRules(rules.inboundRulesList)
+            inboundRuleOrBuilderList.apply {
+              addAllInboundRule(rules.inboundRuleList)
             }
-            outboundRulesOrBuilderList.apply {
-              addAllOutboundRules(rules.outboundRulesList)
+            outboundRuleOrBuilderList.apply {
+              addAllOutboundRule(rules.outboundRuleList)
             }
           }
       }.build()
@@ -89,7 +89,7 @@ class AmazonSecurityGroupHandler(
             "vpcId" to spec.vpcName,
             "description" to spec.description,
             "securityGroupIngress" to portRangeRuleToJob(spec),
-            "ipIngress" to spec.inboundRulesList.filter { it.hasCidrRule() }.flatMap {
+            "ipIngress" to spec.inboundRuleList.filter { it.hasCidrRule() }.flatMap {
               convertCidrRuleToJob(it)
             },
             // TODO rz - egress
@@ -136,12 +136,12 @@ class AmazonSecurityGroupHandler(
 
   private fun portRangeRuleToJob(spec: SecurityGroupProto): JobRules {
     return spec
-      .inboundRulesList
+      .inboundRuleList
       .filter { it.hasReferenceRule() || it.hasSelfReferencingRule() }
       .flatMap { rule ->
         when {
-          rule.hasReferenceRule() -> rule.referenceRule.portRangesList
-          rule.hasSelfReferencingRule() -> rule.selfReferencingRule.portRangesList
+          rule.hasReferenceRule() -> rule.referenceRule.portRangeList
+          rule.hasSelfReferencingRule() -> rule.selfReferencingRule.portRangeList
           else -> emptyList()
         }
           .map { Pair(rule, it) }
@@ -173,7 +173,7 @@ typealias JobRules = List<MutableMap<String, Any?>>
 
 private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
   when {
-    rule.hasCidrRule() -> rule.cidrRule.portRangesList.map { ports ->
+    rule.hasCidrRule() -> rule.cidrRule.portRangeList.map { ports ->
       mutableMapOf(
         "type" to rule.protocol,
         "startPort" to ports.startPort,

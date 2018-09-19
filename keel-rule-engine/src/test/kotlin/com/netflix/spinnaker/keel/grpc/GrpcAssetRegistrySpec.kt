@@ -102,8 +102,8 @@ internal object GrpcAssetRegistrySpec : Spek({
         val request = UpsertAssetRequest.newBuilder()
           .apply {
             assetBuilder.asset = asset.toProto()
-            assetBuilder.addPartialAssets(partial1.toProto())
-            assetBuilder.addPartialAssets(partial2.toProto())
+            assetBuilder.addPartialAsset(partial1.toProto())
+            assetBuilder.addPartialAsset(partial2.toProto())
           }
           .build()
 

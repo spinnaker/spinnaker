@@ -58,7 +58,7 @@ internal class GrpcAssetServiceTests {
     registry.registerAssetPlugin(RegisterAssetPluginRequest.newBuilder().also {
       it.vip = pluginVip
       it.port = grpc.port
-      it.addTypes(asset.toTypeMetaData())
+      it.addType(asset.toTypeMetaData())
     }.build(), responseCallback)
     verify(responseCallback).onNext(argWhere {
       it.succeeded

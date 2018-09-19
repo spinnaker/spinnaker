@@ -11,14 +11,14 @@ message SecurityGroup {
   string accountName = 3;
   string region = 4;
   string vpcName = 5;
-  repeated SecurityGroupRule inboundRules = 6;
-  repeated SecurityGroupRule outboundRules = 7;
+  repeated SecurityGroupRule inboundRule = 6;
+  repeated SecurityGroupRule outboundRule = 7;
   string description = 8;
 }
 
 message SecurityGroupRules {
-  repeated SecurityGroupRule inboundRules = 1;
-  repeated SecurityGroupRule outboundRules = 2;
+  repeated SecurityGroupRule inboundRule = 1;
+  repeated SecurityGroupRule outboundRule = 2;
 }
 
 message SecurityGroupRule {
@@ -31,13 +31,13 @@ message SecurityGroupRule {
 }
 
 message ReferenceRule {
-  repeated PortRange portRanges = 1;
+  repeated PortRange portRange = 1;
   string protocol = 2;
   string name = 3;
 }
 
 message CrossRegionReferenceRule {
-  repeated PortRange portRanges = 1;
+  repeated PortRange portRange = 1;
   string protocol = 2;
   string name = 3;
   string account = 4;
@@ -45,13 +45,13 @@ message CrossRegionReferenceRule {
 }
 
 message SelfReferencingRule {
-  repeated PortRange portRanges = 1;
+  repeated PortRange portRange = 1;
   string protocol = 2;
 }
 
 message CidrRule {
   string protocol = 1;
-  repeated PortRange portRanges = 2;
+  repeated PortRange portRange = 2;
   string blockRange = 3;
 }
 

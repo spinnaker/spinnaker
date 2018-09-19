@@ -60,7 +60,7 @@ class GrpcPluginRegistry(
     responseObserver: StreamObserver<RegisterAssetPluginResponse>
   ) {
     request
-      .typesList
+      .typeList
       .forEach { type ->
         pluginRepository.addAssetPluginFor(
           type.toAssetType(),

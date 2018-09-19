@@ -38,7 +38,7 @@ fun AssetContainer.toProto(): AssetContainerProto =
     .newBuilder()
     .also {
       it.asset = asset?.toProto()
-      it.addAllPartialAssets(partialAssets.map(PartialAsset::toProto))
+      it.addAllPartialAsset(partialAssets.map(PartialAsset::toProto))
     }
     .build()
 
@@ -106,7 +106,7 @@ fun PartialAsset.toTypeMetaData(): TypeMetadata =
 fun AssetContainerProto.fromProto(): AssetContainer =
   AssetContainer(
     asset = asset?.fromProto(),
-    partialAssets = partialAssetsList.map { it.fromProto() }.toSet()
+    partialAssets = partialAssetList.map { it.fromProto() }.toSet()
   )
 
 /**
