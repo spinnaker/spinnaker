@@ -36,9 +36,6 @@ export interface ICreateApplicationLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-type ApplicationLoadBalancerModal = new () => WizardModal<IAmazonApplicationLoadBalancerUpsertCommand>;
-const ApplicationLoadBalancerModal = WizardModal as ApplicationLoadBalancerModal;
-
 export class CreateApplicationLoadBalancer extends React.Component<
   ICreateApplicationLoadBalancerProps,
   ICreateApplicationLoadBalancerState
@@ -269,7 +266,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
     }
 
     return (
-      <ApplicationLoadBalancerModal
+      <WizardModal<IAmazonApplicationLoadBalancerUpsertCommand>
         heading={heading}
         initialValues={loadBalancerCommand}
         taskMonitor={taskMonitor}
@@ -288,7 +285,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
         <SecurityGroups done={true} />
         <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
         <ALBListeners app={app} done={true} />
-      </ApplicationLoadBalancerModal>
+      </WizardModal>
     );
   }
 }

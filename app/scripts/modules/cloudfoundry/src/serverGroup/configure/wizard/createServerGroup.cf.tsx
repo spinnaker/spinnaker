@@ -23,9 +23,6 @@ import { ServerGroupTemplateSelection } from 'cloudfoundry/serverGroup/configure
 
 import '../../../common/modalWizard.less';
 
-type CloudFoundryCreateServerGroupModal = new () => WizardModal<ICloudFoundryCreateServerGroupCommand>;
-const CloudFoundryCreateServerGroupModal = WizardModal as CloudFoundryCreateServerGroupModal;
-
 export interface ICloudFoundryCreateServerGroupProps extends IModalComponentProps {
   onDismiss: (rejectReason?: any) => void;
   onSubmit: (command?: IServerGroupCommand) => void;
@@ -99,7 +96,7 @@ export class CloudFoundryCreateServerGroup extends React.Component<
     }
 
     return (
-      <CloudFoundryCreateServerGroupModal
+      <WizardModal<ICloudFoundryCreateServerGroupCommand>
         heading={'Create server group'}
         initialValues={initialCommand}
         taskMonitor={this.props.taskMonitor}
@@ -113,7 +110,7 @@ export class CloudFoundryCreateServerGroup extends React.Component<
         <CloudFoundryServerGroupArtifactSettings artifactAccounts={artifactAccounts} />
         <CloudFoundryServerGroupConfigurationSettings artifactAccounts={artifactAccounts} />
         <CfDisclaimerPage />
-      </CloudFoundryCreateServerGroupModal>
+      </WizardModal>
     );
   }
 }

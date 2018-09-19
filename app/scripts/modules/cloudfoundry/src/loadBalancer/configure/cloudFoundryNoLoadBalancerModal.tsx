@@ -9,9 +9,6 @@ import { CfDisclaimerPage } from 'cloudfoundry/common/wizard/sections/cfDisclaim
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q } from 'ngimport';
 
-type NoLoadBalancerCreateModal = new () => WizardModal<ICloudFoundryLoadBalancerUpsertCommand>;
-const NoLoadBalancerCreateModal = WizardModal as NoLoadBalancerCreateModal;
-
 export interface ICreateCloudFoundryNoLoadBalancerState {}
 
 export class CloudFoundryNoLoadBalancerModal extends React.Component<
@@ -62,12 +59,12 @@ export class CloudFoundryNoLoadBalancerModal extends React.Component<
   };
 
   public render() {
-    const firstValues = {};
+    const initialValues = {} as ICloudFoundryLoadBalancerUpsertCommand;
 
     return (
-      <NoLoadBalancerCreateModal
+      <WizardModal<ICloudFoundryLoadBalancerUpsertCommand>
         heading="Create a load balancer"
-        initialValues={firstValues}
+        initialValues={initialValues}
         taskMonitor={noop}
         dismissModal={this.props.dismissModal}
         closeModal={this.submit}
@@ -76,7 +73,7 @@ export class CloudFoundryNoLoadBalancerModal extends React.Component<
       >
         <NoLoadBalancerDetails />
         <CfDisclaimerPage />
-      </NoLoadBalancerCreateModal>
+      </WizardModal>
     );
   }
 }

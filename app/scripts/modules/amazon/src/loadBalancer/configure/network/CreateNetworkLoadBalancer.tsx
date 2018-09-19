@@ -34,9 +34,6 @@ export interface ICreateApplicationLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-type NetworkLoadBalancerModal = new () => WizardModal<IAmazonNetworkLoadBalancerUpsertCommand>;
-const NetworkLoadBalancerModal: NetworkLoadBalancerModal = WizardModal as any;
-
 export class CreateNetworkLoadBalancer extends React.Component<
   ICreateNetworkLoadBalancerProps,
   ICreateApplicationLoadBalancerState
@@ -243,7 +240,7 @@ export class CreateNetworkLoadBalancer extends React.Component<
     }
 
     return (
-      <NetworkLoadBalancerModal
+      <WizardModal<IAmazonNetworkLoadBalancerUpsertCommand>
         heading={heading}
         initialValues={loadBalancerCommand}
         taskMonitor={taskMonitor}
@@ -261,7 +258,7 @@ export class CreateNetworkLoadBalancer extends React.Component<
         />
         <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
         <NLBListeners done={true} />
-      </NetworkLoadBalancerModal>
+      </WizardModal>
     );
   }
 }

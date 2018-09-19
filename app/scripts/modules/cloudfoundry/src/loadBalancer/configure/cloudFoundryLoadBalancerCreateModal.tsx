@@ -20,9 +20,6 @@ import { ICloudFoundryLoadBalancer, ICloudFoundryLoadBalancerUpsertCommand } fro
 import { CloudFoundryReactInjector } from 'cloudfoundry/reactShims';
 import { LoadBalancerDetails } from 'cloudfoundry/loadBalancer/configure/loadBalancerDetails';
 
-type LoadBalancerCreateModal = new () => WizardModal<ICloudFoundryLoadBalancerUpsertCommand>;
-const LoadBalancerCreateModal = WizardModal as LoadBalancerCreateModal;
-
 export interface ICreateCloudFoundryLoadBalancerProps extends ILoadBalancerModalProps {
   loadBalancer: ICloudFoundryLoadBalancer;
 }
@@ -131,7 +128,7 @@ export class CloudFoundryLoadBalancerCreateModal extends React.Component<
     const hideSections = new Set<string>();
 
     return (
-      <LoadBalancerCreateModal
+      <WizardModal<ICloudFoundryLoadBalancerUpsertCommand>
         heading="Create a load balancer"
         initialValues={loadBalancerCommand}
         taskMonitor={taskMonitor}
@@ -142,7 +139,7 @@ export class CloudFoundryLoadBalancerCreateModal extends React.Component<
         hideSections={hideSections}
       >
         <LoadBalancerDetails app={app} isNew={isNew} />
-      </LoadBalancerCreateModal>
+      </WizardModal>
     );
   }
 }

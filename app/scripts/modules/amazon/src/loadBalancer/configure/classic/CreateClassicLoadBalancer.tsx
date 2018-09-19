@@ -37,9 +37,6 @@ export interface ICreateClassicLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-type ClassicLoadBalancerModal = new () => WizardModal<IAmazonClassicLoadBalancerUpsertCommand>;
-const ClassicLoadBalancerModal = WizardModal as ClassicLoadBalancerModal;
-
 export class CreateClassicLoadBalancer extends React.Component<
   ICreateClassicLoadBalancerProps,
   ICreateClassicLoadBalancerState
@@ -227,7 +224,7 @@ export class CreateClassicLoadBalancer extends React.Component<
     }
 
     return (
-      <ClassicLoadBalancerModal
+      <WizardModal<IAmazonClassicLoadBalancerUpsertCommand>
         heading={heading}
         initialValues={loadBalancerCommand}
         taskMonitor={taskMonitor}
@@ -247,7 +244,7 @@ export class CreateClassicLoadBalancer extends React.Component<
         <Listeners done={true} />
         <HealthCheck done={true} />
         <AdvancedSettings done={true} />
-      </ClassicLoadBalancerModal>
+      </WizardModal>
     );
   }
 }

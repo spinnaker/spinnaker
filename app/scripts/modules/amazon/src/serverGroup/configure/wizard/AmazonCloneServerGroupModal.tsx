@@ -42,9 +42,6 @@ export interface IAmazonCloneServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-type CloneServerGroupModal = new () => WizardModal<IAmazonServerGroupCommand>;
-const CloneServerGroupModal = WizardModal as CloneServerGroupModal;
-
 export class AmazonCloneServerGroupModal extends React.Component<
   IAmazonCloneServerGroupModalProps,
   IAmazonCloneServerGroupModalState
@@ -197,7 +194,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
     }
 
     return (
-      <CloneServerGroupModal
+      <WizardModal<IAmazonServerGroupCommand>
         heading={title}
         initialValues={command}
         loading={!loaded}
@@ -215,7 +212,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
         <ServerGroupCapacity done={true} />
         <ServerGroupZones done={true} />
         <ServerGroupAdvancedSettings app={application} done={true} />
-      </CloneServerGroupModal>
+      </WizardModal>
     );
   }
 }
