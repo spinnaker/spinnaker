@@ -229,16 +229,19 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
             forwarded via the{' '}
             <a href="http://insight-docs.prod.netflix.net/atlas/autoscaling/#sending-custom-metrics" target="_blank">
               Atlas Java Client
-            </a>, or via ConfigBin, which can be configured{' '}
+            </a>
+            , or via ConfigBin, which can be configured{' '}
             <a href="https://configbin.prod.netflix.net/app/cloudwatch-forwarding/type/clusters/LATEST" target="_blank">
               here
-            </a>.
+            </a>
+            .
           </p>
           <p>
             Additional information on metrics below can be found in{' '}
             <a href="http://insight-docs.prod.netflix.net/glossary/cgroup-system/" target="_blank">
               the documentation
-            </a>.
+            </a>
+            .
           </p>
           <div>
             {metricOptions.map(group => {

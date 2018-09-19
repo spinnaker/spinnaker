@@ -27,8 +27,7 @@ module.exports = angular
     let providerLoader = AccountService.listProviders();
     providerLoader.then(providers => (this.data.cloudProviders = providers));
 
-    $q
-      .all([applicationLoader, providerLoader])
+    $q.all([applicationLoader, providerLoader])
       .catch(error => {
         this.state.initializeFailed = true;
         throw error;

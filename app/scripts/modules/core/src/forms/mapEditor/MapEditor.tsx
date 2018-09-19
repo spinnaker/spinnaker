@@ -139,17 +139,15 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
               )}
             </thead>
             <tbody>
-              {backingModel
-                .filter(p => !hiddenKeys.includes(p.key))
-                .map((pair, index) => (
-                  <MapPair
-                    key={index}
-                    {...rowProps}
-                    onChange={value => this.onChange(value, index)}
-                    onDelete={() => this.onDelete(index)}
-                    pair={pair}
-                  />
-                ))}
+              {backingModel.filter(p => !hiddenKeys.includes(p.key)).map((pair, index) => (
+                <MapPair
+                  key={index}
+                  {...rowProps}
+                  onChange={value => this.onChange(value, index)}
+                  onDelete={() => this.onDelete(index)}
+                  pair={pair}
+                />
+              ))}
             </tbody>
             <tfoot>
               <tr>

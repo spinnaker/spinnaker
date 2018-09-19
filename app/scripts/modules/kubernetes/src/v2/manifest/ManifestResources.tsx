@@ -10,26 +10,30 @@ export interface IManifestResources {
 export interface IManifestResourceProps {
   manifest?: {
     spec?: {
-      containers?: [{
-        name?: string;
-        resources?: {
-          limits?: IManifestResources;
-          requests?: IManifestResources;
+      containers?: [
+        {
+          name?: string;
+          resources?: {
+            limits?: IManifestResources;
+            requests?: IManifestResources;
+          };
         }
-      }];
+      ];
     };
     status?: {
-      qosClass?: string
-    }
+      qosClass?: string;
+    };
   };
-  metrics?: [{
-    containerName?: string;
-    metrics?: IPodMetricsMap;
-  }]
+  metrics?: [
+    {
+      containerName?: string;
+      metrics?: IPodMetricsMap;
+    }
+  ];
 }
 
 export interface IPodMetricsMap {
-  [key: string]: string
+  [key: string]: string;
 }
 
 export class ManifestResources extends React.Component<IManifestResourceProps> {
@@ -38,7 +42,7 @@ export class ManifestResources extends React.Component<IManifestResourceProps> {
     const metrics = get(this.props, ['metrics'], []);
 
     if (!metrics) {
-      return (<div>No metrics reported.</div>);
+      return <div>No metrics reported.</div>;
     }
     const containerToMetricMap = metrics.reduce((acc, val) => {
       acc[val.containerName] = { metrics: val.metrics };
@@ -52,13 +56,11 @@ export class ManifestResources extends React.Component<IManifestResourceProps> {
             Resource usage for <b>{c.name}</b>
             <dl className="dl-horizontal dl-narrow">
               <dt>CPU</dt>
-              <dd>{get(containerToMetricMap, [c.name, 'metrics', 'CPU(cores)'], 'Unknown')}
-              </dd>
+              <dd>{get(containerToMetricMap, [c.name, 'metrics', 'CPU(cores)'], 'Unknown')}</dd>
               <dt>MEMORY</dt>
-              <dd>{get(containerToMetricMap, [c.name, 'metrics', 'MEMORY(bytes)'], 'Unknown')}
-              </dd>
+              <dd>{get(containerToMetricMap, [c.name, 'metrics', 'MEMORY(bytes)'], 'Unknown')}</dd>
             </dl>
-            { i < containers.length - 1 ? <hr/> : ''}
+            {i < containers.length - 1 ? <hr /> : ''}
           </div>
         ))}
       </div>

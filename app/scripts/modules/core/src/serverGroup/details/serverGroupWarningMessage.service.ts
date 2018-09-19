@@ -48,7 +48,7 @@ export class ServerGroupWarningMessageService {
       }, serverGroup.instanceCounts.up);
 
       const activeInstancesAfterDisable = totalActiveInstances - serverGroup.instanceCounts.up;
-      const activePercentRemaining = Math.round(activeInstancesAfterDisable / totalActiveInstances * 100);
+      const activePercentRemaining = Math.round((activeInstancesAfterDisable / totalActiveInstances) * 100);
 
       params.body = `
         <h4>You are disabling <b>${serverGroup.instanceCounts.up}</b>

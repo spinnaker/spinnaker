@@ -459,7 +459,9 @@ class ALBListenersImpl extends React.Component<
                               this.listenerProtocolChanged(listener, event.target.value as ALBListenerProtocol)
                             }
                           >
-                            {this.protocols.map(p => <option key={p}>{p}</option>)}
+                            {this.protocols.map(p => (
+                              <option key={p}>{p}</option>
+                            ))}
                           </select>
                         </span>
                         <span className="wizard-pod-content">
@@ -494,7 +496,9 @@ class ALBListenersImpl extends React.Component<
                               value={certificate.type}
                               onChange={event => this.certificateTypeChanged(certificate, event.target.value)}
                             >
-                              {certificateTypes.map(t => <option key={t}>{t}</option>)}
+                              {certificateTypes.map(t => (
+                                <option key={t}>{t}</option>
+                              ))}
                             </select>
                             {this.showCertificateSelect(certificate) && (
                               <Select
@@ -705,7 +709,9 @@ const Action = (props: {
           required={true}
         >
           <option value="" />
-          {uniq(props.targetGroups.map(tg => tg.name)).map(name => <option key={name}>{name}</option>)}
+          {uniq(props.targetGroups.map(tg => tg.name)).map(name => (
+            <option key={name}>{name}</option>
+          ))}
         </select>
       </div>
     );
@@ -731,7 +737,9 @@ const Action = (props: {
             required={true}
           >
             <option value="" />
-            {(props.oidcConfigs || []).map(config => <option key={config.clientId}>{config.clientId}</option>)}
+            {(props.oidcConfigs || []).map(config => (
+              <option key={config.clientId}>{config.clientId}</option>
+            ))}
           </select>
         )}
         {!showOidcConfigs && (

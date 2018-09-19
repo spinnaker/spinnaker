@@ -189,7 +189,11 @@ class SecurityGroupsImpl extends React.Component<
                     The following {FirewallLabels.get('firewalls')} could not be found in the selected
                     account/region/VPC and were removed:
                   </p>
-                  <ul>{removed.map(sg => <li key={sg}>{sg}</li>)}</ul>
+                  <ul>
+                    {removed.map(sg => (
+                      <li key={sg}>{sg}</li>
+                    ))}
+                  </ul>
                   <p className="text-right">
                     <a className="btn btn-sm btn-default dirty-flag-dismiss clickable" onClick={this.clearRemoved}>
                       Okay

@@ -55,42 +55,40 @@ module.exports = angular
     };
 
     function initialize() {
-      $q
-        .all({
-          regions: BakeryReader.getRegions('azure'),
-          baseOsOptions: BakeryReader.getBaseOsOptions('azure'),
-          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-        })
-        .then(function(results) {
-          $scope.regions = results.regions;
-          if ($scope.regions.length === 1) {
-            $scope.stage.region = $scope.regions[0];
-          } else if (!$scope.regions.includes($scope.stage.region)) {
-            delete $scope.stage.region;
-          }
-          if (!$scope.stage.regions.length && $scope.application.defaultRegions.azure) {
-            $scope.stage.regions.push($scope.application.defaultRegions.azure);
-          }
-          if (!$scope.stage.regions.length && $scope.application.defaultRegions.azure) {
-            $scope.stage.regions.push($scope.application.defaultRegions.azure);
-          }
-          $scope.baseOsOptions = results.baseOsOptions.baseImages;
-          if ($scope.baseOsOptions.length) {
-            $scope.stage.osType = results.baseOsOptions.baseImages[0].osType;
-          }
+      $q.all({
+        regions: BakeryReader.getRegions('azure'),
+        baseOsOptions: BakeryReader.getBaseOsOptions('azure'),
+        baseLabelOptions: BakeryReader.getBaseLabelOptions(),
+      }).then(function(results) {
+        $scope.regions = results.regions;
+        if ($scope.regions.length === 1) {
+          $scope.stage.region = $scope.regions[0];
+        } else if (!$scope.regions.includes($scope.stage.region)) {
+          delete $scope.stage.region;
+        }
+        if (!$scope.stage.regions.length && $scope.application.defaultRegions.azure) {
+          $scope.stage.regions.push($scope.application.defaultRegions.azure);
+        }
+        if (!$scope.stage.regions.length && $scope.application.defaultRegions.azure) {
+          $scope.stage.regions.push($scope.application.defaultRegions.azure);
+        }
+        $scope.baseOsOptions = results.baseOsOptions.baseImages;
+        if ($scope.baseOsOptions.length) {
+          $scope.stage.osType = results.baseOsOptions.baseImages[0].osType;
+        }
 
-          $scope.baseLabelOptions = results.baseLabelOptions;
+        $scope.baseLabelOptions = results.baseLabelOptions;
 
-          if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
-            $scope.stage.baseOs = $scope.baseOsOptions[0].id;
-          }
+        if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
+          $scope.stage.baseOs = $scope.baseOsOptions[0].id;
+        }
 
-          if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
-            $scope.stage.baseLabel = $scope.baseLabelOptions[0];
-          }
-          $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
-          $scope.viewState.loading = false;
-        });
+        if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
+          $scope.stage.baseLabel = $scope.baseLabelOptions[0];
+        }
+        $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
+        $scope.viewState.loading = false;
+      });
     }
 
     this.baseOsChanged = () => {

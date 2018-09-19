@@ -35,13 +35,15 @@ export class LoadBalancerDataUtils {
       .ready()
       .then(() => {
         const loadBalancers = serverGroup.loadBalancers.map((lbName: string) => {
-          const match = application.getDataSource('loadBalancers').data.find((lb: ILoadBalancer): boolean => {
-            return (
-              lb.name === lbName &&
-              lb.account === serverGroup.account &&
-              (lb.region === serverGroup.region || lb.region === 'global')
-            );
-          });
+          const match = application.getDataSource('loadBalancers').data.find(
+            (lb: ILoadBalancer): boolean => {
+              return (
+                lb.name === lbName &&
+                lb.account === serverGroup.account &&
+                (lb.region === serverGroup.region || lb.region === 'global')
+              );
+            },
+          );
 
           return this.buildLoadBalancer(match, serverGroup);
         });

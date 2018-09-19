@@ -28,7 +28,11 @@ export class ServerGroupSecurityGroupsRemoved extends React.Component<IServerGro
             The following {FirewallLabels.get('firewalls')} could not be found in the selected account/region/VPC and
             were removed:
           </p>
-          <ul>{dirtySecurityGroups.map(s => <li key="s">{s}</li>)}</ul>
+          <ul>
+            {dirtySecurityGroups.map(s => (
+              <li key="s">{s}</li>
+            ))}
+          </ul>
           <p className="text-right">
             <a className="btn btn-sm btn-default dirty-flag-dismiss clickable" onClick={onClear}>
               Okay

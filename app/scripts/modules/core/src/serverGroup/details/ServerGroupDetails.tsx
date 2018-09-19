@@ -125,7 +125,9 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
         {!loading && (
           <div className="content">
             <RunningTasks serverGroup={serverGroup} application={app} />
-            {sections.map((Section, index) => <Section key={index} app={app} serverGroup={serverGroup} />)}
+            {sections.map((Section, index) => (
+              <Section key={index} app={app} serverGroup={serverGroup} />
+            ))}
           </div>
         )}
       </div>

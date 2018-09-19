@@ -38,11 +38,9 @@ let decorateFn = function($delegate, spelAutocomplete) {
         if (hasSpelPrefix) {
           if (hasLink.length < 1) {
             // Add the link to the docs under the input/textarea
-            el
-              .parent()
-              .after(
-                '<a class="spelLink" href="http://spinnaker.github.io/guides/user/pipeline-expressions" target="_blank">Expression Docs</a>',
-              );
+            el.parent().after(
+              '<a class="spelLink" href="http://spinnaker.github.io/guides/user/pipeline-expressions" target="_blank">Expression Docs</a>',
+            );
 
             el.addClass('monospace');
           }

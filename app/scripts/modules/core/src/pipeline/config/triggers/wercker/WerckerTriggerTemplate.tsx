@@ -109,8 +109,7 @@ export class WerckerTriggerTemplate extends React.Component<
     return (
       <span style={{ fontSize: '13px' }}>
         <strong>Build {build.number} </strong>
-        {buildDisplayName(build as IBuildInfo)}
-        ({timestamp(build.timestamp)})
+        {buildDisplayName(build as IBuildInfo)}({timestamp(build.timestamp)})
       </span>
     );
   };

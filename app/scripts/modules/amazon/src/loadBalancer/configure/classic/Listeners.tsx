@@ -168,7 +168,9 @@ class ListenersImpl extends React.Component<
                           this.listenerExternalProtocolChanged(listener, event.target.value as ClassicListenerProtocol)
                         }
                       >
-                        {this.protocols.map(p => <option key={p}>{p}</option>)}
+                        {this.protocols.map(p => (
+                          <option key={p}>{p}</option>
+                        ))}
                       </select>
                     </td>
                     <td>
@@ -192,7 +194,9 @@ class ListenersImpl extends React.Component<
                           this.listenerInternalProtocolChanged(listener, event.target.value as ClassicListenerProtocol)
                         }
                       >
-                        {this.protocols.map(p => <option key={p}>{p}</option>)}
+                        {this.protocols.map(p => (
+                          <option key={p}>{p}</option>
+                        ))}
                       </select>
                     </td>
                     <td>
@@ -214,7 +218,9 @@ class ListenersImpl extends React.Component<
                               value={listener.sslCertificateType}
                               onChange={event => this.listenerCertificateTypeChanged(listener, event.target.value)}
                             >
-                              {this.state.certificateTypes.map(t => <option key={t}>{t}</option>)}
+                              {this.state.certificateTypes.map(t => (
+                                <option key={t}>{t}</option>
+                              ))}
                             </select>
                           )}
                         </td>

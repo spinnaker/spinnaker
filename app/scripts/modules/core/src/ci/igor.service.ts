@@ -6,12 +6,11 @@ import { IBuild, IJobConfig } from 'core/domain';
 
 export enum BuildServiceType {
   Jenkins = 'jenkins',
-  Travis  = 'travis',
+  Travis = 'travis',
   Wercker = 'wercker',
 }
 
 export class IgorService {
-
   public static listMasters(buildType: BuildServiceType = null): IPromise<string[]> {
     const allMasters: IPromise<string[]> = API.one('v2')
       .one('builds')

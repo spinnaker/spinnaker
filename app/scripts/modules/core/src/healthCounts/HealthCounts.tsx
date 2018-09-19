@@ -40,7 +40,7 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
       unknown = container.unknown || 0,
       starting = container.starting || 0,
       total = container.total || up + down + unknown + starting + succeeded + failed,
-      percent = total ? Math.floor((up + succeeded) * 100 / total) : undefined,
+      percent = total ? Math.floor(((up + succeeded) * 100) / total) : undefined,
       percentLabel = percent === undefined ? 'n/a' : percent + '%';
 
     const statusClass =

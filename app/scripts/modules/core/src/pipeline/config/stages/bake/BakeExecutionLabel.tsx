@@ -8,12 +8,14 @@ export class BakeExecutionLabel extends React.Component<{ stage: IExecutionStage
         {this.props.stage.name}
         {this.props.stage.masterStage.context.allPreviouslyBaked && (
           <span className="small">
-            <br />(previously baked)
+            <br />
+            (previously baked)
           </span>
         )}
         {this.props.stage.masterStage.context.somePreviouslyBaked && (
           <span className="small">
-            <br />(some previously baked)
+            <br />
+            (some previously baked)
           </span>
         )}
       </span>

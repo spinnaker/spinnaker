@@ -32,18 +32,24 @@ export class ApplicationWriter {
   }
 
   public static deleteApplication(application: IApplicationAttributes): IPromise<ITask> {
-    const jobs: IJob[] = this.buildJobs(application, 'deleteApplication', (app: IApplicationAttributes): any => {
-      return { name: app.name };
-    });
+    const jobs: IJob[] = this.buildJobs(
+      application,
+      'deleteApplication',
+      (app: IApplicationAttributes): any => {
+        return { name: app.name };
+      },
+    );
     return TaskExecutor.executeTask({
       job: jobs,
       application,
       description: 'Deleting Application: ' + application.name,
     })
-      .then((task: any): any => {
-        RecentHistoryService.removeByAppName(application.name);
-        return task;
-      })
+      .then(
+        (task: any): any => {
+          RecentHistoryService.removeByAppName(application.name);
+          return task;
+        },
+      )
       .catch((task: any): any => task);
   }
 

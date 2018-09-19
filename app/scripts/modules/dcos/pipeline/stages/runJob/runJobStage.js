@@ -103,19 +103,17 @@ module.exports = angular
       }
     }
 
-    $q
-      .all({
-        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('dcos'),
-      })
-      .then(backingData => {
-        backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
-        $scope.backingData = backingData;
+    $q.all({
+      credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('dcos'),
+    }).then(backingData => {
+      backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
+      $scope.backingData = backingData;
 
-        if (!stage.account) {
-          attemptToSetValidAccount(backingData.credentialsKeyedByAccount, stage);
-        }
+      if (!stage.account) {
+        attemptToSetValidAccount(backingData.credentialsKeyedByAccount, stage);
+      }
 
-        setRegistry();
-        this.updateRegions();
-      });
+      setRegistry();
+      this.updateRegions();
+    });
   });

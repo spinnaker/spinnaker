@@ -12,12 +12,14 @@ export class CanaryExecutionLabel extends React.Component<{ stage: IExecutionSta
     const canaryResult = canary.canaryResult || {};
     return (
       <span className="stage-label">
-        <span>{this.props.stage.name}</span> (<CanaryScore
+        <span>{this.props.stage.name}</span> (
+        <CanaryScore
           inverse={true}
           score={canaryResult.overallScore}
           result={canaryResult.overallResult}
           health={canaryHealth.health}
-        />)
+        />
+        )
       </span>
     );
   }

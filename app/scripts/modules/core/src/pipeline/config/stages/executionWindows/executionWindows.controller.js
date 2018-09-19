@@ -102,8 +102,8 @@ module.exports = angular
       var dayMinutes = 24 * 60;
       var start = window.startHour * 60 + window.startMin,
         end = window.endHour * 60 + window.endMin,
-        width = (end - start) / dayMinutes * 100,
-        startOffset = start / dayMinutes * 100;
+        width = ((end - start) / dayMinutes) * 100,
+        startOffset = (start / dayMinutes) * 100;
 
       return {
         width: width + '%',
@@ -143,7 +143,7 @@ module.exports = angular
     $scope.hours.forEach(function(hour) {
       $scope.dividers.push({
         label: hour.label,
-        left: hour.value / 24 * 100 + '%',
+        left: (hour.value / 24) * 100 + '%',
       });
     });
 

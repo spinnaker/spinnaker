@@ -50,7 +50,10 @@ export class Filter extends React.Component<IFilterProps> {
         onMouseDown={this.handleMouseDown}
       >
         <div className="filter__text">{name}</div>
-        <div className="filter__modifier">[{key.toLocaleUpperCase()}:]</div>
+        <div className="filter__modifier">
+          [{key.toLocaleUpperCase()}
+          :]
+        </div>
       </div>
     );
   }

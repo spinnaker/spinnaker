@@ -68,7 +68,10 @@ export class SpelNumberInput extends React.Component<INumberInputProps, INumberI
               onBlur={() => this.setGlow(false)}
             >
               <Tooltip value="Toggle to enter expression">
-                <span>{'${'}&hellip;}</span>
+                <span>
+                  {'${'}
+                  &hellip;}
+                </span>
               </Tooltip>
             </button>
           </span>

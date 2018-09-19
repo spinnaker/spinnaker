@@ -104,8 +104,7 @@ export class ExecutionWindowActions extends React.Component<
         {stage.context.skipRemainingWait && (
           <div>
             <span>(skipped </span>
-            {stage.context.lastModifiedBy && <span> by {stage.context.lastModifiedBy}</span>}
-            )
+            {stage.context.lastModifiedBy && <span> by {stage.context.lastModifiedBy}</span>})
           </div>
         )}
         {stage.isSuspended && (

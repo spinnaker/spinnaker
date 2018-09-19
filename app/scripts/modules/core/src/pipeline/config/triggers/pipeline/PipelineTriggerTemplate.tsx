@@ -137,7 +137,8 @@ export class PipelineTriggerTemplate extends React.Component<
         {scm && (
           <span>
             <br />
-            {scm.branch} ({scm.sha1 && scm.sha1.substr(0, 6)}): {scm.message && scm.message.substr(0, 30)}
+            {scm.branch} ({scm.sha1 && scm.sha1.substr(0, 6)}
+            ): {scm.message && scm.message.substr(0, 30)}
             {scm.message && scm.message.length > 30 && <span>…</span>}
           </span>
         )}

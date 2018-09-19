@@ -25,7 +25,7 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
     const stageContext = get(stage, ['context'], {});
 
     const consumedIds = new Set(
-      stageConfig && stageConfig.artifactExtractor ? stageConfig.artifactExtractor(stageContext) : []
+      stageConfig && stageConfig.artifactExtractor ? stageConfig.artifactExtractor(stageContext) : [],
     );
 
     const boundArtifacts = this.extractBoundArtifactsFromExecution(execution);

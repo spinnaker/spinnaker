@@ -60,7 +60,7 @@ module.exports = angular
     };
 
     $scope.minHealthy = function(percent) {
-      return Math.ceil(desired * percent / 100);
+      return Math.ceil((desired * percent) / 100);
     };
 
     if (application && application.attributes) {

@@ -58,36 +58,34 @@ module.exports = angular
     function initialize() {
       $scope.viewState.providerSelected = true;
 
-      $q
-        .all({
-          baseOsOptions: BakeryReader.getBaseOsOptions(provider),
-          accounts: AccountService.listAccounts(provider),
-        })
-        .then(results => {
-          if (results.baseOsOptions.baseImages.length > 0) {
-            $scope.baseOsOptions = results.baseOsOptions;
-          }
-          if (!$scope.stage.user) {
-            $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
-          }
-          if (!$scope.stage.baseOs) {
-            $scope.stage.baseOs = $scope.baseOsOptions.baseImages[0].id;
-          }
-          if (!$scope.stage.upgrade) {
-            $scope.stage.upgrade = true;
-          }
+      $q.all({
+        baseOsOptions: BakeryReader.getBaseOsOptions(provider),
+        accounts: AccountService.listAccounts(provider),
+      }).then(results => {
+        if (results.baseOsOptions.baseImages.length > 0) {
+          $scope.baseOsOptions = results.baseOsOptions;
+        }
+        if (!$scope.stage.user) {
+          $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
+        }
+        if (!$scope.stage.baseOs) {
+          $scope.stage.baseOs = $scope.baseOsOptions.baseImages[0].id;
+        }
+        if (!$scope.stage.upgrade) {
+          $scope.stage.upgrade = true;
+        }
 
-          $scope.accounts = results.accounts;
+        $scope.accounts = results.accounts;
 
-          if ($scope.stage.accountName) {
-            AccountService.getRegionsForAccount($scope.stage.accountName).then(function(regions) {
-              $scope.regions = regions;
-              $scope.stage.region = $scope.regions[0].name;
-            });
-          }
+        if ($scope.stage.accountName) {
+          AccountService.getRegionsForAccount($scope.stage.accountName).then(function(regions) {
+            $scope.regions = regions;
+            $scope.stage.region = $scope.regions[0].name;
+          });
+        }
 
-          $scope.viewState.loading = false;
-        });
+        $scope.viewState.loading = false;
+      });
     }
 
     this.getBaseOsDescription = function(baseOsOption) {

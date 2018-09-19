@@ -83,10 +83,12 @@ export class ApplicationStateProvider implements IServiceProvider {
           'applicationModelBuilder',
           ($stateParams: StateParams, applicationModelBuilder: ApplicationModelBuilder) => {
             return ApplicationReader.getApplication($stateParams.application, false)
-              .then((app: Application): Application => {
-                InferredApplicationWarningService.checkIfInferredAndWarn(app);
-                return app || applicationModelBuilder.createNotFoundApplication($stateParams.application);
-              })
+              .then(
+                (app: Application): Application => {
+                  InferredApplicationWarningService.checkIfInferredAndWarn(app);
+                  return app || applicationModelBuilder.createNotFoundApplication($stateParams.application);
+                },
+              )
               .catch(() => applicationModelBuilder.createNotFoundApplication($stateParams.application));
           },
         ],

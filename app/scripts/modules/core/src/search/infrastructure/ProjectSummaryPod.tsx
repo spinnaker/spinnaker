@@ -48,7 +48,8 @@ export class ProjectSummaryPod extends React.Component<IProjectSummaryPodProps> 
             )}
           </div>
           <div className="application-count">
-            {applications.length || 0} Application{applications.length !== 1 ? 's' : ''}
+            {applications.length || 0} Application
+            {applications.length !== 1 ? 's' : ''}
           </div>
         </div>
 

@@ -18,7 +18,7 @@ module.exports = angular
           return step.isCompleted;
         });
 
-        scope.progressStyle = { width: stepsComplete.length / task.steps.length * 100 + '%' };
+        scope.progressStyle = { width: (stepsComplete.length / task.steps.length) * 100 + '%' };
 
         if (task.isRunning) {
           let currentStep = task.steps.find(step => step.hasNotStarted || step.isRunning);

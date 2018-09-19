@@ -36,9 +36,8 @@ export class ExecutionFilterService {
   public static groupsUpdatedStream: Subject<IExecutionGroup[]> = new Subject<IExecutionGroup[]>();
 
   private static lastApplication: Application = null;
-  private static isFilterable: (
-    sortFilterModel: { [key: string]: boolean },
-  ) => boolean = FilterModelService.isFilterable;
+  private static isFilterable: (sortFilterModel: { [key: string]: boolean }) => boolean =
+    FilterModelService.isFilterable;
 
   private static groupByTimeBoundary(executions: IExecution[]): { [boundaryName: string]: IExecution[] } {
     return groupBy(

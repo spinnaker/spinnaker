@@ -117,8 +117,8 @@ export class JsonUtils {
       total += lines.length;
     });
     changeBlocks.forEach(b => {
-      b.height = b.lines * 100 / total;
-      b.top = b.start * 100 / total;
+      b.height = (b.lines * 100) / total;
+      b.top = (b.start * 100) / total;
     });
     return {
       details: diffLines,

@@ -212,23 +212,25 @@ export class AwsLoadBalancerTransformer {
       toEdit.vpcId = elb.vpcid || elb.vpcId;
 
       if (elb.listenerDescriptions) {
-        toEdit.listeners = elb.listenerDescriptions.map((description: any): IClassicListenerDescription => {
-          const listener = description.listener;
-          if (listener.sslcertificateId) {
-            const splitCertificateId = listener.sslcertificateId.split('/');
-            listener.sslcertificateId = splitCertificateId[1];
-            listener.sslCertificateType = splitCertificateId[0].split(':')[2];
-          }
-          return {
-            internalProtocol: listener.instanceProtocol,
-            internalPort: listener.instancePort,
-            externalProtocol: listener.protocol,
-            externalPort: listener.loadBalancerPort,
-            sslCertificateId: listener.sslcertificateId,
-            sslCertificateName: listener.sslcertificateId,
-            sslCertificateType: listener.sslCertificateType,
-          };
-        });
+        toEdit.listeners = elb.listenerDescriptions.map(
+          (description: any): IClassicListenerDescription => {
+            const listener = description.listener;
+            if (listener.sslcertificateId) {
+              const splitCertificateId = listener.sslcertificateId.split('/');
+              listener.sslcertificateId = splitCertificateId[1];
+              listener.sslCertificateType = splitCertificateId[0].split(':')[2];
+            }
+            return {
+              internalProtocol: listener.instanceProtocol,
+              internalPort: listener.instancePort,
+              externalProtocol: listener.protocol,
+              externalPort: listener.loadBalancerPort,
+              sslCertificateId: listener.sslcertificateId,
+              sslCertificateName: listener.sslcertificateId,
+              sslCertificateType: listener.sslCertificateType,
+            };
+          },
+        );
       }
 
       if (elb.healthCheck && elb.healthCheck.target) {

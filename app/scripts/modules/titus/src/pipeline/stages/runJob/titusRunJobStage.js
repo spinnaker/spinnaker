@@ -153,22 +153,20 @@ module.exports = angular
     stage.cluster.resources.networkMbps = stage.cluster.resources.networkMbps || 128;
 
     stage.deferredInitialization = true;
-    $q
-      .all({
-        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('titus'),
-      })
-      .then(backingData => {
-        backingData.credentials = Object.keys(backingData.credentialsKeyedByAccount);
-        $scope.backingData = backingData;
+    $q.all({
+      credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('titus'),
+    }).then(backingData => {
+      backingData.credentials = Object.keys(backingData.credentialsKeyedByAccount);
+      $scope.backingData = backingData;
 
-        if (!stage.credentials) {
-          stage.credentials = backingData.credentials[0];
-        }
+      if (!stage.credentials) {
+        stage.credentials = backingData.credentials[0];
+      }
 
-        setRegistry();
-        return $q.all([]).then(() => {
-          vm.updateRegions();
-          this.loaded = true;
-        });
+      setRegistry();
+      return $q.all([]).then(() => {
+        vm.updateRegions();
+        this.loaded = true;
       });
+    });
   });

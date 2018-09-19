@@ -129,7 +129,9 @@ class NLBListenersImpl extends React.Component<
                               this.listenerProtocolChanged(listener, event.target.value as NLBListenerProtocol)
                             }
                           >
-                            {this.protocols.map(p => <option key={p}>{p}</option>)}
+                            {this.protocols.map(p => (
+                              <option key={p}>{p}</option>
+                            ))}
                           </select>
                         </span>
                         <span className="wizard-pod-content">

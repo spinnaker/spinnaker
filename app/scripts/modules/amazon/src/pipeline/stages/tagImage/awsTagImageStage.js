@@ -15,14 +15,15 @@ module.exports = angular
       executionConfigSections: ['tagImageConfig', 'taskStatus'],
     });
   })
-  .controller('awsTagImageStageCtrl', ($scope) => {
+  .controller('awsTagImageStageCtrl', $scope => {
     $scope.stage.tags = $scope.stage.tags || {};
     $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
 
     const initUpstreamStages = () => {
-      const upstreamDependencies = PipelineConfigService
-        .getAllUpstreamDependencies($scope.pipeline, $scope.stage)
-        .filter(stage => StageConstants.IMAGE_PRODUCING_STAGES.includes(stage.type));
+      const upstreamDependencies = PipelineConfigService.getAllUpstreamDependencies(
+        $scope.pipeline,
+        $scope.stage,
+      ).filter(stage => StageConstants.IMAGE_PRODUCING_STAGES.includes(stage.type));
       $scope.consideredStages = new Map(upstreamDependencies.map(stage => [stage.refId, stage.name]));
     };
     $scope.$watch('stage.requisiteStageRefIds', initUpstreamStages);

@@ -186,13 +186,21 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
                     {templateSelectionText.copied.length > 0 && (
                       <div>
                         These fields <strong>will be</strong> copied over from the most recent server group:
-                        <ul>{templateSelectionText.copied.map((text, i) => <li key={i}>{text}</li>)}</ul>
+                        <ul>
+                          {templateSelectionText.copied.map((text, i) => (
+                            <li key={i}>{text}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                     {templateSelectionText.notCopied.length > 0 && (
                       <div>
                         These fields <strong>will NOT</strong> be copied over, and will be reset to defaults:
-                        <ul>{templateSelectionText.notCopied.map((text, i) => <li key={i}>{text}</li>)}</ul>
+                        <ul>
+                          {templateSelectionText.notCopied.map((text, i) => (
+                            <li key={i}>{text}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                     {templateSelectionText.additionalCopyText && <div>{templateSelectionText.additionalCopyText}</div>}

@@ -71,7 +71,9 @@ export class ScheduledActionsDetailsSection extends React.Component<
           </h4>
         )}
       >
-        {serverGroup.scheduledActions.map((action, index) => <ScheduledAction key={index} action={action} />)}
+        {serverGroup.scheduledActions.map((action, index) => (
+          <ScheduledAction key={index} action={action} />
+        ))}
 
         {serverGroup.scheduledActions.length > 0 && (
           <p>

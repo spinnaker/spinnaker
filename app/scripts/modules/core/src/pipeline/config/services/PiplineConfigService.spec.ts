@@ -168,19 +168,34 @@ describe('PipelineConfigService', () => {
       });
 
       it('filters out direct dependent', () => {
-        connect(b, a);
+        connect(
+          b,
+          a,
+        );
         expectCandidates(a, [c, d]);
       });
 
       it('filters out multiple direct dependents', () => {
-        connect(b, a);
-        connect(c, a);
+        connect(
+          b,
+          a,
+        );
+        connect(
+          c,
+          a,
+        );
         expectCandidates(a, [d]);
       });
 
       it('filters out existing upstream stages and indirect dependents', () => {
-        connect(b, a);
-        connect(c, b);
+        connect(
+          b,
+          a,
+        );
+        connect(
+          c,
+          b,
+        );
         expectCandidates(a, [d]);
         expectCandidates(b, [d]);
         expectCandidates(c, [a, d]);
@@ -188,9 +203,18 @@ describe('PipelineConfigService', () => {
       });
 
       it('can depend on descendant stages of siblings', () => {
-        connect(b, a);
-        connect(c, b);
-        connect(d, a);
+        connect(
+          b,
+          a,
+        );
+        connect(
+          c,
+          b,
+        );
+        connect(
+          d,
+          a,
+        );
         expectCandidates(a, []);
         expectCandidates(d, [b, c]);
       });
@@ -205,8 +229,14 @@ describe('PipelineConfigService', () => {
       });
 
       it('returns a single direct dependency', () => {
-        connect(b, a);
-        connect(c, a);
+        connect(
+          b,
+          a,
+        );
+        connect(
+          c,
+          a,
+        );
 
         expectDependencies(a, []);
         expectDependencies(b, [a]);
@@ -215,8 +245,14 @@ describe('PipelineConfigService', () => {
       });
 
       it('returns multiple direct dependencies', () => {
-        connect(c, a);
-        connect(c, b);
+        connect(
+          c,
+          a,
+        );
+        connect(
+          c,
+          b,
+        );
 
         expectDependencies(a, []);
         expectDependencies(b, []);
@@ -225,9 +261,18 @@ describe('PipelineConfigService', () => {
       });
 
       it('returns ancestor upstream dependencies', () => {
-        connect(b, a);
-        connect(c, b);
-        connect(d, c);
+        connect(
+          b,
+          a,
+        );
+        connect(
+          c,
+          b,
+        );
+        connect(
+          d,
+          c,
+        );
 
         expectDependencies(a, []);
         expectDependencies(b, [a]);
@@ -236,10 +281,22 @@ describe('PipelineConfigService', () => {
       });
 
       it('returns ancestors: multiple direct dependencies', () => {
-        connect(b, a);
-        connect(c, a);
-        connect(d, b);
-        connect(d, c);
+        connect(
+          b,
+          a,
+        );
+        connect(
+          c,
+          a,
+        );
+        connect(
+          d,
+          b,
+        );
+        connect(
+          d,
+          c,
+        );
 
         expectDependencies(a, []);
         expectDependencies(b, [a]);
@@ -248,9 +305,18 @@ describe('PipelineConfigService', () => {
       });
 
       it('returns ancestors: multiple ancestor dependencies', () => {
-        connect(c, a);
-        connect(c, b);
-        connect(d, c);
+        connect(
+          c,
+          a,
+        );
+        connect(
+          c,
+          b,
+        );
+        connect(
+          d,
+          c,
+        );
 
         expectDependencies(a, []);
         expectDependencies(b, []);

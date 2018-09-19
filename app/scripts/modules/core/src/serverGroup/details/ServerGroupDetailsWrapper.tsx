@@ -71,29 +71,27 @@ export class ServerGroupDetailsWrapper extends React.Component<
 
   private getServerGroupDetailsTemplate(): void {
     const { provider, accountId } = ReactInjector.$stateParams;
-    $q
-      .all([
-        SkinService.getValue(provider, accountId, 'serverGroup.detailsActions'),
-        SkinService.getValue(provider, accountId, 'serverGroup.detailsGetter'),
-        SkinService.getValue(provider, accountId, 'serverGroup.detailsSections'),
-        SkinService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
-        SkinService.getValue(provider, accountId, 'serverGroup.detailsController'),
-      ])
-      .then(
-        (
-          values: [
-            React.ComponentClass<IServerGroupActionsProps>,
-            DetailsGetter,
-            Array<React.ComponentType<IServerGroupDetailsSectionProps>>,
-            string,
-            string
-          ],
-        ) => {
-          const [Actions, detailsGetter, sections, templateUrl, controller] = values;
-          const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
-          this.setState({ angular: { template, controller }, Actions, detailsGetter, sections });
-        },
-      );
+    $q.all([
+      SkinService.getValue(provider, accountId, 'serverGroup.detailsActions'),
+      SkinService.getValue(provider, accountId, 'serverGroup.detailsGetter'),
+      SkinService.getValue(provider, accountId, 'serverGroup.detailsSections'),
+      SkinService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
+      SkinService.getValue(provider, accountId, 'serverGroup.detailsController'),
+    ]).then(
+      (
+        values: [
+          React.ComponentClass<IServerGroupActionsProps>,
+          DetailsGetter,
+          Array<React.ComponentType<IServerGroupDetailsSectionProps>>,
+          string,
+          string
+        ],
+      ) => {
+        const [Actions, detailsGetter, sections, templateUrl, controller] = values;
+        const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
+        this.setState({ angular: { template, controller }, Actions, detailsGetter, sections });
+      },
+    );
   }
 
   public componentDidMount(): void {

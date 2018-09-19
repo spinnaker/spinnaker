@@ -73,22 +73,24 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       .do(() => this.setState({ resultSets: this.INITIAL_RESULTS, isSearching: true }))
       // Got new params... fire off new queries for each backend
       // Use switchMap so new queries cancel any pending previous queries
-      .switchMap((params: IQueryParams): Observable<ISearchResultSet[]> => {
-        if (isEmpty(params)) {
-          return Observable.empty();
-        }
+      .switchMap(
+        (params: IQueryParams): Observable<ISearchResultSet[]> => {
+          if (isEmpty(params)) {
+            return Observable.empty();
+          }
 
-        // Start fetching results for each search type from the search service.
-        // Update the overall results with the results for each search type.
-        return this.infrastructureSearchServiceV2
-          .search({ ...params })
-          .scan((acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
-            const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
-            resultSet = { ...resultSet, status };
-            // Replace the result set placeholder with the results for this type
-            return acc.filter(set => set.type !== resultSet.type).concat(resultSet);
-          }, this.INITIAL_RESULTS);
-      })
+          // Start fetching results for each search type from the search service.
+          // Update the overall results with the results for each search type.
+          return this.infrastructureSearchServiceV2
+            .search({ ...params })
+            .scan((acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
+              const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
+              resultSet = { ...resultSet, status };
+              // Replace the result set placeholder with the results for this type
+              return acc.filter(set => set.type !== resultSet.type).concat(resultSet);
+            }, this.INITIAL_RESULTS);
+        },
+      )
       .takeUntil(this.destroy$)
       .subscribe(
         resultSets => {

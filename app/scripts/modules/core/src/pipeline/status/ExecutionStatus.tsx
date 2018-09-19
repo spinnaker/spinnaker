@@ -152,7 +152,8 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
           <a className="clickable" onClick={this.toggleDetails}>
             <span
               className={`small glyphicon ${showingDetails ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`}
-            />Details
+            />
+            Details
           </a>
         )}
       </div>

@@ -81,7 +81,11 @@ export class AvailabilityZoneSelector extends React.Component<
             {usePreferredZones && (
               <div>
                 <p className="form-control-static">Server group will be available in:</p>
-                <ul>{defaultZones.map(zone => <li key={zone}>{zone}</li>)}</ul>
+                <ul>
+                  {defaultZones.map(zone => (
+                    <li key={zone}>{zone}</li>
+                  ))}
+                </ul>
               </div>
             )}
             {!usePreferredZones && (

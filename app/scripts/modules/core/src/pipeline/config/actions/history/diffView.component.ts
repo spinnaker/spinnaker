@@ -11,7 +11,7 @@ class DiffViewController implements IController {
     if (target.getAttribute('data-attr-block-line')) {
       line = parseInt(target.getAttribute('data-attr-block-line'), 10);
     } else {
-      line = e.offsetY / currentTarget.clientHeight * this.diff.summary.total;
+      line = (e.offsetY / currentTarget.clientHeight) * this.diff.summary.total;
     }
     $('pre.history').animate({ scrollTop: (line - 3) * 15 }, 200);
   }

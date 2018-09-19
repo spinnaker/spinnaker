@@ -55,35 +55,33 @@ module.exports = angular
     };
 
     function initialize() {
-      $q
-        .all({
-          regions: BakeryReader.getRegions('openstack'),
-          baseOsOptions: BakeryReader.getBaseOsOptions('openstack'),
-          baseLabelOptions: BakeryReader.getBaseLabelOptions(),
-        })
-        .then(function(results) {
-          $scope.regions = results.regions;
-          if ($scope.regions.length === 1) {
-            $scope.stage.region = $scope.regions[0];
-          } else if (!$scope.regions.includes($scope.stage.region)) {
-            delete $scope.stage.region;
-          }
-          if (!$scope.stage.regions.length && $scope.application.defaultRegions.openstack) {
-            $scope.stage.regions.push($scope.application.defaultRegions.openstack);
-          }
-          if (!$scope.stage.regions.length && $scope.application.defaultRegions.openstack) {
-            $scope.stage.regions.push($scope.application.defaultRegions.openstack);
-          }
-          $scope.baseOsOptions = results.baseOsOptions.baseImages;
-          $scope.baseLabelOptions = results.baseLabelOptions;
+      $q.all({
+        regions: BakeryReader.getRegions('openstack'),
+        baseOsOptions: BakeryReader.getBaseOsOptions('openstack'),
+        baseLabelOptions: BakeryReader.getBaseLabelOptions(),
+      }).then(function(results) {
+        $scope.regions = results.regions;
+        if ($scope.regions.length === 1) {
+          $scope.stage.region = $scope.regions[0];
+        } else if (!$scope.regions.includes($scope.stage.region)) {
+          delete $scope.stage.region;
+        }
+        if (!$scope.stage.regions.length && $scope.application.defaultRegions.openstack) {
+          $scope.stage.regions.push($scope.application.defaultRegions.openstack);
+        }
+        if (!$scope.stage.regions.length && $scope.application.defaultRegions.openstack) {
+          $scope.stage.regions.push($scope.application.defaultRegions.openstack);
+        }
+        $scope.baseOsOptions = results.baseOsOptions.baseImages;
+        $scope.baseLabelOptions = results.baseLabelOptions;
 
-          if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
-            $scope.stage.baseOs = $scope.baseOsOptions[0].id;
-          }
-          $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
-          $scope.showAdvancedOptions = showAdvanced();
-          $scope.viewState.loading = false;
-        });
+        if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
+          $scope.stage.baseOs = $scope.baseOsOptions[0].id;
+        }
+        $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
+        $scope.showAdvancedOptions = showAdvanced();
+        $scope.viewState.loading = false;
+      });
     }
 
     function showAdvanced() {

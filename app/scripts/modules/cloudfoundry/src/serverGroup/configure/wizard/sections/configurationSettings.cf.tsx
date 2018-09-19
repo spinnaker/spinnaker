@@ -287,7 +287,9 @@ class ConfigurationSettingsImpl extends React.Component<
 
           <div className="form-group">
             <div className="col-md-12">
-              <b>Routes</b>&nbsp;<HelpField id="cf.serverGroup.routes" />
+              <b>Routes</b>
+              &nbsp;
+              <HelpField id="cf.serverGroup.routes" />
               <table className="table table-condensed packed metadata">
                 <tbody>
                   {manifest.routes &&

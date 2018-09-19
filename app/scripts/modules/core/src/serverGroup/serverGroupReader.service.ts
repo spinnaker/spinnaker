@@ -19,10 +19,12 @@ export class ServerGroupReader {
         provider: serverGroup.cloudProvider,
       })
       .getList()
-      .catch((error: any): any[] => {
-        $log.error(error, 'error retrieving scaling activities');
-        return [];
-      });
+      .catch(
+        (error: any): any[] => {
+          $log.error(error, 'error retrieving scaling activities');
+          return [];
+        },
+      );
   }
 
   public static getServerGroup(

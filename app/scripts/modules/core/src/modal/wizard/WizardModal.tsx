@@ -117,12 +117,14 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
   };
 
   private getFilteredChildren(): React.ReactChild[] {
-    return React.Children.toArray(this.props.children).filter((child: any): boolean => {
-      if (!child || !child.type || !child.type.label) {
-        return false;
-      }
-      return !this.props.hideSections || !this.props.hideSections.has(child.type.label);
-    });
+    return React.Children.toArray(this.props.children).filter(
+      (child: any): boolean => {
+        if (!child || !child.type || !child.type.label) {
+          return false;
+        }
+        return !this.props.hideSections || !this.props.hideSections.has(child.type.label);
+      },
+    );
   }
 
   private getVisiblePageNames(): string[] {

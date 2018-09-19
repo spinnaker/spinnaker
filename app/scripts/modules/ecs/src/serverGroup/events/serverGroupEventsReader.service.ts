@@ -23,9 +23,11 @@ export class ServerGroupEventsReader {
         provider: serverGroup.cloudProvider,
       })
       .getList()
-      .catch((error: any): any[] => {
-        $log.error(error, 'error retrieving events');
-        return [];
-      });
+      .catch(
+        (error: any): any[] => {
+          $log.error(error, 'error retrieving events');
+          return [];
+        },
+      );
   }
 }

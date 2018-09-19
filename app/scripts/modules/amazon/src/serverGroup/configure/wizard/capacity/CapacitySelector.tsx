@@ -81,7 +81,8 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
                 To disable auto-scaling, use the{' '}
                 <a className="clickable" onClick={() => this.setSimpleCapacity(true)}>
                   Simple Mode
-                </a>.
+                </a>
+                .
               </p>
             </div>
           </div>
@@ -162,7 +163,8 @@ export class CapacitySelector extends React.Component<ICapacitySelectorProps> {
               To allow true auto-scaling, use the{' '}
               <a className="clickable" onClick={() => this.setSimpleCapacity(false)}>
                 Advanced Mode
-              </a>.
+              </a>
+              .
             </p>
           </div>
         </div>

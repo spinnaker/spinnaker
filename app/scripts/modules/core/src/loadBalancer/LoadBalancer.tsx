@@ -43,7 +43,8 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
           <UISrefActive class="active">
             <UISref to=".loadBalancerDetails" params={params}>
               <h6 className="clickable clickable-row horizontal middle">
-                <i className="fa icon-sitemap" />&nbsp; {(loadBalancer.region || '').toUpperCase()}
+                <i className="fa icon-sitemap" />
+                &nbsp; {(loadBalancer.region || '').toUpperCase()}
                 <div className="flex-1">
                   <EntityNotifications
                     entity={loadBalancer}

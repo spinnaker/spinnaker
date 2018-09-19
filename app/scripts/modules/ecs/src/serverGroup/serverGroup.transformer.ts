@@ -75,8 +75,8 @@ export class EcsServerGroupTransformer {
     serverGroup.instances.forEach((instance: IInstance) => {
       instance.vpcId = serverGroup.vpcId;
     });
-    return VpcReader.listVpcs().then((vpc: IVpc[]): IAmazonServerGroup =>
-      this.addVpcNameToServerGroup(serverGroup)(vpc),
+    return VpcReader.listVpcs().then(
+      (vpc: IVpc[]): IAmazonServerGroup => this.addVpcNameToServerGroup(serverGroup)(vpc),
     );
   }
 

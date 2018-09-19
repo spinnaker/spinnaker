@@ -364,7 +364,8 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                           <span className="visible-lg-inline">
                             <Spinner size="nano" />
                           </span>
-                          <span className="visible-xl-inline">Starting Execution</span>&hellip;
+                          <span className="visible-xl-inline">Starting Execution</span>
+                          &hellip;
                         </span>
                       )}
                       {!triggeringExecution && (

@@ -113,7 +113,9 @@ export class CloneServerGroupExecutionDetails extends React.Component<
             <div className="col-md-12">
               <div className="well alert alert-info">
                 <strong>Deployed: </strong>
-                {(deployResults || []).map(result => <DeployedServerGroup key={result.href} result={result} />)}
+                {(deployResults || []).map(result => (
+                  <DeployedServerGroup key={result.href} result={result} />
+                ))}
               </div>
             </div>
           </div>

@@ -80,7 +80,9 @@ export class AccountCell extends React.Component<ICellRendererProps> {
     const accounts = (Array.isArray(value) ? value : value.split(',')).sort();
     return (
       <div className={colClass(col.key)}>
-        {accounts.map((account: string) => <AccountTag key={account} account={account} />)}
+        {accounts.map((account: string) => (
+          <AccountTag key={account} account={account} />
+        ))}
       </div>
     );
   }

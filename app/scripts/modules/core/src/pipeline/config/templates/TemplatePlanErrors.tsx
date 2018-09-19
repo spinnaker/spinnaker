@@ -11,7 +11,10 @@ export class TemplatePlanErrors extends React.Component<ITemplatePlanErrorsProps
     if (this.props.errors && this.props.errors.length) {
       return (
         <div>
-          <strong>Error{this.props.errors.length > 1 ? 's' : ''}:</strong>
+          <strong>
+            Error
+            {this.props.errors.length > 1 ? 's' : ''}:
+          </strong>
           {this.props.errors.map(e => this.buildErrorMessage(e))}
         </div>
       );

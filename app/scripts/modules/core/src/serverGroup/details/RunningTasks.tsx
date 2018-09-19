@@ -24,10 +24,12 @@ export class RunningTasks extends React.Component<IRunningTasksProps> {
           defaultExpanded={true}
           bodyClassName="content-body details-running-tasks"
         >
-          {serverGroup.runningTasks
-            .sort((a, b) => a.startTime - b.startTime)
-            .map(task => <Task key={task.id} task={task} application={application} />)}
-          {serverGroup.runningExecutions.map(execution => <Execution key={execution.id} execution={execution} />)}
+          {serverGroup.runningTasks.sort((a, b) => a.startTime - b.startTime).map(task => (
+            <Task key={task.id} task={task} application={application} />
+          ))}
+          {serverGroup.runningExecutions.map(execution => (
+            <Execution key={execution.id} execution={execution} />
+          ))}
         </CollapsibleSection>
       );
     }
