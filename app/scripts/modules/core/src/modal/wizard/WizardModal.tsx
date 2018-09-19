@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { Formik, Form, FormikProps, FormikValues } from 'formik';
+import { Formik, Form, FormikValues } from 'formik';
 import { Modal } from 'react-bootstrap';
 
 import { TaskMonitor } from 'core';
@@ -20,10 +20,10 @@ export interface IWizardPageData {
   validate: IWizardPageValidate;
 }
 
-export interface IWizardModalProps extends IModalComponentProps {
+export interface IWizardModalProps<T> extends IModalComponentProps {
   heading: string;
   hideSections?: Set<string>;
-  initialValues: FormikValues;
+  initialValues: T;
   loading?: boolean;
   submitButtonLabel: string;
   taskMonitor: TaskMonitor;
@@ -41,11 +41,11 @@ export interface IWizardModalState {
   waiting: Set<string>;
 }
 
-export class WizardModal<T extends FormikValues> extends React.Component<IWizardModalProps, IWizardModalState> {
+export class WizardModal<T extends FormikValues> extends React.Component<IWizardModalProps<T>, IWizardModalState> {
   private pages: { [label: string]: IWizardPageData } = {};
   private stepsElement: HTMLDivElement;
 
-  constructor(props: IWizardModalProps) {
+  constructor(props: IWizardModalProps<T>) {
     super(props);
 
     this.state = {
@@ -160,7 +160,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     this.setState({ waiting });
   };
 
-  public render(): React.ReactElement<WizardModal<T>> {
+  public render() {
     const { heading, hideSections, initialValues, loading, submitButtonLabel, taskMonitor } = this.props;
     const { currentPage, dirtyPages, pageErrors, formInvalid, pages, waiting } = this.state;
     const { TaskMonitorWrapper } = NgReact;
@@ -172,11 +172,11 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     return (
       <>
         {taskMonitor && <TaskMonitorWrapper monitor={taskMonitor} />}
-        <Formik
+        <Formik<{}, T>
           initialValues={initialValues}
           onSubmit={this.props.closeModal}
           validate={this.validate}
-          render={(props: FormikProps<T>) => (
+          render={props => (
             <Form className="form-horizontal">
               <ModalClose dismiss={this.props.dismissModal} />
               <Modal.Header>{heading && <h3>{heading}</h3>}</Modal.Header>

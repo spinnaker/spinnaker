@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Formik, Field, Form, FormikErrors, FormikProps } from 'formik';
+import { Formik, Field, Form, FormikErrors } from 'formik';
 
 import { ModalClose, ReactModal, SubmitButton, noop } from '@spinnaker/core';
 
@@ -89,11 +89,11 @@ export class ConfigureOidcConfigModal extends React.Component<
 
     return (
       <div>
-        <Formik
+        <Formik<{}, IAuthenticateOidcActionConfig>
           initialValues={initialValues}
           onSubmit={this.submit}
           validate={this.validate}
-          render={(props: FormikProps<IAuthenticateOidcActionConfig>) => (
+          render={({ isValid }) => (
             <Form className="form-horizontal">
               <ModalClose dismiss={this.close} />
               <Modal.Header>
@@ -171,7 +171,7 @@ export class ConfigureOidcConfigModal extends React.Component<
                 <button className="btn btn-default" onClick={this.close} type="button">
                   Cancel
                 </button>
-                <SubmitButton isDisabled={!props.isValid} submitting={false} isFormSubmit={true} label={submitLabel} />
+                <SubmitButton isDisabled={!isValid} submitting={false} isFormSubmit={true} label={submitLabel} />
               </Modal.Footer>
             </Form>
           )}

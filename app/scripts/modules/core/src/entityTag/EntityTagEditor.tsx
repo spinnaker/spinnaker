@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Field, FieldProps, Form, Formik, FormikErrors, FormikProps } from 'formik';
+import { Field, FieldProps, Form, Formik, FormikErrors } from 'formik';
 import { Modal } from 'react-bootstrap';
 
 import {
@@ -153,11 +153,11 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
       <div>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
 
-        <Formik
+        <Formik<{}, IEntityTagEditorValues>
           initialValues={initialValues}
           onSubmit={this.upsertTag}
           validate={this.validate}
-          render={(props: FormikProps<IEntityTagEditorValues>) => (
+          render={({ isValid, values }) => (
             <Form className="form-horizontal">
               <Modal.Header>
                 <h3>
@@ -185,13 +185,13 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                         </div>
                       </div>
                     </div>
-                    {props.values.message && (
+                    {values.message && (
                       <div className="form-group preview">
                         <div className="col-md-3 sm-label-right">
                           <strong>Preview</strong>
                         </div>
                         <div className="col-md-9">
-                          <Markdown message={props.values.message} />
+                          <Markdown message={values.message} />
                         </div>
                       </div>
                     )}
@@ -214,7 +214,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                                     name="ownerIndex"
                                     type="radio"
                                     value={index}
-                                    checked={index === Number(props.values.ownerIndex)}
+                                    checked={index === Number(values.ownerIndex)}
                                   />
                                   <span className="marked">
                                     <Markdown message={option.label} />
@@ -233,7 +233,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                   Cancel
                 </button>
                 <SubmitButton
-                  isDisabled={!props.isValid || isSubmitting}
+                  isDisabled={!isValid || isSubmitting}
                   submitting={isSubmitting}
                   isFormSubmit={true}
                   label={submitLabel}

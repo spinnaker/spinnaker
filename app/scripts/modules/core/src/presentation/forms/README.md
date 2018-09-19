@@ -7,16 +7,16 @@ The most common input is the native `<input/>` component, but these may also be 
 
 ### Examples:
 
-* Text Input `<input type="text" />`
-* Text Area `<textarea/>`
-* Integer Input `<input type="number"/>`
-* Select/Dropdown `<select><option/></select>`
-* Radio button group
-* Checkbox `<input type="checkbox"/>`
-* Typeahead -- custom component
-* Expressions -- custom component
-* Key/Value pairs -- custom component
-  * i.e., “Tags” in Advanced Deploy Settings
+- Text Input `<input type="text" />`
+- Text Area `<textarea/>`
+- Integer Input `<input type="number"/>`
+- Select/Dropdown `<select><option/></select>`
+- Radio button group
+- Checkbox `<input type="checkbox"/>`
+- Typeahead -- custom component
+- Expressions -- custom component
+- Key/Value pairs -- custom component
+  - i.e., “Tags” in Advanced Deploy Settings
 
 ## Layouts
 
@@ -26,14 +26,14 @@ The layout is also typically responsible for implementing any responsive behavio
 
 The components that a Layout manages are:
 
-* Input Field
-* Label
-* Help widget (i.e., popover)
-* Required indicator
-* Action Icons (trash, etc)
-* Validation
-  * Internal (built into component, I.e., date picker, expressions)
-  * External
+- Input Field
+- Label
+- Help widget (i.e., popover)
+- Required indicator
+- Action Icons (trash, etc)
+- Validation
+  - Internal (built into component, I.e., date picker, expressions)
+  - External
 
 ### Example Layout:
 
@@ -95,15 +95,16 @@ Field components wrap a controlled input component.
 However, a Formik wrapper is added to Field components, as a static `Formik` property.
 
 ```js
-<Formik
+<Formik<{}, IChronosTimelineConfig>
   initialValues={initialValues}
   validate={this.validate}
-  render={(formik: FormikProps<IChronosTimelineConfig>) => (
+  render={(formik) => (
     <TextField.Formik
       formik={formik}
       name="timelineName"
       label="Timeline Name"
     />
+  )}
 />
 ```
 
