@@ -370,10 +370,10 @@ class GCEUtil {
     def loadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("") as List
     def foundLoadBalancers = loadBalancers.findAll { it.name in forwardingRuleNames }
 
-    if (foundLoadBalancers.size == forwardingRuleNames.size) {
+    if (foundLoadBalancers.size() == forwardingRuleNames.size()) {
       return foundLoadBalancers
     } else {
-      def foundNames = loadBalancers.collect { it.name }
+      def foundNames = foundLoadBalancers.collect { it.name }
       updateStatusAndThrowNotFoundException("Load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
     }
   }
