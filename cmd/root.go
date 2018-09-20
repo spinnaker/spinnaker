@@ -35,6 +35,7 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 		--quiet=false                 Squelch non-essential output.
 		--output <output format>      Formats CLI output.
 	`,
+		SilenceUsage: true,
 	}
 
 	cmd.PersistentFlags().StringVar(&options.configFile, "config", "", "config file (default is $HOME/.spin/config)")
