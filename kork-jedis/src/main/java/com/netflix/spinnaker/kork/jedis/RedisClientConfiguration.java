@@ -56,10 +56,22 @@ public class RedisClientConfiguration {
 
     redisClientConfigurations.clients.forEach((name, config) -> {
       if (config.primary != null) {
-        clients.add(getClientFactoryForDriver(config.primary.driver).build(name, config.primary.config));
+        clients
+          .add(getClientFactoryForDriver(config.primary.driver)
+            .build(
+              RedisClientSelector.getName(true, name),
+              config.primary.config
+            )
+          );
       }
       if (config.previous != null) {
-        clients.add(getClientFactoryForDriver(config.previous.driver).build(name, config.previous.config));
+        clients
+          .add(getClientFactoryForDriver(config.previous.driver)
+            .build(
+              RedisClientSelector.getName(false, name),
+              config.previous.config
+            )
+          );
       }
     });
     otherRedisClientDelegates.ifPresent(clients::addAll);
