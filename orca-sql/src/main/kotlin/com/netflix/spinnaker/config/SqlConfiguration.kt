@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.sql.JooqSqlCommentAppender
 import com.netflix.spinnaker.orca.sql.JooqToSpringExceptionTransformer
+import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
 import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.config.DataSourceConfiguration
@@ -39,7 +40,6 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
-import org.springframework.jdbc.datasource.SingleConnectionDataSource
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 import sun.net.InetAddressCachePolicy
 import java.lang.reflect.Field
@@ -63,20 +63,7 @@ class SqlConfiguration {
   }
 
   @Bean fun liquibase(properties: SqlProperties): SpringLiquibase =
-    properties.migration
-      .run {
-        val ds = SingleConnectionDataSource(jdbcUrl, user, password, false)
-        if (driver != null) {
-          ds.setDriverClassName(driver)
-        }
-        ds
-      }
-      .let { ds ->
-        SpringLiquibase().apply {
-          changeLog = "classpath:db/changelog-master.yml"
-          dataSource = ds
-        }
-      }
+    SpringLiquibaseProxy(properties)
 
   @Bean fun transactionManager(dataSource: DataSource): DataSourceTransactionManager =
     DataSourceTransactionManager(dataSource)

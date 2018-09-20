@@ -32,7 +32,8 @@ data class MigrationProperties(
   var jdbcUrl: String = "jdbc:mysql://localhost/orca",
   var user: String? = null,
   var password: String? = null,
-  var driver: String? = null
+  var driver: String? = null,
+  var additionalChangeLogs: List<String> = listOf()
 )
 
 data class ConnectionPoolProperties(
