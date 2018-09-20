@@ -42,8 +42,7 @@
         <input type="text" class="form-control input-sm" ng-model="stage.package"/>
     </stage-config-field>
 
-    <!-- Even if the roscoMode flag is false, we should show the control if rebake is set. -->
-    <stage-config-field label="Rebake" ng-if="viewState.roscoMode || stage.rebake">
+    <stage-config-field label="Rebake" help-key="execution.forceRebake">
         <div class="checkbox" style="margin-bottom: 0">
             <label>
                 <input type="checkbox" ng-model="stage.rebake">
