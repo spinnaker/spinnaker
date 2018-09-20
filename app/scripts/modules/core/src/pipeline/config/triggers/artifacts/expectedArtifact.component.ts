@@ -1,6 +1,7 @@
 import { IAttributes, IComponentController, IComponentOptions, module } from 'angular';
 
 import { IExpectedArtifact } from 'core/domain';
+import { Registry } from 'core/registry';
 
 class ExpectedArtifactController implements IComponentController {
   public expectedArtifact: IExpectedArtifact;
@@ -19,8 +20,15 @@ class ExpectedArtifactController implements IComponentController {
       expectedArtifact: { useDefaultArtifact, defaultArtifact, matchArtifact },
     } = this;
     if (useDefaultArtifact && defaultArtifact.type == null) {
-      defaultArtifact.type = matchArtifact.type;
-      defaultArtifact.kind = matchArtifact.kind;
+      const defaultKey = 'default.' + matchArtifact.kind;
+      const defaultKindConfig = Registry.pipeline.getArtifactKinds().find(kind => kind.key === defaultKey);
+      if (defaultKindConfig) {
+        defaultArtifact.type = defaultKindConfig.type;
+        defaultArtifact.kind = defaultKindConfig.key;
+      } else {
+        defaultArtifact.type = matchArtifact.type;
+        defaultArtifact.kind = matchArtifact.kind;
+      }
     }
   }
 }
