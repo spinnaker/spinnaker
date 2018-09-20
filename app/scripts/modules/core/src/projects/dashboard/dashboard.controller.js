@@ -126,8 +126,8 @@ module.exports = angular
         .value();
     };
 
-    let clusterScheduler = SchedulerFactory.createScheduler(),
-      executionScheduler = SchedulerFactory.createScheduler();
+    let clusterScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000),
+      executionScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000);
 
     let clusterLoader = clusterScheduler.subscribe(getClusters);
 
