@@ -30,6 +30,11 @@ interface AssetRepository {
   fun rootAssets(callback: (Asset) -> Unit)
 
   /**
+   * Invokes [callback] once with each registered asset.
+   */
+  fun allAssets(callback: (AssetBase) -> Unit)
+
+  /**
    * Retrieves a single asset by id.
    *
    * @return The asset represented by [id] or `null` if [id] is unknown.

@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.model.Asset
+import com.netflix.spinnaker.keel.model.AssetBase
 import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.model.PartialAsset
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import com.netflix.spinnaker.keel.processing.randomBytes
 import com.nhaarman.mockito_kotlin.argumentCaptor
@@ -23,7 +25,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
   abstract val subject: T
 
-  val callback: (Asset) -> Unit = mock()
+  val callback: (AssetBase) -> Unit = mock()
 
   @AfterEach
   fun resetMocks() {
@@ -31,14 +33,21 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
   }
 
   @Test
-  fun `when no assets exist assets is a no-op`() {
+  fun `when no assets exist rootAssets is a no-op`() {
     subject.rootAssets(callback)
 
     verifyZeroInteractions(callback)
   }
 
   @Test
-  fun `after storing a asset with no dependencies it is returned by assets`() {
+  fun `when no assets exist allAssets returns an empty collection`() {
+    subject.allAssets(callback)
+
+    verifyZeroInteractions(callback)
+  }
+
+  @Test
+  fun `after storing a asset with no dependencies it is returned by rootAssets`() {
     val asset = Asset(
       id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
       apiVersion = "1.0",
@@ -53,11 +62,26 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
   }
 
   @Test
-  fun `after storing a asset with dependencies it is not returned by assets`() {
+  fun `after storing a asset with no dependencies it is returned by allAssets`() {
+    val asset = Asset(
+      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
+      apiVersion = "1.0",
+      kind = "ec2:SecurityGroup",
+      spec = randomBytes()
+    )
+
+    subject.store(asset)
+    subject.allAssets(callback)
+
+    verify(callback).invoke(asset)
+  }
+
+  @Test
+  fun `after storing a asset with dependencies it is not returned by rootAssets`() {
     val asset = Asset(
       id = AssetId("LoadBalancer:ec2:test:us-west-2:fnord"),
       apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
+      kind = "ec2:LoadBalancer",
       dependsOn = setOf(AssetId("SecurityGroup:ec2:test:us-west-2:fnord")),
       spec = randomBytes()
     )
@@ -66,6 +90,48 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
     subject.rootAssets(callback)
 
     verify(callback, never()).invoke(asset)
+  }
+
+  @Test
+  fun `after storing a asset with dependencies it is returned by allAssets`() {
+    val asset = Asset(
+      id = AssetId("LoadBalancer:ec2:test:us-west-2:fnord"),
+      apiVersion = "1.0",
+      kind = "ec2:LoadBalancer",
+      dependsOn = setOf(AssetId("SecurityGroup:ec2:test:us-west-2:fnord")),
+      spec = randomBytes()
+    )
+
+    subject.store(asset)
+    subject.allAssets(callback)
+
+    verify(callback).invoke(asset)
+  }
+
+  @Test
+  fun `after storing a partial asset it is returned by allAssets`() {
+    val asset = Asset(
+      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
+      apiVersion = "1.0",
+      kind = "ec2:SecurityGroup",
+      spec = randomBytes()
+    )
+
+    val partial = PartialAsset(
+      id = AssetId("SecurityGroupRule:ec2:test:us-west-2:fnord:whatever"),
+      root = asset.id,
+      apiVersion = "1.0",
+      kind = "ec2:SecurityGroupRule",
+      spec = randomBytes()
+    )
+
+    subject.store(asset)
+    subject.store(partial)
+
+    subject.allAssets(callback)
+
+    verify(callback).invoke(asset)
+    verify(callback).invoke(partial)
   }
 
   @Test

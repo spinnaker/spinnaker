@@ -8,7 +8,7 @@ option java_package = "com.netflix.spinnaker.keel.api";
 import "Asset.proto";
 
 service AssetRegistry {
-//  rpc managedAssets (ManagedAssetsRequest) returns (ManagedAssetsResponse);
+  rpc managedAssets (ManagedAssetsRequest) returns (stream ManagedAssetResponse);
   rpc upsertAsset (UpsertAssetRequest) returns (UpsertAssetResponse);
   // TODO: will need a delete asset
 }
@@ -32,10 +32,13 @@ enum UpsertAssetStatus {
   FAILED = 2;
 }
 
-//message ManagedAssetsRequest {
-//  // TODO: add filters
-//}
-//
-//message ManagedAssetsResponse {
-//  repeated Asset asset = 1;
-//}
+message ManagedAssetsRequest {
+  // TODO: add filters
+}
+
+message ManagedAssetResponse {
+  oneof payload {
+    Asset asset = 1;
+    PartialAsset partialAsset = 2;
+  }
+}

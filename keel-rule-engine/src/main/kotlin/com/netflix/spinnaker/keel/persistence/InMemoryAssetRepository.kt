@@ -34,6 +34,11 @@ class InMemoryAssetRepository(
   private val partialAssets = mutableMapOf<AssetId, PartialAsset>()
   private val states = mutableMapOf<AssetId, Pair<AssetState, Instant>>()
 
+  override fun allAssets(callback: (AssetBase) -> Unit) {
+    assets.values.forEach(callback)
+    partialAssets.values.forEach(callback)
+  }
+
   override fun rootAssets(callback: (Asset) -> Unit) {
     assets.values.filter { it.dependsOn.isEmpty() }.forEach(callback)
   }

@@ -2,27 +2,36 @@ package com.netflix.spinnaker.keel.grpc
 
 import com.netflix.spinnaker.keel.api.AssetRegistryGrpc
 import com.netflix.spinnaker.keel.api.GrpcStubManager
+import com.netflix.spinnaker.keel.api.ManagedAssetResponse
+import com.netflix.spinnaker.keel.api.ManagedAssetsRequest
 import com.netflix.spinnaker.keel.api.UpsertAssetRequest
 import com.netflix.spinnaker.keel.api.UpsertAssetStatus.INSERTED
 import com.netflix.spinnaker.keel.model.Asset
+import com.netflix.spinnaker.keel.model.AssetBase
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.PartialAsset
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.processing.randomBytes
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.whenever
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
+import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.all
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 
 internal object GrpcAssetRegistrySpec : Spek({
 
@@ -39,6 +48,94 @@ internal object GrpcAssetRegistrySpec : Spek({
 
   afterGroup {
     grpc.stopServer()
+  }
+
+  describe("fetching a list of managed assets") {
+    given("when there are no registered assets") {
+      beforeGroup {
+        whenever(assetRepository.allAssets(any())) doAnswer {}
+      }
+
+      afterGroup {
+        reset(assetRepository)
+      }
+
+      it("returns an empty response") {
+        grpc.withChannel { stub ->
+          val response = stub.managedAssets(ManagedAssetsRequest.getDefaultInstance())
+
+          expectThat(response).map { it.hasNext() }.isFalse()
+        }
+      }
+    }
+
+    given("a simple asset") {
+      val asset = Asset(
+        id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
+        kind = "SecurityGroup",
+        spec = randomBytes()
+      )
+
+      beforeGroup {
+        whenever(assetRepository.allAssets(any())) doAnswer {
+          val callback = it.arguments.first() as (AssetBase) -> Unit
+          callback(asset)
+        }
+      }
+
+      afterGroup {
+        reset(assetRepository)
+      }
+
+      it("returns the asset") {
+        grpc.withChannel { stub ->
+          val response = stub.managedAssets(ManagedAssetsRequest.getDefaultInstance())
+
+          expectThat(response).assets.containsExactly(asset)
+        }
+      }
+    }
+
+    given("multiple assets and partials") {
+      val asset = Asset(
+        id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
+        kind = "SecurityGroup",
+        spec = randomBytes()
+      )
+      val partial1 = PartialAsset(
+        id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress1"),
+        root = asset.id,
+        kind = "SecurityGroupRule",
+        spec = randomBytes()
+      )
+      val partial2 = PartialAsset(
+        id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress2"),
+        root = asset.id,
+        kind = "SecurityGroupRule",
+        spec = randomBytes()
+      )
+
+      beforeGroup {
+        whenever(assetRepository.allAssets(any())) doAnswer {
+          val callback = it.arguments.first() as (AssetBase) -> Unit
+          callback(asset)
+          callback(partial1)
+          callback(partial2)
+        }
+      }
+
+      afterGroup {
+        reset(assetRepository)
+      }
+
+      it("returns the asset") {
+        grpc.withChannel { stub ->
+          val response = stub.managedAssets(ManagedAssetsRequest.getDefaultInstance())
+
+          expectThat(response).assets.containsExactly(asset, partial1, partial2)
+        }
+      }
+    }
   }
 
   describe("upserting an asset") {
@@ -140,3 +237,15 @@ internal object GrpcAssetRegistrySpec : Spek({
     }
   }
 })
+
+private val Assertion.Builder<Iterator<ManagedAssetResponse>>.assets: Assertion.Builder<Collection<AssetBase>>
+  get() = map {
+    it.asSequence().mapNotNull {
+      when {
+        it.hasAsset() -> it.asset.fromProto()
+        it.hasPartialAsset() -> it.partialAsset.fromProto()
+        else -> null
+      }
+    }
+      .toList()
+  }
