@@ -15,7 +15,10 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.processing.ConvergeAsset
+import com.netflix.spinnaker.keel.processing.ValidateAssetTree
 import com.netflix.spinnaker.keel.registry.PluginRepository
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
@@ -54,10 +57,25 @@ class RuleEngineApp {
   @Autowired
   lateinit var assetRepository: AssetRepository
 
+  @Autowired
+  lateinit var objectMapper: ObjectMapper
+
   @PostConstruct
   fun initialStatus() {
     log.info("Using {} plugin repository implementation", pluginRepository.javaClass.simpleName)
     log.info("Using {} asset repository implementation", assetRepository.javaClass.simpleName)
+  }
+
+  @PostConstruct
+  fun registerKeikoMessageTypes() {
+    val messageTypes = arrayOf(
+      ValidateAssetTree::class.java,
+      ConvergeAsset::class.java
+    )
+    messageTypes.forEach {
+      log.info("Registering message type {} on {}", it.simpleName, objectMapper)
+    }
+    objectMapper.registerSubtypes(*messageTypes)
   }
 }
 

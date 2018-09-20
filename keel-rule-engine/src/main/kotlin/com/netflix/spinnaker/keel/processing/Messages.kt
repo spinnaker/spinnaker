@@ -15,13 +15,16 @@
  */
 package com.netflix.spinnaker.keel.processing
 
+import com.fasterxml.jackson.annotation.JsonTypeName
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.q.Message
 
+@JsonTypeName("ValidateAssetTree")
 data class ValidateAssetTree(
   val rootId: AssetId
 ) : Message()
 
+@JsonTypeName("ConvergeAsset")
 data class ConvergeAsset(
   val id: AssetId
 ) : Message()
