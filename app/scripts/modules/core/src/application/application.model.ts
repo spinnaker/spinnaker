@@ -3,7 +3,7 @@ import { map, union, uniq } from 'lodash';
 import { $log, $q } from 'ngimport';
 import { Observable, ReplaySubject, Subject, Subscription } from 'rxjs';
 
-import { ICluster } from 'core/domain';
+import { ICluster } from '../domain/ICluster';
 import { ApplicationDataSource, IDataSourceConfig, IFetchStatus } from './service/applicationDataSource';
 
 export class Application {
