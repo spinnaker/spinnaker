@@ -14,7 +14,12 @@
       <stage-config-field label="Manifest Source" help-key="kubernetes.manifest.source">
         <label class="sm-label-right">
           <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}">
-          {{ ctrl.textSource | robotToHuman }}
+          {{ ctrl.textSource | robotToHuman }} -
+          <kubernetes-copy-from-template-button
+            application="application"
+            handle-copy="ctrl.handleCopy"
+          >
+          </kubernetes-copy-from-template-button>
         </label><br/>
         <label class="sm-label-right">
           <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}">
@@ -22,8 +27,9 @@
         </label>
       </stage-config-field>
     </ng-form>
-    <kubernetes-manifest-entry ng-if="ctrl.$scope.stage.source === ctrl.textSource"
-                               command="ctrl.$scope.stage">
+    <kubernetes-manifest-entry ng-if="stage.source === ctrl.textSource"
+                               manifests="stage.manifests"
+                               command="stage">
     </kubernetes-manifest-entry>
     <stage-config-field label="Expected Artifact" help-key="kubernetes.manifest.expectedArtifact" field-columns="8" ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
       <expected-artifact-selector-react

@@ -11,7 +11,10 @@
         <kubernetes-manifest-basic-settings command="ctrl.command" metadata="ctrl.metadata"> </kubernetes-manifest-basic-settings>
       </v2-wizard-page>
       <v2-wizard-page key="manifest" label="Manifest" mark-complete-on-view="false">
-        <kubernetes-manifest-entry command="ctrl.command" metadata="ctrl.metadata"> </kubernetes-manifest-entry>
+        <kubernetes-manifest-entry
+          command="ctrl.command"
+          manifests="ctrl.command.manifests"
+          metadata="ctrl.metadata"></kubernetes-manifest-entry>
       </v2-wizard-page>
     </v2-modal-wizard>
   </div>

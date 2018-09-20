@@ -1,11 +1,13 @@
 import { IComponentOptions, IController, IScope, module } from 'angular';
 
+import { IManifest } from '@spinnaker/core';
 import { IKubernetesManifestCommand } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 import './manifestEntry.less';
 
 class KubernetesManifestCtrl implements IController {
   public command: IKubernetesManifestCommand;
+  public manifests: IManifest[];
   public initialValue: any;
 
   constructor(private $scope: IScope) {
@@ -16,9 +18,11 @@ class KubernetesManifestCtrl implements IController {
   // list of manifests. Otherwise, hide the fact
   // that the underlying model is a list.
   public $onInit = (): void => {
-    const [first = null, ...rest] = this.command.manifests || [];
-    this.initialValue = rest && rest.length ? this.command.manifests : first;
+    const [first = null, ...rest] = this.manifests || [];
+    this.initialValue = rest && rest.length ? this.manifests : first;
   };
+
+  public $onChanges = () => this.$onInit();
 
   public handleChange = (manifests: any): void => {
     if (!this.command.manifests) {
@@ -30,7 +34,7 @@ class KubernetesManifestCtrl implements IController {
 }
 
 class KubernetesManifestEntryComponent implements IComponentOptions {
-  public bindings = { command: '<' };
+  public bindings = { command: '<', manifests: '<' };
   public controller = KubernetesManifestCtrl;
   public controllerAs = 'ctrl';
   public template = `

@@ -1,13 +1,12 @@
 import { IController, IScope } from 'angular';
 import { get, defaults } from 'lodash';
+import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate, IManifest } from '@spinnaker/core';
 
 import {
   IKubernetesManifestCommandMetadata,
   IKubernetesManifestCommandData,
   KubernetesManifestCommandBuilder,
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
-
-import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate } from '@spinnaker/core';
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -52,4 +51,10 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
         this.manifestArtifactDelegate.getSelectedExpectedArtifact() != null)
     );
   }
+
+  public handleCopy = (manifest: IManifest) => {
+    this.$scope.stage.manifests = [manifest];
+    // This method is called from a React component.
+    this.$scope.$applyAsync();
+  };
 }

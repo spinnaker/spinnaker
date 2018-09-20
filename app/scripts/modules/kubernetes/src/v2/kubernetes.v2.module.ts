@@ -39,6 +39,7 @@ import { KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transfor
 import { KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transformer';
 import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
 import { KUBERNETES_V2_RESOURCE_STATES } from './resources/resources.state';
+import { KUBERNETES_COPY_FROM_TEMPLATE_BUTTON } from './pipelines/stages/deployManifest/CopyFromTemplateButton';
 import { YAML_EDITOR_COMPONENT } from './manifest/yaml/yamlEditor.component';
 
 // load all templates into the $templateCache
@@ -50,6 +51,7 @@ templates.keys().forEach(function(key) {
 export const KUBERNETES_V2_MODULE = 'spinnaker.kubernetes.v2';
 
 module(KUBERNETES_V2_MODULE, [
+  KUBERNETES_COPY_FROM_TEMPLATE_BUTTON,
   KUBERNETES_V2_INSTANCE_DETAILS_CTRL,
   KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL,
   KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL,
