@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package applications
+package application
 
 import (
 	"encoding/json"
@@ -22,8 +22,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-
-	"github.com/spinnaker/spin/command"
 )
 
 const (
@@ -34,40 +32,46 @@ const (
 func TestApplicationSave_basic(t *testing.T) {
 	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
+	currentCmd := NewSaveCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
 
-	meta := command.ApiMeta{}
 	args := []string{
+		"application", "save",
+		"--gate-endpoint=" + ts.URL,
 		"--application-name", NAME,
 		"--owner-email", EMAIL,
 		"--cloud-providers", "gce,kubernetes",
-		"--gate-endpoint", ts.URL,
 	}
-	cmd := ApplicationSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
 func TestApplicationSave_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
-
-	meta := command.ApiMeta{}
 	args := []string{
+		"application", "save",
 		"--application-name", NAME,
 		"--owner-email", EMAIL,
 		"--cloud-providers", "gce,kubernetes",
-		"--gate-endpoint", ts.URL,
+		"--gate-endpoint=" + ts.URL,
 	}
-	cmd := ApplicationSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewSaveCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -75,16 +79,20 @@ func TestApplicationSave_flags(t *testing.T) {
 	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	args := []string{
-		"--gate-endpoint", ts.URL,
+		"application", "save",
+		"--gate-endpoint=" + ts.URL,
 	}
-	cmd := ApplicationSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, flags are malformed.
-		t.Fatal("Command errantly succeeded.", ret)
+	currentCmd := NewSaveCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -92,18 +100,22 @@ func TestApplicationSave_missingname(t *testing.T) {
 	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	args := []string{
+		"application", "save",
 		"--owner-email", EMAIL,
 		"--cloud-providers", "gce,kubernetes",
-		"--gate-endpoint", ts.URL,
+		"--gate-endpoint=" + ts.URL,
 	}
-	cmd := ApplicationSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, name is missing from spec.
-		t.Fatal("Command errantly succeeded.", ret)
+	currentCmd := NewSaveCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -111,18 +123,22 @@ func TestApplicationSave_missingemail(t *testing.T) {
 	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	args := []string{
+		"application", "save",
 		"--application-name", NAME,
 		"--cloud-providers", "gce,kubernetes",
 		"--gate-endpoint", ts.URL,
 	}
-	cmd := ApplicationSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, id missing from spec.
-		t.Fatal("Command errantly succeeded.", ret)
+	currentCmd := NewSaveCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -130,18 +146,22 @@ func TestApplicationSave_missingproviders(t *testing.T) {
 	ts := testGateApplicationSaveSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	args := []string{
+		"application", "save",
 		"--application-name", NAME,
 		"--owner-email", EMAIL,
 		"--gate-endpoint", ts.URL,
 	}
-	cmd := ApplicationSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, app is missing from spec.
-		t.Fatal("Command errantly succeeded.", ret)
+	currentCmd := NewSaveCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -155,18 +175,22 @@ func TestApplicationSave_filebasic(t *testing.T) {
 	}
 	defer os.Remove(tempFile.Name())
 
-	meta := command.ApiMeta{}
 	args := []string{
+		"application", "save",
 		"--file", tempFile.Name(),
 		"--gate-endpoint", ts.URL,
 	}
 
-	cmd := ApplicationSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewSaveCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -186,17 +210,21 @@ func TestApplicationSave_stdinbasic(t *testing.T) {
 	defer func() { os.Stdin = oldStdin }()
 	os.Stdin = tempFile
 
-	meta := command.ApiMeta{}
 	args := []string{
+		"application", "save",
 		"--gate-endpoint", ts.URL,
 	}
 
-	cmd := ApplicationSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewSaveCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 

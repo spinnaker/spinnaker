@@ -12,30 +12,32 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package applications
+package application
 
 import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
-
-	"github.com/spinnaker/spin/command"
 )
 
 func TestApplicationList_basic(t *testing.T) {
 	ts := testGateApplicationListSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL}
-	cmd := ApplicationListCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewListCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	args := []string{"application", "list", "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -43,14 +45,17 @@ func TestApplicationList_malformed(t *testing.T) {
 	ts := testGateApplicationListMalformed()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL}
-	cmd := ApplicationListCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, return payload is malformed.
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewListCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	args := []string{"application", "list", "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -58,14 +63,17 @@ func TestApplicationList_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL}
-	cmd := ApplicationListCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewListCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	args := []string{"application", "list", "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 

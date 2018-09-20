@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package pipelines
+package pipeline
 
 import (
 	"encoding/json"
@@ -23,7 +23,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/command"
 	gate "github.com/spinnaker/spin/gateapi"
 )
 
@@ -33,20 +32,23 @@ func TestPipelineExecute_basic(t *testing.T) {
 	ts := testGatePipelineExecuteSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(testPipelineJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
-	cmd := PipelineExecuteCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "execute", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
+	currentCmd := NewExecuteCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -54,20 +56,23 @@ func TestPipelineExecute_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(testPipelineJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
-	cmd := PipelineExecuteCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "execute", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
+	currentCmd := NewExecuteCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -75,14 +80,17 @@ func TestPipelineExecute_flags(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL} // Missing pipeline app and name.
-	cmd := PipelineExecuteCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, flags are malformed.
-		t.Fatal("Command errantly succeeded.", ret)
+	args := []string{"pipeline", "execute", "--gate-endpoint", ts.URL} // Missing pipeline app and name.
+	currentCmd := NewExecuteCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -90,20 +98,23 @@ func TestPipelineExecute_missingname(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(missingNameJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"--application", "app", "--gate-endpoint", ts.URL}
-	cmd := PipelineExecuteCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, name is missing from spec.
-		t.Fatal("Command errantly succeeded.", ret)
+	args := []string{"pipeline", "execute", "--application", "app", "--gate-endpoint", ts.URL}
+	currentCmd := NewExecuteCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -111,20 +122,23 @@ func TestPipelineExecute_missingapp(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(missingAppJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"--name", "one", "--gate-endpoint", ts.URL}
-	cmd := PipelineExecuteCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, app is missing from spec.
-		t.Fatal("Command errantly succeeded.", ret)
+	args := []string{"pipeline", "execute", "--name", "one", "--gate-endpoint", ts.URL}
+	currentCmd := NewExecuteCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 

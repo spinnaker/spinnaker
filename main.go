@@ -18,26 +18,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mitchellh/cli"
-	"github.com/spinnaker/spin/version"
+	"github.com/spinnaker/spin/cmd"
 )
 
 func main() {
-	args := os.Args[1:]
-
-	cli := &cli.CLI{
-		Name:     "spin",
-		Args:     args,
-		Commands: Commands,
-		Version:  version.String(),
+	if err := cmd.Execute(os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "\n%v\n", err)
+		os.Exit(1)
 	}
-
-	c, err := cli.Run()
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error executing CLI: %s\n", err)
-		c = 1
-	}
-
-	os.Exit(c)
 }

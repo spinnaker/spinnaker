@@ -12,30 +12,32 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package applications
+package application
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
-
-	"github.com/spinnaker/spin/command"
 )
 
 func TestApplicationDelete_basic(t *testing.T) {
 	ts := GateAppDeleteSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL, NAME}
-	cmd := ApplicationDeleteCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewDeleteCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	args := []string{"application", "delete", NAME, "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -43,14 +45,17 @@ func TestApplicationDelete_fail(t *testing.T) {
 	ts := GateAppDeleteFail()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL, NAME}
-	cmd := ApplicationDeleteCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewDeleteCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	args := []string{"application", "delete", NAME, "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -58,14 +63,17 @@ func TestApplicationDelete_flags(t *testing.T) {
 	ts := GateAppDeleteSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL}
-	cmd := ApplicationDeleteCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, flags are malformed.
-		t.Fatal("Command errantly succeeded.", ret)
+	currentCmd := NewDeleteCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	args := []string{"application", "delete", NAME, "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 

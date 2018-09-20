@@ -12,45 +12,51 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package pipelines
+package pipeline
 
 import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
-
-	"github.com/spinnaker/spin/command"
 )
 
 func TestPipelineList_basic(t *testing.T) {
 	ts := testGatePipelineListSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--application", "app", "--gate-endpoint", ts.URL}
-	cmd := PipelineListCommand{
-		ApiMeta: meta,
+	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
+	currentCmd := NewListCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
-	}
+
 }
 
 func TestPipelineList_flags(t *testing.T) {
 	ts := testGatePipelineListSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL} // Missing application.
-	cmd := PipelineListCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, flags are malformed.
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "list", "--gate-endpoint", ts.URL} // Missing application.
+	currentCmd := NewListCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -58,14 +64,17 @@ func TestPipelineList_malformed(t *testing.T) {
 	ts := testGatePipelineListMalformed()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--application", "app", "--gate-endpoint", ts.URL}
-	cmd := PipelineListCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, return payload is malformed.
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
+	currentCmd := NewListCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -73,14 +82,17 @@ func TestPipelineList_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--application", "app", "--gate-endpoint", ts.URL}
-	cmd := PipelineListCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "list", "--application", "app", "--gate-endpoint", ts.URL}
+	currentCmd := NewListCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 

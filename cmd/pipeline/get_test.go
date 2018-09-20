@@ -12,30 +12,43 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package pipelines
+package pipeline
 
 import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/command"
+	"github.com/spf13/cobra"
+	"github.com/spinnaker/spin/util"
 )
+
+func getRootCmdForTest() *cobra.Command {
+	rootCmd := &cobra.Command{}
+	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/.spin/config)")
+	rootCmd.PersistentFlags().String("gate-endpoint", "", "Gate (API server) endpoint. Default http://localhost:8084")
+	rootCmd.PersistentFlags().Bool("insecure", false, "Ignore Certificate Errors")
+	util.InitUI(false, false, "")
+	return rootCmd
+}
 
 func TestPipelineGet_basic(t *testing.T) {
 	ts := testGatePipelineGetSuccess()
 	defer ts.Close()
+	currentCmd := NewGetCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
 
-	meta := command.ApiMeta{}
-	args := []string{"--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
-	cmd := PipelineGetCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "get", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -43,44 +56,55 @@ func TestPipelineGet_flags(t *testing.T) {
 	ts := testGatePipelineGetSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL} // Missing application and name.
-	cmd := PipelineGetCommand{
-		ApiMeta: meta,
+	args := []string{"pipeline", "get", "--gate-endpoint", ts.URL} // Missing application and name.
+	currentCmd := NewGetCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, flags are malformed.
-		t.Fatalf("Command failed with: %d", ret)
-	}
+
 }
 
 func TestPipelineGet_malformed(t *testing.T) {
 	ts := testGatePipelineGetMalformed()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
-	cmd := PipelineGetCommand{
-		ApiMeta: meta,
+	args := []string{"pipeline", "get", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
+	currentCmd := NewGetCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, return payload is malformed.
-		t.Fatalf("Command failed with: %d", ret)
-	}
+
 }
 
 func TestPipelineGet_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
-	cmd := PipelineGetCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "get", "--application", "app", "--name", "one", "--gate-endpoint", ts.URL}
+	currentCmd := NewGetCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -88,14 +112,17 @@ func TestPipelineGet_notfound(t *testing.T) {
 	ts := testGatePipelineGetMissing()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--application", "app", "--name", "two", "--gate-endpoint", ts.URL}
-	cmd := PipelineGetCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "get", "--application", "app", "--name", "two", "--gate-endpoint", ts.URL}
+	currentCmd := NewGetCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 

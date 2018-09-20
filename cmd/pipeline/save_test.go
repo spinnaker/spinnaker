@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package pipelines
+package pipeline
 
 import (
 	"fmt"
@@ -21,28 +21,29 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-
-	"github.com/spinnaker/spin/command"
 )
 
 func TestPipelineSave_basic(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(testPipelineJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
+	args := []string{"pipeline", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
 
-	args := []string{"--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-	cmd := PipelineSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewSaveCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -50,7 +51,6 @@ func TestPipelineSave_stdin(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(testPipelineJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
@@ -63,13 +63,17 @@ func TestPipelineSave_stdin(t *testing.T) {
 	defer func() { os.Stdin = oldStdin }()
 	os.Stdin = tempFile
 
-	args := []string{"--gate-endpoint", ts.URL}
-	cmd := PipelineSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "save", "--gate-endpoint", ts.URL}
+	currentCmd := NewSaveCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -77,20 +81,23 @@ func TestPipelineSave_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(testPipelineJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-	cmd := PipelineSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"pipeline", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	currentCmd := NewSaveCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -98,14 +105,17 @@ func TestPipelineSave_flags(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL} // Missing pipeline spec file.
-	cmd := PipelineSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, flags are malformed.
-		t.Fatal("Command errantly succeeded.", ret)
+	args := []string{"pipeline", "save", "--gate-endpoint", ts.URL} // Missing pipeline spec file.
+	currentCmd := NewSaveCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -113,20 +123,23 @@ func TestPipelineSave_missingname(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(missingNameJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-	cmd := PipelineSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, name is missing from spec.
-		t.Fatal("Command errantly succeeded.", ret)
+	args := []string{"pipeline", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	currentCmd := NewSaveCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -134,20 +147,23 @@ func TestPipelineSave_missingid(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(missingIdJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-	cmd := PipelineSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, id missing from spec.
-		t.Fatal("Command errantly succeeded.", ret)
+	args := []string{"pipeline", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	currentCmd := NewSaveCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -155,20 +171,23 @@ func TestPipelineSave_missingapp(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
 	tempFile := tempPipelineFile(missingAppJsonStr)
 	if tempFile == nil {
 		t.Fatal("Could not create temp pipeline file.")
 	}
 	defer os.Remove(tempFile.Name())
 
-	args := []string{"--file", tempFile.Name(), "--gate-endpoint", ts.URL}
-	cmd := PipelineSaveCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure, app is missing from spec.
-		t.Fatal("Command errantly succeeded.", ret)
+	args := []string{"pipeline", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	currentCmd := NewSaveCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewPipelineCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 

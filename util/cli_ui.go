@@ -12,28 +12,59 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package command
+package util
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/colorstring"
-	"github.com/spinnaker/spin/command/output"
+	"github.com/spinnaker/spin/cmd/output"
 	"k8s.io/client-go/util/jsonpath"
 )
 
 type ColorizeUi struct {
-	Colorize    *colorstring.Colorize
-	OutputColor string
-	InfoColor   string
-	ErrorColor  string
-	WarnColor   string
-	Ui          cli.Ui
-	Quiet       bool
+	Colorize     *colorstring.Colorize
+	OutputColor  string
+	InfoColor    string
+	ErrorColor   string
+	WarnColor    string
+	Ui           cli.Ui
+	Quiet        bool
+	OutputFormat *output.OutputFormat
+}
+
+var UI ColorizeUi
+var hasColor bool
+
+func InitUI(quiet, color bool, outputFormat string) {
+	UI = ColorizeUi{
+		Colorize:   Colorize(),
+		ErrorColor: "[red]",
+		WarnColor:  "[yellow]",
+		InfoColor:  "[blue]",
+		Ui:         &cli.BasicUi{Writer: os.Stdout},
+		Quiet:      quiet,
+	}
+	var err error
+	hasColor = color
+	UI.OutputFormat, err = output.ParseOutputFormat(outputFormat)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Colorize initializes the ui colorization.
+func Colorize() *colorstring.Colorize {
+	return &colorstring.Colorize{
+		Colors:  colorstring.DefaultColors,
+		Disable: !hasColor,
+		Reset:   true,
+	}
 }
 
 func (u *ColorizeUi) Ask(query string) (string, error) {

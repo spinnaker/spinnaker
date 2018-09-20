@@ -12,49 +12,64 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package applications
+package application
 
 import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/command"
+	"github.com/spinnaker/spin/util"
+
+	"github.com/spf13/cobra"
 )
 
 const (
 	APP = "app"
 )
 
+func getRootCmdForTest() *cobra.Command {
+	rootCmd := &cobra.Command{}
+	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/.spin/config)")
+	rootCmd.PersistentFlags().String("gate-endpoint", "", "Gate (API server) endpoint. Default http://localhost:8084")
+	rootCmd.PersistentFlags().Bool("insecure", false, "Ignore Certificate Errors")
+	util.InitUI(false, false, "")
+	return rootCmd
+}
+
 func TestApplicationGet_basic(t *testing.T) {
 	ts := testGateApplicationGetSuccess()
 	defer ts.Close()
+	currentCmd := NewGetCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL, APP}
-	cmd := ApplicationGetCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret != 0 {
-		t.Fatalf("Command failed with: %d", ret)
+	args := []string{"application", "get", APP, "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
 func TestApplicationGet_flags(t *testing.T) {
 	ts := testGateApplicationGetSuccess()
 	defer ts.Close()
-
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL} // Missing positional arg.
-	cmd := ApplicationGetCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, flags are malformed.
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewGetCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+	args := []string{"application", "get", "--gate-endpoint", ts.URL} // Missing positional arg.
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil { // Success is actually failure here, flags are malformed.
+		t.Fatalf("Command failed with: %s", err)
 	}
 }
 
@@ -62,14 +77,17 @@ func TestApplicationGet_malformed(t *testing.T) {
 	ts := testGateApplicationGetMalformed()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL, APP}
-	cmd := ApplicationGetCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, return payload is malformed.
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewGetCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	args := []string{"application", "get", APP, "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil { // Success is actually failure here, return payload is malformed.
+		t.Fatalf("Command failed with: %d", err)
 	}
 }
 
@@ -77,14 +95,17 @@ func TestApplicationGet_fail(t *testing.T) {
 	ts := GateServerFail()
 	defer ts.Close()
 
-	meta := command.ApiMeta{}
-	args := []string{"--gate-endpoint", ts.URL, APP}
-	cmd := ApplicationGetCommand{
-		ApiMeta: meta,
-	}
-	ret := cmd.Run(args)
-	if ret == 0 { // Success is actually failure here, internal server error.
-		t.Fatalf("Command failed with: %d", ret)
+	currentCmd := NewGetCmd(applicationOptions{})
+	rootCmd := getRootCmdForTest()
+	appCmd := NewApplicationCmd(os.Stdout)
+	appCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(appCmd)
+
+	args := []string{"application", "get", APP, "--gate-endpoint=" + ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil { // Success is actually failure here, return payload is malformed.
+		t.Fatalf("Command failed with: %d", err)
 	}
 }
 
