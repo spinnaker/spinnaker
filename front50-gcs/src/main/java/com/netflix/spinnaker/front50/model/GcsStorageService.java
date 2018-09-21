@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -133,6 +134,7 @@ GcsStorageService implements StorageService {
                     String basePath,
                     String projectName,
                     Storage storage,
+                    int maxRetries,
                     TaskScheduler taskScheduler,
                     Registry registry) {
     this.bucketName = bucketName;
@@ -146,7 +148,7 @@ GcsStorageService implements StorageService {
     this.maxWaitInterval = -1L;
     this.retryIntervalBase = -1L;
     this.jitterMultiplier = -1L;
-    this.maxRetries = -1L;
+    this.maxRetries =  new Long(maxRetries);
     this.taskScheduler = taskScheduler;
 
     Id id = registry.createId("google.storage.invocation");
@@ -352,37 +354,42 @@ GcsStorageService implements StorageService {
   @Override
   public void deleteObject(ObjectType objectType, String objectKey) {
     String path = keyToPath(objectKey, objectType.group);
-    try {
-      timeExecute(deleteTimer, obj_api.delete(bucketName, path));
-      log.info("Deleted {} '{}'", value("group", objectType.group), value("key", objectKey));
-      writeLastModified(objectType.group);
-    } catch (HttpResponseException e) {
-      if (e.getStatusCode() == 404) {
-          return;
+    Closure timeExecuteClosure = new Closure(this, this) {
+      public Object doCall() throws Exception {
+        timeExecute(deleteTimer, obj_api.delete(bucketName, path));
+        return Closure.DONE;
       }
-      throw new IllegalStateException(e);
-    } catch (IOException ioex) {
-        log.error("Failed to delete path={}", value("path", path), ioex);
-      throw new IllegalStateException(ioex);
-    }
+    };
+    doRetry(timeExecuteClosure, "delete", objectType.group,
+            Arrays.asList(500), Arrays.asList(404));
+    log.info("Deleted {} '{}'", value("group", objectType.group), value("key", objectKey));
+    writeLastModified(objectType.group);
   }
 
   @Override
   public <T extends Timestamped> void storeObject(ObjectType objectType, String objectKey, T obj) {
     obj.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
 
+    byte[] bytes;
     String path = keyToPath(objectKey, objectType.group);
     try {
-      byte[] bytes = objectMapper.writeValueAsBytes(obj);
-      StorageObject object = new StorageObject().setBucket(bucketName).setName(path);
-      ByteArrayContent content = new ByteArrayContent("application/json", bytes);
-      timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
-      writeLastModified(objectType.group);
-      log.info("Wrote {} '{}'", value("group", objectType.group), value("key", objectKey));
-    } catch (IOException e) {
-      log.error("Update failed on path={}: {}", value("path", path), e.getMessage());
+      bytes = objectMapper.writeValueAsBytes(obj);
+    } catch(JsonProcessingException e) {
+      log.error("storeObject failed encoding object", e);
       throw new IllegalStateException(e);
     }
+    StorageObject object = new StorageObject().setBucket(bucketName).setName(path);
+    ByteArrayContent content = new ByteArrayContent("application/json", bytes);
+
+    Closure timeExecuteClosure = new Closure(this, this) {
+      public Object doCall() throws Exception {
+        timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
+        return Closure.DONE;
+      }
+    };
+    doRetry(timeExecuteClosure, "store", objectType.group);
+    writeLastModified(objectType.group);
+    log.info("Wrote {} '{}'", value("group", objectType.group), value("key", objectKey));
   }
 
   @Override
@@ -728,11 +735,19 @@ GcsStorageService implements StorageService {
   public void doRetry(Closure operation,
                       String action,
                       String resource) {
+      doRetry(operation, action, resource, Arrays.asList(500), null);
+  }
+
+  public void doRetry(Closure operation,
+                      String action,
+                      String resource,
+                      List errorCodes,
+                      List successCodes) {
       gcsSafeRetry.doRetry(operation,
                            resource,
                            null,
-                           Arrays.asList(500),
-                           null,
+                           errorCodes,
+                           successCodes,
                            maxWaitInterval,
                            retryIntervalBase,
                            jitterMultiplier,

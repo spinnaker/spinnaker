@@ -15,6 +15,9 @@
  */
 
 package com.netflix.spinnaker.front50.model
+
+import com.google.api.client.googleapis.testing.json.GoogleJsonResponseExceptionFactoryTesting
+import com.google.api.client.testing.json.MockJsonFactory
 import com.netflix.spinnaker.front50.model.application.Application;
 
 import com.netflix.spectator.api.Registry;
@@ -54,8 +57,12 @@ class GoogleStorageServiceSpec extends Specification {
   TaskScheduler mockScheduler = Mock(TaskScheduler)
 
   GcsStorageService makeGcs() {
+    return makeGcs(-1)
+  }
+
+  GcsStorageService makeGcs(int maxRetries) {
     return new GcsStorageService(BUCKET_NAME, BUCKET_LOCATION, BASE_PATH, PROJECT_NAME,
-                                 mockStorage, mockScheduler, registry)
+                                 mockStorage, maxRetries, mockScheduler, registry)
   }
 
   def "ensureBucketExists make bucket"() {
@@ -179,6 +186,137 @@ class GoogleStorageServiceSpec extends Specification {
         app.getName() == "TESTAPPLICATION"
         app.getLastModified() == storageObject.getUpdated().getValue()
 
+  }
+
+  def "deleteObject"() {
+    given:
+     Storage.Objects.Delete mockDeleteObject = Mock(Storage.Objects.Delete)
+     Storage.Objects.Patch mockUpdateObject = Mock(Storage.Objects.Patch)
+     StorageObject storageObject = new StorageObject()
+       .setBucket(BUCKET_NAME)
+       .setName(BASE_PATH + '/applications/deletekey/specification.json')
+
+     StorageObject timestampObject = new StorageObject()
+       .setBucket(BUCKET_NAME)
+       .setName(BASE_PATH + '/applications/last-modified')
+     long startTime = System.currentTimeMillis()
+
+    when:
+     gcs = makeGcs()
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+     gcs.deleteObject(ObjectType.APPLICATION, "deletekey")
+
+    then:
+     1 * mockObjectApi.delete(
+       storageObject.getBucket(), storageObject.getName()) >> mockDeleteObject
+     1 * mockDeleteObject.execute()
+
+    then:
+     1 * mockObjectApi.patch(
+       BUCKET_NAME,
+       timestampObject.getName(),
+       { StorageObject obj ->
+         obj.getBucket() == timestampObject.getBucket()
+         obj.getName() == timestampObject.getName()
+         obj.getUpdated().getValue() >= startTime
+         obj.getUpdated().getValue() <= System.currentTimeMillis()
+       }
+     ) >> mockUpdateObject
+
+     1 * mockUpdateObject.execute()
+     gcs.purgeOldVersionPaths.toArray() == [timestampObject.getName()]
+  }
+
+  def "deleteObjectNotFound"() {
+    given:
+     Storage.Objects.Delete mockDeleteObject = Mock(Storage.Objects.Delete)
+     Storage.Objects.Patch mockUpdateObject = Mock(Storage.Objects.Patch)
+     StorageObject storageObject = new StorageObject()
+       .setBucket(BUCKET_NAME)
+       .setName(BASE_PATH + '/applications/deletekey/specification.json')
+
+     StorageObject timestampObject = new StorageObject()
+       .setBucket(BUCKET_NAME)
+       .setName(BASE_PATH + '/applications/last-modified')
+     long startTime = System.currentTimeMillis()
+
+    when:
+     gcs = makeGcs(10)
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+     gcs.deleteObject(ObjectType.APPLICATION, "deletekey")
+
+    then:
+     1 * mockObjectApi.delete(
+       storageObject.getBucket(), storageObject.getName()) >> mockDeleteObject
+     1 * mockDeleteObject.execute() >> {
+       throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found")
+     }
+
+    then:
+     1 * mockObjectApi.patch(
+       BUCKET_NAME,
+       timestampObject.getName(),
+       { StorageObject obj ->
+         obj.getBucket() == timestampObject.getBucket()
+         obj.getName() == timestampObject.getName()
+         obj.getUpdated().getValue() >= startTime
+         obj.getUpdated().getValue() <= System.currentTimeMillis()
+       }
+     ) >> mockUpdateObject
+
+     1 * mockUpdateObject.execute()
+     gcs.purgeOldVersionPaths.toArray() == [timestampObject.getName()]
+  }
+
+  def "deleteObjectWithRetry"() {
+    given:
+     Storage.Objects.Delete mockDeleteObject = Mock(Storage.Objects.Delete)
+     Storage.Objects.Patch mockUpdateObject = Mock(Storage.Objects.Patch)
+     StorageObject storageObject = new StorageObject()
+       .setBucket(BUCKET_NAME)
+       .setName(BASE_PATH + '/applications/deletekey/specification.json')
+
+     StorageObject timestampObject = new StorageObject()
+       .setBucket(BUCKET_NAME)
+       .setName(BASE_PATH + '/applications/last-modified')
+     long startTime = System.currentTimeMillis()
+
+    when:
+     gcs = makeGcs(10)
+    then:
+     1 * mockStorage.objects() >> mockObjectApi
+
+    when:
+     gcs.deleteObject(ObjectType.APPLICATION, "deletekey")
+
+    then:
+     2 * mockObjectApi.delete(
+       storageObject.getBucket(), storageObject.getName()) >> mockDeleteObject
+     1 * mockDeleteObject.execute() >> {
+       throw new SocketTimeoutException()
+     }
+     1 * mockDeleteObject.execute()
+
+    then:
+     1 * mockObjectApi.patch(
+       BUCKET_NAME,
+       timestampObject.getName(),
+       { StorageObject obj ->
+         obj.getBucket() == timestampObject.getBucket()
+         obj.getName() == timestampObject.getName()
+         obj.getUpdated().getValue() >= startTime
+         obj.getUpdated().getValue() <= System.currentTimeMillis()
+       }
+     ) >> mockUpdateObject
+
+     1 * mockUpdateObject.execute()
+     gcs.purgeOldVersionPaths.toArray() == [timestampObject.getName()]
   }
 
   def "storeObject"() {
