@@ -55,7 +55,7 @@ class AppengineConfigurationProperties {
         def metadataService = createMetadataService()
 
         try {
-          this.project = responseToString(metadataService.getProject())
+          this.project = this.project ?: responseToString(metadataService.getProject())
           this.serviceAccountEmail = responseToString(metadataService.getApplicationDefaultServiceAccountEmail())
         } catch (e) {
           throw new RuntimeException("Could not find application default credentials for App Engine.", e)
