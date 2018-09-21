@@ -70,12 +70,19 @@ export class ExpectedArtifactService {
   }
 
   public static sourcesForPipelineStage(
-    pipeline: IPipeline,
+    pipelineGetter: () => IPipeline,
     stage: IStage,
   ): Array<IArtifactSource<IPipeline | IStage>> {
     type ArtifactSource = IArtifactSource<IPipeline | IStage>;
-    const sources: ArtifactSource[] = [{ source: pipeline, label: 'Pipeline Trigger' }];
-    PipelineConfigService.getAllUpstreamDependencies(pipeline, stage)
+    const sources: ArtifactSource[] = [
+      {
+        get source() {
+          return pipelineGetter();
+        },
+        label: 'Pipeline Trigger',
+      },
+    ];
+    PipelineConfigService.getAllUpstreamDependencies(pipelineGetter(), stage)
       .filter(s => Registry.pipeline.getStageConfig(s).producesArtifacts)
       .map(s => ({ source: s, label: 'Stage (' + s.name + ')' }))
       .forEach(s => sources.push(s));

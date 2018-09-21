@@ -20,7 +20,10 @@ export class NgManifestArtifactDelegate
   implements IExpectedArtifactSelectorViewControllerDelegate {
   constructor(protected $scope: IScope, private excludedArtifactTypes = defaultExcludedArtifactTypes) {
     super($scope);
-    this.sources = ExpectedArtifactService.sourcesForPipelineStage(this.$scope.$parent.pipeline, this.$scope.stage);
+    this.sources = ExpectedArtifactService.sourcesForPipelineStage(
+      () => this.$scope.$parent.pipeline,
+      this.$scope.stage,
+    );
     this.kinds = Registry.pipeline
       .getArtifactKinds()
       .filter((a: IArtifactKindConfig) => a.isMatch)

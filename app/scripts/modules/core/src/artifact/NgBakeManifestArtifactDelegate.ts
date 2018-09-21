@@ -20,7 +20,10 @@ export class NgBakeManifestArtifactDelegate
   constructor(private artifact: { $scope: IScope; id: string; account: string }) {
     super(artifact.$scope);
     this.refreshExpectedArtifacts();
-    this.sources = ExpectedArtifactService.sourcesForPipelineStage(this.$scope.$parent.pipeline, this.$scope.stage);
+    this.sources = ExpectedArtifactService.sourcesForPipelineStage(
+      () => this.$scope.$parent.pipeline,
+      this.$scope.stage,
+    );
     this.kinds = Registry.pipeline.getArtifactKinds().filter(a => a.isMatch);
   }
 

@@ -26,7 +26,7 @@ export class NgGCEImageArtifactDelegate
   constructor(protected $scope: IScope) {
     super($scope);
     const { viewState } = $scope.command;
-    this.sources = ExpectedArtifactService.sourcesForPipelineStage(viewState.pipeline, viewState.stage);
+    this.sources = ExpectedArtifactService.sourcesForPipelineStage(() => viewState.pipeline, viewState.stage);
     this.refreshExpectedArtifacts();
   }
 
