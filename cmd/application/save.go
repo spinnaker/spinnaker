@@ -15,6 +15,7 @@
 package application
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -72,7 +73,6 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 	// TODO(jacobkiefer): Should we check for an existing application of the same name?
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 	initialApp, err := util.ParseJsonFromFileOrStdin(options.applicationFile)
@@ -96,14 +96,12 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 			app["email"] = options.ownerEmail
 		}
 		// TODO(jacobkiefer): Add validation for valid cloudProviders and well-formed emails.
-		if app["cloudProviders"] != nil && app["name"] != "" && app["email"] != "" {
-			util.UI.Error("Required application parameter missing, exiting...")
-			return err
+		if !(app["cloudProviders"] != nil && app["name"] != "" && app["email"] != "") {
+			return errors.New("Required application parameter missing, exiting...")
 		}
 	} else {
 		if options.applicationName == "" || options.ownerEmail == "" || len(*options.cloudProviders) == 0 {
-			util.UI.Error("Required application parameter missing, exiting...")
-			return err
+			return errors.New("Required application parameter missing, exiting...")
 		}
 		app = map[string]interface{}{
 			"cloudProviders": options.cloudProviders,
@@ -121,7 +119,6 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 
 	ref, _, err := gateClient.TaskControllerApi.TaskUsingPOST1(gateClient.Context, createAppTask)
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
@@ -140,16 +137,13 @@ func saveApplication(cmd *cobra.Command, options SaveOptions) error {
 	}
 
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		util.UI.Error(fmt.Sprintf("Encountered an error saving application, status code: %d\n", resp.StatusCode))
-		return err
+		return fmt.Errorf("Encountered an error saving application, status code: %d\n", resp.StatusCode)
 	}
 	if !taskSucceeded(task) {
-		util.UI.Ui.Error(fmt.Sprintf("Encountered an error saving application, task output was: %v\n", task))
-		return err
+		return fmt.Errorf("Encountered an error saving application, task output was: %v\n", task)
 	}
 
 	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Application save succeeded")))

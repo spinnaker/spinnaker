@@ -70,7 +70,6 @@ func NewDeleteCmd(appOptions pipelineOptions) *cobra.Command {
 func deletePipeline(cmd *cobra.Command, options DeleteOptions) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
@@ -80,13 +79,11 @@ func deletePipeline(cmd *cobra.Command, options DeleteOptions) error {
 	resp, err := gateClient.PipelineControllerApi.DeletePipelineUsingDELETE(gateClient.Context, options.application, options.name)
 
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		util.UI.Error(fmt.Sprintf("Encountered an error deleting pipeline, status code: %d\n", resp.StatusCode))
-		return err
+		return fmt.Errorf("Encountered an error deleting pipeline, status code: %d\n", resp.StatusCode)
 	}
 
 	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline deleted")))

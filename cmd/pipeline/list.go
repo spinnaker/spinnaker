@@ -67,7 +67,6 @@ func NewListCmd(appOptions pipelineOptions) *cobra.Command {
 func listPipeline(cmd *cobra.Command, options ListOptions) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
@@ -78,15 +77,13 @@ func listPipeline(cmd *cobra.Command, options ListOptions) error {
 	successPayload, resp, err := gateClient.ApplicationControllerApi.GetPipelineConfigsForApplicationUsingGET(gateClient.Context, options.application)
 
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		util.UI.Error(fmt.Sprintf("Encountered an error listing pipelines for application %s, status code: %d\n",
+		return fmt.Errorf("Encountered an error listing pipelines for application %s, status code: %d\n",
 			options.application,
-			resp.StatusCode))
-		return err
+			resp.StatusCode)
 	}
 
 	util.UI.JsonOutput(successPayload, util.UI.OutputFormat)

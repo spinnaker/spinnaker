@@ -53,7 +53,6 @@ func NewListCmd(appOptions applicationOptions) *cobra.Command {
 func listApplication(cmd *cobra.Command, args []string) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Ui.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 	// TODO(jacobkiefer): Turns out using the type 'HashMap' doesn't help much in the CLI
@@ -62,13 +61,11 @@ func listApplication(cmd *cobra.Command, args []string) error {
 	// In the cases where we use 'HashMap' currently.
 	appList, resp, err := gateClient.ApplicationControllerApi.GetAllApplicationsUsingGET(gateClient.Context, map[string]interface{}{})
 	if err != nil {
-		util.UI.Ui.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		util.UI.Ui.Error(fmt.Sprintf("Encountered an error saving application, status code: %d\n", resp.StatusCode))
-		return err
+		return fmt.Errorf("Encountered an error saving application, status code: %d\n", resp.StatusCode)
 	}
 
 	util.UI.JsonOutput(appList, util.UI.OutputFormat)

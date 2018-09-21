@@ -74,12 +74,10 @@ func NewExecuteCmd(appOptions pipelineOptions) *cobra.Command {
 func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	if options.application == "" || options.name == "" {
-		util.UI.Error("One of required parameters 'application' or 'name' not set.\n")
 		return errors.New("one of required parameters 'application' or 'name' not set")
 	}
 	parameters := map[string]interface{}{}
@@ -89,8 +87,7 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		parameters, err = nil, nil
 	}
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("Could not parse supplied pipeline parameters: %v.\n", err))
-		return err
+		return fmt.Errorf("Could not parse supplied pipeline parameters: %v.\n", err)
 	}
 	trigger := map[string]interface{}{"type": "manual"}
 	if len(parameters) > 0 {
@@ -103,13 +100,11 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		map[string]interface{}{"trigger": trigger})
 
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("Execute pipeline failed with response: %v and error: %s\n", resp, err))
-		return err
+		return fmt.Errorf("Execute pipeline failed with response: %v and error: %s\n", resp, err)
 	}
 
 	if resp.StatusCode != http.StatusAccepted {
-		util.UI.Error(fmt.Sprintf("Encountered an error executing pipeline, status code: %d\n", resp.StatusCode))
-		return err
+		return fmt.Errorf("Encountered an error executing pipeline, status code: %d\n", resp.StatusCode)
 	}
 
 	executions := make([]interface{}, 0)
@@ -126,16 +121,13 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		time.Sleep(time.Duration(attempts*attempts) * time.Second)
 	}
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		util.UI.Error(fmt.Sprintf("Encountered an error querying pipeline execution, status code: %d\n", resp.StatusCode))
-		return err
+		return fmt.Errorf("Encountered an error querying pipeline execution, status code: %d\n", resp.StatusCode)
 	}
 	if len(executions) == 0 {
-		util.UI.Error(fmt.Sprintf("Unable to start any executions, server response was: %v", resp))
-		return err
+		return fmt.Errorf("Unable to start any executions, server response was: %v", resp)
 	}
 
 	refIds := make([]string, 0)

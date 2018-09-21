@@ -69,12 +69,10 @@ func NewGetCmd(appOptions pipelineOptions) *cobra.Command {
 func getPipeline(cmd *cobra.Command, options GetOptions) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	if options.application == "" || options.name == "" {
-		util.UI.Error("One of required parameters 'application' or 'name' not set.\n")
 		return errors.New("one of required parameters 'application' or 'name' not set")
 	}
 
@@ -83,16 +81,14 @@ func getPipeline(cmd *cobra.Command, options GetOptions) error {
 		options.name)
 
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		util.UI.Error(fmt.Sprintf("Encountered an error getting pipeline in pipeline %s with name %s, status code: %d\n",
+		return fmt.Errorf("Encountered an error getting pipeline in pipeline %s with name %s, status code: %d\n",
 			options.application,
 			options.name,
-			resp.StatusCode))
-		return err
+			resp.StatusCode)
 	}
 
 	util.UI.JsonOutput(successPayload, util.UI.OutputFormat)

@@ -57,7 +57,6 @@ func NewGetCmd(appOptions applicationOptions) *cobra.Command {
 func getApplication(cmd *cobra.Command, args []string) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 	if len(args) == 0 || args[0] == "" {
@@ -71,16 +70,13 @@ func getApplication(cmd *cobra.Command, args []string) error {
 	app, resp, err := gateClient.ApplicationControllerApi.GetApplicationUsingGET(gateClient.Context, applicationName, map[string]interface{}{})
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			util.UI.Error(fmt.Sprintf("Application '%s' not found\n", applicationName))
-			return err
+			return fmt.Errorf("Application '%s' not found\n", applicationName)
 		} else if resp.StatusCode != http.StatusOK {
-			util.UI.Error(fmt.Sprintf("Encountered an error getting application, status code: %d\n", resp.StatusCode))
-			return err
+			return fmt.Errorf("Encountered an error getting application, status code: %d\n", resp.StatusCode)
 		}
 	}
 
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 

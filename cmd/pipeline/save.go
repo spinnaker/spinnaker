@@ -15,7 +15,6 @@
 package pipeline
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -67,13 +66,11 @@ func NewSaveCmd(appOptions pipelineOptions) *cobra.Command {
 func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	pipelineJson, err := util.ParseJsonFromFileOrStdin(options.pipelineFile)
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 	valid := true
@@ -92,20 +89,17 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 		valid = false
 	}
 	if !valid {
-		util.UI.Error(fmt.Sprintf("Submitted pipeline is invalid: %s\n", pipelineJson))
-		return errors.New(fmt.Sprintf("Submitted pipeline is invalid: %s\n", pipelineJson))
+		return fmt.Errorf("Submitted pipeline is invalid: %s\n", pipelineJson)
 	}
 
 	resp, err := gateClient.PipelineControllerApi.SavePipelineUsingPOST(gateClient.Context, pipelineJson)
 
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		util.UI.Error(fmt.Sprintf("Encountered an error saving pipeline, status code: %d\n", resp.StatusCode))
-		return err
+		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", resp.StatusCode)
 	}
 
 	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline save succeeded")))

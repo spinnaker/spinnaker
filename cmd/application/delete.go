@@ -49,7 +49,6 @@ func NewDeleteCmd(appOptions applicationOptions) *cobra.Command {
 func deleteApplication(cmd *cobra.Command, args []string) error {
 	gateClient, err := gateclient.NewGateClient(cmd.InheritedFlags())
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
@@ -73,13 +72,11 @@ func deleteApplication(cmd *cobra.Command, args []string) error {
 	_, resp, err := gateClient.TaskControllerApi.TaskUsingPOST1(gateClient.Context, createAppTask)
 
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		util.UI.Error(fmt.Sprintf("Encountered an error deleting application, status code: %d\n", resp.StatusCode))
-		return err
+		return fmt.Errorf("Encountered an error deleting application, status code: %d\n", resp.StatusCode)
 	}
 
 	util.UI.Output(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Application deleted")))
