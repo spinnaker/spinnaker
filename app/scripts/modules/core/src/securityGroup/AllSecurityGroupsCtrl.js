@@ -79,25 +79,33 @@ module.exports = angular
               app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account,
             defaultRegion =
               app.defaultRegions[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.region;
-          $uibModal.open({
-            templateUrl: provider.createSecurityGroupTemplateUrl,
-            controller: `${provider.createSecurityGroupController} as ctrl`,
-            size: 'lg',
-            resolve: {
-              securityGroup: () => {
-                return {
-                  credentials: defaultCredentials,
-                  subnet: 'none',
-                  regions: [defaultRegion],
-                  vpcId: null,
-                  securityGroupIngress: [],
-                };
+          if (provider.CreateSecurityGroupModal) {
+            provider.CreateSecurityGroupModal.show({
+              credentials: defaultCredentials,
+              application: $scope.application,
+              isNew: true,
+            });
+          } else {
+            $uibModal.open({
+              templateUrl: provider.createSecurityGroupTemplateUrl,
+              controller: `${provider.createSecurityGroupController} as ctrl`,
+              size: 'lg',
+              resolve: {
+                securityGroup: () => {
+                  return {
+                    credentials: defaultCredentials,
+                    subnet: 'none',
+                    regions: [defaultRegion],
+                    vpcId: null,
+                    securityGroupIngress: [],
+                  };
+                },
+                application: () => {
+                  return app;
+                },
               },
-              application: () => {
-                return app;
-              },
-            },
-          });
+            });
+          }
         });
       });
     };

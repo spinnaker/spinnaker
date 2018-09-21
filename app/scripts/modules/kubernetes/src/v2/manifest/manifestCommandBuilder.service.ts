@@ -1,8 +1,11 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, has } from 'lodash';
 import { $q } from 'ngimport';
 import { IPromise } from 'angular';
+import { load } from 'js-yaml';
 
 import { AccountService, Application, IMoniker, IArtifactAccount, IAccountDetails } from '@spinnaker/core';
+
+const LAST_APPLIED_CONFIGURATION = 'kubectl.kubernetes.io/last-applied-configuration';
 
 export interface IKubernetesManifestCommandData {
   command: IKubernetesManifestCommand;
@@ -57,6 +60,10 @@ export class KubernetesManifestCommandBuilder {
     sourceMoniker?: IMoniker,
     sourceAccount?: string,
   ): IPromise<IKubernetesManifestCommandData> {
+    if (sourceManifest != null && has(sourceManifest, ['metadata', 'annotations', LAST_APPLIED_CONFIGURATION])) {
+      sourceManifest = load(sourceManifest.metadata.annotations[LAST_APPLIED_CONFIGURATION]);
+    }
+
     const dataToFetch = {
       accounts: AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
       artifactAccounts: AccountService.getArtifactAccounts(),

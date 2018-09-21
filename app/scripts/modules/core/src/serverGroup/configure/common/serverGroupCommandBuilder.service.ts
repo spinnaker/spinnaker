@@ -141,8 +141,8 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
 }
 
 export class ServerGroupCommandBuilderService {
-  private getDelegate(provider: string): any {
-    return this.providerServiceDelegate.getDelegate(provider, 'serverGroup.commandBuilder');
+  private getDelegate(provider: string, skin?: string): any {
+    return this.providerServiceDelegate.getDelegate(provider, 'serverGroup.commandBuilder', skin);
   }
 
   constructor(private providerServiceDelegate: ProviderServiceDelegate) {
@@ -153,8 +153,9 @@ export class ServerGroupCommandBuilderService {
     application: Application,
     provider: string,
     options: IServerGroupCommandBuilderOptions,
+    skin?: string,
   ): any {
-    return this.getDelegate(provider).buildNewServerGroupCommand(application, options);
+    return this.getDelegate(provider, skin).buildNewServerGroupCommand(application, options);
   }
 
   public buildServerGroupCommandFromExisting(application: Application, serverGroup: any, mode: string): any {

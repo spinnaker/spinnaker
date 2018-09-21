@@ -5,7 +5,9 @@ import { StateService } from '@uirouter/angularjs';
 import { Application, ILoadBalancer, IManifest } from '@spinnaker/core';
 
 import { IKubernetesLoadBalancer } from './IKubernetesLoadBalancer';
-import { KubernetesManifestService } from '../../manifest/manifest.service';
+import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
+import { KubernetesManifestCommandBuilder } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
+import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
 
 interface ILoadBalancerFromStateParams {
   accountId: string;
@@ -66,17 +68,13 @@ class KubernetesLoadBalancerDetailsController implements IController {
   }
 
   public editLoadBalancer(): void {
-    this.$uibModal.open({
-      templateUrl: require('kubernetes/v2/manifest/wizard/manifestWizard.html'),
-      size: 'lg',
-      controller: 'kubernetesV2ManifestEditCtrl',
-      controllerAs: 'ctrl',
-      resolve: {
-        sourceManifest: () => this.loadBalancer.manifest,
-        sourceMoniker: () => this.loadBalancer.moniker,
-        application: () => this.app,
-        account: () => this.loadBalancer.account,
-      },
+    KubernetesManifestCommandBuilder.buildNewManifestCommand(
+      this.app,
+      this.loadBalancer.manifest,
+      this.loadBalancer.moniker,
+      this.loadBalancer.account,
+    ).then(builtCommand => {
+      ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
     });
   }
 

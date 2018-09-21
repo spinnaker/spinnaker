@@ -1,6 +1,9 @@
 import { IComponentOptions, IController, module } from 'angular';
 
-import { IKubernetesManifestCommand, IKubernetesManifestCommandMetadata } from '../manifestCommandBuilder.service';
+import {
+  IKubernetesManifestCommand,
+  IKubernetesManifestCommandMetadata,
+} from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 class KubernetesManifestBasicSettingsCtrl implements IController {
   public command: IKubernetesManifestCommand;

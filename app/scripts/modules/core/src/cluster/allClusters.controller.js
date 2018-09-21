@@ -104,14 +104,21 @@ module.exports = angular
 
     this.createServerGroup = function createServerGroup() {
       providerSelectionService.selectProvider(app, 'serverGroup').then(function(provider) {
-        skinSelectionService.selectSkin(provider).then(function(selectedVersion) {
-          serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider).then(command => {
-            let providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup', selectedVersion);
+        skinSelectionService.selectSkin(provider).then(function(selected) {
+          serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null, selected).then(command => {
+            let providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup', selected);
             const title = 'Create New Server Group';
             const serverGroup = null;
             if (providerConfig.CloneServerGroupModal) {
               // React
-              providerConfig.CloneServerGroupModal.show({ title, application: app, serverGroup, command, provider });
+              providerConfig.CloneServerGroupModal.show({
+                title,
+                application: app,
+                serverGroup,
+                command,
+                provider,
+                isNew: true,
+              });
             } else {
               // angular
               $uibModal.open({

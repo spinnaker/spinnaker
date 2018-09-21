@@ -34,7 +34,13 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
         const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedSkin);
 
         if (provider.CreateLoadBalancerModal) {
-          provider.CreateLoadBalancerModal.show({ app: app, forPipelineConfig: false, loadBalancer: null });
+          provider.CreateLoadBalancerModal.show({
+            app: app,
+            application: app,
+            forPipelineConfig: false,
+            loadBalancer: null,
+            isNew: true,
+          });
         } else {
           // angular
           ModalInjector.modalService

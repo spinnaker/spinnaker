@@ -11,7 +11,9 @@ import {
 } from '@spinnaker/core';
 
 import { IKubernetesServerGroup } from './IKubernetesServerGroup';
-import { KubernetesManifestService } from '../../manifest/manifest.service';
+import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
+import { KubernetesManifestCommandBuilder } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
+import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
 
 interface IServerGroupFromStateParams {
   accountId: string;
@@ -108,17 +110,13 @@ class KubernetesServerGroupDetailsController implements IController {
   }
 
   public editServerGroup(): void {
-    this.$uibModal.open({
-      templateUrl: require('kubernetes/v2/manifest/wizard/manifestWizard.html'),
-      size: 'lg',
-      controller: 'kubernetesV2ManifestEditCtrl',
-      controllerAs: 'ctrl',
-      resolve: {
-        sourceManifest: () => this.serverGroup.manifest,
-        sourceMoniker: () => this.serverGroup.moniker,
-        application: () => this.app,
-        account: () => this.serverGroup.account,
-      },
+    KubernetesManifestCommandBuilder.buildNewManifestCommand(
+      this.app,
+      this.serverGroup.manifest,
+      this.serverGroup.moniker,
+      this.serverGroup.account,
+    ).then(builtCommand => {
+      ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
     });
   }
 

@@ -5,6 +5,8 @@ import { StateService } from '@uirouter/angularjs';
 import { Application, ISecurityGroupDetail, SECURITY_GROUP_READER, SecurityGroupReader } from '@spinnaker/core';
 
 import { IKubernetesSecurityGroup } from './IKubernetesSecurityGroup';
+import { KubernetesManifestCommandBuilder } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
+import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
 
 interface ISecurityGroupFromStateParams {
   accountId: string;
@@ -48,17 +50,13 @@ class KubernetesSecurityGroupDetailsController implements IController {
   }
 
   public editSecurityGroup(): void {
-    this.$uibModal.open({
-      templateUrl: require('kubernetes/v2/manifest/wizard/manifestWizard.html'),
-      size: 'lg',
-      controller: 'kubernetesV2ManifestEditCtrl',
-      controllerAs: 'ctrl',
-      resolve: {
-        sourceManifest: () => this.securityGroup.manifest,
-        sourceMoniker: () => this.securityGroup.moniker,
-        application: () => this.app,
-        account: () => this.securityGroupFromParams.accountId,
-      },
+    KubernetesManifestCommandBuilder.buildNewManifestCommand(
+      this.app,
+      this.securityGroup.manifest,
+      this.securityGroup.moniker,
+      this.securityGroupFromParams.accountId,
+    ).then(builtCommand => {
+      ManifestWizard.show({ title: 'Edit Manifest', application: this.app, command: builtCommand });
     });
   }
 
