@@ -1,6 +1,7 @@
 'use strict';
 
 const angular = require('angular');
+import { has } from 'lodash';
 import { AccountService } from 'core/account/AccountService';
 
 module.exports = angular
@@ -28,30 +29,45 @@ module.exports = angular
   .controller('AccountSelectFieldCtrl', function($scope, $q) {
     this.mergedAccounts = [];
 
-    let groupAccounts = accounts => {
+    const isExpression = account => !!account && account.includes('${');
+
+    const groupAccounts = accounts => {
       if (!accounts || !accounts.length) {
         return;
       }
-      let accountsAreObjects = accounts[0].name;
+      // TODO(dpeach): I don't see any usages of the multiselect option in Deck,
+      // so I'm not handling cases where users select a list of accounts.
+      if (
+        !this.multiselect &&
+        has(this.component, this.field) &&
+        !Array.isArray(this.component[this.field]) &&
+        isExpression(this.component[this.field])
+      ) {
+        this.accountContainsExpression = true;
+        return;
+      }
+      this.accountContainsExpression = false;
+
+      const accountsAreObjects = accounts[0].name;
       let getAccountDetails = this.provider
         ? AccountService.getAllAccountDetailsForProvider(this.provider)
         : $q.when([]);
       if (!this.provider && accountsAreObjects) {
-        let providers = _.uniq(_.map(accounts, 'type'));
+        const providers = _.uniq(_.map(accounts, 'type'));
         getAccountDetails = $q
           .all(providers.map(provider => AccountService.getAllAccountDetailsForProvider(provider)))
           .then(details => _.flatten(details));
       }
 
       getAccountDetails.then(details => {
-        let accountNames = accountsAreObjects ? _.map(accounts, 'name') : accounts;
+        const accountNames = accountsAreObjects ? _.map(accounts, 'name') : accounts;
         this.mergedAccounts = accountNames;
         if (accountNames) {
           this.primaryAccounts = accountNames.sort();
         }
         if (accountNames && accountNames.length && details.length) {
           this.primaryAccounts = accountNames
-            .filter(function(account) {
+            .filter(account => {
               return details.some(detail => detail.name === account && detail.primaryAccount);
             })
             .sort();
@@ -60,8 +76,8 @@ module.exports = angular
         }
 
         if (this.component) {
-          var mergedAccounts = this.mergedAccounts || [];
-          var component = _.flatten([this.component[this.field]]);
+          const mergedAccounts = this.mergedAccounts || [];
+          const component = _.flatten([this.component[this.field]]);
 
           if (_.intersection(mergedAccounts, component).length !== component.length) {
             this.component[this.field] = null;

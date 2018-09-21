@@ -143,4 +143,23 @@ describe('Directives: accountSelectField', function() {
 
     expect(ctrl.component[ctrl.field]).toBeNull();
   });
+
+  it('does not unselect account if account is an expression', () => {
+    ctrl.accounts = ['prod', 'test'];
+    ctrl.component = { credentials: '${parameters.account}' };
+    ctrl.field = 'credentials';
+
+    scope.$digest();
+    expect(ctrl.component[ctrl.field]).toEqual('${parameters.account}');
+  });
+
+  it('sets flag on ctrl if account is an expression', () => {
+    ctrl.accounts = ['prod', 'test'];
+    ctrl.component = { credentials: '${parameters.account}' };
+    ctrl.field = 'credentials';
+
+    expect(ctrl.accountContainsExpression).toBeFalsy();
+    scope.$digest();
+    expect(ctrl.accountContainsExpression).toBe(true);
+  });
 });
