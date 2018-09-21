@@ -145,6 +145,14 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
         String[] elements = line.split("'");
         if (elements.length > 2) {
           bake.setImage_name(elements[1]);
+          String ocidPart = elements[2].trim();
+          if (ocidPart.startsWith("(OCID:")) {
+            String ocid = ocidPart.substring(6).trim();
+            String[] subElements = ocid.split("\\)");
+            if (subElements.length > 0) {
+              bake.setAmi(subElements[0]);
+            }
+          }
         }
       }
     }

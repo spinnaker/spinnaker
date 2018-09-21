@@ -134,14 +134,14 @@ class OCIBakeHandlerSpec extends Specification implements TestDefaults {
     then:
     with(bake) {
       id == bakeId
-      !ami
+      ami == expectedImageId
       image_name == expectedImageName
     }
 
     where:
-    logContainingImageName | expectedImageName
-    true                   | "gzRedis"
-    false                  | null
+    logContainingImageName | expectedImageName | expectedImageId
+    true                   | "gzRedis"         | "ocid1.image.oc1.iad.aaaaaaaadf4m5nwa4lfm4eiakbxfyxpyt7ttvhx5srn5ptxgbdeh3res3aoa"
+    false                  | null              | null
   }
 
 
