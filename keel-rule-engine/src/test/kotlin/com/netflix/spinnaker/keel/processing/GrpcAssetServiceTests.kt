@@ -138,11 +138,11 @@ internal class GrpcAssetServiceTests {
 
 fun Assertion.Builder<Asset>.isIdenticalTo(other: Asset) =
   compose("is identical to %s", other) {
-    map(Asset::id).isEqualTo(other.id)
-    map(Asset::kind).isEqualTo(other.kind)
-    map(Asset::apiVersion).isEqualTo(other.apiVersion)
-    map(Asset::dependsOn).isEqualTo(other.dependsOn)
-    map(Asset::spec).contentEquals(other.spec)
+    chain(Asset::id).isEqualTo(other.id)
+    chain(Asset::kind).isEqualTo(other.kind)
+    chain(Asset::apiVersion).isEqualTo(other.apiVersion)
+    chain(Asset::dependsOn).isEqualTo(other.dependsOn)
+    chain(Asset::spec).contentEquals(other.spec)
   } then {
     if (allPassed) pass() else fail()
   }

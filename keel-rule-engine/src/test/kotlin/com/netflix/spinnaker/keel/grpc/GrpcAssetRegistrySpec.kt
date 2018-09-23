@@ -32,6 +32,7 @@ import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.map
 
 internal object GrpcAssetRegistrySpec : Spek({
 
@@ -64,7 +65,7 @@ internal object GrpcAssetRegistrySpec : Spek({
         grpc.withChannel { stub ->
           val response = stub.managedAssets(ManagedAssetsRequest.getDefaultInstance())
 
-          expectThat(response).map { it.hasNext() }.isFalse()
+          expectThat(response).chain { it.hasNext() }.isFalse()
         }
       }
     }
@@ -164,10 +165,10 @@ internal object GrpcAssetRegistrySpec : Spek({
                   .hasSize(1)
                   .first()
                   .and {
-                    map { it.status }.isEqualTo(INSERTED)
+                    chain { it.status }.isEqualTo(INSERTED)
                   }
                   .and {
-                    map { it.id.value }.isEqualTo(asset.id.value)
+                    chain { it.id.value }.isEqualTo(asset.id.value)
                   }
               }
           }
@@ -215,14 +216,12 @@ internal object GrpcAssetRegistrySpec : Spek({
                 expectThat(response.resultList)
                   .hasSize(3)
                   .and {
-                    map {
-                      it.map { it.status }
-                    }.all { isEqualTo(INSERTED) }
+                    map { it.status }
+                      .all { isEqualTo(INSERTED) }
                   }
                   .and {
-                    map {
-                      it.map { it.id.value }
-                    }.containsExactlyInAnyOrder(asset.id.value, partial1.id.value, partial2.id.value)
+                    map { it.id.value }
+                      .containsExactlyInAnyOrder(asset.id.value, partial1.id.value, partial2.id.value)
                   }
               }
           }
@@ -239,7 +238,7 @@ internal object GrpcAssetRegistrySpec : Spek({
 })
 
 private val Assertion.Builder<Iterator<ManagedAssetResponse>>.assets: Assertion.Builder<Collection<AssetBase>>
-  get() = map {
+  get() = chain {
     it.asSequence().mapNotNull {
       when {
         it.hasAsset() -> it.asset.fromProto()

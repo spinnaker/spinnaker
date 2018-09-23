@@ -98,8 +98,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           (assets + rootAsset).forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                map { it.first }.isEqualTo(Ok)
-                map { it.second }.isEqualTo(clock.instant())
+                chain { it.first }.isEqualTo(Ok)
+                chain { it.second }.isEqualTo(clock.instant())
               }
             }
           }
@@ -137,8 +137,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           validAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                map { it.first }.isEqualTo(Ok)
-                map { it.second }.isEqualTo(clock.instant())
+                chain { it.first }.isEqualTo(Ok)
+                chain { it.second }.isEqualTo(clock.instant())
               }
             }
           }
@@ -148,8 +148,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           invalidAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                map { it.first }.isEqualTo(Diff)
-                map { it.second }.isEqualTo(clock.instant())
+                chain { it.first }.isEqualTo(Diff)
+                chain { it.second }.isEqualTo(clock.instant())
               }
             }
           }
@@ -186,8 +186,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           validAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                map { it.first }.isEqualTo(Ok)
-                map { it.second }.isEqualTo(clock.instant())
+                chain { it.first }.isEqualTo(Ok)
+                chain { it.second }.isEqualTo(clock.instant())
               }
             }
           }
@@ -197,8 +197,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           missingAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                map { it.first }.isEqualTo(Missing)
-                map { it.second }.isEqualTo(clock.instant())
+                chain { it.first }.isEqualTo(Missing)
+                chain { it.second }.isEqualTo(clock.instant())
               }
             }
           }

@@ -35,8 +35,8 @@ internal object TestAssetPluginSpec : Spek({
         val response = stub.current(request)
 
         expectThat(response) {
-          map { it.desired }.isEqualTo(request.asset)
-          map { it.current }.isEqualTo(request.asset)
+          chain { it.desired }.isEqualTo(request.asset)
+          chain { it.current }.isEqualTo(request.asset)
         }
       }
     }

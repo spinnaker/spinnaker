@@ -170,14 +170,14 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
 
       it("returns the security group") {
         expectThat(response) {
-          map { it.hasCurrent() }.isTrue()
-          map { it.current.spec }
+          chain { it.hasCurrent() }.isTrue()
+          chain { it.current.spec }
             .unpacksTo<SecurityGroup>()
             .unpack<SecurityGroup>()
             .isEqualTo(securityGroup)
 
-          map { it.hasDesired() }.isTrue()
-          map { it.desired.spec }
+          chain { it.hasDesired() }.isTrue()
+          chain { it.desired.spec }
             .unpacksTo<SecurityGroup>()
             .unpack<SecurityGroup>()
             .isEqualTo(securityGroup)
@@ -325,7 +325,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
 })
 
 private val Assertion.Builder<OrchestrationRequest>.application: Assertion.Builder<String>
-  get() = map(OrchestrationRequest::application)
+  get() = chain(OrchestrationRequest::application)
 
 private val Assertion.Builder<OrchestrationRequest>.job: Assertion.Builder<List<Job>>
-  get() = map(OrchestrationRequest::job)
+  get() = chain(OrchestrationRequest::job)

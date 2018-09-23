@@ -54,8 +54,8 @@ object MemoryCloudDriverCacheTest {
 
     subject.securityGroupSummaryBy("prod", "us-east-1", "sg-2").let { securityGroupSummary ->
       expectThat(securityGroupSummary) {
-        map { it.name }.isEqualTo("bar")
-        map { it.id }.isEqualTo("sg-2")
+        chain { it.name }.isEqualTo("bar")
+        chain { it.id }.isEqualTo("sg-2")
       }
     }
   }
@@ -76,9 +76,9 @@ object MemoryCloudDriverCacheTest {
 
     subject.networkBy("vpc-2").let { vpc ->
       expectThat(vpc) {
-        map { it.name }.isEqualTo("vpcName")
-        map { it.account }.isEqualTo("test")
-        map { it.region }.isEqualTo("us-west-2")
+        chain { it.name }.isEqualTo("vpcName")
+        chain { it.account }.isEqualTo("test")
+        chain { it.region }.isEqualTo("us-west-2")
       }
     }
   }

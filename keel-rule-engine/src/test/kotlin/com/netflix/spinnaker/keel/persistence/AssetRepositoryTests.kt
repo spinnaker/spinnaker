@@ -161,7 +161,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
     expectThat(subject.lastKnownState(asset.id))
       .isNotNull()
-      .map { it.first }
+      .chain { it.first }
       .isEqualTo(Unknown)
   }
 
@@ -209,7 +209,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
     expectThat(subject.get(asset1.id))
       .isNotNull()
-      .map(Asset::spec)
+      .chain(Asset::spec)
       .isEqualTo(asset2.spec)
   }
 }
