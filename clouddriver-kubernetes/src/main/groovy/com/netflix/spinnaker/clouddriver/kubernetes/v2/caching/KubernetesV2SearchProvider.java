@@ -182,10 +182,11 @@ public class KubernetesV2SearchProvider implements SearchProvider {
   // TODO(lwander): use filters
   private List<Map<String, Object>> getMatches(String query, List<String> types, Map<String, String> filters) {
     String matchQuery = String.format("*%s*", query.toLowerCase());
-    Set<String> typeSet = new HashSet<>(types);
+    Set<String> typesToSearch = new HashSet<>(types);
+    Set<String> typesToMatch = new HashSet<>(types);
 
     // We add k8s versions of Spinnaker types here to ensure that (for example) replica sets are returned when server groups are requested.
-    typeSet.addAll(types.stream()
+    typesToSearch.addAll(types.stream()
         .map(t -> {
           try {
             return KubernetesSpinnakerKindMap.SpinnakerKind.fromString(t);
@@ -200,10 +201,10 @@ public class KubernetesV2SearchProvider implements SearchProvider {
     );
 
     // Remove caches that we can't search
-    typeSet.retainAll(allCaches);
+    typesToSearch.retainAll(allCaches);
 
     // Search caches directly
-    List<Map<String, Object>> results = typeSet.stream()
+    List<Map<String, Object>> results = typesToSearch.stream()
         .map(type -> cacheUtils.getAllKeysMatchingPattern(type, matchQuery))
         .flatMap(Collection::stream)
         .map(this::convertKeyToMap)
@@ -234,7 +235,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
         .collect(Collectors.toList()));
 
     results = results.stream()
-        .filter(r -> typeSet.contains(r.get("type")) || typeSet.contains(r.get("group")))
+        .filter(r -> typesToMatch.contains(r.get("type")) || typesToMatch.contains(r.get("group")))
         .collect(Collectors.toList());
 
     return results;
