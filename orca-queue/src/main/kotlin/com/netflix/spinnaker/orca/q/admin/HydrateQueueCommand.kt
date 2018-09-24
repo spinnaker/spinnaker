@@ -20,8 +20,8 @@ import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.ext.afterStages
-import com.netflix.spinnaker.orca.ext.allAfterStagesComplete
-import com.netflix.spinnaker.orca.ext.allBeforeStagesComplete
+import com.netflix.spinnaker.orca.ext.allAfterStagesSuccessful
+import com.netflix.spinnaker.orca.ext.allBeforeStagesSuccessful
 import com.netflix.spinnaker.orca.ext.allUpstreamStagesComplete
 import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.ext.isInitial
@@ -159,9 +159,9 @@ class HydrateQueueCommand(
         stage.afterStages().forEach { actions.addAll(processStage(it)) }
       }
 
-      if (stage.allBeforeStagesComplete() &&
+      if (stage.allBeforeStagesSuccessful() &&
         stage.tasks.all { it.status.isComplete } &&
-        stage.allAfterStagesComplete()) {
+        stage.allAfterStagesSuccessful()) {
         actions.add(Action(
           description = "All tasks and known synthetic stages are complete",
           message = CompleteStage(stage),

@@ -243,8 +243,8 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           subject.handle(message)
         }
 
-        it("does nothing") {
-          verifyZeroInteractions(queue)
+        it("tells the stage to complete") {
+          verify(queue).push(CompleteStage(pipeline.stageByRef("1")))
         }
       }
 

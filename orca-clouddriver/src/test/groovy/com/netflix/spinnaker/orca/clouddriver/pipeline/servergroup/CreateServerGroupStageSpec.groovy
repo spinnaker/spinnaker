@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.AwsDeployStagePreProcessor
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Task
 
 import java.util.concurrent.TimeUnit
@@ -28,10 +31,13 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class CreateServerGroupStageSpec extends Specification {
+  def deployStagePreProcessor = Mock(DeployStagePreProcessor)
+
   @Subject
   def createServerGroupStage = new CreateServerGroupStage(
     rollbackClusterStage: new RollbackClusterStage(),
-    destroyServerGroupStage: new DestroyServerGroupStage()
+    destroyServerGroupStage: new DestroyServerGroupStage(),
+    deployStagePreProcessors: [ deployStagePreProcessor ]
   )
 
   @Unroll
@@ -64,15 +70,23 @@ class CreateServerGroupStageSpec extends Specification {
     then:
     onFailureStageContexts == expectedOnFailureStageContexts
 
+    1 * deployStagePreProcessor.supports(_) >> { return true }
+    1 * deployStagePreProcessor.onFailureStageDefinitions(_) >> {
+      def stageDefinition = new DeployStagePreProcessor.StageDefinition()
+      stageDefinition.stageDefinitionBuilder = Mock(StageDefinitionBuilder)
+      stageDefinition.context = [source: "parent"]
+      return [stageDefinition]
+    }
+
     where:
     shouldRollbackOnFailure | strategy          | deployServerGroups                          | failedTask || expectedOnFailureStageContexts
-    false                   | "rollingredblack" | null                                        | false      || []
-    true                    | "rollingredblack" | null                                        | false      || []
-    false                   | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || []
-    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | false      || []      // only rollback if task has failed
-    true                    | "highlander"      | ["us-west-1": ["myapplication-stack-v001"]] | false      || []      // highlander is not supported
-    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [expectedRollbackContext([enableAndDisableOnly: true])]
-    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | true       || [expectedRollbackContext([disableOnly: true])]
+    false                   | "rollingredblack" | null                                        | false      || [[source: "parent"]]
+    true                    | "rollingredblack" | null                                        | false      || [[source: "parent"]]
+    false                   | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [[source: "parent"]]
+    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | false      || [[source: "parent"]]      // only rollback if task has failed
+    true                    | "highlander"      | ["us-west-1": ["myapplication-stack-v001"]] | false      || [[source: "parent"]]      // highlander is not supported
+    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [expectedRollbackContext([enableAndDisableOnly: true]), [source: "parent"]]
+    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | true       || [expectedRollbackContext([disableOnly: true]), [source: "parent"]]
   }
 
   def "should build DestroyStage when 'rollbackDestroyLatest' is enabled"() {

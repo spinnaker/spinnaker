@@ -44,7 +44,7 @@ class ContinueParentStageHandler(
   override fun handle(message: ContinueParentStage) {
     message.withStage { stage ->
       if (message.phase == STAGE_BEFORE) {
-        if (stage.allBeforeStagesComplete()) {
+        if (stage.allBeforeStagesSuccessful()) {
           when {
             stage.hasTasks() -> stage.runFirstTask()
             else             -> queue.push(CompleteStage(stage))
@@ -56,7 +56,7 @@ class ContinueParentStageHandler(
       } else {
         if (stage.allAfterStagesComplete()) {
           queue.push(CompleteStage(stage))
-        } else if (!stage.anyAfterStagesFailed()) {
+        } else {
           log.warn("Re-queuing $message as other ${message.phase} stages are still running")
           queue.push(message, retryDelay)
         }

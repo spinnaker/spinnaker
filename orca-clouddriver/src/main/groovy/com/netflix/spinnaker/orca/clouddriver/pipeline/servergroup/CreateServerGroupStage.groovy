@@ -80,15 +80,17 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
 
   @Override
   void onFailureStages(@Nonnull Stage stage, StageGraphBuilder graph) {
-    super.onFailureStages(stage, graph)
-
     def stageData = stage.mapTo(StageData)
     if (!stageData.rollback?.onFailure) {
+      super.onFailureStages(stage, graph)
+
       // rollback on failure is not enabled
       return
     }
 
     if (!stageData.getServerGroup()) {
+      super.onFailureStages(stage, graph)
+
       // did not get far enough to create a new server group
       log.warn("No server group was created, skipping rollback! (executionId: ${stage.execution.id}, stageId: ${stage.id})")
       return
@@ -139,6 +141,9 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
         ]
       }
     }
+
+    // any on-failure stages from the parent should be executed _after_ the rollback completes
+    super.onFailureStages(stage, graph)
   }
 
   private static class StageData {
