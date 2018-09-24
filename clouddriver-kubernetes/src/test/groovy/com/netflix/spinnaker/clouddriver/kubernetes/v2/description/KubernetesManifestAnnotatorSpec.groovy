@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.moniker.Moniker
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -39,17 +38,12 @@ class KubernetesManifestAnnotatorSpec extends Specification {
   void "manifests are annotated and deannotated symmetrically"() {
     expect:
     def manifest = freshManifest()
-    def relationships = new KubernetesManifestSpinnakerRelationships()
-      .setLoadBalancers(loadBalancers)
-      .setSecurityGroups(securityGroups)
     def moniker = Moniker.builder()
       .cluster(cluster)
       .app(application)
       .build()
 
-    KubernetesManifestAnnotater.annotateManifest(manifest, relationships)
     KubernetesManifestAnnotater.annotateManifest(manifest, moniker)
-    relationships == KubernetesManifestAnnotater.getManifestRelationships(manifest)
     moniker == KubernetesManifestAnnotater.getMoniker(manifest)
 
     where:

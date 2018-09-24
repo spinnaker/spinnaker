@@ -29,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesReplicaSetHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDeployManifestOperation
@@ -81,7 +80,6 @@ metadata:
     def deployDescription = new KubernetesDeployManifestDescription()
       .setManifest(stringToManifest(manifest))
       .setMoniker(new Moniker())
-      .setRelationships(new KubernetesManifestSpinnakerRelationships())
       .setSource(KubernetesDeployManifestDescription.Source.text)
 
     def namedCredentialsMock = Mock(KubernetesNamedAccountCredentials)

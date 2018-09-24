@@ -26,7 +26,6 @@ import com.netflix.spinnaker.moniker.Moniker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -125,16 +124,6 @@ public class KubernetesManifestAnnotater {
     }
   }
 
-  public static void annotateManifest(KubernetesManifest manifest, KubernetesManifestSpinnakerRelationships relationships) {
-    Map<String, String> annotations = manifest.getAnnotations();
-    storeAnnotations(annotations, relationships);
-
-    manifest.getSpecTemplateAnnotations().flatMap(a -> {
-      storeAnnotations(a, relationships);
-      return Optional.empty();
-    });
-  }
-
   public static void annotateManifest(KubernetesManifest manifest, Moniker moniker) {
     Map<String, String> annotations = manifest.getAnnotations();
     storeAnnotations(annotations, moniker);
@@ -167,16 +156,6 @@ public class KubernetesManifestAnnotater {
     storeAnnotation(annotations, SEQUENCE, moniker.getSequence());
   }
 
-
-  private static void storeAnnotations(Map<String, String> annotations, KubernetesManifestSpinnakerRelationships relationships) {
-    if (relationships == null) {
-      return;
-    }
-
-    storeAnnotation(annotations, LOAD_BALANCERS, relationships.getLoadBalancers());
-    storeAnnotation(annotations, SECURITY_GROUPS, relationships.getSecurityGroups());
-  }
-
   private static void storeAnnotations(Map<String, String> annotations, Artifact artifact) {
     if (artifact == null) {
       return;
@@ -186,14 +165,6 @@ public class KubernetesManifestAnnotater {
     storeAnnotation(annotations, NAME, artifact.getName());
     storeAnnotation(annotations, LOCATION, artifact.getLocation());
     storeAnnotation(annotations, VERSION, artifact.getVersion());
-  }
-
-  public static KubernetesManifestSpinnakerRelationships getManifestRelationships(KubernetesManifest manifest) {
-    Map<String, String> annotations = manifest.getAnnotations();
-
-    return new KubernetesManifestSpinnakerRelationships()
-        .setLoadBalancers(getAnnotation(annotations, LOAD_BALANCERS, new TypeReference<List<String>>() {}))
-        .setSecurityGroups(getAnnotation(annotations, SECURITY_GROUPS, new TypeReference<List<String>>() {}));
   }
 
   public static Optional<Artifact> getArtifact(KubernetesManifest manifest) {

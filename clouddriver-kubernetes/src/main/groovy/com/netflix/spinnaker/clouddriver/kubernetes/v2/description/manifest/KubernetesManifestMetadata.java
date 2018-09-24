@@ -31,7 +31,6 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 public class KubernetesManifestMetadata {
-  KubernetesManifestSpinnakerRelationships relationships;
   Optional<Artifact> artifact;
   Moniker moniker;
 }

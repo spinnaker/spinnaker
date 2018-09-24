@@ -32,7 +32,6 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
   KubernetesManifest manifest;
   List<KubernetesManifest> manifests;
   Moniker moniker;
-  KubernetesManifestSpinnakerRelationships relationships;
   List<Artifact> requiredArtifacts;
   List<Artifact> optionalArtifacts;
   Boolean versioned;
