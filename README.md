@@ -15,3 +15,15 @@ the debugger to be attached before starting Front50; the relevant JVM arguments 
 modified as needed in `build.gradle`.
 
 [0]:http://projects.spring.io/spring-boot/
+
+
+### Modular builds
+
+By default, Front50 is built with all storage providers included. To build only a subset of 
+providers, use the `includeProviders` flag:
+
+```
+./gradlew -PincludeProviders=s3,gcs clean build
+```
+
+You can view the list of all providers in `gradle.properties`.

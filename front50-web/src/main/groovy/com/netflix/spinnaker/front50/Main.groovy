@@ -18,14 +18,12 @@
 
 package com.netflix.spinnaker.front50
 
-import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
 import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -35,7 +33,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, CassandraAutoConfiguration, RedisAutoConfiguration, RedisRepositoriesAutoConfiguration])
 @ComponentScan(["com.netflix.spinnaker.front50", "com.netflix.spinnaker.config"])
-@EnableConfigurationProperties(CassandraConfigProps)
 public class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
     'netflix.environment'    : 'test',

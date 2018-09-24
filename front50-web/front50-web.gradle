@@ -32,17 +32,13 @@ configurations.all {
 
 dependencies {
   compile project(":front50-core")
-  compile project(":front50-cassandra")
-  compile project(":front50-gcs")
-  compile project(":front50-redis")
-  compile project(":front50-s3")
-  compile project(":front50-swift")
-  compile project(":front50-pipelines")
   compile project(":front50-migrations")
-  compile project(":front50-azure")
-  compile project(":front50-oracle")
 
   spinnaker.group "bootWeb"
+
+  // TODO(dibyom): Only needed for ProjectResourceAssembler whose usage I could not find in this project.
+  // Either remove the class or add to spinnaker-dependencies
+  compile 'org.springframework.hateoas:spring-hateoas:0.23.0.RELEASE'
 
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("korkStackdriver")
@@ -50,12 +46,21 @@ dependencies {
   compile spinnaker.dependency("kork")
 
   testCompile project(":front50-test")
+  testCompile project(":front50-pipelines")
+
+  // Add each included cloud provider project as a runtime dependency
+  gradle.includedProviderProjects.each {
+    runtime project(it)
+  }
 }
 
 bootRun {
   // jamm is required when using prepared statements with in-memory C*
-  def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
-  jvmArgs applicationDefaultJvmArgs + "-javaagent:${jamm}"
+  def jamm = project.configurations.runtime.find { it.name.startsWith('jamm') }
+
+  if (jamm) {
+    jvmArgs applicationDefaultJvmArgs + "-javaagent:${jamm}"
+  }
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)

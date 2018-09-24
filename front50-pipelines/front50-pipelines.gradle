@@ -20,7 +20,6 @@ configurations.all {
 
 dependencies {
     compile project(":front50-core")
-    compile project(":front50-cassandra")
-
+    compile spinnaker.dependency('korkCassandra')
     testCompile project(":front50-test")
 }

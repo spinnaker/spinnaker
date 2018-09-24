@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 @Api(value = "credential", description = "Credential API")
 class CredentialsController {
 
-  @Autowired
+  @Autowired(required = false)
   CassandraConfigProps cassandraConfigProps
 
   @ApiOperation(value = "", notes = "Fetch all account details")
