@@ -54,10 +54,12 @@ public class KubernetesResourceProperties {
       }
     }
 
-    KubernetesHandler handler = CustomKubernetesHandlerFactory.create(KubernetesKind.fromString(customResource.getKubernetesKind()),
+    KubernetesHandler handler = CustomKubernetesHandlerFactory.create(
+        KubernetesKind.fromString(customResource.getKubernetesKind(), true, customResource.isNamespaced()),
         KubernetesSpinnakerKindMap.SpinnakerKind.fromString(customResource.getSpinnakerKind()),
         customResource.isVersioned(),
-        deployPriorityValue);
+        deployPriorityValue
+    );
 
     return KubernetesResourceProperties.builder()
         .handler(handler)

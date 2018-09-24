@@ -71,6 +71,7 @@ class CustomKubernetesResource {
   String spinnakerKind = KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED.toString()
   String deployPriority = "100"
   boolean versioned = false
+  boolean namespaced = true
 }
 
 @ToString(includeNames = true)
