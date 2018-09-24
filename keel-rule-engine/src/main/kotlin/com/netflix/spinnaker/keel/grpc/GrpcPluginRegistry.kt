@@ -65,8 +65,11 @@ class GrpcPluginRegistry(
         pluginRepository.addAssetPluginFor(
           type.toAssetType(),
           request.toPluginAddress()
-        )
-        log.info("Registered asset plugin supporting {} at vip: {} port: {}", type, request.vip, request.port)
+        ).also { added ->
+          if (added) {
+            log.info("Registered asset plugin supporting {} at vip: {} port: {}", type, request.vip, request.port)
+          }
+        }
       }
     responseObserver.apply {
       onNext(registerAssetPluginSuccessResponse)
@@ -78,8 +81,11 @@ class GrpcPluginRegistry(
     request: RegisterVetoPluginRequest,
     responseObserver: StreamObserver<RegisterVetoPluginResponse>
   ) {
-    pluginRepository.addVetoPlugin(request.toPluginAddress())
-    log.info("Registered veto plugin at vip: {} port: {}", request.vip, request.port)
+    pluginRepository.addVetoPlugin(request.toPluginAddress()).also { added ->
+      if (added) {
+        log.info("Registered veto plugin at vip: {} port: {}", request.vip, request.port)
+      }
+    }
     responseObserver.apply {
       onNext(
         RegisterVetoPluginResponse.newBuilder()

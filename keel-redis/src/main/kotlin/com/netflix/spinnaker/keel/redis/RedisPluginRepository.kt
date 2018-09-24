@@ -61,11 +61,10 @@ class RedisPluginRepository(
         .map(this::parsePluginAddress)
     }
 
-  override fun addVetoPlugin(address: PluginAddress) {
+  override fun addVetoPlugin(address: PluginAddress) =
     withRedis { redis ->
-      redis.sadd("keel.plugins.veto", address.serialized)
+      redis.sadd("keel.plugins.veto", address.serialized) > 0
     }
-  }
 
   override fun assetPluginFor(type: AssetType): PluginAddress? =
     withRedis { redis ->
@@ -73,11 +72,10 @@ class RedisPluginRepository(
         ?.let(this::parsePluginAddress)
     }
 
-  override fun addAssetPluginFor(type: AssetType, address: PluginAddress) {
+  override fun addAssetPluginFor(type: AssetType, address: PluginAddress) =
     withRedis { redis ->
-      redis.hset("keel.plugins.asset", type.serialized, address.serialized)
+      redis.hset("keel.plugins.asset", type.serialized, address.serialized) > 0
     }
-  }
 
   @PostConstruct
   fun logKnownPlugins() {

@@ -31,16 +31,14 @@ class InMemoryPluginRepository : PluginRepository {
 
   override fun vetoPlugins(): Iterable<PluginAddress> = vetoPlugins
 
-  override fun addVetoPlugin(address: PluginAddress) {
+  override fun addVetoPlugin(address: PluginAddress) =
     vetoPlugins.add(address)
-  }
 
   override fun assetPluginFor(type: AssetType): PluginAddress? =
     assetPlugins[type]
 
-  override fun addAssetPluginFor(type: AssetType, address: PluginAddress) {
-    assetPlugins[type] = address
-  }
+  override fun addAssetPluginFor(type: AssetType, address: PluginAddress) =
+    assetPlugins.put(type, address) == null
 
   internal fun clear() {
     assetPlugins.clear()
