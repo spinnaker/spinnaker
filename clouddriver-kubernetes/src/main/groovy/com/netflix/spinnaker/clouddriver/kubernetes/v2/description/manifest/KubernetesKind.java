@@ -44,7 +44,7 @@ public class KubernetesKind {
   public static KubernetesKind HORIZONTAL_POD_AUTOSCALER = new KubernetesKind("horizontalpodautoscaler", "hpa");
   public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing");
   public static KubernetesKind JOB = new KubernetesKind("job");
-  public static KubernetesKind MUTATING_WEBHOOK_CONFIGURATION = new KubernetesKind("mutatingwebhookconfiguration");
+  public static KubernetesKind MUTATING_WEBHOOK_CONFIGURATION = new KubernetesKind("mutatingWebhookConfiguration", null, false, false);
   public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns", false, false);
   public static KubernetesKind NETWORK_POLICY = new KubernetesKind("networkPolicy", "netpol", true, true);
   public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv", false, false);
@@ -61,7 +61,7 @@ public class KubernetesKind {
   public static KubernetesKind SERVICE_ACCOUNT = new KubernetesKind("serviceAccount", "sa");
   public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet", null, true, true);
   public static KubernetesKind STORAGE_CLASS = new KubernetesKind("storageClass", "sc", false, false);
-  public static KubernetesKind VALIDATING_WEBHOOK_CONFIGURATION = new KubernetesKind("validatingwebhookconfiguration");
+  public static KubernetesKind VALIDATING_WEBHOOK_CONFIGURATION = new KubernetesKind("validatingWebhookConfiguration", null, false, false);
 
   // special kind that should never be assigned to a manifest, used only to represent objects whose kind is not in spinnaker's registry
   public static KubernetesKind NONE = new KubernetesKind("none", null, true, false);
