@@ -1,8 +1,8 @@
-<dirty-instance-type-notification command="command"></dirty-instance-type-notification>
+<dirty-instance-type-notification command="instanceArchetypeCtrl.command"></dirty-instance-type-notification>
 <div class="form-group">
-  <gce-custom-instance-configurer v-cpu-list="command.backingData.customInstanceTypes.vCpuList"
-                                  selected-v-cpu-count="command.viewState.customInstance.vCpuCount"
-                                  memory-list="command.backingData.customInstanceTypes.memoryList"
-                                  selected-memory="command.viewState.customInstance.memory"
-                                  on-change="command.setCustomInstanceViewState"></gce-custom-instance-configurer>
+  <gce-custom-instance-configurer v-cpu-list="instanceArchetypeCtrl.command.backingData.customInstanceTypes.vCpuList"
+                                  selected-v-cpu-count="instanceArchetypeCtrl.command.viewState.customInstance.vCpuCount"
+                                  memory-list="instanceArchetypeCtrl.command.backingData.customInstanceTypes.memoryList"
+                                  selected-memory="instanceArchetypeCtrl.command.viewState.customInstance.memory"
+                                  on-change="instanceArchetypeCtrl.command.setCustomInstanceViewState"></gce-custom-instance-configurer>
 </div>

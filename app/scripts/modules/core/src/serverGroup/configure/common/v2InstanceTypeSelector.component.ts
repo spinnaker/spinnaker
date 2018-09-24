@@ -19,7 +19,10 @@ class V2InstanceTypeSelectorController implements IComponentController {
 
   public $onInit(): void {
     this.instanceProfile = this.command.viewState.instanceProfile;
-    this.instanceTypes = this.command.backingData.filtered.instanceTypes;
+    this.instanceTypes =
+      this.command.backingData && this.command.backingData.filtered
+        ? this.command.backingData.filtered.instanceTypes
+        : [];
     this.updateFamilies();
   }
 
@@ -29,7 +32,8 @@ class V2InstanceTypeSelectorController implements IComponentController {
       this.instanceProfile = this.command.viewState.instanceProfile;
       updateProfiles = true;
     }
-    if (this.command.backingData.filtered.instanceTypes !== this.instanceTypes) {
+    const hasFilteredBackingData = this.command.backingData && this.command.backingData.filtered;
+    if (hasFilteredBackingData && this.command.backingData.filtered.instanceTypes !== this.instanceTypes) {
       this.instanceTypes = this.command.backingData.filtered.instanceTypes;
       updateProfiles = true;
     }
