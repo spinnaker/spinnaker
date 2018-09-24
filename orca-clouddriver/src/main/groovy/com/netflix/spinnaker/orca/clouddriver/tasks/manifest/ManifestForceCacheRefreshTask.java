@@ -122,7 +122,11 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
             .findAny();
 
         if (pendingRefresh.isPresent()) {
-          if (!pendingRefreshProcessed(pendingRefresh.get(), refreshedManifests, startTime)) {
+          if (pendingRefreshProcessed(pendingRefresh.get(), refreshedManifests, startTime)) {
+            log.debug("Pending manifest refresh of {} in {} completed", id, account);
+            processedManifests.add(id);
+          } else {
+            log.debug("Pending manifest refresh of {} in {} still pending", id, account);
             allProcessed = false;
           }
         } else {
