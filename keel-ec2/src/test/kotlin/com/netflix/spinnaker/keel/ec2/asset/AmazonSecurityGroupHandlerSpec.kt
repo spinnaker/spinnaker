@@ -19,6 +19,10 @@ import com.netflix.spinnaker.keel.api.AssetContainer
 import com.netflix.spinnaker.keel.api.GrpcStubManager
 import com.netflix.spinnaker.keel.api.PartialAsset
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.Moniker
+import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.ec2.AmazonAssetPlugin
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.CidrRule
@@ -28,10 +32,6 @@ import com.netflix.spinnaker.keel.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.ec2.SecurityGroupRules
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.model.Moniker
-import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService

@@ -16,9 +16,9 @@
 
 include "keel-api",
   "keel-api-test",
-  "keel-ec2",
   "keel-clouddriver",
   "keel-common",
+  "keel-ec2",
   "keel-grpc",
   "keel-orca",
   "keel-plugin",

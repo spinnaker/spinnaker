@@ -19,9 +19,9 @@ import com.netflix.spinnaker.keel.api.AssetContainer
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
-import com.netflix.spinnaker.keel.ec2.asset.AmazonSecurityGroupHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.ec2.asset.AmazonSecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import com.netflix.spinnaker.keel.proto.isA
