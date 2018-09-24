@@ -90,7 +90,7 @@ class ClassicLoadBalancerConverter(
 
       val vpc = cloudDriverCache.networkBy(vpcId!!)
       val zones = cloudDriverCache.availabilityZonesBy(vpc.account, vpc.id, vpc.region)
-      val subnets = cloudDriver.listSubnets("aws").first { state.subnets.contains(it.id) }.purpose
+      val subnets = cloudDriver.listSubnets("ec2").first { state.subnets.contains(it.id) }.purpose
 
       ClassicLoadBalancerSpec(
         accountName = vpc.account,
@@ -182,7 +182,7 @@ class ClassicLoadBalancerConverter(
       is Manual -> specAzConfig.availabilityZones
       else -> availabilityZones
     }
-    return cloudDriver.listSubnets("aws")
+    return cloudDriver.listSubnets("ec2")
       .filter { it.vpcId == vpc.id && it.purpose == subnetPurpose && zones.contains(it.availabilityZone) }
   }
 

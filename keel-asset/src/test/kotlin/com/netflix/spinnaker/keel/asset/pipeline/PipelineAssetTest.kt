@@ -65,7 +65,7 @@ object PipelineAssetTest {
           this["enhancedNetworking"] = false
           this["regions"] = listOf("us-east-1", "us-west-2")
           this["extendedAttributes"] = mapOf<Any, Any>()
-          this["cloudProviderType"] = "aws"
+          this["cloudProviderType"] = "ec2"
           this["vmType"] = "hvm"
           this["package"] = "keel"
           this["baseOs"] = "xenial"
@@ -130,7 +130,7 @@ object PipelineAssetTest {
           "us-west-2"
         ],
         "extendedAttributes": {},
-        "cloudProviderType": "aws",
+        "cloudProviderType": "ec2",
         "vmType": "hvm",
         "package": "keel",
         "baseOs": "xenial"

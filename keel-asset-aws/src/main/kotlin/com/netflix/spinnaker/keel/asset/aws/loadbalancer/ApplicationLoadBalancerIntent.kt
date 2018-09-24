@@ -19,12 +19,12 @@ package com.netflix.spinnaker.keel.asset.aws.loadbalancer
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.netflix.spinnaker.keel.asset.LoadBalancerSpec
 
-@JsonTypeName("aws.ApplicationLoadBalancer")
+@JsonTypeName("ec2.ApplicationLoadBalancer")
 data class ApplicationLoadBalancerSpec(
   override val application: String,
   override val name: String,
   override val accountName: String
 ) : LoadBalancerSpec() {
 
-  override fun cloudProvider() = "aws"
+  override fun cloudProvider() = "ec2"
 }

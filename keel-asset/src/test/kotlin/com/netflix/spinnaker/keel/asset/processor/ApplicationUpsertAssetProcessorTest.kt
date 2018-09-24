@@ -92,7 +92,7 @@ object ApplicationUpsertAssetProcessorTest {
           "instanceLinks" to emptyList<String>(),
           "instancePort" to 8087,
           "appGroup" to "Spinnaker",
-          "cloudProviders" to "aws",
+          "cloudProviders" to "ec2",
           "accounts" to "prod,test",
           "dataSources" to mapOf(
             "enabled" to emptyList<String>(),
@@ -134,7 +134,7 @@ object ApplicationUpsertAssetProcessorTest {
     instanceLinks = emptyList(),
     instancePort = 8087,
     appGroup = "Spinnaker",
-    cloudProviders = "aws",
+    cloudProviders = "ec2",
     accounts = "prod,test",
     dataSources = DataSourcesSpec(emptyList(), emptyList()),
     requiredGroupMembership = emptyList(),

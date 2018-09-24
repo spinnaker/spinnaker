@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.aws
+package com.netflix.spinnaker.keel.ec2
 
 import retrofit.RetrofitError
 import retrofit.client.Response

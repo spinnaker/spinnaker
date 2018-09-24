@@ -26,10 +26,10 @@ object MemoryCloudDriverCacheTest {
   )
 
   val vpcs = setOf(
-    Network("aws", "vpc-1", "vpcName", "prod", "us-west-2"),
-    Network("aws", "vpc-2", "vpcName", "test", "us-west-2"),
-    Network("aws", "vpc-3", "vpcName", "prod", "us-east-1"),
-    Network("aws", "vpc-4", "otherName", "prod", "us-west-2")
+    Network("ec2", "vpc-1", "vpcName", "prod", "us-west-2"),
+    Network("ec2", "vpc-2", "vpcName", "test", "us-west-2"),
+    Network("ec2", "vpc-3", "vpcName", "prod", "us-east-1"),
+    Network("ec2", "vpc-4", "otherName", "prod", "us-west-2")
   )
 
   val subnets = setOf(
@@ -49,8 +49,8 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `security group summaries are looked up from CloudDriver`() {
-    whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn securityGroupSummaries
-    whenever(cloudDriver.getCredential("prod")) doReturn Credential("prod", "aws")
+    whenever(cloudDriver.getSecurityGroupSummaries("prod", "ec2", "us-east-1")) doReturn securityGroupSummaries
+    whenever(cloudDriver.getCredential("prod")) doReturn Credential("prod", "ec2")
 
     subject.securityGroupSummaryBy("prod", "us-east-1", "sg-2").let { securityGroupSummary ->
       expectThat(securityGroupSummary) {
@@ -62,7 +62,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid security group id throws an exception`() {
-    whenever(cloudDriver.getSecurityGroupSummaries("prod", "aws", "us-east-1")) doReturn securityGroupSummaries
+    whenever(cloudDriver.getSecurityGroupSummaries("prod", "ec2", "us-east-1")) doReturn securityGroupSummaries
 
     expectThat(catching {
       subject.securityGroupSummaryBy("prod", "us-east-1", "sg-4")
@@ -72,7 +72,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `VPC networks are looked up by id from CloudDriver`() {
-    whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
+    whenever(cloudDriver.listNetworks()) doReturn mapOf("ec2" to vpcs)
 
     subject.networkBy("vpc-2").let { vpc ->
       expectThat(vpc) {
@@ -85,7 +85,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid VPC id throws an exception`() {
-    whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
+    whenever(cloudDriver.listNetworks()) doReturn mapOf("ec2" to vpcs)
 
     expectThat(catching { subject.networkBy("vpc-5") })
       .throws<ResourceNotFound>()
@@ -93,7 +93,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `VPC networks are looked up by name and region from CloudDriver`() {
-    whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
+    whenever(cloudDriver.listNetworks()) doReturn mapOf("ec2" to vpcs)
 
     subject.networkBy("vpcName", "test", "us-west-2").let { vpc ->
       expectThat(vpc.id).isEqualTo("vpc-2")
@@ -102,7 +102,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid VPC name and region throws an exception`() {
-    whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
+    whenever(cloudDriver.listNetworks()) doReturn mapOf("ec2" to vpcs)
 
     expectThat(catching {
       subject.networkBy("invalid", "prod", "us-west-2")
@@ -112,7 +112,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `availability zones are looked up by account, VPC id and region from CloudDriver`() {
-    whenever(cloudDriver.listSubnets("aws")) doReturn subnets
+    whenever(cloudDriver.listSubnets("ec2")) doReturn subnets
 
     subject.availabilityZonesBy("test", "vpc-2", "us-west-2").let { zones ->
       expectThat(zones)
@@ -122,7 +122,7 @@ object MemoryCloudDriverCacheTest {
 
   @Test
   fun `an invalid account, VPC id and region returns an empty set`() {
-    whenever(cloudDriver.listNetworks()) doReturn mapOf("aws" to vpcs)
+    whenever(cloudDriver.listNetworks()) doReturn mapOf("ec2" to vpcs)
 
     expectThat(
       subject.availabilityZonesBy("test", "vpc-2", "ew-west-1")

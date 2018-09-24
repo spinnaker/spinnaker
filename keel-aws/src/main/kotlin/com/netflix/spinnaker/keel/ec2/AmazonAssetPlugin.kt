@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.aws
+package com.netflix.spinnaker.keel.ec2
 
 import com.netflix.spinnaker.keel.api.AssetContainer
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
-import com.netflix.spinnaker.keel.aws.asset.AmazonSecurityGroupHandler
+import com.netflix.spinnaker.keel.ec2.asset.AmazonSecurityGroupHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.orca.OrcaService

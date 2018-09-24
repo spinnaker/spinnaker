@@ -81,7 +81,7 @@ object AmazonSecurityGroupAssetTest {
 {
   "kind": "SecurityGroup",
   "spec": {
-    "kind": "aws",
+    "kind": "ec2",
     "application": "keel",
     "name": "keel",
     "accountName": "test",
@@ -110,7 +110,7 @@ object AmazonSecurityGroupAssetTest {
   "status": "ACTIVE",
   "labels": {},
   "attributes": [],
-  "id": "SecurityGroup:aws:test:us-west-2:keel",
+  "id": "SecurityGroup:ec2:test:us-west-2:keel",
   "schema": "0"
 }
 """
@@ -157,7 +157,7 @@ object AmazonSecurityGroupAssetTest {
 {
   "kind": "SecurityGroup",
   "spec": {
-    "kind": "aws.self",
+    "kind": "ec2.self",
     "application": "keel",
     "name": "keel",
     "label": "covfefe",
@@ -187,7 +187,7 @@ object AmazonSecurityGroupAssetTest {
   "status": "ACTIVE",
   "labels": {},
   "attributes": [],
-  "id": "SecurityGroup:aws:test:us-west-2:keel:self:covfefe",
+  "id": "SecurityGroup:ec2:test:us-west-2:keel:self:covfefe",
   "schema": "0"
 }
 """

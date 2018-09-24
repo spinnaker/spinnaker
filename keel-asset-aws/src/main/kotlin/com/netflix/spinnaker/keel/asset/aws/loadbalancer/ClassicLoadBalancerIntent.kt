@@ -28,7 +28,7 @@ import com.netflix.spinnaker.keel.asset.aws.jackson.AvailabilityZoneConfigSerial
 import com.netflix.spinnaker.keel.asset.aws.loadbalancer.AvailabilityZoneConfig.Automatic
 import com.netflix.spinnaker.keel.asset.aws.loadbalancer.HealthEndpoint.*
 
-@JsonTypeName("aws.ClassicLoadBalancer")
+@JsonTypeName("ec2.ClassicLoadBalancer")
 data class ClassicLoadBalancerSpec(
   override val application: String,
   override val name: String,
@@ -43,9 +43,9 @@ data class ClassicLoadBalancerSpec(
   val healthCheck: HealthCheckSpec
 ) : LoadBalancerSpec(), AssetIdProvider {
 
-  override fun cloudProvider() = "aws"
+  override fun cloudProvider() = "ec2"
 
-  override fun assetId() = "LoadBalancer:aws:$accountName:$region:$name"
+  override fun assetId() = "LoadBalancer:ec2:$accountName:$region:$name"
 }
 
 data class HealthCheckSpec(

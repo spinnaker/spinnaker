@@ -55,7 +55,7 @@ object PipelineConverterTest {
           "enhancedNetworking" to false,
           "regions" to listOf("us-east-1", "us-west-2"),
           "extendedAttributes" to mapOf<Any, Any>(),
-          "cloudProviderType" to "aws",
+          "cloudProviderType" to "ec2",
           "vmType" to "hvm",
           "package" to "keel",
           "baseOs" to "xenial"
@@ -103,7 +103,7 @@ object PipelineConverterTest {
         this["enhancedNetworking"] = false
         this["regions"] = listOf("us-east-1", "us-west-2")
         this["extendedAttributes"] = mapOf<Any, Any>()
-        this["cloudProviderType"] = "aws"
+        this["cloudProviderType"] = "ec2"
         this["vmType"] = "hvm"
         this["package"] = "keel"
         this["baseOs"] = "xenial"
@@ -154,7 +154,7 @@ object PipelineConverterTest {
         "enhancedNetworking" to false,
         "regions" to listOf("us-east-1", "us-west-2"),
         "extendedAttributes" to mapOf<Any, Any>(),
-        "cloudProviderType" to "aws",
+        "cloudProviderType" to "ec2",
         "vmType" to "hvm",
         "package" to "keel",
         "baseOs" to "xenial"

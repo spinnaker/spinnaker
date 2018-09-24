@@ -68,7 +68,7 @@ class MemoryCloudDriverCache(
   override fun networkBy(id: String): Network =
     networks.getOrNotFound(id, "VPC network with id $id not found") {
       cloudDriver
-        .listNetworks()["aws"]
+        .listNetworks()["ec2"]
         ?.firstOrNull { it.id == id }
     }
 
@@ -77,14 +77,14 @@ class MemoryCloudDriverCache(
   override fun networkBy(name: String?, account: String, region: String): Network =
     networks.getOrNotFound("$name:$account:$region", "VPC network named $name not found in $region") {
       cloudDriver
-        .listNetworks()["aws"]
+        .listNetworks()["ec2"]
         ?.firstOrNull { it.name == name && it.account == account && it.region == region }
     }
 
   override fun availabilityZonesBy(account: String, vpcId: String, region: String): Set<String> =
     availabilityZones.get("$account:$vpcId:$region") {
       cloudDriver
-        .listSubnets("aws")
+        .listSubnets("ec2")
         .filter { it.account == account && it.vpcId == vpcId && it.region == region }
         .map { it.availabilityZone }
         .toSet()

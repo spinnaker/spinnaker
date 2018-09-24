@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.aws.asset
+package com.netflix.spinnaker.keel.ec2.asset
 
 import com.netflix.spinnaker.keel.api.AssetContainer
 import com.netflix.spinnaker.keel.api.GrpcStubManager
 import com.netflix.spinnaker.keel.api.PartialAsset
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
-import com.netflix.spinnaker.keel.aws.AmazonAssetPlugin
-import com.netflix.spinnaker.keel.aws.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.aws.CidrRule
-import com.netflix.spinnaker.keel.aws.PortRange
-import com.netflix.spinnaker.keel.aws.RETROFIT_NOT_FOUND
-import com.netflix.spinnaker.keel.aws.ReferenceRule
-import com.netflix.spinnaker.keel.aws.SecurityGroup
-import com.netflix.spinnaker.keel.aws.SecurityGroupRule
-import com.netflix.spinnaker.keel.aws.SecurityGroupRules
+import com.netflix.spinnaker.keel.ec2.AmazonAssetPlugin
+import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.ec2.CidrRule
+import com.netflix.spinnaker.keel.ec2.PortRange
+import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.ec2.ReferenceRule
+import com.netflix.spinnaker.keel.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRule
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRules
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker

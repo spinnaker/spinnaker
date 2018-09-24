@@ -20,6 +20,6 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ComponentScan(basePackages = ["com.netflix.spinnaker.keel.asset.aws"])
+@ComponentScan(basePackages = ["com.netflix.spinnaker.keel.asset.ec2"])
 open class AmazonAssetConfiguration {
 }

@@ -17,6 +17,6 @@ run {
 dependencies {
   implementation "org.springframework.boot:spring-boot-starter-actuator:$bootVersion"
   implementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
-  implementation project(":keel-aws")
+  implementation project(":keel-ec2")
   implementation project(":keel-veto")
 }

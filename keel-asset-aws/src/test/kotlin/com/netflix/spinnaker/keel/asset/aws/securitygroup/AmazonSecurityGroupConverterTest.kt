@@ -51,7 +51,7 @@ object AmazonSecurityGroupConverterTest {
   @Test
   fun `should convert spec to system state`() {
     whenever(clouddriverCache.networkBy(any(), any(), eq("us-west-2"))) doReturn Network(
-      cloudProvider = "aws",
+      cloudProvider = "ec2",
       id = "vpc-1",
       name = "vpcName",
       account = "test",
@@ -70,7 +70,7 @@ object AmazonSecurityGroupConverterTest {
     )
 
     subject.convertToState(spec).also {
-      it.type shouldMatch equalTo("aws")
+      it.type shouldMatch equalTo("ec2")
       it.name shouldMatch equalTo("keel")
       it.description shouldMatch equalTo("application sg")
       it.accountName shouldMatch equalTo("test")
@@ -83,7 +83,7 @@ object AmazonSecurityGroupConverterTest {
   @Test
   fun `should convert system state to spec`() {
     whenever(clouddriverCache.networkBy(eq("vpc-1234"))) doReturn Network(
-      cloudProvider = "aws",
+      cloudProvider = "ec2",
       id = "vpc-1234",
       name = "vpcName",
       account = "test",
@@ -91,7 +91,7 @@ object AmazonSecurityGroupConverterTest {
     )
 
     val state = SecurityGroup(
-      type = "aws",
+      type = "ec2",
       id = "sg-1234",
       name = "keel",
       description = "application sg",
@@ -181,7 +181,7 @@ object AmazonSecurityGroupConverterTest {
 
     result.size shouldMatch equalTo(1)
     result[0]["application"] shouldMatch equalTo<Any>("keel")
-    result[0]["cloudProvider"] shouldMatch equalTo<Any>("aws")
+    result[0]["cloudProvider"] shouldMatch equalTo<Any>("ec2")
     result[0]["regions"] shouldMatch equalTo<Any>(listOf("us-west-2"))
     result[0]["vpcId"] shouldMatch equalTo<Any>("vpcName")
     result[0]["description"] shouldMatch equalTo<Any>("app sg")

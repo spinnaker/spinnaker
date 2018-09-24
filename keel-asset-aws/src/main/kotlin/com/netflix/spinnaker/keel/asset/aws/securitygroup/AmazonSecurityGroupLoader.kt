@@ -33,7 +33,7 @@ class AmazonSecurityGroupLoader(
     try {
       return cloudDriverService.getSecurityGroup(
         spec.accountName,
-        "aws",
+        "ec2",
         spec.name,
         spec.region,
         spec.vpcName?.let {
@@ -57,7 +57,7 @@ class AmazonSecurityGroupLoader(
     try {
       return cloudDriverService.getSecurityGroup(
         spec.accountName,
-        "aws",
+        "ec2",
         name,
         spec.region,
         cloudDriverCache.networkBy(

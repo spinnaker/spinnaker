@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.aws.asset
+package com.netflix.spinnaker.keel.ec2.asset
 
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetContainer
-import com.netflix.spinnaker.keel.aws.AmazonAssetHandler
-import com.netflix.spinnaker.keel.aws.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.aws.SecurityGroupRule
-import com.netflix.spinnaker.keel.aws.SecurityGroupRules
+import com.netflix.spinnaker.keel.ec2.AmazonAssetHandler
+import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRule
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRules
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
@@ -32,7 +32,7 @@ import com.netflix.spinnaker.keel.proto.pack
 import com.netflix.spinnaker.keel.proto.unpack
 import org.springframework.http.HttpStatus
 import retrofit.RetrofitError
-import com.netflix.spinnaker.keel.aws.SecurityGroup as SecurityGroupProto
+import com.netflix.spinnaker.keel.ec2.SecurityGroup as SecurityGroupProto
 
 class AmazonSecurityGroupHandler(
   private val cloudDriverService: CloudDriverService,

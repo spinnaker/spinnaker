@@ -46,12 +46,12 @@ object AmazonSecurityGroupAssetProcessorTest {
   val clouddriverCache = mock<CloudDriverCache>()
   val clouddriverService = mock<CloudDriverService>().apply {
     whenever(listNetworks()) doReturn mapOf(
-      "aws" to setOf(
-        Network("aws", "vpc-1", "vpcName", "test", "us-west-2"),
-        Network("aws", "vpc-2", "vpcName", "prod", "us-west-2"),
-        Network("aws", "vpc-3", "vpcName", "test", "us-east-1"),
-        Network("aws", "vpc-4", "vpcName", "test", "eu-west-1"),
-        Network("aws", "vpc-5", "otherName", "test", "us-west-2")
+      "ec2" to setOf(
+        Network("ec2", "vpc-1", "vpcName", "test", "us-west-2"),
+        Network("ec2", "vpc-2", "vpcName", "prod", "us-west-2"),
+        Network("ec2", "vpc-3", "vpcName", "test", "us-east-1"),
+        Network("ec2", "vpc-4", "vpcName", "test", "eu-west-1"),
+        Network("ec2", "vpc-5", "otherName", "test", "us-west-2")
       )
     )
   }
@@ -85,7 +85,7 @@ object AmazonSecurityGroupAssetProcessorTest {
 
     whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn
       Network(
-        cloudProvider = "aws",
+        cloudProvider = "ec2",
         id = "vpc-1",
         name = "vpcName",
         account = "test",
@@ -115,7 +115,7 @@ object AmazonSecurityGroupAssetProcessorTest {
   fun `should upsert security group when present`() {
     whenever(clouddriverService.getSecurityGroup(any(), any(), any(), any(), any())) doReturn
       SecurityGroup(
-        type = "aws",
+        type = "ec2",
         id = "sg-1234",
         name = "keel",
         description = "app sg",
@@ -127,7 +127,7 @@ object AmazonSecurityGroupAssetProcessorTest {
       )
     whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn
       Network(
-        cloudProvider = "aws",
+        cloudProvider = "ec2",
         id = "vpc-1",
         name = "vpcName",
         account = "test",
@@ -159,7 +159,7 @@ object AmazonSecurityGroupAssetProcessorTest {
     changeSummary.type = ChangeType.FAILED_PRECONDITIONS
     changeSummary.addMessage("Some upstream security groups are missing: [gate]")
 
-    whenever(clouddriverService.getSecurityGroup("test", "aws", "gate", "us-west-2", "vpc-1")) doThrow RetrofitError
+    whenever(clouddriverService.getSecurityGroup("test", "ec2", "gate", "us-west-2", "vpc-1")) doThrow RetrofitError
       .httpError(
         "http://example.com",
         Response("http://example.com", 404, "Not Found", listOf(), null),
@@ -168,7 +168,7 @@ object AmazonSecurityGroupAssetProcessorTest {
       )
     whenever(clouddriverCache.networkBy(any(), any(), any())) doReturn
       Network(
-        cloudProvider = "aws",
+        cloudProvider = "ec2",
         id = "vpc-1",
         name = "vpcName",
         account = "test",

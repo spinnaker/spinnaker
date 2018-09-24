@@ -65,9 +65,9 @@ object ClassicLoadBalancerConverterTest {
   val vpc = Network(spec.cloudProvider(), elb.vpcId!!, spec.vpcName, spec.accountName, spec.region)
   val zones = elb.availabilityZones
   val securityGroups = setOf(
-    SecurityGroup(type = "aws", id = "1", name = "nf-infrastructure", description = null, accountName = "prod", region = "us-west-2", vpcId = "vpc-1", moniker = Moniker("covfefe")),
-    SecurityGroup(type = "aws", id = "2", name = "nf-datacenter", description = null, accountName = "prod", region = "us-west-2", vpcId = "vpc-1", moniker = Moniker("covfefe")),
-    SecurityGroup(type = "aws", id = "3", name = "covfefe", description = null, accountName = "prod", region = "us-west-2", vpcId = "vpc-1", moniker = Moniker("covfefe"))
+    SecurityGroup(type = "ec2", id = "1", name = "nf-infrastructure", description = null, accountName = "prod", region = "us-west-2", vpcId = "vpc-1", moniker = Moniker("covfefe")),
+    SecurityGroup(type = "ec2", id = "2", name = "nf-datacenter", description = null, accountName = "prod", region = "us-west-2", vpcId = "vpc-1", moniker = Moniker("covfefe")),
+    SecurityGroup(type = "ec2", id = "3", name = "covfefe", description = null, accountName = "prod", region = "us-west-2", vpcId = "vpc-1", moniker = Moniker("covfefe"))
   )
   val subnets = setOf(
     Subnet(id = "subnet-1", vpcId = "vpc-1", account = "prod", region = "us-west-2", availabilityZone = "us-west-2a", purpose = "internal"),
@@ -82,7 +82,7 @@ object ClassicLoadBalancerConverterTest {
   fun `converts spec to system state`() {
     whenever(cloudDriverCache.networkBy(spec.vpcName!!, spec.accountName, spec.region)) doReturn vpc
     whenever(cloudDriverCache.availabilityZonesBy(spec.accountName, vpc.id, spec.region)) doReturn zones
-    whenever(cloudDriverService.listSubnets("aws")) doReturn subnets
+    whenever(cloudDriverService.listSubnets("ec2")) doReturn subnets
 
     converter.convertToState(spec)
       .apply {
@@ -104,7 +104,7 @@ object ClassicLoadBalancerConverterTest {
       securityGroups.firstOrNull { it.id == invocation.arguments[2] }?.toSummary()
     }
     whenever(cloudDriverCache.availabilityZonesBy(vpc.account, vpc.id, vpc.region)) doReturn zones
-    whenever(cloudDriverService.listSubnets("aws")) doReturn subnets
+    whenever(cloudDriverService.listSubnets("ec2")) doReturn subnets
 
     converter.convertFromState(elb)
       .let { spec ->

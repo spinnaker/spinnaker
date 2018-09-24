@@ -88,7 +88,7 @@ object ClassicLoadBalancerAssetTest {
 {
   "kind": "LoadBalancer",
   "spec": {
-    "kind": "aws.ClassicLoadBalancer",
+    "kind": "ec2.ClassicLoadBalancer",
     "application": "covfefe",
     "name": "covfefe-elb",
     "accountName": "mgmt",
@@ -132,7 +132,7 @@ object ClassicLoadBalancerAssetTest {
   "status": "ACTIVE",
   "labels": {},
   "attributes": [],
-  "id": "LoadBalancer:aws:mgmt:us-west-2:covfefe-elb",
+  "id": "LoadBalancer:ec2:mgmt:us-west-2:covfefe-elb",
   "schema": "0"
 }
 """

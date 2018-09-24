@@ -39,7 +39,7 @@ class AmazonSecurityGroupAsset
     if (spec is AmazonSecurityGroupRootSpec) {
       return null
     }
-    return "${KIND}:aws:${spec.accountName}:${spec.region}:${spec.name}"
+    return "${KIND}:ec2:${spec.accountName}:${spec.region}:${spec.name}"
   }
 }
 
@@ -57,7 +57,7 @@ abstract class AmazonSecurityGroupSpec : SecurityGroupSpec() {
   abstract fun assetId(): String
 }
 
-@JsonTypeName("aws")
+@JsonTypeName("ec2")
 data class AmazonSecurityGroupRootSpec(
   override val application: String,
   override val name: String,
@@ -68,7 +68,8 @@ data class AmazonSecurityGroupRootSpec(
   override val outboundRules: MutableSet<SecurityGroupRule>,
   override val description: String
 ) : AmazonSecurityGroupSpec() {
-  @JsonIgnore override val cloudProvider = "aws"
+  @JsonIgnore
+  override val cloudProvider = "ec2"
   @JsonIgnore override fun assetId() = "$KIND:$cloudProvider:$accountName:$region:$name"
 }
 
@@ -79,7 +80,7 @@ interface AmazonSecurityGroupRuleSpec {
   val label: String
 }
 
-@JsonTypeName("aws.self")
+@JsonTypeName("ec2.self")
 data class SelfReferencingAmazonSecurityGroupRuleSpec(
   override val application: String,
   override val name: String,
@@ -91,11 +92,14 @@ data class SelfReferencingAmazonSecurityGroupRuleSpec(
   override val outboundRules: MutableSet<SecurityGroupRule>,
   override val description: String
 ) : AmazonSecurityGroupSpec(), AmazonSecurityGroupRuleSpec {
-  @JsonIgnore override val cloudProvider = "aws"
-  @JsonIgnore override fun assetId() = "$KIND:aws:$accountName:$region:$name:self:$label"
+  @JsonIgnore
+  override val cloudProvider = "ec2"
+
+  @JsonIgnore
+  override fun assetId() = "$KIND:ec2:$accountName:$region:$name:self:$label"
 }
 
-@JsonTypeName("aws.remote")
+@JsonTypeName("ec2.remote")
 data class RemoteAmazonSecurityGroupRuleSpec(
   override val name: String,
   override val label: String,
@@ -108,9 +112,11 @@ data class RemoteAmazonSecurityGroupRuleSpec(
   val sourceApplication: String,
   val targetApplication: String
 ) : AmazonSecurityGroupSpec(), AmazonSecurityGroupRuleSpec {
-  @JsonIgnore override val cloudProvider = "aws"
+  @JsonIgnore
+  override val cloudProvider = "ec2"
   @JsonIgnore override val application = sourceApplication
-  @JsonIgnore override fun assetId() = "$KIND:aws:$accountName:$region:$name:remote[$sourceApplication:$targetApplication]:$label"
+  @JsonIgnore
+  override fun assetId() = "$KIND:ec2:$accountName:$region:$name:remote[$sourceApplication:$targetApplication]:$label"
 }
 
 @JsonTypeName("crossAccountRef")

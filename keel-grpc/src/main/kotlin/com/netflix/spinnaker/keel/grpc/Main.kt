@@ -38,7 +38,7 @@ object MainDefaults {
 @ComponentScan(basePackages = [
   "com.netflix.spinnaker.config",
   "com.netflix.spinnaker.keel.api",
-  "com.netflix.spinnaker.keel.aws"
+  "com.netflix.spinnaker.keel.ec2"
 ])
 class KeelGrpcServiceApp {
 

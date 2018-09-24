@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.aws
+package com.netflix.spinnaker.keel.ec2
 
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetContainer

@@ -34,7 +34,7 @@ class AmazonSecurityGroupConverter(
 
   override fun convertToState(spec: AmazonSecurityGroupSpec): SecurityGroup =
     SecurityGroup(
-      type = "aws",
+      type = "ec2",
       name = spec.name,
       description = spec.description,
       accountName = spec.accountName,
@@ -163,7 +163,7 @@ class AmazonSecurityGroupConverter(
           mutableMapOf(
             "application" to spec.application,
             "credentials" to spec.accountName,
-            "cloudProvider" to "aws",
+            "cloudProvider" to "ec2",
             "name" to spec.name,
             "regions" to listOf(spec.region),
             "vpcId" to spec.vpcName,
