@@ -22,8 +22,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import retrofit.client.Response
+import retrofit.http.Body
 import retrofit.http.GET
 import retrofit.http.Headers
+import retrofit.http.PUT
 import retrofit.http.Path
 import retrofit.http.Query
 import retrofit.http.QueryMap
@@ -322,6 +324,10 @@ interface ClouddriverService {
 
   @GET('/artifacts/credentials')
   List<Map> getArtifactCredentials()
+
+  @Streaming
+  @PUT('/artifacts/fetch')
+  Response getArtifactContent(@Body Map artifact)
 
   @GET('/roles/{cloudProvider}')
   List<Map> getRoles(@Path("cloudProvider") String cloudProvider)

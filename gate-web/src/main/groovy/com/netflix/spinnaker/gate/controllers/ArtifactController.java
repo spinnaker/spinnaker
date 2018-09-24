@@ -18,14 +18,18 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.ArtifactService;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
 @RequestMapping("/artifacts")
@@ -38,5 +42,19 @@ public class ArtifactController {
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
   List<Map> all(@RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return artifactService.getArtifactCredentials(sourceApp);
+  }
+
+  @ApiOperation(value = "Fetch the contents of an artifact", response = StreamingResponseBody.class)
+  @RequestMapping(method = RequestMethod.PUT, value = "/fetch")
+  StreamingResponseBody fetch(
+    @RequestBody Map<String, String> artifact,
+    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp
+  ) {
+    return new StreamingResponseBody() {
+      public void writeTo (OutputStream outputStream) throws IOException {
+        artifactService.getArtifactContents(sourceApp, artifact, outputStream);
+        outputStream.flush();
+      }
+    };
   }
 }

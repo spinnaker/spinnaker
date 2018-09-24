@@ -20,9 +20,12 @@ import com.netflix.hystrix.HystrixCommand;
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import groovy.transform.CompileStatic;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.client.Response;
 
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -39,9 +42,21 @@ public class ArtifactService {
     return HystrixFactory.newListCommand(GROUP, type, work);
   }
 
+  private static HystrixCommand<Void> voidCommand(String type, Callable<Void> work) {
+    return HystrixFactory.newVoidCommand(GROUP, type, work);
+  }
+
   public List<Map> getArtifactCredentials(String selectorKey) {
     return listCommand("artifactCredentials",
         clouddriverServiceSelector.select(selectorKey)::getArtifactCredentials)
         .execute();
+  }
+
+  public Void getArtifactContents(String selectorKey, Map<String, String> artifact, OutputStream outputStream)  {
+    return voidCommand("artifactContents", () -> {
+      Response contentResponse = clouddriverServiceSelector.select(selectorKey).getArtifactContent(artifact);
+      IOUtils.copy(contentResponse.getBody().in(), outputStream);
+      return null;
+    }).execute();
   }
 }
