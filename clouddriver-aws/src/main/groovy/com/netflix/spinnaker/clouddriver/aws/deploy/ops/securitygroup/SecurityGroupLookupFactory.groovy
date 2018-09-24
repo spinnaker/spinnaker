@@ -31,6 +31,9 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGr
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.kork.core.RetrySupport
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class SecurityGroupLookupFactory {
 
@@ -38,7 +41,7 @@ class SecurityGroupLookupFactory {
   private final AccountCredentialsRepository accountCredentialsRepository
 
   SecurityGroupLookupFactory(AmazonClientProvider amazonClientProvider,
-                           AccountCredentialsRepository accountCredentialsRepository) {
+                             AccountCredentialsRepository accountCredentialsRepository) {
     this.amazonClientProvider = amazonClientProvider
     this.accountCredentialsRepository = accountCredentialsRepository
   }
@@ -60,6 +63,9 @@ class SecurityGroupLookupFactory {
    * Can also be used to create a security group from a description.
    */
   static class SecurityGroupLookup {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final RetrySupport retrySupport = new RetrySupport()
+
     private final AmazonClientProvider amazonClientProvider
     private final String region
     private final ImmutableSet<NetflixAmazonCredentials> accounts
@@ -113,16 +119,37 @@ class SecurityGroupLookupFactory {
       }
       final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
       final result = amazonEC2.createSecurityGroup(request)
-      final newSecurityGroup = new SecurityGroup(ownerId: credentials.accountId, groupId: result.groupId,
-        groupName: description.name, description: description.description, vpcId: description.vpcId)
+      final newSecurityGroup = new SecurityGroup(
+        ownerId: credentials.accountId,
+        groupId: result.groupId,
+        groupName: description.name,
+        description: description.description,
+        vpcId: description.vpcId
+      )
       securityGroupById.put(result.groupId, newSecurityGroup)
       securityGroupByName.put(description.name, newSecurityGroup)
 
-      List<Tag> tags = new ArrayList<Tag>()
-      tags.add(new Tag("Name", description.name))
-      CreateTagsRequest createTagRequest = new CreateTagsRequest()
-      createTagRequest.withResources(result.groupId).withTags(tags)
-      amazonEC2.createTags(createTagRequest)
+      try {
+        /*
+         * `createSecurityGroup` is eventually consistent hence the need for retries in the event that the newly
+         * created security group is not immediately taggable.
+         */
+        retrySupport.retry({
+          CreateTagsRequest createTagRequest = new CreateTagsRequest()
+          createTagRequest.withResources(result.groupId).withTags([
+            new Tag("Name", description.name)
+          ])
+          amazonEC2.createTags(createTagRequest)
+        }, 10, 3000, false);
+      } catch (Exception e) {
+        log.error(
+          "Unable to tag newly created security group (groupName: {}, groupId: {}, accountId: {})",
+          description.name,
+          result.groupId,
+          credentials.accountId,
+          e
+        )
+      }
 
       if (!skipEdda) {
         getEddaSecurityGroups(amazonEC2, description.credentialAccount, region).add(newSecurityGroup)
