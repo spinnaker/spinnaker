@@ -38,7 +38,7 @@ internal object SimpleVetoPluginSpec : Spek({
           .newBuilder()
           .apply {
             typeMetadataBuilder.apply {
-              kind = "aws.SecurityGroup"
+              kind = "ec2.SecurityGroup"
               apiVersion = "1.0"
             }
           }
@@ -64,7 +64,7 @@ internal object SimpleVetoPluginSpec : Spek({
           .newBuilder()
           .apply {
             typeMetadataBuilder.apply {
-              kind = "aws.SecurityGroup"
+              kind = "ec2.SecurityGroup"
               apiVersion = "1.0"
             }
           }

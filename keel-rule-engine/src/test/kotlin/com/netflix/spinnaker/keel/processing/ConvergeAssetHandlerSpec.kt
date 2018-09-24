@@ -32,18 +32,18 @@ internal object ConvergeAssetHandlerSpec : Spek({
   val subject = ConvergeAssetHandler(repository, queue, assetService, vetoService)
 
   val level2Dependency = Asset(
-    id = AssetId("SecurityGroup:aws:prod:us-west-2:keel"),
+    id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"),
     kind = "SecurityGroup",
     spec = randomBytes()
   )
   val level1Dependency = Asset(
-    id = AssetId("LoadBalancer:aws:prod:us-west-2:keel"),
+    id = AssetId("LoadBalancer:ec2:prod:us-west-2:keel"),
     kind = "LoadBalancer",
     dependsOn = setOf(level2Dependency.id),
     spec = randomBytes()
   )
   val asset = Asset(
-    id = AssetId("Cluster:aws:prod:us-west-2:keel"),
+    id = AssetId("Cluster:ec2:prod:us-west-2:keel"),
     kind = "Cluster",
     dependsOn = setOf(level1Dependency.id),
     spec = randomBytes()

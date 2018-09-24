@@ -64,7 +64,7 @@ class AmazonSecurityGroupHandler(
       .also {
         it.id = assetContainer.asset.id
          it.typeMetadataBuilder.apply {
-          kind = "aws.SecurityGroup"
+           kind = "ec2.SecurityGroup"
           apiVersion = "1.0"
         }
         it.spec = securityGroupAsset.pack()
@@ -83,7 +83,7 @@ class AmazonSecurityGroupHandler(
           mutableMapOf(
             "application" to spec.application,
             "credentials" to spec.accountName,
-            "cloudProvider" to "aws",
+            "cloudProvider" to "ec2",
             "name" to spec.name,
             "regions" to listOf(spec.region),
             "vpcId" to spec.vpcName,

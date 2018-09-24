@@ -38,11 +38,11 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
   val subject = factory()
 
   val securityGroup = AssetType(
-    kind = "aws:SecurityGroup",
+    kind = "ec2:SecurityGroup",
     apiVersion = "1.0"
   )
   val loadBalancer = AssetType(
-    kind = "aws:LoadBalancer",
+    kind = "ec2:LoadBalancer",
     apiVersion = "1.0"
   )
 

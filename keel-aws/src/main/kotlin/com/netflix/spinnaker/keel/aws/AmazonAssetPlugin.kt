@@ -37,9 +37,9 @@ class AmazonAssetPlugin(
 ) : AssetPlugin() {
 
   override val supportedTypes: Iterable<TypeMetadata> = setOf(
-    "aws.SecurityGroup",
-    "aws.SecurityGroupRule",
-    "aws.ClassicLoadBalancer"
+    "ec2.SecurityGroup",
+    "ec2.SecurityGroupRule",
+    "ec2.ClassicLoadBalancer"
   ).map { kind ->
     TypeMetadata.newBuilder().setApiVersion("1.0").setKind(kind).build()
   }

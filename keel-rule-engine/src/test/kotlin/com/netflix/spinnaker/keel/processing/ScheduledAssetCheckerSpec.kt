@@ -26,12 +26,12 @@ internal object ScheduledAssetCheckerSpec : Spek({
     given("the repository contains some assets") {
 
       val rootAsset1 = Asset(
-        id = AssetId("SecurityGroup:aws:prod:us-west-2:keel"),
+        id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"),
         kind = "SecurityGroup",
         spec = randomBytes()
       )
       val rootAsset2 = Asset(
-        id = AssetId("SecurityGroup:aws:prod:us-east-1:keel"),
+        id = AssetId("SecurityGroup:ec2:prod:us-east-1:keel"),
         kind = "SecurityGroup",
         spec = randomBytes()
       )

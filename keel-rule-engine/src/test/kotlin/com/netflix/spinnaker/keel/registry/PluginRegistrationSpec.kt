@@ -43,7 +43,7 @@ internal object PluginRegistrationSpec : Spek({
     .newBuilder()
     .apply {
       apiVersion = "1.0"
-      kind = "aws/SecurityGroup"
+      kind = "ec2/SecurityGroup"
     }
     .build()
 
@@ -83,8 +83,8 @@ internal object PluginRegistrationSpec : Spek({
           RegisterAssetPluginRequest
             .newBuilder()
             .apply {
-              name = "AWS plugin"
-              vip = "aws-asset-plugin"
+              name = "EC2 plugin"
+              vip = "ec2-asset-plugin"
               port = 6565
               addType(type)
             }

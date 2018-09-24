@@ -72,7 +72,7 @@ internal object GrpcAssetRegistrySpec : Spek({
 
     given("a simple asset") {
       val asset = Asset(
-        id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
+        id = AssetId("ec2:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
         kind = "SecurityGroup",
         spec = randomBytes()
       )
@@ -99,18 +99,18 @@ internal object GrpcAssetRegistrySpec : Spek({
 
     given("multiple assets and partials") {
       val asset = Asset(
-        id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
+        id = AssetId("ec2:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
         kind = "SecurityGroup",
         spec = randomBytes()
       )
       val partial1 = PartialAsset(
-        id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress1"),
+        id = AssetId("ec2:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress1"),
         root = asset.id,
         kind = "SecurityGroupRule",
         spec = randomBytes()
       )
       val partial2 = PartialAsset(
-        id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress2"),
+        id = AssetId("ec2:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress2"),
         root = asset.id,
         kind = "SecurityGroupRule",
         spec = randomBytes()
@@ -143,7 +143,7 @@ internal object GrpcAssetRegistrySpec : Spek({
     given("no previous version of the asset exists") {
       given("a simple asset") {
         val asset = Asset(
-          id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
+          id = AssetId("ec2:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
           kind = "SecurityGroup",
           spec = randomBytes()
         )
@@ -181,18 +181,18 @@ internal object GrpcAssetRegistrySpec : Spek({
 
       given("an asset with associated partials") {
         val asset = Asset(
-          id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
+          id = AssetId("ec2:securityGroup:keel:keel-frontend:mgmt:us-west-2"),
           kind = "SecurityGroup",
           spec = randomBytes()
         )
         val partial1 = PartialAsset(
-          id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress1"),
+          id = AssetId("ec2:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress1"),
           root = asset.id,
           kind = "SecurityGroupRule",
           spec = randomBytes()
         )
         val partial2 = PartialAsset(
-          id = AssetId("aws:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress2"),
+          id = AssetId("ec2:securityGroup:keel:keel-frontend:mgmt:us-west-2:ingress2"),
           root = asset.id,
           kind = "SecurityGroupRule",
           spec = randomBytes()

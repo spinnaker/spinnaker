@@ -51,7 +51,7 @@ internal class GrpcAssetServiceTests {
       addService(plugin)
     }
 
-    val pluginVip = "aws-plugin"
+    val pluginVip = "ec2-plugin"
     whenever(eureka.getNextServerFromEureka(pluginVip, false)) doReturn grpc.instanceInfo
 
     val responseCallback: StreamObserver<RegisterAssetPluginResponse> = mock()
@@ -71,15 +71,15 @@ internal class GrpcAssetServiceTests {
   }
 
   val asset = Asset(
-    id = AssetId("SecurityGroup:aws:prod:us-west-2:keel"),
-    kind = "aws:SecurityGroup",
+    id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"),
+    kind = "ec2:SecurityGroup",
     spec = randomBytes()
   )
 
   @Test
   fun `current throws an exception if no registered plugin supports an asset type`() {
     expectThat(catching {
-      subject.current(asset.copy(kind = "ElasticLoadBalancer:aws:prod:us-west-2:keel").wrap())
+      subject.current(asset.copy(kind = "ElasticLoadBalancer:ec2:prod:us-west-2:keel").wrap())
     }).throws<UnsupportedAssetType>()
 
     verifyZeroInteractions(plugin)

@@ -41,7 +41,7 @@ internal class AssetTests {
 
   private fun asset(spec: ByteArray): Asset =
     Asset(
-      id = AssetId("SecurityGroup:aws:prod:us-west-2:keel"),
+      id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"),
       kind = "SecurityGroup",
       spec = spec
     )

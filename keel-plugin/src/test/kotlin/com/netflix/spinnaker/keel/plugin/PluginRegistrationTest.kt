@@ -51,8 +51,8 @@ internal class PluginRegistrationTest {
   val amazonAssetPlugin = mock<AssetPlugin>()
   val instanceInfo = InstanceInfo.Builder.newBuilder().run {
     setAppName("keelplugins")
-    setASGName("keelplugins-test-aws-v005")
-    setVIPAddress("keelplugins-test-aws")
+    setASGName("keelplugins-test-ec2-v005")
+    setVIPAddress("keelplugins-test-ec2")
     build()
   }
   val localGrpcPort = 1337
@@ -65,8 +65,8 @@ internal class PluginRegistrationTest {
     }
     whenever(amazonAssetPlugin.name) doReturn "Amazon plugin"
     whenever(amazonAssetPlugin.supportedTypes) doReturn listOf(
-      "aws.SecurityGroup",
-      "aws.ClassicLoadBalancer"
+      "ec2.SecurityGroup",
+      "ec2.ClassicLoadBalancer"
     ).map(::typeMetadataForKind)
 
     registrar = PluginRegistrar(
@@ -94,9 +94,9 @@ internal class PluginRegistrationTest {
     registrar.onDiscoveryUp()
 
     expectThat(registeredTypes) {
-      containsKeys("aws.SecurityGroup", "aws.ClassicLoadBalancer")
-      get("aws.SecurityGroup").isEqualTo(instanceInfo.vipAddress to localGrpcPort)
-      get("aws.ClassicLoadBalancer").isEqualTo(instanceInfo.vipAddress to localGrpcPort)
+      containsKeys("ec2.SecurityGroup", "ec2.ClassicLoadBalancer")
+      get("ec2.SecurityGroup").isEqualTo(instanceInfo.vipAddress to localGrpcPort)
+      get("ec2.ClassicLoadBalancer").isEqualTo(instanceInfo.vipAddress to localGrpcPort)
     }
   }
 

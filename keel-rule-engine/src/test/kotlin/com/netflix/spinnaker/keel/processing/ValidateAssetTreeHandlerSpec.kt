@@ -37,10 +37,10 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
   val queue: Queue = mock()
   val subject = ValidateAssetTreeHandler(repository, assetService, queue)
 
-  val rootAsset = Asset(id = AssetId("SecurityGroup:aws:prod:us-west-2:keel"), kind = "SecurityGroup", spec = randomBytes())
+  val rootAsset = Asset(id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"), kind = "SecurityGroup", spec = randomBytes())
   val assets = listOf(
-    Asset(id = AssetId("LoadBalancer:aws:prod:us-west-2:keel"), kind = "LoadBalancer", spec = randomBytes()),
-    Asset(id = AssetId("Cluster:aws:prod:us-west-2:keel"), kind = "Cluster", spec = randomBytes())
+    Asset(id = AssetId("LoadBalancer:ec2:prod:us-west-2:keel"), kind = "LoadBalancer", spec = randomBytes()),
+    Asset(id = AssetId("Cluster:ec2:prod:us-west-2:keel"), kind = "Cluster", spec = randomBytes())
   ).map {
     it.copy(dependsOn = setOf(rootAsset.id))
   }

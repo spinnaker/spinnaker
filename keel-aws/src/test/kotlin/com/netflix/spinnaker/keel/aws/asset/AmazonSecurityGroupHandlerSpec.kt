@@ -114,7 +114,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
         .apply {
           asset = assetBuilder.apply {
             typeMetadataBuilder.apply {
-              kind = "aws.SecurityGroup"
+              kind = "ec2.SecurityGroup"
               apiVersion = "1.0"
             }
             specBuilder.apply {
@@ -155,7 +155,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
         .apply {
           asset = assetBuilder.apply {
             typeMetadataBuilder.apply {
-              kind = "aws.SecurityGroup"
+              kind = "ec2.SecurityGroup"
               apiVersion = "1.0"
             }
             spec = securityGroup.pack()
@@ -218,7 +218,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
         .apply {
           assetBuilder.apply {
             typeMetadataBuilder.apply {
-              kind = "aws.SecurityGroup"
+              kind = "ec2.SecurityGroup"
               apiVersion = "1.0"
             }
             spec = securityGroup.pack()
@@ -271,7 +271,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
           assetBuilder.apply {
             idBuilder.value = "id"
             typeMetadataBuilder.apply {
-              kind = "aws.SecurityGroup"
+              kind = "ec2.SecurityGroup"
               apiVersion = "1.0"
             }
             spec = securityGroup.pack()
@@ -280,7 +280,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
             addPartialAsset(PartialAsset.newBuilder().apply {
               idBuilder.value = "id"
               typeMetadataBuilder.apply {
-                kind = "aws.SecurityGroupRule"
+                kind = "ec2.SecurityGroupRule"
                 apiVersion = "1.0"
               }
               spec = securityGroupRule.pack()
