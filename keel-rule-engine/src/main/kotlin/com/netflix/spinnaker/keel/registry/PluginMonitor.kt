@@ -34,9 +34,9 @@ class PluginMonitor(
       val instances = eureka.getInstancesByVipAddress(address.vip, false)
       if (instances.isEmpty()) {
         log.warn("Found no instances of \"${address.name}\" in Eureka")
-        registry.counter(MISSING_PLUGIN_COUNTER, address.name).increment()
+        registry.counter(MISSING_PLUGIN_COUNTER, "name" to address.name).increment()
       } else {
-        log.debug("Found ${instances.size} instance(s) of \"${address.name}\" in Eureka")
+        log.info("Found ${instances.size} instance(s) of \"${address.name}\" in Eureka")
       }
     }
   }
@@ -47,3 +47,6 @@ class PluginMonitor(
     const val MISSING_PLUGIN_COUNTER: String = "keel.plugin.unavailable"
   }
 }
+
+fun Registry.counter(name: String, vararg tags: Pair<String, String>) =
+  counter(name, *tags.flatMap { listOf(it.first, it.second) }.toTypedArray())

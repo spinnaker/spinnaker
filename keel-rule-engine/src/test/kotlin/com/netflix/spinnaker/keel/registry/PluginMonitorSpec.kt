@@ -77,7 +77,7 @@ internal object PluginMonitorSpec : Spek({
     }
 
     it("tags the counter with the plugin name") {
-      verify(registry).counter(PluginMonitor.MISSING_PLUGIN_COUNTER, addresses.first().name)
+      verify(registry).counter(PluginMonitor.MISSING_PLUGIN_COUNTER, "name", addresses.first().name)
     }
   }
 })
