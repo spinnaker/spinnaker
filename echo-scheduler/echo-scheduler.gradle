@@ -19,7 +19,6 @@ dependencies {
 
   spinnaker.group('spockBase')
   spinnaker.group("retrofitDefault")
-  compile spinnaker.dependency('korkCassandra')
   compile spinnaker.dependency('groovy')
   compile spinnaker.dependency('slf4jApi')
   compile spinnaker.dependency('eurekaClient')
@@ -27,6 +26,5 @@ dependencies {
 
   testRuntime spinnaker.dependency('slf4jSimple')
   compile spinnaker.dependency('scheduledActionsCore')
-  compile spinnaker.dependency('scheduledActionsCassandra')
   compile spinnaker.dependency('scheduledActionsWeb')
 }

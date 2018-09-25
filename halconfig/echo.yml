@@ -6,8 +6,6 @@ server:
 
 spinnaker:
   baseUrl: ${services.deck.baseUrl}
-  cassandra:
-     enabled: false
   inMemory:
      enabled: true
 
