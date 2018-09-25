@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.processing.AssetService
 import com.netflix.spinnaker.keel.processing.CurrentAssetPair
 import com.netflix.spinnaker.keel.registry.UnsupportedAssetType
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import com.netflix.spinnaker.keel.api.Asset as AssetProto
 import com.netflix.spinnaker.keel.api.AssetId as AssetIdProto
@@ -49,8 +50,23 @@ class GrpcAssetService(
   }
 
   override fun converge(assetContainer: AssetContainer) {
-    TODO("not implemented")
+    if (assetContainer.asset == null) {
+      throw AssetRequired()
+    }
+    val typeMetaData = assetContainer.asset.toTypeMetaData()
+
+    val stub = pluginRegistry
+      .pluginFor(typeMetaData) ?: throw UnsupportedAssetType(typeMetaData)
+    stub.converge(assetContainer.toProto()).let { response ->
+      if (response.success) {
+        log.info("Request to converge {} succeeded", assetContainer.asset.id)
+      } else {
+        log.error("Request to converge {} failed", assetContainer.asset.id)
+      }
+    }
   }
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private class AssetRequired : IllegalArgumentException("An asset must be provided to get its current state")
 

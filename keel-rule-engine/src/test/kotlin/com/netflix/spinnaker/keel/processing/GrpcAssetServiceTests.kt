@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.instanceInfo
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
+import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.grpc.GrpcAssetService
 import com.netflix.spinnaker.keel.grpc.GrpcPluginRegistry
@@ -19,6 +20,7 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argWhere
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
@@ -117,6 +119,20 @@ internal class GrpcAssetServiceTests {
     }
   }
 
+  @Test
+  fun `converge invokes the plugin`() {
+    handleConverge { _, responseObserver ->
+      with(responseObserver) {
+        onNext(ConvergeResponse.newBuilder().setSuccess(true).build())
+        onCompleted()
+      }
+    }
+
+    subject.converge(asset.wrap())
+
+    verify(plugin).converge(eq(asset.wrap().toProto()), any())
+  }
+
   fun Asset.toCurrentResponse(): CurrentResponse? {
     return CurrentResponse
       .newBuilder()
@@ -131,6 +147,14 @@ internal class GrpcAssetServiceTests {
     whenever(plugin.current(any(), any())) doAnswer {
       val asset = it.getArgument<AssetContainerProto>(0)
       val observer = it.getArgument<StreamObserver<CurrentResponse>>(1)
+      handler(asset, observer)
+    }
+  }
+
+  fun handleConverge(handler: (AssetContainerProto, StreamObserver<ConvergeResponse>) -> Unit) {
+    whenever(plugin.converge(any(), any())) doAnswer {
+      val asset = it.getArgument<AssetContainerProto>(0)
+      val observer = it.getArgument<StreamObserver<ConvergeResponse>>(1)
       handler(asset, observer)
     }
   }
