@@ -6,13 +6,11 @@ import { IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
 import { YamlEditor } from 'kubernetes/v2/manifest/yaml/YamlEditor';
 import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
-export interface IServerGroupBasicSettingsProps {
+export interface IServerGroupBasicSettingsProps extends IWizardPageProps {
   app: Application;
 }
 
-class ManifestEntryImpl extends React.Component<
-  IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<IKubernetesManifestCommandData>
-> {
+class ManifestEntryImpl extends React.Component<IServerGroupBasicSettingsProps> {
   public static LABEL = 'Manifest';
 
   constructor(props: IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<IKubernetesManifestCommandData>) {
@@ -25,16 +23,17 @@ class ManifestEntryImpl extends React.Component<
   };
 
   private handleChange = (manifests: any) => {
-    if (!this.props.values.command.manifests) {
-      this.props.values.command.manifests = [];
+    const { formik } = this.props;
+    if (!formik.values.command.manifests) {
+      formik.values.command.manifests = [];
     }
-    Object.assign(this.props.values.command.manifests, Array.isArray(manifests) ? manifests : [manifests]);
+    Object.assign(formik.values.command.manifests, Array.isArray(manifests) ? manifests : [manifests]);
   };
 
   public render() {
-    const { values } = this.props;
-    const [first = null, ...rest] = values.command.manifests || [];
-    const manifest = rest && rest.length ? values.command.manifests : first;
+    const { formik } = this.props;
+    const [first = null, ...rest] = formik.values.command.manifests || [];
+    const manifest = rest && rest.length ? formik.values.command.manifests : first;
     return <YamlEditor value={manifest} onChange={this.handleChange} />;
   }
 }

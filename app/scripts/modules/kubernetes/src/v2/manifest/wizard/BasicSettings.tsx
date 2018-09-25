@@ -1,39 +1,37 @@
 import * as React from 'react';
-import { FormikErrors, FormikProps, FormikValues } from 'formik';
+import { FormikErrors, FormikValues } from 'formik';
 
 import { NgReact, HelpField, IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
 
 import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
-export interface IManifestBasicSettingsProps {
+export interface IManifestBasicSettingsProps extends IWizardPageProps {
   app: Application;
 }
 
-class ManifestBasicSettingsImpl extends React.Component<
-  IManifestBasicSettingsProps & IWizardPageProps & FormikProps<IKubernetesManifestCommandData>
-> {
+class ManifestBasicSettingsImpl extends React.Component<IManifestBasicSettingsProps> {
   public static LABEL = 'Basic Settings';
 
-  constructor(props: IManifestBasicSettingsProps & IWizardPageProps & FormikProps<IKubernetesManifestCommandData>) {
+  constructor(props: IManifestBasicSettingsProps) {
     super(props);
   }
 
   private accountUpdated = (account: string): void => {
-    const { setFieldValue, values } = this.props;
-    values.command.account = account;
-    setFieldValue('account', account);
+    const { formik } = this.props;
+    formik.values.command.account = account;
+    formik.setFieldValue('account', account);
   };
 
-  public validate = (_values: FormikValues): FormikErrors<IKubernetesManifestCommandData> => {
+  public validate = (_formik: FormikValues): FormikErrors<IKubernetesManifestCommandData> => {
     const errors = {} as FormikErrors<IKubernetesManifestCommandData>;
     return errors;
   };
 
   public render() {
-    const { values, app } = this.props;
+    const { formik, app } = this.props;
     const { AccountSelectField } = NgReact;
 
-    const accounts = values.metadata.backingData.accounts;
+    const accounts = formik.values.metadata.backingData.accounts;
 
     return (
       <div className="container-fluid form-horizontal">
@@ -44,7 +42,7 @@ class ManifestBasicSettingsImpl extends React.Component<
           <div className="col-md-7">
             <AccountSelectField
               readOnly={false}
-              component={values.command}
+              component={formik.values.command}
               field="account"
               accounts={accounts}
               provider="kubernetes"
