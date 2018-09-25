@@ -27,7 +27,15 @@ public class DetermineLockTask implements Task {
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
-    Optional<StageNavigator.Result> lockStageResult = stageNavigator.ancestors(stage).stream().filter(r -> r.getStageBuilder() instanceof AcquireLockStage).findFirst();
+    Optional<StageNavigator.Result> lockStageResult = stageNavigator
+      .ancestors(stage)
+      .stream()
+      .filter(
+        r -> r.getStageBuilder() instanceof AcquireLockStage)
+      .filter(r ->
+        stage.getParentStageId() == null ? r.getStage().getParentStageId() == null :
+          stage.getParentStageId().equals(r.getStage().getParentStageId()))
+      .findFirst();
 
     try {
       final LockContext lockContext;

@@ -9,6 +9,8 @@ import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.AcquireLockTask;
 import com.netflix.spinnaker.orca.pipeline.tasks.ReleaseLockTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class LockExtendingTaskExecutionInterceptor implements TaskExecutionInterceptor {
+  private final Logger log = LoggerFactory.getLogger(getClass());
   private final LockManager lockManager;
   private final LockingConfigurationProperties lockingConfigurationProperties;
 
@@ -73,17 +76,18 @@ public class LockExtendingTaskExecutionInterceptor implements TaskExecutionInter
       }
     });
 
-    List<HeldLock> toExtend = heldLocks
+    heldLocks
       .entrySet()
       .stream()
       .filter(me -> me.getValue().get() > 0)
       .map(Map.Entry::getKey)
-      .collect(Collectors.toList());
-    toExtend.forEach(hl ->
-      lockManager.extendLock(
-        hl.lockName,
-        hl.lockValue,
-        lockingConfigurationProperties.getTtlSeconds()));
+      .forEach(hl -> {
+        log.debug("extending lock {} held by {}", hl.lockName, hl.lockValue);
+        lockManager.extendLock(
+          hl.lockName,
+          hl.lockValue,
+          lockingConfigurationProperties.getTtlSeconds());
+      });
   }
 
   private static class HeldLock {

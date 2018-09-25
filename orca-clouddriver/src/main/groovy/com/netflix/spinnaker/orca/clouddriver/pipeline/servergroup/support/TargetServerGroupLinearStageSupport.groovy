@@ -16,6 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
+import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import com.netflix.spinnaker.orca.pipeline.AcquireLockStage
+import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
+
 import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
@@ -34,6 +42,7 @@ import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.suppor
 abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBuilder, Nameable {
 
   @Autowired TargetServerGroupResolver resolver
+  @Autowired TrafficGuard trafficGuard
 
   /**
    * Override to supply tasks that individual target stages will run. The top level
@@ -107,11 +116,35 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
     } else if (isTopLevel(parent.parent)) {
       // a non top level stage operates on a single target and may have its own
       // synthetic stages
+      withGuard(parent) { moniker, account, location ->
+        graph.add {
+          it.type = AcquireLockStage.PIPELINE_TYPE
+          it.name = 'acquireLock'
+          it.context = [lock: [lockName: ClusterLockHelper.clusterLockName(moniker, account, location)]]
+        }
+      }
+
       if (isDynamicallyBound(parent)) {
         preDynamic(parent.context, graph)
       } else {
         preStatic(parent.context, graph)
       }
+    }
+  }
+
+  void withGuard(Stage parent,
+                 @ClosureParams(
+                   value = SimpleType,
+                   options = [
+                   'com.netflix.spinnaker.moniker.Moniker',
+                   'java.lang.String',
+                   'com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location'
+                 ]) Closure handleGuard) {
+    def param = TargetServerGroup.Params.fromStage(parent)
+    def moniker = param.moniker ?: MonikerHelper.friggaToMoniker(param.cluster ?: param.serverGroupName)
+    def location = param.locations[0]
+    if (trafficGuard.hasDisableLock(moniker,param.credentials, location)) {
+      handleGuard.call(moniker, param.credentials, location)
     }
   }
 
@@ -129,6 +162,14 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
         postDynamic(parent.context, graph)
       } else {
         postStatic(parent.context, graph)
+      }
+
+      withGuard(parent) { moniker, account, location ->
+        graph.append {
+          it.type = ReleaseLockStage.PIPELINE_TYPE
+          it.name = 'releaseLock'
+          it.context = [lock: [lockName: ClusterLockHelper.clusterLockName(moniker, account, location)]]
+        }
       }
     }
   }

@@ -87,6 +87,15 @@ public interface LockManager {
     public int hashCode() {
       return Objects.hash(application, type, id);
     }
+
+    @Override
+    public String toString() {
+      return "LockValue{" +
+        "application='" + application + '\'' +
+        ", type='" + type + '\'' +
+        ", id='" + id + '\'' +
+        '}';
+    }
   }
 
   /**

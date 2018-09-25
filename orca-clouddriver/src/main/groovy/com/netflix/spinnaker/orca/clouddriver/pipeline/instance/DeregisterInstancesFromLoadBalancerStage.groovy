@@ -36,6 +36,9 @@ class DeregisterInstancesFromLoadBalancerStage implements StageDefinitionBuilder
 
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
+    //TODO(cfieber): locking support
+    // this probably needs to move the determination of server group name for instances to a synthetic stage that runs before
+    // and an acquire lock for each of the clusters for those server groups
     builder
       .withTask("deregisterInstances", DeregisterInstancesFromLoadBalancerTask)
       .withTask("monitorInstances", MonitorKatoTask)

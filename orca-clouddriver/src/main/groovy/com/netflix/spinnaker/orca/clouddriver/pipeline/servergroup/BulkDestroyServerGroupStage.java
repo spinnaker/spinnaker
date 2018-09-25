@@ -31,6 +31,11 @@ public class BulkDestroyServerGroupStage implements StageDefinitionBuilder, Name
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
+    //TODO(cfieber): how to do locking here...
+    // inject an acquire lock stage per distinct cluster in the operation?
+    // break into several parallel bulk ops based on cluster and lock/unlock around those?
+    // question: do traffic guard checks actually even work in the bulk disable/destroy tasks?
+
     try {
       builder
         .withTask("bulkDisableServerGroup", BulkDisableServerGroupTask.class)

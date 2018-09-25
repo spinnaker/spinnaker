@@ -16,18 +16,39 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.frigga.Names;
+import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
+import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper;
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard;
+import com.netflix.spinnaker.orca.pipeline.AcquireLockStage;
+import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
+import javax.annotation.Nonnull;
 import java.beans.Introspector;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class AbstractClusterWideClouddriverOperationStage implements StageDefinitionBuilder {
+
+  private final TrafficGuard trafficGuard;
+
+  protected AbstractClusterWideClouddriverOperationStage(TrafficGuard trafficGuard) {
+    this.trafficGuard = Objects.requireNonNull(trafficGuard);
+  }
+
   protected abstract Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask();
 
   protected abstract Class<? extends AbstractWaitForClusterWideClouddriverTask> getWaitForTask();
@@ -37,6 +58,141 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
       return taskClassSimpleName.substring(0, taskClassSimpleName.length() - "Task".length());
     }
     return taskClassSimpleName;
+  }
+
+  @Override
+  public final void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    List<Location> locations = locationsFromStage(parent.getContext());
+    ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
+    for (Location location : locations) {
+      String lockName = ClusterLockHelper.clusterLockName(
+        clusterSelection.getMoniker(),
+        clusterSelection.getCredentials(),
+        location);
+      if (trafficGuard.hasDisableLock(clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
+        graph.add(stage -> {
+          stage.setType(AcquireLockStage.PIPELINE_TYPE);
+          stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+        });
+      }
+    }
+    addAdditionalBeforeStages(parent, graph);
+  }
+
+  protected void addAdditionalBeforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+
+  }
+
+  @Override
+  public final void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    addAdditionalAfterStages(parent, graph);
+    List<Location> locations = locationsFromStage(parent.getContext());
+    ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
+    for (Location location : locations) {
+      String lockName = ClusterLockHelper.clusterLockName(
+        clusterSelection.getMoniker(),
+        clusterSelection.getCredentials(),
+        location);
+      if (trafficGuard.hasDisableLock(clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
+        graph.append(stage -> {
+          stage.setType(ReleaseLockStage.PIPELINE_TYPE);
+          stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+        });
+      }
+    }
+  }
+
+  protected void addAdditionalAfterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+
+  }
+
+  public static class ClusterSelection {
+    private final String cluster;
+    private final Moniker moniker;
+    private final String cloudProvider;
+    private final String credentials;
+
+    @JsonCreator
+    public ClusterSelection(
+      @JsonProperty("cluster") String cluster,
+      @JsonProperty("moniker") Moniker moniker,
+      @JsonProperty("cloudProvider") String cloudProvider,
+      @JsonProperty("credentials") String credentials) {
+      if (cluster == null) {
+        if (moniker == null) {
+          throw new NullPointerException("At least one of 'cluster' and 'moniker' is required");
+        } else {
+          this.cluster = moniker.getCluster();
+        }
+      } else {
+        this.cluster = cluster;
+      }
+
+      if (moniker == null) {
+        this.moniker = MonikerHelper.friggaToMoniker(this.cluster);
+      } else {
+        this.moniker = moniker;
+      }
+
+      this.cloudProvider = Optional.ofNullable(cloudProvider).orElse("aws");
+      this.credentials = Objects.requireNonNull(credentials);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("Cluster %s/%s/%s/%s", cloudProvider, credentials, cluster, moniker);
+    }
+
+    public String getApplication() {
+      return Optional
+        .ofNullable(moniker)
+        .map(Moniker::getApp)
+        .orElseGet(() -> Names.parseName(cluster).getApp());
+    }
+
+    public String getCluster() {
+      return cluster;
+    }
+
+    public Moniker getMoniker() {
+      return moniker;
+    }
+
+    public String getCloudProvider() {
+      return cloudProvider;
+    }
+
+    public String getCredentials() {
+      return credentials;
+    }
+  }
+
+  public static List<Location> locationsFromStage(Map<String, Object> context) {
+
+    //LinkedHashMap because we want to iterate in order:
+    Map<String, Location.Type> types = new LinkedHashMap<>();
+
+    types.put("namespaces", Location.Type.NAMESPACE);
+    types.put("regions", Location.Type.REGION);
+    types.put("zones", Location.Type.ZONE);
+    types.put("namespace", Location.Type.NAMESPACE);
+    types.put("region", Location.Type.REGION);
+
+    for (Map.Entry<String, Location.Type> entry : types.entrySet()) {
+      if (context.containsKey(entry.getKey())) {
+        Object value = context.get(entry.getKey());
+        if (value instanceof Collection && !((Collection<String>) value).isEmpty()) {
+          return new LinkedHashSet<>((Collection<String>) value)
+            .stream()
+            .map(l -> new Location(entry.getValue(), l))
+            .collect(Collectors.toList());
+        } else if (value instanceof String && !value.toString().isEmpty()) {
+          return Collections.singletonList(new Location(entry.getValue(), (String) value));
+        }
+      }
+    }
+
+    return Collections.emptyList();
   }
 
   @Override

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -25,10 +26,12 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 class TargetServerGroupLinearStageSupportSpec extends Specification {
 
   def resolver = Stub(TargetServerGroupResolver)
+  def trafficGuard = Stub(TrafficGuard)
   def supportStage = new TestSupport()
 
   def setup() {
     supportStage.resolver = resolver
+    supportStage.trafficGuard = trafficGuard
   }
 
   @Unroll

@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -25,7 +27,9 @@ import spock.lang.Unroll
 
 class HighlanderStrategySpec extends Specification {
 
-  def shrinkClusterStage = new ShrinkClusterStage()
+  def trafficGuard = Stub(TrafficGuard)
+  def disableClusterStage = new DisableClusterStage(trafficGuard)
+  def shrinkClusterStage = new ShrinkClusterStage(trafficGuard, disableClusterStage)
 
   @Unroll
   def "should compose flow"() {

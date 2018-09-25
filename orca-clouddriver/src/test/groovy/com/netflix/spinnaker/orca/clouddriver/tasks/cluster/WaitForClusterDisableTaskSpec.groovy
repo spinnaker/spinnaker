@@ -113,6 +113,8 @@ class WaitForClusterDisableTaskSpec extends Specification {
   def "fails with '#message' when clusterData=#clusterData"() {
     given:
     def stage = new Stage(Execution.newPipeline("orca"), "test", [
+      cluster: clusterName,
+      credentials: 'test',
       "deploy.server.groups": [
         (region): ["$clusterName-v42".toString()]
       ]

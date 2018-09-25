@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster;
 
+import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.DetermineRollbackCandidatesTask;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.TaskNode;
-import com.netflix.spinnaker.orca.pipeline.WaitStage;
+import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper;
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard;
+import com.netflix.spinnaker.orca.pipeline.*;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,13 @@ import java.util.stream.Collectors;
 @Component
 public class RollbackClusterStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "rollbackCluster";
+
+  private final TrafficGuard trafficGuard;
+
+  @Autowired
+  public RollbackClusterStage(TrafficGuard trafficGuard) {
+    this.trafficGuard = trafficGuard;
+  }
 
   @Override
   public void taskGraph(
@@ -60,6 +69,15 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       .collect(Collectors.toList());
 
     for (String region : regionsToRollback) {
+      final Location location = Location.region(region);
+      final boolean addLocking = trafficGuard.hasDisableLock(stageData.moniker, stageData.credentials, location);
+      final String lockName = ClusterLockHelper.clusterLockName(stageData.moniker, stageData.credentials, location);
+      if (addLocking) {
+        graph.append(stage -> {
+          stage.setType(AcquireLockStage.PIPELINE_TYPE);
+          stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+        });
+      }
       Map<String, Object> context = new HashMap<>();
       context.put(
         "rollbackType",
@@ -85,6 +103,13 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
         it.setName("Rollback " + region);
         it.setContext(context);
       });
+
+      if (addLocking) {
+        graph.append(stage -> {
+          stage.setType(ReleaseLockStage.PIPELINE_TYPE);
+          stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+        });
+      }
 
       if (stageData.waitTimeBetweenRegions != null && regionsToRollback.indexOf(region) < regionsToRollback.size() - 1) {
         // only add the waitStage if we're not the very last region!
@@ -122,6 +147,7 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
   static class StageData {
     public String credentials;
     public String cloudProvider;
+    public Moniker moniker;
 
     public List<String> regions;
     public Long waitTimeBetweenRegions;
