@@ -1,17 +1,17 @@
 import * as React from 'react';
-import { Field, FormikProps } from 'formik';
+import { Field, FormikErrors } from 'formik';
 
 import { HelpField, IWizardPageProps, ValidationMessage, wizardPage } from '@spinnaker/core';
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
-class AdvancedSettingsImpl extends React.Component<
-  IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>
-> {
+export type IAdvancedSettingsProps = IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand>;
+
+class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
   public static LABEL = 'Advanced Settings';
 
-  public validate(values: IAmazonClassicLoadBalancerUpsertCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
+  public validate(values: IAmazonClassicLoadBalancerUpsertCommand) {
+    const errors: FormikErrors<IAmazonClassicLoadBalancerUpsertCommand> = {};
 
     if (values.healthTimeout >= values.healthInterval) {
       errors.healthTimeout = 'The health timeout must be less than the health interval.';
@@ -21,7 +21,7 @@ class AdvancedSettingsImpl extends React.Component<
   }
 
   public render() {
-    const { errors, values } = this.props;
+    const { errors, values } = this.props.formik;
     return (
       <div className="form-group">
         <div className="col-md-8 nest">

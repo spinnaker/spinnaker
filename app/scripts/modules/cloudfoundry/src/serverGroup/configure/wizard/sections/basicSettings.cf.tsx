@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { FormikErrors, FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
@@ -18,7 +18,8 @@ import {
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../serverGroupConfigurationModel.cf';
 
-export interface ICloudFoundryServerGroupBasicSettingsProps {
+export interface ICloudFoundryServerGroupBasicSettingsProps
+  extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
   credentials: string;
   region: string;
   stack: string;
@@ -33,7 +34,7 @@ export interface ICloudFoundryServerGroupLocationSettingsState {
 }
 
 class BasicSettingsImpl extends React.Component<
-  ICloudFoundryServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<ICloudFoundryCreateServerGroupCommand>,
+  ICloudFoundryServerGroupBasicSettingsProps,
   ICloudFoundryServerGroupLocationSettingsState
 > {
   private deploymentStrategies: IDeploymentStrategy[] = [
@@ -60,17 +61,10 @@ class BasicSettingsImpl extends React.Component<
     return 'Basic Settings';
   }
 
-  constructor(
-    props: ICloudFoundryServerGroupBasicSettingsProps &
-      IWizardPageProps &
-      FormikProps<ICloudFoundryCreateServerGroupCommand>,
-  ) {
-    super(props);
-    this.state = {
-      accounts: [],
-      regions: [],
-    };
-  }
+  public state: ICloudFoundryServerGroupLocationSettingsState = {
+    accounts: [],
+    regions: [],
+  };
 
   public componentDidMount(): void {
     AccountService.listAccounts('cloudfoundry').then(accounts => {
@@ -80,44 +74,45 @@ class BasicSettingsImpl extends React.Component<
   }
 
   private accountUpdated = (account: string): void => {
-    this.props.values.credentials = account;
-    this.props.setFieldValue('credentials', account);
+    this.props.formik.values.credentials = account;
+    this.props.formik.setFieldValue('credentials', account);
     this.accountChanged();
   };
 
   private accountChanged = (): void => {
-    if (this.props.values.credentials) {
-      AccountService.getRegionsForAccount(this.props.values.credentials).then(regions => {
+    const { credentials } = this.props.formik.values;
+    if (credentials) {
+      AccountService.getRegionsForAccount(credentials).then(regions => {
         this.setState({ regions: regions });
       });
     }
   };
 
   private regionUpdated = (region: string): void => {
-    this.props.values.region = region;
-    this.props.setFieldValue('region', region);
+    this.props.formik.values.region = region;
+    this.props.formik.setFieldValue('region', region);
   };
 
   private stackUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const stack = event.target.value;
-    this.props.values.stack = stack;
-    this.props.setFieldValue('stack', stack);
+    this.props.formik.values.stack = stack;
+    this.props.formik.setFieldValue('stack', stack);
   };
 
   private detailUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const freeFormDetails = event.target.value;
-    this.props.values.freeFormDetails = freeFormDetails;
-    this.props.setFieldValue('freeFormDetails', freeFormDetails);
+    this.props.formik.values.freeFormDetails = freeFormDetails;
+    this.props.formik.setFieldValue('freeFormDetails', freeFormDetails);
   };
 
   private deploymentStrategyUpdated = (option: Option<string>): void => {
-    this.props.values.strategy = option.value;
-    this.props.setFieldValue('strategy', option.value);
+    this.props.formik.values.strategy = option.value;
+    this.props.formik.setFieldValue('strategy', option.value);
   };
 
   public render(): JSX.Element {
     const { accounts, regions } = this.state;
-    const { values, errors } = this.props;
+    const { values, errors } = this.props.formik;
     const { AccountSelectField } = NgReact;
     return (
       <div>
@@ -202,9 +197,7 @@ class BasicSettingsImpl extends React.Component<
     );
   }
 
-  public validate(
-    values: ICloudFoundryServerGroupBasicSettingsProps,
-  ): FormikErrors<ICloudFoundryCreateServerGroupCommand> {
+  public validate(values: ICloudFoundryServerGroupBasicSettingsProps) {
     const errors = {} as FormikErrors<ICloudFoundryCreateServerGroupCommand>;
 
     if (!values.credentials) {

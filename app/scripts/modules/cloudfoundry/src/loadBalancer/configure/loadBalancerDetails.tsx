@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { FormikErrors, FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import {
   AccountService,
@@ -16,7 +16,7 @@ import {
 import { ICloudFoundryAccount, ICloudFoundryDomain, ICloudFoundryLoadBalancerUpsertCommand } from 'cloudfoundry/domain';
 import { RouteDomainSelectField } from 'cloudfoundry/routeDomains';
 
-export interface ILoadBalancerDetailsProps {
+export interface ILoadBalancerDetailsProps extends IWizardPageProps<ICloudFoundryLoadBalancerUpsertCommand> {
   app: Application;
   isNew?: boolean;
 }
@@ -29,28 +29,18 @@ export interface ILoadBalancerDetailsState {
   regions: IRegion[];
 }
 
-class LoadBalancerDetailsImpl extends React.Component<
-  ILoadBalancerDetailsProps & IWizardPageProps & FormikProps<ICloudFoundryLoadBalancerUpsertCommand>,
-  ILoadBalancerDetailsState
-> {
+class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps, ILoadBalancerDetailsState> {
   public static LABEL = 'Details';
 
-  constructor(
-    props: ILoadBalancerDetailsProps & IWizardPageProps & FormikProps<ICloudFoundryLoadBalancerUpsertCommand>,
-  ) {
-    super(props);
-    this.state = {
-      accounts: undefined,
-      availabilityZones: [],
-      existingLoadBalancerNames: [],
-      domains: [],
-      regions: [],
-    };
-  }
+  public state: ILoadBalancerDetailsState = {
+    accounts: undefined,
+    availabilityZones: [],
+    existingLoadBalancerNames: [],
+    domains: [],
+    regions: [],
+  };
 
-  public validate(
-    values: ICloudFoundryLoadBalancerUpsertCommand,
-  ): FormikErrors<ICloudFoundryLoadBalancerUpsertCommand> {
+  public validate(values: ICloudFoundryLoadBalancerUpsertCommand) {
     const errors = {} as FormikErrors<ICloudFoundryLoadBalancerUpsertCommand>;
     if (!values.host || !values.host.match(/^[a-zA-Z0-9-]*$/)) {
       errors.host = 'Host name can only contain letters, numbers, and dashes';
@@ -80,12 +70,12 @@ class LoadBalancerDetailsImpl extends React.Component<
   private loadAccounts(): void {
     AccountService.listAccounts('cloudfoundry').then(accounts => {
       this.setState({ accounts });
-      this.accountUpdated(this.props.values.credentials);
+      this.accountUpdated(this.props.formik.values.credentials);
     });
   }
 
   private accountUpdated = (account?: string): void => {
-    this.props.setFieldValue('credentials', account);
+    this.props.formik.setFieldValue('credentials', account);
     if (account) {
       AccountService.getAccountDetails(account).then((accountDetails: ICloudFoundryAccount) => {
         this.setState({ domains: accountDetails.domains });
@@ -97,9 +87,9 @@ class LoadBalancerDetailsImpl extends React.Component<
   };
 
   private regionUpdated = (region: string): void => {
-    this.props.setFieldValue('region', region);
+    this.props.formik.setFieldValue('region', region);
     if (region) {
-      const { credentials } = this.props.values;
+      const { credentials } = this.props.formik.values;
       AccountService.getAccountDetails(credentials).then((accountDetails: ICloudFoundryAccount) => {
         const { domains } = accountDetails;
         this.setState({
@@ -112,29 +102,29 @@ class LoadBalancerDetailsImpl extends React.Component<
   };
 
   private domainUpdated = (domainName: string): void => {
-    this.props.setFieldValue('domainName', domainName);
+    this.props.formik.setFieldValue('domainName', domainName);
   };
 
   private hostChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const host = event.target.value;
-    this.props.values.host = host;
-    this.props.setFieldValue('host', host);
+    this.props.formik.values.host = host;
+    this.props.formik.setFieldValue('host', host);
   };
 
   private portChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const port = event.target.value;
-    this.props.values.port = port;
-    this.props.setFieldValue('port', port);
+    this.props.formik.values.port = port;
+    this.props.formik.setFieldValue('port', port);
   };
 
   private pathChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const path = event.target.value;
-    this.props.values.path = path;
-    this.props.setFieldValue('path', path);
+    this.props.formik.values.path = path;
+    this.props.formik.setFieldValue('path', path);
   };
 
   public render() {
-    const { values } = this.props;
+    const { values } = this.props.formik;
     const { accounts, domains, regions } = this.state;
     const { AccountSelectField } = NgReact;
     return (

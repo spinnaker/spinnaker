@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
 import { get } from 'lodash';
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage } from '@spinnaker/core';
 
@@ -15,29 +15,25 @@ import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates
 
 import './Listeners.less';
 
+export type IListenersProps = IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand>;
+
 export interface IListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };
   certificateTypes: string[];
 }
 
-class ListenersImpl extends React.Component<
-  IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>,
-  IListenersState
-> {
+class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
   public static LABEL = 'Listeners';
   public protocols = ['HTTP', 'HTTPS', 'TCP', 'SSL'];
   public secureProtocols = ['HTTPS', 'SSL'];
 
-  constructor(props: IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>) {
-    super(props);
-    this.state = {
-      certificates: [],
-      certificateTypes: get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']),
-    };
-  }
+  public state: IListenersState = {
+    certificates: [],
+    certificateTypes: get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']),
+  };
 
-  public validate(): { [key: string]: string } {
-    return {};
+  public validate() {
+    return {} as FormikErrors<IAmazonClassicLoadBalancerUpsertCommand>;
   }
 
   public componentDidMount(): void {
@@ -51,11 +47,13 @@ class ListenersImpl extends React.Component<
   }
 
   private updateListeners(): void {
-    this.props.setFieldValue('listeners', this.props.values.listeners);
+    const { values, setFieldValue } = this.props.formik;
+    setFieldValue('listeners', values.listeners);
   }
 
   private needsCert(): boolean {
-    return this.props.values.listeners.some(listener => this.secureProtocols.includes(listener.externalProtocol));
+    const { listeners } = this.props.formik.values;
+    return listeners.some(listener => this.secureProtocols.includes(listener.externalProtocol));
   }
 
   private showCertificateSelect(listener: IClassicListenerDescription): boolean {
@@ -113,12 +111,12 @@ class ListenersImpl extends React.Component<
   }
 
   private removeListener(index: number): void {
-    this.props.values.listeners.splice(index, 1);
+    this.props.formik.values.listeners.splice(index, 1);
     this.updateListeners();
   }
 
   private addListener = (): void => {
-    this.props.values.listeners.push({
+    this.props.formik.values.listeners.push({
       internalProtocol: 'HTTP',
       externalProtocol: 'HTTP',
       externalPort: 80,
@@ -128,7 +126,7 @@ class ListenersImpl extends React.Component<
   };
 
   public render() {
-    const { values } = this.props;
+    const { values } = this.props.formik;
     const { certificates, certificateTypes } = this.state;
 
     const certificatesForAccount = certificates[values.credentials as any] || [];

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { filter, flatten, get, groupBy, set, uniq } from 'lodash';
-import { FormikErrors, FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 import { Observable, Subject } from 'rxjs';
 
 import {
@@ -15,7 +15,7 @@ import {
 
 import { IAmazonApplicationLoadBalancer, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
 
-export interface ITargetGroupsProps {
+export interface ITargetGroupsProps extends IWizardPageProps<IAmazonNetworkLoadBalancerUpsertCommand> {
   app: Application;
   isNew: boolean;
   loadBalancer: IAmazonApplicationLoadBalancer;
@@ -26,20 +26,17 @@ export interface ITargetGroupsState {
   oldTargetGroupCount: number;
 }
 
-class TargetGroupsImpl extends React.Component<
-  ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>,
-  ITargetGroupsState
-> {
+class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroupsState> {
   public static LABEL = 'Target Groups';
 
   public protocols = ['TCP'];
   public targetTypes = ['instance', 'ip'];
   private destroy$ = new Subject();
 
-  constructor(props: ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>) {
+  constructor(props: ITargetGroupsProps) {
     super(props);
 
-    const oldTargetGroupCount = !props.isNew ? props.initialValues.targetGroups.length : 0;
+    const oldTargetGroupCount = !props.isNew ? props.formik.initialValues.targetGroups.length : 0;
     this.state = {
       existingTargetGroupNames: {},
       oldTargetGroupCount,
@@ -114,9 +111,7 @@ class TargetGroupsImpl extends React.Component<
     return name.replace(`${this.props.app.name}-`, '');
   }
 
-  protected updateLoadBalancerNames(
-    props: ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>,
-  ): void {
+  protected updateLoadBalancerNames(props: ITargetGroupsProps): void {
     const { app, loadBalancer } = props;
 
     const targetGroupsByAccountAndRegion: { [account: string]: { [region: string]: string[] } } = {};
@@ -141,7 +136,7 @@ class TargetGroupsImpl extends React.Component<
   }
 
   private targetGroupFieldChanged(index: number, field: string, value: string | boolean): void {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     const targetGroup = values.targetGroups[index];
     set(targetGroup, field, value);
     if (field === 'healthyThreshold') {
@@ -151,7 +146,7 @@ class TargetGroupsImpl extends React.Component<
   }
 
   private addTargetGroup = (): void => {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     const tgLength = values.targetGroups.length;
     values.targetGroups.push({
       name: `targetgroup${tgLength ? `${tgLength}` : ''}`,
@@ -172,7 +167,7 @@ class TargetGroupsImpl extends React.Component<
   };
 
   private removeTargetGroup(index: number): void {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     const { oldTargetGroupCount } = this.state;
     values.targetGroups.splice(index, 1);
 
@@ -192,7 +187,8 @@ class TargetGroupsImpl extends React.Component<
   }
 
   public render() {
-    const { app, errors, values } = this.props;
+    const { app } = this.props;
+    const { errors, values } = this.props.formik;
     const { oldTargetGroupCount } = this.state;
 
     const ProtocolOptions = this.protocols.map(p => <option key={p}>{p}</option>);

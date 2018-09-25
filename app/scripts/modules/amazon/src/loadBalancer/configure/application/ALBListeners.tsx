@@ -3,7 +3,7 @@ import Select, { Option } from 'react-select';
 import { $q } from 'ngimport';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
 import { difference, flatten, get, uniq } from 'lodash';
-import { FormikErrors, FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import {
   Application,
@@ -65,14 +65,11 @@ const defaultAuthAction = {
   type: 'authenticate-oidc',
 } as IListenerAction;
 
-export interface IALBListenersProps {
+export interface IALBListenersProps extends IWizardPageProps<IAmazonApplicationLoadBalancerUpsertCommand> {
   app: Application;
 }
 
-class ALBListenersImpl extends React.Component<
-  IALBListenersProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>,
-  IALBListenersState
-> {
+class ALBListenersImpl extends React.Component<IALBListenersProps, IALBListenersState> {
   public static LABEL = 'Listeners';
   public protocols = ['HTTP', 'HTTPS'];
 
@@ -80,7 +77,7 @@ class ALBListenersImpl extends React.Component<
   private initialListenersWithDefaultAuth: Set<IListenerDescription> = new Set();
   private removedAuthActions: Map<IListenerDescription, { [key: number]: IListenerAction }> = new Map();
 
-  constructor(props: IALBListenersProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>) {
+  constructor(props: IALBListenersProps) {
     super(props);
     this.state = {
       certificates: [],
@@ -88,7 +85,7 @@ class ALBListenersImpl extends React.Component<
       oidcConfigs: undefined,
     };
 
-    this.props.initialValues.listeners.forEach(l => {
+    this.props.formik.initialValues.listeners.forEach(l => {
       const hasDefaultAuth = l.defaultActions[0].type === 'authenticate-oidc';
       if (hasDefaultAuth) {
         this.initialListenersWithDefaultAuth.add(l);
@@ -172,7 +169,7 @@ class ALBListenersImpl extends React.Component<
       .then(oidcConfigs => {
         // make sure we have all the secrets for listener actions that need them
         if (oidcConfigs && oidcConfigs.length) {
-          this.props.values.listeners.forEach(listener => {
+          this.props.formik.values.listeners.forEach(listener => {
             listener.defaultActions.forEach(action => this.attachClientSecret(action, oidcConfigs));
             listener.rules.forEach(rule =>
               rule.actions.forEach(action => this.attachClientSecret(action, oidcConfigs)),
@@ -187,7 +184,7 @@ class ALBListenersImpl extends React.Component<
   }
 
   private updateListeners(): void {
-    this.props.setFieldValue('listeners', this.props.values.listeners);
+    this.props.formik.setFieldValue('listeners', this.props.formik.values.listeners);
   }
 
   private needsCert(listener: IListenerDescription): boolean {
@@ -270,12 +267,12 @@ class ALBListenersImpl extends React.Component<
   }
 
   private removeListener(index: number): void {
-    this.props.values.listeners.splice(index, 1);
+    this.props.formik.values.listeners.splice(index, 1);
     this.updateListeners();
   }
 
   private addListener = (): void => {
-    this.props.values.listeners.push({
+    this.props.formik.values.listeners.push({
       certificates: [],
       protocol: 'HTTP',
       port: 80,
@@ -430,7 +427,7 @@ class ALBListenersImpl extends React.Component<
   };
 
   public render() {
-    const { errors, values } = this.props;
+    const { errors, values } = this.props.formik;
     const { certificates, certificateTypes, oidcConfigs } = this.state;
 
     const certificatesForAccount = certificates[values.credentials as any] || [];

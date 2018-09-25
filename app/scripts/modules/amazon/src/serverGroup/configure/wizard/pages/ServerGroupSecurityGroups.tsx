@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage, FirewallLabels } from '@spinnaker/core';
 
@@ -7,13 +7,15 @@ import { SecurityGroupSelector } from '../securityGroups/SecurityGroupSelector';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 import { ServerGroupSecurityGroupsRemoved } from '../securityGroups/ServerGroupSecurityGroupsRemoved';
 
-class ServerGroupSecurityGroupsImpl extends React.Component<IWizardPageProps & FormikProps<IAmazonServerGroupCommand>> {
+export type IServerGroupSecurityGroupsProps = IWizardPageProps<IAmazonServerGroupCommand>;
+
+class ServerGroupSecurityGroupsImpl extends React.Component<IServerGroupSecurityGroupsProps> {
   public static get LABEL() {
     return FirewallLabels.get('Firewalls');
   }
 
-  public validate(values: IAmazonServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
+  public validate(values: IAmazonServerGroupCommand) {
+    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
 
     if (values.viewState.dirty.securityGroups) {
       errors.securityGroups = 'You must acknowledge removed security groups.';
@@ -23,16 +25,16 @@ class ServerGroupSecurityGroupsImpl extends React.Component<IWizardPageProps & F
   }
 
   private onChange = (securityGroups: string[]) => {
-    this.props.setFieldValue('securityGroups', securityGroups);
+    this.props.formik.setFieldValue('securityGroups', securityGroups);
   };
 
   private acknowledgeRemovedGroups = () => {
-    this.props.values.viewState.dirty.securityGroups = null;
+    this.props.formik.values.viewState.dirty.securityGroups = null;
     this.setState({});
   };
 
   public render() {
-    const { values } = this.props;
+    const { values } = this.props.formik;
 
     return (
       <div className="row">

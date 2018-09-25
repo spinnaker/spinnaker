@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Option } from 'react-select';
-import { FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
 import * as DOMPurify from 'dompurify';
 
@@ -29,7 +28,7 @@ const isStackPattern = (stack: string) =>
 const isDetailPattern = (detail: string) =>
   isNotExpressionLanguage(detail) ? /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/.test(detail) : true;
 
-export interface IServerGroupBasicSettingsProps {
+export interface IServerGroupBasicSettingsProps extends IWizardPageProps<IAmazonServerGroupCommand> {
   app: Application;
 }
 
@@ -43,7 +42,7 @@ export interface IServerGroupBasicSettingsState {
 }
 
 class ServerGroupBasicSettingsImpl extends React.Component<
-  IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<IAmazonServerGroupCommand>,
+  IServerGroupBasicSettingsProps,
   IServerGroupBasicSettingsState
 > {
   public static LABEL = 'Basic Settings';
@@ -51,13 +50,14 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   private imageSearchResultsStream = new Subject();
 
   // TODO: Extract the image selector into another component
-  constructor(props: IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<IAmazonServerGroupCommand>) {
+  constructor(props: IServerGroupBasicSettingsProps) {
     super(props);
-    const { disableImageSelection } = props.values.viewState;
+    const { values } = props.formik;
+    const { disableImageSelection } = values.viewState;
     this.state = {
       images: disableImageSelection
         ? []
-        : props.values.backingData.filtered.images.map(i => {
+        : values.backingData.filtered.images.map(i => {
             i.label = this.getImageLabel(i);
             return i;
           }),
@@ -73,11 +73,11 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     return `${image.message || ''}${image.imageName || ''} ${image.ami ? `(${image.ami})` : ''}`;
   }
 
-  private getStateFromProps(
-    props: IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<IAmazonServerGroupCommand>,
-  ) {
-    const { app, values } = props;
+  private getStateFromProps(props: IServerGroupBasicSettingsProps) {
+    const { app } = props;
+    const { values } = props.formik;
     const { mode } = values.viewState;
+
     const namePreview = NameUtils.getClusterName(app.name, values.stack, values.freeFormDetails);
     const createsNewCluster = !app.clusters.find(c => c.name === namePreview);
     const showPreviewAsWarning = (mode === 'create' && !createsNewCluster) || (mode !== 'create' && createsNewCluster);
@@ -113,7 +113,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   public componentDidMount() {
-    const { values } = this.props;
+    const { values } = this.props.formik;
 
     this.imageSearchResultsStream
       .do(this.showLoadingSpinner)
@@ -142,7 +142,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   }
 
   private searchImagesImpl = (q: string) => {
-    const { selectedProvider, region } = this.props.values;
+    const { selectedProvider, region } = this.props.formik.values;
 
     const findImagesPromise = ReactInjector.imageReader.findImages({ provider: selectedProvider, q, region });
     return Observable.fromPromise<any[]>(findImagesPromise).map(result => {
@@ -169,12 +169,12 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   private enableAllImageSearch = () => {
-    this.props.values.viewState.useAllImageSelection = true;
+    this.props.formik.values.viewState.useAllImageSelection = true;
     this.searchImages('');
   };
 
   private imageChanged = (image: any) => {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     values.virtualizationType = image.virtualizationType;
     values.amiName = image.amiName;
     setFieldValue('virtualizationType', image.virtualizationType);
@@ -183,7 +183,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   private accountUpdated = (account: string): void => {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     values.credentials = account;
     values.credentialsChanged(values);
     values.subnetChanged(values);
@@ -191,14 +191,14 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   private regionUpdated = (region: string): void => {
-    const { values, setFieldValue } = this.props;
+    const { values, setFieldValue } = this.props.formik;
     values.region = region;
     values.regionChanged(values);
     setFieldValue('region', region);
   };
 
   private subnetUpdated = (): void => {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     values.subnetChanged(values);
     setFieldValue('subnetType', values.subnetType);
   };
@@ -223,12 +223,13 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   }
 
   private clientRequestsChanged = () => {
-    this.props.values.toggleSuspendedProcess(this.props.values, 'AddToLoadBalancer');
+    const { values } = this.props.formik;
+    values.toggleSuspendedProcess(values, 'AddToLoadBalancer');
     this.setState({});
   };
 
   private navigateToLatestServerGroup = () => {
-    const { values } = this.props;
+    const { values } = this.props.formik;
     const { latestServerGroup } = this.state;
 
     const params = {
@@ -247,36 +248,35 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   private stackChanged = (stack: string) => {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     values.stack = stack; // have to do it here to make sure it's done before calling values.clusterChanged
     setFieldValue('stack', stack);
     values.clusterChanged(values);
   };
 
   private freeFormDetailsChanged = (freeFormDetails: string) => {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     values.freeFormDetails = freeFormDetails; // have to do it here to make sure it's done before calling values.clusterChanged
     setFieldValue('freeFormDetails', freeFormDetails);
     values.clusterChanged(values);
   };
 
-  public componentWillReceiveProps(
-    nextProps: IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<IAmazonServerGroupCommand>,
-  ) {
+  public componentWillReceiveProps(nextProps: IServerGroupBasicSettingsProps) {
     this.setState(this.getStateFromProps(nextProps));
   }
 
   private handleReasonChanged = (reason: string) => {
-    this.props.setFieldValue('reason', reason);
+    this.props.formik.setFieldValue('reason', reason);
   };
 
   private strategyChanged = (values: IAmazonServerGroupCommand, strategy: any) => {
     values.onStrategyChange(values, strategy);
-    this.props.setFieldValue('strategy', strategy.key);
+    this.props.formik.setFieldValue('strategy', strategy.key);
   };
 
   public render() {
-    const { app, errors, values } = this.props;
+    const { app } = this.props;
+    const { errors, values } = this.props.formik;
     const {
       createsNewCluster,
       isLoadingImages,

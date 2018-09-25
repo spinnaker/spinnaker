@@ -1,21 +1,19 @@
 import * as React from 'react';
-import { Field, FormikProps } from 'formik';
+import { Field, FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
-import { IWizardPageProps, HelpField, MapEditor, PlatformHealthOverride } from '@spinnaker/core';
+import { HelpField, MapEditor, PlatformHealthOverride } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonServerGroupCommand } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
 import { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
 
-export class ServerGroupAdvancedSettingsCommon extends React.Component<
-  IServerGroupAdvancedSettingsProps & IWizardPageProps & FormikProps<IAmazonServerGroupCommand>
-> {
+export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGroupAdvancedSettingsProps> {
   private duplicateKeys = false;
 
-  public validate = (values: IAmazonServerGroupCommand): { [key: string]: string } => {
-    const errors: { [key: string]: string } = {};
+  public validate = (values: IAmazonServerGroupCommand) => {
+    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
 
     if (!values.keyPair) {
       errors.keyPair = 'Key Name is required';
@@ -28,26 +26,29 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<
   };
 
   private selectBlockDeviceMappingsSource = (source: string) => {
-    this.props.values.selectBlockDeviceMappingsSource(this.props.values, source);
+    const { values } = this.props.formik;
+    values.selectBlockDeviceMappingsSource(values, source);
     this.setState({});
   };
 
   private toggleSuspendedProcess = (process: string) => {
-    this.props.values.toggleSuspendedProcess(this.props.values, process);
+    const { values } = this.props.formik;
+    values.toggleSuspendedProcess(values, process);
     this.setState({});
   };
 
   private platformHealthOverrideChanged = (healthNames: string[]) => {
-    this.props.setFieldValue('interestingHealthProviderNames', healthNames);
+    this.props.formik.setFieldValue('interestingHealthProviderNames', healthNames);
   };
 
   private tagsChanged = (tags: { [key: string]: string }, duplicateKeys: boolean) => {
     this.duplicateKeys = duplicateKeys;
-    this.props.setFieldValue('tags', tags);
+    this.props.formik.setFieldValue('tags', tags);
   };
 
   public render() {
-    const { app, setFieldValue, values } = this.props;
+    const { app } = this.props;
+    const { setFieldValue, values } = this.props.formik;
 
     const blockDeviceMappingsSource = values.getBlockDeviceMappingsSource(values);
     const keyPairs = values.backingData.filtered.keyPairs || [];

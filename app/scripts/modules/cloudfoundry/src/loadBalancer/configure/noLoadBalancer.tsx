@@ -1,23 +1,18 @@
 import * as React from 'react';
 
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { wizardPage, IWizardPageProps } from '@spinnaker/core';
 
 import { ICloudFoundryLoadBalancerUpsertCommand } from 'cloudfoundry/domain';
 
-class NoLoadBalancerDetailsImpl extends React.Component<
-  IWizardPageProps & FormikProps<ICloudFoundryLoadBalancerUpsertCommand>
-> {
+export type INoLoadBalancerDetailsProps = IWizardPageProps<ICloudFoundryLoadBalancerUpsertCommand>;
+
+class NoLoadBalancerDetailsImpl extends React.Component<INoLoadBalancerDetailsProps> {
   public static LABEL = 'Message';
 
-  constructor(props: IWizardPageProps & FormikProps<ICloudFoundryLoadBalancerUpsertCommand>) {
-    super(props);
-  }
-
-  public validate(values: any): void {
-    values = {};
-    return values;
+  public validate(_values: INoLoadBalancerDetailsProps) {
+    return {} as FormikErrors<INoLoadBalancerDetailsProps>;
   }
 
   public render() {

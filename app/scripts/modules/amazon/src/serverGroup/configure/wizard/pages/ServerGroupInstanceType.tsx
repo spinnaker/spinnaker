@@ -1,15 +1,17 @@
 import * as React from 'react';
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage, NgReact } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
-class ServerGroupInstanceTypeImpl extends React.Component<IWizardPageProps & FormikProps<IAmazonServerGroupCommand>> {
+export type IServerGroupInstanceTypeProps = IWizardPageProps<IAmazonServerGroupCommand>;
+
+class ServerGroupInstanceTypeImpl extends React.Component<IServerGroupInstanceTypeProps> {
   public static LABEL = 'Instance Type';
 
-  public validate(values: IAmazonServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
+  public validate(values: IAmazonServerGroupCommand) {
+    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
 
     if (!values.instanceType) {
       errors.instanceType = 'Instance Type required.';
@@ -26,12 +28,13 @@ class ServerGroupInstanceTypeImpl extends React.Component<IWizardPageProps & For
   };
 
   private instanceTypeChanged = (type: string) => {
-    this.props.values.instanceTypeChanged(this.props.values);
-    this.props.setFieldValue('instanceType', type);
+    const { values } = this.props.formik;
+    values.instanceTypeChanged(values);
+    this.props.formik.setFieldValue('instanceType', type);
   };
 
   public render() {
-    const { values } = this.props;
+    const { values } = this.props.formik;
     const showTypeSelector = !!(values.viewState.disableImageSelection || values.amiName);
 
     const { InstanceArchetypeSelector, InstanceTypeSelector } = NgReact;

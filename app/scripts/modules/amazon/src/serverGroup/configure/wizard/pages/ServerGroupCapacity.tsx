@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FormikProps, Field } from 'formik';
+import { Field } from 'formik';
 
 import { IServerGroupCommand, IWizardPageProps, wizardPage } from '@spinnaker/core';
 
@@ -7,13 +7,11 @@ import { CapacitySelector } from '../capacity/CapacitySelector';
 import { MinMaxDesired } from '../capacity/MinMaxDesired';
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
-export interface IServerGroupCapacityProps {
+export interface IServerGroupCapacityProps extends IWizardPageProps<IServerGroupCommand> {
   hideTargetHealthyDeployPercentage?: boolean;
 }
 
-class ServerGroupCapacityImpl extends React.Component<
-  IWizardPageProps & IServerGroupCapacityProps & FormikProps<IServerGroupCommand>
-> {
+class ServerGroupCapacityImpl extends React.Component<IServerGroupCapacityProps> {
   public static LABEL = 'Capacity';
 
   public validate(values: IServerGroupCommand): { [key: string]: string } {
@@ -35,7 +33,9 @@ class ServerGroupCapacityImpl extends React.Component<
   }
 
   public render() {
-    const { setFieldValue, hideTargetHealthyDeployPercentage, values } = this.props;
+    const { hideTargetHealthyDeployPercentage } = this.props;
+    const { setFieldValue, values } = this.props.formik;
+
     return (
       <div className="clearfix">
         <div className="row">

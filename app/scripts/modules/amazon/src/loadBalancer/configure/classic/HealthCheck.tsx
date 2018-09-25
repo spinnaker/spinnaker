@@ -1,24 +1,27 @@
 import * as React from 'react';
-import { Field, FormikProps } from 'formik';
+import { Field, FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage } from '@spinnaker/core';
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
-class HealthCheckImpl extends React.Component<IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>> {
+export type IHealthCheckProps = IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand>;
+
+class HealthCheckImpl extends React.Component<IHealthCheckProps> {
   public static LABEL = 'Health Check';
 
-  public validate(): { [key: string]: string } {
-    return {};
+  public validate() {
+    return {} as FormikErrors<IAmazonClassicLoadBalancerUpsertCommand>;
   }
 
   public requiresHealthCheckPath(): boolean {
-    return this.props.values.healthCheckProtocol && this.props.values.healthCheckProtocol.indexOf('HTTP') === 0;
+    const { values } = this.props.formik;
+    return values.healthCheckProtocol && values.healthCheckProtocol.indexOf('HTTP') === 0;
   }
 
   private healthCheckPathChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
-    this.props.setFieldValue('healthCheckPath', value && value.indexOf('/') !== 0 ? `/${value}` : value);
+    this.props.formik.setFieldValue('healthCheckPath', value && value.indexOf('/') !== 0 ? `/${value}` : value);
   };
 
   public render() {

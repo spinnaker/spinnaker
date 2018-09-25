@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import { IPromise } from 'angular';
 import { chain, find, isEqual, isNil, trimEnd, uniq } from 'lodash';
-import { Field, FormikErrors, FormikProps } from 'formik';
+import { Field, FormikErrors } from 'formik';
 
 import {
   AccountService,
@@ -35,7 +35,7 @@ export interface ISubnetOption {
   vpcIds: string[];
 }
 
-export interface ILoadBalancerLocationProps {
+export interface ILoadBalancerLocationProps extends IWizardPageProps<IAmazonLoadBalancerUpsertCommand> {
   app: Application;
   forPipelineConfig?: boolean;
   isNew?: boolean;
@@ -52,26 +52,20 @@ export interface ILoadBalancerLocationState {
   subnets: ISubnetOption[];
 }
 
-class LoadBalancerLocationImpl extends React.Component<
-  ILoadBalancerLocationProps & IWizardPageProps & FormikProps<IAmazonLoadBalancerUpsertCommand>,
-  ILoadBalancerLocationState
-> {
+class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProps, ILoadBalancerLocationState> {
   public static LABEL = 'Location';
 
-  constructor(props: ILoadBalancerLocationProps & IWizardPageProps & FormikProps<IAmazonLoadBalancerUpsertCommand>) {
-    super(props);
-    this.state = {
-      accounts: undefined,
-      availabilityZones: [],
-      existingLoadBalancerNames: [],
-      hideInternalFlag: false,
-      internalFlagToggled: false,
-      regions: [],
-      subnets: [],
-    };
-  }
+  public state: ILoadBalancerLocationState = {
+    accounts: undefined,
+    availabilityZones: [],
+    existingLoadBalancerNames: [],
+    hideInternalFlag: false,
+    internalFlagToggled: false,
+    regions: [],
+    subnets: [],
+  };
 
-  public validate(values: IAmazonLoadBalancerUpsertCommand): FormikErrors<IAmazonLoadBalancerUpsertCommand> {
+  public validate(values: IAmazonLoadBalancerUpsertCommand) {
     const errors = {} as FormikErrors<IAmazonLoadBalancerUpsertCommand>;
 
     if (this.state.existingLoadBalancerNames.includes(values.name)) {
@@ -94,7 +88,7 @@ class LoadBalancerLocationImpl extends React.Component<
   }
 
   protected buildName(): void {
-    const { values } = this.props;
+    const { values } = this.props.formik;
     if (isNil(values.moniker)) {
       const nameParts = NameUtils.parseLoadBalancerName(values.name);
       values.stack = nameParts.stack;
@@ -109,7 +103,7 @@ class LoadBalancerLocationImpl extends React.Component<
   private shouldHideInternalFlag(): boolean {
     if (AWSProviderSettings) {
       if (AWSProviderSettings.loadBalancers && AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet) {
-        delete this.props.values.isInternal;
+        delete this.props.formik.values.isInternal;
         return true;
       }
     }
@@ -131,23 +125,23 @@ class LoadBalancerLocationImpl extends React.Component<
   private loadAccounts(): void {
     AccountService.listAccounts('aws').then(accounts => {
       this.setState({ accounts });
-      this.accountUpdated(this.props.values.credentials);
+      this.accountUpdated(this.props.formik.values.credentials);
     });
   }
 
   private getName(): string {
-    const elb = this.props.values;
+    const elb = this.props.formik.values;
     const elbName = [this.props.app.name, elb.stack || '', elb.detail || ''].join('-');
     return trimEnd(elbName, '-');
   }
 
   private internalFlagChanged = (event: React.ChangeEvent<any>): void => {
     this.setState({ internalFlagToggled: true });
-    this.props.handleChange(event);
+    this.props.formik.handleChange(event);
   };
 
   private getAvailabilityZones(regions: IRegion[]): string[] {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     const selected = regions ? regions.filter(region => region.name === values.region) : [];
     if (selected.length) {
       const newRegionZones = uniq(selected[0].availabilityZones);
@@ -161,18 +155,17 @@ class LoadBalancerLocationImpl extends React.Component<
   }
 
   private getAvailableSubnets(): IPromise<ISubnet[]> {
-    const account = this.props.values.credentials,
-      region = this.props.values.region;
+    const { credentials, region } = this.props.formik.values;
     return SubnetReader.listSubnets().then(subnets => {
       return chain(subnets)
-        .filter({ account, region })
+        .filter({ account: credentials, region })
         .reject({ target: 'ec2' })
         .value();
     });
   }
 
   private setSubnetTypeFromVpc(subnetOptions: { [purpose: string]: ISubnetOption }): void {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     if (values.vpcId) {
       const currentSelection = find(subnetOptions, option => option.vpcIds.includes(values.vpcId));
       if (currentSelection) {
@@ -183,7 +176,7 @@ class LoadBalancerLocationImpl extends React.Component<
   }
 
   private subnetUpdated(subnets: ISubnetOption[]): void {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
 
     const subnetPurpose = values.subnetType || null,
       subnet = subnets.find(test => test.purpose === subnetPurpose),
@@ -234,9 +227,9 @@ class LoadBalancerLocationImpl extends React.Component<
 
       this.setSubnetTypeFromVpc(subnetOptions);
 
-      if (!subnetOptions[this.props.values.subnetType]) {
-        this.props.values.subnetType = '';
-        this.props.setFieldValue('subnetType', '');
+      if (!subnetOptions[this.props.formik.values.subnetType]) {
+        this.props.formik.values.subnetType = '';
+        this.props.formik.setFieldValue('subnetType', '');
       }
       const subnets = Object.keys(subnetOptions).map(k => subnetOptions[k]);
       this.setState({ subnets });
@@ -245,8 +238,7 @@ class LoadBalancerLocationImpl extends React.Component<
   }
 
   protected updateExistingLoadBalancerNames(): void {
-    const account = this.props.values.credentials,
-      region = this.props.values.region;
+    const { credentials, region } = this.props.formik.values;
 
     const accountLoadBalancersByRegion: { [region: string]: string[] } = {};
     this.props.app
@@ -254,7 +246,7 @@ class LoadBalancerLocationImpl extends React.Component<
       .refresh(true)
       .then(() => {
         this.props.app.getDataSource('loadBalancers').data.forEach(loadBalancer => {
-          if (loadBalancer.account === account) {
+          if (loadBalancer.account === credentials) {
             accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
             accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
           }
@@ -266,7 +258,7 @@ class LoadBalancerLocationImpl extends React.Component<
   }
 
   private updateName(): void {
-    const loadBalancerCommand = this.props.values;
+    const loadBalancerCommand = this.props.formik.values;
     const moniker: IMoniker = {
       app: this.props.app.name,
       cluster: this.getName(),
@@ -274,12 +266,12 @@ class LoadBalancerLocationImpl extends React.Component<
       detail: loadBalancerCommand.detail,
     };
     loadBalancerCommand.moniker = moniker;
-    this.props.setFieldValue('name', this.getName());
+    this.props.formik.setFieldValue('name', this.getName());
   }
 
   private accountUpdated = (account: string): void => {
-    this.props.setFieldValue('credentials', account);
-    AccountService.getRegionsForAccount(this.props.values.credentials).then(regions => {
+    this.props.formik.setFieldValue('credentials', account);
+    AccountService.getRegionsForAccount(this.props.formik.values.credentials).then(regions => {
       const availabilityZones = this.getAvailabilityZones(regions);
       this.setState({ availabilityZones, regions });
       this.updateExistingLoadBalancerNames();
@@ -289,7 +281,7 @@ class LoadBalancerLocationImpl extends React.Component<
   };
 
   private regionUpdated = (region: string): void => {
-    this.props.setFieldValue('region', region);
+    this.props.formik.setFieldValue('region', region);
     const availabilityZones = this.getAvailabilityZones(this.state.regions);
     this.setState({ availabilityZones });
     this.updateExistingLoadBalancerNames();
@@ -299,24 +291,25 @@ class LoadBalancerLocationImpl extends React.Component<
 
   private stackChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const stack = event.target.value;
-    this.props.values.stack = stack;
-    this.props.setFieldValue('stack', stack);
+    this.props.formik.values.stack = stack;
+    this.props.formik.setFieldValue('stack', stack);
     this.updateName();
   };
 
   private detailChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const detail = event.target.value;
-    this.props.values.detail = detail;
-    this.props.setFieldValue('detail', detail);
+    this.props.formik.values.detail = detail;
+    this.props.formik.setFieldValue('detail', detail);
     this.updateName();
   };
 
   private handleAvailabilityZonesChanged = (zones: string[]): void => {
-    this.props.setFieldValue('regionZones', zones);
+    this.props.formik.setFieldValue('regionZones', zones);
   };
 
   public render() {
-    const { app, errors, values } = this.props;
+    const { app } = this.props;
+    const { errors, values } = this.props.formik;
     const { accounts, availabilityZones, hideInternalFlag, regions, subnets } = this.state;
     const { AccountSelectField } = NgReact;
     const { SubnetSelectField } = AwsNgReact;

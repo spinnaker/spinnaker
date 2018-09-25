@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { FormikErrors, FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
@@ -26,7 +26,8 @@ import {
 import { CloudFoundryImageReader } from 'cloudfoundry/image/image.reader.cf';
 import { ICloudFoundryCluster, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
-export interface ICloudFoundryCreateServerGroupArtifactSettingsProps {
+export interface ICloudFoundryCreateServerGroupArtifactSettingsProps
+  extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
   artifactAccounts: IArtifactAccount[];
   artifact?: any;
 }
@@ -58,43 +59,34 @@ function isTriggerSource(
 }
 
 class ArtifactSettingsImpl extends React.Component<
-  ICloudFoundryCreateServerGroupArtifactSettingsProps &
-    IWizardPageProps &
-    FormikProps<ICloudFoundryCreateServerGroupCommand>,
+  ICloudFoundryCreateServerGroupArtifactSettingsProps,
   ICloudFoundryServerGroupArtifactSettingsState
 > {
   public static get LABEL() {
     return 'Artifact';
   }
 
-  constructor(
-    props: ICloudFoundryCreateServerGroupArtifactSettingsProps &
-      IWizardPageProps &
-      FormikProps<ICloudFoundryCreateServerGroupCommand>,
-  ) {
-    super(props);
-    this.state = {
-      clusters: [],
-      filteredClusters: [],
-      serverGroups: [],
-      regions: [],
-      allCloudFoundryCredentials: undefined,
-    };
-  }
+  public state: ICloudFoundryServerGroupArtifactSettingsState = {
+    clusters: [],
+    filteredClusters: [],
+    serverGroups: [],
+    regions: [],
+    allCloudFoundryCredentials: undefined,
+  };
 
   private packageUpdated = (option: Option<string>): void => {
-    const { artifact } = this.props.values;
+    const { artifact } = this.props.formik.values;
     if (isPackageSource(artifact)) {
       artifact.serverGroupName = option.value;
-      this.props.setFieldValue('artifact.serverGroupName', option.value);
+      this.props.formik.setFieldValue('artifact.serverGroupName', option.value);
     }
   };
 
   private packageAccountUpdated = (account: string): void => {
-    const { artifact } = this.props.values;
+    const { artifact } = this.props.formik.values;
     if (isPackageSource(artifact)) {
       artifact.account = account;
-      this.props.setFieldValue('artifact.account', account);
+      this.props.formik.setFieldValue('artifact.account', account);
       if (artifact.account) {
         AccountService.getRegionsForAccount(artifact.account).then(regions => {
           this.setState({ regions: regions });
@@ -107,7 +99,7 @@ class ArtifactSettingsImpl extends React.Component<
           const serverGroups = firstCluster
             ? firstCluster.serverGroups.filter(serverGroup => serverGroup.region === artifact.region)
             : [];
-          this.props.setFieldValue('artifact.cluster', firstCluster);
+          this.props.formik.setFieldValue('artifact.cluster', firstCluster);
           this.setState({
             clusters: clusters,
             filteredClusters: filteredClusters,
@@ -119,11 +111,11 @@ class ArtifactSettingsImpl extends React.Component<
   };
 
   private packageRegionUpdated = (region: string): void => {
-    const { artifact } = this.props.values;
+    const { artifact } = this.props.formik.values;
     const { clusters } = this.state;
     if (isPackageSource(artifact)) {
       artifact.region = region;
-      this.props.setFieldValue('artifact.region', region);
+      this.props.formik.setFieldValue('artifact.region', region);
 
       const filteredClusters = clusters.filter(
         cluster => cluster.serverGroups.filter(serverGroup => serverGroup.region === artifact.region).length > 0,
@@ -140,10 +132,10 @@ class ArtifactSettingsImpl extends React.Component<
 
   private clusterUpdated = (option: Option<string>): void => {
     const cluster = this.state.clusters.find(it => it.name === option.value);
-    const { artifact } = this.props.values;
+    const { artifact } = this.props.formik.values;
     if (isPackageSource(artifact)) {
       artifact.cluster = cluster;
-      this.props.setFieldValue('artifact.cluster', cluster);
+      this.props.formik.setFieldValue('artifact.cluster', cluster);
       const serverGroups = artifact.cluster
         ? artifact.cluster.serverGroups.filter(serverGroup => serverGroup.region === artifact.region)
         : [];
@@ -162,53 +154,55 @@ class ArtifactSettingsImpl extends React.Component<
           });
         }
         const { clusters } = this.state;
-        this.props.values.artifact = {
+        this.props.formik.values.artifact = {
           type: 'package',
           cluster: clusters[0],
           serverGroupName: '',
           region: '',
-          account: this.props.values.credentials || '',
+          account: this.props.formik.values.credentials || '',
         };
         break;
       case 'artifact':
-        this.props.values.artifact = { type: 'artifact', reference: '', account: '' };
+        this.props.formik.values.artifact = { type: 'artifact', reference: '', account: '' };
         break;
       case 'trigger':
-        this.props.values.artifact = { type: 'trigger', pattern: '', account: '' };
+        this.props.formik.values.artifact = { type: 'trigger', pattern: '', account: '' };
         break;
     }
-    this.props.setFieldValue('artifact.type', artifactType);
+    this.props.formik.setFieldValue('artifact.type', artifactType);
   };
 
   private artifactAccountUpdated = (option: Option<string>): void => {
-    const { artifact } = this.props.values;
+    const { artifact } = this.props.formik.values;
     if (isArtifactSource(artifact) || isTriggerSource(artifact)) {
       artifact.account = option.value;
-      this.props.setFieldValue('artifact.account', option.value);
+      this.props.formik.setFieldValue('artifact.account', option.value);
     }
   };
 
   private artifactReferenceUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const reference = event.target.value;
-    const { artifact } = this.props.values;
+    const { artifact } = this.props.formik.values;
     if (isArtifactSource(artifact)) {
       artifact.reference = reference;
-      this.props.setFieldValue('artifact.reference', reference);
+      this.props.formik.setFieldValue('artifact.reference', reference);
     }
   };
 
   private artifactPatternUpdater = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const pattern = event.target.value;
-    const { artifact } = this.props.values;
+    const { artifact } = this.props.formik.values;
     if (isTriggerSource(artifact)) {
       artifact.pattern = pattern;
-      this.props.setFieldValue('artifact.pattern', pattern);
+      this.props.formik.setFieldValue('artifact.pattern', pattern);
     }
   };
 
   private getArtifactInput = (): JSX.Element => {
-    const { artifact } = this.props.values;
-    const { artifactAccounts, errors } = this.props;
+    const { artifactAccounts } = this.props;
+    const { values, errors } = this.props.formik;
+    const { artifact } = values;
+
     return (
       <div>
         <div className="form-group row">
@@ -257,10 +251,11 @@ class ArtifactSettingsImpl extends React.Component<
   };
 
   private getPackageInput = (): JSX.Element => {
-    const { artifact } = this.props.values;
+    const { values, errors } = this.props.formik;
+    const { artifact } = values;
     const { regions, filteredClusters, serverGroups, allCloudFoundryCredentials } = this.state;
-    const { errors } = this.props;
     const { AccountSelectField } = NgReact;
+
     return (
       <div>
         <div className="form-group">
@@ -338,8 +333,10 @@ class ArtifactSettingsImpl extends React.Component<
   };
 
   private getTriggerInput = (): JSX.Element => {
-    const { artifact } = this.props.values;
-    const { artifactAccounts, errors } = this.props;
+    const { artifactAccounts } = this.props;
+    const { errors, values } = this.props.formik;
+    const { artifact } = values;
+
     return (
       <div>
         <div className="form-group">
@@ -389,7 +386,7 @@ class ArtifactSettingsImpl extends React.Component<
 
   public render(): JSX.Element {
     let artifactInput;
-    const { artifact } = this.props.values;
+    const { artifact } = this.props.formik.values;
 
     switch (artifact.type) {
       case 'package':
@@ -406,7 +403,7 @@ class ArtifactSettingsImpl extends React.Component<
         <div className="form-group row">
           <label className="col-md-3 sm-label-right">Source Type</label>
           <div className="col-md-7">
-            {this.props.values.viewState.mode === 'pipeline' && (
+            {this.props.formik.values.viewState.mode === 'pipeline' && (
               <div className="radio radio-inline">
                 <label>
                   <input
@@ -448,9 +445,7 @@ class ArtifactSettingsImpl extends React.Component<
     );
   }
 
-  public validate(
-    values: ICloudFoundryCreateServerGroupArtifactSettingsProps,
-  ): FormikErrors<ICloudFoundryCreateServerGroupCommand> {
+  public validate(values: ICloudFoundryCreateServerGroupArtifactSettingsProps) {
     const errors = {} as FormikErrors<ICloudFoundryCreateServerGroupCommand>;
     if (values.artifact.type === 'trigger') {
       if (!values.artifact.account) {

@@ -1,20 +1,22 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
+import { FormikProps } from 'formik';
 
 import { noop } from 'core/utils';
 
-export interface IWizardPageProps {
-  mandatory?: boolean;
-  dirty?: boolean;
-  dontMarkCompleteOnView?: boolean;
-  done?: boolean;
-  onMount?: (self: IWrappedWizardPage) => void;
-  dirtyCallback?: (name: string, dirty: boolean) => void;
-  ref?: () => void;
-  revalidate?: () => void;
-  setWaiting?: (section: string, isWaiting: boolean) => void;
-  note?: React.ReactElement<any>;
-}
+export type IWizardPageProps<T = any> = Partial<{
+  formik: FormikProps<T>;
+  mandatory: boolean;
+  dirty: boolean;
+  dontMarkCompleteOnView: boolean;
+  done: boolean;
+  onMount: (self: IWrappedWizardPage) => void;
+  dirtyCallback: (name: string, dirty: boolean) => void;
+  ref: () => void;
+  revalidate: () => void;
+  setWaiting: (section: string, isWaiting: boolean) => void;
+  note: React.ReactElement<any>;
+}>;
 
 export interface IWizardPageState {
   hasErrors: boolean;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { IPromise } from 'angular';
 import { filter, get, isEqual, map, uniq } from 'lodash';
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 import VirtualizedSelect from 'react-virtualized-select';
 import { Observable, Subject } from 'rxjs';
 
@@ -20,6 +20,8 @@ import {
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
+export type ISecurityGroupsProps = IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand>;
+
 export interface ISecurityGroupsState {
   availableSecurityGroups: Array<{ label: string; value: string }>;
   defaultSecurityGroups: string[];
@@ -29,17 +31,14 @@ export interface ISecurityGroupsState {
   refreshTime: number;
 }
 
-class SecurityGroupsImpl extends React.Component<
-  IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>,
-  ISecurityGroupsState
-> {
+class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurityGroupsState> {
   public static get LABEL() {
     return FirewallLabels.get('Firewalls');
   }
 
   private destroy$ = new Subject();
 
-  constructor(props: IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>) {
+  constructor(props: ISecurityGroupsProps) {
     super(props);
 
     const defaultSecurityGroups = get<string[]>(AWSProviderSettings, 'defaultSecurityGroups', []);
@@ -53,8 +52,8 @@ class SecurityGroupsImpl extends React.Component<
     };
   }
 
-  public validate(): { [key: string]: string } {
-    return {};
+  public validate() {
+    return {} as FormikErrors<IAmazonClassicLoadBalancerUpsertCommand>;
   }
 
   private clearRemoved = (): void => {
@@ -72,7 +71,7 @@ class SecurityGroupsImpl extends React.Component<
   }
 
   private availableGroupsSorter(a: ISecurityGroup, b: ISecurityGroup): number {
-    const { securityGroups } = this.props.values;
+    const { securityGroups } = this.props.formik.values;
     const { defaultSecurityGroups } = this.state;
 
     if (defaultSecurityGroups) {
@@ -90,7 +89,7 @@ class SecurityGroupsImpl extends React.Component<
     availableVpcIds: string[],
     allSecurityGroups: ISecurityGroupsByAccountSourceData,
   ): void {
-    const { credentials: account, region, securityGroups } = this.props.values;
+    const { credentials: account, region, securityGroups } = this.props.formik.values;
     const { defaultSecurityGroups, removed } = this.state;
 
     const newRemoved = removed.slice();
@@ -133,7 +132,7 @@ class SecurityGroupsImpl extends React.Component<
       });
 
       if (!isEqual(updatedSecurityGroups, securityGroups)) {
-        this.props.setFieldValue('securityGroups', updatedSecurityGroups);
+        this.props.formik.setFieldValue('securityGroups', updatedSecurityGroups);
       }
     }
     this.setState({ availableSecurityGroups, removed: newRemoved });
@@ -155,13 +154,13 @@ class SecurityGroupsImpl extends React.Component<
         Observable.fromPromise(this.preloadSecurityGroups())
           .takeUntil(this.destroy$)
           .subscribe(securityGroups => {
-            this.updateAvailableSecurityGroups([this.props.values.vpcId], securityGroups);
+            this.updateAvailableSecurityGroups([this.props.formik.values.vpcId], securityGroups);
           });
       });
   };
 
   private handleSecurityGroupsChanged = (newValues: Array<{ label: string; value: string }>): void => {
-    this.props.setFieldValue('securityGroups', newValues.map(sg => sg.value));
+    this.props.formik.setFieldValue('securityGroups', newValues.map(sg => sg.value));
   };
 
   public componentDidMount(): void {
@@ -174,7 +173,7 @@ class SecurityGroupsImpl extends React.Component<
   }
 
   public render() {
-    const { securityGroups } = this.props.values;
+    const { securityGroups } = this.props.formik.values;
     const { availableSecurityGroups, loaded, refreshing, removed, refreshTime } = this.state;
 
     return (

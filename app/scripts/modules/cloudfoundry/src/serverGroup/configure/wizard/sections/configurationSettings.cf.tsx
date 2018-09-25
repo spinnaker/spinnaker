@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import Select, { Option } from 'react-select';
-import { FormikErrors, FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { IArtifactAccount, IWizardPageProps, wizardPage, ValidationMessage, HelpField } from '@spinnaker/core';
 
@@ -13,12 +13,11 @@ import {
   ICloudFoundryManifestTriggerSource,
 } from '../../serverGroupConfigurationModel.cf';
 
-export interface ICloudFoundryServerGroupConfigurationSettingsProps {
+export interface ICloudFoundryServerGroupConfigurationSettingsProps
+  extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
   artifactAccounts: IArtifactAccount[];
   manifest?: any;
 }
-
-interface ICloudFoundryServerGroupConfigurationSettingsState {}
 
 function isManifestArtifactSource(
   manifest: ICloudFoundryManifestSource,
@@ -38,76 +37,60 @@ function isManifestTriggerSource(
   return manifest.type === 'trigger';
 }
 
-class ConfigurationSettingsImpl extends React.Component<
-  ICloudFoundryServerGroupConfigurationSettingsProps &
-    IWizardPageProps &
-    FormikProps<ICloudFoundryCreateServerGroupCommand>,
-  ICloudFoundryServerGroupConfigurationSettingsState
-> {
-  public static get LABEL() {
-    return 'Configuration';
-  }
-
-  constructor(
-    props: ICloudFoundryServerGroupConfigurationSettingsProps &
-      IWizardPageProps &
-      FormikProps<ICloudFoundryCreateServerGroupCommand>,
-  ) {
-    super(props);
-    this.state = {};
-  }
+class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroupConfigurationSettingsProps> {
+  public static LABEL = 'Configuration';
 
   private startApplicationUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const startApplication = event.target.checked;
-    this.props.values.startApplication = startApplication;
-    this.props.setFieldValue('startApplication', startApplication);
+    this.props.formik.values.startApplication = startApplication;
+    this.props.formik.setFieldValue('startApplication', startApplication);
   };
 
   private memoryUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.memory = event.target.value;
-      this.props.setFieldValue('manifest.memory', event.target.value);
+      this.props.formik.setFieldValue('manifest.memory', event.target.value);
     }
   };
 
   private diskQuotaUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.diskQuota = event.target.value;
-      this.props.setFieldValue('manifest.diskQuota', event.target.value);
+      this.props.formik.setFieldValue('manifest.diskQuota', event.target.value);
     }
   };
 
   private instancesUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.instances = Number(event.target.value);
-      this.props.setFieldValue('manifest.instances', event.target.value);
+      this.props.formik.setFieldValue('manifest.instances', event.target.value);
       this.capacityUpdated(event.target.value);
     }
   };
 
   private buildpackUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.buildpack = event.target.value;
-      this.props.setFieldValue('manifest.buildpack', event.target.value);
+      this.props.formik.setFieldValue('manifest.buildpack', event.target.value);
     }
   };
 
   private manifestTypeUpdated = (type: string): void => {
     switch (type) {
       case 'artifact':
-        this.props.values.manifest = { type: 'artifact', reference: '', account: '' };
+        this.props.formik.values.manifest = { type: 'artifact', reference: '', account: '' };
         this.capacityUpdated('1');
         break;
       case 'trigger':
-        this.props.values.manifest = { type: 'trigger', pattern: '', account: '' };
+        this.props.formik.values.manifest = { type: 'trigger', pattern: '', account: '' };
         this.capacityUpdated('1');
         break;
       case 'direct':
-        this.props.values.manifest = {
+        this.props.formik.values.manifest = {
           type: 'direct',
           memory: '1024M',
           diskQuota: '1024M',
@@ -119,128 +102,128 @@ class ConfigurationSettingsImpl extends React.Component<
         };
         break;
     }
-    this.props.setFieldValue('manifest', this.props.values.manifest);
+    this.props.formik.setFieldValue('manifest', this.props.formik.values.manifest);
   };
 
   private routeUpdated = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.routes[index] = event.target.value;
-      this.props.setFieldValue('manifest.routes', manifest.routes);
+      this.props.formik.setFieldValue('manifest.routes', manifest.routes);
     }
   };
 
   private addRoutesVariable = (): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       if (manifest.routes === undefined) {
         manifest.routes = [];
       }
       manifest.routes.push('');
-      this.props.setFieldValue('manifest.routes', manifest.routes);
+      this.props.formik.setFieldValue('manifest.routes', manifest.routes);
     }
   };
 
   private removeRoutesVariable = (index: number): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.routes.splice(index, 1);
-      this.props.setFieldValue('manifest.routes', manifest.routes);
+      this.props.formik.setFieldValue('manifest.routes', manifest.routes);
     }
   };
 
   private addEnvironmentVariable = (): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       if (manifest.env === undefined) {
         manifest.env = [];
       }
       manifest.env.push({ key: '', value: '' });
-      this.props.setFieldValue('manifest.env', manifest.env);
+      this.props.formik.setFieldValue('manifest.env', manifest.env);
     }
   };
 
   private removeEnvironmentVariable = (index: number): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.env.splice(index, 1);
-      this.props.setFieldValue('manifest.env', manifest.env);
+      this.props.formik.setFieldValue('manifest.env', manifest.env);
     }
   };
 
   private environmentKeyUpdated = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.env[index].key = event.target.value;
-      this.props.setFieldValue('manifest.env', manifest.env);
+      this.props.formik.setFieldValue('manifest.env', manifest.env);
     }
   };
 
   private environmentValueUpdated = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.env[index].value = event.target.value;
-      this.props.setFieldValue('manifest.env', manifest.env);
+      this.props.formik.setFieldValue('manifest.env', manifest.env);
     }
   };
 
   private serviceUpdated = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.services[index] = event.target.value;
-      this.props.setFieldValue('manifest.services', manifest.services);
+      this.props.formik.setFieldValue('manifest.services', manifest.services);
     }
   };
 
   private addServicesVariable = (): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       if (manifest.services === undefined) {
         manifest.services = [];
       }
       manifest.services.push('');
-      this.props.setFieldValue('manifest.services', manifest.services);
+      this.props.formik.setFieldValue('manifest.services', manifest.services);
     }
   };
 
   private removeServicesVariable = (index: number): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
       manifest.services.splice(index, 1);
-      this.props.setFieldValue('manifest.services', manifest.services);
+      this.props.formik.setFieldValue('manifest.services', manifest.services);
     }
   };
 
   private artifactAccountUpdated = (option: Option<string>): void => {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestArtifactSource(manifest) || isManifestTriggerSource(manifest)) {
       manifest.account = option.value;
-      this.props.setFieldValue('manifest.account', option.value);
+      this.props.formik.setFieldValue('manifest.account', option.value);
     }
   };
 
   private artifactReferenceUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const reference = event.target.value;
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestArtifactSource(manifest)) {
       manifest.reference = reference;
-      this.props.setFieldValue('manifest.reference', reference);
+      this.props.formik.setFieldValue('manifest.reference', reference);
     }
   };
 
   private manifestPatternUpdater = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const pattern = event.target.value;
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     if (isManifestTriggerSource(manifest)) {
       manifest.pattern = pattern;
-      this.props.setFieldValue('manifest.pattern', pattern);
+      this.props.formik.setFieldValue('manifest.pattern', pattern);
     }
   };
 
   private capacityUpdated = (capacity: string): void => {
-    this.props.setFieldValue('capacity.min', capacity);
-    this.props.setFieldValue('capacity.max', capacity);
-    this.props.setFieldValue('capacity.desired', capacity);
+    this.props.formik.setFieldValue('capacity.min', capacity);
+    this.props.formik.setFieldValue('capacity.max', capacity);
+    this.props.formik.setFieldValue('capacity.desired', capacity);
   };
 
   private directConfiguration = (manifest: ICloudFoundryManifestSource): JSX.Element => {
@@ -256,7 +239,7 @@ class ConfigurationSettingsImpl extends React.Component<
       addServicesVariable,
       removeServicesVariable,
     } = this;
-    const { errors } = this.props;
+    const { errors } = this.props.formik;
     if (isManifestDirectSource(manifest)) {
       return (
         <div>
@@ -464,7 +447,9 @@ class ConfigurationSettingsImpl extends React.Component<
   };
 
   private triggerConfiguration = (manifest: ICloudFoundryManifestSource): JSX.Element => {
-    const { artifactAccounts, errors } = this.props;
+    const { artifactAccounts } = this.props;
+    const { errors } = this.props.formik;
+
     return (
       <div>
         <div className="form-group">
@@ -513,7 +498,9 @@ class ConfigurationSettingsImpl extends React.Component<
   };
 
   private artifactConfiguration = (manifest: ICloudFoundryManifestSource): JSX.Element => {
-    const { artifactAccounts, errors } = this.props;
+    const { artifactAccounts } = this.props;
+    const { errors } = this.props.formik;
+
     if (isManifestArtifactSource(manifest)) {
       return (
         <div>
@@ -567,7 +554,7 @@ class ConfigurationSettingsImpl extends React.Component<
   };
 
   public render(): JSX.Element {
-    const { manifest } = this.props.values;
+    const { manifest } = this.props.formik.values;
     manifest.type === 'direct' ? this.directConfiguration(manifest) : this.artifactConfiguration(manifest);
     let manifestInput;
 
@@ -590,7 +577,7 @@ class ConfigurationSettingsImpl extends React.Component<
           <div className="checkbox checkbox-inline">
             <input
               type="checkbox"
-              checked={this.props.values.startApplication}
+              checked={this.props.formik.values.startApplication}
               onChange={this.startApplicationUpdated}
             />
           </div>
@@ -598,7 +585,7 @@ class ConfigurationSettingsImpl extends React.Component<
         <div className="form-group row">
           <label className="col-md-3 sm-label-right">Source Type</label>
           <div className="col-md-7">
-            {this.props.values.viewState.mode === 'pipeline' && (
+            {this.props.formik.values.viewState.mode === 'pipeline' && (
               <div className="radio radio-inline">
                 <label>
                   <input

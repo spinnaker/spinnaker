@@ -176,7 +176,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
           initialValues={initialValues}
           onSubmit={this.props.closeModal}
           validate={this.validate}
-          render={props => (
+          render={formik => (
             <Form className="form-horizontal">
               <ModalClose dismiss={this.props.dismissModal} />
               <Modal.Header>{heading && <h3>{heading}</h3>}</Modal.Header>
@@ -207,10 +207,10 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
                       <div className="steps" ref={ele => (this.stepsElement = ele)} onScroll={this.handleStepsScroll}>
                         {this.getFilteredChildren().map((child: React.ReactElement<any>) => {
                           return React.cloneElement(child, {
-                            ...props,
+                            formik: formik,
                             dirtyCallback: this.dirtyCallback,
                             onMount: this.onMount,
-                            revalidate: () => this.revalidate(props.values, props.setErrors),
+                            revalidate: () => this.revalidate(formik.values, formik.setErrors),
                             setWaiting: this.setWaiting,
                           });
                         })}

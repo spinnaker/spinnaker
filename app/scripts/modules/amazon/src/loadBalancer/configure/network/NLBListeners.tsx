@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { difference, flatten, get, uniq } from 'lodash';
-import { FormikErrors, FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, ValidationMessage, wizardPage } from '@spinnaker/core';
 
@@ -8,25 +8,21 @@ import { AWSProviderSettings } from 'amazon/aws.settings';
 import { NLBListenerProtocol, IListenerDescription, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
 import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/AmazonCertificateReader';
 
+export type INLBListenersProps = IWizardPageProps<IAmazonNetworkLoadBalancerUpsertCommand>;
+
 export interface INLBListenersState {
   certificates: { [accountId: number]: IAmazonCertificate[] };
   certificateTypes: string[];
 }
 
-class NLBListenersImpl extends React.Component<
-  IWizardPageProps & FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>,
-  INLBListenersState
-> {
+class NLBListenersImpl extends React.Component<INLBListenersProps, INLBListenersState> {
   public static LABEL = 'Listeners';
   public protocols = ['TCP'];
 
-  constructor(props: IWizardPageProps & FormikProps<IAmazonNetworkLoadBalancerUpsertCommand>) {
-    super(props);
-    this.state = {
-      certificates: [],
-      certificateTypes: get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']),
-    };
-  }
+  public state: INLBListenersState = {
+    certificates: [],
+    certificateTypes: get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']),
+  };
 
   private getAllTargetGroupsFromListeners(listeners: IListenerDescription[]): string[] {
     const actions = flatten(listeners.map(l => l.defaultActions));
@@ -35,9 +31,7 @@ class NLBListenersImpl extends React.Component<
     return uniq(actions.map(a => a.targetGroupName));
   }
 
-  public validate(
-    values: IAmazonNetworkLoadBalancerUpsertCommand,
-  ): FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand> {
+  public validate(values: IAmazonNetworkLoadBalancerUpsertCommand) {
     const errors = {} as FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand>;
 
     // Check to make sure all target groups have an associated listener
@@ -64,7 +58,7 @@ class NLBListenersImpl extends React.Component<
   }
 
   private updateListeners(): void {
-    this.props.setFieldValue('listeners', this.props.values.listeners);
+    this.props.formik.setFieldValue('listeners', this.props.formik.values.listeners);
   }
 
   private listenerProtocolChanged(listener: IListenerDescription, newProtocol: NLBListenerProtocol): void {
@@ -81,12 +75,12 @@ class NLBListenersImpl extends React.Component<
   }
 
   private removeListener(index: number): void {
-    this.props.values.listeners.splice(index, 1);
+    this.props.formik.values.listeners.splice(index, 1);
     this.updateListeners();
   }
 
   private addListener = (): void => {
-    this.props.values.listeners.push({
+    this.props.formik.values.listeners.push({
       certificates: [],
       protocol: 'TCP',
       port: 80,
@@ -107,7 +101,7 @@ class NLBListenersImpl extends React.Component<
   };
 
   public render() {
-    const { errors, values } = this.props;
+    const { errors, values } = this.props.formik;
     return (
       <div className="container-fluid form-horizontal">
         <div className="form-group">

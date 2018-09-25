@@ -1,16 +1,18 @@
 import * as React from 'react';
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 import { AvailabilityZoneSelector } from '../../../AvailabilityZoneSelector';
 
-class ServerGroupZonesImpl extends React.Component<IWizardPageProps & FormikProps<IAmazonServerGroupCommand>> {
+export type IServerGroupZonesProps = IWizardPageProps<IAmazonServerGroupCommand>;
+
+class ServerGroupZonesImpl extends React.Component<IServerGroupZonesProps> {
   public static LABEL = 'Availability Zones';
 
-  public validate(values: IAmazonServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
+  public validate(values: IAmazonServerGroupCommand) {
+    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
 
     if (!values.availabilityZones || values.availabilityZones.length === 0) {
       errors.availabilityZones = 'You must select at least one availability zone.';
@@ -19,18 +21,19 @@ class ServerGroupZonesImpl extends React.Component<IWizardPageProps & FormikProp
   }
 
   private handleAvailabilityZonesChanged = (zones: string[]): void => {
-    this.props.values.usePreferredZonesChanged(this.props.values);
-    this.props.setFieldValue('availabilityZones', zones);
+    const { values, setFieldValue } = this.props.formik;
+    values.usePreferredZonesChanged(values);
+    setFieldValue('availabilityZones', zones);
   };
 
   private rebalanceToggled = () => {
-    const { values } = this.props;
+    const { values } = this.props.formik;
     values.toggleSuspendedProcess(values, 'AZRebalance');
     this.setState({});
   };
 
   public render() {
-    const { values } = this.props;
+    const { values } = this.props.formik;
     return (
       <div className="container-fluid form-horizontal">
         <AvailabilityZoneSelector

@@ -1,21 +1,16 @@
 import * as React from 'react';
 
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { wizardPage, IWizardPageProps, IJob } from '@spinnaker/core';
 
-export interface IDisclaimerProps {}
+export type IDisclaimerProps = IWizardPageProps<IJob>;
 
-class CfDisclaimerWizardPage extends React.Component<IDisclaimerProps & IWizardPageProps & FormikProps<IJob>> {
+class CfDisclaimerWizardPage extends React.Component<IDisclaimerProps> {
   public static LABEL = 'Disclaimer';
 
-  constructor(props: IDisclaimerProps & IWizardPageProps & FormikProps<IJob>) {
-    super(props);
-  }
-
-  public validate(values: any): void {
-    values = {};
-    return values;
+  public validate(_values: IDisclaimerProps) {
+    return {} as FormikErrors<IDisclaimerProps>;
   }
 
   public render() {

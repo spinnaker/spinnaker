@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Option } from 'react-select';
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage, HelpField, TetheredSelect, ReactInjector } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
-export interface IServerGroupLoadBalancersProps {
+export interface IServerGroupLoadBalancersProps extends IWizardPageProps<IAmazonServerGroupCommand> {
   hideLoadBalancers?: boolean;
   hideTargetGroups?: boolean;
 }
@@ -21,25 +21,19 @@ const stringToOption = (value: string): Option<string> => {
   return { value, label: value };
 };
 
-class ServerGroupLoadBalancersImpl extends React.Component<
-  IServerGroupLoadBalancersProps & IWizardPageProps & FormikProps<IAmazonServerGroupCommand>,
-  IServerGroupLoadBalancersState
-> {
+class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBalancersProps, IServerGroupLoadBalancersState > {
   public static LABEL = 'Load Balancers';
 
-  constructor(props: IWizardPageProps & FormikProps<IAmazonServerGroupCommand>) {
-    super(props);
+  public state = {
+    refreshing: false,
+    refreshed: false,
+    showVpcLoadBalancers: false,
+  };
 
-    this.state = {
-      refreshing: false,
-      refreshed: false,
-      showVpcLoadBalancers: false,
-    };
-  }
-
-  public validate(_values: IAmazonServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
-    const { values } = this.props;
+  public validate(_values: IAmazonServerGroupCommand) {
+    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
+    // TODO: check if this is correct, or if we should use the 'values' argument
+    const { values } = this.props.formik;
 
     if (values.viewState.dirty.targetGroups) {
       errors.targetGroups = 'You must confirm the removed target groups.';
@@ -52,12 +46,13 @@ class ServerGroupLoadBalancersImpl extends React.Component<
   }
 
   public refreshLoadBalancers = () => {
+    const { values } = this.props.formik;
     this.setState({ refreshing: true });
     const configurationService: any = ReactInjector.providerServiceDelegate.getDelegate(
-      this.props.values.cloudProvider || this.props.values.selectedProvider,
+      values.cloudProvider || values.selectedProvider,
       'serverGroup.configurationService',
     );
-    configurationService.refreshLoadBalancers(this.props.values).then(() => {
+    configurationService.refreshLoadBalancers(values).then(() => {
       this.setState({
         refreshing: false,
         refreshed: true,
@@ -66,27 +61,28 @@ class ServerGroupLoadBalancersImpl extends React.Component<
   };
 
   public clearWarnings(key: 'loadBalancers' | 'targetGroups'): void {
-    this.props.values.viewState.dirty[key] = null;
+    this.props.formik.values.viewState.dirty[key] = null;
     this.props.revalidate();
   }
 
   private targetGroupsChanged = (options: Array<Option<string>>) => {
     const targetGroups = options.map(o => o.value);
-    this.props.setFieldValue('targetGroups', targetGroups);
+    this.props.formik.setFieldValue('targetGroups', targetGroups);
   };
 
   private loadBalancersChanged = (options: Array<Option<string>>) => {
     const loadBalancers = options.map(o => o.value);
-    this.props.setFieldValue('loadBalancers', loadBalancers);
+    this.props.formik.setFieldValue('loadBalancers', loadBalancers);
   };
 
   private vpcLoadBalancersChanged = (options: Array<Option<string>>) => {
     const vpcLoadBalancers = options.map(o => o.value);
-    this.props.setFieldValue('vpcLoadBalancers', vpcLoadBalancers);
+    this.props.formik.setFieldValue('vpcLoadBalancers', vpcLoadBalancers);
   };
 
   public render() {
-    const { hideLoadBalancers, hideTargetGroups, values } = this.props;
+    const { hideLoadBalancers, hideTargetGroups } = this.props;
+    const { values } = this.props.formik;
     const { dirty } = values.viewState;
     const { refreshed, refreshing, showVpcLoadBalancers } = this.state;
 
