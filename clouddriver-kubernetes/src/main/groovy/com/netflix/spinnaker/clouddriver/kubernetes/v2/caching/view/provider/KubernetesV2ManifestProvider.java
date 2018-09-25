@@ -29,6 +29,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.moniker.Moniker;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,6 +45,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class KubernetesV2ManifestProvider implements ManifestProvider<KubernetesV2Manifest> {
   private final KubernetesResourcePropertyRegistry registry;
   private final KubernetesCacheUtils cacheUtils;
@@ -63,6 +66,11 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     }
 
     KubernetesKind kind = parsedName.getLeft();
+    if (!kind.isNamespaced() && StringUtils.isNotEmpty(location)) {
+      log.warn("Kind {} is not namespaced, but namespace {} was provided (ignoring)", kind, location);
+      location = "";
+    }
+
     String key = Keys.infrastructure(
         kind,
         account,
