@@ -15,7 +15,6 @@
  */
 
 include 'kork-core',
-  'kork-cassandra',
   'kork-jedis-test',
   'kork-swagger',
   'kork-security',
