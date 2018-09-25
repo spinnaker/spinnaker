@@ -28,7 +28,7 @@ class ScheduledAssetChecker(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  @Scheduled(fixedDelayString = "\${check.cycle.frequency.ms:3600000}")
+  @Scheduled(fixedDelayString = "\${check.cycle.frequency.ms:60000}")
   fun runCheckCycle() {
     log.info("Starting check cycle")
     repository.rootAssets {
