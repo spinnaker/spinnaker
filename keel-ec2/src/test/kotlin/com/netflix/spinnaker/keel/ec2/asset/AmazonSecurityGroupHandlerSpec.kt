@@ -23,9 +23,9 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.ec2.AmazonAssetPlugin
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.CidrRule
+import com.netflix.spinnaker.keel.ec2.EC2AssetPlugin
 import com.netflix.spinnaker.keel.ec2.PortRange
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.ec2.ReferenceRule
@@ -72,7 +72,7 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
 
   beforeGroup {
     grpc.startServer {
-      addService(AmazonAssetPlugin(cloudDriverService, cloudDriverCache, orcaService))
+      addService(EC2AssetPlugin(cloudDriverService, cloudDriverCache, orcaService))
     }
   }
 

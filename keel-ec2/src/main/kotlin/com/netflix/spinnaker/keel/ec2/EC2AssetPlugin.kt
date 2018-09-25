@@ -30,7 +30,7 @@ import io.grpc.stub.StreamObserver
 import org.lognet.springboot.grpc.GRpcService
 
 @GRpcService
-class AmazonAssetPlugin(
+class EC2AssetPlugin(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService
