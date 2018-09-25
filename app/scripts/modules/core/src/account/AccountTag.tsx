@@ -4,6 +4,7 @@ import { AccountService } from 'core/account/AccountService';
 
 export interface IAccountTagProps {
   account: string;
+  className?: string;
 }
 
 export interface IAccountTagState {
@@ -46,8 +47,12 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
   }
 
   public render() {
-    const { account } = this.props;
+    const { account, className } = this.props;
     const { isProdAccount } = this.state;
-    return <span className={`account-tag account-tag-${isProdAccount ? 'prod' : 'notprod'}`}>{account}</span>;
+    return (
+      <span className={`account-tag account-tag-${isProdAccount ? 'prod' : 'notprod'} ${className || ''}`}>
+        {account}
+      </span>
+    );
   }
 }

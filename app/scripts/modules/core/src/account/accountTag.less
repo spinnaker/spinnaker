@@ -17,7 +17,8 @@
   }
 }
 
-.heading-tag {
+.heading-tag,
+.heading-tag-overflow-group {
   display: flex;
   .account-tag {
     font-size: 100%;
@@ -33,5 +34,24 @@
     .glyphicon {
       margin-right: 3px;
     }
+  }
+}
+
+.heading-tag-overflow-group {
+  pointer-events: none;
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  top: 100%;
+  left: 0;
+  transition: opacity 0.2s linear;
+  opacity: 0;
+
+  &.shown {
+    opacity: 1;
+  }
+
+  .account-tag {
+    border-top: 1px solid white;
   }
 }

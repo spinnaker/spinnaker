@@ -21,6 +21,8 @@ import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executionGroup.less';
 
+const ACCOUNT_TAG_OVERFLOW_LIMIT = 2;
+
 export interface IExecutionGroupProps {
   group: IExecutionGroup;
   application: Application;
@@ -35,6 +37,7 @@ export interface IExecutionGroupState {
   canTriggerPipelineManually: boolean;
   canConfigure: boolean;
   showAccounts: boolean;
+  showOverflowAccountTags: boolean;
 }
 
 export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecutionGroupState> {
@@ -66,6 +69,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
       canConfigure: !!(pipelineConfig || this.strategyConfig),
       showAccounts: ExecutionState.filterModel.asFilterModel.sortFilter.groupBy === 'name',
       pipelineConfig,
+      showOverflowAccountTags: false,
     };
   }
 
@@ -211,9 +215,32 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     const deploymentAccountLabels = without(this.state.deploymentAccounts || [], ...(group.targetAccounts || [])).map(
       (account: string) => <AccountTag key={account} account={account} />,
     );
-    const groupTargetAccountLabels = (group.targetAccounts || []).map((account: string) => (
-      <AccountTag key={account} account={account} />
-    ));
+    const groupTargetAccountLabels: React.ReactNode[] = [];
+    let groupTargetAccountLabelsExtra: React.ReactNode[] = [];
+    if (group.targetAccounts.length > 0) {
+      group.targetAccounts.slice(0, ACCOUNT_TAG_OVERFLOW_LIMIT).map(account => {
+        groupTargetAccountLabels.push(<AccountTag key={account} account={account} />);
+      });
+    }
+    if (group.targetAccounts.length > ACCOUNT_TAG_OVERFLOW_LIMIT) {
+      groupTargetAccountLabels.push(
+        <span
+          key="foo"
+          onMouseEnter={() => this.setState({ showOverflowAccountTags: true })}
+          onMouseLeave={() => this.setState({ showOverflowAccountTags: false })}
+        >
+          <AccountTag
+            className="overflow-marker"
+            account={`(+ ${group.targetAccounts.length - ACCOUNT_TAG_OVERFLOW_LIMIT} more)`}
+          />
+        </span>,
+      );
+      groupTargetAccountLabelsExtra = groupTargetAccountLabelsExtra.concat(
+        group.targetAccounts.slice(ACCOUNT_TAG_OVERFLOW_LIMIT).map(account => {
+          return <AccountTag key={account} account={account} />;
+        }),
+      );
+    }
     const executions = (group.executions || []).map((execution: IExecution) => (
       <Execution
         key={execution.id}
@@ -229,8 +256,11 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
           <div className="clickable sticky-header" onClick={this.handleHeadingClicked}>
             <div className={`execution-group-heading ${pipelineDisabled ? 'inactive' : 'active'}`}>
               <span className={`glyphicon pipeline-toggle glyphicon-chevron-${this.state.open ? 'down' : 'right'}`} />
-              <div className="shadowed">
-                <div className="heading-tag">
+              <div className="shadowed" style={{ position: 'relative' }}>
+                <div className={`heading-tag-overflow-group ${this.state.showOverflowAccountTags ? 'shown' : ''}`}>
+                  {groupTargetAccountLabelsExtra}
+                </div>
+                <div className="heading-tag collapsing-heading-tags">
                   {this.state.showAccounts && deploymentAccountLabels}
                   {groupTargetAccountLabels}
                 </div>
