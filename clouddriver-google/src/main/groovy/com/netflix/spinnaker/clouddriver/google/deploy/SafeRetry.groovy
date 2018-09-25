@@ -48,9 +48,9 @@ class SafeRetry extends GoogleCommonSafeRetry {
                         List<Integer> successfulErrorCodes,
                         Map tags,
                         Registry registry) {
+    task?.updateStatus tags.phase, "Attempting $tags.action of $resource..."
     return super.doRetry(operation,
                          resource,
-                         task,
                          retryCodes,
                          successfulErrorCodes,
                          maxWaitInterval,

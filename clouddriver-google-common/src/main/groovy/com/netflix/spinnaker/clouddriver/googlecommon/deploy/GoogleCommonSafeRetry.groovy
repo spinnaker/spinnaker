@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.googlecommon.deploy
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.data.task.Task
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -38,7 +37,6 @@ abstract class GoogleCommonSafeRetry {
    * @param operation - The operation.
    * @param action - String describing the operation.
    * @param resource - Resource we are operating on.
-   * @param task - Spinnaker task. Can be null.
    * @param phase
    * @param retryCodes - GoogleJsonResponseException codes we retry on.
    * @param successfulErrorCodes - GoogleJsonException codes we treat as success.
@@ -47,7 +45,6 @@ abstract class GoogleCommonSafeRetry {
    */
   public Object doRetry(Closure operation,
                         String resource,
-                        Task task,
                         List<Integer> retryCodes,
                         List<Integer> successfulErrorCodes,
                         Long maxWaitInterval,
@@ -58,7 +55,7 @@ abstract class GoogleCommonSafeRetry {
                         Registry registry) {
     long startTime = registry.clock().monotonicTime()
     SafeRetryState state = performOperation(
-        operation, tags.action, resource, task, tags.phase,
+        operation, tags.action, resource, tags.phase,
         retryCodes, successfulErrorCodes,
         maxWaitInterval, retryIntervalBase, jitterMultiplier, maxRetries)
 
@@ -75,7 +72,6 @@ abstract class GoogleCommonSafeRetry {
   protected SafeRetryState performOperation(Closure operation,
                                             String action,
                                             String resource,
-                                            Task task,
                                             String phase,
                                             List<Integer> retryCodes,
                                             List<Integer> successfulErrorCodes,
@@ -89,9 +85,7 @@ abstract class GoogleCommonSafeRetry {
     while (state.tries < maxAttempts) {
       def tries = ++state.tries
       try {
-        if (tries == 1) {
-          task?.updateStatus phase, "Attempting $action of $resource..."
-        } else {
+        if (tries != 1) {
           // Sleep with exponential backoff based on the number of retries. Add retry jitter with Math.random() to
           // prevent clients syncing up and bursting at regular intervals. Don't wait longer than a minute.
           Long thisIntervalWait = TimeUnit.SECONDS.toMillis(Math.pow(retryIntervalBase, tries - 1) as Integer)

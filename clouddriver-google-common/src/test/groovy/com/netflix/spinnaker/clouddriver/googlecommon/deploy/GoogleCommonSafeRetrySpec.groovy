@@ -24,7 +24,6 @@ import com.google.api.client.testing.json.MockJsonFactory
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.data.task.Task
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -71,7 +70,7 @@ class GoogleCommonSafeRetrySpec extends Specification {
 
     when:
       Object result = retrier.doRetry(
-            mockClosure, "resource", Mock(Task),
+            mockClosure, "resource",
             Arrays.asList(500), Arrays.asList(404),
             new Long(-1), new Long(-1), new Long(-1), new Long(maxRetries),
             ImmutableMap.of("action", "test"), registry)
@@ -88,7 +87,7 @@ class GoogleCommonSafeRetrySpec extends Specification {
 
     when:
       Object result = retrier.doRetry(
-            mockClosure, "resource", Mock(Task),
+            mockClosure, "resource",
             Arrays.asList(500), Arrays.asList(404),
             new Long(-1), new Long(-1), new Long(-1), new Long(maxRetries),
             ImmutableMap.of("action", "test"), registry)
@@ -112,7 +111,7 @@ class GoogleCommonSafeRetrySpec extends Specification {
 
     when:
       Object result = retrier.doRetry(
-            mockClosure, "resource", Mock(Task),
+            mockClosure, "resource",
             Arrays.asList(500), Arrays.asList(404),
             new Long(-1), new Long(-1), new Long(-1), new Long(maxAttempts),
             ImmutableMap.of("action", "test"), registry)
@@ -137,7 +136,7 @@ class GoogleCommonSafeRetrySpec extends Specification {
 
     when:
       Object result = retrier.doRetry(
-            mockClosure, "resource", Mock(Task),
+            mockClosure, "resource",
             Arrays.asList(500), Arrays.asList(404),
             new Long(-1), new Long(-1), new Long(-1), new Long(maxRetries),
             ImmutableMap.of("action", "test"), registry)
@@ -162,7 +161,7 @@ class GoogleCommonSafeRetrySpec extends Specification {
 
     when:
       Object result = retrier.doRetry(
-            mockClosure, "resource", Mock(Task),
+            mockClosure, "resource",
             Arrays.asList(500), null,
             new Long(-1), new Long(-1), new Long(-1), new Long(maxRetries),
             ImmutableMap.of("action", "test"), registry)
