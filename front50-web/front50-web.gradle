@@ -36,10 +36,6 @@ dependencies {
 
   spinnaker.group "bootWeb"
 
-  // TODO(dibyom): Only needed for ProjectResourceAssembler whose usage I could not find in this project.
-  // Either remove the class or add to spinnaker-dependencies
-  compile 'org.springframework.hateoas:spring-hateoas:0.23.0.RELEASE'
-
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("korkStackdriver")
   compile spinnaker.dependency("korkSwagger")
