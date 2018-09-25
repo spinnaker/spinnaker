@@ -107,11 +107,8 @@ class ListenersImpl extends React.Component<
     this.updateListeners();
   }
 
-  private handleListenerCertificateChanged(
-    listener: IClassicListenerDescription,
-    newCertificate: Option<string>,
-  ): void {
-    listener.sslCertificateName = newCertificate.value;
+  private handleListenerCertificateChanged(listener: IClassicListenerDescription, newCertificate: string): void {
+    listener.sslCertificateName = newCertificate;
     this.updateListeners();
   }
 
@@ -168,9 +165,7 @@ class ListenersImpl extends React.Component<
                           this.listenerExternalProtocolChanged(listener, event.target.value as ClassicListenerProtocol)
                         }
                       >
-                        {this.protocols.map(p => (
-                          <option key={p}>{p}</option>
-                        ))}
+                        {this.protocols.map(p => <option key={p}>{p}</option>)}
                       </select>
                     </td>
                     <td>
@@ -194,9 +189,7 @@ class ListenersImpl extends React.Component<
                           this.listenerInternalProtocolChanged(listener, event.target.value as ClassicListenerProtocol)
                         }
                       >
-                        {this.protocols.map(p => (
-                          <option key={p}>{p}</option>
-                        ))}
+                        {this.protocols.map(p => <option key={p}>{p}</option>)}
                       </select>
                     </td>
                     <td>
@@ -218,22 +211,29 @@ class ListenersImpl extends React.Component<
                               value={listener.sslCertificateType}
                               onChange={event => this.listenerCertificateTypeChanged(listener, event.target.value)}
                             >
-                              {this.state.certificateTypes.map(t => (
-                                <option key={t}>{t}</option>
-                              ))}
+                              {this.state.certificateTypes.map(t => <option key={t}>{t}</option>)}
                             </select>
                           )}
                         </td>
                       )}
                     {this.needsCert() && (
                       <td>
-                        {this.showCertificateSelect(listener) && (
+                        {this.showCertificateSelect(listener) ? (
                           <Select
                             className="input-sm"
                             clearable={false}
                             required={true}
                             options={certificateOptions}
-                            onChange={(value: Option<string>) => this.handleListenerCertificateChanged(listener, value)}
+                            onChange={(value: Option<string>) =>
+                              this.handleListenerCertificateChanged(listener, value.value)
+                            }
+                            value={listener.sslCertificateName}
+                          />
+                        ) : (
+                          <input
+                            className="input-sm"
+                            required={true}
+                            onChange={e => this.handleListenerCertificateChanged(listener, e.target.value)}
                             value={listener.sslCertificateName}
                           />
                         )}
