@@ -42,20 +42,10 @@ dependencies {
   compile spinnaker.dependency("kork")
 
   testCompile project(":front50-test")
-  testCompile project(":front50-pipelines")
 
   // Add each included cloud provider project as a runtime dependency
   gradle.includedProviderProjects.each {
     runtime project(it)
-  }
-}
-
-bootRun {
-  // jamm is required when using prepared statements with in-memory C*
-  def jamm = project.configurations.runtime.find { it.name.startsWith('jamm') }
-
-  if (jamm) {
-    jvmArgs applicationDefaultJvmArgs + "-javaagent:${jamm}"
   }
 }
 

@@ -6,16 +6,7 @@ management:
     redis:
       enabled: ${spinnaker.redis.enabled}
 
-cassandra:
-  enabled: true
-
 spinnaker:
-  cassandra:
-    enabled: true
-    embedded: true
-    cluster: CASS_SPINNAKER
-    keyspace: front50
-    name: default
   redis:
     enabled: false
     host: localhost

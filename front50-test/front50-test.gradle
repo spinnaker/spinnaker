@@ -15,7 +15,6 @@
  */
 
 dependencies {
-  compile project(":front50-cassandra")
   compile project(":front50-s3")
 
   compile spinnaker.dependency('groovy')

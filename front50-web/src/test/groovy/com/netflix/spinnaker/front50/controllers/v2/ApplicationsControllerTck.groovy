@@ -21,18 +21,15 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
-import com.netflix.spinnaker.front50.model.application.CassandraApplicationDAO
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
-import com.netflix.spinnaker.front50.utils.CassandraTestHelper
 import com.netflix.spinnaker.front50.utils.S3TestHelper
 import com.netflix.spinnaker.front50.validator.HasEmailValidator
 import com.netflix.spinnaker.front50.validator.HasNameValidator
@@ -361,24 +358,6 @@ abstract class ApplicationsControllerTck extends Specification {
     map.remove("updateTs")
     map.remove("createTs")
     return map
-  }
-}
-
-class CassandraApplicationsControllerTck extends ApplicationsControllerTck {
-  @Shared
-  CassandraTestHelper cassandraHelper = new CassandraTestHelper()
-
-  @Shared
-  CassandraApplicationDAO applicationDAO
-
-  @Override
-  ApplicationDAO createApplicationDAO() {
-    applicationDAO = new CassandraApplicationDAO(keyspace: cassandraHelper.keyspace, objectMapper: objectMapper, cassandraConfigProps: new CassandraConfigProps())
-    applicationDAO.init()
-
-    applicationDAO.runQuery('''TRUNCATE application''')
-
-    return applicationDAO
   }
 }
 

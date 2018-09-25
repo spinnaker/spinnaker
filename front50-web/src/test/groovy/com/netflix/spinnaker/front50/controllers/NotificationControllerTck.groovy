@@ -26,8 +26,6 @@ import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
 import com.netflix.spinnaker.front50.model.notification.Notification
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
-import com.netflix.spinnaker.front50.notifications.NotificationRepository
-import com.netflix.spinnaker.front50.utils.CassandraTestHelper
 import com.netflix.spinnaker.front50.utils.S3TestHelper
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.http.MediaType
@@ -162,27 +160,6 @@ abstract class NotificationControllerTck extends Specification {
   }
 }
 
-class CassandraNotificationControllerTck extends NotificationControllerTck {
-  @Shared
-  CassandraTestHelper cassandraHelper = new CassandraTestHelper()
-
-  @Shared
-  NotificationRepository notificationDAO
-
-  @Override
-  NotificationDAO createNotificationDAO() {
-    notificationDAO = new NotificationRepository(keyspace: cassandraHelper.keyspace)
-    notificationDAO.init()
-
-    notificationDAO
-        .keyspace
-        .prepareQuery(NotificationRepository.CF_NOTIFICATIONS)
-        .withCql('''TRUNCATE notifications''')
-        .execute()
-
-    return notificationDAO
-  }
-}
 
 @IgnoreIf({ S3TestHelper.s3ProxyUnavailable() })
 class S3NotificationControllerTck extends NotificationControllerTck {
