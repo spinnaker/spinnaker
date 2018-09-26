@@ -51,7 +51,7 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
     setFieldValue('listeners', values.listeners);
   }
 
-  private needsCert(): boolean {
+  private someListenersUseSSL(): boolean {
     const { listeners } = this.props.formik.values;
     return listeners.some(listener => this.secureProtocols.includes(listener.externalProtocol));
   }
@@ -70,7 +70,7 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
     newProtocol: ClassicListenerProtocol,
   ): void {
     listener.externalProtocol = newProtocol;
-    if (newProtocol === 'HTTPS' || newProtocol === 'SSL') {
+    if (this.secureProtocols.includes(newProtocol)) {
       listener.externalPort = 443;
       if (this.state.certificateTypes.length >= 1) {
         listener.sslCertificateType = this.state.certificateTypes[0];
@@ -125,6 +125,32 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
     this.updateListeners();
   };
 
+  private renderCertificateSelector(listener: IClassicListenerDescription, certificateOptions: Option[]): JSX.Element {
+    if (!this.secureProtocols.includes(listener.externalProtocol)) {
+      return null;
+    } else if (this.showCertificateSelect(listener)) {
+      return (
+        <Select
+          className="input-sm"
+          clearable={false}
+          required={true}
+          options={certificateOptions}
+          onChange={(value: Option<string>) => this.handleListenerCertificateChanged(listener, value.value)}
+          value={listener.sslCertificateName}
+        />
+      );
+    } else {
+      return (
+        <input
+          className="input-sm"
+          required={true}
+          onChange={e => this.handleListenerCertificateChanged(listener, e.target.value)}
+          value={listener.sslCertificateName}
+        />
+      );
+    }
+  }
+
   public render() {
     const { values } = this.props.formik;
     const { certificates, certificateTypes } = this.state;
@@ -133,6 +159,9 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
     const certificateOptions = certificatesForAccount.map(cert => {
       return { label: cert.serverCertificateName, value: cert.serverCertificateName };
     });
+    const showCertNameColumn = this.someListenersUseSSL();
+    const showCertTypeColumn = showCertNameColumn && certificateTypes.length > 1;
+    const colSpan = showCertTypeColumn ? 7 : showCertNameColumn ? 6 : 5;
 
     return (
       <div className="container-fluid form-horizontal create-classic-load-balancer-wizard-listeners">
@@ -146,9 +175,8 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
                   <th />
                   <th>Internal Protocol</th>
                   <th>Internal Port</th>
-                  {this.needsCert() &&
-                    certificateTypes.length > 1 && <th style={{ width: '10%' }}>SSL Certificate Type</th>}
-                  {this.needsCert() && <th style={{ width: '30%' }}>SSL Certificate Name</th>}
+                  {showCertTypeColumn && <th style={{ width: '10%' }}>SSL Certificate Type</th>}
+                  {showCertNameColumn && <th style={{ width: '30%' }}>SSL Certificate Name</th>}
                   <th />
                 </tr>
               </thead>
@@ -163,7 +191,9 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
                           this.listenerExternalProtocolChanged(listener, event.target.value as ClassicListenerProtocol)
                         }
                       >
-                        {this.protocols.map(p => <option key={p}>{p}</option>)}
+                        {this.protocols.map(p => (
+                          <option key={p}>{p}</option>
+                        ))}
                       </select>
                     </td>
                     <td>
@@ -187,7 +217,9 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
                           this.listenerInternalProtocolChanged(listener, event.target.value as ClassicListenerProtocol)
                         }
                       >
-                        {this.protocols.map(p => <option key={p}>{p}</option>)}
+                        {this.protocols.map(p => (
+                          <option key={p}>{p}</option>
+                        ))}
                       </select>
                     </td>
                     <td>
@@ -200,43 +232,25 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
                         required={true}
                       />
                     </td>
-                    {this.needsCert() &&
-                      certificateTypes.length > 1 && (
-                        <td>
-                          {this.secureProtocols.includes(listener.externalProtocol) && (
-                            <select
-                              className="form-control input-sm"
-                              value={listener.sslCertificateType}
-                              onChange={event => this.listenerCertificateTypeChanged(listener, event.target.value)}
-                            >
-                              {this.state.certificateTypes.map(t => <option key={t}>{t}</option>)}
-                            </select>
-                          )}
-                        </td>
-                      )}
-                    {this.needsCert() && (
+
+                    {showCertTypeColumn && (
                       <td>
-                        {this.showCertificateSelect(listener) ? (
-                          <Select
-                            className="input-sm"
-                            clearable={false}
-                            required={true}
-                            options={certificateOptions}
-                            onChange={(value: Option<string>) =>
-                              this.handleListenerCertificateChanged(listener, value.value)
-                            }
-                            value={listener.sslCertificateName}
-                          />
-                        ) : (
-                          <input
-                            className="input-sm"
-                            required={true}
-                            onChange={e => this.handleListenerCertificateChanged(listener, e.target.value)}
-                            value={listener.sslCertificateName}
-                          />
+                        {this.secureProtocols.includes(listener.externalProtocol) && (
+                          <select
+                            className="form-control input-sm"
+                            value={listener.sslCertificateType}
+                            onChange={event => this.listenerCertificateTypeChanged(listener, event.target.value)}
+                          >
+                            {this.state.certificateTypes.map(t => (
+                              <option key={t}>{t}</option>
+                            ))}
+                          </select>
                         )}
                       </td>
                     )}
+
+                    {showCertNameColumn && <td>{this.renderCertificateSelector(listener, certificateOptions)}</td>}
+
                     <td>
                       <a className="sm-label clickable" onClick={() => this.removeListener(index)}>
                         <span className="glyphicon glyphicon-trash" />
@@ -247,7 +261,7 @@ class ListenersImpl extends React.Component<IListenersProps, IListenersState> {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={this.needsCert() ? 7 : 5}>
+                  <td colSpan={colSpan}>
                     <button className="add-new col-md-12" onClick={this.addListener} type="button">
                       <span className="glyphicon glyphicon-plus-sign" />
                       <span> Add new port mapping</span>
