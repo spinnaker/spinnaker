@@ -28,13 +28,6 @@ interface IMark {
 }
 
 export class YamlEditor extends React.Component<IYamlEditorProps, IYamlEditorState> {
-  public static getDerivedStateFromProps = (props: IYamlEditorProps): IYamlEditorState => {
-    return {
-      value: props.value ? dump(props.value) : '',
-      errors: [],
-    };
-  };
-
   constructor(props: IYamlEditorProps) {
     super(props);
     this.state = {
