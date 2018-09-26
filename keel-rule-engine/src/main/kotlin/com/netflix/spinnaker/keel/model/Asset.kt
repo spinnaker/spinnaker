@@ -17,6 +17,30 @@ package com.netflix.spinnaker.keel.model
 
 import com.google.common.hash.HashCode
 import com.google.common.hash.Hashing
+import java.util.*
+
+/**
+ * Holds binary data with some kind of type wart.
+ */
+data class TypedByteArray(
+  val type: String,
+  val data: ByteArray
+) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as TypedByteArray
+
+    if (type != other.type) return false
+    if (!Arrays.equals(data, other.data)) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int =
+    31 * type.hashCode() + Arrays.hashCode(data)
+}
 
 /**
  * Common interface for assets and partial assets.
@@ -25,7 +49,7 @@ interface AssetBase {
   val id: AssetId
   val apiVersion: String
   val kind: String
-  val spec: ByteArray
+  val spec: TypedByteArray
 }
 
 /**
@@ -36,23 +60,10 @@ data class Asset(
   override val apiVersion: String = "1.0",
   override val kind: String,
   val dependsOn: Set<AssetId> = emptySet(),
-  override val spec: ByteArray
+  override val spec: TypedByteArray
 ) : AssetBase {
 
   fun wrap(): AssetContainer = AssetContainer(this)
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as Asset
-
-    if (id != other.id) return false
-
-    return true
-  }
-
-  override fun hashCode(): Int = id.hashCode()
 }
 
 /**
@@ -63,7 +74,7 @@ data class PartialAsset(
   val root: AssetId,
   override val apiVersion: String = "1.0",
   override val kind: String,
-  override val spec: ByteArray
+  override val spec: TypedByteArray
 ) : AssetBase {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -94,4 +105,4 @@ data class AssetId(
 }
 
 val Asset.fingerprint: HashCode
-  get() = Hashing.murmur3_128().hashBytes(spec)
+  get() = Hashing.murmur3_128().hashBytes(spec.data)

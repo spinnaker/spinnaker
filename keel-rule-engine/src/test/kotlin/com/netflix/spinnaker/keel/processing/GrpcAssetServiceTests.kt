@@ -166,7 +166,8 @@ fun Assertion.Builder<Asset>.isIdenticalTo(other: Asset) =
     chain(Asset::kind).isEqualTo(other.kind)
     chain(Asset::apiVersion).isEqualTo(other.apiVersion)
     chain(Asset::dependsOn).isEqualTo(other.dependsOn)
-    chain(Asset::spec).contentEquals(other.spec)
+    chain { it.spec.type }.isEqualTo(other.spec.type)
+    chain { it.spec.data }.contentEquals(other.spec.data)
   } then {
     if (allPassed) pass() else fail()
   }

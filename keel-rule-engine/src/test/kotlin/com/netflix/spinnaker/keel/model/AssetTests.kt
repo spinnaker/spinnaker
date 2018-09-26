@@ -1,7 +1,14 @@
 package com.netflix.spinnaker.keel.model
 
+import com.netflix.spinnaker.keel.ec2.PortRange
+import com.netflix.spinnaker.keel.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRule
+import com.netflix.spinnaker.keel.grpc.fromProto
+import com.netflix.spinnaker.keel.grpc.toProto
 import com.netflix.spinnaker.keel.processing.randomBytes
+import com.netflix.spinnaker.keel.proto.pack
 import org.junit.jupiter.api.DynamicTest.dynamicTest
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -12,8 +19,7 @@ internal class AssetTests {
   @TestFactory
   fun `fingerprints match if specs are the same`() =
     listOf(
-      randomBytes(),
-      ByteArray(1)
+      randomBytes()
     )
       .map { bytes ->
         asset(bytes) to asset(bytes)
@@ -27,8 +33,7 @@ internal class AssetTests {
   @TestFactory
   fun `fingerprints do not match if spec differs`() =
     listOf(
-      randomBytes() to randomBytes(),
-      ByteArray(2) to ByteArray(1)
+      randomBytes() to randomBytes()
     )
       .map { (bytes1, bytes2) ->
         asset(bytes1) to asset(bytes2)
@@ -39,13 +44,64 @@ internal class AssetTests {
         }
       }
 
-  private fun asset(spec: ByteArray): Asset =
+  @Test
+  fun `converting an asset model to a proto keeps the spec`() {
+    val spec = SecurityGroup.newBuilder().run {
+      application = "keel"
+      name = "keel"
+      accountName = "mgmttest"
+      region = "us-west-2"
+      vpcName = "vpc0"
+      description = "Keel application security group"
+      addInboundRule(
+        SecurityGroupRule.newBuilder().apply {
+          selfReferencingRuleBuilder.apply {
+            protocol = "tcp"
+            addPortRange(PortRange.newBuilder().apply {
+              startPort = 6565
+              endPort = 6565
+            })
+          }
+        }
+      )
+      addInboundRule(
+        SecurityGroupRule.newBuilder().apply {
+          referenceRuleBuilder.apply {
+            name = "keel-elb"
+            protocol = "tcp"
+            addPortRange(PortRange.newBuilder().apply {
+              startPort = 7001
+              endPort = 7001
+            })
+            addPortRange(PortRange.newBuilder().apply {
+              startPort = 7002
+              endPort = 7002
+            })
+          }
+        }
+      )
+      build().pack()
+    }
+
+    val assetModel = Asset(
+      id = AssetId("keel:ec2:SecurityGroup:mgmttest:us-west-2:keel"),
+      kind = "ec2.SecurityGroup",
+      apiVersion = "1.0",
+      spec = spec.fromProto()
+    )
+
+    expectThat(assetModel.toProto()) {
+      chain { it.spec.typeUrl }.isEqualTo(spec.typeUrl)
+    }
+  }
+
+  private fun asset(spec: TypedByteArray): Asset =
     Asset(
       id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"),
       kind = "SecurityGroup",
       spec = spec
     )
 
-  private val ByteArray.base64: String
-    get() = Base64.getEncoder().encodeToString(this)
+  private val TypedByteArray.base64: String
+    get() = Base64.getEncoder().encodeToString(data)
 }

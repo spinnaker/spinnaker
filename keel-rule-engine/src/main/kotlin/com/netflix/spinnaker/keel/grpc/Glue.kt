@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.grpc
 
+import com.google.protobuf.Any
 import com.google.protobuf.ByteString
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
@@ -23,12 +24,24 @@ import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.PartialAsset
+import com.netflix.spinnaker.keel.model.TypedByteArray
 import com.netflix.spinnaker.keel.registry.AssetType
 import com.netflix.spinnaker.keel.registry.PluginAddress
 import com.netflix.spinnaker.keel.api.Asset as AssetProto
 import com.netflix.spinnaker.keel.api.AssetContainer as AssetContainerProto
 import com.netflix.spinnaker.keel.api.AssetId as AssetIdProto
 import com.netflix.spinnaker.keel.api.PartialAsset as PartialAssetProto
+
+fun TypedByteArray.toProto(): Any =
+  Any.newBuilder()
+    .apply {
+      typeUrl = type
+      value = ByteString.copyFrom(data)
+    }
+    .build()
+
+fun Any.fromProto(): TypedByteArray =
+  TypedByteArray(typeUrl, value.toByteArray())
 
 /**
  * Converts an asset container model into the protobuf representation.
@@ -52,7 +65,7 @@ fun Asset.toProto(): AssetProto =
       it.idBuilder.value = id.value
       it.typeMetadata = toTypeMetaData()
       it.addAllDependsOn(dependsOn.map(AssetId::toProto))
-      it.specBuilder.value = ByteString.copyFrom(spec)
+      it.specBuilder.mergeFrom(spec.toProto())
     }
     .build()
 
@@ -66,7 +79,7 @@ fun PartialAsset.toProto(): PartialAssetProto =
       it.idBuilder.value = id.value
       it.rootBuilder.value = root.value
       it.typeMetadata = toTypeMetaData()
-      it.specBuilder.value = ByteString.copyFrom(spec)
+      it.specBuilder.mergeFrom(spec.toProto())
     }
     .build()
 
@@ -118,7 +131,7 @@ fun AssetProto.fromProto(): Asset =
     apiVersion = typeMetadata.apiVersion,
     kind = typeMetadata.kind,
     dependsOn = dependsOnList.map { AssetId(it.value) }.toSet(),
-    spec = spec.value.toByteArray()
+    spec = spec.fromProto()
   )
 
 /**
@@ -130,7 +143,7 @@ fun PartialAssetProto.fromProto(): PartialAsset =
     root = AssetId(root.value),
     apiVersion = typeMetadata.apiVersion,
     kind = typeMetadata.kind,
-    spec = spec.value.toByteArray()
+    spec = spec.fromProto()
   )
 
 

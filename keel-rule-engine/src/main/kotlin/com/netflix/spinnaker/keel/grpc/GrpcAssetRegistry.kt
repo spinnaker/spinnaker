@@ -60,7 +60,10 @@ class GrpcAssetRegistry(
     responseObserver: StreamObserver<UpsertAssetResponse>
   ) {
     with(request.asset) {
-      log.info("Upserting asset {}", asset.id)
+      log.info("Upserting asset: {} with spec {}", asset.id.value, asset.spec.typeUrl)
+      request.asset.partialAssetList.forEach {
+        log.info("Upserting partial: {} with spec {}", it.id.value, it.spec.typeUrl)
+      }
 
       val upserted = listOf(asset.fromProto()) + partialAssetList.map { it.fromProto() }
       upserted.forEach(assetRepository::store)

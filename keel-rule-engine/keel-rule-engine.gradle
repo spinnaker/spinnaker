@@ -19,6 +19,9 @@ dependencies {
   testImplementation "io.strikt:strikt-protobuf:$striktVersion"
   testImplementation project(":keel-api-test")
   testImplementation project(":keel-rule-engine-tck")
+  testImplementation(project(":keel-ec2")) {
+    because("want access to real protos to test conversion between model & proto")
+  }
   testImplementation "io.grpc:grpc-netty:$grpcVersion"
 }
 

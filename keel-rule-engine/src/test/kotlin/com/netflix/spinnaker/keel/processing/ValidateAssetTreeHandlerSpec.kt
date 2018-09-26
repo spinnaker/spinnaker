@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.processing
 
 import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.model.TypedByteArray
 import com.netflix.spinnaker.keel.persistence.AssetState.Diff
 import com.netflix.spinnaker.keel.persistence.AssetState.Missing
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
@@ -209,7 +210,10 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
 })
 
 fun randomBytes(length: Int = 20) =
-  ByteArray(length).also(Random(nanoTime())::nextBytes)
+  TypedByteArray(
+    "whatever",
+    ByteArray(length).also(Random(nanoTime())::nextBytes)
+  )
 
 infix fun <T> T.expect(block: Assertion.Builder<T>.() -> Unit) =
   expectThat(this, block)
