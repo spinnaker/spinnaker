@@ -1,6 +1,8 @@
 'use strict';
 
 import { copy } from 'angular';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
@@ -17,6 +19,7 @@ module.exports = angular
         trigger: '=',
         pipeline: '=',
         application: '=',
+        fieldUpdated: '<',
       },
       controller: 'TriggerCtrl as triggerCtrl',
       templateUrl: require('./trigger.html'),
@@ -44,6 +47,8 @@ module.exports = angular
     };
 
     this.loadTrigger = () => {
+      const triggerBodyNode = $element.find('.trigger-body').get(0);
+
       var type = $scope.trigger.type,
         triggerScope = $scope.$new();
       if (type) {
@@ -54,22 +59,32 @@ module.exports = angular
           return config.key === type;
         });
         if (triggerConfig.length) {
-          var config = triggerConfig[0],
-            template = $templateCache.get(config.templateUrl);
-          $scope.description = config.description;
-          if (config.controller) {
-            var ctrl = config.controller.split(' as ');
-            var controller = $controller(ctrl[0], { $scope: triggerScope, trigger: $scope.trigger });
-            if (ctrl.length === 2) {
-              triggerScope[ctrl[1]] = controller;
-            }
-            if (config.controllerAs) {
-              triggerScope[config.controllerAs] = controller;
-            }
-          }
+          const config = triggerConfig[0];
+          if (config.component) {
+            // TODO: Support react triggers...
+            // react
+            const TriggerConfig = config.component;
+            const props = { fieldUpdated: $scope.fieldUpdated, trigger: $scope.trigger };
 
-          var templateBody = $compile(template)(triggerScope);
-          $element.find('.trigger-body').html(templateBody);
+            ReactDOM.render(React.createElement(TriggerConfig, props), triggerBodyNode);
+          } else if (config.templateUrl) {
+            // angular
+            const template = $templateCache.get(config.templateUrl);
+            if (config.controller) {
+              var ctrl = config.controller.split(' as ');
+              var controller = $controller(ctrl[0], { $scope: triggerScope, trigger: $scope.trigger });
+              if (ctrl.length === 2) {
+                triggerScope[ctrl[1]] = controller;
+              }
+              if (config.controllerAs) {
+                triggerScope[config.controllerAs] = controller;
+              }
+            }
+
+            var templateBody = $compile(template)(triggerScope);
+            $element.find('.trigger-body').html(templateBody);
+          }
+          $scope.description = config.description;
         }
       }
     };

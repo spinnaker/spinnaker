@@ -6,6 +6,7 @@ export interface ITrigger {
   user?: string;
   type: string;
   expectedArtifactIds?: string[]; // uuid references to ExpectedArtifacts defined in the Pipeline.
+  runAsUser?: string;
 }
 
 export interface IGitTrigger extends ITrigger {
@@ -31,6 +32,7 @@ export interface IDockerTrigger extends ITrigger {
   tag: string;
   registry?: string;
   repository: string;
+  organization?: string;
 }
 
 export interface IPipelineTrigger extends ITrigger {

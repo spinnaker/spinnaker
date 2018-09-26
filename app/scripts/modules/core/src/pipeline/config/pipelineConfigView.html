@@ -2,6 +2,7 @@
   <div class="col-md-12">
     <triggers ng-if="viewState.section === 'triggers'"
               application="application"
+              field-updated="stageFieldUpdated"
               pipeline="pipelineConfig">
     </triggers>
     <pipeline-config-stage ng-if="viewState.section === 'stage'"

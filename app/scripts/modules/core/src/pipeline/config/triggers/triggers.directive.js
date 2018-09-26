@@ -14,6 +14,7 @@ module.exports = angular
       scope: {
         pipeline: '=',
         application: '=',
+        fieldUpdated: '<',
       },
       controller: 'triggersCtrl',
       controllerAs: 'triggersCtrl',

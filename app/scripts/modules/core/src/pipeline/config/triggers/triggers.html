@@ -26,7 +26,7 @@
         </div>
       </div>
     </render-if-feature>
-    <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application"></trigger>
+    <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application" field-updated="fieldUpdated"></trigger>
     <div class="row" ng-if="!pipeline.triggers.length">
       <p class="col-md-12">
         You don't have any triggers configured for {{pipeline.name}}.
