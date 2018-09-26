@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.proto.pack
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEqualTo
@@ -90,8 +91,11 @@ internal class AssetTests {
       spec = spec.fromProto()
     )
 
-    expectThat(assetModel.toProto()) {
-      chain { it.spec.typeUrl }.isEqualTo(spec.typeUrl)
+    with(assetModel.toProto()) {
+      expect {
+        that(spec.typeUrl).isEqualTo(spec.typeUrl)
+        that(spec.value).isEqualTo(spec.value)
+      }
     }
   }
 

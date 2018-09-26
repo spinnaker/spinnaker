@@ -83,7 +83,7 @@ class AmazonSecurityGroupHandler(
           mutableMapOf(
             "application" to spec.application,
             "credentials" to spec.accountName,
-            "cloudProvider" to "ec2",
+            "cloudProvider" to "aws",
             "name" to spec.name,
             "regions" to listOf(spec.region),
             "vpcId" to spec.vpcName,

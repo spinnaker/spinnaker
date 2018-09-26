@@ -15,4 +15,4 @@
  */
 package com.netflix.spinnaker.keel.ec2
 
-const val CLOUD_PROVIDER = "ec2"
+const val CLOUD_PROVIDER = "aws"
