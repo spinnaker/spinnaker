@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
-import { get } from 'lodash';
+import { get, isNull, values } from 'lodash';
 import { Option } from 'react-select';
 import { noop, HelpField } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
@@ -12,8 +12,9 @@ import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.serv
 import Styleguide from 'kayenta/layout/styleguide';
 import FormRow from 'kayenta/layout/formRow';
 import { DisableableInput, DisableableSelect, DisableableReactSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
-import { configTemplatesSelector } from 'kayenta/selectors';
+import { configTemplatesSelector, editingMetricValidationErrorsSelector } from 'kayenta/selectors';
 import { CanarySettings } from 'kayenta/canary.settings';
+import { ICanaryMetricValidationErrors } from './editMetricValidation';
 
 import './editMetricModal.less';
 
@@ -34,6 +35,7 @@ interface IEditMetricModalStateProps {
   templates: Option[];
   filterTemplate: string;
   groups: string[];
+  validationErrors: ICanaryMetricValidationErrors;
 }
 
 function RadioChoice({ value, label, name, current, action }: { value: string, label: string, name: string, current: string, action: (event: any) => void }) {
@@ -124,7 +126,8 @@ function EditMetricModal({
   templates,
   selectTemplate,
   filterTemplate,
-  updateScopeName
+  updateScopeName,
+  validationErrors
 }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
     return null;
@@ -136,6 +139,7 @@ function EditMetricModal({
   const effectSize = get<ICanaryMetricConfig, ICanaryMetricEffectSizeConfig>(
     metric, ['analysisConfigurations', 'canary', 'effectSize']
   );
+  const isConfirmDisabled = values(validationErrors).some(e => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
   return (
@@ -170,7 +174,7 @@ function EditMetricModal({
               </DisableableSelect>
             )}
           </FormRow>
-          <FormRow label="Name">
+          <FormRow label="Name" error={get(validationErrors, 'name.message', null)}>
             <DisableableInput
               type="text"
               value={metric.name}
@@ -206,7 +210,7 @@ function EditMetricModal({
             template={filterTemplate}
             select={selectTemplate}
           />
-          <FormRow label="Scope Name">
+          <FormRow label="Scope Name" error={get(validationErrors, 'scopeName.message', null)}>
             <DisableableInput
               type="text"
               value={metric.scopeName}
@@ -223,7 +227,7 @@ function EditMetricModal({
             <li>
               <button
                 className="primary"
-                disabled={!metric.name || !metric.scopeName}
+                disabled={isConfirmDisabled}
                 onClick={confirm}
               >
                 OK
@@ -274,6 +278,7 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
     })),
     filterTemplate: get(state, 'selectedConfig.editingMetric.query.customFilterTemplate'),
     groups: state.selectedConfig.group.list.sort(),
+    validationErrors: editingMetricValidationErrorsSelector(state),
   };
 }
 

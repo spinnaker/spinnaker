@@ -1,8 +1,9 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
+import { ValidationMessage } from '@spinnaker/core';
 
 export default function FormRow(
-  { label, children, checkbox }: { label?: string | React.ReactFragment, children?: any, checkbox?: boolean }
+  { label, children, checkbox, error }: { label?: string | React.ReactFragment, children?: any, checkbox?: boolean, error?: string }
 ) {
   return (
     <div className="form-group row">
@@ -14,6 +15,7 @@ export default function FormRow(
         style={checkbox ? { marginTop: '0', marginBottom: '0' } : null}
       >
         {children}
+        {error && <ValidationMessage type="error" message={error} />}
       </div>
     </div>
   );

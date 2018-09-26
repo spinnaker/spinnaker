@@ -2,8 +2,9 @@ import { createSelector } from 'reselect';
 import { get } from 'lodash';
 
 import { ICanaryState } from '../reducers/index';
-import { ICanaryConfig } from 'kayenta/domain/index';
+import { ICanaryConfig, ICanaryMetricConfig } from 'kayenta/domain/index';
 import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
+import { validateMetric } from '../edit/editMetricValidation';
 
 export const runSelector = (state: ICanaryState): ICanaryExecutionStatusResult => state.selectedRun.run;
 
@@ -62,3 +63,15 @@ export const resolveConfigIdFromExecutionId = (state: ICanaryState, executionId:
   const execution = executions.find(ex => ex.pipelineId === executionId);
   return execution.canaryConfigId;
 };
+
+export const editingMetricSelector =
+  (state: ICanaryState): ICanaryMetricConfig => state.selectedConfig.editingMetric;
+
+export const metricListSelector =
+  (state: ICanaryState): ICanaryMetricConfig[] => state.selectedConfig.metricList;
+
+export const editingMetricValidationErrorsSelector = createSelector(
+  editingMetricSelector,
+  metricListSelector,
+  validateMetric
+);
