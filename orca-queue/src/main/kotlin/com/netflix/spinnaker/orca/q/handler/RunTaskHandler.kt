@@ -41,6 +41,7 @@ import com.netflix.spinnaker.orca.time.toInstant
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import org.apache.commons.lang.time.DurationFormatUtils
+import org.slf4j.MDC
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
@@ -92,33 +93,35 @@ class RunTaskHandler(
           }
 
           stage.withAuth {
-            var taskResult = task.execute(stage.withMergedContext())
-            taskExecutionInterceptors.forEach { t -> taskResult = t.afterTaskExecution(task, stage, taskResult) }
-            taskResult.let { result: TaskResult ->
-              // TODO: rather send this data with CompleteTask message
-              stage.processTaskOutput(result)
-              when (result.status) {
-                RUNNING                              -> {
-                  queue.push(message, task.backoffPeriod(taskModel, stage))
-                  trackResult(stage, thisInvocationStartTimeMs, taskModel, result.status)
+            stage.withLoggingContext(taskModel) {
+              var taskResult = task.execute(stage.withMergedContext())
+              taskExecutionInterceptors.forEach { t -> taskResult = t.afterTaskExecution(task, stage, taskResult) }
+              taskResult.let { result: TaskResult ->
+                // TODO: rather send this data with CompleteTask message
+                stage.processTaskOutput(result)
+                when (result.status) {
+                  RUNNING -> {
+                    queue.push(message, task.backoffPeriod(taskModel, stage))
+                    trackResult(stage, thisInvocationStartTimeMs, taskModel, result.status)
+                  }
+                  SUCCEEDED, REDIRECT, FAILED_CONTINUE, STOPPED -> {
+                    queue.push(CompleteTask(message, result.status))
+                    trackResult(stage, thisInvocationStartTimeMs, taskModel, result.status)
+                  }
+                  CANCELED -> {
+                    task.onCancel(stage)
+                    val status = stage.failureStatus(default = result.status)
+                    queue.push(CompleteTask(message, status, result.status))
+                    trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
+                  }
+                  TERMINAL -> {
+                    val status = stage.failureStatus(default = result.status)
+                    queue.push(CompleteTask(message, status, result.status))
+                    trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
+                  }
+                  else ->
+                    TODO("Unhandled task status ${result.status}")
                 }
-                SUCCEEDED, REDIRECT, FAILED_CONTINUE, STOPPED -> {
-                  queue.push(CompleteTask(message, result.status))
-                  trackResult(stage, thisInvocationStartTimeMs, taskModel, result.status)
-                }
-                CANCELED                             -> {
-                  task.onCancel(stage)
-                  val status = stage.failureStatus(default = result.status)
-                  queue.push(CompleteTask(message, status, result.status))
-                  trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
-                }
-                TERMINAL                             -> {
-                  val status = stage.failureStatus(default = result.status)
-                  queue.push(CompleteTask(message, status, result.status))
-                  trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
-                }
-                else                                 ->
-                  TODO("Unhandled task status ${result.status}")
               }
             }
           }
@@ -294,6 +297,18 @@ class RunTaskHandler(
       context.putAll(result.context)
       outputs.putAll(filteredOutputs)
       repository.storeStage(this)
+    }
+  }
+
+  private fun Stage.withLoggingContext(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, block: () -> Unit) {
+    try {
+      MDC.put("stageType", type)
+      MDC.put("taskType", taskModel.implementingClass)
+
+      block.invoke()
+    } finally {
+      MDC.remove("stageType")
+      MDC.remove("taskType")
     }
   }
 }
