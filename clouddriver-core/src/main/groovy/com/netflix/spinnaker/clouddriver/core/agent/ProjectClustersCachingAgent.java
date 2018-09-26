@@ -25,7 +25,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.core.ProjectClustersService;
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider;
-import com.netflix.spinnaker.config.ProjectClustersCachingAgentProperties;
+import com.netflix.spinnaker.clouddriver.config.ProjectClustersCachingAgentProperties;
 
 import java.util.Collection;
 import java.util.Collections;

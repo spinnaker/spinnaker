@@ -37,6 +37,7 @@ import java.security.Security
 ])
 @ComponentScan([
   'com.netflix.spinnaker.config',
+  'com.netflix.spinnaker.clouddriver.config'
 ])
 @EnableAutoConfiguration(exclude = [
     BatchAutoConfiguration,

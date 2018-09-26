@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.clouddriver.config
 
 import com.netflix.spinnaker.clouddriver.data.task.InMemoryTaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository

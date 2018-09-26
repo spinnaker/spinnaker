@@ -20,7 +20,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.core.ProjectClustersService
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
-import com.netflix.spinnaker.config.ProjectClustersCachingAgentProperties
+import com.netflix.spinnaker.clouddriver.config.ProjectClustersCachingAgentProperties
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.config;
+package com.netflix.spinnaker.clouddriver.config;
 
 import com.google.common.base.Strings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
