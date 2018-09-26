@@ -745,7 +745,6 @@ GcsStorageService implements StorageService {
                       List successCodes) {
       gcsSafeRetry.doRetry(operation,
                            resource,
-                           null,
                            errorCodes,
                            successCodes,
                            maxWaitInterval,
