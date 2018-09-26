@@ -18,9 +18,11 @@ import {
 } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
+import { IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
 
-export type ISecurityGroupsProps = IWizardPageProps<IAmazonClassicLoadBalancerUpsertCommand>;
+export interface ISecurityGroupsProps extends IWizardPageProps<IAmazonLoadBalancerUpsertCommand> {
+  isNew?: boolean;
+}
 
 export interface ISecurityGroupsState {
   availableSecurityGroups: Array<{ label: string; value: string }>;
@@ -53,7 +55,7 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
   }
 
   public validate() {
-    return {} as FormikErrors<IAmazonClassicLoadBalancerUpsertCommand>;
+    return {} as FormikErrors<IAmazonLoadBalancerUpsertCommand>;
   }
 
   private clearRemoved = (): void => {
@@ -89,6 +91,7 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
     availableVpcIds: string[],
     allSecurityGroups: ISecurityGroupsByAccountSourceData,
   ): void {
+    const { isNew } = this.props;
     const { credentials: account, region, securityGroups } = this.props.formik.values;
     const { defaultSecurityGroups, removed } = this.state;
 
@@ -107,7 +110,9 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
         return availableVpcIds.includes(securityGroup.vpcId);
       }).sort((a, b) => this.availableGroupsSorter(a, b)); // push existing groups to top
       const existingSecurityGroupNames = map(regionalSecurityGroups, 'name');
-      const existingNames = defaultSecurityGroups.filter(name => existingSecurityGroupNames.includes(name));
+      const existingNames = isNew
+        ? defaultSecurityGroups.filter(name => existingSecurityGroupNames.includes(name))
+        : [];
       securityGroups.forEach(securityGroup => {
         if (!existingSecurityGroupNames.includes(securityGroup)) {
           const matches = filter(regionalSecurityGroups, { id: securityGroup });
@@ -188,11 +193,7 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
                     The following {FirewallLabels.get('firewalls')} could not be found in the selected
                     account/region/VPC and were removed:
                   </p>
-                  <ul>
-                    {removed.map(sg => (
-                      <li key={sg}>{sg}</li>
-                    ))}
-                  </ul>
+                  <ul>{removed.map(sg => <li key={sg}>{sg}</li>)}</ul>
                   <p className="text-right">
                     <a className="btn btn-sm btn-default dirty-flag-dismiss clickable" onClick={this.clearRemoved}>
                       Okay
@@ -250,4 +251,4 @@ class SecurityGroupsImpl extends React.Component<ISecurityGroupsProps, ISecurity
   }
 }
 
-export const SecurityGroups = wizardPage(SecurityGroupsImpl);
+export const SecurityGroups = wizardPage<ISecurityGroupsProps>(SecurityGroupsImpl);

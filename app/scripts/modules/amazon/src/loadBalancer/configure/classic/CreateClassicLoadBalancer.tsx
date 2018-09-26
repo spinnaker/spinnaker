@@ -240,7 +240,7 @@ export class CreateClassicLoadBalancer extends React.Component<
           forPipelineConfig={forPipelineConfig}
           loadBalancer={loadBalancer}
         />
-        <SecurityGroups done={true} />
+        <SecurityGroups done={true} isNew={isNew} />
         <Listeners done={true} />
         <HealthCheck done={true} />
         <AdvancedSettings done={true} />

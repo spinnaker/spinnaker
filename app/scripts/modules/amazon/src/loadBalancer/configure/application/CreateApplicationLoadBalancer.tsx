@@ -282,7 +282,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
           forPipelineConfig={forPipelineConfig}
           loadBalancer={loadBalancer}
         />
-        <SecurityGroups done={true} />
+        <SecurityGroups done={true} isNew={isNew} />
         <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
         <ALBListeners app={app} done={true} />
       </WizardModal>
