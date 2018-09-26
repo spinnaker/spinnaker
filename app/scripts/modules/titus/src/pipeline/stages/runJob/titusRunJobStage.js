@@ -7,10 +7,13 @@ import { AccountService, ExecutionDetailsTasks, FirewallLabels, Registry } from 
 
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 import { SECURITY_GROUPS_REMOVED } from './securityGroupsRemoved.component';
+import { TITUS_SECURITY_GROUP_PICKER } from './securityGroupPicker.component';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.runJobStage', [
     SECURITY_GROUPS_REMOVED,
+    TITUS_SECURITY_GROUP_PICKER,
+
     require('./securityGroupSelector.directive').name,
   ])
   .config(function() {
