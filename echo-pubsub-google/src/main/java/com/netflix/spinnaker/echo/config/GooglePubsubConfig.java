@@ -32,13 +32,13 @@ import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @Slf4j
-@ConditionalOnProperty("pubsub.google.enabled")
+@ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.google.enabled:false}")
 @EnableConfigurationProperties(GooglePubsubProperties.class)
 public class GooglePubsubConfig {
 
