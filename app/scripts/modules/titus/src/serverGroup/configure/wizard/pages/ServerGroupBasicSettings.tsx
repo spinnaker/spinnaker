@@ -256,7 +256,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
           organization={values.organization}
           registry={values.registry}
           repository={values.repository}
-          tag={values.tag}
+          tag={values.tag || ''}
           showRegistry={false}
           deferInitialization={values.deferredInitialization}
           labelClass="col-md-3"
