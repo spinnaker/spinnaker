@@ -6,6 +6,7 @@ export * from './config/PipelineRegistry';
 export * from './config/stages/templates';
 export * from './config/services/PipelineConfigService';
 export * from './config/triggers/ITriggerConfigProps';
+export * from './config/triggers/RunAsUser';
 export * from './config/validation/PipelineConfigValidator';
 export * from './details';
 export * from './executions/execution/Execution';
