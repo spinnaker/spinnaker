@@ -72,6 +72,7 @@ class ValidateAssetTreeHandler(
               }
               else -> {
                 log.info("{} : Current state invalid", id)
+                log.info("Desired state:\n{}\n\nDoes not match:\n\n{}", assetContainer.desired, assetContainer.current)
                 repository.updateState(id, Diff)
                 yield(id)
               }

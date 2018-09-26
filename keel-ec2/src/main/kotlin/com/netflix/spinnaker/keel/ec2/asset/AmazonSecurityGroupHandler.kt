@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.proto.pack
 import com.netflix.spinnaker.keel.proto.unpack
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import retrofit.RetrofitError
 import com.netflix.spinnaker.keel.ec2.SecurityGroup as SecurityGroupProto
@@ -73,7 +74,7 @@ class AmazonSecurityGroupHandler(
   }
 
   override fun converge(assetId: String, spec: SecurityGroupProto) {
-    orcaService
+    val taskRef = orcaService
       .orchestrate(OrchestrationRequest(
         "Upsert security group ${spec.name} in ${spec.accountName}/${spec.region}",
         spec.application,
@@ -98,6 +99,7 @@ class AmazonSecurityGroupHandler(
         )),
         OrchestrationTrigger(assetId)
       ))
+    log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
   private fun CloudDriverService.getSecurityGroup(spec: SecurityGroupProto): SecurityGroup? {
@@ -167,6 +169,8 @@ class AmazonSecurityGroupHandler(
           }
       }
   }
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
 
 typealias JobRules = List<MutableMap<String, Any?>>

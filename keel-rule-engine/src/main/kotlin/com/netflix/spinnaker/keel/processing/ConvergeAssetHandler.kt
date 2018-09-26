@@ -47,10 +47,10 @@ class ConvergeAssetHandler(
       if (outdatedDependencies.isEmpty()) {
         try {
           if (vetoService.allow(assetContainer)) {
-            log.info("{} : requesting convergence")
+            log.info("{} : requesting convergence", asset.id)
             assetService.converge(assetContainer)
           } else {
-            log.info("{} : convergence was vetoed")
+            log.info("{} : convergence was vetoed", asset.id)
           }
         } catch (e: PluginRequestFailed) {
           log.error(e.message)
