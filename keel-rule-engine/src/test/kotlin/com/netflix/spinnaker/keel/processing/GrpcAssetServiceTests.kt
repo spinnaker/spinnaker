@@ -92,7 +92,7 @@ internal class GrpcAssetServiceTests {
     handleCurrent { _, responseObserver ->
       with(responseObserver) {
         onNext(CurrentResponse.newBuilder().also {
-          it.desired = asset.toProto()
+          it.successBuilder.desired = asset.toProto()
         }.build())
         onCompleted()
       }
@@ -137,8 +137,8 @@ internal class GrpcAssetServiceTests {
     return CurrentResponse
       .newBuilder()
       .also {
-        it.current = toProto()
-        it.desired = toProto()
+        it.successBuilder.current = toProto()
+        it.successBuilder.desired = toProto()
       }
       .build()
   }

@@ -13,8 +13,8 @@ class TestAssetPlugin : AssetPlugin() {
       onNext(CurrentResponse
         .newBuilder()
         .also {
-          it.desired = request.asset
-          it.current = request.asset
+          it.successBuilder.desired = request.asset
+          it.successBuilder.current = request.asset
         }
         .build()
       )

@@ -49,7 +49,6 @@ import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import strikt.api.Assertion
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.get
@@ -130,9 +129,11 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
       }
 
       it("returns null") {
-        expect {
-          that(response.hasCurrent()).isFalse()
-          that(response.hasDesired()).isTrue()
+        expectThat(response) {
+          chain { it.hasSuccess() }.isTrue()
+        }.and {
+          chain { it.success.hasCurrent() }.isFalse()
+          chain { it.success.hasDesired() }.isTrue()
         }
       }
     }
@@ -170,14 +171,16 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
 
       it("returns the security group") {
         expectThat(response) {
-          chain { it.hasCurrent() }.isTrue()
-          chain { it.current.spec }
+          chain { it.hasSuccess() }.isTrue()
+        }.and {
+          chain { it.success.hasCurrent() }.isTrue()
+          chain { it.success.current.spec }
             .unpacksTo<SecurityGroup>()
             .unpack<SecurityGroup>()
             .isEqualTo(securityGroup)
 
-          chain { it.hasDesired() }.isTrue()
-          chain { it.desired.spec }
+          chain { it.success.hasDesired() }.isTrue()
+          chain { it.success.desired.spec }
             .unpacksTo<SecurityGroup>()
             .unpack<SecurityGroup>()
             .isEqualTo(securityGroup)

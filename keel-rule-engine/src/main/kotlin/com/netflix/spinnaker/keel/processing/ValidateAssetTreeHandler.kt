@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.processing
 
+import com.netflix.spinnaker.keel.grpc.PluginRequestFailed
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.fingerprint
 import com.netflix.spinnaker.keel.persistence.AssetRepository
@@ -55,30 +56,34 @@ class ValidateAssetTreeHandler(
       log.error("{} : Not found", id)
     } else {
       log.debug("{} : Validating state", id)
-      assetService
-        .current(desired)
-        .also { assetContainer ->
-          when {
-            assetContainer.current == null -> {
-              log.info("{}: Does not exist", id)
-              repository.updateState(id, Missing)
-              yield(id)
+      try {
+        assetService
+          .current(desired)
+          .also { assetContainer ->
+            when {
+              assetContainer.current == null -> {
+                log.info("{}: Does not exist", id)
+                repository.updateState(id, Missing)
+                yield(id)
+              }
+              desired.asset.fingerprint == assetContainer.current.fingerprint -> {
+                log.info("{} : Current state valid", id)
+                repository.updateState(id, Ok)
+              }
+              else -> {
+                log.info("{} : Current state invalid", id)
+                repository.updateState(id, Diff)
+                yield(id)
+              }
             }
-            desired.asset.fingerprint == assetContainer.current.fingerprint -> {
-              log.info("{} : Current state valid", id)
-              repository.updateState(id, Ok)
-            }
-            else -> {
-              log.info("{} : Current state invalid", id)
-              repository.updateState(id, Diff)
-              yield(id)
+            repository.dependents(id).forEach { dependentId ->
+              log.debug("{} : Validating dependent asset {}", id, dependentId)
+              validateSubTree(dependentId)
             }
           }
-          repository.dependents(id).forEach { dependentId ->
-            log.debug("{} : Validating dependent asset {}", id, dependentId)
-            validateSubTree(dependentId)
-          }
-        }
+      } catch (e: PluginRequestFailed) {
+        log.error(e.message)
+      }
     }
   }
 }

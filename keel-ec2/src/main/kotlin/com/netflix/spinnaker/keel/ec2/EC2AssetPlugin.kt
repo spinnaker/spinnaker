@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.proto.isA
 import com.netflix.spinnaker.keel.proto.unpack
 import io.grpc.stub.StreamObserver
 import org.lognet.springboot.grpc.GRpcService
+import org.slf4j.LoggerFactory
 
 @GRpcService
 class EC2AssetPlugin(
@@ -45,61 +46,90 @@ class EC2AssetPlugin(
   }
 
   override fun current(request: AssetContainer, responseObserver: StreamObserver<CurrentResponse>) {
-    val assetPair = when {
+    when {
       request.asset.spec.isA<SecurityGroup>() -> {
         val spec: SecurityGroup = request.asset.spec.unpack()
-        securityGroupHandler().run {
+        val assetPair = securityGroupHandler.run {
           Pair(
             current(spec, request),
             flattenAssetContainer(request)
           )
         }
+        with(responseObserver) {
+          onNext(CurrentResponse
+            .newBuilder()
+            .apply {
+              if (assetPair.first != null) {
+                successBuilder.current = assetPair.first
+              }
+              successBuilder.desired = assetPair.second
+            }
+            .build()
+          )
+          onCompleted()
+        }
       }
-      else -> Pair(null, request.asset)
+      else -> {
+        val message = "Unsupported asset type ${request.asset.spec.typeUrl} with id ${request.asset.id.value}"
+        log.error("Current failed: {}", message)
+        with(responseObserver) {
+          onNext(CurrentResponse
+            .newBuilder()
+            .apply {
+              failureBuilder.reason = message
+            }
+            .build()
+          )
+          onCompleted()
+        }
+      }
     }
 
-    with(responseObserver) {
-      onNext(CurrentResponse
-        .newBuilder()
-        .also {
-          if (assetPair.first != null) {
-            it.current = assetPair.first
-          }
-          it.desired = assetPair.second
-        }
-        .build())
-      onCompleted()
-    }
   }
 
   override fun converge(request: AssetContainer, responseObserver: StreamObserver<ConvergeResponse>) {
     try {
       when {
         request.asset.spec.isA<SecurityGroup>() -> {
-          securityGroupHandler().let {
+          securityGroupHandler.let {
             val flattenedAsset = it.flattenAssetContainer(request)
             val spec: SecurityGroup = flattenedAsset.spec.unpack()
             it.converge(flattenedAsset.id.value, spec)
           }
+          with(responseObserver) {
+            onNext(ConvergeResponse.newBuilder()
+              .apply { success = true }
+              .build())
+            onCompleted()
+          }
+        }
+        else -> {
+          val message = "Unsupported asset type ${request.asset.spec.typeUrl} with id ${request.asset.id.value}"
+          log.error("Converge failed: {}", message)
+          with(responseObserver) {
+            onNext(ConvergeResponse.newBuilder()
+              .apply {
+                success = false
+                failureBuilder.reason = message
+              }
+              .build())
+            onCompleted()
+          }
         }
       }
 
-      with(responseObserver) {
-        onNext(ConvergeResponse.newBuilder()
-          .also { it.success = true }
-          .build())
-        onCompleted()
-      }
     } catch (e: Exception) {
       with(responseObserver) {
         onNext(ConvergeResponse.newBuilder()
-          .also { it.success = false }
+          .apply { success = false }
           .build())
         onCompleted()
       }
     }
   }
 
-  private fun securityGroupHandler() =
+  private val securityGroupHandler =
     AmazonSecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService)
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

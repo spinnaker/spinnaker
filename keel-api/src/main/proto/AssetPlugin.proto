@@ -17,6 +17,13 @@ service AssetPlugin {
 }
 
 message CurrentResponse {
+  oneof successOrFailure {
+    AssetPair success = 1;
+    Failure failure = 2;
+  }
+}
+
+message AssetPair {
   Asset desired = 1;
   Asset current = 2;
 }
@@ -27,4 +34,9 @@ message PlanResponse {
 
 message ConvergeResponse {
   bool success = 1;
+  Failure failure = 2;
+}
+
+message Failure {
+  string reason = 1;
 }

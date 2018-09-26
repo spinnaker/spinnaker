@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.processing
 
+import com.netflix.spinnaker.keel.grpc.PluginRequestFailed
 import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
@@ -44,11 +45,15 @@ class ConvergeAssetHandler(
 
       val outdatedDependencies = asset.outdatedDependencies
       if (outdatedDependencies.isEmpty()) {
-        if (vetoService.allow(assetContainer)) {
-          log.info("{} : requesting convergence")
-          assetService.converge(assetContainer)
-        } else {
-          log.info("{} : convergence was vetoed")
+        try {
+          if (vetoService.allow(assetContainer)) {
+            log.info("{} : requesting convergence")
+            assetService.converge(assetContainer)
+          } else {
+            log.info("{} : convergence was vetoed")
+          }
+        } catch (e: PluginRequestFailed) {
+          log.error(e.message)
         }
       } else {
         if (log.isInfoEnabled) {

@@ -5,6 +5,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isTrue
 
 internal object TestAssetPluginSpec : Spek({
 
@@ -35,8 +36,10 @@ internal object TestAssetPluginSpec : Spek({
         val response = stub.current(request)
 
         expectThat(response) {
-          chain { it.desired }.isEqualTo(request.asset)
-          chain { it.current }.isEqualTo(request.asset)
+          chain { it.hasSuccess() }.isTrue()
+        }.and {
+          chain { it.success.desired }.isEqualTo(request.asset)
+          chain { it.success.current }.isEqualTo(request.asset)
         }
       }
     }

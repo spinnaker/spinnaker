@@ -18,12 +18,14 @@ package com.netflix.spinnaker.keel.grpc
 import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.VetoPluginGrpc
+import com.netflix.spinnaker.keel.api.VetoPluginGrpc.VetoPluginBlockingStub
 import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginRequest
 import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginResponse
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
+import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc.AssetPluginBlockingStub
 import com.netflix.spinnaker.keel.platform.NoSuchVip
 import com.netflix.spinnaker.keel.registry.AssetType
 import com.netflix.spinnaker.keel.registry.PluginRepository
@@ -42,14 +44,14 @@ class GrpcPluginRegistry(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  fun pluginFor(type: TypeMetadata): AssetPluginGrpc.AssetPluginBlockingStub? =
+  fun pluginFor(type: TypeMetadata): AssetPluginBlockingStub? =
     pluginRepository
       .assetPluginFor(AssetType(type.kind, type.apiVersion))
       ?.let { (_, vip, port) ->
         stubFor(vip, port, AssetPluginGrpc::newBlockingStub)
       }
 
-  fun <R> applyVetos(callback: (VetoPluginGrpc.VetoPluginBlockingStub) -> R): Iterable<R> =
+  fun <R> applyVetos(callback: (VetoPluginBlockingStub) -> R): Iterable<R> =
     pluginRepository
       .vetoPlugins()
       .map { (_, vip, port) -> stubFor(vip, port, VetoPluginGrpc::newBlockingStub) }

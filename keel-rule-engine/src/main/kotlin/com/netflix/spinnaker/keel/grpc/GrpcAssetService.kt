@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.grpc
 
 import com.netflix.spinnaker.keel.model.AssetContainer
+import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.processing.AssetService
 import com.netflix.spinnaker.keel.processing.CurrentAssetPair
 import com.netflix.spinnaker.keel.registry.UnsupportedAssetType
@@ -38,13 +39,19 @@ class GrpcAssetService(
     val stub = pluginRegistry
       .pluginFor(typeMetaData) ?: throw UnsupportedAssetType(typeMetaData)
     return stub.current(assetContainer.toProto()).let { response ->
-      if (!response.hasDesired()) {
-        throw PluginMissingDesiredState()
-      }
-      if (response.hasCurrent()) {
-        CurrentAssetPair(response.desired.fromProto(), response.current.fromProto())
+      if (response.hasSuccess()) {
+        with(response.success) {
+          if (!hasDesired()) {
+            throw PluginMissingDesiredState()
+          }
+          if (hasCurrent()) {
+            CurrentAssetPair(desired.fromProto(), current.fromProto())
+          } else {
+            CurrentAssetPair(desired.fromProto(), null)
+          }
+        }
       } else {
-        CurrentAssetPair(response.desired.fromProto(), null)
+        throw CurrentFailed(assetContainer.asset.id, response.failure.reason)
       }
     }
   }
@@ -61,7 +68,7 @@ class GrpcAssetService(
       if (response.success) {
         log.info("Request to converge {} succeeded", assetContainer.asset.id)
       } else {
-        log.error("Request to converge {} failed", assetContainer.asset.id)
+        throw ConvergeFailed(assetContainer.asset.id, response.failure.reason)
       }
     }
   }
@@ -71,4 +78,8 @@ class GrpcAssetService(
   private class AssetRequired : IllegalArgumentException("An asset must be provided to get its current state")
 
   private class PluginMissingDesiredState : RuntimeException("Plugin did not respond with desired asset object")
+
+  private class CurrentFailed(id: AssetId, reason: String) : PluginRequestFailed(id, "current", reason)
+
+  private class ConvergeFailed(id: AssetId, reason: String) : PluginRequestFailed(id, "converge", reason)
 }
