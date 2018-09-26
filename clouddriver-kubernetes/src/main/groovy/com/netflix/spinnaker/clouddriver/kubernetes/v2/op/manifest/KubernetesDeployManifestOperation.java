@@ -29,9 +29,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestStrategy;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestTraffic;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesSourceCapacity;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanScale;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanLoadBalance;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
@@ -42,6 +44,7 @@ import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -143,6 +146,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     for (KubernetesManifest manifest : deployManifests) {
       KubernetesResourceProperties properties = findResourceProperties(manifest);
       KubernetesManifestStrategy strategy = KubernetesManifestAnnotater.getStrategy(manifest);
+      KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
       boolean versioned = isVersioned(properties, strategy);
       boolean useSourceCapacity = isUseSourceCapacity(strategy);
 
@@ -174,6 +178,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
           manifest.setReplicas(replicas);
         } 
       }
+
+      applyTraffic(traffic, manifest);
  
       namer.applyMoniker(manifest, moniker);
       manifest.setName(converter.getDeployedName(artifact));
@@ -195,6 +201,43 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     getTask().updateStatus(OP_NAME, "Deploy manifest task completed successfully.");
     return result;
+  }
+
+  private void applyTraffic(KubernetesManifestTraffic traffic, KubernetesManifest target) {
+    traffic.getLoadBalancers().forEach(l -> attachLoadBalancer(l, target));
+  }
+
+  private void attachLoadBalancer(String loadBalancerName, KubernetesManifest target) {
+    Pair<KubernetesKind, String> name;
+    try {
+      name = KubernetesManifest.fromFullResourceName(loadBalancerName);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Load balancers must be specified in the form '<kind> <name>', e.g. 'service my-service'", e);
+    }
+
+    KubernetesResourceProperties loadBalancerProperties = registry.get(accountName, name.getLeft());
+    if (loadBalancerProperties == null) {
+      throw new IllegalArgumentException("No properties are registered for " + loadBalancerName + ", are you sure it's a valid load balancer type?");
+
+    }
+    KubernetesHandler loadBalancerHandler = loadBalancerProperties.getHandler();
+    if (loadBalancerHandler == null) {
+      throw new IllegalArgumentException("No handler registered for " + loadBalancerName + ", are you sure it's a valid load balancer type?");
+    }
+
+    if (!(loadBalancerHandler instanceof CanLoadBalance)) {
+      throw new IllegalArgumentException("No support for load balancing via " + loadBalancerName + " exists in Spinnaker");
+    }
+
+    // TODO(lwander): look into using a combination of the cache & other resources passed in with this request instead of making a live call here.
+    KubernetesManifest loadBalancer = credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
+    if (loadBalancer == null) {
+      throw new IllegalArgumentException("Load balancer " + loadBalancerName + " does not exist");
+    }
+
+    getTask().updateStatus(OP_NAME, "Attaching load balancer " + loadBalancer.getFullResourceName() + " to " + target.getFullResourceName());
+
+    ((CanLoadBalance) loadBalancerHandler).attach(loadBalancer, target);
   }
 
   private boolean isVersioned(KubernetesResourceProperties properties, KubernetesManifestStrategy strategy) {

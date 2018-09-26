@@ -26,19 +26,19 @@ import com.netflix.spinnaker.moniker.Moniker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 public class KubernetesManifestAnnotater {
   private static final String SPINNAKER_ANNOTATION = "spinnaker.io";
-  private static final String RELATIONSHIP_ANNOTATION_PREFIX = "relationships." + SPINNAKER_ANNOTATION;
+  private static final String TRAFFIC_ANNOTATION_PREFIX = "traffic." + SPINNAKER_ANNOTATION;
   private static final String ARTIFACT_ANNOTATION_PREFIX = "artifact." + SPINNAKER_ANNOTATION;
   private static final String MONIKER_ANNOTATION_PREFIX = "moniker." + SPINNAKER_ANNOTATION;
   private static final String CACHING_ANNOTATION_PREFIX = "caching." + SPINNAKER_ANNOTATION;
   private static final String STRATEGY_ANNOTATION_PREFIX = "strategy." + SPINNAKER_ANNOTATION;
-  private static final String LOAD_BALANCERS = RELATIONSHIP_ANNOTATION_PREFIX + "/loadBalancers";
-  private static final String SECURITY_GROUPS = RELATIONSHIP_ANNOTATION_PREFIX + "/securityGroups";
   private static final String CLUSTER = MONIKER_ANNOTATION_PREFIX + "/cluster";
   private static final String APPLICATION = MONIKER_ANNOTATION_PREFIX + "/application";
   private static final String STACK = MONIKER_ANNOTATION_PREFIX + "/stack";
@@ -52,6 +52,7 @@ public class KubernetesManifestAnnotater {
   private static final String VERSIONED = STRATEGY_ANNOTATION_PREFIX + "/versioned";
   private static final String MAX_VERSION_HISTORY = STRATEGY_ANNOTATION_PREFIX + "/max-version-history";
   private static final String USE_SOURCE_CAPACITY = STRATEGY_ANNOTATION_PREFIX + "/use-source-capacity";
+  private static final String LOAD_BALANCERS = TRAFFIC_ANNOTATION_PREFIX + "/load-balancers";
 
   private static final String KUBERNETES_ANNOTATION = "kubernetes.io";
   private static final String KUBECTL_ANNOTATION_PREFIX = "kubectl." + KUBERNETES_ANNOTATION;
@@ -196,6 +197,14 @@ public class KubernetesManifestAnnotater {
                 getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, null) :
                 null
         ))
+        .build();
+  }
+
+  public static KubernetesManifestTraffic getTraffic(KubernetesManifest manifest) {
+    Map<String, String> annotations = manifest.getAnnotations();
+
+    return KubernetesManifestTraffic.builder()
+        .loadBalancers(getAnnotation(annotations, LOAD_BALANCERS, new TypeReference<List<String>>() {}, new ArrayList<>()))
         .build();
   }
 

@@ -184,6 +184,10 @@ public class KubernetesManifest extends HashMap<String, Object> {
     }
 
     Map<String, Object> metadata = (Map<String, Object>) template.get("metadata");
+    if (metadata == null) {
+      return Optional.empty();
+    }
+
     Map<String, String> result = (Map<String, String>) metadata.get("labels");
     if (result == null) {
       result = new HashMap<>();
@@ -210,6 +214,10 @@ public class KubernetesManifest extends HashMap<String, Object> {
     }
 
     Map<String, Object> metadata = (Map<String, Object>) template.get("metadata");
+    if (metadata == null) {
+      return Optional.empty();
+    }
+
     Map<String, String> result = (Map<String, String>) metadata.get("annotations");
     if (result == null) {
       result = new HashMap<>();

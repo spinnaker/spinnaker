@@ -42,7 +42,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manife
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
 
 @Component
-public class KubernetesServiceHandler extends KubernetesHandler {
+public class KubernetesServiceHandler extends KubernetesHandler implements CanLoadBalance {
   @Override
   public int deployPriority() {
     return NETWORK_RESOURCE_PRIORITY.getValue();
@@ -156,5 +156,12 @@ public class KubernetesServiceHandler extends KubernetesHandler {
   private String podLabelKey(String namespace, Map.Entry<String, String> label) {
     // Space can't be used in any of the values, so it's a safe separator.
     return namespace + " " + label.getKey() + " " + label.getValue();
+  }
+
+  @Override
+  public void attach(KubernetesManifest loadBalancer, KubernetesManifest target) {
+    Map<String, String> labels = target.getSpecTemplateLabels().orElse(target.getLabels());
+    Map<String, String> selector = getSelector(loadBalancer);
+    labels.putAll(selector);
   }
 }
