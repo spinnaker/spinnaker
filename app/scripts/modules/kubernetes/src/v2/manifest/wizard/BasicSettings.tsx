@@ -1,20 +1,16 @@
 import * as React from 'react';
-import { FormikErrors, FormikValues } from 'formik';
+import { FormikErrors } from 'formik';
 
 import { NgReact, HelpField, IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
 
 import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
-export interface IManifestBasicSettingsProps extends IWizardPageProps {
+export interface IManifestBasicSettingsProps extends IWizardPageProps<IKubernetesManifestCommandData> {
   app: Application;
 }
 
 class ManifestBasicSettingsImpl extends React.Component<IManifestBasicSettingsProps> {
   public static LABEL = 'Basic Settings';
-
-  constructor(props: IManifestBasicSettingsProps) {
-    super(props);
-  }
 
   private accountUpdated = (account: string): void => {
     const { formik } = this.props;
@@ -22,9 +18,8 @@ class ManifestBasicSettingsImpl extends React.Component<IManifestBasicSettingsPr
     formik.setFieldValue('account', account);
   };
 
-  public validate = (_formik: FormikValues): FormikErrors<IKubernetesManifestCommandData> => {
-    const errors = {} as FormikErrors<IKubernetesManifestCommandData>;
-    return errors;
+  public validate = (_formik: IKubernetesManifestCommandData) => {
+    return {} as FormikErrors<IKubernetesManifestCommandData>;
   };
 
   public render() {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FormikProps, Field } from 'formik';
+import { Field, FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
@@ -14,7 +14,7 @@ import {
 
 import { ITitusServerGroupCommand, Constraint } from '../../../configure/serverGroupConfiguration.service';
 
-export interface IServerGroupParametersProps {
+export interface IServerGroupParametersProps extends IWizardPageProps<ITitusServerGroupCommand> {
   app: Application;
 }
 
@@ -34,22 +34,19 @@ const migrationPolicyOptions = [
   { label: 'Self Managed', value: 'selfManaged' },
 ];
 
-class ServerGroupParametersImpl extends React.Component<
-  IServerGroupParametersProps & IWizardPageProps & FormikProps<ITitusServerGroupCommand>,
-  IServerGroupParametersState
-> {
+class ServerGroupParametersImpl extends React.Component<IServerGroupParametersProps, IServerGroupParametersState> {
   public static LABEL = 'Advanced Settings';
 
   private duplicateKeys: { [name: string]: boolean } = {};
 
-  constructor(props: IServerGroupParametersProps & IWizardPageProps & FormikProps<ITitusServerGroupCommand>) {
+  constructor(props: IServerGroupParametersProps) {
     super(props);
 
-    this.state = this.getConstraints(props.values);
+    this.state = this.getConstraints(props.formik.values);
   }
 
-  public validate(_values: ITitusServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
+  public validate(_values: ITitusServerGroupCommand) {
+    const errors: FormikErrors<ITitusServerGroupCommand> = {};
 
     if (this.duplicateKeys.labels) {
       errors.labels = 'Job Attributes have duplicate keys.';
@@ -66,11 +63,11 @@ class ServerGroupParametersImpl extends React.Component<
 
   private mapChanged = (key: string, values: { [key: string]: string }, duplicateKeys: boolean) => {
     this.duplicateKeys[key] = duplicateKeys;
-    this.props.setFieldValue(key, values);
+    this.props.formik.setFieldValue(key, values);
   };
 
   private platformHealthOverrideChanged = (healthNames: string[]) => {
-    this.props.setFieldValue('interestingHealthProviderNames', healthNames);
+    this.props.formik.setFieldValue('interestingHealthProviderNames', healthNames);
   };
 
   private getConstraints = (values: ITitusServerGroupCommand) => {
@@ -80,15 +77,18 @@ class ServerGroupParametersImpl extends React.Component<
     };
   };
 
-  private updateConstraints = (name: string, values: Constraint[]) => {
-    this.props.setFieldValue(name, values);
-    (this.props.values as any)[name] = values;
-    this.setState(this.getConstraints(this.props.values));
+  private updateConstraints = (name: string, constraints: Constraint[]) => {
+    const { values, setFieldValue } = this.props.formik;
+    setFieldValue(name, constraints);
+    (values as any)[name] = constraints;
+    this.setState(this.getConstraints(values));
   };
 
   public render() {
-    const { app, setFieldValue, values } = this.props;
+    const { app } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     const { softConstraintOptions, hardConstraintOptions } = this.state;
+
     return (
       <>
         <div className="form-group">

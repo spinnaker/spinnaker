@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FormikProps, Field } from 'formik';
+import { Field, FormikErrors } from 'formik';
 
 import {
   NgReact,
@@ -24,7 +24,7 @@ const isStackPattern = (stack: string) =>
 const isDetailPattern = (detail: string) =>
   isNotExpressionLanguage(detail) ? /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/.test(detail) : true;
 
-export interface IServerGroupBasicSettingsProps {
+export interface IServerGroupBasicSettingsProps extends IWizardPageProps<ITitusServerGroupCommand> {
   app: Application;
 }
 
@@ -36,25 +36,26 @@ export interface IServerGroupBasicSettingsState {
 }
 
 class ServerGroupBasicSettingsImpl extends React.Component<
-  IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<ITitusServerGroupCommand>,
+  IServerGroupBasicSettingsProps,
   IServerGroupBasicSettingsState
 > {
   public static LABEL = 'Basic Settings';
 
-  constructor(props: IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<ITitusServerGroupCommand>) {
+  constructor(props: IServerGroupBasicSettingsProps) {
     super(props);
 
-    if (props.values.imageId) {
-      const image = props.values.imageId;
+    const { values, setFieldValue } = this.props.formik;
+    if (values.imageId) {
+      const image = values.imageId;
       const parts = image.split('/');
       const organization = parts.length > 1 ? parts.shift() : '';
       const rest = parts.shift().split(':');
       const repository = organization ? `${organization}/${rest.shift()}` : rest.shift();
       const tag = rest.shift();
 
-      this.props.setFieldValue('organization', organization);
-      this.props.setFieldValue('repository', repository);
-      this.props.setFieldValue('tag', tag);
+      setFieldValue('organization', organization);
+      setFieldValue('repository', repository);
+      setFieldValue('tag', tag);
     }
 
     this.state = {
@@ -64,15 +65,14 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
   private updateImageId(repository: string, tag: string) {
     const imageId = repository && tag ? `${repository}:${tag}` : '';
-    if (this.props.values.imageId !== imageId) {
-      this.props.setFieldValue('imageId', imageId);
+    if (this.props.formik.values.imageId !== imageId) {
+      this.props.formik.setFieldValue('imageId', imageId);
     }
   }
 
-  private getStateFromProps(
-    props: IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<ITitusServerGroupCommand>,
-  ) {
-    const { app, values } = props;
+  private getStateFromProps(props: IServerGroupBasicSettingsProps) {
+    const { app } = props;
+    const { values } = props.formik;
     const { mode } = values.viewState;
     const namePreview = NameUtils.getClusterName(app.name, values.stack, values.freeFormDetails);
     const createsNewCluster = !app.clusters.find(c => c.name === namePreview);
@@ -93,21 +93,21 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   }
 
   private accountUpdated = (account: string): void => {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     values.credentials = account;
     values.credentialsChanged(values);
     setFieldValue('credentials', account);
   };
 
   private regionUpdated = (region: string): void => {
-    const { values, setFieldValue } = this.props;
+    const { values, setFieldValue } = this.props.formik;
     values.region = region;
     values.regionChanged(values);
     setFieldValue('region', region);
   };
 
-  public validate(values: ITitusServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
+  public validate(values: ITitusServerGroupCommand) {
+    const errors: FormikErrors<ITitusServerGroupCommand> = {};
 
     if (!isStackPattern(values.stack)) {
       errors.stack = 'Only dot(.) and underscore(_) special characters are allowed in the Stack field.';
@@ -129,7 +129,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   }
 
   private navigateToLatestServerGroup = () => {
-    const { values } = this.props;
+    const { values } = this.props.formik;
     const { latestServerGroup } = this.state;
 
     const params = {
@@ -148,33 +148,32 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   private stackChanged = (stack: string) => {
-    this.props.setFieldValue('stack', stack);
+    this.props.formik.setFieldValue('stack', stack);
   };
 
   private freeFormDetailsChanged = (freeFormDetails: string) => {
-    this.props.setFieldValue('freeFormDetails', freeFormDetails);
+    this.props.formik.setFieldValue('freeFormDetails', freeFormDetails);
   };
 
-  public componentWillReceiveProps(
-    nextProps: IServerGroupBasicSettingsProps & IWizardPageProps & FormikProps<ITitusServerGroupCommand>,
-  ) {
-    this.updateImageId(nextProps.values.repository, nextProps.values.tag);
+  public componentWillReceiveProps(nextProps: IServerGroupBasicSettingsProps) {
+    const { values } = nextProps.formik;
+    this.updateImageId(values.repository, values.tag);
     this.setState(this.getStateFromProps(nextProps));
   }
 
   private strategyChanged = (values: ITitusServerGroupCommand, strategy: any) => {
     values.onStrategyChange(values, strategy);
-    this.props.setFieldValue('strategy', strategy.key);
+    this.props.formik.setFieldValue('strategy', strategy.key);
   };
 
   private dockerValuesChanged = (dockerValues: any) => {
     Object.keys(dockerValues).forEach(key => {
-      this.props.setFieldValue(key, dockerValues[key]);
+      this.props.formik.setFieldValue(key, dockerValues[key]);
     });
   };
 
   public render() {
-    const { errors, setFieldValue, values } = this.props;
+    const { errors, setFieldValue, values } = this.props.formik;
     const { createsNewCluster, latestServerGroup, namePreview, showPreviewAsWarning } = this.state;
     const { AccountSelectField, DeploymentStrategySelector } = NgReact;
 

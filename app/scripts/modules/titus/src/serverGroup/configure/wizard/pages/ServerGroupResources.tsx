@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FormikProps } from 'formik';
+import { FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import { IWizardPageProps, wizardPage, HelpField } from '@spinnaker/core';
@@ -12,11 +12,13 @@ const mountPermOptions = [
   { label: 'Write Only', value: 'WO' },
 ];
 
-class ServerGroupResourcesImpl extends React.Component<IWizardPageProps & FormikProps<ITitusServerGroupCommand>> {
+export type IServerGroupResourcesProps = IWizardPageProps<ITitusServerGroupCommand>;
+
+class ServerGroupResourcesImpl extends React.Component<IServerGroupResourcesProps> {
   public static LABEL = 'Resources';
 
-  public validate(values: ITitusServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
+  public validate(values: ITitusServerGroupCommand) {
+    const errors: FormikErrors<ITitusServerGroupCommand> = {};
 
     if (!values.resources || typeof values.resources.cpu === 'string') {
       errors.resources = 'CPU is required.';
@@ -35,7 +37,7 @@ class ServerGroupResourcesImpl extends React.Component<IWizardPageProps & Formik
   }
 
   public render() {
-    const { setFieldValue, values } = this.props;
+    const { setFieldValue, values } = this.props.formik;
     return (
       <div className="clearfix">
         <div className="form-group">
