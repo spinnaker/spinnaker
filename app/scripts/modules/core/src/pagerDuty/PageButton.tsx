@@ -1,6 +1,7 @@
 import * as React from 'react';
 
-import { Application, IPagerDutyService } from '@spinnaker/core';
+import { Application } from 'core/application';
+import { IPagerDutyService } from 'core/pagerDuty';
 
 import { PageModal } from './PageModal';
 

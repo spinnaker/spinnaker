@@ -2,15 +2,12 @@ import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 
-import {
-  Application,
-  IPagerDutyService,
-  NgReact,
-  PagerDutyWriter,
-  SETTINGS,
-  SubmitButton,
-  TaskMonitor,
-} from '@spinnaker/core';
+import { Application } from 'core/application';
+import { IPagerDutyService, PagerDutyWriter } from 'core/pagerDuty';
+import { NgReact } from 'core/reactShims';
+import { SETTINGS } from 'core/config';
+import { SubmitButton } from 'core/modal';
+import { TaskMonitor } from 'core/task';
 
 import { IPageButtonProps } from './PageButton';
 

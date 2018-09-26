@@ -2,9 +2,9 @@ import * as React from 'react';
 import { Dropdown, MenuItem, Glyphicon } from 'react-bootstrap';
 import { UISref } from '@uirouter/react';
 
-import './HelpMenu.less';
+import { SETTINGS } from 'core/config';
 
-import { SETTINGS } from '@spinnaker/core';
+import './HelpMenu.less';
 
 const DOCS_URL = 'https://spinnaker.io/docs';
 const COMMUNITY_URL = 'https://spinnaker.io/community';

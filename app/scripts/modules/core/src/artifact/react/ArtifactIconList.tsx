@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { IArtifact, ArtifactIconService } from '@spinnaker/core';
+import { IArtifact } from 'core/domain';
+import { ArtifactIconService } from 'core/artifact';
 
 export interface IArtifactIconListProps {
   artifacts: IArtifact[];

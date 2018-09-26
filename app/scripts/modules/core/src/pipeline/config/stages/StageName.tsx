@@ -16,9 +16,10 @@
  */
 
 import * as React from 'react';
-import { IStage } from '@spinnaker/core';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
+
+import { IStage } from 'core/domain';
 
 export interface IStageNameProps {
   stages: IStage[];
