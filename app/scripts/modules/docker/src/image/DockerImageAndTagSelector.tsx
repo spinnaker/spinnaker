@@ -6,6 +6,14 @@ import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip, Spinner
 
 import { DockerImageReader, IDockerImage } from './DockerImageReader';
 
+export interface IDockerImageAndTagChanges {
+  account?: string;
+  organization?: string;
+  registry?: string;
+  repository?: string;
+  tag?: string;
+}
+
 export interface IDockerImageAndTagSelectorProps {
   specifyTagByRegex: boolean;
   organization: string;
@@ -16,7 +24,7 @@ export interface IDockerImageAndTagSelectorProps {
   showRegistry?: boolean;
   labelClass?: string;
   fieldClass?: string;
-  onChange: (foo: any) => void;
+  onChange: (changes: IDockerImageAndTagChanges) => void;
   deferInitialization?: boolean;
 }
 
@@ -266,7 +274,6 @@ export class DockerImageAndTagSelector extends React.Component<
   }
 
   private valueChanged(name: string, value: string) {
-    // TODO: Handle changes
     this.props.onChange && this.props.onChange({ [name]: value });
   }
 

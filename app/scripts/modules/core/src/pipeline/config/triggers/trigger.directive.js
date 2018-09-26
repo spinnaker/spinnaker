@@ -61,7 +61,6 @@ module.exports = angular
         if (triggerConfig.length) {
           const config = triggerConfig[0];
           if (config.component) {
-            // TODO: Support react triggers...
             // react
             const TriggerConfig = config.component;
             const props = { fieldUpdated: $scope.fieldUpdated, trigger: $scope.trigger };

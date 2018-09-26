@@ -2,6 +2,8 @@ import { module } from 'angular';
 
 import { IMAGE_MODULE } from './image/image.module';
 
+import './pipeline/trigger/DockerTrigger';
+
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -9,8 +11,4 @@ templates.keys().forEach(function(key) {
 });
 
 export const DOCKER_MODULE = 'spinnaker.docker';
-module(DOCKER_MODULE, [
-  require('./pipeline/stages/bake/dockerBakeStage').name,
-  require('./pipeline/trigger/dockerTrigger.module').name,
-  IMAGE_MODULE,
-]);
+module(DOCKER_MODULE, [require('./pipeline/stages/bake/dockerBakeStage').name, IMAGE_MODULE]);

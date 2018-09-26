@@ -6,7 +6,7 @@ import { Observable, Subject, Subscription } from 'rxjs';
 
 import { IDockerTrigger, ITriggerTemplateComponentProps, Spinner, TetheredSelect } from '@spinnaker/core';
 
-import { DockerImageReader } from 'docker/image/DockerImageReader';
+import { DockerImageReader } from '../../image/DockerImageReader';
 
 export interface IDockerTriggerTemplateState {
   tags: string[];
