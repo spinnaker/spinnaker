@@ -421,7 +421,8 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       DistributionPolicy distributionPolicy = instanceGroupManager?.getDistributionPolicy()
       // The distribution policy zones are URLs.
       List<String> zones = distributionPolicy?.getZones()?.collect { Utils.getLocalName(it.getZone()) }
-      List<GoogleInstance> groupInstances = instances.findAll { it.getName().startsWith(instanceGroupManager.getBaseInstanceName()) }
+
+      List<GoogleInstance> groupInstances = instances.findAll { it.getName().startsWith(instanceGroupManager.getBaseInstanceName()) && it.getRegion() == region }
 
       Map<String, Integer> namedPorts = [:]
       instanceGroupManager.namedPorts.each { namedPorts[(it.name)] = it.port }
