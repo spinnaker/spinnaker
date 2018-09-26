@@ -217,12 +217,12 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     );
     const groupTargetAccountLabels: React.ReactNode[] = [];
     let groupTargetAccountLabelsExtra: React.ReactNode[] = [];
-    if (group.targetAccounts.length > 0) {
+    if (group.targetAccounts && group.targetAccounts.length > 0) {
       group.targetAccounts.slice(0, ACCOUNT_TAG_OVERFLOW_LIMIT).map(account => {
         groupTargetAccountLabels.push(<AccountTag key={account} account={account} />);
       });
     }
-    if (group.targetAccounts.length > ACCOUNT_TAG_OVERFLOW_LIMIT) {
+    if (group.targetAccounts && group.targetAccounts.length > ACCOUNT_TAG_OVERFLOW_LIMIT) {
       groupTargetAccountLabels.push(
         <span
           key="foo"
