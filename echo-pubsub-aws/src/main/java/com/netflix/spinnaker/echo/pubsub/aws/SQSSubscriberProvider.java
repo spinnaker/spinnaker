@@ -32,7 +32,7 @@ import com.netflix.spinnaker.kork.aws.ARN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -46,7 +46,7 @@ import java.util.concurrent.RejectedExecutionException;
  * Starts the individual SQS workers (one for each subscription)
  */
 @Component
-@ConditionalOnProperty("pubsub.amazon.enabled")
+@ConditionalOnExpression("${pubsub.enabled:false} && ${pubsub.amazon.enabled:false}")
 public class SQSSubscriberProvider implements DiscoveryActivated {
   private static final Logger log = LoggerFactory.getLogger(SQSSubscriberProvider.class);
 
