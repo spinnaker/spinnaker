@@ -140,6 +140,7 @@ google:
   baseImageProjects:
   - centos-cloud
   - coreos-cloud
+  - cos-cloud
   - debian-cloud
   - opensuse-cloud
   - rhel-cloud
