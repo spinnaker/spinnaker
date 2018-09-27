@@ -20,13 +20,11 @@ import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.ACCEPTED
 import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.ERROR
-import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.IN_PROGRESS
 import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.asset.AmazonSecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.orchestration.TaskMonitor
 import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import com.netflix.spinnaker.keel.proto.isA
 import com.netflix.spinnaker.keel.proto.unpack
@@ -36,10 +34,9 @@ import org.slf4j.LoggerFactory
 
 @GRpcService
 class EC2AssetPlugin(
-  private val cloudDriverService: CloudDriverService,
-  private val cloudDriverCache: CloudDriverCache,
-  private val orcaService: OrcaService,
-  private val taskMonitor: TaskMonitor
+  cloudDriverService: CloudDriverService,
+  cloudDriverCache: CloudDriverCache,
+  orcaService: OrcaService
 ) : AssetPlugin() {
 
   override val supportedTypes: Iterable<TypeMetadata> = setOf(
@@ -98,25 +95,16 @@ class EC2AssetPlugin(
     try {
       when {
         request.asset.spec.isA<SecurityGroup>() -> {
-          if (!taskMonitor.isInProgress(request.asset.id)) {
-            securityGroupHandler.let {
-              val flattenedAsset = it.flattenAssetContainer(request)
-              val spec: SecurityGroup = flattenedAsset.spec.unpack()
-              it.converge(flattenedAsset.id.value, spec)
-            }
-            with(responseObserver) {
-              onNext(ConvergeResponse.newBuilder()
-                .apply { status = ACCEPTED }
-                .build())
-              onCompleted()
-            }
-          } else {
-            with(responseObserver) {
-              onNext(ConvergeResponse.newBuilder()
-                .apply { status = IN_PROGRESS }
-                .build())
-              onCompleted()
-            }
+          securityGroupHandler.let {
+            val flattenedAsset = it.flattenAssetContainer(request)
+            val spec: SecurityGroup = flattenedAsset.spec.unpack()
+            it.converge(flattenedAsset.id.value, spec)
+          }
+          with(responseObserver) {
+            onNext(ConvergeResponse.newBuilder()
+              .apply { status = ACCEPTED }
+              .build())
+            onCompleted()
           }
         }
         else -> {

@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.grpc
 
 import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.ACCEPTED
-import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.IN_PROGRESS
 import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.processing.AssetService
@@ -70,8 +69,6 @@ class GrpcAssetService(
       when (response.status) {
         ACCEPTED ->
           log.info("Request to converge {} accepted", assetContainer.asset.id)
-        IN_PROGRESS ->
-          log.info("Request to converge {} is already in progress", assetContainer.asset.id)
         else -> {
           log.error("Request to converge {} failed", assetContainer.asset.id)
           throw ConvergeFailed(assetContainer.asset.id, response.failure.reason)

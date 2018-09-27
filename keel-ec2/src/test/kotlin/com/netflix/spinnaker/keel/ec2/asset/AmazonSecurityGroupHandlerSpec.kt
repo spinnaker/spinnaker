@@ -35,14 +35,11 @@ import com.netflix.spinnaker.keel.ec2.SecurityGroupRules
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.orchestration.TaskMonitor
 import com.netflix.spinnaker.keel.proto.pack
-import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
@@ -71,11 +68,10 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
   val cloudDriverService = mock<CloudDriverService>()
   val cloudDriverCache = mock<CloudDriverCache>()
   val orcaService = mock<OrcaService>()
-  val taskMonitor = mock<TaskMonitor>()
 
   beforeGroup {
     grpc.startServer {
-      addService(EC2AssetPlugin(cloudDriverService, cloudDriverCache, orcaService, taskMonitor))
+      addService(EC2AssetPlugin(cloudDriverService, cloudDriverCache, orcaService))
     }
   }
 
@@ -215,46 +211,9 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
       }
       .build()
 
-    given("a task is already in flight") {
-      beforeGroup {
-        whenever(taskMonitor.isInProgress(any())) doReturn true
-      }
-
-      afterGroup {
-        reset(cloudDriverService, orcaService, taskMonitor)
-      }
-
-      val request = AssetContainer
-        .newBuilder()
-        .apply {
-          assetBuilder.apply {
-            typeMetadataBuilder.apply {
-              kind = "ec2.SecurityGroup"
-              apiVersion = "1.0"
-            }
-            spec = securityGroup.pack()
-          }
-        }
-        .build()
-
-      on("converge request") {
-        grpc.withChannel { stub ->
-          stub.converge(request)
-        }
-      }
-
-      it("does not start a new task") {
-        verify(orcaService, never()).orchestrate(any())
-      }
-    }
-
     given("no rule partial assets provided") {
-      beforeGroup {
-        whenever(taskMonitor.isInProgress(any())) doReturn false
-      }
-
       afterGroup {
-        reset(cloudDriverService, orcaService, taskMonitor)
+        reset(cloudDriverService, orcaService)
       }
 
       val request = AssetContainer
@@ -288,12 +247,8 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
     }
 
     given("rule partial assets provided") {
-      beforeGroup {
-        whenever(taskMonitor.isInProgress(any())) doReturn false
-      }
-
       afterGroup {
-        reset(cloudDriverService, orcaService, taskMonitor)
+        reset(cloudDriverService, orcaService)
       }
 
       val securityGroupRule = SecurityGroupRules.newBuilder()

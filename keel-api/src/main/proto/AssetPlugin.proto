@@ -39,8 +39,7 @@ message ConvergeResponse {
 
 enum ConvergeStatus {
   ACCEPTED = 0;
-  IN_PROGRESS = 1;
-  ERROR = 2;
+  ERROR = 1;
 }
 
 message Failure {
