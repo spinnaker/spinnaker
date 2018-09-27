@@ -88,7 +88,6 @@ public class SpringSslEditCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--client-auth",
-      password = true,
       description = "Declare 'WANT' when client auth is wanted but not mandatory, "
           + "or 'NEED', when client auth is mandatory."
   )

@@ -6433,7 +6433,7 @@ hal config security api ssl edit [parameters]
 ```
 
 #### Parameters
- * `--client-auth`: (*Sensitive data* - user will be prompted on standard input) Declare 'WANT' when client auth is wanted but not mandatory, or 'NEED', when client auth is mandatory.
+ * `--client-auth`: Declare 'WANT' when client auth is wanted but not mandatory, or 'NEED', when client auth is mandatory.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--key-alias`: Name of your keystore entry as generated with your keytool.
  * `--keystore`: Path to the keystore holding your security certificates.
