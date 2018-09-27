@@ -178,7 +178,7 @@ function configure(env, webpackOpts) {
     config.devServer.cert = fs.readFileSync(process.env.DECK_CERT);
     config.devServer.key = fs.readFileSync(process.env.DECK_KEY);
     if (process.env.DECK_CA_CERT) {
-      config.devServer.cacert = fs.readFileSync(process.env.DECK_CA_CERT);
+      config.devServer.ca = fs.readFileSync(process.env.DECK_CA_CERT);
     }
   }
 
