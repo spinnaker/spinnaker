@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginResponse
 import com.netflix.spinnaker.keel.api.instanceInfo
 import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc
 import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
+import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.ACCEPTED
 import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.grpc.GrpcAssetService
 import com.netflix.spinnaker.keel.grpc.GrpcPluginRegistry
@@ -123,7 +124,7 @@ internal class GrpcAssetServiceTests {
   fun `converge invokes the plugin`() {
     handleConverge { _, responseObserver ->
       with(responseObserver) {
-        onNext(ConvergeResponse.newBuilder().setSuccess(true).build())
+        onNext(ConvergeResponse.newBuilder().setStatus(ACCEPTED).build())
         onCompleted()
       }
     }

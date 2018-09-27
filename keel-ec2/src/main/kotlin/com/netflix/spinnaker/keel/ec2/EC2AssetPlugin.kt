@@ -18,6 +18,9 @@ package com.netflix.spinnaker.keel.ec2
 import com.netflix.spinnaker.keel.api.AssetContainer
 import com.netflix.spinnaker.keel.api.TypeMetadata
 import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
+import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.ACCEPTED
+import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.ERROR
+import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.IN_PROGRESS
 import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -101,12 +104,19 @@ class EC2AssetPlugin(
               val spec: SecurityGroup = flattenedAsset.spec.unpack()
               it.converge(flattenedAsset.id.value, spec)
             }
-          }
-          with(responseObserver) {
-            onNext(ConvergeResponse.newBuilder()
-              .apply { success = true }
-              .build())
-            onCompleted()
+            with(responseObserver) {
+              onNext(ConvergeResponse.newBuilder()
+                .apply { status = ACCEPTED }
+                .build())
+              onCompleted()
+            }
+          } else {
+            with(responseObserver) {
+              onNext(ConvergeResponse.newBuilder()
+                .apply { status = IN_PROGRESS }
+                .build())
+              onCompleted()
+            }
           }
         }
         else -> {
@@ -115,7 +125,7 @@ class EC2AssetPlugin(
           with(responseObserver) {
             onNext(ConvergeResponse.newBuilder()
               .apply {
-                success = false
+                status = ERROR
                 failureBuilder.reason = message
               }
               .build())
@@ -127,7 +137,10 @@ class EC2AssetPlugin(
     } catch (e: Exception) {
       with(responseObserver) {
         onNext(ConvergeResponse.newBuilder()
-          .apply { success = false }
+          .apply {
+            status = ERROR
+            failureBuilder.reason = e.message
+          }
           .build())
         onCompleted()
       }

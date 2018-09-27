@@ -33,8 +33,14 @@ message PlanResponse {
 }
 
 message ConvergeResponse {
-  bool success = 1;
+  ConvergeStatus status = 1;
   Failure failure = 2;
+}
+
+enum ConvergeStatus {
+  ACCEPTED = 0;
+  IN_PROGRESS = 1;
+  ERROR = 2;
 }
 
 message Failure {
