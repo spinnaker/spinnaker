@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.security.iap.IAPSsoConfig.IAPSecurityConfigProperties;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import java.util.List;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +78,9 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
     return registration;
   }
 
+  @Autowired(required = false)
+  List<IAPSsoConfigurer> configurers;
+
   @ConfigurationProperties("google.iap")
   @Data
   public static class IAPSecurityConfigProperties {
@@ -99,6 +103,12 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
 
     authConfig.configure(http);
     http.addFilterBefore(iapAuthenticationFilter(), BasicAuthenticationFilter.class);
+
+    if (configurers != null) {
+      for (IAPSsoConfigurer configurer : configurers) {
+        configurer.configure(http);
+      }
+    }
   }
 
   @Override
