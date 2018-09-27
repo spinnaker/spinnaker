@@ -21,6 +21,7 @@ import re
 import yaml
 
 from collections import namedtuple
+from distutils.version import LooseVersion
 
 from buildtool import (
     DEFAULT_BUILD_NUMBER,
@@ -294,13 +295,26 @@ class PublishSpinCommand(CommandProcessor):
         dest = 'spin/{}/{}/{}/spin'.format(self.__stable_version, d.dist, d.arch)
         self.__gcs_uploader.copy_file(source, dest)
 
+      self.__update_release_latest_file(gate_major, gate_min)
+      self.__update_global_latest_file()
+
+  def __update_release_latest_file(self, gate_major, gate_minor):
       output_dir = self.get_output_dir()
-      latest_file = '{}.{}.x-latest'.format(gate_major, gate_min)
-      with open(os.path.join(output_dir, latest_file), 'w') as lf:
+      release_latest_file = '{}.{}.x-latest'.format(gate_major, gate_minor)
+      with open(os.path.join(output_dir, release_latest_file), 'w') as lf:
         lf.write(self.__stable_version)
 
-      latest_path = 'spin/{}.{}.x-latest'.format(gate_major, gate_min)
-      self.__gcs_uploader.upload_from_filename(latest_path, os.path.join(output_dir, latest_file))
+      release_latest_path = 'spin/{}.{}.x-latest'.format(gate_major, gate_minor)
+      self.__gcs_uploader.upload_from_filename(release_latest_path, os.path.join(output_dir, release_latest_file))
+
+  def __update_global_latest_file(self):
+    output_dir = self.get_output_dir()
+    global_latest_version = self.__gcs_uploader.read_file('spin/latest')
+
+    if LooseVersion(self.__stable_version) > LooseVersion(global_latest_version):
+      with open(os.path.join(output_dir, 'latest'), 'w') as lf:
+        lf.write(self.__stable_version)
+      self.__gcs_uploader.upload_from_filename('spin/latest', os.path.join(output_dir, 'latest'))
 
   def _do_command(self):
     """Implements CommandProcessor interface."""
