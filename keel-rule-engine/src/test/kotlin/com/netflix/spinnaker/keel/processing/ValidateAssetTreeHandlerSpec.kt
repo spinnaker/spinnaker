@@ -113,8 +113,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
 
         beforeGroup {
           invalidAssets.forEach {
-            val asset = it.copy(spec = randomBytes())
-            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(asset, asset)
+            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, it.copy(spec = randomBytes()))
           }
           validAssets.forEach {
             whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, it)

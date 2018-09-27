@@ -66,7 +66,7 @@ class ValidateAssetTreeHandler(
                 repository.updateState(id, Missing)
                 yield(id)
               }
-              desired.asset.fingerprint == assetContainer.current.fingerprint -> {
+              assetContainer.desired.fingerprint == assetContainer.current.fingerprint -> {
                 log.info("{} : Current state valid", id)
                 repository.updateState(id, Ok)
               }
