@@ -465,8 +465,8 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
       header = textwrap.dedent(
           """\
           ---
-          title: Version {version}
-          changelog-title: Version {major}.{minor}
+          title: Version {major}.{minor}
+          changelog_title: Version {version}
           date: {timestamp}
           tags: changelogs {major}.{minor}
           version: {version}
