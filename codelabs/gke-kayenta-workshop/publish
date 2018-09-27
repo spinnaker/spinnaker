@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+tar -cvf overrides.tar -C overrides .
+
+gsutil cp overrides.tar gs://gke-spinnaker-codelab/kayenta-workshop/overrides.tar
+
+rm overrides.tar
