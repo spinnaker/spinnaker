@@ -14,14 +14,16 @@ codelab-folder/
   publish.sh            # an executable to publish the overrides needed by this
                         # codelab. example below.
   overrides/
+    properties          # a script to be run to set the environment variables.
     predeploy.sh        # a script to be run before spinnaker is deployed.
+    postdeploy.sh       # a script to be run after spinnaker is deployed.
     precleanup.sh       # a script to cleanup resources before spinnaker is
-                        # deleted
+                        # deleted.
 ```
 
 ## `publish.sh` example
 
-Given the your codelab is called `$CODELAB`:
+Given a codelab named `$CODELAB`:
 
 ```bash
 #!/usr/bin/env bash
