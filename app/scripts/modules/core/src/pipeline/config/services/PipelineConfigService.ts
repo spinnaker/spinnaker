@@ -11,6 +11,9 @@ import { IPipeline } from 'core/domain/IPipeline';
 export interface ITriggerPipelineResponse {
   ref: string;
 }
+export interface IEchoTriggerPipelineResponse {
+  eventId: string;
+}
 export class PipelineConfigService {
   private static configViewStateCache = ViewStateCache.createCache('pipelineConfig', { version: 2 });
 
@@ -93,6 +96,23 @@ export class PipelineConfigService {
       .post()
       .then((result: ITriggerPipelineResponse) => {
         return result.ref.split('/').pop();
+      });
+  }
+
+  public static triggerPipelineViaEcho(
+    applicationName: string,
+    pipelineName: string,
+    body: any = {},
+  ): IPromise<string> {
+    body.user = AuthenticationService.getAuthenticatedUser().name;
+    return API.one('pipelines')
+      .one('v2')
+      .one(applicationName)
+      .one(pipelineName)
+      .data(body)
+      .post()
+      .then((result: IEchoTriggerPipelineResponse) => {
+        return result.eventId;
       });
   }
 

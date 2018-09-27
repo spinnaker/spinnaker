@@ -49,6 +49,7 @@ export interface IFeatures {
   travis?: boolean;
   managedServiceAccounts?: boolean;
   wercker?: boolean;
+  triggerViaEcho?: boolean;
   [key: string]: any;
 }
 

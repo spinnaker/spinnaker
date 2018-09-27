@@ -224,6 +224,8 @@ module.exports = angular
       command.pipelineName = pipeline.name;
       selectedTrigger.type = 'manual';
       selectedTrigger.dryRun = this.command.dryRun;
+      // The description is not part of the trigger spec, so don't send it
+      delete selectedTrigger.description;
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;

@@ -14,6 +14,7 @@ import { DebugWindow } from 'core/utils/consoleDebug';
 import { IPipeline } from 'core/domain/IPipeline';
 import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
+import { Error } from 'tslint/lib/error';
 
 export class ExecutionService {
   public get activeStatuses(): string[] {
@@ -105,6 +106,21 @@ export class ExecutionService {
         execution.hydrated = true;
         this.cleanExecutionForDiffing(execution);
         return execution;
+      });
+  }
+
+  public getExecutionByEventId(application: string, eventId: string): IPromise<IExecution> {
+    return API.all('applications', application, 'executions', 'search')
+      .get({ eventId })
+      .then((data: IExecution[]) => {
+        if (data.length > 0) {
+          const execution = data[0];
+          execution.hydrated = true;
+          this.cleanExecutionForDiffing(execution);
+          return execution;
+        } else {
+          throw new Error('No execution found for event id: ' + eventId);
+        }
       });
   }
 
@@ -208,6 +224,18 @@ export class ExecutionService {
         });
       }
     }
+  }
+
+  public waitUntilPipelineAppearsForEventId(application: Application, eventId: string): IPromise<any> {
+    return this.getExecutionByEventId(application.name, eventId)
+      .then(() => {
+        return application.executions.refresh();
+      })
+      .catch(() => {
+        return this.$timeout(() => {
+          return this.waitUntilPipelineAppearsForEventId(application, eventId);
+        }, 1000);
+      });
   }
 
   public waitUntilNewTriggeredPipelineAppears(application: Application, triggeredPipelineId: string): IPromise<any> {
