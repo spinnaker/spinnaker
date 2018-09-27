@@ -80,6 +80,7 @@ public final class AtomicOperations {
   public static final String PAUSE_ROLLOUT_MANIFEST = "pauseRolloutManifest";
   public static final String RESUME_ROLLOUT_MANIFEST = "resumeRolloutManifest";
   public static final String UNDO_ROLLOUT_MANIFEST = "undoRolloutManifest";
+  public static final String DISABLE_MANIFEST = "disableManifest";
 
   // Artifact operations
   public static final String CLEANUP_ARTIFACTS = "cleanupArtifacts";

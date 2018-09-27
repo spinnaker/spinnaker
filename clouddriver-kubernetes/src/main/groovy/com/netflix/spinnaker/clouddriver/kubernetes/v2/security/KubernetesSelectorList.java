@@ -21,7 +21,9 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Data
@@ -29,6 +31,10 @@ public class KubernetesSelectorList {
   private final List<KubernetesSelector> selectors = new ArrayList<>();
 
   public KubernetesSelectorList() { }
+
+  public KubernetesSelectorList(List<KubernetesSelector> selectors) {
+    this.selectors.addAll(selectors);
+  }
 
   public KubernetesSelectorList(KubernetesSelector... selectors) {
     this.selectors.addAll(Arrays.asList(selectors));
@@ -39,6 +45,11 @@ public class KubernetesSelectorList {
     return this;
   }
 
+  public KubernetesSelectorList addSelectors(KubernetesSelectorList selectors) {
+    this.selectors.addAll(selectors.selectors);
+    return this;
+  }
+
   public boolean isEmpty() {
     return selectors.isEmpty();
   }
@@ -46,5 +57,40 @@ public class KubernetesSelectorList {
   @Override
   public String toString() {
     return String.join(",", selectors.stream().map(KubernetesSelector::toString).collect(Collectors.toList()));
+  }
+
+  public static KubernetesSelectorList fromMatchLabels(Map<String, String> matchLabels) {
+    return new KubernetesSelectorList(matchLabels.entrySet()
+        .stream()
+        .map(kv -> new KubernetesSelector(KubernetesSelector.Kind.EQUALS, kv.getKey(), Collections.singletonList(kv.getValue())))
+        .collect(Collectors.toList()));
+  }
+
+  public static KubernetesSelectorList fromMatchExpressions(List<MatchExpression> matchExpressions) {
+    return new KubernetesSelectorList(matchExpressions.stream()
+        .map(KubernetesSelectorList::fromMatchExpression)
+        .collect(Collectors.toList()));
+  }
+
+  public static KubernetesSelector fromMatchExpression(MatchExpression matchExpression) {
+    KubernetesSelector.Kind kind;
+    switch (matchExpression.getOperator()) {
+      case In:
+        kind = KubernetesSelector.Kind.CONTAINS;
+        break;
+      case NotIn:
+        kind = KubernetesSelector.Kind.NOT_CONTAINS;
+        break;
+      case Exists:
+        kind = KubernetesSelector.Kind.EXISTS;
+        break;
+      case DoesNotExist:
+        kind = KubernetesSelector.Kind.NOT_EXISTS;
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown operator: " + matchExpression.getOperator());
+    }
+
+    return new KubernetesSelector(kind, matchExpression.getKey(), matchExpression.getValues());
   }
 }

@@ -25,10 +25,12 @@ import org.apache.commons.lang3.StringUtils;
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 public class KubernetesSelector {
-  private enum Kind {
+  public enum Kind {
     ANY,
     EQUALS,
     NOT_EQUALS,
@@ -43,7 +45,7 @@ public class KubernetesSelector {
   final private List<String> values;
 
   @JsonCreator
-  private KubernetesSelector(
+  public KubernetesSelector(
       @JsonProperty("kind") @NotNull Kind kind,
       @JsonProperty("key") String key,
       @JsonProperty("values") List<String> values
