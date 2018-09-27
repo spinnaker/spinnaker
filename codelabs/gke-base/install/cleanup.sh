@@ -10,6 +10,10 @@ err() {
 
 source ./properties
 
+if [ -f "overrides/properties" ]; then
+  source overrides/properties
+fi
+
 if [ -z "$PROJECT_ID" ]; then
   err "Not running in a GCP project. Exiting."
   exit 1
