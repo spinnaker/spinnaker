@@ -160,66 +160,60 @@ class ApplicationService {
 
   @CompileDynamic
   private static List<Map> mergeApps(List<Map<String, Object>> applications, Service applicationServiceConfig) {
-
-    try {
-      Map<String, Map<String, Object>> merged = [:]
-      for (Map<String, Object> app in applications) {
-        if (!app?.name) {
-          continue
-        }
-
-        String key = (app.name as String)?.toLowerCase()
-        if (key && !merged.containsKey(key)) {
-          merged[key] = [name: key, attributes: [:], clusters: [:]] as Map<String, Object>
-        }
-
-        Map mergedApp = (Map) merged[key]
-        if (app.containsKey("clusters") || app.containsKey("clusterNames")) {
-          // Clouddriver
-          if (app.clusters) {
-            (mergedApp.clusters as Map).putAll(app.clusters as Map)
-          }
-          String accounts = (app.clusters as Map)?.keySet()?.join(',') ?:
-            (app.clusterNames as Map)?.keySet()?.join(',')
-
-          mergedApp.attributes.accounts = accounts
-
-          (app["attributes"] as Map).entrySet().each {
-            if (it.value && !(mergedApp.attributes as Map)[it.key]) {
-              // don't overwrite existing attributes with metadata from clouddriver
-              (mergedApp.attributes as Map)[it.key] = it.value
-            }
-          }
-        } else {
-          Map attributes = app.attributes ?: app
-          attributes.entrySet().each {
-            if (it.value != null) {
-              (mergedApp.attributes as Map)[it.key] = it.value
-            }
-          }
-        }
-
-        // ensure that names are consistently lower-cased.
-        mergedApp.name = key.toLowerCase()
-        mergedApp.attributes['name'] = mergedApp.name
+    Map<String, Map<String, Object>> merged = [:]
+    for (Map<String, Object> app in applications) {
+      if (!app?.name) {
+        continue
       }
 
-      Set<String> applicationFilter = applicationServiceConfig.config?.includedAccounts?.split(',')?.toList()?.findResults {
-        it.trim() ?: null
-      } ?: null
-      return merged.values().toList().findAll { Map<String, Object> account ->
-        if (applicationFilter == null) {
-          return true
-        }
-        String[] accounts = account?.attributes?.accounts?.split(',')
-        if (accounts == null) {
-          return true
-        }
-        return accounts.any { applicationFilter.contains(it) }
+      String key = (app.name as String)?.toLowerCase()
+      if (key && !merged.containsKey(key)) {
+        merged[key] = [name: key, attributes: [:], clusters: [:]] as Map<String, Object>
       }
-    } catch (Throwable t) {
-      t.printStackTrace()
-      throw t
+
+      Map mergedApp = (Map) merged[key]
+      if (app.containsKey("clusters") || app.containsKey("clusterNames")) {
+        // Clouddriver
+        if (app.clusters) {
+          (mergedApp.clusters as Map).putAll(app.clusters as Map)
+        }
+        String accounts = (app.clusters as Map)?.keySet()?.join(',') ?:
+          (app.clusterNames as Map)?.keySet()?.join(',')
+
+        mergedApp.attributes.accounts = accounts
+
+        (app["attributes"] as Map).entrySet().each {
+          if (it.value && !(mergedApp.attributes as Map)[it.key]) {
+            // don't overwrite existing attributes with metadata from clouddriver
+            (mergedApp.attributes as Map)[it.key] = it.value
+          }
+        }
+      } else {
+        Map attributes = app.attributes ?: app
+        attributes.entrySet().each {
+          if (it.value != null) {
+            (mergedApp.attributes as Map)[it.key] = it.value
+          }
+        }
+      }
+
+      // ensure that names are consistently lower-cased.
+      mergedApp.name = key.toLowerCase()
+      mergedApp.attributes['name'] = mergedApp.name
+    }
+
+    Set<String> applicationFilter = applicationServiceConfig.config?.includedAccounts?.split(',')?.toList()?.findResults {
+      it.trim() ?: null
+    } ?: null
+    return merged.values().toList().findAll { Map<String, Object> account ->
+      if (applicationFilter == null) {
+        return true
+      }
+      String[] accounts = account?.attributes?.accounts?.split(',')
+      if (accounts == null) {
+        return true
+      }
+      return accounts.any { applicationFilter.contains(it) }
     }
   }
 
