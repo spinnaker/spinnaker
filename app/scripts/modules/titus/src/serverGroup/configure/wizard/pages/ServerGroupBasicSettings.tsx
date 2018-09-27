@@ -118,11 +118,13 @@ class ServerGroupBasicSettingsImpl extends React.Component<
         'Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.';
     }
 
-    if (!values.repository) {
-      errors.repository = 'Image is required.';
-    }
-    if (!values.tag) {
-      errors.tag = 'Tag is required.';
+    if (!values.viewState.disableImageSelection) {
+      if (!values.repository) {
+        errors.repository = 'Image is required.';
+      }
+      if (!values.tag) {
+        errors.tag = 'Tag is required.';
+      }
     }
 
     return errors;
@@ -250,20 +252,22 @@ class ServerGroupBasicSettingsImpl extends React.Component<
             </div>
           </div>
         )}
-        <DockerImageAndTagSelector
-          specifyTagByRegex={false}
-          account={values.credentials}
-          organization={values.organization}
-          registry={values.registry}
-          repository={values.repository}
-          tag={values.tag || ''}
-          showRegistry={false}
-          deferInitialization={values.deferredInitialization}
-          labelClass="col-md-3"
-          fieldClass="col-md-7"
-          onChange={this.dockerValuesChanged}
-        />
-        {!values.viewState.disableImageSelection && <div />}
+
+        {!values.viewState.disableImageSelection && (
+          <DockerImageAndTagSelector
+            specifyTagByRegex={false}
+            account={values.credentials}
+            organization={values.organization}
+            registry={values.registry}
+            repository={values.repository}
+            tag={values.tag || ''}
+            showRegistry={false}
+            deferInitialization={values.deferredInitialization}
+            labelClass="col-md-3"
+            fieldClass="col-md-7"
+            onChange={this.dockerValuesChanged}
+          />
+        )}
         <div className="form-group">
           <div className="col-md-3 sm-label-right">
             <b>Entrypoint</b>
