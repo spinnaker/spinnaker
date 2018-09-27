@@ -251,7 +251,7 @@ services:
 providers:
   aws:
     # For more information on configuring Amazon Web Services (aws), see
-    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-amazon-web-services-setup
+    # https://www.spinnaker.io/setup/install/providers/aws/
 
     enabled: ${SPINNAKER_AWS_ENABLED:false}
     simpleDBEnabled: false
@@ -272,7 +272,8 @@ providers:
 
   google:
     # For more information on configuring Google Cloud Platform (google), see
-    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-google-cloud-platform-setup
+    # https://www.spinnaker.io/setup/install/providers/appengine/
+    # https://www.spinnaker.io/setup/install/providers/gce/
 
     enabled: ${SPINNAKER_GOOGLE_ENABLED:false}
     defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION:us-central1}
@@ -290,7 +291,7 @@ providers:
 
   cf:
     # For more information on configuring Cloud Foundry (cf) support, see
-    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-cloud-foundry-platform-setup
+    # https://www.spinnaker.io/setup/install/providers/
 
     enabled: false
     defaultOrg: spinnaker-cf-org
@@ -303,7 +304,7 @@ providers:
 
   azure:
     # For more information on configuring Microsoft Azure (azure), see
-    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-azure-cloud-platform-setup
+    # https://www.spinnaker.io/setup/install/providers/azure/
 
     enabled: ${SPINNAKER_AZURE_ENABLED:false}
     defaultRegion: ${SPINNAKER_AZURE_DEFAULT_REGION:westus}
@@ -329,7 +330,8 @@ providers:
 
   kubernetes:
     # For more information on configuring Kubernetes clusters (kubernetes), see
-    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-kubernetes-cluster-setup
+    # https://www.spinnaker.io/setup/install/providers/kubernetes/
+    # https://www.spinnaker.io/setup/install/providers/kubernetes-v2/
 
     # NOTE: enabling kubernetes also requires enabling dockerRegistry.
     enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
@@ -356,6 +358,8 @@ providers:
     # the OpenStack RC file. See
     # http://docs.openstack.org/user-guide/common/cli-set-environment-variables-using-openstack-rc.html
     # for details on the OpenStack RC file.
+    # For more information on configuring OpenStack, see
+    # https://www.spinnaker.io/setup/install/providers/openstack/
     enabled: false
     defaultRegion: ${SPINNAKER_OPENSTACK_DEFAULT_REGION:RegionOne}
     primaryCredentials:
