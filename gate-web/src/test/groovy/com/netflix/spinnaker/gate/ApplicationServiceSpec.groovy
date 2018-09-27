@@ -189,28 +189,18 @@ class ApplicationServiceSpec extends Specification {
     def front50App = [name: name.toLowerCase(), email: email]
 
     when:
+    service.refreshApplicationsCache()
     def apps = service.getAllApplications()
 
     then:
-    1 * clouddriver.getApplications(false) >> [clouddriverApp]
-    1 * front50.getAllApplications() >> [front50App] >> { throw new SocketTimeoutException() }
+    1 * clouddriver.getApplications(true) >> [clouddriverApp]
+    1 * front50.getAllApplications() >> [front50App]
 
     1 == apps.size()
-    service.allApplicationsCache.set(apps)
     apps[0].email == email
     apps[0].name == name
     apps[0].clusters == null
-
-    when: "should return last known good values if an exception is thrown"
-    def allApps = service.getAllApplications()
-    def singleApp = service.getApplication(name, true)
-
-    then:
-    1 * front50.getApplication(name) >> { throw new SocketTimeoutException() }
-    1 * front50.getAllApplications() >> { throw new SocketTimeoutException() }
-
-    1 == allApps.size()
-    singleApp.name == allApps[0].name
+    apps[0].accounts == "prod"
 
     where:
     name = "foo"

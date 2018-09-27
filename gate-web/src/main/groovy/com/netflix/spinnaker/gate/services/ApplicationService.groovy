@@ -26,21 +26,16 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.ExceptionHandler
 import retrofit.RetrofitError
 import retrofit.converter.ConversionException
-import rx.Observable
-import rx.Scheduler
-import rx.schedulers.Schedulers
 
-import javax.annotation.PostConstruct
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 @CompileStatic
@@ -48,8 +43,6 @@ import java.util.concurrent.atomic.AtomicReference
 @Slf4j
 class ApplicationService {
   private static final String GROUP = "applications"
-
-  private Scheduler scheduler = Schedulers.io()
 
   @Autowired
   ServiceConfiguration serviceConfiguration
@@ -65,20 +58,15 @@ class ApplicationService {
 
   private AtomicReference<List<Map>> allApplicationsCache = new AtomicReference<>([])
 
-  @PostConstruct
-  void startMonitoring() {
-    Observable
-      .timer(60, TimeUnit.SECONDS, scheduler)
-      .repeat()
-      .subscribe({ Long interval ->
-      try {
-        log.debug("Refreshing Application List")
-        allApplicationsCache.set(tick(true))
-        log.debug("Refreshed Application List")
-      } catch (e) {
-        log.error("Unable to refresh application list, reason: ${e.message}")
-      }
-    })
+  @Scheduled(fixedDelayString = '${services.front50.applicationRefreshIntervalMs:5000}')
+  void refreshApplicationsCache() {
+    try {
+      log.debug("Refreshing Application List")
+      allApplicationsCache.set(tick(true))
+      log.debug("Refreshed Application List (applications: {})", allApplicationsCache.get().size())
+    } catch (e) {
+      log.error("Unable to refresh application list, reason: ${e.message}")
+    }
   }
 
   /**
@@ -88,8 +76,7 @@ class ApplicationService {
    * As a trade-off, we'll fetch cluster details on the background refresh loop and merge in the
    * account details when applications are requested on-demand.
    *
-   * @param expandClusterNames Should cluster details (for each application) be fetched from
-   * clouddriver
+   * @param expandClusterNames Should cluster details (for each application) be fetched from clouddriver
    * @return Applications
    */
   List<Map<String, Object>> tick(boolean expandClusterNames = true) {
@@ -108,17 +95,6 @@ class ApplicationService {
   }
 
   List<Map> getAllApplications() {
-    try {
-      def applicationsByName = allApplicationsCache.get().groupBy { it.name }
-      return tick(false).collect { Map application ->
-        applicationsByName[application.name.toString()]?.each { Map cacheApplication ->
-          application.accounts = mergeAccounts(application.accounts as String, cacheApplication.accounts as String)
-        }
-        application
-      } as List<Map>
-    } catch (e) {
-      log.error("Unable to fetch all applications, returning most recently cached version", e)
-    }
     return allApplicationsCache.get()
   }
 
