@@ -16,7 +16,12 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import retrofit.http.*
+import retrofit.http.Body
+import retrofit.http.GET
+import retrofit.http.Headers
+import retrofit.http.POST
+import retrofit.http.Path
+import java.time.Instant
 
 // TODO Origin needs to be set on executions
 // origin is used for dynamic routing by orca to different clouddriver instances
@@ -31,15 +36,19 @@ interface OrcaService {
 }
 
 data class TaskRefResponse(
-  val ref: String
+  val ref: TaskRef
 )
+
+data class TaskRef(val ref: String) {
+  val id by lazy { ref.substringAfterLast("/") }
+}
 
 data class TaskDetailResponse(
   val id: String,
   val name: String,
   val application: String,
-  val buildTime: String,
-  val startTime: String,
-  val endTime: String,
+  val buildTime: Instant,
+  val startTime: Instant?,
+  val endTime: Instant?,
   val status: OrcaExecutionStatus
 )
