@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState
+import com.netflix.spinnaker.keel.persistence.AssetState.Converging
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import com.netflix.spinnaker.q.MessageHandler
@@ -48,6 +49,7 @@ class ConvergeAssetHandler(
         try {
           if (vetoService.allow(assetContainer)) {
             log.info("{} : requesting convergence", asset.id)
+            repository.updateState(asset.id, Converging)
             assetService.converge(assetContainer)
           } else {
             log.info("{} : convergence was vetoed", asset.id)

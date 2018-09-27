@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.AssetState.Converging
 import com.netflix.spinnaker.keel.persistence.AssetState.Diff
 import com.netflix.spinnaker.keel.persistence.AssetState.Missing
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
@@ -11,7 +12,9 @@ import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
@@ -67,19 +70,16 @@ internal object ConvergeAssetHandlerSpec : Spek({
     }
 
     given("dependent assets are up-to-date") {
-      beforeGroup {
-        whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
-        setOf(asset, level1Dependency, level2Dependency).forEach {
-          whenever(repository.get(it.id)) doReturn it
-        }
-        whenever(repository.lastKnownState(any())) doReturn (Ok to now())
-      }
-
-      afterGroup { reset(repository) }
-
       given("nothing vetoes the convergence") {
-        beforeGroup { whenever(vetoService.allow(asset.wrap())) doReturn true }
-        afterGroup { reset(vetoService) }
+        beforeGroup {
+          whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
+          setOf(asset, level1Dependency, level2Dependency).forEach {
+            whenever(repository.get(it.id)) doReturn it
+          }
+          whenever(repository.lastKnownState(any())) doReturn (Ok to now())
+          whenever(vetoService.allow(asset.wrap())) doReturn true
+        }
+        afterGroup { reset(vetoService, repository) }
 
         on("receiving a message") {
           subject.handle(message)
@@ -88,11 +88,22 @@ internal object ConvergeAssetHandlerSpec : Spek({
         it("requests convergence of the asset") {
           verify(assetService).converge(asset.wrap())
         }
+
+        it("updates the asset state to ${Converging.name}") {
+          verify(repository).updateState(asset.id, Converging)
+        }
       }
 
       given("something vetoes the convergence") {
-        beforeGroup { whenever(vetoService.allow(asset.wrap())) doReturn false }
-        afterGroup { reset(vetoService) }
+        beforeGroup {
+          whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
+          setOf(asset, level1Dependency, level2Dependency).forEach {
+            whenever(repository.get(it.id)) doReturn it
+          }
+          whenever(repository.lastKnownState(any())) doReturn (Ok to now())
+          whenever(vetoService.allow(asset.wrap())) doReturn false
+        }
+        afterGroup { reset(vetoService, repository) }
 
         on("receiving a message") {
           subject.handle(message)
@@ -101,10 +112,14 @@ internal object ConvergeAssetHandlerSpec : Spek({
         it("does not request convergence of the asset") {
           verifyZeroInteractions(assetService)
         }
+
+        it("does not update the asset state") {
+          verify(repository, never()).updateState(eq(asset.id), any())
+        }
       }
     }
 
-    sequenceOf(Diff, Missing, Unknown).forEach { state ->
+    sequenceOf(Diff, Missing, Unknown, Converging).forEach { state ->
       given("a direct dependency is in $state state") {
         beforeGroup {
           whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
@@ -129,6 +144,10 @@ internal object ConvergeAssetHandlerSpec : Spek({
         // TODO: only necessary because Mockito defaults return to false. Ultimately won't just use boolean so this test won't be needed
         it("does not check to see if asset may be converged") {
           verifyZeroInteractions(vetoService)
+        }
+
+        it("does not update the asset state") {
+          verify(repository, never()).updateState(eq(asset.id), any())
         }
       }
 
@@ -156,6 +175,10 @@ internal object ConvergeAssetHandlerSpec : Spek({
         // TODO: only necessary because Mockito defaults return to false. Ultimately won't just use boolean so this test won't be needed
         it("does not check to see if asset may be converged") {
           verifyZeroInteractions(vetoService)
+        }
+
+        it("does not update the asset state") {
+          verify(repository, never()).updateState(eq(asset.id), any())
         }
       }
     }

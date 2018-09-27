@@ -16,5 +16,5 @@
 package com.netflix.spinnaker.keel.persistence
 
 enum class AssetState {
-  Unknown, Ok, Diff, Missing
+  Unknown, Ok, Diff, Missing, Converging
 }
