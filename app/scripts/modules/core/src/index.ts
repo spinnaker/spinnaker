@@ -71,6 +71,7 @@ export * from './securityGroup';
 export * from './serverGroup';
 export * from './serverGroupManager';
 export * from './serviceAccount';
+export * from './services';
 export * from './state';
 export * from './storage';
 export * from './subnet';

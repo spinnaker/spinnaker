@@ -20,6 +20,7 @@ import './logo/cf.logo.less';
 import { CloudFoundryNoLoadBalancerModal } from './loadBalancer/configure/cloudFoundryNoLoadBalancerModal';
 import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
+import 'cloudfoundry/pipeline/config/validation/validServiceParameterJson.validator';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -42,6 +43,8 @@ module(CLOUD_FOUNDRY_MODULE, [
   require('./pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.js').name,
   require('./pipeline/stages/resizeAsg/cloudfoundryResizeAsgStage.js').name,
   require('./pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.js').name,
+  require('./pipeline/stages/deployService/cloudfoundryDeployServiceStage.js').name,
+  require('./pipeline/stages/deleteService/cloudfoundryDeleteServiceStage.js').name,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('cloudfoundry', {
     name: 'Cloud Foundry',
