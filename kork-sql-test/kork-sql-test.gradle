@@ -1,0 +1,4 @@
+dependencies {
+  compile project(":kork-sql")
+  compile "com.h2database:h2:1.4.197"
+}

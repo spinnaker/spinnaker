@@ -1,0 +1,17 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+dependencies {
+  compile project(":kork-core")
+  compile project(":kork-security")
+
+  compile "org.springframework:spring-jdbc:${spinnaker.version("spring")}"
+  compile "org.springframework:spring-tx:${spinnaker.version("spring")}"
+  compile "org.jooq:jooq:3.9.6"
+  compile "org.liquibase:liquibase-core:3.6.1"
+  compile 'com.zaxxer:HikariCP:2.5.1'
+
+  testCompile "org.springframework.boot:spring-boot-starter-actuator:${spinnaker.version("springBoot")}"
+  testCompile "org.springframework.boot:spring-boot-starter-web:${spinnaker.version("springBoot")}"
+  testCompile "org.springframework.boot:spring-boot-starter-test:${spinnaker.version("springBoot")}"
+  testRuntime project(":kork-sql-test")
+}

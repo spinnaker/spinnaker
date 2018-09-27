@@ -1,0 +1,21 @@
+databaseChangeLog:
+- changeSet:
+    id: create-healthcheck-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: healthcheck
+        columns:
+        - column:
+            name: id
+            type: boolean
+            constraints:
+              primaryKey: true
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: healthcheck
