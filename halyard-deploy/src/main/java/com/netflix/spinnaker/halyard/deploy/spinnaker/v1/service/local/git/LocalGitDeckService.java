@@ -31,6 +31,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -61,6 +62,9 @@ public class LocalGitDeckService extends DeckService implements LocalGitService<
     Security security = deploymentConfiguration.getSecurity();
     if (security.getUiSecurity().getSsl().isEnabled()) {
       setEnvTrue("DECK_HTTPS");
+      setEnv("DECK_CERT", security.getUiSecurity().getSsl().getSslCertificateFile());
+      setEnv("DECK_KEY", security.getUiSecurity().getSsl().getSslCertificateKeyFile());
+      setEnv("DECK_CA_CERT", security.getUiSecurity().getSsl().getSslCACertificateFile());
     }
     if (security.getAuthn().isEnabled()) {
       setEnvTrue("AUTH_ENABLED");
@@ -76,6 +80,12 @@ public class LocalGitDeckService extends DeckService implements LocalGitService<
 
   private void setEnvTrue(String var) {
     setStartCommand(String.join("\n", "export " + var + "=true", getStartCommand()));
+  }
+
+  private void setEnv(String var, String value) {
+    if (StringUtils.isNotEmpty(value)) {
+      setStartCommand(String.join("\n", "export " + var + "=" + value, getStartCommand()));
+    }
   }
 
   public String getArtifactId(String deploymentName) {

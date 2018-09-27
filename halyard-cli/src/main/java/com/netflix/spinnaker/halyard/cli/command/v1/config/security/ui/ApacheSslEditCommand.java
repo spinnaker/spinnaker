@@ -59,6 +59,13 @@ public class ApacheSslEditCommand extends AbstractConfigCommand {
   )
   String sslCertificatePassphrase;
 
+  @Parameter(
+      names = "--ssl-certificate-ca-file",
+      description = "Path to the .crt file for the CA that issued your SSL certificate. This is only needed for localgit"
+          + "deployments that serve the UI using webpack dev server."
+  )
+  String sslCACertificateFile;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -73,6 +80,7 @@ public class ApacheSslEditCommand extends AbstractConfigCommand {
     apacheSsl.setSslCertificateFile(isSet(sslCertificateFile) ? sslCertificateFile : apacheSsl.getSslCertificateFile());
     apacheSsl.setSslCertificateKeyFile(isSet(sslCertificateKeyFile) ? sslCertificateKeyFile : apacheSsl.getSslCertificateKeyFile());
     apacheSsl.setSslCertificatePassphrase(isSet(sslCertificatePassphrase) ? sslCertificatePassphrase : apacheSsl.getSslCertificatePassphrase());
+    apacheSsl.setSslCACertificateFile(isSet(sslCACertificateFile) ? sslCACertificateFile : apacheSsl.getSslCACertificateFile());
 
     if (originalHash == apacheSsl.hashCode()) {
       AnsiUi.failure("No changes supplied.");

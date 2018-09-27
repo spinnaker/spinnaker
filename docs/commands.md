@@ -2978,7 +2978,7 @@ hal config deploy ha clouddriver enable [parameters]
 ---
 ## hal config deploy ha echo
 
-Manage and view Spinnaker configuration for the echo high availability service Manage and view Spinnaker configuration for the echo high availability service. When echo high availability is enabled, Halyard will deploy echo as two separate services in order to increase availability: echo-scheduler and echo-slave. The echo-scheduler service only handles Spinnaker cron-jobs and is isolated from the rest of Spinnaker.. The echo-slave handles everything else.
+Manage and view Spinnaker configuration for the echo high availability service Manage and view Spinnaker configuration for the echo high availability service. When echo high availability is enabled, Halyard will deploy echo as two separate services in order to increase availability: echo-scheduler and echo-replica. The echo-scheduler service only handles Spinnaker cron-jobs and is isolated from the rest of Spinnaker.. The echo-replica handles everything else.
 
 #### Usage
 ```
@@ -5841,6 +5841,7 @@ hal config provider oracle [parameters] [subcommands]
 
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the oracle provider's account
+ * `bakery`: Manage and view Spinnaker configuration for the oracle provider's image bakery configuration.
  * `disable`: Set the oracle provider as disabled
  * `enable`: Set the oracle provider as enabled
 
@@ -6062,7 +6063,7 @@ hal config provider oracle bakery base-image edit BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
- * `--base-image-id`: (*Required*) The OCID of the base image ID for the baking configuration.
+ * `--base-image-id`: The OCID of the base image ID for the baking configuration.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--detailed-description`: A long description to help human operators identify the image.
  * `--id`: This is the identifier used by your cloud to find this base image.
@@ -6115,11 +6116,11 @@ hal config provider oracle bakery edit [parameters]
 ```
 
 #### Parameters
- * `--availability-domain`: The name of the Availability Domain within which a new instance is launched and provisioned.
+ * `--availability-domain`: (*Required*) The name of the Availability Domain within which a new instance is launched and provisioned.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--instance-shape`: The shape for allocated to a newly created instance.
+ * `--instance-shape`: (*Required*) The shape for allocated to a newly created instance.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--subnet-id`: The name of the subnet within which a new instance is launched and provisioned.
+ * `--subnet-id`: (*Required*) The name of the subnet within which a new instance is launched and provisioned.
  * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
 
 
@@ -7124,6 +7125,7 @@ hal config security ui ssl edit [parameters]
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--ssl-certificate-ca-file`: Path to the .crt file for the CA that issued your SSL certificate. This is only needed for localgitdeployments that serve the UI using webpack dev server.
  * `--ssl-certificate-file`: Path to your .crt file.
  * `--ssl-certificate-key-file`: Path to your .key file.
  * `--ssl-certificate-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase needed to unlock your SSL certificate. This will be provided to Apache on startup.
