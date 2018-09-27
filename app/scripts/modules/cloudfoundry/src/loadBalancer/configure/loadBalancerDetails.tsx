@@ -203,4 +203,4 @@ class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps,
   }
 }
 
-export const LoadBalancerDetails = wizardPage<ILoadBalancerDetailsProps>(LoadBalancerDetailsImpl);
+export const LoadBalancerDetails = wizardPage(LoadBalancerDetailsImpl);

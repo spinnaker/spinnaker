@@ -212,4 +212,4 @@ class ServerGroupParametersImpl extends React.Component<IServerGroupParametersPr
   }
 }
 
-export const ServerGroupParameters = wizardPage<IServerGroupParametersProps>(ServerGroupParametersImpl);
+export const ServerGroupParameters = wizardPage(ServerGroupParametersImpl);

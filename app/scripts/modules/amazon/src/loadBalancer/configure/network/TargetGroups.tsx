@@ -399,4 +399,4 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
   }
 }
 
-export const TargetGroups = wizardPage<ITargetGroupsProps>(TargetGroupsImpl);
+export const TargetGroups = wizardPage(TargetGroupsImpl);

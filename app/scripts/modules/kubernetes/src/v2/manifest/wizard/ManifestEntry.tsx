@@ -33,4 +33,4 @@ class ManifestEntryImpl extends React.Component<IServerGroupBasicSettingsProps> 
   }
 }
 
-export const ManifestEntry = wizardPage<IServerGroupBasicSettingsProps>(ManifestEntryImpl);
+export const ManifestEntry = wizardPage(ManifestEntryImpl);

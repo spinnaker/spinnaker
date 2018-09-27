@@ -712,6 +712,4 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
   }
 }
 
-export const CloudFoundryServerGroupConfigurationSettings = wizardPage<
-  ICloudFoundryServerGroupConfigurationSettingsProps
->(ConfigurationSettingsImpl);
+export const CloudFoundryServerGroupConfigurationSettings = wizardPage(ConfigurationSettingsImpl);

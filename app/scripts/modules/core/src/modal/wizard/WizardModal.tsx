@@ -13,10 +13,10 @@ import { SubmitButton } from '../buttons/SubmitButton';
 
 import { IWizardPageProps, IWizardPageValidate } from './WizardPage';
 
-export interface IWizardPageData {
+export interface IWizardPageData<T> {
   element: HTMLElement;
   label: string;
-  props: IWizardPageProps;
+  props: IWizardPageProps<T>;
   validate: IWizardPageValidate;
 }
 
@@ -32,8 +32,8 @@ export interface IWizardModalProps<T> extends IModalComponentProps {
   dismissModal?(rejection?: any): void; // provided by ReactModal
 }
 
-export interface IWizardModalState {
-  currentPage: IWizardPageData;
+export interface IWizardModalState<T> {
+  currentPage: IWizardPageData<T>;
   dirtyPages: Set<string>;
   pageErrors: { [pageName: string]: { [key: string]: string } };
   formInvalid: boolean;
@@ -41,8 +41,8 @@ export interface IWizardModalState {
   waiting: Set<string>;
 }
 
-export class WizardModal<T extends FormikValues> extends React.Component<IWizardModalProps<T>, IWizardModalState> {
-  private pages: { [label: string]: IWizardPageData } = {};
+export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, IWizardModalState<T>> {
+  private pages: { [label: string]: IWizardPageData<T> } = {};
   private stepsElement: HTMLDivElement;
 
   constructor(props: IWizardModalProps<T>) {
@@ -58,7 +58,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     };
   }
 
-  private setCurrentPage = (pageState: IWizardPageData): void => {
+  private setCurrentPage = (pageState: IWizardPageData<T>): void => {
     if (this.stepsElement) {
       this.stepsElement.scrollTop = pageState.element.offsetTop;
     }
@@ -191,7 +191,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
                     <div className="col-md-3 hidden-sm hidden-xs">
                       <ul className="steps-indicator wizard-navigation">
                         {pagesToShow.map(pageName => (
-                          <WizardStepLabel
+                          <WizardStepLabel<T>
                             key={this.pages[pageName].label}
                             current={this.pages[pageName] === currentPage}
                             dirty={dirtyPages.has(this.pages[pageName].label)}
@@ -243,46 +243,49 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
   }
 }
 
-const WizardStepLabel = (props: {
+interface IWizardStepLabelProps<T> {
   current: boolean;
   dirty: boolean;
   errors: { [key: string]: string };
-  pageState: IWizardPageData;
-  onClick: (pageState: IWizardPageData) => void;
+  pageState: IWizardPageData<T>;
+  onClick: (pageState: IWizardPageData<T>) => void;
   waiting: boolean;
-}): JSX.Element => {
-  const { current, dirty, errors, onClick, pageState, waiting } = props;
-  const className = classNames({
-    default: !pageState.props.done,
-    dirty: dirty || !!errors,
-    current,
-    done: pageState.props.done,
-    waiting,
-  });
-  const handleClick = () => {
-    onClick(pageState);
-  };
+}
 
-  const label = (
-    <li className={className}>
-      <a className="clickable" onClick={handleClick}>
-        {pageState.label}
-      </a>
-    </li>
-  );
+class WizardStepLabel<T> extends React.Component<IWizardStepLabelProps<T>> {
+  public render() {
+    const { current, dirty, errors, onClick, pageState, waiting } = this.props;
 
-  if (errors) {
-    const Errors = (
-      <span>
-        {Object.keys(errors).map(key => (
-          <span key={key}>
-            {errors[key]}
-            <br />
-          </span>
-        ))}
-      </span>
+    const className = classNames({
+      default: !pageState.props.done,
+      dirty: dirty || !!errors,
+      current,
+      done: pageState.props.done,
+      waiting,
+    });
+
+    const label = (
+      <li className={className}>
+        <a className="clickable" onClick={() => onClick(pageState)}>
+          {pageState.label}
+        </a>
+      </li>
     );
-    return <Tooltip template={Errors}>{label}</Tooltip>;
+
+    if (errors) {
+      const Errors = (
+        <span>
+          {Object.keys(errors).map(key => (
+            <span key={key}>
+              {errors[key]}
+              <br />
+            </span>
+          ))}
+        </span>
+      );
+
+      return <Tooltip template={Errors}>{label}</Tooltip>;
+    }
+    return label;
   }
-  return label;
-};
+}

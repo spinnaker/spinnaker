@@ -34,4 +34,4 @@ class CfDisclaimerWizardPage extends React.Component<IDisclaimerProps> {
   }
 }
 
-export const CfDisclaimerPage = wizardPage<IDisclaimerProps>(CfDisclaimerWizardPage);
+export const CfDisclaimerPage = wizardPage(CfDisclaimerWizardPage);

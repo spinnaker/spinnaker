@@ -436,4 +436,4 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
   }
 }
 
-export const LoadBalancerLocation = wizardPage<ILoadBalancerLocationProps>(LoadBalancerLocationImpl);
+export const LoadBalancerLocation = wizardPage(LoadBalancerLocationImpl);

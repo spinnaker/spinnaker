@@ -21,7 +21,10 @@ const stringToOption = (value: string): Option<string> => {
   return { value, label: value };
 };
 
-class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBalancersProps, IServerGroupLoadBalancersState > {
+class ServerGroupLoadBalancersImpl extends React.Component<
+  IServerGroupLoadBalancersProps,
+  IServerGroupLoadBalancersState
+> {
   public static LABEL = 'Load Balancers';
 
   public state = {
@@ -101,7 +104,11 @@ class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBala
                   <i className="fa fa-exclamation-triangle" />
                   The following target groups could not be found in the selected account/region/VPC and were removed:
                 </p>
-                <ul>{dirty.targetGroups.map(tg => <li key={tg}>{tg}</li>)}</ul>
+                <ul>
+                  {dirty.targetGroups.map(tg => (
+                    <li key={tg}>{tg}</li>
+                  ))}
+                </ul>
                 <p className="text-right">
                   <a
                     className="btn btn-sm btn-default dirty-flag-dismiss clickable"
@@ -154,7 +161,11 @@ class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBala
                   <i className="fa fa-exclamation-triangle" />
                   The following load balancers could not be found in the selected account/region/VPC and were removed:
                 </p>
-                <ul>{dirty.loadBalancers.map(lb => <li key={lb}>{lb}</li>)}</ul>
+                <ul>
+                  {dirty.loadBalancers.map(lb => (
+                    <li key={lb}>{lb}</li>
+                  ))}
+                </ul>
                 <p className="text-right">
                   <a
                     className="btn btn-sm btn-default dirty-flag-dismiss clickable"
@@ -250,4 +261,4 @@ class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBala
   }
 }
 
-export const ServerGroupLoadBalancers = wizardPage<IServerGroupLoadBalancersProps>(ServerGroupLoadBalancersImpl);
+export const ServerGroupLoadBalancers = wizardPage(ServerGroupLoadBalancersImpl);

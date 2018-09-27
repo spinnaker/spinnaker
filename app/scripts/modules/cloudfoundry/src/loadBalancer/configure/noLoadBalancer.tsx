@@ -41,4 +41,4 @@ class NoLoadBalancerDetailsImpl extends React.Component<INoLoadBalancerDetailsPr
   }
 }
 
-export const NoLoadBalancerDetails = wizardPage<IWizardPageProps>(NoLoadBalancerDetailsImpl);
+export const NoLoadBalancerDetails = wizardPage(NoLoadBalancerDetailsImpl);

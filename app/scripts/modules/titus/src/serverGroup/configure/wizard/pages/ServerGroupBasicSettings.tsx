@@ -341,4 +341,4 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   }
 }
 
-export const ServerGroupBasicSettings = wizardPage<IServerGroupBasicSettingsProps>(ServerGroupBasicSettingsImpl);
+export const ServerGroupBasicSettings = wizardPage(ServerGroupBasicSettingsImpl);

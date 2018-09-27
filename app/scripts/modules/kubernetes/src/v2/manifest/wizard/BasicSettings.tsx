@@ -58,4 +58,4 @@ class ManifestBasicSettingsImpl extends React.Component<IManifestBasicSettingsPr
   }
 }
 
-export const ManifestBasicSettings = wizardPage<IManifestBasicSettingsProps>(ManifestBasicSettingsImpl);
+export const ManifestBasicSettings = wizardPage(ManifestBasicSettingsImpl);

@@ -18,15 +18,7 @@ import {
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../serverGroupConfigurationModel.cf';
 
-export interface ICloudFoundryServerGroupBasicSettingsProps
-  extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
-  credentials: string;
-  region: string;
-  stack: string;
-  freeFormDetails: string;
-  strategy?: string;
-  viewState: { mode: string };
-}
+export type ICloudFoundryServerGroupBasicSettingsProps = IWizardPageProps<ICloudFoundryCreateServerGroupCommand>;
 
 export interface ICloudFoundryServerGroupLocationSettingsState {
   accounts: IAccount[];
@@ -197,7 +189,7 @@ class BasicSettingsImpl extends React.Component<
     );
   }
 
-  public validate(values: ICloudFoundryServerGroupBasicSettingsProps) {
+  public validate(values: ICloudFoundryCreateServerGroupCommand) {
     const errors = {} as FormikErrors<ICloudFoundryCreateServerGroupCommand>;
 
     if (!values.credentials) {

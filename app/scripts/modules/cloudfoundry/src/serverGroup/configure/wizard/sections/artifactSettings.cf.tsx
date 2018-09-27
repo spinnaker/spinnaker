@@ -485,6 +485,4 @@ class ArtifactSettingsImpl extends React.Component<
   }
 }
 
-export const CloudFoundryServerGroupArtifactSettings = wizardPage<ICloudFoundryCreateServerGroupArtifactSettingsProps>(
-  ArtifactSettingsImpl,
-);
+export const CloudFoundryServerGroupArtifactSettings = wizardPage(ArtifactSettingsImpl);

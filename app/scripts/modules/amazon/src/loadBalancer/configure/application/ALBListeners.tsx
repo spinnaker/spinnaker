@@ -873,4 +873,4 @@ const Rules = SortableContainer((props: IRulesProps) => (
   </tbody>
 ));
 
-export const ALBListeners = wizardPage<IALBListenersProps>(ALBListenersImpl);
+export const ALBListeners = wizardPage(ALBListenersImpl);
