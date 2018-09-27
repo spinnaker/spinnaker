@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-PROJECT_ID=$(gcloud info --format='value(config.project)')
+export PROJECT_ID=$(gcloud info --format='value(config.project)')
 
 GKE_CLUSTER=spin-demo
 ZONE=us-west1-b
 
 if [ -f bucket.txt ]; then
-  BUCKET_NAME=$(cat bucket.txt)
+  export BUCKET_NAME=$(cat bucket.txt)
 else
-  BUCKET_NAME="spin-gcs-bucket-$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 20 | head -n 1)-$(date +"%s")"
+  export BUCKET_NAME="spin-gcs-bucket-$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 20 | head -n 1)-$(date +"%s")"
   echo $BUCKET_NAME > bucket.txt
 fi
 

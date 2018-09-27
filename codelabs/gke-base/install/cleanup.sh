@@ -15,8 +15,8 @@ if [ -z "$PROJECT_ID" ]; then
   exit 1
 fi
 
-if [ -f "precleanup.sh" ]; then
-  ./precleanup.sh
+if [ -f "overrides/precleanup.sh" ]; then
+  overrides/precleanup.sh
 fi
 
 SA_EMAIL=$(gcloud iam service-accounts list \

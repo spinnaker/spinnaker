@@ -20,6 +20,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+mkdir overrides && cd overrides
 gsutil cp gs://gke-spinnaker-codelab/$1/overrides.tar .
 
 if [ "$!" -ne "0" ]; then
@@ -28,14 +29,19 @@ if [ "$!" -ne "0" ]; then
 fi
 
 tar -xvf overrides.tar
+cd ..
+
+if [ -f "overrides/properties" ]; then
+  source overrides/properties
+fi
 
 mkdir bin/
 export PATH=$PATH:`pwd`/bin
 
 bold "Starting the setup process in project $PROJECT_ID..."
 
-if [ -f "predeploy.sh" ]; then
-  ./predeploy.sh
+if [ -f "overrides/predeploy.sh" ]; then
+  overrides/predeploy.sh
 fi
 
 bold "Creating a service account $SERVICE_ACCOUNT_NAME..."
@@ -139,5 +145,9 @@ while [[ "$(deploy_ready spin-orca)" != "1" ]]; do
   sleep 5
 done
 echo ""
+
+if [ -f "overrides/postdeploy.sh" ]; then
+  overrides/postdeploy.sh
+fi
 
 bold "Ready! Run ./connect.sh to continue..."
