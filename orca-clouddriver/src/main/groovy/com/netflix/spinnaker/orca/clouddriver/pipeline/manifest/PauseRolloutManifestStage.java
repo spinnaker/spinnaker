@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PauseRolloutManifestTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.UpdateManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -33,6 +33,6 @@ public class PauseRolloutManifestStage implements StageDefinitionBuilder {
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask(PauseRolloutManifestTask.TASK_NAME, PauseRolloutManifestTask.class)
         .withTask("monitorPauseRollout", MonitorKatoTask.class)
-        .withTask(UpdateManifestForceCacheRefreshTask.TASK_NAME, UpdateManifestForceCacheRefreshTask.class);
+        .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class);
   }
 }

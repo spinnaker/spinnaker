@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-public class WaitForManifestStableTask implements OverridableTimeoutRetryableTask, CloudProviderAware {
+public class WaitForManifestStableTask implements OverridableTimeoutRetryableTask, CloudProviderAware, ManifestAware {
   public final static String TASK_NAME = "waitForManifestToStabilize";
 
   @Autowired
@@ -64,7 +64,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     String account = getCredentials(stage);
-    Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("outputs.manifestNamesByNamespace");
+    Map<String, List<String>> deployedManifests = manifestNamesByNamespace(stage);
     List<String> messages = new ArrayList<>();
     List<String> failureMessages = new ArrayList<>();
     List<Map<String, String>> stableManifests = new ArrayList<>();

@@ -18,9 +18,9 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResumeRolloutManifestTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.UpdateManifestForceCacheRefreshTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.UpdateManifestWaitForStableTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -34,7 +34,7 @@ public class ResumeRolloutManifestStage implements StageDefinitionBuilder {
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask(ResumeRolloutManifestTask.TASK_NAME, ResumeRolloutManifestTask.class)
         .withTask("monitorResumeRollout", MonitorKatoTask.class)
-        .withTask(UpdateManifestForceCacheRefreshTask.TASK_NAME, UpdateManifestForceCacheRefreshTask.class)
-        .withTask(UpdateManifestWaitForStableTask.TASK_NAME, UpdateManifestWaitForStableTask.class);
+        .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)
+        .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class);
   }
 }

@@ -52,7 +52,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 
 @Component
 @Slf4j
-public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task {
+public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task, ManifestAware {
   private final static String REFRESH_TYPE = "manifest";
   public final static String TASK_NAME = "forceCacheRefresh";
 
@@ -86,6 +86,7 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
     String cloudProvider = getCloudProvider(stage);
     String account = getCredentials(stage);
     StageData stageData = fromStage(stage);
+    stageData.manifestNamesByNamespace = manifestNamesByNamespace(stage);
 
     if (refreshManifests(cloudProvider, account, stageData)) {
       return new TaskResult(SUCCEEDED, toContext(stageData));
@@ -263,7 +264,6 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
 
   @Data
   static private class StageData {
-    @JsonProperty("outputs.manifestNamesByNamespace")
     Map<String, List<String>> manifestNamesByNamespace = new HashMap<>();
 
     @JsonProperty("refreshed.manifests")
