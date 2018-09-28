@@ -8,6 +8,7 @@ import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConf
 import './validation/ApplicationNameValidator';
 import './help/titus.help';
 import { TITUS_REACT_MODULE } from './reactShims/titus.react.module';
+import './pipeline/stages/runJob/titusRunJobStage';
 
 import { TitusCloneServerGroupModal } from './serverGroup/configure/wizard/TitusCloneServerGroupModal';
 
@@ -29,7 +30,6 @@ module(TITUS_MODULE, [
   require('./serverGroup/serverGroup.transformer.js').name,
   require('./instance/details/instance.details.controller.js').name,
   require('./pipeline/stages/findAmi/titusFindAmiStage.js').name,
-  require('./pipeline/stages/runJob/titusRunJobStage.js').name,
   require('./pipeline/stages/enableAsg/titusEnableAsgStage.js').name,
   require('./pipeline/stages/disableAsg/titusDisableAsgStage.js').name,
   require('./pipeline/stages/destroyAsg/titusDestroyAsgStage.js').name,
