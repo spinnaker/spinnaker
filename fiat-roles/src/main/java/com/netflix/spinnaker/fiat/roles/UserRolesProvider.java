@@ -19,11 +19,16 @@ package com.netflix.spinnaker.fiat.roles;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface UserRolesProvider {
+
+  default List<Role> loadUnrestrictedRoles() {
+    return new ArrayList<>();
+  }
 
   /**
    * Load the roles assigned to the {@link com.netflix.spinnaker.security.User User}.

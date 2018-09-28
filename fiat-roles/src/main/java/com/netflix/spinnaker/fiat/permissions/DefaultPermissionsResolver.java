@@ -70,8 +70,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @Override
   public UserPermission resolveUnrestrictedUser() {
-    return getUserPermission(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME,
-                             new HashSet<>() /* groups */);
+    return getUserPermission(
+        UnrestrictedResourceConfig.UNRESTRICTED_USERNAME,
+        new HashSet<>(userRolesProvider.loadUnrestrictedRoles())
+    );
   }
 
   @Override

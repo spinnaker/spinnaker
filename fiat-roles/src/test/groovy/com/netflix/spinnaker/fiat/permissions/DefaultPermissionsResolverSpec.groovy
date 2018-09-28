@@ -34,6 +34,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultPermissionsResolverSpec extends Specification {
+  UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
 
   @Shared
   Account noReqGroupsAcct = new Account().setName("noReqGroups")
@@ -82,13 +83,17 @@ class DefaultPermissionsResolverSpec extends Specification {
         .setResourceProviders(resourceProviders)
         .setMapper(new ObjectMapper())
         .setFiatAdminConfig(new FiatAdminConfig())
+        .setUserRolesProvider(userRolesProvider)
 
     when:
     def result = resolver.resolveUnrestrictedUser()
 
     then:
+    1 * userRolesProvider.loadUnrestrictedRoles() >> { return [new Role("anonymous")] }
+
     def expected = new UserPermission().setId("__unrestricted_user__")
                                        .setAccounts([noReqGroupsAcct] as Set)
+                                       .setRoles([new Role("anonymous")] as Set)
     result == expected
   }
 
