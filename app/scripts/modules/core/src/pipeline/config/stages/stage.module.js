@@ -187,7 +187,11 @@ module.exports = angular
 
           if (config.component) {
             const StageConfig = config.component;
-            const props = { stageFieldUpdated: $scope.stageFieldUpdated, stage: $scope.stage };
+            const props = {
+              application: $scope.application,
+              stageFieldUpdated: $scope.stageFieldUpdated,
+              stage: $scope.stage,
+            };
             ReactDOM.render(React.createElement(StageConfig, props), stageDetailsNode);
           } else {
             const template = $templateCache.get(config.templateUrl);
