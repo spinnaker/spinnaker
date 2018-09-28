@@ -97,10 +97,14 @@ gcloud beta pubsub subscriptions create $GCR_SUB --topic $GCR_TOPIC
 
 bold "Creating your cluster $GKE_CLUSTER..."
 
-gcloud container clusters create $GKE_CLUSTER --zone $ZONE \
+if [ -n "$ADDITIONAL_CLUSTER_FLAGS" ]; then
+  bold "Additional cluster creation flags: $ADDITIONAL_CLUSTER_FLAGS"
+fi
+
+gcloud beta container clusters create $GKE_CLUSTER --zone $ZONE \
   --service-account $SA_EMAIL --username admin \
   --machine-type n1-standard-4 --image-type COS --disk-size 100 \
-  --num-nodes 3 --enable-cloud-logging --enable-cloud-monitoring
+  --num-nodes 3 $ADDITIONAL_CLUSTER_FLAGS
 
 gcloud container clusters get-credentials $GKE_CLUSTER --zone $ZONE
 
