@@ -336,6 +336,33 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     request.getContainerDefinitions().get(0).getLogConfiguration().getOptions() == logOptions
   }
 
+  def 'should allow using secret credentials for the docker image'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+    description.getDockerImageCredentialsSecret() >> 'my-secret'
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+
+    then:
+    request.getContainerDefinitions().get(0).getRepositoryCredentials().getCredentialsParameter() == 'my-secret'
+  }
+
+  def 'should allow not specifying secret credentials for the docker image'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeTaskDefinitionRequest('arn:aws:iam::test:test-role', 'v0011')
+
+    then:
+    request.getContainerDefinitions().get(0).getRepositoryCredentials() == null
+  }
+
   def 'should generate a RegisterTaskDefinitionRequest object'() {
     given:
     def description = Mock(CreateServerGroupDescription)

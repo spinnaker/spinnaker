@@ -23,21 +23,7 @@ import com.amazonaws.services.applicationautoscaling.model.ScalableDimension;
 import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
 import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.AwsVpcConfiguration;
-import com.amazonaws.services.ecs.model.ContainerDefinition;
-import com.amazonaws.services.ecs.model.CreateServiceRequest;
-import com.amazonaws.services.ecs.model.DeploymentConfiguration;
-import com.amazonaws.services.ecs.model.KeyValuePair;
-import com.amazonaws.services.ecs.model.ListServicesRequest;
-import com.amazonaws.services.ecs.model.ListServicesResult;
-import com.amazonaws.services.ecs.model.LoadBalancer;
-import com.amazonaws.services.ecs.model.LogConfiguration;
-import com.amazonaws.services.ecs.model.NetworkConfiguration;
-import com.amazonaws.services.ecs.model.PortMapping;
-import com.amazonaws.services.ecs.model.RegisterTaskDefinitionRequest;
-import com.amazonaws.services.ecs.model.RegisterTaskDefinitionResult;
-import com.amazonaws.services.ecs.model.Service;
-import com.amazonaws.services.ecs.model.TaskDefinition;
+import com.amazonaws.services.ecs.model.*;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
@@ -75,6 +61,7 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
   protected static final String AWSVPC_NETWORK_MODE = "awsvpc";
   protected static final String FARGATE_LAUNCH_TYPE = "FARGATE";
   protected static final String NO_IAM_ROLE = "None (No IAM role)";
+  protected static final String NO_IMAGE_CREDENTIALS = "None (No registry credentials)";
 
   protected static final String DOCKER_LABEL_KEY_SERVERGROUP = "spinnaker.servergroup";
   protected static final String DOCKER_LABEL_KEY_STACK = "spinnaker.stack";
@@ -171,6 +158,13 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
       .withCpu(description.getComputeUnits())
       .withMemoryReservation(description.getReservedMemory())
       .withImage(description.getDockerImageAddress());
+
+    if (!NO_IMAGE_CREDENTIALS.equals(description.getDockerImageCredentialsSecret()) &&
+      description.getDockerImageCredentialsSecret() != null) {
+      RepositoryCredentials credentials = new RepositoryCredentials()
+        .withCredentialsParameter(description.getDockerImageCredentialsSecret());
+      containerDefinition.withRepositoryCredentials(credentials);
+    }
 
     Map<String, String> labelsMap = new HashMap<>();
     if (description.getDockerLabels() != null) {

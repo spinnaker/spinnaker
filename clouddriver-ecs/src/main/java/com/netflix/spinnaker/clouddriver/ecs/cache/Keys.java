@@ -34,7 +34,8 @@ public class Keys implements KeyParser {
     CONTAINER_INSTANCES,
     TASK_DEFINITIONS,
     ALARMS,
-    SCALABLE_TARGETS;
+    SCALABLE_TARGETS,
+    SECRETS;
 
     public final String ns;
 
@@ -120,6 +121,9 @@ public class Keys implements KeyParser {
       case IAM_ROLE:
         result.put("roleName", parts[3]);
         break;
+      case SECRETS:
+        result.put("secretName", parts[4]);
+        break;
       case SCALABLE_TARGETS:
         result.put("resource", parts[4]);
         break;
@@ -169,6 +173,10 @@ public class Keys implements KeyParser {
 
   public static String getIamRoleKey(String account, String iamRoleName) {
     return ID + SEPARATOR + Namespace.IAM_ROLE + SEPARATOR + account + SEPARATOR + iamRoleName;
+  }
+
+  public static String getSecretKey(String account, String region, String secretName) {
+    return buildKey(Namespace.SECRETS.ns, account, region, secretName);
   }
 
   private static String buildKey(String namespace,String account, String region, String identifier){

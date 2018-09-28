@@ -46,7 +46,7 @@ class KeysSpec extends Specification {
     'test-account-5' | 'us-west-5' | TASK_DEFINITIONS.ns    | 'arn:aws:ecs:' + region + ':012345678910:task-definition/hello_world:10'                          | buildParsedKey(account, region, namespace, [taskDefinitionArn: identifier])
     'test-account-6' | 'us-west-6' | ALARMS.ns    | 'arn:aws:ecs:' + region + ':012345678910:alarms/14e8cce9-0b16-4af4-bfac-a85f7587aa98'                          | buildParsedKey(account, region, namespace, [alarmArn: identifier])
     'test-account-7' | 'us-west-7' | SCALABLE_TARGETS.ns    | 'service/test-cluster/test-service'                          | buildParsedKey(account, region, namespace, [resource: identifier])
-
+    'test-account-8' | 'us-west-8' | SECRETS.ns             | 'my-secret'                                                                                       | buildParsedKey(account, region, namespace, [secretName: identifier])
   }
 
   def 'should parse a given iam role key properly'() {
@@ -137,5 +137,15 @@ class KeysSpec extends Specification {
     region      | account          | taskId
     'us-west-1' | 'test-account-1' | 'service/test-cluster/test-service'
     'us-west-2' | 'test-account-2' | 'service/mycluster/myservice'
+  }
+
+  def 'should generate the proper secret key'() {
+    expect:
+    Keys.getSecretKey(account, region, secretName) == buildKey(SECRETS.ns, account, region, secretName)
+
+    where:
+    region      | account          | secretName
+    'us-west-1' | 'test-account-1' | 'my-first-secret'
+    'us-west-2' | 'test-account-2' | 'my-second-secret'
   }
 }

@@ -24,16 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ContainerInstanceCachingAgent;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.EcsCloudMetricAlarmCachingAgent;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.EcsClusterCachingAgent;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamPolicyReader;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamRoleCachingAgent;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ScalableTargetsCachingAgent;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskCachingAgent;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskDefinitionCachingAgent;
-import com.netflix.spinnaker.clouddriver.ecs.provider.agent.TaskHealthCachingAgent;
+import com.netflix.spinnaker.clouddriver.ecs.provider.agent.*;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -93,6 +84,7 @@ public class EcsProviderConfig {
             newAgents.add(new TaskHealthCachingAgent(credentials, region.getName(), amazonClientProvider, awsCredentialsProvider, objectMapper));
             newAgents.add(new EcsCloudMetricAlarmCachingAgent(credentials, region.getName(), amazonClientProvider, awsCredentialsProvider));
             newAgents.add(new ScalableTargetsCachingAgent(credentials, region.getName(), amazonClientProvider, awsCredentialsProvider, objectMapper));
+            newAgents.add(new SecretCachingAgent(credentials, region.getName(), amazonClientProvider, awsCredentialsProvider, objectMapper));
           }
         }
       }
