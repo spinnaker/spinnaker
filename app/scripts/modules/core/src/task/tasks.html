@@ -131,9 +131,6 @@
                 <a ng-if="task.isRunning || task.hasNotStarted" href ng-click="tasks.cancelTask(task.id); $event.stopPropagation();">
                   <span class="glyphicon glyphicon-remove" uib-tooltip="Cancel Task"></span>
                 </a>
-                <a ng-if="!task.isRunning && !task.hasNotStarted" href ng-click="tasks.deleteTask(task.id); $event.stopPropagation();">
-                  <span class="glyphicon glyphicon-trash" uib-tooltip="Delete Task History"></span>
-                </a>
               </td>
             </tr>
             <tr ng-repeat="step in task.steps | displayableTasks"

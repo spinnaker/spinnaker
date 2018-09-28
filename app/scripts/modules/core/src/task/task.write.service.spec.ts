@@ -44,34 +44,4 @@ describe('Service: TaskWriter', () => {
       expect(completed).toBe(true);
     });
   });
-
-  describe('deleting task', () => {
-    it('should wait until task is gone, then resolve', () => {
-      const taskId = 'abc';
-      const deleteUrl = [API.baseUrl, 'tasks', taskId].join('/');
-      const checkUrl = [API.baseUrl, 'tasks', taskId].join('/');
-      let completed = false;
-
-      $httpBackend.expectDELETE(deleteUrl).respond(200, []);
-
-      TaskWriter.deleteTask(taskId).then(() => (completed = true));
-
-      // first check: task is still present
-      $httpBackend.expectGET(checkUrl).respond(200, [{ id: taskId }]);
-      $httpBackend.flush();
-      expect(completed).toBe(false);
-
-      // second check: task retrieval returns some error, try again
-      $httpBackend.expectGET(checkUrl).respond(500, null);
-      timeout.flush();
-      $httpBackend.flush();
-      expect(completed).toBe(false);
-
-      // third check: task is not present, should complete
-      $httpBackend.expectGET(checkUrl).respond(404, null);
-      timeout.flush();
-      $httpBackend.flush();
-      expect(completed).toBe(true);
-    });
-  });
 });

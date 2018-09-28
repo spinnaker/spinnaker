@@ -63,27 +63,6 @@ describe('Controller: tasks', function() {
     });
   });
 
-  describe('deleting tasks', function() {
-    it('should confirm delete, then perform delete, then reload tasks', function() {
-      var taskReloadCalls = 0,
-        tasks = [{ id: 'a', name: 'resize something' }];
-      spyOn(TaskWriter, 'deleteTask').and.returnValue($q.when(null));
-
-      this.initializeController(tasks);
-      spyOn(controller.application.tasks, 'refresh').and.callFake(() => taskReloadCalls++);
-      scope.$digest();
-
-      expect(taskReloadCalls).toBe(0);
-      expect(TaskWriter.deleteTask.calls.count()).toBe(0);
-
-      controller.deleteTask('a');
-
-      scope.$digest();
-      expect(TaskWriter.deleteTask.calls.count()).toBe(1);
-      expect(taskReloadCalls).toBe(1);
-    });
-  });
-
   describe('canceling tasks', function() {
     it('should confirm delete, then perform delete, then reload tasks', function() {
       var taskReloadCalls = 0,
