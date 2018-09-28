@@ -49,7 +49,13 @@ class InMemoryTaskRepository implements TaskRepository {
 
   @Override
   List<Task> list() {
-    repository.values() as List
+    List<Task> tasks = new ArrayList<>();
+    for (Task value : repository.values()) {
+      if (!value.getStatus().completed) {
+        tasks.add(value)
+      }
+    }
+    return tasks;
   }
 
   @Override

@@ -1,0 +1,5 @@
+dependencies {
+  compile project(":clouddriver-core")
+  compile spinnaker.dependency("junit")
+  compile spinnaker.dependency("assertj")
+}

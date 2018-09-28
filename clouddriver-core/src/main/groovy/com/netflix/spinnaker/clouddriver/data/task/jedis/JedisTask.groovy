@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.data.task.jedis
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
@@ -48,7 +47,7 @@ class JedisTask implements Task {
   void updateStatus(String phase, String status) {
     checkMutable()
     repository.addToHistory(repository.currentState(this).update(phase, status), this)
-    log.info "[$phase] - $status"
+    log.info("[$phase] $status")
   }
 
   @Override

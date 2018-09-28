@@ -20,6 +20,7 @@ dependencies {
   compile project(':clouddriver-security')
   testCompile project(':cats:cats-test')
   testCompile spinnaker.dependency('korkJedisTest')
+  testCompile project(":clouddriver-core-tck")
 
   compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
 }
