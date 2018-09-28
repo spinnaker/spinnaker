@@ -15,6 +15,7 @@ import { IPipeline } from 'core/domain/IPipeline';
 import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
 import { Error } from 'tslint/lib/error';
+import { IRetryablePromise, retryablePromise } from 'core/utils/retryablePromise';
 
 export class ExecutionService {
   public get activeStatuses(): string[] {
@@ -226,28 +227,18 @@ export class ExecutionService {
     }
   }
 
-  public waitUntilPipelineAppearsForEventId(application: Application, eventId: string): IPromise<any> {
-    return this.getExecutionByEventId(application.name, eventId)
-      .then(() => {
-        return application.executions.refresh();
-      })
-      .catch(() => {
-        return this.$timeout(() => {
-          return this.waitUntilPipelineAppearsForEventId(application, eventId);
-        }, 1000);
-      });
+  public waitUntilPipelineAppearsForEventId(application: Application, eventId: string): IRetryablePromise<any> {
+    const closure = () =>
+      this.getExecutionByEventId(application.name, eventId).then(() => application.executions.refresh());
+    return retryablePromise(closure);
   }
 
-  public waitUntilNewTriggeredPipelineAppears(application: Application, triggeredPipelineId: string): IPromise<any> {
-    return this.getExecution(triggeredPipelineId)
-      .then(() => {
-        return application.executions.refresh();
-      })
-      .catch(() => {
-        return this.$timeout(() => {
-          return this.waitUntilNewTriggeredPipelineAppears(application, triggeredPipelineId);
-        }, 1000);
-      });
+  public waitUntilNewTriggeredPipelineAppears(
+    application: Application,
+    triggeredPipelineId: string,
+  ): IRetryablePromise<any> {
+    const closure = () => this.getExecution(triggeredPipelineId).then(() => application.executions.refresh());
+    return retryablePromise(closure);
   }
 
   private waitUntilPipelineIsCancelled(application: Application, executionId: string): IPromise<any> {

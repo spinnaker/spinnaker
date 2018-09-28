@@ -147,7 +147,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
           this.props.app,
           newPipelineId,
         );
-        monitor.then(() => this.setState({ triggeringExecution: false }));
+        monitor.promise.then(() => this.setState({ triggeringExecution: false }));
       },
       () => this.setState({ triggeringExecution: false }),
     );

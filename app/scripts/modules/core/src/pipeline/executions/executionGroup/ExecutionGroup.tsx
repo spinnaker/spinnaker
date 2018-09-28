@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { $timeout } from 'ngimport';
 import { IPromise } from 'angular';
 import { Subscription } from 'rxjs';
 import { find, flatten, uniq, without } from 'lodash';
@@ -13,6 +12,7 @@ import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
 import { ExecutionState } from 'core/state';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { IRetryablePromise } from 'core/utils/retryablePromise';
 
 import { SETTINGS } from 'core';
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
@@ -34,7 +34,7 @@ export interface IExecutionGroupState {
   pipelineConfig: IPipeline;
   triggeringExecution: boolean;
   open: boolean;
-  poll: IPromise<any>;
+  poll: IRetryablePromise<any>;
   canTriggerPipelineManually: boolean;
   canConfigure: boolean;
   showAccounts: boolean;
@@ -117,7 +117,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     this.setState({ triggeringExecution: true });
 
     let triggerFunction: (app: string, pipeline: string, trigger: any) => IPromise<string>;
-    let monitorFunction: (id: string) => IPromise<any>;
+    let monitorFunction: (id: string) => IRetryablePromise<any>;
     if (SETTINGS.feature.triggerViaEcho) {
       triggerFunction = PipelineConfigService.triggerPipelineViaEcho.bind(PipelineConfigService);
       monitorFunction = eventId => executionService.waitUntilPipelineAppearsForEventId(this.props.application, eventId);
@@ -130,7 +130,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     return triggerFunction(this.props.application.name, command.pipelineName, command.trigger).then(
       triggerResult => {
         const monitor = monitorFunction(triggerResult);
-        monitor.then(() => this.setState({ triggeringExecution: false }));
+        monitor.promise.then(() => this.setState({ triggeringExecution: false }));
         this.setState({ poll: monitor });
       },
       () => {
@@ -174,7 +174,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
   public componentWillUnmount(): void {
     if (this.state.poll) {
-      $timeout.cancel(this.state.poll);
+      this.state.poll.cancel();
     }
     if (this.expandUpdatedSubscription) {
       this.expandUpdatedSubscription.unsubscribe();

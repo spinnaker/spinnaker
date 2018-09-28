@@ -459,7 +459,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(200, {});
 
-      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId).then(() => (succeeded = true));
+      executionService
+        .waitUntilNewTriggeredPipelineAppears(application, executionId)
+        .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -472,7 +474,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(404, {});
 
-      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId).then(() => (succeeded = true));
+      executionService
+        .waitUntilNewTriggeredPipelineAppears(application, executionId)
+        .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -485,7 +489,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(404, {});
 
-      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId).then(() => (succeeded = true));
+      executionService
+        .waitUntilNewTriggeredPipelineAppears(application, executionId)
+        .promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
