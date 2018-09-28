@@ -88,6 +88,7 @@ class PreconfiguredWebhookProperties {
     String defaultValue
     String description
     ParameterType type = ParameterType.string
+    int order
 
     static enum ParameterType {
       string
