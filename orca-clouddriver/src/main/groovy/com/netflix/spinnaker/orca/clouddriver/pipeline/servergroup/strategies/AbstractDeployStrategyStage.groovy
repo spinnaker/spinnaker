@@ -111,7 +111,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     def preProcessors = deployStagePreProcessors.findAll { it.supports(stage) }
     def stageData = stage.mapTo(StageData)
     def stages = []
-    def moniker = stageData.moniker ?: MonikerHelper.friggaToMoniker(stageData.cluster)
+    def moniker = stageData.moniker?.cluster ? stageData.moniker : MonikerHelper.friggaToMoniker(stageData.cluster)
     def location = TargetServerGroup.Support.locationFromStageData(stageData)
     def lockName = ClusterLockHelper.clusterLockName(moniker, stageData.account, location)
     boolean addLocking = trafficGuard.hasDisableLock(moniker, stageData.account, location)

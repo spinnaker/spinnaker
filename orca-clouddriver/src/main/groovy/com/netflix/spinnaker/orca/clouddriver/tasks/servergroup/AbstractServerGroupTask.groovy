@@ -126,8 +126,8 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
 
   Moniker convertMoniker(Stage stage) {
     if (TargetServerGroup.isDynamicallyBound(stage)) {
-      TargetServerGroup tsg = TargetServerGroupResolver.fromPreviousStage(stage);
-      return  tsg.getMoniker() == null ? MonikerHelper.friggaToMoniker(tsg.getName()) : tsg.getMoniker();
+      TargetServerGroup tsg = TargetServerGroupResolver.fromPreviousStage(stage)
+      return tsg.getMoniker()?.getCluster() == null ? MonikerHelper.friggaToMoniker(tsg.getName()) : tsg.getMoniker()
     }
     String serverGroupName = (String) stage.context.serverGroupName;
     String asgName = (String) stage.context.asgName;

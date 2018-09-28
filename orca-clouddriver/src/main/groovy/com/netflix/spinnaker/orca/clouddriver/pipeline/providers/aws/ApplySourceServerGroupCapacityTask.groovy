@@ -93,7 +93,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
   @Override
   Moniker convertMoniker(Stage stage) {
     // Used in AbstractServerGroupTask.execute() but not needed here.
-    return null;
+    return null
   }
 
   /**

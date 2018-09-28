@@ -21,7 +21,6 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService;
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;

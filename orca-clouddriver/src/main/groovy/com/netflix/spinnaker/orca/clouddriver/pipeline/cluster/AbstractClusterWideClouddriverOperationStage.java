@@ -119,7 +119,7 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
       @JsonProperty("cloudProvider") String cloudProvider,
       @JsonProperty("credentials") String credentials) {
       if (cluster == null) {
-        if (moniker == null) {
+        if (moniker == null || moniker.getCluster() == null) {
           throw new NullPointerException("At least one of 'cluster' and 'moniker' is required");
         } else {
           this.cluster = moniker.getCluster();
@@ -128,7 +128,7 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
         this.cluster = cluster;
       }
 
-      if (moniker == null) {
+      if (moniker == null || moniker.getCluster() == null) {
         this.moniker = MonikerHelper.friggaToMoniker(this.cluster);
       } else {
         this.moniker = moniker;

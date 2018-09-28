@@ -20,6 +20,6 @@ public class ClusterLockHelper {
       Objects.requireNonNull(account),
       loc.map(Location::getType).orElse(null),
       loc.map(Location::getValue).orElse(null),
-      Objects.requireNonNull(clusterMoniker).getCluster());
+      Optional.ofNullable(clusterMoniker).map(Moniker::getCluster).orElseThrow(NullPointerException::new));
   }
 }

@@ -163,7 +163,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
 
     where:
     cluster       | moniker            | expected
-    'clustername' | ['app': 'appname'] | 'appname'
+    'clustername' | ['app': 'appname', cluster:'clustername'] | 'appname'
     'app-stack'   | null               | 'app'
 
   }
