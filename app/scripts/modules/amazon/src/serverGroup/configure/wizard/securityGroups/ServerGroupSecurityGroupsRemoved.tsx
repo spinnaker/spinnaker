@@ -1,16 +1,20 @@
 import * as React from 'react';
 
-import { FirewallLabels } from '@spinnaker/core';
+import { FirewallLabels, noop } from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupSecurityGroupsRemovedProps {
   command?: IAmazonServerGroupCommand;
   removed?: string[];
-  onClear: () => void;
+  onClear?: () => void;
 }
 
 export class ServerGroupSecurityGroupsRemoved extends React.Component<IServerGroupSecurityGroupsRemovedProps> {
+  public static defaultProps: Partial<IServerGroupSecurityGroupsRemovedProps> = {
+    onClear: noop,
+  };
+
   public render() {
     const { command, onClear, removed } = this.props;
 
