@@ -52,7 +52,7 @@ public class KubernetesDeployManifestValidator extends DescriptionValidator<Kube
         continue;
       }
 
-      if (!util.validateV2Credentials(provider, description.getAccount(), manifest.getNamespace())) {
+      if (!util.validateV2Credentials(provider, description.getAccount(), manifest)) {
         return;
       }
     }

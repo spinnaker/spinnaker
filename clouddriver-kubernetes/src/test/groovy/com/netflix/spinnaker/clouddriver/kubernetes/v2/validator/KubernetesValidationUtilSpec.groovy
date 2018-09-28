@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -26,25 +28,30 @@ import spock.lang.Unroll
 
 class KubernetesValidationUtilSpec extends Specification {
   @Unroll
-  void "wiring of namespace validation"() {
+  void "wiring of kind/namespace validation"() {
     given:
     Errors errors = Mock(Errors)
     String kubernetesAccount = "testAccount"
     def namespaces = ["test-namespace"]
     def omitNamespaces = ["omit-namespace"]
+    def kind = KubernetesKind.DEPLOYMENT
     AccountCredentials accountCredentials = Mock(AccountCredentials)
     KubernetesV2Credentials credentials = Mock(KubernetesV2Credentials)
     KubernetesValidationUtil kubernetesValidationUtil = new KubernetesValidationUtil("currentContext", errors);
     AccountCredentialsProvider accountCredentialsProvider = Mock(AccountCredentialsProvider)
+    KubernetesManifest manifest = Mock(KubernetesManifest)
 
     when:
-    def judgement = kubernetesValidationUtil.validateV2Credentials(accountCredentialsProvider, kubernetesAccount, testNamespace)
+    def judgement = kubernetesValidationUtil.validateV2Credentials(accountCredentialsProvider, kubernetesAccount, manifest)
 
     then:
     accountCredentialsProvider.getCredentials(kubernetesAccount) >> accountCredentials
     accountCredentials.getCredentials() >> credentials
     credentials.getOmitNamespaces() >> omitNamespaces
     credentials.namespaces >> namespaces
+    manifest.getNamespace() >> testNamespace
+    manifest.getKind() >> kind
+    credentials.isValidKind(kind) >> true
     judgement == expectedResult
 
     where:

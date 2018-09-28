@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
@@ -79,8 +81,14 @@ public class KubernetesValidationUtil {
     return true;
   }
 
-  public boolean validateV2Credentials(AccountCredentialsProvider provider, String accountName, String namespace) {
-    log.info("Validating credentials for {} {}", accountName, namespace);
+  public boolean validateV2Credentials(AccountCredentialsProvider provider, String accountName, KubernetesManifest manifest) {
+    KubernetesKind kind = manifest.getKind();
+    String namespace = manifest.getNamespace();
+    return validateV2Credentials(provider, accountName, kind, namespace);
+  }
+
+  public boolean validateV2Credentials(AccountCredentialsProvider provider, String accountName, KubernetesKind kind, String namespace) {
+    log.info("Validating credentials for {} {} {}", accountName, kind, namespace);
     if (!validateNotEmpty("account", accountName)) {
       return false;
     }
@@ -100,7 +108,20 @@ public class KubernetesValidationUtil {
       return false;
     }
 
-    if (!validateNamespace(namespace, (KubernetesV2Credentials)credentials.getCredentials())) {
+    if (!validateNamespace(namespace, (KubernetesV2Credentials) credentials.getCredentials())) {
+      return false;
+    }
+
+    if (!validateKind(kind, (KubernetesV2Credentials) credentials.getCredentials())) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private boolean validateKind(KubernetesKind kind, KubernetesV2Credentials credentials) {
+    if (!credentials.isValidKind(kind)) {
+      reject("notValidKind", kind.toString());
       return false;
     }
 

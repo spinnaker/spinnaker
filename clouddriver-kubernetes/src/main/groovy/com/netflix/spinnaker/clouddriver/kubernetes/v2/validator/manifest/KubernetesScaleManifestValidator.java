@@ -40,7 +40,7 @@ public class KubernetesScaleManifestValidator extends DescriptionValidator<Kuber
   @Override
   public void validate(List priorDescriptions, KubernetesScaleManifestDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("scaleKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getNamespace())) {
+    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getKind(), description.getPointCoordinates().getNamespace())) {
       return;
     }
   }

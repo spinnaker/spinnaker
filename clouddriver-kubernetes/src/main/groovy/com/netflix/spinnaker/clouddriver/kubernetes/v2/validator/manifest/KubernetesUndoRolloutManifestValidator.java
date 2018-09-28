@@ -40,7 +40,7 @@ public class KubernetesUndoRolloutManifestValidator extends DescriptionValidator
   @Override
   public void validate(List priorDescriptions, KubernetesUndoRolloutManifestDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("undoRolloutKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getNamespace())) {
+    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getKind(), description.getPointCoordinates().getNamespace())) {
       return;
     }
 

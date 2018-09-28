@@ -40,7 +40,7 @@ public class KubernetesResizeServerGroupValidator extends DescriptionValidator<K
   @Override
   public void validate(List priorDescriptions, KubernetesResizeServerGroupDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("deployKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount(), description.getCoordinates().getNamespace())) {
+    if (!util.validateV2Credentials(provider, description.getAccount(), description.getCoordinates().getKind(), description.getCoordinates().getNamespace())) {
       return;
     }
 

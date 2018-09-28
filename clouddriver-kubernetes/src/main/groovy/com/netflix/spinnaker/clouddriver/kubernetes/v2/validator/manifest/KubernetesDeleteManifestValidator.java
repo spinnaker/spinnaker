@@ -50,7 +50,7 @@ public class KubernetesDeleteManifestValidator extends DescriptionValidator<Kube
     }
 
     for (KubernetesCoordinates coordinate : coordinates) {
-      if (!util.validateV2Credentials(provider, description.getAccount(), coordinate.getNamespace())) {
+      if (!util.validateV2Credentials(provider, description.getAccount(), coordinate.getKind(), coordinate.getNamespace())) {
         return;
       }
     }

@@ -53,8 +53,7 @@ public class KubernetesPatchManifestValidator extends DescriptionValidator<Kuber
       return;
     }
 
-    if (!util.validateV2Credentials(provider, description.getAccount(),
-      description.getPointCoordinates().getNamespace())) {
+    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getKind(), description.getPointCoordinates().getNamespace())) {
       return;
     }
   }
