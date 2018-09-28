@@ -41,7 +41,8 @@ data class SecurityGroup(
   data class SecurityGroupRuleReference(
     val name: String,
     val accountName: String?,
-    val region: String?
+    val region: String?,
+    val vpcId: String?
   )
 
   data class SecurityGroupRuleCidr(

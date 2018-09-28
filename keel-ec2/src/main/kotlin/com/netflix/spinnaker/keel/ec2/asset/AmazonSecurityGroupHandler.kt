@@ -22,7 +22,13 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.ec2.AmazonAssetHandler
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.ec2.PortRange
 import com.netflix.spinnaker.keel.ec2.SecurityGroupRule
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRule.RuleCase.CIDRRULE
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRule.RuleCase.CROSSREGIONREFERENCERULE
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRule.RuleCase.REFERENCERULE
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRule.RuleCase.RULE_NOT_SET
+import com.netflix.spinnaker.keel.ec2.SecurityGroupRule.RuleCase.SELFREFERENCINGRULE
 import com.netflix.spinnaker.keel.ec2.SecurityGroupRules
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -46,7 +52,7 @@ class AmazonSecurityGroupHandler(
   }
 
   override fun flattenAssetContainer(assetContainer: AssetContainer): Asset {
-     val securityGroupAsset = assetContainer.asset.spec
+    val securityGroupAsset = assetContainer.asset.spec
       .unpack<SecurityGroupProto>()
       .toBuilder().apply {
         assetContainer.partialAssetList
@@ -64,8 +70,8 @@ class AmazonSecurityGroupHandler(
     return Asset.newBuilder()
       .also {
         it.id = assetContainer.asset.id
-         it.typeMetadataBuilder.apply {
-           kind = "ec2.SecurityGroup"
+        it.typeMetadataBuilder.apply {
+          kind = "ec2.SecurityGroup"
           apiVersion = "1.0"
         }
         it.spec = securityGroupAsset.pack()
@@ -124,17 +130,66 @@ class AmazonSecurityGroupHandler(
       .apply {
         typeMetadata = request.asset.typeMetadata
         spec = SecurityGroupProto.newBuilder()
-          .also {
-            it.name = name
-            it.accountName = accountName
-            it.region = region
-            it.vpcName = vpcId?.let { cloudDriverCache.networkBy(it).name }
-            it.description = description
+          .also { builder ->
+            builder.name = name
+            builder.accountName = accountName
+            builder.region = region
+            builder.vpcName = vpcId?.let { cloudDriverCache.networkBy(it).name }
+            builder.description = description
+            inboundRules.forEach { rule ->
+              builder.inboundRuleList.add(
+                SecurityGroupRule.newBuilder().also { builder ->
+                  val referencedGroup = rule.securityGroup
+                  val cidrRange = rule.range
+                  when {
+                    referencedGroup != null && (referencedGroup.vpcId == vpcId && referencedGroup.name == name) -> {
+                      builder.selfReferencingRuleBuilder.also { ruleBuilder ->
+                        ruleBuilder.protocol = rule.protocol
+                        rule.portRanges?.forEach {
+                          ruleBuilder.portRangeList.add(it.toProto())
+                        }
+                      }
+                    }
+                    referencedGroup != null && (referencedGroup.accountName != accountName || referencedGroup.region != region) -> {
+                      builder.crossRegionReferenceRuleBuilder.also { ruleBuilder ->
+                        ruleBuilder.protocol = rule.protocol
+                        ruleBuilder.account = referencedGroup.accountName
+                        ruleBuilder.vpcName = referencedGroup.vpcId?.let { cloudDriverCache.networkBy(it).name }
+                        ruleBuilder.name = referencedGroup.name
+                        rule.portRanges?.forEach {
+                          ruleBuilder.portRangeList.add(it.toProto())
+                        }
+                      }
+                    }
+                    referencedGroup != null -> {
+                      builder.referenceRuleBuilder.also { ruleBuilder ->
+                        ruleBuilder.protocol = rule.protocol
+                        ruleBuilder.name = referencedGroup.name
+                        rule.portRanges?.forEach {
+                          ruleBuilder.portRangeList.add(it.toProto())
+                        }
+                      }
+                    }
+                    cidrRange != null -> {
+                      builder.cidrRuleBuilder.also { ruleBuilder ->
+                        ruleBuilder.protocol = rule.protocol
+                        rule.portRanges?.forEach {
+                          ruleBuilder.portRangeList.add(it.toProto())
+                        }
+                        ruleBuilder.blockRange = cidrRange.ip + cidrRange.cidr
+                      }
+                    }
+                  }
+                }
+                  .build()
+              )
+            }
           }
           .build()
           .pack()
       }
       .build()
+
 
   private fun portRangeRuleToJob(spec: SecurityGroupProto): JobRules {
     return spec
@@ -173,6 +228,13 @@ class AmazonSecurityGroupHandler(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
 
+private fun SecurityGroup.SecurityGroupRulePortRange.toProto() =
+  PortRange.newBuilder().let { builder ->
+    builder.startPort = startPort
+    builder.endPort = endPort
+    builder.build()
+  }
+
 typealias JobRules = List<MutableMap<String, Any?>>
 
 private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
@@ -190,10 +252,10 @@ private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
 
 private val SecurityGroupRule.protocol: String
   get() = when (ruleCase) {
-    SecurityGroupRule.RuleCase.CIDRRULE -> cidrRule.protocol
-    SecurityGroupRule.RuleCase.CROSSREGIONREFERENCERULE -> crossRegionReferenceRule.protocol
-    SecurityGroupRule.RuleCase.SELFREFERENCINGRULE -> selfReferencingRule.protocol
-    SecurityGroupRule.RuleCase.REFERENCERULE -> referenceRule.protocol
-    SecurityGroupRule.RuleCase.RULE_NOT_SET -> "unknown"
+    CIDRRULE -> cidrRule.protocol
+    CROSSREGIONREFERENCERULE -> crossRegionReferenceRule.protocol
+    SELFREFERENCINGRULE -> selfReferencingRule.protocol
+    REFERENCERULE -> referenceRule.protocol
+    RULE_NOT_SET -> "unknown"
     else -> "unknown"
   }
