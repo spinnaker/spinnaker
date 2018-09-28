@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.atlas.metrics;
 
+import com.netflix.kayenta.atlas.backends.BackendDatabase;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
 import com.netflix.kayenta.atlas.config.AtlasSSEConverter;
 import com.netflix.kayenta.atlas.model.AtlasResults;
@@ -52,6 +53,8 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 @Builder
 @Slf4j
 public class AtlasMetricsService implements MetricsService {
+
+  public final String URI_SCHEME = "http";
 
   @NotNull
   @Singular
@@ -105,23 +108,30 @@ public class AtlasMetricsService implements MetricsService {
 
     AtlasCanaryScope atlasCanaryScope = (AtlasCanaryScope)canaryScope;
     AtlasNamedAccountCredentials credentials = getCredentials(accountName);
-    Optional<Backend> backend = credentials.getBackendUpdater().getBackendDatabase().getOne(atlasCanaryScope.getDeployment(),
-                                                                                            atlasCanaryScope.getDataset(),
-                                                                                            atlasCanaryScope.getLocation(),
-                                                                                            atlasCanaryScope.getEnvironment());
-    if (!backend.isPresent()) {
-      throw new IllegalArgumentException("Unable to find an appropriate Atlas cluster for" +
-                                          " region=" + atlasCanaryScope.getLocation() +
-                                          " dataset=" + atlasCanaryScope.getDataset() +
-                                          " deployment=" + atlasCanaryScope.getDeployment() +
-                                          " environment=" + atlasCanaryScope.getEnvironment());
+    BackendDatabase backendDatabase = credentials.getBackendUpdater().getBackendDatabase();
+    String uri = backendDatabase.getUriForLocation(URI_SCHEME, atlasCanaryScope.getLocation());
+    if (uri == null) {
+      Optional<Backend> backend = backendDatabase.getOne(atlasCanaryScope.getDeployment(),
+                                                         atlasCanaryScope.getDataset(),
+                                                         atlasCanaryScope.getLocation(),
+                                                         atlasCanaryScope.getEnvironment());
+      if (backend.isPresent()) {
+        uri = backend.get().getUri(URI_SCHEME,
+                                   atlasCanaryScope.getDeployment(),
+                                   atlasCanaryScope.getDataset(),
+                                   atlasCanaryScope.getLocation(),
+                                   atlasCanaryScope.getEnvironment());
+      }
     }
 
-    String uri = backend.get().getUri("http",
-                                      atlasCanaryScope.getDeployment(),
-                                      atlasCanaryScope.getDataset(),
-                                      atlasCanaryScope.getLocation(),
-                                      atlasCanaryScope.getEnvironment());
+    if (uri == null) {
+      throw new IllegalArgumentException("Unable to find an appropriate Atlas cluster for" +
+                                           " location=" + atlasCanaryScope.getLocation() +
+                                           " dataset=" + atlasCanaryScope.getDataset() +
+                                           " deployment=" + atlasCanaryScope.getDeployment() +
+                                           " environment=" + atlasCanaryScope.getEnvironment());
+    }
+
     RemoteService remoteService = new RemoteService();
     log.info("Using Atlas backend {}", uri);
     remoteService.setBaseUrl(uri);

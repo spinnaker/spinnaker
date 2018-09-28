@@ -93,4 +93,19 @@ public class BackendsTest {
     assertEquals("http://deployment=xmain.region=xregion.env=xtest.dataset=xglobal.envAgain=xtest",
                  backend.getUri("http", "xmain", "xglobal", "xregion", "xtest"));
   }
+  @Test
+  public void getUriForlocationTest() throws IOException {
+    List<Backend> backends = readBackends("backends-location-test.json");
+
+    BackendDatabase db = new BackendDatabase();
+    db.update(backends);
+
+    assertEquals("http://atlas-global.test.example.com",
+                 db.getUriForLocation("http", "test.global"));
+    assertEquals("http://atlas-global.prod.example.com",
+                 db.getUriForLocation("http", "prod.global"));
+    assertEquals("http://atlas-main.us-east-1.prod.example.com",
+                 db.getUriForLocation("http", "prod.us-east-1"));
+  }
+
 }

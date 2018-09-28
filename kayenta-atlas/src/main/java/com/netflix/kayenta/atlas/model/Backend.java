@@ -35,6 +35,7 @@ import lombok.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -114,5 +115,42 @@ public class Backend {
       .replace("$(env)", environment);
 
     return scheme + "://" + relativeReference;
+  }
+
+  public String getUriForLocation(String scheme, String location) {
+    String base = target.replace("$(deployment)", deployment).replace("$(dataset)", dataset);
+    boolean hasRegions = (regions != null && regions.size() > 0);
+    boolean hasEnvironments = (environments != null && environments.size() > 0);
+
+    if (!hasRegions && !hasEnvironments) {
+      if (base.equals(location)) {
+        return getUri(scheme, deployment, dataset, "", "");
+      }
+    } else if (!hasRegions && hasEnvironments) {
+      for (String environment : environments) {
+        String potential = base.replace("$(env)", environment);
+        if (potential.equals(location)) {
+          return getUri(scheme, deployment, dataset, "", environment);
+        }
+      }
+    } else if (hasRegions && !hasEnvironments) {
+      for (String region : regions) {
+        String potential = base.replace("$(region)", region);
+        if (potential.equals(location)) {
+          return getUri(scheme, deployment, dataset, region, "");
+        }
+      }
+    } else { // has both regions and environments
+      for (String region : regions) {
+        for (String environment : environments) {
+          String potential = base.replace("$(region)", region).replace("$(env)", environment);
+          if (potential.equals(location)) {
+            return getUri(scheme, deployment, dataset, region, environment);
+          }
+        }
+      }
+    }
+
+    return null;
   }
 }

@@ -64,4 +64,13 @@ public class BackendDatabase {
     }
     return locations.stream().distinct().collect(Collectors.toList());
   }
+
+  public synchronized String getUriForLocation(String scheme, String location) {
+    for (Backend backend : backends) {
+      String cname = backend.getUriForLocation(scheme, location);
+      if (cname != null)
+        return cname;
+    }
+    return null;
+  }
 }
