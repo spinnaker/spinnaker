@@ -176,6 +176,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<String> kinds;
     List<String> omitKinds;
     boolean debug;
+    boolean checkPermissionsOnStartup;
     boolean serviceAccount;
     boolean metrics;
 
@@ -244,6 +245,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
+    public Builder checkPermissionsOnStartup(boolean checkPermissionsOnStartup) {
+      this.checkPermissionsOnStartup = checkPermissionsOnStartup;
+      return this;
+    }
+
     public Builder serviceAccount(boolean serviceAccount) {
       this.serviceAccount = serviceAccount;
       return this;
@@ -300,6 +306,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           KubernetesKind.registeredStringList(kinds),
           KubernetesKind.registeredStringList(omitKinds),
           metrics,
+          checkPermissionsOnStartup,
           debug
       );
     }
@@ -322,6 +329,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       @NotNull List<KubernetesKind> kinds,
       @NotNull List<KubernetesKind> omitKinds,
       boolean metrics,
+      boolean checkPermissionsOnStartup,
       boolean debug) {
     this.registry = registry;
     this.clock = registry.clock();
@@ -348,7 +356,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         .map(KubernetesManifest::getName)
         .collect(Collectors.toList()), namespaceExpirySeconds, TimeUnit.SECONDS);
 
-    determineOmitKinds();
+    if (checkPermissionsOnStartup) {
+      determineOmitKinds();
+    }
   }
 
   @Override

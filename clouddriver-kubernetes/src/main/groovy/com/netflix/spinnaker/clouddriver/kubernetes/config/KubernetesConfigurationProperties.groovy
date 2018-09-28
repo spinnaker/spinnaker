@@ -50,6 +50,7 @@ class KubernetesConfigurationProperties {
     String namingStrategy = "kubernetesAnnotations"
     Boolean debug = false
     Boolean metrics = true
+    Boolean checkPermissionsOnStartup = true
     List<CustomKubernetesResource> customResources;
     List<KubernetesCachingPolicy> cachingPolicies;
     List<String> kinds

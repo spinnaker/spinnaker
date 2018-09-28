@@ -228,6 +228,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     List<String> kinds;
     List<String> omitKinds;
     boolean debug;
+    boolean checkPermissionsOnStartup;
     KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
 
     Builder kubernetesSpinnakerKindMap(KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap) {
@@ -383,6 +384,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
+    Builder checkPermissionsOnStartup(boolean checkPermissionsOnStartup) {
+      this.checkPermissionsOnStartup = checkPermissionsOnStartup;
+      return this;
+    }
+
     Builder namer(Namer namer) {
       this.namer = namer;
       return this;
@@ -450,6 +456,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .omitKinds(omitKinds)
               .metrics(metrics)
               .debug(debug)
+              .checkPermissionsOnStartup(checkPermissionsOnStartup)
               .jobExecutor(jobExecutor)
               .build();
         default:
