@@ -27,14 +27,9 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 @Component
-class CustomStrategy implements Strategy, ApplicationContextAware {
+class CustomStrategy implements Strategy {
 
   final String name = "custom"
-
-  @Autowired(required = false)
-  PipelineStage pipelineStage
-
-  ApplicationContext applicationContext
 
   @Override
   List<Stage> composeFlow(Stage stage) {
@@ -68,7 +63,7 @@ class CustomStrategy implements Strategy, ApplicationContextAware {
     return [
       newStage(
         stage.execution,
-        pipelineStage.type,
+        PipelineStage.PIPELINE_CONFIG_TYPE,
         "pipeline",
         modifyCtx,
         stage,

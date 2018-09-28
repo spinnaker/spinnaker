@@ -61,12 +61,13 @@ class ParallelDeployStage implements StageDefinitionBuilder {
 
   @CompileDynamic
   protected Collection<Map<String, Object>> parallelContexts(Stage stage) {
+    def defaultStageContext = new HashMap(stage.context)
     if (stage.execution.type == PIPELINE) {
       Trigger trigger = stage.execution.trigger
       if (trigger.strategy && trigger instanceof PipelineTrigger) {
         // NOTE: this is NOT the actual parent stage, it's the grandparent which is the top level deploy stage
         Stage parentDeployStage = trigger.parentExecution.stageById(trigger.parameters.parentStageId)
-        Map cluster = parentDeployStage.context as Map
+        Map cluster = new HashMap(parentDeployStage.context as Map)
         cluster.strategy = 'none'
         if (!cluster.amiName && trigger.parameters.amiName) {
           cluster.amiName = trigger.parameters.amiName
@@ -99,29 +100,26 @@ class ParallelDeployStage implements StageDefinitionBuilder {
         // Avoid passing 'stageEnabled' configuration on to the deploy stage in a strategy pipeline
         cluster.remove("stageEnabled")
 
-        // Parent stage can be deploy or cloneServerGroup.
-        stage.type = parentDeployStage.type
-        stage.context.clusters = [cluster as Map<String, Object>]
+        defaultStageContext.clusters = [cluster as Map<String, Object>]
       }
     }
 
-    def defaultStageContext = new HashMap(stage.context)
-
     List<Map<String, Object>> clusters = []
 
-    if (stage.context.cluster) {
-      clusters.add(stage.context.cluster as Map<String, Object>)
-      defaultStageContext.remove("cluster")
+    if (defaultStageContext.cluster) {
+      clusters.add(defaultStageContext.cluster as Map<String, Object>)
     }
-    if (stage.context.clusters) {
-      clusters.addAll(stage.context.clusters as List<Map<String, Object>>)
-      defaultStageContext.remove("clusters")
-    }
+    defaultStageContext.remove("cluster")
 
-    if (!stage.context.cluster && !stage.context.clusters) {
+    if (defaultStageContext.clusters) {
+      clusters.addAll(defaultStageContext.clusters as List<Map<String, Object>>)
+    }
+    defaultStageContext.remove("clusters")
+
+    if (!clusters && !defaultStageContext.isEmpty()) {
       // support invoking this stage as an orchestration without nested target cluster details
-      clusters.add(stage.context)
-      defaultStageContext.clear()
+      clusters.add(defaultStageContext)
+      defaultStageContext = [:]
     }
 
     return clusters.collect {

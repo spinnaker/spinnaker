@@ -114,15 +114,15 @@ class ParallelDeployStageSpec extends Specification {
           [
             name   : "Deploy in us-west-1",
             cluster: [
-              account                  : "prod",
-              availabilityZones        : ["us-west-1": []],
-              cloudProvider            : "aws",
-              restrictedExecutionWindow: [:],
-              strategy                 : "none",
               amiName                  : "ami-1234",
+              restrictedExecutionWindow: [:],
+              cloudProvider            : "aws",
+              availabilityZones        : ["us-west-1": []],
+              strategy                 : "none",
+              account                  : "prod"
             ],
+            account: "prod",
             type   : "createServerGroup",
-            account: "prod"
           ]
         ]
       ],
@@ -130,8 +130,7 @@ class ParallelDeployStageSpec extends Specification {
         scenario                : "inherit traffic options from parent",
         parentStageContext      : [
           amiName           : "ami-1234",
-          trafficOptions    : "enable",
-          suspendedProcesses: [],
+          suspendedProcesses: ['AddToLoadBalancer'],
         ],
         stageContext            : [
           trafficOptions: "inherit"
@@ -141,26 +140,24 @@ class ParallelDeployStageSpec extends Specification {
           [
             name          : "Deploy in us-west-1",
             cluster       : [
-              account                  : "prod",
-              availabilityZones        : ["us-west-1": []],
-              cloudProvider            : "aws",
-              restrictedExecutionWindow: [:],
-              strategy                 : "none",
               amiName                  : "ami-1234",
-              trafficOptions           : "enable",
-              suspendedProcesses       : [],
+              restrictedExecutionWindow: [:],
+              cloudProvider            : "aws",
+              availabilityZones        : ["us-west-1": []],
+              suspendedProcesses       : ['AddToLoadBalancer'],
+              strategy                 : "none",
+              account                  : "prod"
             ],
-            trafficOptions: "inherit",
             type          : "createServerGroup",
+            trafficOptions: "inherit",
             account       : "prod"
           ]
         ]
       ],
       [
-        scenario                : "override traffic options in parent",
+        scenario                : "override traffic options in parent to enable cluster",
         parentStageContext      : [
           amiName           : "ami-1234",
-          trafficOptions    : "disable",
           suspendedProcesses: ['AddToLoadBalancer'],
         ],
         stageContext            : [
@@ -171,18 +168,45 @@ class ParallelDeployStageSpec extends Specification {
           [
             name          : "Deploy in us-west-1",
             cluster       : [
-              account                  : "prod",
-              availabilityZones        : ["us-west-1": []],
-              cloudProvider            : "aws",
-              restrictedExecutionWindow: [:],
-              strategy                 : "none",
               amiName                  : "ami-1234",
-              trafficOptions           : "disable",
-              suspendedProcesses       : []
+              restrictedExecutionWindow: [:],
+              cloudProvider            : "aws",
+              availabilityZones        : ["us-west-1": []],
+              suspendedProcesses       : [],
+              strategy                 : "none",
+              account                  : "prod"
             ],
-            account       : "prod",
-            trafficOptions: "enable",
             type          : "createServerGroup",
+            trafficOptions: "enable",
+            account       : "prod"
+          ]
+        ]
+      ],
+      [
+        scenario                : "override traffic options in parent to disable cluster",
+        parentStageContext      : [
+          amiName           : "ami-1234",
+          suspendedProcesses: [],
+        ],
+        stageContext            : [
+          trafficOptions: "disable"
+        ],
+        triggerParams           : [:],
+        expectedParallelContexts: [
+          [
+            name          : "Deploy in us-west-1",
+            cluster: [
+              amiName                  : "ami-1234",
+              restrictedExecutionWindow: [:],
+              cloudProvider            : "aws",
+              availabilityZones        : ["us-west-1": []],
+              suspendedProcesses       : ['AddToLoadBalancer'],
+              strategy                 : "none",
+              account                  : "prod"
+            ],
+            type          : "createServerGroup",
+            trafficOptions: "disable",
+            account: "prod"
           ]
         ]
       ]

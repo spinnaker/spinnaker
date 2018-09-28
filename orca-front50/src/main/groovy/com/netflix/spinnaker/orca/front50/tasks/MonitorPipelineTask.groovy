@@ -35,7 +35,7 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
   @Autowired
   ExecutionRepository executionRepository
 
-  long backoffPeriod = 1000
+  long backoffPeriod = TimeUnit.SECONDS.toMillis(15)
   long timeout = TimeUnit.HOURS.toMillis(12)
 
   @Override

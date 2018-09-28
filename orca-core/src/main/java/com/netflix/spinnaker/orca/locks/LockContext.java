@@ -3,6 +3,7 @@ package com.netflix.spinnaker.orca.locks;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
 import java.util.Objects;
@@ -54,12 +55,23 @@ public class LockContext {
             .map(Execution.ExecutionType::toString)
             .orElse(null));
 
-        //TODO(cfieber): lockValue.id:
-        // if we are a child pipeline / strategy we probably need to use the parent execution id
-        final String id = Optional.ofNullable(this.id).orElseGet(() ->
-          execution
-            .map(Execution::getId)
-            .orElse(null));
+        final String id = Optional.ofNullable(this.id).orElseGet(() -> {
+          if (!execution.isPresent()) {
+            return null;
+          }
+
+          Optional<Execution> next = execution;
+          Execution rootExecution;
+          do {
+            rootExecution = next.get();
+            next = next
+              .filter(e -> e.getTrigger() instanceof PipelineTrigger)
+              .map(e -> ((PipelineTrigger) e.getTrigger()).getParentStage())
+              .map(Stage::getExecution);
+          } while (next.isPresent());
+
+          return rootExecution.getId();
+        });
 
         return new LockManager.LockValue(application, type, id);
       }

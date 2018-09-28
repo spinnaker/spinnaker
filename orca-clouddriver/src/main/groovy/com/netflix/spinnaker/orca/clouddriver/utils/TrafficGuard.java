@@ -173,7 +173,8 @@ public class TrafficGuard {
     try {
       application = front50Service.get(clusterMoniker.getApp());
     } catch (RetrofitError e) {
-      if (e.getResponse() != null && e.getResponse().getStatus() == 404) {
+      //ignore an unknown (404) or unauthorized (403) application
+      if (e.getResponse() != null && Arrays.asList(404, 403).contains(e.getResponse().getStatus())) {
         application = null;
       } else {
         throw e;
