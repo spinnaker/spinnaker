@@ -15,7 +15,7 @@
   </stage-config-field>
   <stage-config-field label="Parameters"
                       ng-if="$ctrl.parameters.length">
-    <div class="form-group" ng-repeat="parameter in $ctrl.parameters | orderBy:'name'">
+    <div class="form-group" ng-repeat="parameter in $ctrl.parameters | orderBy:['order','name']">
       <div class="col-md-3 sm-label-right">
         <b class="break-word">{{ parameter.label }}</b>
         <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
