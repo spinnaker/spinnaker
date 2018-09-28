@@ -30,5 +30,5 @@ type OAuth2Config struct {
 }
 
 func (x *OAuth2Config) IsValid() bool {
-	return x.TokenUrl != "" && x.AuthUrl != "" && x.ClientId != "" && x.ClientSecret != "" && len(x.Scopes) != 0
+	return x.TokenUrl != "" && x.AuthUrl != "" && len(x.Scopes) != 0
 }
