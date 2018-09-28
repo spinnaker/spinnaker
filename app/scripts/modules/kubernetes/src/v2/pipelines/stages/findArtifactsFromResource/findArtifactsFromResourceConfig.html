@@ -5,5 +5,5 @@
 
   <h4>Manifest</h4>
   <div class="horizontal-rule"></div>
-  <kubernetes-manifest-selector selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
+  <kubernetes-manifest-selector on-change="ctrl.handleManifestSelectorChange" selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
 </div>

@@ -6,7 +6,7 @@
   <div class="container-fluid form-horizontal">
     <h4>Resource to Patch</h4>
     <div class="horizontal-rule"></div>
-    <kubernetes-manifest-selector selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
+    <kubernetes-manifest-selector on-change="ctrl.handleManifestSelectorChange" selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
 
     <h4>Patch Content</h4>
     <hr>

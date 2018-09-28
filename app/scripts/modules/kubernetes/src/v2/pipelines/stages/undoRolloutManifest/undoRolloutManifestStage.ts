@@ -22,9 +22,8 @@ module(KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE, [])
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
           { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
-          { type: 'requiredField', fieldName: 'kind', fieldLabel: 'Kind' },
-          { type: 'requiredField', fieldName: 'name', fieldLabel: 'Manifest Name' },
           { type: 'requiredField', fieldName: 'numRevisionsBack', fieldLabel: 'Number of Revisions' },
+          { type: 'manifestSelector' },
         ],
       });
     }

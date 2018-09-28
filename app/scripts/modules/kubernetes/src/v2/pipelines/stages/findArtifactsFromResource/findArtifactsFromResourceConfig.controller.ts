@@ -1,6 +1,6 @@
 import { IController, IScope } from 'angular';
 
-import { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
+import { IManifestSelector } from 'kubernetes/v2/manifest/selector/IManifestSelector';
 
 export class KubernetesV2FindArtifactsFromResourceConfigCtrl implements IController {
   constructor(private $scope: IScope) {
@@ -15,4 +15,8 @@ export class KubernetesV2FindArtifactsFromResourceConfigCtrl implements IControl
       this.$scope.stage.cloudProvider = 'kubernetes';
     }
   }
+
+  public handleManifestSelectorChange = (): void => {
+    this.$scope.$applyAsync();
+  };
 }

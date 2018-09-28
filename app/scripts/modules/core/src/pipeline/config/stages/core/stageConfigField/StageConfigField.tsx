@@ -15,6 +15,6 @@ export const StageConfigField = (props: IStageConfigFieldProps) => (
       <span className="label-text">{props.label} </span>
       {props.helpKey && <HelpField id={props.helpKey} />}
     </label>
-    <div className={`col-md-${props.fieldColumns}`}>{props.children}</div>
+    <div className={`col-md-${props.fieldColumns || 8}`}>{props.children}</div>
   </div>
 );

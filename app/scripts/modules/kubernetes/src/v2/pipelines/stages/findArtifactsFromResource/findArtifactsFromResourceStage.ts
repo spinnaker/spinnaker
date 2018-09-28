@@ -24,7 +24,7 @@ module(KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE, [KUBERNETES_MANIFEST_SELEC
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
           { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
-          { type: 'requiredField', fieldName: 'name', fieldLabel: 'name' },
+          { type: 'manifestSelector' },
         ],
       });
     }

@@ -71,4 +71,8 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
         this.manifestArtifactDelegate.getSelectedExpectedArtifact() != null)
     );
   }
+
+  public handleManifestSelectorChange = (): void => {
+    this.$scope.$applyAsync();
+  };
 }

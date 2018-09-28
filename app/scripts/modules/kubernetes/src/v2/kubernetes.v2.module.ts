@@ -41,6 +41,7 @@ import { KUBERNETES_COPY_FROM_TEMPLATE_BUTTON } from './pipelines/stages/deployM
 import { KUBERNETES_MANIFEST_IMAGE_DETAILS } from 'kubernetes/v2/manifest/manifestImageDetails.component';
 import { YAML_EDITOR_COMPONENT } from './manifest/yaml/yamlEditor.component';
 import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
+import './pipelines/validation/manifestSelector.validator';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
