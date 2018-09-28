@@ -11,10 +11,8 @@ import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCom
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
 import { ExecutionState } from 'core/state';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
 
-import { SETTINGS } from 'core';
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
@@ -115,28 +113,13 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   private startPipeline(command: IPipelineCommand): IPromise<void> {
     const { executionService } = ReactInjector;
     this.setState({ triggeringExecution: true });
-
-    let triggerFunction: (app: string, pipeline: string, trigger: any) => IPromise<string>;
-    let monitorFunction: (id: string) => IRetryablePromise<any>;
-    if (SETTINGS.feature.triggerViaEcho) {
-      triggerFunction = PipelineConfigService.triggerPipelineViaEcho.bind(PipelineConfigService);
-      monitorFunction = eventId => executionService.waitUntilPipelineAppearsForEventId(this.props.application, eventId);
-    } else {
-      triggerFunction = PipelineConfigService.triggerPipeline.bind(PipelineConfigService);
-      monitorFunction = newPipelineId =>
-        executionService.waitUntilNewTriggeredPipelineAppears(this.props.application, newPipelineId);
-    }
-
-    return triggerFunction(this.props.application.name, command.pipelineName, command.trigger).then(
-      triggerResult => {
-        const monitor = monitorFunction(triggerResult);
-        monitor.promise.then(() => this.setState({ triggeringExecution: false }));
+    return executionService.startAndMonitorPipeline(this.props.application, command.pipelineName, command.trigger).then(
+      monitor => {
         this.setState({ poll: monitor });
+        monitor.promise.then(() => this.setState({ triggeringExecution: false }));
       },
       () => {
-        const monitor = this.props.application.executions.refresh();
-        monitor.then(() => this.setState({ triggeringExecution: false }));
-        this.setState({ poll: monitor });
+        this.props.application.executions.refresh().then(() => this.setState({ triggeringExecution: false }));
       },
     );
   }

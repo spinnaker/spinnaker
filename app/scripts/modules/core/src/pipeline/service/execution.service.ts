@@ -16,6 +16,8 @@ import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
 import { Error } from 'tslint/lib/error';
 import { IRetryablePromise, retryablePromise } from 'core/utils/retryablePromise';
+import { ReactInjector } from 'core/reactShims';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
 export class ExecutionService {
   public get activeStatuses(): string[] {
@@ -225,6 +227,20 @@ export class ExecutionService {
         });
       }
     }
+  }
+
+  public startAndMonitorPipeline(app: Application, pipeline: string, trigger: any): IPromise<IRetryablePromise<void>> {
+    const { executionService } = ReactInjector;
+    let triggerFunction: (app: string, pipeline: string, trigger: any) => IPromise<string>;
+    let monitorFunction: (id: string) => IRetryablePromise<any>;
+    if (SETTINGS.feature.triggerViaEcho) {
+      triggerFunction = PipelineConfigService.triggerPipelineViaEcho.bind(PipelineConfigService);
+      monitorFunction = eventId => executionService.waitUntilPipelineAppearsForEventId(app, eventId);
+    } else {
+      triggerFunction = PipelineConfigService.triggerPipeline.bind(PipelineConfigService);
+      monitorFunction = newPipelineId => executionService.waitUntilNewTriggeredPipelineAppears(app, newPipelineId);
+    }
+    return triggerFunction(app.name, pipeline, trigger).then(triggerResult => monitorFunction(triggerResult));
   }
 
   public waitUntilPipelineAppearsForEventId(application: Application, eventId: string): IRetryablePromise<any> {
