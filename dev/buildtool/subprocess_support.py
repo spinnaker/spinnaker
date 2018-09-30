@@ -202,7 +202,7 @@ def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
       traceback.print_exc()
 
       with open(logfile, 'rb') as readagain:
-        output = bytes.decode(readagain.read())
+        output = bytes.decode(readagain.read(), encoding='utf-8')
         log_embedded_output(logging.ERROR, logfile, output)
       logging.error('Caught exception %s\n%s failed. See embedded logfile above',
                     ex, what)
