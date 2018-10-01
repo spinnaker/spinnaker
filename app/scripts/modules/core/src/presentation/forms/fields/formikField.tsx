@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { FormikProps } from 'formik';
 import { IFieldProps, IFormikFieldProps, Omit } from '../interface';
 
 export type IFormikField<P extends IFieldProps<T>, T = string> = React.ComponentType<
@@ -10,12 +11,15 @@ export function formikField<P extends IFieldProps<T>, T = string>(
 ): IFormikField<P, T> {
   return (props: any) => {
     const { formik, name, ...rest } = props;
+    const formikProps: FormikProps<any> = formik;
 
     return (
       <FieldComponent
-        value={formik.values[name]}
-        error={formik.errors[name]}
-        onChange={(val: T) => formik.setFieldValue(name, val)}
+        value={formikProps.values[name]}
+        error={formikProps.errors[name]}
+        touched={formikProps.touched[name]}
+        onChange={(val: T) => formikProps.setFieldValue(name, val)}
+        onBlur={() => formikProps.setFieldTouched(name, true)}
         {...rest}
       />
     );

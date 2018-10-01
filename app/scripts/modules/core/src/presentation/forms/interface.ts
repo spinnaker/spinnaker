@@ -14,6 +14,7 @@ export interface IFieldLayoutProps extends IFieldLayoutPropsWithoutInput {
 
 export interface IValidationProps {
   error?: string | JSX.Element;
+  touched?: boolean;
   warning?: string | JSX.Element;
   preview?: string | JSX.Element;
 }

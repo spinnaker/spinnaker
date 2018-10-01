@@ -5,18 +5,21 @@ import { ValidationMessage } from 'core/validation';
 
 export class BasicLayout extends React.Component<IFieldLayoutProps> {
   public render() {
-    const { label, help, input, actions, error, warning, preview } = this.props;
+    const { label, help, input, actions, touched, error, warning, preview } = this.props;
 
     const renderMessage = (message: string | JSX.Element, type: IValidationMessageProps['type']) =>
       typeof message === 'string' ? <ValidationMessage type={type} message={message} /> : message;
 
-    const validation = renderMessage(error, 'error') || renderMessage(warning, 'warning') || preview;
+    const validation = touched && (renderMessage(error, 'error') || renderMessage(warning, 'warning'));
+    const showLabel = !!label || !!help;
 
     return (
       <div className="flex-container-h baseline margin-between-lg">
-        <div className="sm-label-right" style={{ minWidth: '120px' }}>
-          {label} {help}
-        </div>
+        {showLabel && (
+          <div className="sm-label-right" style={{ minWidth: '120px' }}>
+            {label} {help}
+          </div>
+        )}
 
         <div className="flex-grow">
           <div className="flex-container-v">
@@ -24,7 +27,7 @@ export class BasicLayout extends React.Component<IFieldLayoutProps> {
               {input} {actions}
             </div>
 
-            {validation}
+            {validation || preview}
           </div>
         </div>
       </div>

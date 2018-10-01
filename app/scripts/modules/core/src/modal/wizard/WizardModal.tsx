@@ -21,6 +21,7 @@ export interface IWizardPageData<T> {
 }
 
 export interface IWizardModalProps<T> extends IModalComponentProps {
+  formClassName?: string;
   heading: string;
   hideSections?: Set<string>;
   initialValues: T;
@@ -161,7 +162,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
   };
 
   public render() {
-    const { heading, hideSections, initialValues, loading, submitButtonLabel, taskMonitor } = this.props;
+    const { formClassName, heading, hideSections, initialValues, loading, submitButtonLabel, taskMonitor } = this.props;
     const { currentPage, dirtyPages, pageErrors, formInvalid, pages, waiting } = this.state;
     const { TaskMonitorWrapper } = NgReact;
 
@@ -177,7 +178,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
           onSubmit={this.props.closeModal}
           validate={this.validate}
           render={formik => (
-            <Form className="form-horizontal">
+            <Form className={`form-horizontal ${formClassName}`}>
               <ModalClose dismiss={this.props.dismissModal} />
               <Modal.Header>{heading && <h3>{heading}</h3>}</Modal.Header>
               <Modal.Body>
