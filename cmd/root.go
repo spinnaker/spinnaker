@@ -41,7 +41,7 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&options.configFile, "config", "", "config file (default is $HOME/.spin/config)")
 	cmd.PersistentFlags().StringVar(&options.GateEndpoint, "gate-endpoint", "", "Gate (API server) endpoint. Default http://localhost:8084")
 	cmd.PersistentFlags().BoolVar(&options.ignoreCertErrors, "insecure", false, "Ignore Certificate Errors")
-	cmd.PersistentFlags().BoolVar(&options.quiet, "quiet", false, "Squelch non-essentual output")
+	cmd.PersistentFlags().BoolVar(&options.quiet, "quiet", false, "Squelch non-essential output")
 	cmd.PersistentFlags().BoolVar(&options.color, "no-color", true, "Disable color")
 	// TODO(jacobkiefer): Codify the json-path as part of an OutputConfig or
 	// something similar. Sets the stage for yaml output, etc.
