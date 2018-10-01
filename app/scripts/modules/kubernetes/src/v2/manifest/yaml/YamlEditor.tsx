@@ -1,15 +1,15 @@
 import * as React from 'react';
 import AceEditor, { Annotation } from 'react-ace';
 import { $log } from 'ngimport';
-import { load, dump, YAMLException } from 'js-yaml';
+import { load, YAMLException } from 'js-yaml';
 
 import 'brace/theme/textmate';
 import 'brace/mode/yaml';
 import './yamlEditor.less';
 
 export interface IYamlEditorProps {
-  value: any;
-  onChange(value: any): void;
+  value: string;
+  onChange(raw: string, manifest: any): void;
 }
 
 export interface IYamlEditorState {
@@ -28,27 +28,34 @@ interface IMark {
 }
 
 export class YamlEditor extends React.Component<IYamlEditorProps, IYamlEditorState> {
+  public static getDerivedStateFromProps = (props: IYamlEditorProps, state: IYamlEditorState): IYamlEditorState => {
+    return {
+      value: props.value,
+      errors: Array.isArray(state.errors) ? state.errors : [],
+    };
+  };
+
   constructor(props: IYamlEditorProps) {
     super(props);
     this.state = {
-      value: props.value ? dump(props.value) : '',
+      value: props.value,
       errors: [],
     };
   }
 
-  private handleChange = (value: string) => {
-    this.setState({ value });
+  private handleChange = (raw: string) => {
+    this.setState({ value: raw });
     try {
+      const manifest = load(raw);
       this.props.onChange
-        ? this.props.onChange(load(value))
+        ? this.props.onChange(raw, manifest)
         : $log.warn('No `onChange` handler provided for YAML editor.');
-
-      this.setState({
-        errors: [],
-      });
+      this.setState({ errors: [] });
     } catch (e) {
+      this.props.onChange
+        ? this.props.onChange(raw, null)
+        : $log.warn('No `onChange` handler provided for YAML editor.');
       if (e instanceof YAMLException) {
-        $log.warn(`Error loading YAML from string ${value}: `, e);
         const mark = (e as any).mark as IMark;
         // Ace Editor doesn't render errors for YAML, so
         // we have to do it ourselves.
@@ -62,9 +69,8 @@ export class YamlEditor extends React.Component<IYamlEditorProps, IYamlEditorSta
             },
           ],
         });
-      } else {
-        $log.warn(`Error loading YAML from string ${value}: `, e);
       }
+      $log.warn(`Error loading YAML from string ${raw}: `, e);
     }
   };
 
@@ -83,7 +89,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps, IYamlEditorSta
         minLines={50}
         maxLines={100}
         highlightActiveLine={true}
-        value={this.state.value}
+        value={this.state.value || undefined}
         annotations={this.state.errors}
         setOptions={{
           firstLineNumber: 1,
