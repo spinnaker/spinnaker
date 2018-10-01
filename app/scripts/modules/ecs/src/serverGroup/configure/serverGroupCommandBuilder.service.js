@@ -39,6 +39,8 @@ module.exports = angular
           var defaultIamRole = 'None (No IAM role)';
           defaultIamRole = defaultIamRole.replace('{{application}}', application.name);
 
+          var defaultImageCredentials = 'None (No registry credentials)';
+
           var command = {
             application: application.name,
             credentials: defaultCredentials,
@@ -53,6 +55,7 @@ module.exports = angular
             healthCheckType: 'EC2',
             selectedProvider: 'ecs',
             iamRole: defaultIamRole,
+            dockerImageCredentialsSecret: defaultImageCredentials,
             availabilityZones: availabilityZones,
             autoscalingPolicies: [],
             subnetType: '',

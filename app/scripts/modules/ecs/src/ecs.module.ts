@@ -9,6 +9,7 @@ import { ECS_NETWORKING_SECTION } from './serverGroup/configure/wizard/networkin
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
 import { IAM_ROLE_READ_SERVICE } from './iamRoles/iamRole.read.service';
 import { ECS_CLUSTER_READ_SERVICE } from './ecsCluster/ecsCluster.read.service';
+import { ECS_SECRET_READ_SERVICE } from './secrets/secret.read.service';
 import { METRIC_ALARM_READ_SERVICE } from './metricAlarm/metricAlarm.read.service';
 import { PLACEMENT_STRATEGY_SERVICE } from './placementStrategy/placementStrategy.service';
 import './ecs.help';
@@ -40,6 +41,7 @@ angular
     ECS_SERVER_GROUP_LOGGING,
     ECS_NETWORKING_SECTION,
     ECS_CLUSTER_READ_SERVICE,
+    ECS_SECRET_READ_SERVICE,
     METRIC_ALARM_READ_SERVICE,
     PLACEMENT_STRATEGY_SERVICE,
     COMMON_MODULE,
