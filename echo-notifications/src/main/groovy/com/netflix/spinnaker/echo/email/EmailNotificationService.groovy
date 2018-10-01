@@ -78,7 +78,7 @@ class EmailNotificationService implements NotificationService {
 
     if (to || cc) {
       helper.setFrom(from)
-      message.setContent(text, "text/html")
+      message.setContent(text, "text/html;charset=UTF-8")
       helper.setSubject(subject)
 
       javaMailSender.send(message)
