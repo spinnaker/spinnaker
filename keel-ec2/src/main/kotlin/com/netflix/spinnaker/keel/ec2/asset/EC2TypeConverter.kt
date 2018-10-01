@@ -74,7 +74,7 @@ class EC2TypeConverter(
     PortRange
       .newBuilder()
       .let { builder ->
-        builder.startPort = startPort ?: -1
+        builder.startPort = startPort ?: -1 // TODO: need a better way to represent "all ports"
         builder.endPort = endPort ?: -1
         builder.build()
       }

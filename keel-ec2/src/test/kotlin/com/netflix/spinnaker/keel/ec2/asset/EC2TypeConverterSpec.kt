@@ -13,14 +13,13 @@ import com.nhaarman.mockito_kotlin.whenever
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
-import strikt.api.Assertion
+import org.jetbrains.spek.api.dsl.it
 import strikt.api.expectThat
-import strikt.assertions.all
 import strikt.assertions.any
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import strikt.assertions.map
+import strikt.assertions.isTrue
 
 internal object EC2TypeConverterSpec : Spek({
 
@@ -32,15 +31,56 @@ internal object EC2TypeConverterSpec : Spek({
 
   describe("converting CloudDriver security group JSON to Keel protos") {
     given("a security group with a self-referencing security group rule") {
+      val json = javaClass.getResource("/sg-with-self-ref.json")
+      val riverModel = objectMapper.readValue<SecurityGroup>(json)
 
-    }
+      val vpc = Network("aws", riverModel.vpcId!!, "vpc name", riverModel.accountName, riverModel.region)
+      whenever(cloudDriverCache.networkBy(riverModel.vpcId!!)) doReturn vpc
 
-    given("a security group with a cross-region security group reference rule") {
+      val proto = subject.toProto(riverModel)
 
+      it("maps inbound rules") {
+        expectThat(proto.inboundRuleList.first()) {
+          chain { it.hasSelfReferencingRule() }.isTrue()
+          chain { it.selfReferencingRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
+          chain { it.selfReferencingRule.portRangeList } and {
+            hasSize(1)
+            first() and {
+              chain { it.startPort }.isEqualTo(6565)
+              chain { it.endPort }.isEqualTo(6565)
+            }
+          }
+        }
+      }
     }
 
     given("a security group with a security group reference rule") {
+      val json = javaClass.getResource("/sg-with-ref.json")
+      val riverModel = objectMapper.readValue<SecurityGroup>(json)
 
+      val vpc = Network("aws", riverModel.vpcId!!, "vpc name", riverModel.accountName, riverModel.region)
+      whenever(cloudDriverCache.networkBy(riverModel.vpcId!!)) doReturn vpc
+
+      val proto = subject.toProto(riverModel)
+
+      it("maps inbound rules") {
+        expectThat(proto.inboundRuleList.first()) {
+          chain { it.hasReferenceRule() }.isTrue()
+          chain { it.referenceRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
+          chain { it.referenceRule.name }.isEqualTo(riverModel.inboundRules.first().securityGroup?.name)
+          chain { it.referenceRule.portRangeList } and {
+            hasSize(2)
+            any {
+              chain { it.startPort }.isEqualTo(7001)
+              chain { it.endPort }.isEqualTo(7001)
+            }
+            any {
+              chain { it.startPort }.isEqualTo(7002)
+              chain { it.endPort }.isEqualTo(7002)
+            }
+          }
+        }
+      }
     }
 
     given("a security group with a CIDR rule") {
@@ -52,31 +92,25 @@ internal object EC2TypeConverterSpec : Spek({
 
       val proto = subject.toProto(riverModel)
 
-      expectThat(proto) {
-        chain { it.application }.isEqualTo(riverModel.moniker.app)
-        chain { it.name }.isEqualTo(riverModel.name)
-        chain { it.accountName }.isEqualTo(riverModel.accountName)
-        chain { it.region }.isEqualTo(riverModel.region)
-        chain { it.vpcName }.isEqualTo(vpc.name)
-        chain { it.description }.isEqualTo(riverModel.description)
-        chain { it.inboundRuleList } and {
-          hasSize(riverModel.inboundRules.size)
-          any {
-            chain { it.cidrRule.blockRange }.isEqualTo("104.24.115.229/24")
-          }
-          any {
-            chain { it.cidrRule.blockRange }.isEqualTo("23.227.38.32/27")
-          }
-          map { it.cidrRule.protocol }.all {
-            isEqualTo("-1")
-          }
-          map { it.cidrRule.portRangeList }.all {
+      it("maps the core properties of the security group") {
+        expectThat(proto) {
+          chain { it.application }.isEqualTo(riverModel.moniker.app)
+          chain { it.name }.isEqualTo(riverModel.name)
+          chain { it.accountName }.isEqualTo(riverModel.accountName)
+          chain { it.region }.isEqualTo(riverModel.region)
+          chain { it.vpcName }.isEqualTo(vpc.name)
+          chain { it.description }.isEqualTo(riverModel.description)
+        }
+      }
+
+      it("maps inbound rules") {
+        expectThat(proto.inboundRuleList.first()) {
+          chain { it.cidrRule.blockRange }.isEqualTo("104.24.115.229/24")
+          chain { it.cidrRule.protocol }.isEqualTo("-1")
+          chain { it.cidrRule.portRangeList } and {
             hasSize(1)
             first().chain { it.startPort }.isEqualTo(-1)
             first().chain { it.endPort }.isEqualTo(-1)
-          }
-          all {
-            chain { it.cidrRule.portRangeList }.hasSize(1)
           }
         }
       }
@@ -84,6 +118,3 @@ internal object EC2TypeConverterSpec : Spek({
   }
 
 })
-
-private fun <T : Iterable<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
-  chain("second element %s") { it.toList()[1] }

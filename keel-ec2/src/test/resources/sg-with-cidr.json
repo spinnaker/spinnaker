@@ -22,20 +22,6 @@
           "endPort": null
         }
       ]
-    },
-    {
-      "class": "com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule",
-      "range": {
-        "ip": "23.227.38.32",
-        "cidr": "/27"
-      },
-      "protocol": "-1",
-      "portRanges": [
-        {
-          "startPort": null,
-          "endPort": null
-        }
-      ]
     }
   ],
   "summary": {

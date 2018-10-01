@@ -32,13 +32,13 @@ message SecurityGroupRule {
 
 message ReferenceRule {
   repeated PortRange portRange = 1;
-  string protocol = 2;
+  string protocol = 2; // TODO: enum
   string name = 3;
 }
 
 message CrossRegionReferenceRule {
   repeated PortRange portRange = 1;
-  string protocol = 2;
+  string protocol = 2; // TODO: enum
   string name = 3;
   string account = 4;
   string vpcName = 5;
@@ -46,11 +46,11 @@ message CrossRegionReferenceRule {
 
 message SelfReferencingRule {
   repeated PortRange portRange = 1;
-  string protocol = 2;
+  string protocol = 2; // TODO: enum
 }
 
 message CidrRule {
-  string protocol = 1;
+  string protocol = 1; // TODO: enum
   repeated PortRange portRange = 2;
   string blockRange = 3;
 }
