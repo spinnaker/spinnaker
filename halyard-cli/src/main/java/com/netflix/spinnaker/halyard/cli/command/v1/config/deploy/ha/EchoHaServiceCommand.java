@@ -32,8 +32,8 @@ public class EchoHaServiceCommand extends AbstractNamedHaServiceCommand {
       getShortDescription(),
       "Manage and view Spinnaker configuration for the echo high availability service.",
       "When echo high availability is enabled, Halyard will deploy echo as two",
-      "separate services in order to increase availability: echo-scheduler and echo-replica.",
+      "separate services in order to increase availability: echo-scheduler and echo-worker.",
       "The echo-scheduler service only handles Spinnaker cron-jobs and is isolated from",
-      "the rest of Spinnaker.. The echo-replica handles everything else."
+      "the rest of Spinnaker.. The echo-worker handles everything else."
   );
 }

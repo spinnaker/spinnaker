@@ -62,7 +62,7 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
   KubernetesV2EchoSchedulerService echoSchedulerService;
 
   @Autowired
-  KubernetesV2EchoReplicaService echoReplicaService;
+  KubernetesV2EchoWorkerService echoWorkerService;
 
   @Autowired
   KubernetesV2FiatService fiatService;

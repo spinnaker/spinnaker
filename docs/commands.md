@@ -672,6 +672,7 @@ hal config artifact [subcommands]
  * `github`: Manage and view Spinnaker configuration for the github provider
  * `gitlab`: Manage and view Spinnaker configuration for the gitlab provider
  * `http`: Manage and view Spinnaker configuration for the http provider
+ * `oracle`: Manage and view Spinnaker configuration for the oracle provider
  * `s3`: Manage and view Spinnaker configuration for the s3 provider
 
 ---
@@ -1506,13 +1507,13 @@ hal config artifact oracle account add ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--fingerprint`: (*Required*) Fingerprint of the public key
- * `--namespace`: (*Required*) The namespace the bucket and objects should be created in
+ * `--fingerprint`: Fingerprint of the public key
+ * `--namespace`: The namespace the bucket and objects should be created in
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--region`: (*Required*) An Oracle region (e.g., us-phoenix-1)
- * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
- * `--tenancyId`: (*Required*) Provide the OCID of the Oracle Tenancy to use.
- * `--user-id`: (*Required*) Provide the OCID of the Oracle User you're authenticating as
+ * `--region`: An Oracle region (e.g., us-phoenix-1)
+ * `--ssh-private-key-file-path`: Path to the private key in PEM format
+ * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
+ * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 
 
 ---
@@ -1544,13 +1545,13 @@ hal config artifact oracle account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--fingerprint`: (*Required*) Fingerprint of the public key
- * `--namespace`: (*Required*) The namespace the bucket and objects should be created in
+ * `--fingerprint`: Fingerprint of the public key
+ * `--namespace`: The namespace the bucket and objects should be created in
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--region`: (*Required*) An Oracle region (e.g., us-phoenix-1)
- * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
- * `--tenancyId`: (*Required*) Provide the OCID of the Oracle Tenancy to use.
- * `--user-id`: (*Required*) Provide the OCID of the Oracle User you're authenticating as
+ * `--region`: An Oracle region (e.g., us-phoenix-1)
+ * `--ssh-private-key-file-path`: Path to the private key in PEM format
+ * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
+ * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 
 
 ---
@@ -3149,7 +3150,7 @@ hal config deploy ha clouddriver enable [parameters]
 ---
 ## hal config deploy ha echo
 
-Manage and view Spinnaker configuration for the echo high availability service Manage and view Spinnaker configuration for the echo high availability service. When echo high availability is enabled, Halyard will deploy echo as two separate services in order to increase availability: echo-scheduler and echo-replica. The echo-scheduler service only handles Spinnaker cron-jobs and is isolated from the rest of Spinnaker.. The echo-replica handles everything else.
+Manage and view Spinnaker configuration for the echo high availability service Manage and view Spinnaker configuration for the echo high availability service. When echo high availability is enabled, Halyard will deploy echo as two separate services in order to increase availability: echo-scheduler and echo-worker. The echo-scheduler service only handles Spinnaker cron-jobs and is isolated from the rest of Spinnaker.. The echo-worker handles everything else.
 
 #### Usage
 ```

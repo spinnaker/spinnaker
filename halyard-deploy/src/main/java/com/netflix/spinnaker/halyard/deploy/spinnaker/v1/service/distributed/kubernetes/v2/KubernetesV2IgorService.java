@@ -62,7 +62,7 @@ public class KubernetesV2IgorService extends IgorService implements KubernetesV2
   protected List<Type> overrideServiceEndpoints() {
     return Arrays.asList(
         Type.CLOUDDRIVER_RO,
-        Type.ECHO_REPLICA
+        Type.ECHO_WORKER
     );
   }
 }

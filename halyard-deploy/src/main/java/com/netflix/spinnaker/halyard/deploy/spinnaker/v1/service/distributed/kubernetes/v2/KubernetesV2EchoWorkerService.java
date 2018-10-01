@@ -30,10 +30,10 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesV2EchoReplicaService extends KubernetesV2EchoService {
+public class KubernetesV2EchoWorkerService extends KubernetesV2EchoService {
   @Override
   public Type getType() {
-    return Type.ECHO_REPLICA;
+    return Type.ECHO_WORKER;
   }
 
   @Override
@@ -45,7 +45,7 @@ public class KubernetesV2EchoReplicaService extends KubernetesV2EchoService {
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
 
-    String filename = "echo-replica.yml";
+    String filename = "echo-worker.yml";
     String path = Paths.get(getConfigOutputPath(), filename).toString();
     profiles.add(getEchoProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints));
 
