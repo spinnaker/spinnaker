@@ -6,6 +6,7 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
+import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from './dockerImageAndTagSelector.component';
 import { DcosProviderSettings } from '../../../dcos.settings';
 
 module.exports = angular
@@ -14,6 +15,7 @@ module.exports = angular
     //TODO Add back when scheduled jobs are supported better by Spinnaker
     //require('dcos/job/schedule.component.js').name,
     require('dcos/job/labels.component.js').name,
+    DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
   ])
   .config(function() {
     Registry.pipeline.registerStage({

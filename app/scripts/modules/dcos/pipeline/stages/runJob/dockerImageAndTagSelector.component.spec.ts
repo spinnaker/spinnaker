@@ -3,7 +3,7 @@ import { $q } from 'ngimport';
 
 import { AccountService, IAccount } from '@spinnaker/core';
 
-import { DockerImageReader, IDockerImage } from './DockerImageReader';
+import { DockerImageReader, IDockerImage } from '@spinnaker/docker';
 import {
   DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
   DockerImageAndTagSelectorController,

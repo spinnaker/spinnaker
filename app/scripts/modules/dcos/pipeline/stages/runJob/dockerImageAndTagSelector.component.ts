@@ -3,7 +3,7 @@ import { isString, trim, uniq } from 'lodash';
 
 import { AccountService, IAccount, IFindImageParams } from '@spinnaker/core';
 
-import { DockerImageReader, IDockerImage } from './DockerImageReader';
+import { DockerImageReader, IDockerImage } from '@spinnaker/docker';
 
 interface IViewState {
   imagesLoading: boolean;
