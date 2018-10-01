@@ -343,14 +343,14 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
           jobUri = titusClient.submitJob(submitJobRequest)
         } catch (io.grpc.StatusRuntimeException e) {
           task.updateStatus BASE_PHASE, "Error encountered submitting job request to Titus ${e.message} for ${nextServerGroupName} ${System.currentTimeMillis()}"
-          if (description.getJobType == 'service' && (e.status.code == Status.RESOURCE_EXHAUSTED.code || e.status.code == Status.INVALID_ARGUMENT.code) && (e.status.description.contains("Job sequence id reserved by another pending job") || e.status.description.contains("Constraint violation - job with group sequence"))) {
+          if (description.jobType == 'service' && (e.status.code == Status.RESOURCE_EXHAUSTED.code || e.status.code == Status.INVALID_ARGUMENT.code) && (e.status.description.contains("Job sequence id reserved by another pending job") || e.status.description.contains("Constraint violation - job with group sequence"))) {
             if (e.status.description.contains("Job sequence id reserved by another pending job")) {
-              sleep 1000 ^ pow(2, retryCount)
+              sleep 1000 ^ Math.pow(2, retryCount)
               retryCount++
             }
             nextServerGroupName = resolveJobName(description, submitJobRequest, task, titusClient)
             task.updateStatus BASE_PHASE, "Retrying with ${nextServerGroupName} after ${retryCount} attempts ${System.currentTimeMillis()}"
-            throw e;
+            throw e
           }
           if (e.status.code == Status.UNAVAILABLE.code || e.status.code == Status.DEADLINE_EXCEEDED.code) {
             retryCount++
