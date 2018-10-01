@@ -28,8 +28,9 @@ export class CloudFoundryServerGroupCommandBuilder {
 
   public buildNewServerGroupCommand(
     app: ICloudFoundryApplication,
-    defaults: any = {},
+    defaults: any,
   ): IPromise<ICloudFoundryCreateServerGroupCommand> {
+    defaults = defaults || {};
     return this.$q.when({
       application: app.name,
       stack: '',
@@ -80,7 +81,7 @@ export class CloudFoundryServerGroupCommandBuilder {
         instances: serverGroup.instances.length,
         routes: serverGroup.loadBalancers,
         env: serverGroup.env,
-        services: serverGroup.serviceInstances.map(serviceInstance => serviceInstance.name),
+        services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
         reference: '',
         account: '',
         pattern: '',
