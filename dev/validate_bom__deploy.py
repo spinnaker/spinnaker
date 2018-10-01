@@ -66,7 +66,7 @@ def replace_ha_services(services, options):
         ['clouddriver-caching', 'clouddriver-rw', 'clouddriver-ro']
   if options.ha_echo_enabled:
     transform_map['echo'] = \
-        ['echo-scheduler', 'echo-slave']
+        ['echo-scheduler', 'echo-worker']
 
   transformed_services = []
   for service in services:
@@ -378,6 +378,12 @@ class BaseValidateBomDeployer(object):
       if options.injected_deploy_spinnaker_account:
         type_args.extend(['--account-name',
                           options.injected_deploy_spinnaker_account])
+      if options.deploy_distributed_platform == 'kubernetes':
+        script.append('hal -q --log=info config deploy edit --location {namespace}'
+            .format(namespace=self.options.deploy_k8s_namespace))
+      elif options.deploy_distributed_platform == 'kubernetes_v2':
+        script.append('hal -q --log=info config deploy edit --location {namespace}'
+            .format(namespace=self.options.deploy_k8s_v2_namespace))
 
     script.append('hal -q --log=info config deploy edit {args}'
                   .format(args=' '.join(type_args)))
