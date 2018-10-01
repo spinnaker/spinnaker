@@ -1,0 +1,60 @@
+{
+  "class": "com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup",
+  "type": "aws",
+  "cloudProvider": "aws",
+  "id": "sg-3bc16b57",
+  "name": "keel-test-sg",
+  "vpcId": "vpc-1e08e31b",
+  "description": "Security group with CIDR rules",
+  "accountName": "test",
+  "region": "us-west-2",
+  "inboundRules": [
+    {
+      "class": "com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule",
+      "range": {
+        "ip": "104.24.115.229",
+        "cidr": "/24"
+      },
+      "protocol": "-1",
+      "portRanges": [
+        {
+          "startPort": null,
+          "endPort": null
+        }
+      ]
+    },
+    {
+      "class": "com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule",
+      "range": {
+        "ip": "23.227.38.32",
+        "cidr": "/27"
+      },
+      "protocol": "-1",
+      "portRanges": [
+        {
+          "startPort": null,
+          "endPort": null
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "name": "keel-test-sg",
+    "id": "sg-3bc16b57",
+    "vpcId": "vpc-1e08e31b",
+    "moniker": {
+      "app": "keel",
+      "cluster": "keel-test",
+      "detail": null,
+      "stack": "test",
+      "sequence": null
+    }
+  },
+  "moniker": {
+    "app": "keel",
+    "cluster": "keel-test",
+    "detail": null,
+    "stack": "test",
+    "sequence": null
+  }
+}

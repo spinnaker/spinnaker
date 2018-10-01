@@ -34,8 +34,8 @@ data class SecurityGroup(
   )
 
   data class SecurityGroupRulePortRange(
-    val startPort: Int,
-    val endPort: Int
+    val startPort: Int?,
+    val endPort: Int?
   )
 
   data class SecurityGroupRuleReference(

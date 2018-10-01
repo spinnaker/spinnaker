@@ -61,7 +61,7 @@ import strikt.protobuf.unpack
 import strikt.protobuf.unpacksTo
 import java.util.*
 
-internal object AmazonSecurityGroupHandlerSpec : Spek({
+internal object EC2AssetPluginSpec : Spek({
 
   val grpc = GrpcStubManager(AssetPluginGrpc::newBlockingStub)
 
@@ -166,7 +166,9 @@ internal object AmazonSecurityGroupHandlerSpec : Spek({
 
 
       val response by memoized {
-        grpc.withChannel { stub -> stub.current(request) }
+        grpc.withChannel { stub ->
+          stub.current(request)
+        }
       }
 
       it("returns the security group") {

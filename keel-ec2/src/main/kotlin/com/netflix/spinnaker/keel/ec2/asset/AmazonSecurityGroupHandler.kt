@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.ec2.AmazonAssetHandler
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.PortRange
 import com.netflix.spinnaker.keel.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.ec2.SecurityGroupRule.RuleCase.CIDRRULE
 import com.netflix.spinnaker.keel.ec2.SecurityGroupRule.RuleCase.CROSSREGIONREFERENCERULE
@@ -47,9 +46,17 @@ class AmazonSecurityGroupHandler(
   private val orcaService: OrcaService
 ) : AmazonAssetHandler<SecurityGroupProto> {
 
-  override fun current(spec: SecurityGroupProto, request: AssetContainer): Asset? {
-    return cloudDriverService.getSecurityGroup(spec)?.toProto(request)
-  }
+  private val typeConverter = EC2TypeConverter(cloudDriverCache)
+
+  override fun current(spec: SecurityGroupProto, request: AssetContainer): Asset? =
+    cloudDriverService.getSecurityGroup(spec)?.let { securityGroup ->
+      Asset.newBuilder()
+        .let { builder ->
+          builder.typeMetadata = request.asset.typeMetadata
+          builder.spec = typeConverter.toProto(securityGroup).pack()
+          builder.build()
+        }
+    }
 
   override fun flattenAssetContainer(assetContainer: AssetContainer): Asset {
     val securityGroupAsset = assetContainer.asset.spec
@@ -125,72 +132,6 @@ class AmazonSecurityGroupHandler(
     }
   }
 
-  private fun SecurityGroup.toProto(request: AssetContainer): Asset =
-    Asset.newBuilder()
-      .apply {
-        typeMetadata = request.asset.typeMetadata
-        spec = SecurityGroupProto.newBuilder()
-          .also { builder ->
-            builder.name = name
-            builder.accountName = accountName
-            builder.region = region
-            builder.vpcName = vpcId?.let { cloudDriverCache.networkBy(it).name }
-            builder.description = description
-            inboundRules.forEach { rule ->
-              builder.inboundRuleList.add(
-                SecurityGroupRule.newBuilder().also { builder ->
-                  val referencedGroup = rule.securityGroup
-                  val cidrRange = rule.range
-                  when {
-                    referencedGroup != null && (referencedGroup.vpcId == vpcId && referencedGroup.name == name) -> {
-                      builder.selfReferencingRuleBuilder.also { ruleBuilder ->
-                        ruleBuilder.protocol = rule.protocol
-                        rule.portRanges?.forEach {
-                          ruleBuilder.portRangeList.add(it.toProto())
-                        }
-                      }
-                    }
-                    referencedGroup != null && (referencedGroup.accountName != accountName || referencedGroup.region != region) -> {
-                      builder.crossRegionReferenceRuleBuilder.also { ruleBuilder ->
-                        ruleBuilder.protocol = rule.protocol
-                        ruleBuilder.account = referencedGroup.accountName
-                        ruleBuilder.vpcName = referencedGroup.vpcId?.let { cloudDriverCache.networkBy(it).name }
-                        ruleBuilder.name = referencedGroup.name
-                        rule.portRanges?.forEach {
-                          ruleBuilder.portRangeList.add(it.toProto())
-                        }
-                      }
-                    }
-                    referencedGroup != null -> {
-                      builder.referenceRuleBuilder.also { ruleBuilder ->
-                        ruleBuilder.protocol = rule.protocol
-                        ruleBuilder.name = referencedGroup.name
-                        rule.portRanges?.forEach {
-                          ruleBuilder.portRangeList.add(it.toProto())
-                        }
-                      }
-                    }
-                    cidrRange != null -> {
-                      builder.cidrRuleBuilder.also { ruleBuilder ->
-                        ruleBuilder.protocol = rule.protocol
-                        rule.portRanges?.forEach {
-                          ruleBuilder.portRangeList.add(it.toProto())
-                        }
-                        ruleBuilder.blockRange = cidrRange.ip + cidrRange.cidr
-                      }
-                    }
-                  }
-                }
-                  .build()
-              )
-            }
-          }
-          .build()
-          .pack()
-      }
-      .build()
-
-
   private fun portRangeRuleToJob(spec: SecurityGroupProto): JobRules {
     return spec
       .inboundRuleList
@@ -227,13 +168,6 @@ class AmazonSecurityGroupHandler(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
-
-private fun SecurityGroup.SecurityGroupRulePortRange.toProto() =
-  PortRange.newBuilder().let { builder ->
-    builder.startPort = startPort
-    builder.endPort = endPort
-    builder.build()
-  }
 
 typealias JobRules = List<MutableMap<String, Any?>>
 
