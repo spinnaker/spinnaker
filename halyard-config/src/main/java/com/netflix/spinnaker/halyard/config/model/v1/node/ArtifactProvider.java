@@ -51,6 +51,7 @@ abstract public class ArtifactProvider<A extends ArtifactAccount> extends Node {
   public enum ProviderType {
     BITBUCKET("bitbucket"),
     GCS("gcs"),
+    ORACLE("oracle"),
     GITHUB("github"),
     GITLAB("gitlab"),
     HTTP("http"),

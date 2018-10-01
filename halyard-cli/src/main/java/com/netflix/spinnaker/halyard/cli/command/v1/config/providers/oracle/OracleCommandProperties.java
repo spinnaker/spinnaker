@@ -23,4 +23,7 @@ public class OracleCommandProperties {
 
   public static final String BASE_IMAGE_ID_DESCRIPTION = "The OCID of the base image ID for the baking configuration.";
   public static final String SSH_USER_NAME_DESCRIPTION = "The ssh username for the baking configuration.";
+
+  public static final String NAMESPACE_DESCRIPTION = "The namespace the bucket and objects should be created in";
+  public static final String BUCKET_NAME_DESCRIPTION = "The bucket name to store persistent state object in";
 }

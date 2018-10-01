@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactPr
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitlab.GitlabArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.oracle.OracleArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
@@ -95,6 +96,9 @@ public class ArtifactProviderService {
         break;
       case GCS:
         artifacts.setGcs((GcsArtifactProvider) provider);
+        break;
+      case ORACLE:
+        artifacts.setOracle((OracleArtifactProvider) provider);
         break;
       case GITHUB:
         artifacts.setGithub((GitHubArtifactProvider) provider);

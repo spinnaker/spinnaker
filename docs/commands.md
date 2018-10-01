@@ -64,6 +64,15 @@
  * [**hal config artifact http account list**](#hal-config-artifact-http-account-list)
  * [**hal config artifact http disable**](#hal-config-artifact-http-disable)
  * [**hal config artifact http enable**](#hal-config-artifact-http-enable)
+ * [**hal config artifact oracle**](#hal-config-artifact-oracle)
+ * [**hal config artifact oracle account**](#hal-config-artifact-oracle-account)
+ * [**hal config artifact oracle account add**](#hal-config-artifact-oracle-account-add)
+ * [**hal config artifact oracle account delete**](#hal-config-artifact-oracle-account-delete)
+ * [**hal config artifact oracle account edit**](#hal-config-artifact-oracle-account-edit)
+ * [**hal config artifact oracle account get**](#hal-config-artifact-oracle-account-get)
+ * [**hal config artifact oracle account list**](#hal-config-artifact-oracle-account-list)
+ * [**hal config artifact oracle disable**](#hal-config-artifact-oracle-disable)
+ * [**hal config artifact oracle enable**](#hal-config-artifact-oracle-enable)
  * [**hal config artifact s3**](#hal-config-artifact-s3)
  * [**hal config artifact s3 account**](#hal-config-artifact-s3-account)
  * [**hal config artifact s3 account add**](#hal-config-artifact-s3-account-add)
@@ -1436,6 +1445,168 @@ Set the http artifact provider as enabled
 #### Usage
 ```
 hal config artifact http enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact oracle
+
+Manage and view Spinnaker configuration for the oracle provider
+
+#### Usage
+```
+hal config artifact oracle [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the oracle artifact provider's account
+ * `disable`: Set the oracle artifact provider as disabled
+ * `enable`: Set the oracle artifact provider as enabled
+
+---
+## hal config artifact oracle account
+
+Manage and view Spinnaker configuration for the oracle artifact provider's account
+
+#### Usage
+```
+hal config artifact oracle account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the oracle artifact provider.
+ * `delete`: Delete a specific oracle artifact account by name.
+ * `edit`: Edit an artifact account in the oracle artifact provider.
+ * `get`: Get the specified account details for the oracle provider.
+ * `list`: List the artifact account names for the oracle artifact provider.
+
+---
+## hal config artifact oracle account add
+
+Add an artifact account to the oracle artifact provider.
+
+#### Usage
+```
+hal config artifact oracle account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--fingerprint`: (*Required*) Fingerprint of the public key
+ * `--namespace`: (*Required*) The namespace the bucket and objects should be created in
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--region`: (*Required*) An Oracle region (e.g., us-phoenix-1)
+ * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
+ * `--tenancyId`: (*Required*) Provide the OCID of the Oracle Tenancy to use.
+ * `--user-id`: (*Required*) Provide the OCID of the Oracle User you're authenticating as
+
+
+---
+## hal config artifact oracle account delete
+
+Delete a specific oracle artifact account by name.
+
+#### Usage
+```
+hal config artifact oracle account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact oracle account edit
+
+Edit an artifact account in the oracle artifact provider.
+
+#### Usage
+```
+hal config artifact oracle account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--fingerprint`: (*Required*) Fingerprint of the public key
+ * `--namespace`: (*Required*) The namespace the bucket and objects should be created in
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--region`: (*Required*) An Oracle region (e.g., us-phoenix-1)
+ * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
+ * `--tenancyId`: (*Required*) Provide the OCID of the Oracle Tenancy to use.
+ * `--user-id`: (*Required*) Provide the OCID of the Oracle User you're authenticating as
+
+
+---
+## hal config artifact oracle account get
+
+Get the specified account details for the oracle provider.
+
+#### Usage
+```
+hal config artifact oracle account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact oracle account list
+
+List the artifact account names for the oracle artifact provider.
+
+#### Usage
+```
+hal config artifact oracle account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact oracle disable
+
+Set the oracle artifact provider as disabled
+
+#### Usage
+```
+hal config artifact oracle disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact oracle enable
+
+Set the oracle artifact provider as enabled
+
+#### Usage
+```
+hal config artifact oracle enable [parameters]
 ```
 
 #### Parameters

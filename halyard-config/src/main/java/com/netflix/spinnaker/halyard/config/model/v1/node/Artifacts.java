@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactPr
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitlab.GitlabArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.oracle.OracleArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
@@ -37,6 +38,7 @@ import java.util.Optional;
 public class Artifacts extends Node {
   BitbucketArtifactProvider bitbucket = new BitbucketArtifactProvider();
   GcsArtifactProvider gcs = new GcsArtifactProvider();
+  OracleArtifactProvider oracle = new OracleArtifactProvider();
   GitHubArtifactProvider github = new GitHubArtifactProvider();
   GitlabArtifactProvider gitlab = new GitlabArtifactProvider();
   HttpArtifactProvider http = new HttpArtifactProvider();

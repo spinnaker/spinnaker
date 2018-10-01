@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gcs.GcsArti
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.github.GitHubArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gitlab.GitlabArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.http.HttpArtifactProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.oracle.OracleArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.s3.S3ArtifactProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -45,6 +46,7 @@ public class ArtifactProviderCommand extends NestableCommand {
   public ArtifactProviderCommand() {
     registerSubcommand(new BitbucketArtifactProviderCommand());
     registerSubcommand(new GcsArtifactProviderCommand());
+    registerSubcommand(new OracleArtifactProviderCommand());
     registerSubcommand(new GitHubArtifactProviderCommand());
     registerSubcommand(new GitlabArtifactProviderCommand());
     registerSubcommand(new HttpArtifactProviderCommand());

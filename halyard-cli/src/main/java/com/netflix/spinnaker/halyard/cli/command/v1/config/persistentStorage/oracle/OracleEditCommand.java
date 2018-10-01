@@ -12,6 +12,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.or
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.AbstractPersistentStoreEditCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.OraclePersistentStore;
@@ -24,50 +25,50 @@ public class OracleEditCommand extends AbstractPersistentStoreEditCommand<Oracle
 
   @Parameter(
           names = "--compartment-id",
-          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.COMPARTMENT_ID_DESCRIPTION
+          description = OracleCommandProperties.COMPARTMENT_ID_DESCRIPTION
   )
   private String compartmentId;
 
   @Parameter(
           names = "--user-id",
-          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.USER_ID_DESCRIPTION
+          description = OracleCommandProperties.USER_ID_DESCRIPTION
   )
   private String userId;
 
   @Parameter(
           names = "--fingerprint",
-          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.FINGERPRINT_DESCRIPTION
+          description = OracleCommandProperties.FINGERPRINT_DESCRIPTION
   )
   private String fingerprint;
 
   @Parameter(
           names = "--ssh-private-key-file-path",
           converter = LocalFileConverter.class,
-          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION
+          description = OracleCommandProperties.SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION
   )
   private String sshPrivateKeyFilePath;
 
   @Parameter(
           names = "--tenancy-id",
-          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.TENANCY_ID_DESCRIPTION
+          description = OracleCommandProperties.TENANCY_ID_DESCRIPTION
   )
   private String tenancyId;
 
   @Parameter(
           names = "--region",
-          description = com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oracle.OracleCommandProperties.REGION_DESCRIPTION
+          description = OracleCommandProperties.REGION_DESCRIPTION
   )
   private String region;
 
   @Parameter(
           names = "--bucket-name",
-          description = "The bucket name to store persistent state object in"
+          description = OracleCommandProperties.BUCKET_NAME_DESCRIPTION
   )
   private String bucketName;
 
   @Parameter(
           names = "--namespace",
-          description = "The namespace the bucket and objects should be created in"
+          description = OracleCommandProperties.NAMESPACE_DESCRIPTION
   )
   private String namespace;
 
