@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
@@ -126,7 +127,9 @@ public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
       return false;
     }
 
-    return LOW_PRIORITY.equals(request.getHeader(PRIORITY_HEADER)) && hasPathMatch(uri);
+    // until `deck` propagates a `X-Spinnaker-Priority` header, treat every request as sheddable
+    String priorityHeader = Optional.ofNullable(request.getHeader(PRIORITY_HEADER)).orElse(LOW_PRIORITY);
+    return LOW_PRIORITY.equals(priorityHeader) && hasPathMatch(uri);
   }
 
   private boolean shouldDropRequestWithChance() {
