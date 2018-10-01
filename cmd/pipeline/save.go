@@ -58,7 +58,6 @@ func NewSaveCmd(appOptions pipelineOptions) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringVarP(&options.pipelineFile, "file", "f", "", "Path to the pipeline file")
-	cmd.PersistentFlags().StringVarP(&options.output, "output", "o", "", "Configure output formatting")
 
 	return cmd
 }

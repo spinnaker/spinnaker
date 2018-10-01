@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/application"
 	"github.com/spinnaker/spin/cmd/pipeline"
-	"github.com/spinnaker/spin/util"
 )
 
 type RootOptions struct {
@@ -50,7 +49,6 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 	// create subcommands
 	cmd.AddCommand(application.NewApplicationCmd(out))
 	cmd.AddCommand(pipeline.NewPipelineCmd(out))
-	util.InitUI(options.quiet, options.color, options.outputFormat)
 
 	return cmd
 }

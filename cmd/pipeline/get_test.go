@@ -31,6 +31,9 @@ func getRootCmdForTest() *cobra.Command {
 	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/.spin/config)")
 	rootCmd.PersistentFlags().String("gate-endpoint", "", "Gate (API server) endpoint. Default http://localhost:8084")
 	rootCmd.PersistentFlags().Bool("insecure", false, "Ignore Certificate Errors")
+	rootCmd.PersistentFlags().Bool("quiet", false, "Squelch non-essential output")
+	rootCmd.PersistentFlags().Bool("no-color", false, "Disable color")
+	rootCmd.PersistentFlags().String("output", "", "Configure output formatting")
 	util.InitUI(false, false, "")
 	return rootCmd
 }

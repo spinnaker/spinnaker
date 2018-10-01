@@ -35,9 +35,6 @@ var (
 )
 
 func NewListCmd(appOptions applicationOptions) *cobra.Command {
-	options := ListOptions{
-		applicationOptions: &appOptions,
-	}
 	cmd := &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
@@ -46,7 +43,6 @@ func NewListCmd(appOptions applicationOptions) *cobra.Command {
 		Example: listApplicationExample,
 		RunE:    listApplication,
 	}
-	cmd.PersistentFlags().StringVarP(&options.output, "output", "o", "", "Configure output formatting")
 	return cmd
 }
 

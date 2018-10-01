@@ -59,7 +59,6 @@ func NewListCmd(appOptions pipelineOptions) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringVarP(&options.application, "application", "a", "", "Spinnaker application to list pipelines from")
-	cmd.PersistentFlags().StringVarP(&options.output, "output", "o", "", "Configure output formatting")
 
 	return cmd
 }

@@ -37,9 +37,6 @@ var (
 )
 
 func NewGetCmd(appOptions applicationOptions) *cobra.Command {
-	options := GetOptions{
-		applicationOptions: &appOptions,
-	}
 	cmd := &cobra.Command{
 		Use:     "get",
 		Aliases: []string{"get"},
@@ -48,8 +45,6 @@ func NewGetCmd(appOptions applicationOptions) *cobra.Command {
 		Example: getApplicationExample,
 		RunE:    getApplication,
 	}
-
-	cmd.PersistentFlags().StringVarP(&options.output, "output", "o", "", "Configure output formatting")
 
 	return cmd
 }

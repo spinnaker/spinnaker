@@ -79,6 +79,20 @@ func (m *GatewayClient) GateEndpoint() string {
 
 // Create new spinnaker gateway client with flag
 func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
+	quiet, err := flags.GetBool("quiet")
+	if err != nil {
+		return nil, err
+	}
+	nocolor, err := flags.GetBool("no-color")
+	if err != nil {
+		return nil, err
+	}
+	outputFormat, err := flags.GetString("output")
+	if err != nil {
+		return nil, err
+	}
+	util.InitUI(quiet, nocolor, outputFormat)
+
 	gateEndpoint, err := flags.GetString("gate-endpoint")
 	if err != nil {
 		util.UI.Error(fmt.Sprintf("%s\n", err))
