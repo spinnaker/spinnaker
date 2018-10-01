@@ -3,4 +3,4 @@
 GKE_CLUSTER=spin-kayenta-workshop
 
 # See: https://cloud.google.com/monitoring/kubernetes-engine/
---cluster-version 1.10.6 --enable-stackdriver-kubernetes
+export ADDITIONAL_CLUSTER_FLAGS="--cluster-version 1.10.6 --enable-stackdriver-kubernetes"
