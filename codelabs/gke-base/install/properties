@@ -12,7 +12,7 @@ else
   echo $BUCKET_NAME > bucket.txt
 fi
 
-BUCKET_URI="gs://$BUCKET_NAME"
+export BUCKET_URI="gs://$BUCKET_NAME"
 
 if [ -f account.txt ]; then
   SERVICE_ACCOUNT_NAME=$(cat account.txt)
@@ -21,12 +21,12 @@ else
   echo $SERVICE_ACCOUNT_NAME > account.txt
 fi
 
-GCS_TOPIC="spin-gcs-topic"
-GCS_SUB="spin-gcs-sub"
-GCR_TOPIC="projects/${PROJECT_ID}/topics/gcr"
-GCR_SUB="spin-gcr-sub"
+export GCS_TOPIC="spin-gcs-topic"
+export GCS_SUB="spin-gcs-sub"
+export GCR_TOPIC="projects/${PROJECT_ID}/topics/gcr"
+export GCR_SUB="spin-gcr-sub"
 
-SPIN_GCS_ACCOUNT="my-gcs-account"
+export SPIN_GCS_ACCOUNT="my-gcs-account"
 
-SPIN_GCS_PUB_SUB="my-gcs-pub-sub"
-SPIN_GCR_PUB_SUB="my-gcr-pub-sub"
+export SPIN_GCS_PUB_SUB="my-gcs-pub-sub"
+export SPIN_GCR_PUB_SUB="my-gcr-pub-sub"
