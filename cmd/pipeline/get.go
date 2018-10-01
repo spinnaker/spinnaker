@@ -37,7 +37,7 @@ var (
 	getPipelineExample = `
 	usage: spin pipeline get [options]
 
-List the pipelines for the provided application
+Get the provided pipeline
 
 --application: Application the pipeline lives in
 --name: Name of the pipeline
