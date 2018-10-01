@@ -8,6 +8,7 @@
  */
 package com.netflix.spinnaker.front50.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Supplier;
 import com.netflix.spinnaker.front50.config.OracleProperties;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
@@ -29,6 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class OracleStorageService implements StorageService {
@@ -40,6 +42,7 @@ public class OracleStorageService implements StorageService {
   private final String compartmentId;
   private final String bucketName;
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   private class RequestSigningFilter extends ClientFilter {
     private final RequestSigner signer;
@@ -152,7 +155,13 @@ public class OracleStorageService implements StorageService {
     WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
             .build(region, namespace, bucketName, buildOSSKey(objectType.group, objectKey, objectType.defaultMetadataFilename)));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
-    wr.put(item);
+
+    try {
+      byte[] bytes = objectMapper.writeValueAsBytes(item);
+      wr.put(new String(bytes, StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     updateLastModified(objectType);
   }
@@ -196,7 +205,12 @@ public class OracleStorageService implements StorageService {
     WebResource wr = client.resource(UriBuilder.fromPath(endpoint + "/n/{arg1}/b/{arg2}/o/{arg3}")
             .build(region, namespace, bucketName, objectType.group + "/last-modified.json"));
     wr.accept(MediaType.APPLICATION_JSON_TYPE);
-    wr.put(new LastModified());
+    try {
+      byte[] bytes = objectMapper.writeValueAsBytes(new LastModified());
+      wr.put(new String(bytes, StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private String buildOSSKey(String group, String objectKey, String metadataFilename) {
