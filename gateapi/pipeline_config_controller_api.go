@@ -24,50 +24,31 @@ var (
 	_ context.Context
 )
 
-type SecurityGroupControllerApiService service
+type PipelineConfigControllerApiService service
 
 
-/* SecurityGroupControllerApiService Retrieve a list of security groups for a given account, grouped by region
+/* PipelineConfigControllerApiService Convert a pipeline config to a pipeline template.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param account account
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
-     @param "region" (string) region
-     @param "xRateLimitApp" (string) X-RateLimit-App
- @return interface{}*/
-func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Context, account string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+ @param pipelineConfigId pipelineConfigId
+ @return string*/
+func (a *PipelineConfigControllerApiService) ConvertPipelineConfigToPipelineTemplateUsingGET(ctx context.Context, pipelineConfigId string) (string,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  interface{}
+	 	successPayload  string
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/securityGroups/{account}"
-	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
+	localVarPath := a.client.cfg.BasePath + "/pipelineConfigs/{pipelineConfigId}/convertToTemplate"
+	localVarPath = strings.Replace(localVarPath, "{"+"pipelineConfigId"+"}", fmt.Sprintf("%v", pipelineConfigId), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["region"], "string", "region"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
-		return successPayload, nil, err
-	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["provider"].(string); localVarOk {
-		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["region"].(string); localVarOk {
-		localVarQueryParams.Add("region", parameterToString(localVarTempParam, ""))
-	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -86,9 +67,6 @@ func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Co
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["xRateLimitApp"].(string); localVarOk {
-		localVarHeaderParams["X-RateLimit-App"] = parameterToString(localVarTempParam, "")
 	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
@@ -113,38 +91,26 @@ func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Co
 	return successPayload, localVarHttpResponse, err
 }
 
-/* SecurityGroupControllerApiService Retrieve a list of security groups, grouped by account, cloud provider, and region
+/* PipelineConfigControllerApiService Get all pipeline configs.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param optional (nil or map[string]interface{}) with one or more of:
-     @param "id" (string) id
-     @param "xRateLimitApp" (string) X-RateLimit-App
- @return interface{}*/
-func (a *SecurityGroupControllerApiService) AllUsingGET4(ctx context.Context, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+ @return []HashMap*/
+func (a *PipelineConfigControllerApiService) GetAllPipelineConfigsUsingGET(ctx context.Context) ([]HashMap,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  interface{}
+	 	successPayload  []HashMap
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/securityGroups"
+	localVarPath := a.client.cfg.BasePath + "/pipelineConfigs"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["id"], "string", "id"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
-		return successPayload, nil, err
-	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["id"].(string); localVarOk {
-		localVarQueryParams.Add("id", parameterToString(localVarTempParam, ""))
-	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -163,9 +129,6 @@ func (a *SecurityGroupControllerApiService) AllUsingGET4(ctx context.Context, lo
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["xRateLimitApp"].(string); localVarOk {
-		localVarHeaderParams["X-RateLimit-App"] = parameterToString(localVarTempParam, "")
 	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
@@ -190,50 +153,35 @@ func (a *SecurityGroupControllerApiService) AllUsingGET4(ctx context.Context, lo
 	return successPayload, localVarHttpResponse, err
 }
 
-/* SecurityGroupControllerApiService Retrieve a security group&#39;s details
+/* PipelineConfigControllerApiService Get pipeline config history.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param account account
- @param region region
- @param name name
+ @param pipelineConfigId pipelineConfigId
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
-     @param "vpcId" (string) vpcId
-     @param "xRateLimitApp" (string) X-RateLimit-App
- @return interface{}*/
-func (a *SecurityGroupControllerApiService) GetSecurityGroupUsingGET1(ctx context.Context, account string, region string, name string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+     @param "limit" (int32) limit
+ @return []HashMap*/
+func (a *PipelineConfigControllerApiService) GetPipelineConfigHistoryUsingGET(ctx context.Context, pipelineConfigId string, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  interface{}
+	 	successPayload  []HashMap
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/securityGroups/{account}/{region}/{name}"
-	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", fmt.Sprintf("%v", name), -1)
+	localVarPath := a.client.cfg.BasePath + "/pipelineConfigs/{pipelineConfigId}/history"
+	localVarPath = strings.Replace(localVarPath, "{"+"pipelineConfigId"+"}", fmt.Sprintf("%v", pipelineConfigId), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["vpcId"], "string", "vpcId"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["limit"], "int32", "limit"); err != nil {
 		return successPayload, nil, err
 	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["provider"].(string); localVarOk {
-		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["vpcId"].(string); localVarOk {
-		localVarQueryParams.Add("vpcId", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["limit"].(int32); localVarOk {
+		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
@@ -253,9 +201,6 @@ func (a *SecurityGroupControllerApiService) GetSecurityGroupUsingGET1(ctx contex
 	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["xRateLimitApp"].(string); localVarOk {
-		localVarHeaderParams["X-RateLimit-App"] = parameterToString(localVarTempParam, "")
 	}
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {

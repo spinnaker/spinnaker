@@ -55,6 +55,11 @@ Class | Method | HTTP request | Description
 *BuildControllerApi* | [**GetBuildsUsingGET**](docs/BuildControllerApi.md#getbuildsusingget) | **Get** /v2/builds/{buildMaster}/builds/** | Get builds for build master
 *BuildControllerApi* | [**GetJobConfigUsingGET**](docs/BuildControllerApi.md#getjobconfigusingget) | **Get** /v2/builds/{buildMaster}/jobs/** | Get job config
 *BuildControllerApi* | [**GetJobsForBuildMasterUsingGET**](docs/BuildControllerApi.md#getjobsforbuildmasterusingget) | **Get** /v2/builds/{buildMaster}/jobs | Get jobs for build master
+*BuildControllerApi* | [**V3GetBuildMastersUsingGET**](docs/BuildControllerApi.md#v3getbuildmastersusingget) | **Get** /v3/builds | Get build masters
+*BuildControllerApi* | [**V3GetBuildUsingGET**](docs/BuildControllerApi.md#v3getbuildusingget) | **Get** /v3/builds/{buildMaster}/build/{number} | Get build for build master
+*BuildControllerApi* | [**V3GetBuildsUsingGET**](docs/BuildControllerApi.md#v3getbuildsusingget) | **Get** /v3/builds/{buildMaster}/builds | Get builds for build master
+*BuildControllerApi* | [**V3GetJobConfigUsingGET**](docs/BuildControllerApi.md#v3getjobconfigusingget) | **Get** /v3/builds/{buildMaster}/job | Get job config
+*BuildControllerApi* | [**V3GetJobsForBuildMasterUsingGET**](docs/BuildControllerApi.md#v3getjobsforbuildmasterusingget) | **Get** /v3/builds/{buildMaster}/jobs | Get jobs for build master
 *ClusterControllerApi* | [**GetClusterLoadBalancersUsingGET**](docs/ClusterControllerApi.md#getclusterloadbalancersusingget) | **Get** /applications/{application}/clusters/{account}/{clusterName}/{type}/loadBalancers | Retrieve a cluster&#39;s loadbalancers
 *ClusterControllerApi* | [**GetClustersUsingGET**](docs/ClusterControllerApi.md#getclustersusingget) | **Get** /applications/{application}/clusters/{account}/{clusterName} | Retrieve a cluster&#39;s details
 *ClusterControllerApi* | [**GetClustersUsingGET1**](docs/ClusterControllerApi.md#getclustersusingget1) | **Get** /applications/{application}/clusters/{account} | Retrieve a list of clusters for an account
@@ -65,6 +70,7 @@ Class | Method | HTTP request | Description
 *ClusterControllerApi* | [**GetTargetServerGroupUsingGET**](docs/ClusterControllerApi.md#gettargetservergroupusingget) | **Get** /applications/{application}/clusters/{account}/{clusterName}/{cloudProvider}/{scope}/serverGroups/target/{target} | Retrieve a server group that matches a target coordinate (e.g., newest, ancestor) relative to a cluster
 *CredentialsControllerApi* | [**GetAccountUsingGET**](docs/CredentialsControllerApi.md#getaccountusingget) | **Get** /credentials/{account} | Retrieve an account&#39;s details
 *CredentialsControllerApi* | [**GetAccountsUsingGET**](docs/CredentialsControllerApi.md#getaccountsusingget) | **Get** /credentials | Retrieve a list of accounts
+*EcsServerGroupEventsControllerApi* | [**GetEventsUsingGET**](docs/EcsServerGroupEventsControllerApi.md#geteventsusingget) | **Get** /applications/{application}/serverGroups/{account}/{serverGroupName}/events | Retrieves a list of events for a server group
 *ExecutionsControllerApi* | [**GetLatestExecutionsByConfigIdsUsingGET**](docs/ExecutionsControllerApi.md#getlatestexecutionsbyconfigidsusingget) | **Get** /executions | Retrieve a list of the most recent pipeline executions for the provided &#x60;pipelineConfigIds&#x60; that match the provided &#x60;statuses&#x60; query parameter
 *ExecutionsControllerApi* | [**SearchForPipelineExecutionsByTriggerUsingGET**](docs/ExecutionsControllerApi.md#searchforpipelineexecutionsbytriggerusingget) | **Get** /applications/{application}/executions/search | Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that nwewer executions are first in the list.
 *FirewallControllerApi* | [**AllByAccountUsingGET**](docs/FirewallControllerApi.md#allbyaccountusingget) | **Get** /firewalls/{account} | Retrieve a list of firewalls for a given account, grouped by region
@@ -83,6 +89,9 @@ Class | Method | HTTP request | Description
 *LoadBalancerControllerApi* | [**GetLoadBalancerUsingGET**](docs/LoadBalancerControllerApi.md#getloadbalancerusingget) | **Get** /loadBalancers/{name} | Retrieve a load balancer for a given cloud provider
 *NetworkControllerApi* | [**AllByCloudProviderUsingGET**](docs/NetworkControllerApi.md#allbycloudproviderusingget) | **Get** /networks/{cloudProvider} | Retrieve a list of networks for a given cloud provider
 *NetworkControllerApi* | [**AllUsingGET2**](docs/NetworkControllerApi.md#allusingget2) | **Get** /networks | Retrieve a list of networks, grouped by cloud provider
+*PipelineConfigControllerApi* | [**ConvertPipelineConfigToPipelineTemplateUsingGET**](docs/PipelineConfigControllerApi.md#convertpipelineconfigtopipelinetemplateusingget) | **Get** /pipelineConfigs/{pipelineConfigId}/convertToTemplate | Convert a pipeline config to a pipeline template.
+*PipelineConfigControllerApi* | [**GetAllPipelineConfigsUsingGET**](docs/PipelineConfigControllerApi.md#getallpipelineconfigsusingget) | **Get** /pipelineConfigs | Get all pipeline configs.
+*PipelineConfigControllerApi* | [**GetPipelineConfigHistoryUsingGET**](docs/PipelineConfigControllerApi.md#getpipelineconfighistoryusingget) | **Get** /pipelineConfigs/{pipelineConfigId}/history | Get pipeline config history.
 *PipelineControllerApi* | [**CancelPipelineUsingPUT1**](docs/PipelineControllerApi.md#cancelpipelineusingput1) | **Put** /pipelines/{id}/cancel | Cancel a pipeline execution
 *PipelineControllerApi* | [**DeletePipelineUsingDELETE**](docs/PipelineControllerApi.md#deletepipelineusingdelete) | **Delete** /pipelines/{application}/{pipelineName} | Delete a pipeline definition
 *PipelineControllerApi* | [**DeletePipelineUsingDELETE1**](docs/PipelineControllerApi.md#deletepipelineusingdelete1) | **Delete** /pipelines/{id} | Delete a pipeline execution
@@ -92,7 +101,7 @@ Class | Method | HTTP request | Description
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingOPTIONS**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusingoptions) | **Options** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingPATCH**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusingpatch) | **Patch** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 *PipelineControllerApi* | [**EvaluateExpressionForExecutionUsingPUT**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionusingput) | **Put** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-*PipelineControllerApi* | [**EvaluateExpressionForExecutionViaPOSTUsingPOST**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionviapostusingpost) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
+*PipelineControllerApi* | [**EvaluateExpressionForExecutionViaPOSTUsingPOST1**](docs/PipelineControllerApi.md#evaluateexpressionforexecutionviapostusingpost1) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 *PipelineControllerApi* | [**GetPipelineLogsUsingGET**](docs/PipelineControllerApi.md#getpipelinelogsusingget) | **Get** /pipelines/{id}/logs | Retrieve pipeline execution logs
 *PipelineControllerApi* | [**GetPipelineUsingGET**](docs/PipelineControllerApi.md#getpipelineusingget) | **Get** /pipelines/{id} | Retrieve a pipeline execution
 *PipelineControllerApi* | [**InvokePipelineConfigUsingPOST1**](docs/PipelineControllerApi.md#invokepipelineconfigusingpost1) | **Post** /pipelines/{application}/{pipelineNameOrId} | Trigger a pipeline execution
@@ -104,10 +113,18 @@ Class | Method | HTTP request | Description
 *PipelineControllerApi* | [**StartUsingPOST**](docs/PipelineControllerApi.md#startusingpost) | **Post** /pipelines/start | Initiate a pipeline execution
 *PipelineControllerApi* | [**UpdatePipelineUsingPUT**](docs/PipelineControllerApi.md#updatepipelineusingput) | **Put** /pipelines/{id} | Update a pipeline definition
 *PipelineControllerApi* | [**UpdateStageUsingPATCH**](docs/PipelineControllerApi.md#updatestageusingpatch) | **Patch** /pipelines/{id}/stages/{stageId} | Update a stage execution
+*PipelineTemplatesControllerApi* | [**CreateUsingPOST**](docs/PipelineTemplatesControllerApi.md#createusingpost) | **Post** /pipelineTemplates | Create a pipeline template.
+*PipelineTemplatesControllerApi* | [**DeleteUsingDELETE**](docs/PipelineTemplatesControllerApi.md#deleteusingdelete) | **Delete** /pipelineTemplates/{id} | Delete a pipeline template.
+*PipelineTemplatesControllerApi* | [**GetUsingGET**](docs/PipelineTemplatesControllerApi.md#getusingget) | **Get** /pipelineTemplates/{id} | Get a pipeline template.
+*PipelineTemplatesControllerApi* | [**ListPipelineTemplateDependentsUsingGET**](docs/PipelineTemplatesControllerApi.md#listpipelinetemplatedependentsusingget) | **Get** /pipelineTemplates/{id}/dependents | List all pipelines that implement a pipeline template
+*PipelineTemplatesControllerApi* | [**ListUsingGET**](docs/PipelineTemplatesControllerApi.md#listusingget) | **Get** /pipelineTemplates | List pipeline templates.
+*PipelineTemplatesControllerApi* | [**ResolveTemplatesUsingGET**](docs/PipelineTemplatesControllerApi.md#resolvetemplatesusingget) | **Get** /pipelineTemplates/resolve | Resolve a pipeline template.
+*PipelineTemplatesControllerApi* | [**UpdateUsingPOST**](docs/PipelineTemplatesControllerApi.md#updateusingpost) | **Post** /pipelineTemplates/{id} | Update a pipeline template.
 *ProjectControllerApi* | [**AllPipelinesForProjectUsingGET**](docs/ProjectControllerApi.md#allpipelinesforprojectusingget) | **Get** /projects/{id}/pipelines | Get all pipelines for project
+*PubsubSubscriptionControllerApi* | [**AllUsingGET3**](docs/PubsubSubscriptionControllerApi.md#allusingget3) | **Get** /pubsub/subscriptions | Retrieve the list of pub/sub subscriptions configured in Echo.
 *SearchControllerApi* | [**SearchUsingGET**](docs/SearchControllerApi.md#searchusingget) | **Get** /search | Search infrastructure
 *SecurityGroupControllerApi* | [**AllByAccountUsingGET1**](docs/SecurityGroupControllerApi.md#allbyaccountusingget1) | **Get** /securityGroups/{account} | Retrieve a list of security groups for a given account, grouped by region
-*SecurityGroupControllerApi* | [**AllUsingGET3**](docs/SecurityGroupControllerApi.md#allusingget3) | **Get** /securityGroups | Retrieve a list of security groups, grouped by account, cloud provider, and region
+*SecurityGroupControllerApi* | [**AllUsingGET4**](docs/SecurityGroupControllerApi.md#allusingget4) | **Get** /securityGroups | Retrieve a list of security groups, grouped by account, cloud provider, and region
 *SecurityGroupControllerApi* | [**GetSecurityGroupUsingGET1**](docs/SecurityGroupControllerApi.md#getsecuritygroupusingget1) | **Get** /securityGroups/{account}/{region}/{name} | Retrieve a security group&#39;s details
 *ServerGroupControllerApi* | [**GetServerGroupDetailsUsingGET**](docs/ServerGroupControllerApi.md#getservergroupdetailsusingget) | **Get** /applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName} | Retrieve a server group&#39;s details
 *ServerGroupControllerApi* | [**GetServerGroupsForApplicationUsingGET**](docs/ServerGroupControllerApi.md#getservergroupsforapplicationusingget) | **Get** /applications/{applicationName}/serverGroups | Retrieve a list of server groups for a given application
@@ -121,6 +138,7 @@ Class | Method | HTTP request | Description
 *TaskControllerApi* | [**GetTaskDetailsUsingGET1**](docs/TaskControllerApi.md#gettaskdetailsusingget1) | **Get** /tasks/{id}/details/{taskDetailsId} | Get task details
 *TaskControllerApi* | [**GetTaskUsingGET1**](docs/TaskControllerApi.md#gettaskusingget1) | **Get** /tasks/{id} | Get task
 *TaskControllerApi* | [**TaskUsingPOST1**](docs/TaskControllerApi.md#taskusingpost1) | **Post** /tasks | Create task
+*VersionControllerApi* | [**GetVersionUsingGET**](docs/VersionControllerApi.md#getversionusingget) | **Get** /version | Fetch Gate&#39;s current version
 *WebhookControllerApi* | [**PreconfiguredWebhooksUsingGET**](docs/WebhookControllerApi.md#preconfiguredwebhooksusingget) | **Get** /webhooks/preconfigured | Retrieve a list of preconfigured webhooks in Orca
 *WebhookControllerApi* | [**WebhooksUsingPOST**](docs/WebhookControllerApi.md#webhooksusingpost) | **Post** /webhooks/{type}/{source} | Endpoint for posting webhooks to Spinnaker&#39;s webhook service
 
@@ -133,8 +151,11 @@ Class | Method | HTTP request | Description
  - [HashMap](docs/HashMap.md)
  - [HashMapstringobject](docs/HashMapstringobject.md)
  - [HttpEntity](docs/HttpEntity.md)
+ - [Mapstringstring](docs/Mapstringstring.md)
+ - [PipelineTemplateDependent](docs/PipelineTemplateDependent.md)
  - [ResponseEntity](docs/ResponseEntity.md)
  - [User](docs/User.md)
+ - [Version](docs/Version.md)
 
 
 ## Documentation For Authorization

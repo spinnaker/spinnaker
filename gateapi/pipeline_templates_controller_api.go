@@ -24,32 +24,98 @@ var (
 	_ context.Context
 )
 
-type BuildControllerApiService service
+type PipelineTemplatesControllerApiService service
 
 
-/* BuildControllerApiService Get build masters
- Deprecated, use the v3 endpoint instead
+/* PipelineTemplatesControllerApiService Create a pipeline template.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param type_ type
- @return []interface{}*/
-func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context, type_ string) ([]interface{},  *http.Response, error) {
+ @param pipelineTemplate pipelineTemplate
+ @return */
+func (a *PipelineTemplatesControllerApiService) CreateUsingPOST(ctx context.Context, pipelineTemplate interface{}) ( *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
+		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/builds"
+	localVarPath := a.client.cfg.BasePath + "/pipelineTemplates"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
 
-	localVarQueryParams.Add("type", parameterToString(type_, ""))
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	// body params
+	localVarPostBody = &pipelineTemplate
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	return localVarHttpResponse, err
+}
+
+/* PipelineTemplatesControllerApiService Delete a pipeline template.
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param id id
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "application" (string) application
+ @return map[string]interface{}*/
+func (a *PipelineTemplatesControllerApiService) DeleteUsingDELETE(ctx context.Context, id string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Delete")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelineTemplates/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if err := typeCheckParameter(localVarOptionals["application"], "string", "application"); err != nil {
+		return successPayload, nil, err
+	}
+
+	if localVarTempParam, localVarOk := localVarOptionals["application"].(string); localVarOk {
+		localVarQueryParams.Add("application", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -92,13 +158,11 @@ func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context,
 	return successPayload, localVarHttpResponse, err
 }
 
-/* BuildControllerApiService Get build for build master
- Deprecated, use the v3 endpoint instead
+/* PipelineTemplatesControllerApiService Get a pipeline template.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param number number
+ @param id id
  @return map[string]interface{}*/
-func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildMaster string, number string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineTemplatesControllerApiService) GetUsingGET(ctx context.Context, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -108,9 +172,8 @@ func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildM
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/builds/{buildMaster}/build/{number}/**"
-	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"number"+"}", fmt.Sprintf("%v", number), -1)
+	localVarPath := a.client.cfg.BasePath + "/pipelineTemplates/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -159,12 +222,13 @@ func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildM
 	return successPayload, localVarHttpResponse, err
 }
 
-/* BuildControllerApiService Get builds for build master
- Deprecated, use the v3 endpoint instead
+/* PipelineTemplatesControllerApiService List all pipelines that implement a pipeline template
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
+ @param id id
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "recursive" (bool) recursive
  @return []interface{}*/
-func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, buildMaster string) ([]interface{},  *http.Response, error) {
+func (a *PipelineTemplatesControllerApiService) ListPipelineTemplateDependentsUsingGET(ctx context.Context, id string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -174,14 +238,20 @@ func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, build
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/builds/{buildMaster}/builds/**"
-	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
+	localVarPath := a.client.cfg.BasePath + "/pipelineTemplates/{id}/dependents"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["recursive"], "bool", "recursive"); err != nil {
+		return successPayload, nil, err
+	}
 
+	if localVarTempParam, localVarOk := localVarOptionals["recursive"].(bool); localVarOk {
+		localVarQueryParams.Add("recursive", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -224,12 +294,81 @@ func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, build
 	return successPayload, localVarHttpResponse, err
 }
 
-/* BuildControllerApiService Get job config
- Deprecated, use the v3 endpoint instead
+/* PipelineTemplatesControllerApiService List pipeline templates.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "scopes" ([]string) scopes
+ @return []HashMap*/
+func (a *PipelineTemplatesControllerApiService) ListUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]HashMap,  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []HashMap
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelineTemplates"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	if localVarTempParam, localVarOk := localVarOptionals["scopes"].([]string); localVarOk {
+		localVarQueryParams.Add("scopes", parameterToString(localVarTempParam, "multi"))
+	}
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* PipelineTemplatesControllerApiService Resolve a pipeline template.
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param source source
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "executionId" (string) executionId
+     @param "pipelineConfigId" (string) pipelineConfigId
  @return map[string]interface{}*/
-func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, buildMaster string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineTemplatesControllerApiService) ResolveTemplatesUsingGET(ctx context.Context, source string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -239,14 +378,26 @@ func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, bu
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/builds/{buildMaster}/jobs/**"
-	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
+	localVarPath := a.client.cfg.BasePath + "/pipelineTemplates/resolve"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["executionId"], "string", "executionId"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["pipelineConfigId"], "string", "pipelineConfigId"); err != nil {
+		return successPayload, nil, err
+	}
 
+	localVarQueryParams.Add("source", parameterToString(source, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["executionId"].(string); localVarOk {
+		localVarQueryParams.Add("executionId", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["pipelineConfigId"].(string); localVarOk {
+		localVarQueryParams.Add("pipelineConfigId", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -289,29 +440,36 @@ func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, bu
 	return successPayload, localVarHttpResponse, err
 }
 
-/* BuildControllerApiService Get jobs for build master
- Deprecated, use the v3 endpoint instead
+/* PipelineTemplatesControllerApiService Update a pipeline template.
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @return []interface{}*/
-func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Context, buildMaster string) ([]interface{},  *http.Response, error) {
+ @param id id
+ @param pipelineTemplate pipelineTemplate
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "skipPlanDependents" (bool) skipPlanDependents
+ @return */
+func (a *PipelineTemplatesControllerApiService) UpdateUsingPOST(ctx context.Context, id string, pipelineTemplate interface{}, localVarOptionals map[string]interface{}) ( *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
+		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
 		localVarFileName string
 		localVarFileBytes []byte
-	 	successPayload  []interface{}
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v2/builds/{buildMaster}/jobs"
-	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
+	localVarPath := a.client.cfg.BasePath + "/pipelineTemplates/{id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["skipPlanDependents"], "bool", "skipPlanDependents"); err != nil {
+		return nil, err
+	}
 
+	if localVarTempParam, localVarOk := localVarOptionals["skipPlanDependents"].(bool); localVarOk {
+		localVarQueryParams.Add("skipPlanDependents", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
@@ -331,354 +489,23 @@ func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Co
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
+	// body params
+	localVarPostBody = &pipelineTemplate
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
 	if err != nil {
-		return successPayload, nil, err
+		return nil, err
 	}
 
 	localVarHttpResponse, err := a.client.callAPI(r)
 	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
+		return localVarHttpResponse, err
 	}
 	defer localVarHttpResponse.Body.Close()
 	if localVarHttpResponse.StatusCode >= 300 {
 		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+		return localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
 	}
 
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* BuildControllerApiService Get build masters
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param type_ type
- @return []interface{}*/
-func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Context, type_ string) ([]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v3/builds"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	localVarQueryParams.Add("type", parameterToString(type_, ""))
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* BuildControllerApiService Get build for build master
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param number number
- @param job job
- @return map[string]interface{}*/
-func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buildMaster string, number string, job string) (map[string]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v3/builds/{buildMaster}/build/{number}"
-	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"number"+"}", fmt.Sprintf("%v", number), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	localVarQueryParams.Add("job", parameterToString(job, ""))
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* BuildControllerApiService Get builds for build master
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param job job
- @return []interface{}*/
-func (a *BuildControllerApiService) V3GetBuildsUsingGET(ctx context.Context, buildMaster string, job string) ([]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v3/builds/{buildMaster}/builds"
-	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	localVarQueryParams.Add("job", parameterToString(job, ""))
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* BuildControllerApiService Get job config
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @param job job
- @return map[string]interface{}*/
-func (a *BuildControllerApiService) V3GetJobConfigUsingGET(ctx context.Context, buildMaster string, job string) (map[string]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  map[string]interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v3/builds/{buildMaster}/job"
-	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	localVarQueryParams.Add("job", parameterToString(job, ""))
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
-}
-
-/* BuildControllerApiService Get jobs for build master
- * @param ctx context.Context for authentication, logging, tracing, etc.
- @param buildMaster buildMaster
- @return []interface{}*/
-func (a *BuildControllerApiService) V3GetJobsForBuildMasterUsingGET(ctx context.Context, buildMaster string) ([]interface{},  *http.Response, error) {
-	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody interface{}
-		localVarFileName string
-		localVarFileBytes []byte
-	 	successPayload  []interface{}
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/v3/builds/{buildMaster}/jobs"
-	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-
-	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
-
-	// set Content-Type header
-	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
-	if localVarHttpContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHttpContentType
-	}
-
-	// to determine the Accept header
-	localVarHttpHeaderAccepts := []string{
-		"*/*",
-		}
-
-	// set Accept header
-	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
-	if localVarHttpHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return successPayload, nil, err
-	}
-
-	localVarHttpResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHttpResponse == nil {
-		return successPayload, localVarHttpResponse, err
-	}
-	defer localVarHttpResponse.Body.Close()
-	if localVarHttpResponse.StatusCode >= 300 {
-		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
-		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
-	}
-
-	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
-		return successPayload, localVarHttpResponse, err
-	}
-
-
-	return successPayload, localVarHttpResponse, err
+	return localVarHttpResponse, err
 }
 

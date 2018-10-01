@@ -9,11 +9,11 @@
 
 package swagger
 
-type ResponseEntity struct {
+type PipelineTemplateDependent struct {
 
-	StatusCode string `json:"statusCode,omitempty"`
+	Application string `json:"application,omitempty"`
 
-	Body *interface{} `json:"body,omitempty"`
+	PipelineConfigId string `json:"pipelineConfigId,omitempty"`
 
-	StatusCodeValue int32 `json:"statusCodeValue,omitempty"`
+	PipelineName string `json:"pipelineName,omitempty"`
 }

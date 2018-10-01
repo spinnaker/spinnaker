@@ -9,14 +9,25 @@ Method | HTTP request | Description
 [**GetBuildsUsingGET**](BuildControllerApi.md#GetBuildsUsingGET) | **Get** /v2/builds/{buildMaster}/builds/** | Get builds for build master
 [**GetJobConfigUsingGET**](BuildControllerApi.md#GetJobConfigUsingGET) | **Get** /v2/builds/{buildMaster}/jobs/** | Get job config
 [**GetJobsForBuildMasterUsingGET**](BuildControllerApi.md#GetJobsForBuildMasterUsingGET) | **Get** /v2/builds/{buildMaster}/jobs | Get jobs for build master
+[**V3GetBuildMastersUsingGET**](BuildControllerApi.md#V3GetBuildMastersUsingGET) | **Get** /v3/builds | Get build masters
+[**V3GetBuildUsingGET**](BuildControllerApi.md#V3GetBuildUsingGET) | **Get** /v3/builds/{buildMaster}/build/{number} | Get build for build master
+[**V3GetBuildsUsingGET**](BuildControllerApi.md#V3GetBuildsUsingGET) | **Get** /v3/builds/{buildMaster}/builds | Get builds for build master
+[**V3GetJobConfigUsingGET**](BuildControllerApi.md#V3GetJobConfigUsingGET) | **Get** /v3/builds/{buildMaster}/job | Get job config
+[**V3GetJobsForBuildMasterUsingGET**](BuildControllerApi.md#V3GetJobsForBuildMasterUsingGET) | **Get** /v3/builds/{buildMaster}/jobs | Get jobs for build master
 
 
 # **GetBuildMastersUsingGET**
-> []interface{} GetBuildMastersUsingGET(ctx, )
+> []interface{} GetBuildMastersUsingGET(ctx, type_)
 Get build masters
 
+Deprecated, use the v3 endpoint instead
+
 ### Required Parameters
-This endpoint does not need any parameter.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **type_** | **string**| type | 
 
 ### Return type
 
@@ -36,6 +47,8 @@ No authorization required
 # **GetBuildUsingGET**
 > map[string]interface{} GetBuildUsingGET(ctx, buildMaster, number)
 Get build for build master
+
+Deprecated, use the v3 endpoint instead
 
 ### Required Parameters
 
@@ -64,6 +77,8 @@ No authorization required
 > []interface{} GetBuildsUsingGET(ctx, buildMaster)
 Get builds for build master
 
+Deprecated, use the v3 endpoint instead
+
 ### Required Parameters
 
 Name | Type | Description  | Notes
@@ -90,6 +105,8 @@ No authorization required
 > map[string]interface{} GetJobConfigUsingGET(ctx, buildMaster)
 Get job config
 
+Deprecated, use the v3 endpoint instead
+
 ### Required Parameters
 
 Name | Type | Description  | Notes
@@ -114,6 +131,142 @@ No authorization required
 
 # **GetJobsForBuildMasterUsingGET**
 > []interface{} GetJobsForBuildMasterUsingGET(ctx, buildMaster)
+Get jobs for build master
+
+Deprecated, use the v3 endpoint instead
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **buildMaster** | **string**| buildMaster | 
+
+### Return type
+
+[**[]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **V3GetBuildMastersUsingGET**
+> []interface{} V3GetBuildMastersUsingGET(ctx, type_)
+Get build masters
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **type_** | **string**| type | 
+
+### Return type
+
+[**[]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **V3GetBuildUsingGET**
+> map[string]interface{} V3GetBuildUsingGET(ctx, buildMaster, number, job)
+Get build for build master
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **buildMaster** | **string**| buildMaster | 
+  **number** | **string**| number | 
+  **job** | **string**| job | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **V3GetBuildsUsingGET**
+> []interface{} V3GetBuildsUsingGET(ctx, buildMaster, job)
+Get builds for build master
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **buildMaster** | **string**| buildMaster | 
+  **job** | **string**| job | 
+
+### Return type
+
+[**[]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **V3GetJobConfigUsingGET**
+> map[string]interface{} V3GetJobConfigUsingGET(ctx, buildMaster, job)
+Get job config
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **buildMaster** | **string**| buildMaster | 
+  **job** | **string**| job | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **V3GetJobsForBuildMasterUsingGET**
+> []interface{} V3GetJobsForBuildMasterUsingGET(ctx, buildMaster)
 Get jobs for build master
 
 ### Required Parameters
