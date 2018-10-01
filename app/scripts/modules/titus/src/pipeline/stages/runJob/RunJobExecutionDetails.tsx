@@ -120,7 +120,7 @@ export class RunJobExecutionDetails extends React.Component<
           <div className="row">
             <div className="col-md-12">
               <div className="well alert alert-info">
-                <a target="_blank" href={`${titusUiEndpoint}jobs/${jobId}/tasks/${taskId}/logs/archived`}>
+                <a target="_blank" href={`${titusUiEndpoint}jobs/${jobId}/tasks/${taskId}/logs`}>
                   View Execution Logs
                 </a>
               </div>
