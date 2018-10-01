@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -39,10 +41,13 @@ import java.util.concurrent.TimeUnit
 @Component
 class OkHttp3ClientConfiguration {
   private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
+  private final OkHttp3MetricsInterceptor okHttp3MetricsInterceptor
 
   @Autowired
-  public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
+  public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
+                                    OkHttp3MetricsInterceptor okHttp3MetricsInterceptor) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
+    this.okHttp3MetricsInterceptor = okHttp3MetricsInterceptor
   }
 
   /**
@@ -57,6 +62,7 @@ class OkHttp3ClientConfiguration {
         okHttpClientConfigurationProperties.connectionPool.maxIdleConnections,
         okHttpClientConfigurationProperties.connectionPool.keepAliveDurationMs,
         TimeUnit.MILLISECONDS))
+      .addInterceptor(okHttp3MetricsInterceptor)
 
     if (!okHttpClientConfigurationProperties.keyStore && !okHttpClientConfigurationProperties.trustStore) {
       return okHttpClientBuilder

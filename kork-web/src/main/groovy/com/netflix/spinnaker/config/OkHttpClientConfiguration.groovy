@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.ConnectionSpec
 import com.squareup.okhttp.OkHttpClient
@@ -41,14 +42,17 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @CompileStatic
 @Component
-@Deprecated
+@Deprecated // see OkHttp3ClientConfiguration
 class OkHttpClientConfiguration {
 
   private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
+  private final OkHttpMetricsInterceptor okHttpMetricsInterceptor
 
   @Autowired
-  public OkHttpClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
+  public OkHttpClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
+                                   OkHttpMetricsInterceptor okHttpMetricsInterceptor) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
+    this.okHttpMetricsInterceptor = okHttpMetricsInterceptor
   }
 
   /**
@@ -60,6 +64,7 @@ class OkHttpClientConfiguration {
     okHttpClient.setConnectTimeout(okHttpClientConfigurationProperties.connectTimeoutMs, TimeUnit.MILLISECONDS)
     okHttpClient.setReadTimeout(okHttpClientConfigurationProperties.readTimeoutMs, TimeUnit.MILLISECONDS)
     okHttpClient.setRetryOnConnectionFailure(okHttpClientConfigurationProperties.retryOnConnectionFailure)
+    okHttpClient.interceptors().add(okHttpMetricsInterceptor)
     okHttpClient.connectionPool = new ConnectionPool(
       okHttpClientConfigurationProperties.connectionPool.maxIdleConnections,
       okHttpClientConfigurationProperties.connectionPool.keepAliveDurationMs)

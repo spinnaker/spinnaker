@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -28,5 +31,15 @@ class OkHttpClientComponents {
   @Bean
   SpinnakerRequestInterceptor spinnakerRequestInterceptor(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
     return new SpinnakerRequestInterceptor(okHttpClientConfigurationProperties)
+  }
+
+  @Bean
+  OkHttpMetricsInterceptor okHttpMetricsInterceptor(Registry registry) {
+    return new OkHttpMetricsInterceptor(registry)
+  }
+
+  @Bean
+  OkHttp3MetricsInterceptor okHttp3MetricsInterceptor(Registry registry) {
+    return new OkHttp3MetricsInterceptor(registry)
   }
 }
