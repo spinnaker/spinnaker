@@ -39,4 +39,7 @@ interface EchoService {
 
   @GET("/pubsub/subscriptions")
   List<Map<String, String>> getPubsubSubscriptions()
+
+  @POST('/')
+  String postEvent(@Body Map event)
 }
