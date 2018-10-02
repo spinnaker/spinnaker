@@ -66,3 +66,13 @@ protobuf {
     }
   }
 }
+
+javadoc {
+  exclude 'io/titanframework/**'
+  exclude 'com/netflix/titus/grpc/protogen/**'
+}
+
+license {
+  exclude 'io/titanframework/**'
+  exclude 'com/netflix/titus/grpc/protogen/**'
+}
