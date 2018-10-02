@@ -62,10 +62,10 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
 
   def new_gcs_pubsub_trigger_operation(
         self, gate_agent, title, bucket_name, upload_path,
-        local_filename, status_class, status_path):
+        local_filename, status_class, status_path, max_wait_secs=None):
     return GcsPubsubUploadTriggerOperation(
         title, self, gate_agent, bucket_name, upload_path,
-        local_filename, status_class, status_path)
+        local_filename, status_class, status_path, max_wait_secs=max_wait_secs)
 
 
 class BaseGcsPubsubTriggerOperation(base_agent.AgentOperation):
@@ -101,9 +101,9 @@ class GcsPubsubUploadTriggerOperation(BaseGcsPubsubTriggerOperation):
   """
   def __init__(
         self, title, gcs_pubsub_agent, gate_agent, bucket_name, upload_path,
-        local_filename, status_class, status_path):
+        local_filename, status_class, status_path, max_wait_secs=None):
     super(GcsPubsubUploadTriggerOperation, self).__init__(
-        title, gcs_pubsub_agent)
+        title, gcs_pubsub_agent, max_wait_secs=max_wait_secs)
     self.__bucket_name = bucket_name
     self.__upload_path = upload_path
     self.__local_filename = local_filename
@@ -172,7 +172,7 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
     super(GcsPubsubTriggerOperationStatus, self).__init__(operation)
     self.__trigger_response = self.__gate_agent.get(self.__status_path)
     self.__start = datetime.datetime.utcnow()
-    self.__timeout_delta = datetime.timedelta(minutes=1)
+    self.__timeout_delta = datetime.timedelta(minutes=8)
 
   def export_summary_to_json_snapshot(self, snapshot, entity):
     """Implements JsonSnapshotableEntity interface."""

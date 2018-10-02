@@ -331,7 +331,8 @@ class AppengineGcsPubsubTestScenario(sk.SpinnakerTestScenario):
         upload_path='{}'.format(name),
         local_filename=os.path.abspath(name),
         status_class=None,
-        status_path=executions_path
+        status_path=executions_path,
+        max_wait_secs=780 # Give 13 minutes for the pipeline to run.
       ),
       contract=builder.build())
 
