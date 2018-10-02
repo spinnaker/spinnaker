@@ -32,6 +32,7 @@ export interface IServerGroupBasicSettingsState {
   namePreview: string;
   createsNewCluster: boolean;
   latestServerGroup: IServerGroup;
+  showImageIdField: boolean;
   showPreviewAsWarning: boolean;
 }
 
@@ -60,13 +61,17 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
     this.state = {
       ...this.getStateFromProps(props),
+      showImageIdField: props.formik.values.imageId.includes('${'),
     };
   }
 
   private updateImageId(repository: string, tag: string) {
-    const imageId = repository && tag ? `${repository}:${tag}` : '';
-    if (this.props.formik.values.imageId !== imageId) {
-      this.props.formik.setFieldValue('imageId', imageId);
+    // If image id parameterized, don't blow it away
+    if (!this.state.showImageIdField) {
+      const newImageId = repository && tag ? `${repository}:${tag}` : '';
+      if (this.props.formik.values.imageId !== newImageId) {
+        this.props.formik.setFieldValue('imageId', newImageId);
+      }
     }
   }
 
@@ -158,8 +163,10 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   public componentWillReceiveProps(nextProps: IServerGroupBasicSettingsProps) {
-    const { values } = nextProps.formik;
-    this.updateImageId(values.repository, values.tag);
+    const { values, touched } = nextProps.formik;
+    if (touched.repository || touched.tag) {
+      this.updateImageId(values.repository, values.tag);
+    }
     this.setState(this.getStateFromProps(nextProps));
   }
 
@@ -176,7 +183,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
   public render() {
     const { errors, setFieldValue, values } = this.props.formik;
-    const { createsNewCluster, latestServerGroup, namePreview, showPreviewAsWarning } = this.state;
+    const { createsNewCluster, latestServerGroup, namePreview, showImageIdField, showPreviewAsWarning } = this.state;
     const { AccountSelectField, DeploymentStrategySelector } = NgReact;
 
     const accounts = values.backingData.accounts;
@@ -253,20 +260,31 @@ class ServerGroupBasicSettingsImpl extends React.Component<
           </div>
         )}
 
-        {!values.viewState.disableImageSelection && (
-          <DockerImageAndTagSelector
-            specifyTagByRegex={false}
-            account={values.credentials}
-            organization={values.organization}
-            registry={values.registry}
-            repository={values.repository}
-            tag={values.tag || ''}
-            showRegistry={false}
-            deferInitialization={values.deferredInitialization}
-            labelClass="col-md-3"
-            fieldClass="col-md-7"
-            onChange={this.dockerValuesChanged}
-          />
+        {!showImageIdField &&
+          !values.viewState.disableImageSelection && (
+            <DockerImageAndTagSelector
+              specifyTagByRegex={false}
+              account={values.credentials}
+              organization={values.organization}
+              registry={values.registry}
+              repository={values.repository}
+              tag={values.tag || ''}
+              showRegistry={false}
+              deferInitialization={values.deferredInitialization}
+              labelClass="col-md-3"
+              fieldClass="col-md-7"
+              onChange={this.dockerValuesChanged}
+            />
+          )}
+        {showImageIdField && (
+          <div className="form-group">
+            <div className="col-md-3 sm-label-right">
+              <b>Image ID</b>
+            </div>
+            <div className="col-md-7">
+              <Field type="text" className="form-control input-sm no-spel" name="imageId" />
+            </div>
+          </div>
         )}
         <div className="form-group">
           <div className="col-md-3 sm-label-right">
