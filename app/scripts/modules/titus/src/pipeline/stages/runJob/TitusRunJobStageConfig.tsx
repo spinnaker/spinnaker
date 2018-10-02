@@ -34,6 +34,48 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
     loaded: false,
   };
 
+  public constructor(props: IStageConfigProps) {
+    super(props);
+    const { application, stage } = props;
+    stage.cluster = stage.cluster || {};
+    stage.waitForCompletion = stage.waitForCompletion === undefined ? true : stage.waitForCompletion;
+
+    if (stage.cluster.imageId) {
+      Object.assign(stage, this.splitImageId(stage.cluster.imageId));
+    }
+
+    if (!stage.credentials && application.defaultCredentials.titus) {
+      stage.credentials = application.defaultCredentials.titus;
+    }
+
+    if (!stage.cluster.capacity) {
+      stage.cluster.capacity = {
+        min: 1,
+        max: 1,
+        desired: 1,
+      };
+    }
+
+    const clusterDefaults = {
+      application: application.name,
+      env: {},
+      resources: {
+        cpu: 1,
+        disk: 10000,
+        gpu: 0,
+        memory: 512,
+        networkMbps: 128,
+      },
+      retries: 0,
+      runtimeLimitSecs: 3600,
+      securityGroups: [] as string[],
+    };
+    defaultsDeep(stage.cluster, clusterDefaults);
+
+    stage.cloudProvider = stage.cloudProvider || 'titus';
+    stage.deferredInitialization = true;
+  }
+
   private setRegistry(account: string) {
     if (account) {
       this.props.stage.registry = this.credentialsKeyedByAccount[account].registry;
@@ -95,45 +137,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
   }
 
   public componentDidMount() {
-    const { application, stage } = this.props;
-    stage.cluster = stage.cluster || {};
-    stage.waitForCompletion = stage.waitForCompletion === undefined ? true : stage.waitForCompletion;
-
-    if (stage.cluster.imageId) {
-      Object.assign(stage, this.splitImageId(stage.cluster.imageId));
-    }
-
-    if (!stage.credentials && application.defaultCredentials.titus) {
-      stage.credentials = application.defaultCredentials.titus;
-    }
-
-    if (!stage.cluster.capacity) {
-      stage.cluster.capacity = {
-        min: 1,
-        max: 1,
-        desired: 1,
-      };
-    }
-
-    const clusterDefaults = {
-      application: application.name,
-      env: {},
-      resources: {
-        cpu: 1,
-        disk: 10000,
-        gpu: 0,
-        menu: 512,
-        networkMbps: 128,
-      },
-      retries: 0,
-      runtimeLimitSecs: 3600,
-      securityGroups: [] as string[],
-    };
-    defaultsDeep(stage.cluster, clusterDefaults);
-
-    stage.cloudProvider = stage.cloudProvider || 'titus';
-    stage.deferredInitialization = true;
-
+    const { stage } = this.props;
     AccountService.getCredentialsKeyedByAccount('titus').then(credentialsKeyedByAccount => {
       this.credentialsKeyedByAccount = credentialsKeyedByAccount;
       const credentials = Object.keys(credentialsKeyedByAccount);
