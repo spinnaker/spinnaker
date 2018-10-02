@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/snapshots")
-@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azs.enabled:false}')
+@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azs.enabled:false} || ${spinnaker.oracle.enabled:false}')
 class SnapshotsController {
 
     @Autowired

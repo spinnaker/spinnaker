@@ -36,7 +36,7 @@ import retrofit.RetrofitError
 @Slf4j
 @RestController
 @RequestMapping("/permissions")
-@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azs.enabled:false}')
+@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azs.enabled:false} || ${spinnaker.oracle.enabled:false}')
 public class PermissionsController {
 
   @Autowired
