@@ -2,25 +2,23 @@
 
 module.exports = function($provide) {
   $provide.decorator('uiSelectMultipleDirective', function($delegate) {
-    var uiSelect = $delegate[0];
+    const [uiSelect] = $delegate,
+      originalLink = uiSelect.link,
+      SELECT_EVENT_KEY = 'uis:select';
 
-    const originalLink = uiSelect.link;
-
-    uiSelect.compile = function() {
-      return function(scope, element, attrs, ctrls) {
-        originalLink.apply(this, arguments);
-        let $select = ctrls[0];
-        scope.$$listeners['uis:select'] = [];
-        scope.$on('uis:select', function(event, item) {
-          if ($select.selected.length >= $select.limit) {
-            return;
-          }
-          if (!event.defaultPrevented) {
-            $select.selected.push(item);
-            scope.$selectMultiple.updateModel();
-          }
-        });
-      };
+    uiSelect.link = function(scope, element, attrs, ctrls) {
+      originalLink.apply(this, arguments);
+      const [$select] = ctrls;
+      scope.$$listeners[SELECT_EVENT_KEY] = [];
+      scope.$on(SELECT_EVENT_KEY, function(event, item) {
+        if ($select.selected.length >= $select.limit) {
+          return;
+        }
+        if (!event.defaultPrevented) {
+          $select.selected.push(item);
+          scope.$selectMultiple.updateModel();
+        }
+      });
     };
 
     return $delegate;

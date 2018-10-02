@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+// TODO(dpeach): this approach is unmaintainable because we
+// have to intercept ui-select event emitters to make it work.
 module.exports = angular
   .module('spinnaker.deck.gce.backendServiceSelector.component', [])
   .component('gceBackendServiceSelector', {
