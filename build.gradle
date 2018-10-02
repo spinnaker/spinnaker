@@ -20,7 +20,10 @@ allprojects {
   apply plugin: 'groovy'
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '1.0.26'
+    spinnakerDependenciesVersion = '1.0.26'
+    if (project.hasProperty('spinnakerDependenciesVersion')) {
+      spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
+    }
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
