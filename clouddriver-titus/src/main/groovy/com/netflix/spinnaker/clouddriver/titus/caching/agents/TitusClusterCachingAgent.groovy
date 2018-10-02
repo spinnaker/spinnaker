@@ -319,7 +319,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     } catch (Exception e) {
       log.error("Failed to load load balancers for ${account.name}:${region}", e)
     }
-    List cacheablePolicyStates = [ScalingPolicyState.Pending, ScalingPolicyState.Applied, ScalingPolicyState.Deleting]
+    List cacheablePolicyStates = [ScalingPolicyState.Applied, ScalingPolicyState.Deleting]
     Map<String, TitusSecurityGroup> titusSecurityGroupCache = [:]
 
     def serverGroupDatas = jobs.collect { job ->

@@ -341,7 +341,6 @@ public class TitusV2ClusterCachingAgent implements CachingAgent, CustomScheduled
 
     // Ignore policies in a Deleted state (may need to revisit)
     List cacheablePolicyStates = Arrays.asList(
-      ScalingPolicyStatus.ScalingPolicyState.Pending,
       ScalingPolicyStatus.ScalingPolicyState.Applied,
       ScalingPolicyStatus.ScalingPolicyState.Deleting
     );
