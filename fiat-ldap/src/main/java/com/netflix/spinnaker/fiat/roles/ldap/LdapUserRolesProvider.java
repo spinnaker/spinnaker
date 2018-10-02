@@ -20,6 +20,7 @@ import com.netflix.spinnaker.fiat.config.LdapConfig;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
+import java.util.Collections;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +66,15 @@ public class LdapUserRolesProvider implements UserRolesProvider {
       return new ArrayList<>();
     }
 
-    String[] params = new String[]{getUserFullDn(userId), userId};
+    String fullUserDn = getUserFullDn(userId);
+
+    if (fullUserDn == null) {
+      // Likely a service account
+      log.debug("fullUserDn is null for {}", userId);
+      return Collections.emptyList();
+    }
+
+    String[] params = new String[]{fullUserDn, userId};
 
     if (log.isDebugEnabled()) {
       log.debug(new StringBuilder("Searching for groups using ")

@@ -26,4 +26,6 @@ dependencies {
   compileOnly spinnaker.dependency("lombok")
 
   compile "org.springframework.security:spring-security-ldap:${spinnaker.version('springSecurity')}"
+
+  spinnaker.group("spockBase")
 }
