@@ -15,6 +15,6 @@ export default class ChartJSGraph extends React.Component<IMetricSetPairGraphPro
   }
 
   public render() {
-    return <canvas ref={canvas => this.canvas = canvas}/>;
+    return <canvas ref={canvas => (this.canvas = canvas)} />;
   }
 }

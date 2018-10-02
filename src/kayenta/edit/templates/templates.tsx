@@ -37,41 +37,22 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
       width: 1,
       getContent: t => (
         <div className="horizontal center templates-action-buttons">
-          <button
-            className="link"
-            data-name={t.name}
-            data-value={t.value}
-            onClick={edit}
-            style={{marginTop: '1px'}}
-          >
+          <button className="link" data-name={t.name} data-value={t.value} onClick={edit} style={{ marginTop: '1px' }}>
             Edit
           </button>
-          <button
-            className="link"
-            data-name={t.name}
-            onClick={remove}
-          >
+          <button className="link" data-name={t.name} onClick={remove}>
             Delete
           </button>
         </div>
       ),
-    }
+    },
   ];
 
   return (
     <section>
-      <EditTemplateModal/>
-      <Table
-        rows={templates}
-        columns={columns}
-        rowKey={t => t.name}
-        headerClassName="background-white"
-      />
-      <DisableableButton
-        className="passive"
-        onClick={add}
-        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-      >
+      <EditTemplateModal />
+      <Table rows={templates} columns={columns} rowKey={t => t.name} headerClassName="background-white" />
+      <DisableableButton className="passive" onClick={add} disabledStateKeys={[DISABLE_EDIT_CONFIG]}>
         Add Template
       </DisableableButton>
     </section>
@@ -89,17 +70,29 @@ const mapStateToProps = (state: ICanaryState) => {
 };
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => ({
-  edit: (event: any) => dispatch(Creators.editTemplateBegin({
-    name: event.target.dataset.name,
-    value: event.target.dataset.value,
-  })),
-  remove: (event: any) => dispatch(Creators.deleteTemplate({
-    name: event.target.dataset.name,
-  })),
-  add: () => dispatch(Creators.editTemplateBegin({
-    name: '',
-    value: '',
-  })),
+  edit: (event: any) =>
+    dispatch(
+      Creators.editTemplateBegin({
+        name: event.target.dataset.name,
+        value: event.target.dataset.value,
+      }),
+    ),
+  remove: (event: any) =>
+    dispatch(
+      Creators.deleteTemplate({
+        name: event.target.dataset.name,
+      }),
+    ),
+  add: () =>
+    dispatch(
+      Creators.editTemplateBegin({
+        name: '',
+        value: '',
+      }),
+    ),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Templates);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Templates);

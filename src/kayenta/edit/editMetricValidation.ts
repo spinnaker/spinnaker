@@ -10,7 +10,11 @@ export interface ICanaryMetricValidationErrors {
   scopeName: ICanaryMetricValidationError;
 }
 
-export function validateMetricName(errors: ICanaryMetricValidationErrors, editingMetric: ICanaryMetricConfig, metricList: ICanaryMetricConfig[]): ICanaryMetricValidationErrors {
+export function validateMetricName(
+  errors: ICanaryMetricValidationErrors,
+  editingMetric: ICanaryMetricConfig,
+  metricList: ICanaryMetricConfig[],
+): ICanaryMetricValidationErrors {
   const nextErrors = { ...errors };
 
   const editingMetricName = get(editingMetric, 'name', '');
@@ -19,36 +23,40 @@ export function validateMetricName(errors: ICanaryMetricValidationErrors, editin
     return nextErrors;
   }
 
-  const isNameUnique = metricList.every(m =>
-    m.name !== editingMetricName || m.id === editingMetric.id
-  );
+  const isNameUnique = metricList.every(m => m.name !== editingMetricName || m.id === editingMetric.id);
   if (!isNameUnique) {
-    nextErrors.name = { message: `Metric '${editingMetricName}' already exists` }
+    nextErrors.name = { message: `Metric '${editingMetricName}' already exists` };
   }
 
   return nextErrors;
 }
 
-export function validateMetricScopeName(errors: ICanaryMetricValidationErrors, editingMetric: ICanaryMetricConfig): ICanaryMetricValidationErrors {
+export function validateMetricScopeName(
+  errors: ICanaryMetricValidationErrors,
+  editingMetric: ICanaryMetricConfig,
+): ICanaryMetricValidationErrors {
   const nextErrors = { ...errors };
 
   const editingMetricScopeName = get(editingMetric, 'scopeName', '');
 
   if (!editingMetricScopeName) {
-    nextErrors.scopeName = { message: 'Scope name is required' }
+    nextErrors.scopeName = { message: 'Scope name is required' };
   }
 
   return nextErrors;
 }
 
-export function validateMetric(editingMetric: ICanaryMetricConfig, metricList: ICanaryMetricConfig[]): ICanaryMetricValidationErrors {
+export function validateMetric(
+  editingMetric: ICanaryMetricConfig,
+  metricList: ICanaryMetricConfig[],
+): ICanaryMetricValidationErrors {
   const errors: ICanaryMetricValidationErrors = {
     name: null,
     scopeName: null,
   };
 
-  return [
-    validateMetricName,
-    validateMetricScopeName
-  ].reduce((reducedErrors, validator) => validator(reducedErrors, editingMetric, metricList), errors);
+  return [validateMetricName, validateMetricScopeName].reduce(
+    (reducedErrors, validator) => validator(reducedErrors, editingMetric, metricList),
+    errors,
+  );
 }

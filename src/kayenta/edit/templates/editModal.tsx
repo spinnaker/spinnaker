@@ -22,7 +22,14 @@ interface IEditTemplateModalDispatchProps {
   confirm: () => void;
 }
 
-const EditTemplateModal = ({ name, editName, value, editValue, cancel, confirm }: IEditTemplateModalStateProps & IEditTemplateModalDispatchProps) => {
+const EditTemplateModal = ({
+  name,
+  editName,
+  value,
+  editValue,
+  cancel,
+  confirm,
+}: IEditTemplateModalStateProps & IEditTemplateModalDispatchProps) => {
   return (
     <Modal onHide={noop} show={name !== null && value !== null}>
       <Styleguide>
@@ -39,17 +46,21 @@ const EditTemplateModal = ({ name, editName, value, editValue, cancel, confirm }
             />
           </FormRow>
           <FormRow label="Template">
-            <DisableableTextarea
-              value={value || ''}
-              onChange={editValue}
-              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-            />
+            <DisableableTextarea value={value || ''} onChange={editValue} disabledStateKeys={[DISABLE_EDIT_CONFIG]} />
           </FormRow>
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
-            <li><button className="passive" onClick={cancel}>Cancel</button></li>
-            <li><button className="primary" onClick={confirm} disabled={!name}>OK</button></li>
+            <li>
+              <button className="passive" onClick={cancel}>
+                Cancel
+              </button>
+            </li>
+            <li>
+              <button className="primary" onClick={confirm} disabled={!name}>
+                OK
+              </button>
+            </li>
           </ul>
         </Modal.Footer>
       </Styleguide>
@@ -58,23 +69,18 @@ const EditTemplateModal = ({ name, editName, value, editValue, cancel, confirm }
 };
 
 const mapStateToProps = (state: ICanaryState) => ({
-  name: editingTemplateSelector(state)
-    ? editingTemplateSelector(state).editedName
-    : null,
-  value: editingTemplateSelector(state)
-    ? editingTemplateSelector(state).editedValue
-    : null,
+  name: editingTemplateSelector(state) ? editingTemplateSelector(state).editedName : null,
+  value: editingTemplateSelector(state) ? editingTemplateSelector(state).editedValue : null,
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => ({
-  editName: (event: any) =>
-    dispatch(Creators.editTemplateName({ name: event.target.value })),
-  editValue: (event: any) =>
-    dispatch(Creators.editTemplateValue({ value: event.target.value })),
-  cancel: () =>
-    dispatch(Creators.editTemplateCancel()),
-  confirm: () =>
-    dispatch(Creators.editTemplateConfirm()),
+  editName: (event: any) => dispatch(Creators.editTemplateName({ name: event.target.value })),
+  editValue: (event: any) => dispatch(Creators.editTemplateValue({ value: event.target.value })),
+  cancel: () => dispatch(Creators.editTemplateCancel()),
+  confirm: () => dispatch(Creators.editTemplateConfirm()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(EditTemplateModal);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(EditTemplateModal);

@@ -14,8 +14,8 @@ interface IMetricResultsStateProps {
 }
 
 const MetricResults = ({ metricResults, selectedMetricResult }: IMetricResultsStateProps) => {
-  const list = <MetricResultsList results={metricResults}/>;
-  const detail = <MetricResultDetail result={selectedMetricResult}/>;
+  const list = <MetricResultsList results={metricResults} />;
+  const detail = <MetricResultDetail result={selectedMetricResult} />;
 
   return (
     <ListDetail
@@ -32,10 +32,7 @@ const MetricResults = ({ metricResults, selectedMetricResult }: IMetricResultsSt
 
 const mapStateToProps = (state: ICanaryState): IMetricResultsStateProps => {
   const {
-    selectedRun: {
-      selectedGroup,
-      selectedMetric,
-    },
+    selectedRun: { selectedGroup, selectedMetric },
   } = state;
   const result = judgeResultSelector(state);
 

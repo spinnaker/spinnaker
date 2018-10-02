@@ -13,14 +13,15 @@ interface IReportLoadStatesStateProps {
 
 const ReportLoadStates = ({ loadState }: IReportLoadStatesStateProps) => {
   const LoadStates = new LoadStatesBuilder()
-    .onFulfilled(<ReportDetail/>)
+    .onFulfilled(<ReportDetail />)
     .onFailed(
       <CenteredDetail>
         <h3 className="heading-3">Could not load canary report.</h3>
-      </CenteredDetail>
-    ).build();
+      </CenteredDetail>,
+    )
+    .build();
 
-  return <LoadStates state={loadState}/>;
+  return <LoadStates state={loadState} />;
 };
 
 const mapStateToProps = (state: ICanaryState) => ({
@@ -28,4 +29,3 @@ const mapStateToProps = (state: ICanaryState) => ({
 });
 
 export default connect(mapStateToProps)(ReportLoadStates);
-

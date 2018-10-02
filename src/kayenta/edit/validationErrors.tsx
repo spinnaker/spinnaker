@@ -16,7 +16,9 @@ const ConfigValidationErrors = ({ errors }: IConfigValidationErrorsStateProps) =
     <section>
       <p>The following errors may prevent this config from working properly:</p>
       <ul>
-        {errors.map(e => (<li key={e}>{e}</li>))}
+        {errors.map(e => (
+          <li key={e}>{e}</li>
+        ))}
       </ul>
     </section>
   );
@@ -24,12 +26,11 @@ const ConfigValidationErrors = ({ errors }: IConfigValidationErrorsStateProps) =
   return (
     <HoverablePopover placement={'left'} template={template}>
       <button className="btn btn-link">
-        <i className="fa fa-exclamation-triangle"/>
+        <i className="fa fa-exclamation-triangle" />
       </button>
     </HoverablePopover>
   );
 };
-
 
 const mapStateToProps = (state: ICanaryState): IConfigValidationErrorsStateProps => ({
   errors: state.selectedConfig.validationErrors.map(e => e.message),

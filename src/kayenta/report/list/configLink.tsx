@@ -27,7 +27,10 @@ export const ConfigLink = ({ configId, configName }: IConfigLinkOwnProps & IConf
   );
 };
 
-const mapStateToProps = (state: ICanaryState, ownProps: IConfigLinkOwnProps): IConfigLinkStateProps & IConfigLinkOwnProps => {
+const mapStateToProps = (
+  state: ICanaryState,
+  ownProps: IConfigLinkOwnProps,
+): IConfigLinkStateProps & IConfigLinkOwnProps => {
   return {
     configId: resolveConfigIdFromExecutionId(state, ownProps.executionId),
     ...ownProps,

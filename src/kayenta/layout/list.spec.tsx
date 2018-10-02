@@ -8,7 +8,6 @@ import createSpy = jasmine.createSpy;
 import { rootReducer } from '../reducers';
 
 describe('Reducer: updateListReducer', () => {
-
   const createAction = (payload: IUpdateListPayload): IKayentaAction<IUpdateListPayload> => ({
     type: 'update_list',
     payload,
@@ -17,37 +16,48 @@ describe('Reducer: updateListReducer', () => {
   const reducer = updateListReducer('defaultValue');
 
   it('adds', () => {
-    expect(reducer([], createAction({
-      type: ListAction.Add,
-    }))).toEqual(['defaultValue']);
+    expect(
+      reducer(
+        [],
+        createAction({
+          type: ListAction.Add,
+        }),
+      ),
+    ).toEqual(['defaultValue']);
   });
 
   it('deletes', () => {
-    expect(reducer(['toRemain', 'toRemove'], createAction({
-      type: ListAction.Delete,
-      index: 1,
-    }))).toEqual(['toRemain']);
+    expect(
+      reducer(
+        ['toRemain', 'toRemove'],
+        createAction({
+          type: ListAction.Delete,
+          index: 1,
+        }),
+      ),
+    ).toEqual(['toRemain']);
   });
 
   it('edits', () => {
-    expect(reducer(['unedited', 'beforeEdit'], createAction({
-      type: ListAction.Edit,
-      index: 1,
-      value: 'afterEdit',
-    }))).toEqual(['unedited', 'afterEdit']);
+    expect(
+      reducer(
+        ['unedited', 'beforeEdit'],
+        createAction({
+          type: ListAction.Edit,
+          index: 1,
+          value: 'afterEdit',
+        }),
+      ),
+    ).toEqual(['unedited', 'afterEdit']);
   });
 });
 
 describe('Component: List', () => {
-
   it('renders a list', () => {
     const component = mount(
       <Provider store={createStore(rootReducer)}>
-        <List
-          list={['a', 'b', 'c']}
-          actionCreator={() => null}
-        />
-      </Provider>
+        <List list={['a', 'b', 'c']} actionCreator={() => null} />
+      </Provider>,
     );
 
     expect(component.find('input').length).toEqual(3);
@@ -57,11 +67,8 @@ describe('Component: List', () => {
     const spy = createSpy('actionCreator');
     const component = mount(
       <Provider store={createStore(rootReducer)}>
-        <List
-          list={['a', 'b', 'c']}
-          actionCreator={spy}
-        />
-      </Provider>
+        <List list={['a', 'b', 'c']} actionCreator={spy} />
+      </Provider>,
     );
 
     const input = component.find('input').at(1);

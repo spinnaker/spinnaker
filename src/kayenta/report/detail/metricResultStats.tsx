@@ -14,7 +14,6 @@ import FormattedDate from 'kayenta/layout/formattedDate';
 
 import './metricResultStats.less';
 
-
 export interface IMetricResultStatsStateProps {
   metricConfig: ICanaryMetricConfig;
   metricSetPair: IMetricSetPair;
@@ -42,8 +41,8 @@ const buildAtlasGraphUrl = (metricSetPair: IMetricSetPair) => {
   const query = `${attributes.experiment.query},Canary,:legend,:freeze,${attributes.control.query},Baseline,:legend`;
 
   const startTime = Math.min(scopes.control.startTimeMillis, scopes.experiment.startTimeMillis);
-  const controlEndTime = scopes.control.startTimeMillis + (values.control.length * scopes.control.stepMillis);
-  const experimentEndTime = scopes.experiment.startTimeMillis + (values.experiment.length * scopes.experiment.stepMillis);
+  const controlEndTime = scopes.control.startTimeMillis + values.control.length * scopes.control.stepMillis;
+  const experimentEndTime = scopes.experiment.startTimeMillis + values.experiment.length * scopes.experiment.stepMillis;
   const endTime = Math.max(controlEndTime, experimentEndTime);
 
   return `${atlasGraphBaseUrl}?backend=${backend}&g.q=${query}&g.s=${startTime}&g.e=${endTime}&g.w=651&mode=png&axis=0`;
@@ -63,23 +62,19 @@ const ResultMetadataTable = ({ tableColumns }: { tableColumns: IResultMetadataTa
         <li>Baseline</li>
         <li>Canary</li>
       </ul>
-      {
-        tableColumns.map(column => {
-          if (column.hide && column.hide()) {
-            return null;
-          }
+      {tableColumns.map(column => {
+        if (column.hide && column.hide()) {
+          return null;
+        }
 
-          return (
-            <ul className="list-unstyled flex-1" key={column.label}>
-              <li className="uppercase label color-text-primary">
-                {column.label}
-              </li>
-              <li>{column.getValue('control')}</li>
-              <li>{column.getValue('experiment')}</li>
-            </ul>
-          );
-        })
-      }
+        return (
+          <ul className="list-unstyled flex-1" key={column.label}>
+            <li className="uppercase label color-text-primary">{column.label}</li>
+            <li>{column.getValue('control')}</li>
+            <li>{column.getValue('experiment')}</li>
+          </ul>
+        );
+      })}
     </section>
   );
 };
@@ -106,19 +101,16 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run, service }: IMetri
   const tableColumns: IResultMetadataTableColumn[] = [
     {
       label: 'start',
-      getValue: target => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso}/>,
+      getValue: target => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso} />,
       hide: () => {
         const request = run.canaryExecutionRequest || run.result.canaryExecutionRequest;
-        const configuredControlStart =
-          request.scopes[metricConfig.scopeName].controlScope.start;
+        const configuredControlStart = request.scopes[metricConfig.scopeName].controlScope.start;
         const actualControlStart = metricSetPair.scopes.control.startTimeIso;
 
-        const configuredExperimentStart =
-          request.scopes[metricConfig.scopeName].experimentScope.start;
+        const configuredExperimentStart = request.scopes[metricConfig.scopeName].experimentScope.start;
         const actualExperimentStart = metricSetPair.scopes.experiment.startTimeIso;
 
-        return configuredControlStart === actualControlStart
-          && configuredExperimentStart === actualExperimentStart;
+        return configuredControlStart === actualControlStart && configuredExperimentStart === actualExperimentStart;
       },
     },
     {
@@ -151,42 +143,39 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run, service }: IMetri
           return null;
         }
 
-        return <p><a className="small" href={buildAtlasGraphUrl(metricSetPair)} target="_blank">Atlas UI</a></p>;
-      }
+        return (
+          <p>
+            <a className="small" href={buildAtlasGraphUrl(metricSetPair)} target="_blank">
+              Atlas UI
+            </a>
+          </p>
+        );
+      },
     },
     {
       label: 'query',
-      getContent: () => (
-        <p>
-          {metricStoreConfigStore.getDelegate(metricConfig.query.type).queryFinder(metricConfig)}
-        </p>
-      ),
+      getContent: () => <p>{metricStoreConfigStore.getDelegate(metricConfig.query.type).queryFinder(metricConfig)}</p>,
     },
     {
       label: 'classification reason',
       getContent: () => {
-        const result =
-          run.result.judgeResult.results.find(r => r.id === metricSetPair.id);
+        const result = run.result.judgeResult.results.find(r => r.id === metricSetPair.id);
 
         if (!result.classificationReason) {
           return null;
         }
 
-        return (
-          <p>{result.classificationReason}</p>
-        );
+        return <p>{result.classificationReason}</p>;
       },
-    }
+    },
   ];
 
   return (
     <section className="metric-stats">
-      {
-        metadataRows.map(row => (
-          <ResultMetadataRow row={row} key={row.label}/>
-        ))
-      }
-      <ResultMetadataTable tableColumns={tableColumns}/>
+      {metadataRows.map(row => (
+        <ResultMetadataRow row={row} key={row.label} />
+      ))}
+      <ResultMetadataTable tableColumns={tableColumns} />
     </section>
   );
 };
@@ -195,7 +184,7 @@ const mapStateToProps = (state: ICanaryState): IMetricResultStatsStateProps => (
   metricConfig: selectedMetricConfigSelector(state),
   metricSetPair: state.selectedRun.metricSetPair.pair,
   run: runSelector(state),
-  service: selectedMetricConfigSelector(state).query.type
+  service: selectedMetricConfigSelector(state).query.type,
 });
 
 export default connect(mapStateToProps)(MetricResultStats);

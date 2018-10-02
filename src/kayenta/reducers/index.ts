@@ -6,12 +6,15 @@ import * as Actions from 'kayenta/actions';
 import * as Creators from 'kayenta/actions/creators';
 import { IDataState, data } from './data';
 import { app, IAppState } from './app';
-import {
-  ISelectedConfigState,
-  selectedConfig
-} from './selectedConfig';
+import { ISelectedConfigState, selectedConfig } from './selectedConfig';
 import { JudgeSelectRenderState } from 'kayenta/edit/judgeSelect';
-import { IJudge, ICanaryJudgeConfig, ICanaryAnalysisResult, KayentaAccountType, ICanaryMetricConfig } from 'kayenta/domain';
+import {
+  IJudge,
+  ICanaryJudgeConfig,
+  ICanaryAnalysisResult,
+  KayentaAccountType,
+  ICanaryMetricConfig,
+} from 'kayenta/domain';
 import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 import { ISelectedRunState, selectedRun } from './selectedRun';
 import { metricResultsSelector } from 'kayenta/selectors';
@@ -34,31 +37,36 @@ const combined = combineReducers<ICanaryState>({
   selectedRun,
 });
 
-const judgeRenderStateReducer = handleActions({
-  [combineActions(Actions.SELECT_CONFIG, Actions.UPDATE_JUDGES)]: (state: ICanaryState) => {
-    // At this point, we've already passed through the rest of the reducers, so
-    // the judge has been normalized on the state.
-    const {
-      data: { judges = [] },
-      selectedConfig: { judge: { judgeConfig } },
-    } = state;
-
-    if (!judgeConfig) {
-      return state;
-    } else {
-      return {
-        ...state,
+const judgeRenderStateReducer = handleActions(
+  {
+    [combineActions(Actions.SELECT_CONFIG, Actions.UPDATE_JUDGES)]: (state: ICanaryState) => {
+      // At this point, we've already passed through the rest of the reducers, so
+      // the judge has been normalized on the state.
+      const {
+        data: { judges = [] },
         selectedConfig: {
-          ...state.selectedConfig,
-          judge: {
-            ...state.selectedConfig.judge,
-            renderState: getRenderState(judges, judgeConfig),
-          }
-        }
+          judge: { judgeConfig },
+        },
+      } = state;
+
+      if (!judgeConfig) {
+        return state;
+      } else {
+        return {
+          ...state,
+          selectedConfig: {
+            ...state.selectedConfig,
+            judge: {
+              ...state.selectedConfig.judge,
+              renderState: getRenderState(judges, judgeConfig),
+            },
+          },
+        };
       }
-    }
-  }
-}, null);
+    },
+  },
+  null,
+);
 
 const getRenderState = (judges: IJudge[], judgeConfig: ICanaryJudgeConfig): JudgeSelectRenderState => {
   if (judges.some(judge => judge.name === judgeConfig.name)) {
@@ -85,16 +93,18 @@ const isInSyncWithServerReducer = (state: ICanaryState): ICanaryState => {
           const originalConfig = state.data.configs.find(c => c.id === editedConfig.id);
           // If we're saving the config right now, don't warn that
           // the config hasn't been saved.
-          if (!originalConfig
-              && editedConfig.isNew
-              && state.selectedConfig.save.state === AsyncRequestState.Requesting) {
+          if (
+            !originalConfig &&
+            editedConfig.isNew &&
+            state.selectedConfig.save.state === AsyncRequestState.Requesting
+          ) {
             return true;
           }
           return isEqual(editedConfig, originalConfig);
         }
       })(),
     },
-  }
+  };
 };
 
 const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): string => {
@@ -104,9 +114,7 @@ const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): str
 
     // On report load, pick the first metric.
     case Actions.LOAD_RUN_SUCCESS:
-      return metricResultsSelector(state).length
-        ? metricResultsSelector(state)[0].id
-        : null;
+      return metricResultsSelector(state).length ? metricResultsSelector(state)[0].id : null;
 
     // On group select, pick the first metric in the group.
     case Actions.SELECT_REPORT_METRIC_GROUP:
@@ -123,9 +131,7 @@ const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): str
         filter = r => r.groups.includes(group);
       }
 
-      return results.find(filter)
-        ? results.find(filter).id
-        : null;
+      return results.find(filter) ? results.find(filter).id : null;
 
     default:
       return null;
@@ -133,9 +139,9 @@ const resolveSelectedMetricId = (state: ICanaryState, action: Action & any): str
 };
 
 const selectedMetricReducer = (state: ICanaryState, action: Action & any) => {
-  if (![Actions.SELECT_REPORT_METRIC,
-        Actions.SELECT_REPORT_METRIC_GROUP,
-        Actions.LOAD_RUN_SUCCESS].includes(action.type)) {
+  if (
+    ![Actions.SELECT_REPORT_METRIC, Actions.SELECT_REPORT_METRIC_GROUP, Actions.LOAD_RUN_SUCCESS].includes(action.type)
+  ) {
     return state;
   }
 
@@ -145,9 +151,11 @@ const selectedMetricReducer = (state: ICanaryState, action: Action & any) => {
   }
 
   // Load metric set pair.
-  action.asyncDispatch(Creators.loadMetricSetPairRequest({
-    pairId: id,
-  }));
+  action.asyncDispatch(
+    Creators.loadMetricSetPairRequest({
+      pairId: id,
+    }),
+  );
 
   return {
     ...state,
@@ -174,17 +182,13 @@ const selectedMetricStoreReducer = (state: ICanaryState, action: Action & any) =
         .uniq()
         .valueOf();
 
-      let selectedStore =
-        (state.selectedConfig.metricList || [])
-          .map(metric => metric.query.type)
-          .find(store => !!store);
+      let selectedStore = (state.selectedConfig.metricList || [])
+        .map(metric => metric.query.type)
+        .find(store => !!store);
 
-      selectedStore = selectedStore || (
-        stores.length
-          ? (stores.includes(CanarySettings.metricStore)
-               ? CanarySettings.metricStore
-               : stores[0])
-          : null);
+      selectedStore =
+        selectedStore ||
+        (stores.length ? (stores.includes(CanarySettings.metricStore) ? CanarySettings.metricStore : stores[0]) : null);
 
       return {
         ...state,
@@ -200,7 +204,7 @@ const selectedMetricStoreReducer = (state: ICanaryState, action: Action & any) =
       // Flips all metrics to use the selected metric store.
       const metricUpdater = (metric: ICanaryMetricConfig): ICanaryMetricConfig => ({
         ...metric,
-        query: { ...metric.query, type: selectedStore, serviceType: selectedStore, },
+        query: { ...metric.query, type: selectedStore, serviceType: selectedStore },
       });
 
       return {
@@ -228,8 +232,8 @@ const disableConfigEditReducer = (state: ICanaryState) => {
     app: {
       ...state.app,
       disableConfigEdit: !state.selectedConfig.config.applications.includes(state.data.application.name),
-    }
-  }
+    },
+  };
 };
 
 export const rootReducer = (state: ICanaryState, action: Action & any): ICanaryState => {

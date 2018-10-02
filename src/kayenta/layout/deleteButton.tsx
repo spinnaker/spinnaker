@@ -6,6 +6,6 @@ export interface IDeleteButtonProps {
 
 export default ({ onClick }: IDeleteButtonProps) => (
   <a className="clickable" onClick={onClick}>
-    <span className="glyphicon glyphicon-trash"/>
+    <span className="glyphicon glyphicon-trash" />
   </a>
 );

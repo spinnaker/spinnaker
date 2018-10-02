@@ -22,7 +22,11 @@ interface IMultipleResultsTableDispatchProps {
   select: (metricId: string) => void;
 }
 
-const MultipleResultsTable = ({ results, select, selectedResult }: IMultipleResultsTableOwnProps & IMultipleResultsTableStateProps & IMultipleResultsTableDispatchProps) => {
+const MultipleResultsTable = ({
+  results,
+  select,
+  selectedResult,
+}: IMultipleResultsTableOwnProps & IMultipleResultsTableStateProps & IMultipleResultsTableDispatchProps) => {
   const tagKeys = chain(results)
     .flatMap(r => Object.keys(r.tags || {}))
     .uniq()
@@ -37,10 +41,7 @@ const MultipleResultsTable = ({ results, select, selectedResult }: IMultipleResu
   columns = columns.concat({
     width: 1,
     getContent: (result: ICanaryAnalysisResult) => (
-      <MetricResultClassification
-        className="pull-right"
-        classification={result.classification}
-      />
+      <MetricResultClassification className="pull-right" classification={result.classification} />
     ),
   });
 
@@ -51,7 +52,11 @@ const MultipleResultsTable = ({ results, select, selectedResult }: IMultipleResu
       className="multiple-results-table"
       headerClassName="sticky-header-2"
       rowClassName={r => classNames('horizontal', { selected: r.id === selectedResult })}
-      rowKey={r => Object.entries(r.tags || {}).map(([key, value]) => `${key}:${value}`).join(':')}
+      rowKey={r =>
+        Object.entries(r.tags || {})
+          .map(([key, value]) => `${key}:${value}`)
+          .join(':')
+      }
       onRowClick={r => select(r.id)}
     />
   );
@@ -61,13 +66,12 @@ const mapStateToProps = (state: ICanaryState) => ({
   selectedResult: selectedMetricResultIdSelector(state),
 });
 
-const mapDispatchToProps = (
-  dispatch: Dispatch<ICanaryState>,
-  ownProps: IMultipleResultsTableOwnProps
-) => ({
+const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>, ownProps: IMultipleResultsTableOwnProps) => ({
   ...ownProps,
-  select: (metricId: string) =>
-    dispatch(Creators.selectReportMetric({ metricId })),
+  select: (metricId: string) => dispatch(Creators.selectReportMetric({ metricId })),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(MultipleResultsTable);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(MultipleResultsTable);

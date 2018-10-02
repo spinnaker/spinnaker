@@ -1,5 +1,5 @@
 export interface ICanaryJudgeResultSummary {
-  updatedTimestampIso: string,
+  updatedTimestampIso: string;
   name: string;
   updatedTimestamp: number;
 }

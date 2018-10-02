@@ -11,7 +11,12 @@ import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import Styleguide from 'kayenta/layout/styleguide';
 import FormRow from 'kayenta/layout/formRow';
-import { DisableableInput, DisableableSelect, DisableableReactSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+import {
+  DisableableInput,
+  DisableableSelect,
+  DisableableReactSelect,
+  DISABLE_EDIT_CONFIG,
+} from 'kayenta/layout/disableable';
 import { configTemplatesSelector, editingMetricValidationErrorsSelector } from 'kayenta/selectors';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryMetricValidationErrors } from './editMetricValidation';
@@ -38,7 +43,19 @@ interface IEditMetricModalStateProps {
   validationErrors: ICanaryMetricValidationErrors;
 }
 
-function RadioChoice({ value, label, name, current, action }: { value: string, label: string, name: string, current: string, action: (event: any) => void }) {
+function RadioChoice({
+  value,
+  label,
+  name,
+  current,
+  action,
+}: {
+  value: string;
+  label: string;
+  name: string;
+  current: string;
+  action: (event: any) => void;
+}) {
   return (
     <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
       <DisableableInput
@@ -48,8 +65,8 @@ function RadioChoice({ value, label, name, current, action }: { value: string, l
         onChange={action}
         checked={value === current}
         disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-      />
-        {' '}{label}
+      />{' '}
+      {label}
     </label>
   );
 }
@@ -88,20 +105,31 @@ function EffectSizeSummary({ effectSizes }: { effectSizes: ICanaryMetricEffectSi
     return null;
   }
 
-  const {
-    allowedIncrease,
-    criticalIncrease,
-    allowedDecrease,
-    criticalDecrease
-  } = effectSizes;
+  const { allowedIncrease, criticalIncrease, allowedDecrease, criticalDecrease } = effectSizes;
 
   return (
     <FormRow label="Effect Sizes">
       <div className="vertical">
-        {allowedIncrease && <span>Allowed Increase: <b>{allowedIncrease}</b></span>}
-        {criticalIncrease && <span>Critical Increase: <b>{criticalIncrease}</b></span>}
-        {allowedDecrease && <span>Allowed Decrease: <b>{allowedDecrease}</b></span>}
-        {criticalDecrease && <span>Critical Decrease: <b>{criticalDecrease}</b></span>}
+        {allowedIncrease && (
+          <span>
+            Allowed Increase: <b>{allowedIncrease}</b>
+          </span>
+        )}
+        {criticalIncrease && (
+          <span>
+            Critical Increase: <b>{criticalIncrease}</b>
+          </span>
+        )}
+        {allowedDecrease && (
+          <span>
+            Allowed Decrease: <b>{allowedDecrease}</b>
+          </span>
+        )}
+        {criticalDecrease && (
+          <span>
+            Critical Decrease: <b>{criticalDecrease}</b>
+          </span>
+        )}
         <span className="body-small color-text-caption" style={{ marginTop: '5px' }}>
           Effect sizes are not currently configurable via the UI.
         </span>
@@ -127,7 +155,7 @@ function EditMetricModal({
   selectTemplate,
   filterTemplate,
   updateScopeName,
-  validationErrors
+  validationErrors,
 }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
     return null;
@@ -136,9 +164,11 @@ function EditMetricModal({
   const direction = get(metric, ['analysisConfigurations', 'canary', 'direction'], 'either');
   const nanStrategy = get(metric, ['analysisConfigurations', 'canary', 'nanStrategy'], 'default');
   const critical = get(metric, ['analysisConfigurations', 'canary', 'critical'], false);
-  const effectSize = get<ICanaryMetricConfig, ICanaryMetricEffectSizeConfig>(
-    metric, ['analysisConfigurations', 'canary', 'effectSize']
-  );
+  const effectSize = get<ICanaryMetricConfig, ICanaryMetricEffectSizeConfig>(metric, [
+    'analysisConfigurations',
+    'canary',
+    'effectSize',
+  ]);
   const isConfirmDisabled = values(validationErrors).some(e => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
@@ -166,11 +196,11 @@ function EditMetricModal({
                 className="form-control input-sm"
                 disabledStateKeys={[DISABLE_EDIT_CONFIG]}
               >
-                {
-                  groups.map(g => (
-                    <option key={g} value={g}>{g}</option>
-                  ))
-                }
+                {groups.map(g => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
               </DisableableSelect>
             )}
           </FormRow>
@@ -184,9 +214,21 @@ function EditMetricModal({
             />
           </FormRow>
           <FormRow label="Fail on">
-            <RadioChoice value="increase" label="Increase" name="direction" current={direction} action={updateDirection}/>
-            <RadioChoice value="decrease" label="Decrease" name="direction" current={direction} action={updateDirection}/>
-            <RadioChoice value="either"   label="Either"   name="direction" current={direction} action={updateDirection}/>
+            <RadioChoice
+              value="increase"
+              label="Increase"
+              name="direction"
+              current={direction}
+              action={updateDirection}
+            />
+            <RadioChoice
+              value="decrease"
+              label="Decrease"
+              name="direction"
+              current={direction}
+              action={updateDirection}
+            />
+            <RadioChoice value="either" label="Either" name="direction" current={direction} action={updateDirection} />
           </FormRow>
           <FormRow label="Criticality" checkbox={true}>
             <label>
@@ -199,10 +241,34 @@ function EditMetricModal({
               Fail the canary if this metric fails
             </label>
           </FormRow>
-          <FormRow label={<>NaN Strategy <HelpField id="canary.config.nanStrategy"/></>}>
-            <RadioChoice value="default" label="Default (remove)"  name="nanStrategy" current={nanStrategy} action={updateNanStrategy}/>
-            <RadioChoice value="replace" label="Replace with zero" name="nanStrategy" current={nanStrategy} action={updateNanStrategy}/>
-            <RadioChoice value="remove"  label="Remove"            name="nanStrategy" current={nanStrategy} action={updateNanStrategy}/>
+          <FormRow
+            label={
+              <>
+                NaN Strategy <HelpField id="canary.config.nanStrategy" />
+              </>
+            }
+          >
+            <RadioChoice
+              value="default"
+              label="Default (remove)"
+              name="nanStrategy"
+              current={nanStrategy}
+              action={updateNanStrategy}
+            />
+            <RadioChoice
+              value="replace"
+              label="Replace with zero"
+              name="nanStrategy"
+              current={nanStrategy}
+              action={updateNanStrategy}
+            />
+            <RadioChoice
+              value="remove"
+              label="Remove"
+              name="nanStrategy"
+              current={nanStrategy}
+              action={updateNanStrategy}
+            />
           </FormRow>
           <FilterTemplateSelector
             metricStore={metric.query.type}
@@ -219,17 +285,17 @@ function EditMetricModal({
             />
           </FormRow>
           <EffectSizeSummary effectSizes={effectSize} />
-          <MetricConfigurerDelegator/>
+          <MetricConfigurerDelegator />
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
-            <li><button className="passive" onClick={cancel}>Cancel</button></li>
             <li>
-              <button
-                className="primary"
-                disabled={isConfirmDisabled}
-                onClick={confirm}
-              >
+              <button className="passive" onClick={cancel}>
+                Cancel
+              </button>
+            </li>
+            <li>
+              <button className="primary" disabled={isConfirmDisabled} onClick={confirm}>
                 OK
               </button>
             </li>
@@ -264,9 +330,8 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
       dispatch(Creators.updateMetricCriticality({ id: target.dataset.id, critical: Boolean(target.checked) }));
     },
     selectTemplate: (template: Option) =>
-      dispatch(Creators.selectTemplate({ name: template ? template.value as string : null })),
-    updateScopeName: (event: any) =>
-      dispatch(Creators.updateMetricScopeName({ scopeName: event.target.value }))
+      dispatch(Creators.selectTemplate({ name: template ? (template.value as string) : null })),
+    updateScopeName: (event: any) => dispatch(Creators.updateMetricScopeName({ scopeName: event.target.value })),
   };
 }
 
@@ -274,7 +339,8 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   return {
     metric: state.selectedConfig.editingMetric,
     templates: Object.keys(configTemplatesSelector(state) || {}).map(t => ({
-      label: t, value: t,
+      label: t,
+      value: t,
     })),
     filterTemplate: get(state, 'selectedConfig.editingMetric.query.customFilterTemplate'),
     groups: state.selectedConfig.group.list.sort(),
@@ -282,4 +348,7 @@ function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(EditMetricModal);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(EditMetricModal);

@@ -9,8 +9,8 @@ import MetricResults from './metricResults';
 * */
 export default () => (
   <div className="vertical flex-1">
-    <ReportHeader/>
-    <ReportScores/>
-    <MetricResults/>
+    <ReportHeader />
+    <ReportScores />
+    <MetricResults />
   </div>
 );

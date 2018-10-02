@@ -16,8 +16,8 @@ import { FOR_ANALYSIS_TYPE_COMPONENT } from './forAnalysisType.component';
 const requiredForAnalysisTypes = (
   analysisTypes: KayentaAnalysisType[] = [],
   fieldName: string,
-  fieldLabel?: string
-): (p: IPipeline, s: IKayentaStage) => string => {
+  fieldLabel?: string,
+): ((p: IPipeline, s: IKayentaStage) => string) => {
   return (_pipeline: IPipeline, stage: IKayentaStage): string => {
     if (analysisTypes.includes(stage.analysisType)) {
       if (!has(stage, fieldName) || get(stage, fieldName) === '') {
@@ -25,13 +25,10 @@ const requiredForAnalysisTypes = (
       }
     }
     return null;
-  }
+  };
 };
 
-const allScopesMustBeConfigured = (
-  _pipeline: IPipeline,
-  stage: IKayentaStage
-): Promise<string> => {
+const allScopesMustBeConfigured = (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
   return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
     let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
     definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
@@ -49,10 +46,7 @@ const allScopesMustBeConfigured = (
   });
 };
 
-const allConfiguredScopesMustBeDefined = (
-  _pipeline: IPipeline,
-  stage: IKayentaStage
-): Promise<string> => {
+const allConfiguredScopesMustBeDefined = (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
   return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then(configDetails => {
     let definedScopeNames = uniq(map(configDetails.metrics, metric => metric.scopeName || 'default'));
     definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
@@ -63,7 +57,9 @@ const allConfiguredScopesMustBeDefined = (
     if (missingScopeNames.length > 1) {
       return `Scopes <strong>${missingScopeNames.join()}</strong> are configured but are not defined in the canary configuration.`;
     } else if (missingScopeNames.length === 1) {
-      return `Scope <strong>${missingScopeNames[0]}</strong> is configured but is not defined in the canary configuration.`;
+      return `Scope <strong>${
+        missingScopeNames[0]
+      }</strong> is configured but is not defined in the canary configuration.`;
     } else {
       return null;
     }
@@ -72,13 +68,13 @@ const allConfiguredScopesMustBeDefined = (
 
 export const KAYENTA_CANARY_STAGE = 'spinnaker.kayenta.canaryStage';
 module(KAYENTA_CANARY_STAGE, [
-    CANARY_SCORES_CONFIG_COMPONENT,
-    KAYENTA_ANALYSIS_TYPE_COMPONENT,
-    KAYENTA_STAGE_CONFIG_SECTION,
-    KAYENTA_STAGE_TRANSFORMER,
-    KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER,
-    FOR_ANALYSIS_TYPE_COMPONENT,
-  ])
+  CANARY_SCORES_CONFIG_COMPONENT,
+  KAYENTA_ANALYSIS_TYPE_COMPONENT,
+  KAYENTA_STAGE_CONFIG_SECTION,
+  KAYENTA_STAGE_TRANSFORMER,
+  KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER,
+  FOR_ANALYSIS_TYPE_COMPONENT,
+])
   .config(() => {
     'ngInject';
     Registry.pipeline.registerStage({
@@ -98,47 +94,47 @@ module(KAYENTA_CANARY_STAGE, [
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.RealTimeAutomatic],
             'deployments.serverGroupPairs[0].control',
-            'Baseline & Canary Server Groups'
-          )
+            'Baseline & Canary Server Groups',
+          ),
         },
         {
           type: 'custom',
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.RealTimeAutomatic],
             'deployments.baseline.cluster',
-            'Baseline Cluster'
-          )
+            'Baseline Cluster',
+          ),
         },
         {
           type: 'custom',
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.RealTimeAutomatic],
             'deployments.baseline.account',
-            'Baseline Account'
-          )
+            'Baseline Account',
+          ),
         },
         {
           type: 'custom',
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.RealTime, KayentaAnalysisType.Retrospective],
             'canaryConfig.scopes[0].controlScope',
-            'Baseline Scope'
-          )
+            'Baseline Scope',
+          ),
         },
         {
           type: 'custom',
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.RealTime, KayentaAnalysisType.Retrospective],
             'canaryConfig.scopes[0].experimentScope',
-            'Canary Scope'
-          )
+            'Canary Scope',
+          ),
         },
         {
           type: 'custom',
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.RealTime, KayentaAnalysisType.RealTimeAutomatic],
             'canaryConfig.lifetimeDuration',
-            'Lifetime'
+            'Lifetime',
           ),
         },
         {
@@ -146,26 +142,26 @@ module(KAYENTA_CANARY_STAGE, [
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.Retrospective],
             'canaryConfig.scopes[0].startTimeIso',
-            'Start Time'
-          )
+            'Start Time',
+          ),
         },
         {
           type: 'custom',
           validate: requiredForAnalysisTypes(
             [KayentaAnalysisType.Retrospective],
             'canaryConfig.scopes[0].endTimeIso',
-            'End Time'
-          )
+            'End Time',
+          ),
         },
         {
           type: 'custom',
-          validate: allScopesMustBeConfigured
+          validate: allScopesMustBeConfigured,
         },
         {
           type: 'custom',
-          validate: allConfiguredScopesMustBeDefined
+          validate: allConfiguredScopesMustBeDefined,
         },
-      ]
+      ],
     });
   })
   .controller('KayentaCanaryStageCtrl', KayentaStageController)

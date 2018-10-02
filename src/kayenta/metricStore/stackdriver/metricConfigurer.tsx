@@ -22,20 +22,18 @@ interface IStackdriverMetricConfigurerDispatchProps {
 /*
 * Component for configuring a Stackdriver metric.
 * */
-function StackdriverMetricConfigurer({ editingMetric, updateMetricType, updateGroupBy }: IStackdriverMetricConfigurerStateProps & IStackdriverMetricConfigurerDispatchProps) {
+function StackdriverMetricConfigurer({
+  editingMetric,
+  updateMetricType,
+  updateGroupBy,
+}: IStackdriverMetricConfigurerStateProps & IStackdriverMetricConfigurerDispatchProps) {
   return (
     <section>
       <FormRow label="Metric Type">
-        <StackdriverMetricTypeSelector
-          value={get(editingMetric, 'query.metricType', '')}
-          onChange={updateMetricType}
-        />
+        <StackdriverMetricTypeSelector value={get(editingMetric, 'query.metricType', '')} onChange={updateMetricType} />
       </FormRow>
       <FormRow label="Group By">
-        <List
-          list={editingMetric.query.groupByFields || []}
-          actionCreator={updateGroupBy}
-        />
+        <List list={editingMetric.query.groupByFields || []} actionCreator={updateGroupBy} />
       </FormRow>
     </section>
   );
@@ -50,12 +48,17 @@ function mapStateToProps(state: ICanaryState): IStackdriverMetricConfigurerState
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IStackdriverMetricConfigurerDispatchProps {
   return {
     updateMetricType: (option: Select.Option): void => {
-      dispatch(Creators.updateStackdriverMetricType({
-        metricType: (option ? option.value : null) as string,
-      }));
+      dispatch(
+        Creators.updateStackdriverMetricType({
+          metricType: (option ? option.value : null) as string,
+        }),
+      );
     },
     updateGroupBy: payload => dispatch(Creators.updateStackdriverGroupBy(payload)),
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(StackdriverMetricConfigurer);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(StackdriverMetricConfigurer);

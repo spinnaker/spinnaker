@@ -14,7 +14,7 @@ function CopyConfigButton({ disabled }: ICopyConfigButtonStateProps) {
   return (
     <UISref to="^.configDetail" params={{ copy: true }}>
       <button className="passive" disabled={disabled}>
-        <i className="fa fa-copy"/>
+        <i className="fa fa-copy" />
         <span>Copy</span>
       </button>
     </UISref>
@@ -24,7 +24,7 @@ function CopyConfigButton({ disabled }: ICopyConfigButtonStateProps) {
 function mapStateToProps(state: ICanaryState) {
   return {
     disabled: state.selectedConfig.config && state.selectedConfig.config.isNew,
-  }
+  };
 }
 
 export default connect(mapStateToProps)(CopyConfigButton);

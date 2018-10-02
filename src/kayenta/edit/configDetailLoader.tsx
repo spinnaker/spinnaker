@@ -18,7 +18,7 @@ interface IConfigLoaderDispatchProps {
 interface IConfigDetailStateParams {
   id: string;
   copy: boolean;
-  'new': boolean;
+  new: boolean;
 }
 
 /*
@@ -26,7 +26,6 @@ interface IConfigDetailStateParams {
  * Loads config details on changes to /canary/:configName path parameter, renders load states.
  */
 class ConfigDetailLoader extends React.Component<IConfigLoaderDispatchProps & IConfigLoaderStateParamsProps> {
-
   private subscription: Subscription;
 
   constructor(props: IConfigLoaderDispatchProps & IConfigLoaderStateParamsProps) {
@@ -40,7 +39,7 @@ class ConfigDetailLoader extends React.Component<IConfigLoaderDispatchProps & IC
   }
 
   public render() {
-    return <ConfigDetailLoadStates/>;
+    return <ConfigDetailLoadStates />;
   }
 }
 
@@ -54,8 +53,11 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigLo
       } else if (stateParams.id) {
         dispatch(Creators.loadConfigRequest({ id: stateParams.id }));
       }
-    }
+    },
   };
 }
 
-export default connect(null, mapDispatchToProps)(ConfigDetailLoader);
+export default connect(
+  null,
+  mapDispatchToProps,
+)(ConfigDetailLoader);

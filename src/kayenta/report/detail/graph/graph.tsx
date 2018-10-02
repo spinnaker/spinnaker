@@ -16,9 +16,7 @@ interface IMetricSetPairGraphStateProps {
 const GRAPH_IMPLEMENTATIONS = ['chartjs', 'plotly'];
 
 const MetricSetPairGraph = ({ pair, result, graphType }: IMetricSetPairGraphStateProps) => {
-  const delegates = GRAPH_IMPLEMENTATIONS
-    .map(name => metricSetPairGraphService.getDelegate(name))
-    .filter(d => !!d);
+  const delegates = GRAPH_IMPLEMENTATIONS.map(name => metricSetPairGraphService.getDelegate(name)).filter(d => !!d);
 
   const delegate = delegates.find(candidate => candidate.handlesGraphType(graphType));
   if (!delegate) {
@@ -26,7 +24,7 @@ const MetricSetPairGraph = ({ pair, result, graphType }: IMetricSetPairGraphStat
   }
 
   const Graph = delegate.getGraph();
-  return <Graph metricSetPair={pair} result={result} type={graphType}/>;
+  return <Graph metricSetPair={pair} result={result} type={graphType} />;
 };
 
 const mapStateToProps = (state: ICanaryState): IMetricSetPairGraphStateProps => {

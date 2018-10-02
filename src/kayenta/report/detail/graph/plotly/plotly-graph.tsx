@@ -9,10 +9,9 @@ const BASELINE_COLOR = '#993f00';
 const CANARY_COLOR = '#0075dc';
 
 function renderHistogram(container: HTMLElement, metricSetPair: IMetricSetPair) {
-
   const noNan = (n: any) => n !== null && n !== 'NaN';
   const baselineData = metricSetPair.values.control.filter(noNan);
-  const canaryData   = metricSetPair.values.experiment.filter(noNan);
+  const canaryData = metricSetPair.values.experiment.filter(noNan);
 
   const baselineHisto = {
     name: 'Baseline',
@@ -25,7 +24,7 @@ function renderHistogram(container: HTMLElement, metricSetPair: IMetricSetPair) 
       color: BASELINE_COLOR,
     },
     autobinx: true,
-    xbins: {}
+    xbins: {},
   };
   const canaryHisto = {
     name: 'Canary',
@@ -37,7 +36,7 @@ function renderHistogram(container: HTMLElement, metricSetPair: IMetricSetPair) 
       color: CANARY_COLOR,
     },
     autobinx: true,
-    xbins: {}
+    xbins: {},
   };
 
   const layout = {
@@ -54,16 +53,18 @@ function renderHistogram(container: HTMLElement, metricSetPair: IMetricSetPair) 
     barmode: 'overlay',
     bargroupgap: 0.01,
     plot_bgcolor: '#f5f5f5',
-    paper_bgcolor: '#f5f5f5'
+    paper_bgcolor: '#f5f5f5',
   };
 
-  const promise = Plotly.newPlot(container, [ canaryHisto as any, baselineHisto as any], layout);
+  const promise = Plotly.newPlot(container, [canaryHisto as any, baselineHisto as any], layout);
   promise.then((plot: any) => {
     const baselineBins = plot.data[0].xbins;
     const canaryBins = plot.data[1].xbins;
-    if (baselineBins.start !== canaryBins.start
-      || baselineBins.end !== canaryBins.end
-      || baselineBins.size !== canaryBins.size) {
+    if (
+      baselineBins.start !== canaryBins.start ||
+      baselineBins.end !== canaryBins.end ||
+      baselineBins.size !== canaryBins.size
+    ) {
       // bins are different sizes which is messy for visual comparison; align them and replot
       const start = Math.min(baselineBins.start, canaryBins.start);
       const end = Math.max(baselineBins.end, canaryBins.end);
@@ -73,16 +74,13 @@ function renderHistogram(container: HTMLElement, metricSetPair: IMetricSetPair) 
       canaryHisto.autobinx = false;
       canaryHisto.xbins = { start, end, size };
 
-      Plotly.newPlot(container, [ baselineHisto as any, canaryHisto as any ], layout);
+      Plotly.newPlot(container, [baselineHisto as any, canaryHisto as any], layout);
     }
   });
-
 }
-
 
 @autoBindMethods
 export default class PlotlyGraph extends React.Component<IMetricSetPairGraphProps> {
-
   private container: HTMLElement;
 
   public renderGraph(container: HTMLElement): void {
@@ -103,8 +101,6 @@ export default class PlotlyGraph extends React.Component<IMetricSetPairGraphProp
   }
 
   public render() {
-    return (
-      <div id="plotly" ref={this.renderGraph}/>
-    );
+    return <div id="plotly" ref={this.renderGraph} />;
   }
 }

@@ -15,9 +15,7 @@ export const NativeTableHeader = ({ columns, className }: INativeTableHeaderProp
         {columns.map(({ label, labelClassName, hide }, i) => (
           <th key={label || i} className="native-table-header">
             {!hide && (
-              <h6 className={classNames('heading-6', 'uppercase', 'color-text-primary', labelClassName)}>
-                {label}
-              </h6>
+              <h6 className={classNames('heading-6', 'uppercase', 'color-text-primary', labelClassName)}>{label}</h6>
             )}
           </th>
         ))}

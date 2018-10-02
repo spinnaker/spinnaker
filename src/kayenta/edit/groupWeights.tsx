@@ -17,17 +17,18 @@ function GroupWeights({ groups }: IGroupWeightsStateProps) {
   const hasGroups = groups.length > 0;
   return (
     <section>
-      {hasGroups
-        ? groups.map(group => <GroupWeight key={group} group={group}/>)
-        : <p key="no-groups">You have not configured any grouped metrics.</p>
-      }
+      {hasGroups ? (
+        groups.map(group => <GroupWeight key={group} group={group} />)
+      ) : (
+        <p key="no-groups">You have not configured any grouped metrics.</p>
+      )}
     </section>
   );
 }
 
 function mapStateToProps(state: ICanaryState): IGroupWeightsStateProps {
   const config = mapStateToConfig(state);
-  const metrics = config ? config.metrics : [] ;
+  const metrics = config ? config.metrics : [];
   const groups = uniq(flatMap(metrics, metric => metric.groups || []));
   return {
     groups,

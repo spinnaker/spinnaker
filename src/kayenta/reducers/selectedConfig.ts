@@ -5,12 +5,7 @@ import { get, set, unset, has, omit, chain, pick, fromPairs, flatMap, cloneDeep 
 import * as Actions from '../actions';
 import { ICanaryClassifierThresholdsConfig } from '../domain';
 import { IJudge } from '../domain/IJudge';
-import {
-  IGroupWeights,
-  ICanaryConfig,
-  ICanaryJudgeConfig,
-  ICanaryMetricConfig
-} from '../domain/ICanaryConfig';
+import { IGroupWeights, ICanaryConfig, ICanaryJudgeConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
@@ -69,161 +64,223 @@ export interface ISelectedConfigState {
   selectedStore: string;
 }
 
-const config = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: ICanaryConfig, action: Action & any) => action.payload.config,
-  [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({ ...state, name: action.payload.name }),
-  [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({ ...state, description: action.payload.description }),
-  [combineActions(Actions.DELETE_CONFIG_SUCCESS, Actions.CLEAR_SELECTED_CONFIG)]: () => null,
-  [Actions.DELETE_TEMPLATE]: (state: ICanaryConfig, action: Action & any) => {
-    if (!action.payload.name) {
-      return state;
-    }
-
-    return {
+const config = handleActions(
+  {
+    [Actions.SELECT_CONFIG]: (_state: ICanaryConfig, action: Action & any) => action.payload.config,
+    [Actions.UPDATE_CONFIG_NAME]: (state: ICanaryConfig, action: Action & any) => ({
       ...state,
-      templates: omit(state.templates, action.payload.name),
-    };
+      name: action.payload.name,
+    }),
+    [Actions.UPDATE_CONFIG_DESCRIPTION]: (state: ICanaryConfig, action: Action & any) => ({
+      ...state,
+      description: action.payload.description,
+    }),
+    [combineActions(Actions.DELETE_CONFIG_SUCCESS, Actions.CLEAR_SELECTED_CONFIG)]: () => null,
+    [Actions.DELETE_TEMPLATE]: (state: ICanaryConfig, action: Action & any) => {
+      if (!action.payload.name) {
+        return state;
+      }
+
+      return {
+        ...state,
+        templates: omit(state.templates, action.payload.name),
+      };
+    },
   },
-}, null);
+  null,
+);
 
 const load = combineReducers({
-  state: handleActions({
-    [Actions.LOAD_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
-    [Actions.LOAD_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
-    [Actions.SELECT_CONFIG]: () => AsyncRequestState.Fulfilled,
-  }, AsyncRequestState.Requesting),
+  state: handleActions(
+    {
+      [Actions.LOAD_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+      [Actions.LOAD_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+      [Actions.SELECT_CONFIG]: () => AsyncRequestState.Fulfilled,
+    },
+    AsyncRequestState.Requesting,
+  ),
 });
 
 function idMetrics(metrics: ICanaryMetricConfig[] = []) {
   return metrics.map((metric, index) => Object.assign({}, metric, { id: '#' + index }));
 }
 
-const metricList = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: ICanaryMetricConfig[], action: Action & any) => idMetrics(action.payload.config.metrics),
-  [Actions.ADD_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.concat([action.payload.metric])),
-  [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) => idMetrics(state.filter(metric => metric.id !== action.payload.id)),
-}, []);
-
-const editingMetric = handleActions({
-  [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({
-    ...state, name: action.payload.name
-  }),
-  [Actions.UPDATE_METRIC_DIRECTION]: (state: ICanaryMetricConfig, action: Action & any) => (
-    set(cloneDeep(state), ['analysisConfigurations', 'canary', 'direction'], action.payload.direction)
-  ),
-  [Actions.UPDATE_METRIC_NAN_STRATEGY]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
-    const newState = cloneDeep(state);
-
-    payload.strategy === 'default' ?
-      unset(newState, ['analysisConfigurations', 'canary', 'nanStrategy']) :
-      set(newState, ['analysisConfigurations', 'canary', 'nanStrategy'], payload.strategy);
-
-    return newState;
+const metricList = handleActions(
+  {
+    [Actions.SELECT_CONFIG]: (_state: ICanaryMetricConfig[], action: Action & any) =>
+      idMetrics(action.payload.config.metrics),
+    [Actions.ADD_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) =>
+      idMetrics(state.concat([action.payload.metric])),
+    [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) =>
+      idMetrics(state.filter(metric => metric.id !== action.payload.id)),
   },
-  [Actions.UPDATE_METRIC_CRITICALITY]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
-    const newState = cloneDeep(state);
+  [],
+);
 
-    payload.critical ?
-    set(newState, ['analysisConfigurations', 'canary', 'critical'], payload.critical) :
-    unset(newState, ['analysisConfigurations', 'canary', 'critical']);
+const editingMetric = handleActions(
+  {
+    [Actions.RENAME_METRIC]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state,
+      name: action.payload.name,
+    }),
+    [Actions.UPDATE_METRIC_DIRECTION]: (state: ICanaryMetricConfig, action: Action & any) =>
+      set(cloneDeep(state), ['analysisConfigurations', 'canary', 'direction'], action.payload.direction),
+    [Actions.UPDATE_METRIC_NAN_STRATEGY]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
+      const newState = cloneDeep(state);
 
-    return newState;
+      payload.strategy === 'default'
+        ? unset(newState, ['analysisConfigurations', 'canary', 'nanStrategy'])
+        : set(newState, ['analysisConfigurations', 'canary', 'nanStrategy'], payload.strategy);
+
+      return newState;
+    },
+    [Actions.UPDATE_METRIC_CRITICALITY]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
+      const newState = cloneDeep(state);
+
+      payload.critical
+        ? set(newState, ['analysisConfigurations', 'canary', 'critical'], payload.critical)
+        : unset(newState, ['analysisConfigurations', 'canary', 'critical']);
+
+      return newState;
+    },
+    [Actions.UPDATE_METRIC_GROUP]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state,
+      groups: [action.payload.group],
+    }),
+    [Actions.UPDATE_ATLAS_QUERY]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state,
+      query: { ...state.query, q: action.query },
+    }),
+    [Actions.UPDATE_DATADOG_METRIC_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state,
+      query: { ...state.query, metricName: action.payload.metricName },
+    }),
+    [Actions.SELECT_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state,
+      query: { ...state.query, customFilterTemplate: action.payload.name },
+    }),
+    [Actions.UPDATE_METRIC_SCOPE_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state,
+      scopeName: action.payload.scopeName,
+    }),
   },
-  [Actions.UPDATE_METRIC_GROUP]: (state: ICanaryMetricConfig, action: Action & any) => ({
-    ...state, groups: [action.payload.group]
-  }),
-  [Actions.UPDATE_ATLAS_QUERY]: (state: ICanaryMetricConfig, action: Action & any) => ({
-    ...state, query: { ...state.query, q: action.query }
-  }),
-  [Actions.UPDATE_DATADOG_METRIC_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
-    ...state, query: { ...state.query, metricName: action.payload.metricName }
-  }),
-  [Actions.SELECT_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
-    ...state, query: { ...state.query, customFilterTemplate: action.payload.name }
-  }),
-  [Actions.UPDATE_METRIC_SCOPE_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
-    ...state, scopeName: action.payload.scopeName,
-  }),
-}, null);
+  null,
+);
 
 const save = combineReducers<ISaveState>({
-  state: handleActions({
-    [Actions.SAVE_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
-    [combineActions(Actions.SAVE_CONFIG_SUCCESS, Actions.DISMISS_SAVE_CONFIG_ERROR)]: () => AsyncRequestState.Fulfilled,
-    [Actions.SAVE_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
-  }, AsyncRequestState.Fulfilled),
-  error: handleActions({
-    [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
-  }, null),
+  state: handleActions(
+    {
+      [Actions.SAVE_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+      [combineActions(Actions.SAVE_CONFIG_SUCCESS, Actions.DISMISS_SAVE_CONFIG_ERROR)]: () =>
+        AsyncRequestState.Fulfilled,
+      [Actions.SAVE_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+    },
+    AsyncRequestState.Fulfilled,
+  ),
+  error: handleActions(
+    {
+      [Actions.SAVE_CONFIG_FAILURE]: (_state: string, action: Action & any) =>
+        get(action, 'payload.error.data.message', null),
+    },
+    null,
+  ),
 });
 
 const destroy = combineReducers<IDestroyState>({
-  state: handleActions({
-    [Actions.DELETE_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
-    [Actions.DELETE_CONFIG_SUCCESS]: () => AsyncRequestState.Fulfilled,
-    [Actions.DELETE_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
-  }, AsyncRequestState.Fulfilled),
-  error: handleActions({
-    [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) => get(action, 'payload.error.data.message', null),
-  }, null),
+  state: handleActions(
+    {
+      [Actions.DELETE_CONFIG_REQUEST]: () => AsyncRequestState.Requesting,
+      [Actions.DELETE_CONFIG_SUCCESS]: () => AsyncRequestState.Fulfilled,
+      [Actions.DELETE_CONFIG_FAILURE]: () => AsyncRequestState.Failed,
+    },
+    AsyncRequestState.Fulfilled,
+  ),
+  error: handleActions(
+    {
+      [Actions.DELETE_CONFIG_FAILURE]: (_state: string, action: Action & any) =>
+        get(action, 'payload.error.data.message', null),
+    },
+    null,
+  ),
 });
 
 const json = combineReducers<IJsonState>({
-  configJson: handleActions({
-    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.payload.json,
-    [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: (): void => null,
-  }, null),
-  error: handleActions({
-    [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG, Actions.SET_CONFIG_JSON)]: () => null,
-    [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => {
-      try {
-        const parsed: ICanaryConfig = JSON.parse(action.payload.json);
-        parsed.metrics.forEach((m, index) => {
-          if (!m.groups || !m.groups.length) {
-            throw new Error(`metric #${index + 1}: 'groups' is a required field`);
-          }
-        });
-        return null;
-      } catch (e) {
-        return e.message;
-      }
-    }
-  }, null),
+  configJson: handleActions(
+    {
+      [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => action.payload.json,
+      [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: (): void => null,
+    },
+    null,
+  ),
+  error: handleActions(
+    {
+      [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG, Actions.SET_CONFIG_JSON)]: () => null,
+      [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => {
+        try {
+          const parsed: ICanaryConfig = JSON.parse(action.payload.json);
+          parsed.metrics.forEach((m, index) => {
+            if (!m.groups || !m.groups.length) {
+              throw new Error(`metric #${index + 1}: 'groups' is a required field`);
+            }
+          });
+          return null;
+        } catch (e) {
+          return e.message;
+        }
+      },
+    },
+    null,
+  ),
 });
 
-
 const judge = combineReducers<IJudgeState>({
-  judgeConfig: handleActions({
-    [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({ ...state, name: action.payload.judge.name }),
-  }, null),
+  judgeConfig: handleActions(
+    {
+      [Actions.SELECT_JUDGE_NAME]: (state: IJudge, action: Action & any) => ({
+        ...state,
+        name: action.payload.judge.name,
+      }),
+    },
+    null,
+  ),
   renderState: handleActions({}, JudgeSelectRenderState.None),
 });
 
-const thresholds = handleActions({
-  [Actions.SELECT_CONFIG]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => {
-    if (has(action, 'payload.config.classifier.scoreThresholds')) {
-      return action.payload.config.classifier.scoreThresholds;
-    } else {
-      return {
-        pass: null,
-        marginal: null,
-      };
-    }
+const thresholds = handleActions(
+  {
+    [Actions.SELECT_CONFIG]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => {
+      if (has(action, 'payload.config.classifier.scoreThresholds')) {
+        return action.payload.config.classifier.scoreThresholds;
+      } else {
+        return {
+          pass: null,
+          marginal: null,
+        };
+      }
+    },
+    [Actions.UPDATE_SCORE_THRESHOLDS]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => ({
+      pass: action.payload.pass,
+      marginal: action.payload.marginal,
+    }),
   },
-  [Actions.UPDATE_SCORE_THRESHOLDS]: (_state: ICanaryClassifierThresholdsConfig, action: Action & any) => ({
-    pass: action.payload.pass, marginal: action.payload.marginal
-  })
-}, null);
+  null,
+);
 
 const changeMetricGroup = combineReducers<IChangeMetricGroupState>({
-  toGroup: handleActions({
-    [Actions.CHANGE_METRIC_GROUP_SELECT]: (_state: string, action: Action & any) => action.payload.group,
-    [Actions.CHANGE_METRIC_GROUP]: () => null,
-  }, null),
-  metric: handleActions({
-    [Actions.CHANGE_METRIC_GROUP]: (_state: string, action: Action & any) => action.payload.id,
-    [Actions.CHANGE_METRIC_GROUP_CONFIRM]: () => null,
-  }, null),
+  toGroup: handleActions(
+    {
+      [Actions.CHANGE_METRIC_GROUP_SELECT]: (_state: string, action: Action & any) => action.payload.group,
+      [Actions.CHANGE_METRIC_GROUP]: () => null,
+    },
+    null,
+  ),
+  metric: handleActions(
+    {
+      [Actions.CHANGE_METRIC_GROUP]: (_state: string, action: Action & any) => action.payload.id,
+      [Actions.CHANGE_METRIC_GROUP_CONFIRM]: () => null,
+    },
+    null,
+  ),
 });
 
 const isInSyncWithServer = handleActions({}, null);
@@ -233,25 +290,25 @@ function editingMetricReducer(state: ISelectedConfigState = null, action: Action
   switch (action.type) {
     case Actions.ADD_METRIC:
       return Object.assign({}, state, {
-        editingMetric: state.metricList[state.metricList.length - 1]
+        editingMetric: state.metricList[state.metricList.length - 1],
       });
 
     case Actions.EDIT_METRIC_BEGIN:
       return Object.assign({}, state, {
-        editingMetric: state.metricList.find(metric => metric.id === action.payload.id)
+        editingMetric: state.metricList.find(metric => metric.id === action.payload.id),
       });
 
     case Actions.EDIT_METRIC_CONFIRM:
       const editing: ICanaryMetricConfig = omit(state.editingMetric, 'isNew');
       return Object.assign({}, state, {
-        metricList: state.metricList.map(metric => metric.id === editing.id ? editing : metric),
-        editingMetric: null
+        metricList: state.metricList.map(metric => (metric.id === editing.id ? editing : metric)),
+        editingMetric: null,
       });
 
     case Actions.EDIT_METRIC_CANCEL:
       return Object.assign({}, state, {
         metricList: state.metricList.filter(metric => !metric.isNew),
-        editingMetric: null
+        editingMetric: null,
       });
 
     default:
@@ -265,7 +322,10 @@ function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action
       if (has(action, 'payload.config.judge')) {
         return { ...state, judge: { ...state.judge, judgeConfig: { ...action.payload.config.judge } } };
       } else {
-        return { ...state, judge: { ...state.judge, judgeConfig: { name: CanarySettings.defaultJudge, judgeConfigurations: {} } } };
+        return {
+          ...state,
+          judge: { ...state.judge, judgeConfig: { name: CanarySettings.defaultJudge, judgeConfigurations: {} } },
+        };
       }
 
     default:
@@ -273,7 +333,10 @@ function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action
   }
 }
 
-export function editGroupConfirmReducer(state: ISelectedConfigState = null, action: Action & any): ISelectedConfigState {
+export function editGroupConfirmReducer(
+  state: ISelectedConfigState = null,
+  action: Action & any,
+): ISelectedConfigState {
   if (action.type !== Actions.EDIT_GROUP_CONFIRM) {
     return state;
   }
@@ -286,7 +349,9 @@ export function editGroupConfirmReducer(state: ISelectedConfigState = null, acti
 
   const metricUpdator = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...c,
-    groups: (c.groups || []).includes(payload.group) ? [payload.edit].concat((c.groups || []).filter(g => g !== payload.group)) : c.groups,
+    groups: (c.groups || []).includes(payload.group)
+      ? [payload.edit].concat((c.groups || []).filter(g => g !== payload.group))
+      : c.groups,
   });
 
   const weightsUpdator = (weights: IGroupWeights): IGroupWeights => {
@@ -298,7 +363,8 @@ export function editGroupConfirmReducer(state: ISelectedConfigState = null, acti
     };
   };
 
-  const listUpdator = (groupList: string[]): string[] => [payload.edit].concat((groupList || []).filter(g => g !== payload.group));
+  const listUpdator = (groupList: string[]): string[] =>
+    [payload.edit].concat((groupList || []).filter(g => g !== payload.group));
   return {
     ...state,
     metricList: state.metricList.map(metricUpdator),
@@ -311,22 +377,27 @@ export function editGroupConfirmReducer(state: ISelectedConfigState = null, acti
   };
 }
 
-export function changeMetricGroupConfirmReducer(state: ISelectedConfigState, action: Action & any): ISelectedConfigState {
+export function changeMetricGroupConfirmReducer(
+  state: ISelectedConfigState,
+  action: Action & any,
+): ISelectedConfigState {
   if (action.type !== Actions.CHANGE_METRIC_GROUP_CONFIRM) {
     return state;
   }
 
-  const { changeMetricGroup: { toGroup } } = state;
-  const { payload: { metricId } } = action;
+  const {
+    changeMetricGroup: { toGroup },
+  } = state;
+  const {
+    payload: { metricId },
+  } = action;
   if (!metricId) {
     return state;
   }
 
   const metricUpdator = (m: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...m,
-    groups: m.id === metricId
-      ? [toGroup]
-      : m.groups,
+    groups: m.id === metricId ? [toGroup] : m.groups,
   });
 
   return {
@@ -336,10 +407,11 @@ export function changeMetricGroupConfirmReducer(state: ISelectedConfigState, act
 }
 
 export function updateGroupWeightsReducer(state: ISelectedConfigState, action: Action & any): ISelectedConfigState {
-  if (![Actions.SELECT_CONFIG,
-        Actions.CHANGE_METRIC_GROUP_CONFIRM,
-        Actions.ADD_METRIC,
-        Actions.REMOVE_METRIC].includes(action.type)) {
+  if (
+    ![Actions.SELECT_CONFIG, Actions.CHANGE_METRIC_GROUP_CONFIRM, Actions.ADD_METRIC, Actions.REMOVE_METRIC].includes(
+      action.type,
+    )
+  ) {
     return state;
   }
 
@@ -362,7 +434,7 @@ export function updateGroupWeightsReducer(state: ISelectedConfigState, action: A
     group: {
       ...state.group,
       groupWeights,
-    }
+    },
   };
 }
 
@@ -400,7 +472,10 @@ const combined = combineReducers<ISelectedConfigState>({
   judge,
   metricList,
   editingMetric: (metric, action) =>
-    [editingMetric, prometheusMetricConfigReducer, stackdriverMetricConfigReducer].reduce((s, reducer) => reducer(s, action), metric),
+    [editingMetric, prometheusMetricConfigReducer, stackdriverMetricConfigReducer].reduce(
+      (s, reducer) => reducer(s, action),
+      metric,
+    ),
   group,
   thresholds,
   changeMetricGroup,

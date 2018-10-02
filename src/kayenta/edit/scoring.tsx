@@ -16,15 +16,15 @@ function Scoring({ renderJudgeSelect }: IScoringStateProps) {
   return (
     <FormList>
       <TitledSubsection title="Thresholds">
-        <ScoreThresholds/>
+        <ScoreThresholds />
       </TitledSubsection>
       {renderJudgeSelect && (
         <TitledSubsection title="Judge">
-          <JudgeSelect/>
+          <JudgeSelect />
         </TitledSubsection>
       )}
       <TitledSubsection title="Metric Group Weights" helpKey="canary.config.metricGroupWeights">
-        <GroupWeights/>
+        <GroupWeights />
       </TitledSubsection>
     </FormList>
   );

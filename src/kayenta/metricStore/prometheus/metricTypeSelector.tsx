@@ -13,7 +13,7 @@ interface IPrometheusMetricTypeSelectorDispatchProps {
 }
 
 interface IPrometheusMetricTypeSelectorStateProps {
-  options: Option[]
+  options: Option[];
   loading: boolean;
 }
 
@@ -22,7 +22,15 @@ interface IPrometheusMetricTypeSelectorOwnProps {
   onChange: (option: Option) => void;
 }
 
-const PrometheusMetricTypeSelector = ({ loading, load, options, value, onChange }: IPrometheusMetricTypeSelectorDispatchProps & IPrometheusMetricTypeSelectorStateProps & IPrometheusMetricTypeSelectorOwnProps) => {
+const PrometheusMetricTypeSelector = ({
+  loading,
+  load,
+  options,
+  value,
+  onChange,
+}: IPrometheusMetricTypeSelectorDispatchProps &
+  IPrometheusMetricTypeSelectorStateProps &
+  IPrometheusMetricTypeSelectorOwnProps) => {
   if (value && options.every(o => o.value !== value)) {
     options = options.concat({ label: value, value });
   }
@@ -34,12 +42,10 @@ const PrometheusMetricTypeSelector = ({ loading, load, options, value, onChange 
       onChange={onChange}
       value={value}
       placeholder={'Enter at least three characters to search.'}
-      onInputChange={
-        input => {
-          load(input);
-          return input;
-        }
-      }
+      onInputChange={input => {
+        load(input);
+        return input;
+      }}
       disabledStateKeys={[DISABLE_EDIT_CONFIG]}
     />
   );
@@ -63,4 +69,7 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(PrometheusMetricTypeSelector);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(PrometheusMetricTypeSelector);

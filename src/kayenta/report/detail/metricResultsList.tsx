@@ -34,7 +34,7 @@ const buildTableRows = (results: ICanaryAnalysisResult[]): IMetricResultsTableRo
       map.has(result.name)
         ? map.set(result.name, { metricName: result.name, results: map.get(result.name).results.concat(result) })
         : map.set(result.name, { metricName: result.name, results: [result] }),
-    new Map<string, IMetricResultsTableRow>()
+    new Map<string, IMetricResultsTableRow>(),
   );
 
   return Array.from(tableRowsByMetricName.values());
@@ -46,18 +46,20 @@ const buildRowForMetricWithMultipleResults = (row: IMetricResultsTableRow) => {
   }
 
   return (
-    <li
-      className="horizontal multiple-results"
-    >
+    <li className="horizontal multiple-results">
       <section className="vertical flex-fill">
         <div>{row.metricName}</div>
-        <MultipleResultsTable results={row.results}/>
+        <MultipleResultsTable results={row.results} />
       </section>
     </li>
   );
 };
 
-const ResultsList = ({ results, select, selectedMetric }: IResultsListOwnProps & IResultsListDispatchProps & IResultsListStateProps) => {
+const ResultsList = ({
+  results,
+  select,
+  selectedMetric,
+}: IResultsListOwnProps & IResultsListDispatchProps & IResultsListStateProps) => {
   const rows = buildTableRows(results);
   return (
     <section className="vertical metric-results-list flex-1">
@@ -83,9 +85,11 @@ const mapDispatchToProps = (
   dispatch: Dispatch<ICanaryState>,
   ownProps: IResultsListOwnProps,
 ): IResultsListOwnProps & IResultsListDispatchProps => ({
-  select: (metricId: string) =>
-    dispatch(Creators.selectReportMetric({ metricId })),
+  select: (metricId: string) => dispatch(Creators.selectReportMetric({ metricId })),
   ...ownProps,
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ResultsList);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ResultsList);

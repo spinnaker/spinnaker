@@ -1,0 +1,3 @@
+package.json
+lib/**/*
+**/node_modules/**/*

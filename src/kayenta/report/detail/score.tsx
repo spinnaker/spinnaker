@@ -22,7 +22,7 @@ export default ({ score, showClassification, inverse }: ICanaryJudgeScoreProps) 
 );
 
 // TODO(dpeach): don't use ACA statuses in the CanaryScore component.
-const mapKayentaToACA = (score: ICanaryJudgeScore): { health: string, result: string } => {
+const mapKayentaToACA = (score: ICanaryJudgeScore): { health: string; result: string } => {
   if (score.classification === ScoreClassificationLabel.Pass) {
     return { health: null, result: 'success' };
   } else if (score.classification === ScoreClassificationLabel.Fail) {

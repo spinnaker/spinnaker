@@ -29,7 +29,10 @@ export const ReportLink = ({ configId, executionId, children }: IReportLinkOwnPr
   );
 };
 
-const mapStateToProps = (state: ICanaryState, ownProps: IReportLinkOwnProps): IReportLinkStateProps & IReportLinkOwnProps => {
+const mapStateToProps = (
+  state: ICanaryState,
+  ownProps: IReportLinkOwnProps,
+): IReportLinkStateProps & IReportLinkOwnProps => {
   return {
     configId: resolveConfigIdFromExecutionId(state, ownProps.executionId),
     ...ownProps,

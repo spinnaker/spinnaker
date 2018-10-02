@@ -39,8 +39,9 @@ const cb = (err, licenses) => {
     console.log('Error: ', err);
     process.exitCode = 1;
   } else {
-    const unknownLicenses = Object.entries(licenses)
-      .filter(([pkg, properties]) => !ALLOWED_LICENSES.includes(properties.licenses));
+    const unknownLicenses = Object.entries(licenses).filter(
+      ([pkg, properties]) => !ALLOWED_LICENSES.includes(properties.licenses),
+    );
     if (unknownLicenses.length) {
       unknownLicenses.forEach(([pkg, properties]) => {
         if (!IGNORED.includes(pkg)) {
@@ -52,7 +53,10 @@ const cb = (err, licenses) => {
   }
 };
 
-checker.init({
-  start: path.join(__dirname, '..'),
-  production: true, // Only check dependencies, not devDependencies.
-}, cb);
+checker.init(
+  {
+    start: path.join(__dirname, '..'),
+    production: true, // Only check dependencies, not devDependencies.
+  },
+  cb,
+);

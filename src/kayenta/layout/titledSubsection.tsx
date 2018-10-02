@@ -12,8 +12,10 @@ export interface ITitledSubsectionProps {
 export default function TitledSubsection({ title, children, helpKey }: ITitledSubsectionProps) {
   return (
     <section className="titled-subsection">
-      <h5 className="heading-5">{title} {helpKey && <HelpField id={helpKey}/>}</h5>
-      <hr/>
+      <h5 className="heading-5">
+        {title} {helpKey && <HelpField id={helpKey} />}
+      </h5>
+      <hr />
       {children}
     </section>
   );

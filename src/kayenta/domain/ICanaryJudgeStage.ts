@@ -13,5 +13,5 @@ export interface ICanaryJudgeStage extends IExecutionStage {
     canaryConfigId: string;
     canaryJudgeResultId: string;
     result: ICanaryJudgeResult;
-  }
+  };
 }

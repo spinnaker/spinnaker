@@ -14,6 +14,6 @@ export default ({ onClick, className, label }: IAddNewButtonProps) => (
     disabledStateKeys={[DISABLE_EDIT_CONFIG]}
     className={classNames('add-new', 'btn', 'btn-block', 'btn-sm', className)}
   >
-    <span className="glyphicon glyphicon-plus-sign"/> {label || 'Add new'}
+    <span className="glyphicon glyphicon-plus-sign" /> {label || 'Add new'}
   </DisableableButton>
 );

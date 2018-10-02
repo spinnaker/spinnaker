@@ -25,21 +25,19 @@ function ConfigList({ configs, selectedConfigId, application }: IConfigListState
         {configs.map(config => (
           <li key={config.id} className={config.id === selectedConfigId ? 'selected' : ''}>
             <UISrefActive class="active">
-              <UISref to=".configDetail" params={{ id: config.id, 'new': false, copy: false }}>
+              <UISref to=".configDetail" params={{ id: config.id, new: false, copy: false }}>
                 <a className="heading-4">{config.name}</a>
               </UISref>
             </UISrefActive>
             <div className="body-small color-text-caption caption" style={{ marginTop: '5px', marginBottom: '0' }}>
-              Edited: <FormattedDate dateIso={config.updatedTimestampIso}/><br/>
-              <OwnedBy
-                owningApplications={config.applications}
-                currentApplication={application}
-              />
+              Edited: <FormattedDate dateIso={config.updatedTimestampIso} />
+              <br />
+              <OwnedBy owningApplications={config.applications} currentApplication={application} />
             </div>
           </li>
         ))}
       </ul>
-      <CreateConfigButton/>
+      <CreateConfigButton />
     </section>
   );
 }
@@ -53,6 +51,5 @@ function mapStateToProps(state: ICanaryState): IConfigListStateProps {
     application,
   };
 }
-
 
 export default connect(mapStateToProps)(ConfigList);

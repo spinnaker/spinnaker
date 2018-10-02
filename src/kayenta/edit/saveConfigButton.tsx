@@ -20,11 +20,16 @@ interface ISaveButtonDispatchProps {
 /*
  * Button for saving a canary config.
  */
-function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig, disable }: ISaveButtonStateProps & ISaveButtonDispatchProps) {
+function SaveConfigButton({
+  saveConfigState,
+  inSyncWithServer,
+  saveConfig,
+  disable,
+}: ISaveButtonStateProps & ISaveButtonDispatchProps) {
   if (inSyncWithServer && saveConfigState !== AsyncRequestState.Requesting) {
     return (
       <span className="btn btn-link disabled">
-        <i className="far fa-check-circle"/> In sync with server
+        <i className="far fa-check-circle" /> In sync with server
       </span>
     );
   } else {
@@ -52,8 +57,11 @@ function mapDispatchToProps(dispatch: any): ISaveButtonDispatchProps {
   return {
     saveConfig: () => {
       dispatch(Creators.saveConfig());
-    }
+    },
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SaveConfigButton);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(SaveConfigButton);

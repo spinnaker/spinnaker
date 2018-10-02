@@ -16,17 +16,19 @@ const buildChartPoints = (values: number[], scope: IMetricSetScope): ChartPoint[
     return [];
   }
 
-  return values.map((y, i) => {
-    if (typeof y !== 'number') {
-      return null;
-    }
+  return values
+    .map((y, i) => {
+      if (typeof y !== 'number') {
+        return null;
+      }
 
-    const dataPointMillis = scope.startTimeMillis + (scope.stepMillis * i);
-    return {
-      x: dataPointMillis,
-      y,
-    };
-  }).filter(point => !!point);
+      const dataPointMillis = scope.startTimeMillis + scope.stepMillis * i;
+      return {
+        x: dataPointMillis,
+        y,
+      };
+    })
+    .filter(point => !!point);
 };
 
 export const buildChartConfig = (metricSetPair: IMetricSetPair, type: GraphType): ChartConfiguration => {
@@ -71,10 +73,12 @@ export const buildChartConfig = (metricSetPair: IMetricSetPair, type: GraphType)
         },
       },
       scales: {
-        xAxes: [{
-          type: 'time',
-          distribution: 'series'
-        } as any], // bad typings.
+        xAxes: [
+          {
+            type: 'time',
+            distribution: 'series',
+          } as any,
+        ], // bad typings.
       },
     },
   };

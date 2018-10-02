@@ -11,20 +11,30 @@ export interface IAppState {
   disableConfigEdit: boolean;
 }
 
-const deleteConfigModalOpen = handleActions({
-  [Actions.DELETE_CONFIG_MODAL_OPEN]: () => true,
-  [combineActions(Actions.DELETE_CONFIG_MODAL_CLOSE, Actions.DELETE_CONFIG_SUCCESS)]: () => false,
-}, false);
+const deleteConfigModalOpen = handleActions(
+  {
+    [Actions.DELETE_CONFIG_MODAL_OPEN]: () => true,
+    [combineActions(Actions.DELETE_CONFIG_MODAL_CLOSE, Actions.DELETE_CONFIG_SUCCESS)]: () => false,
+  },
+  false,
+);
 
-const configJsonModalOpen = handleActions({
-  [Actions.CONFIG_JSON_MODAL_OPEN]: () => true,
-  [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: () => false,
-}, false);
+const configJsonModalOpen = handleActions(
+  {
+    [Actions.CONFIG_JSON_MODAL_OPEN]: () => true,
+    [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG)]: () => false,
+  },
+  false,
+);
 
-const configJsonModalTabState = handleActions({
-  [Actions.SET_CONFIG_JSON_MODAL_TAB_STATE]: (_state: ConfigJsonModalTabState, action: Action & any) => action.payload.state,
-  [Actions.CONFIG_JSON_MODAL_OPEN]: () => ConfigJsonModalTabState.Edit,
-}, ConfigJsonModalTabState.Edit);
+const configJsonModalTabState = handleActions(
+  {
+    [Actions.SET_CONFIG_JSON_MODAL_TAB_STATE]: (_state: ConfigJsonModalTabState, action: Action & any) =>
+      action.payload.state,
+    [Actions.CONFIG_JSON_MODAL_OPEN]: () => ConfigJsonModalTabState.Edit,
+  },
+  ConfigJsonModalTabState.Edit,
+);
 
 const disableConfigEdit = handleActions<boolean>({}, false);
 

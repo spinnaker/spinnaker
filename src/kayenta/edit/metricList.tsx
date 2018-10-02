@@ -33,8 +33,20 @@ interface IMetricListDispatchProps {
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, editMetric, copyMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal, metricStore, disableEdit }: IMetricListStateProps & IMetricListDispatchProps) {
-
+function MetricList({
+  metrics,
+  groupList,
+  selectedGroup,
+  showGroups,
+  addMetric,
+  editMetric,
+  copyMetric,
+  removeMetric,
+  changingGroupMetric,
+  openChangeMetricGroupModal,
+  metricStore,
+  disableEdit,
+}: IMetricListStateProps & IMetricListDispatchProps) {
   const columns: ITableColumn<ICanaryMetricConfig>[] = [
     {
       label: 'Metric Name',
@@ -51,25 +63,13 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
       width: 3,
       getContent: metric => (
         <div className="horizontal center metrics-action-buttons">
-          <button
-            className="link"
-            data-id={metric.id}
-            onClick={editMetric}
-          >
+          <button className="link" data-id={metric.id} onClick={editMetric}>
             Edit
           </button>
-          <button
-            className="link"
-            data-id={metric.id}
-            onClick={openChangeMetricGroupModal}
-          >
+          <button className="link" data-id={metric.id} onClick={openChangeMetricGroupModal}>
             Move Group
           </button>
-          <button
-            className="link"
-            data-id={metric.id}
-            onClick={() => copyMetric(metric)}
-          >
+          <button className="link" data-id={metric.id} onClick={() => copyMetric(metric)}>
             Copy
           </button>
           <button
@@ -82,7 +82,7 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
           </button>
         </div>
       ),
-    }
+    },
   ];
 
   return (
@@ -93,13 +93,13 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
         rowKey={metric => metric.id}
         headerClassName="background-white metric-list"
       />
-      {(!metrics.length && selectedGroup) ? (
+      {!metrics.length && selectedGroup ? (
         <p>
-          This group is empty! The group will be not be present the next time the config is loaded unless
-          it is saved with at least one metric in it.
+          This group is empty! The group will be not be present the next time the config is loaded unless it is saved
+          with at least one metric in it.
         </p>
       ) : null}
-      {changingGroupMetric && <ChangeMetricGroupModal metric={changingGroupMetric}/>}
+      {changingGroupMetric && <ChangeMetricGroupModal metric={changingGroupMetric} />}
       <DisableableButton
         className="passive"
         data-group={selectedGroup}
@@ -129,8 +129,9 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
     groupList: state.selectedConfig.group.list,
     metrics: metricList.filter(filter),
     showGroups: !selectedGroup || metricList.filter(filter).some(metric => metric.groups.length > 1),
-    changingGroupMetric: state.selectedConfig.metricList.find(m =>
-      m.id === state.selectedConfig.changeMetricGroup.metric),
+    changingGroupMetric: state.selectedConfig.metricList.find(
+      m => m.id === state.selectedConfig.changeMetricGroup.metric,
+    ),
     metricStore: state.selectedConfig.selectedStore,
     disableEdit: state.app.disableConfigEdit,
   };
@@ -140,22 +141,24 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
   return {
     addMetric: (event: any) => {
       const group = event.target.dataset.group || event.target.dataset.default;
-      dispatch(Creators.addMetric({
-        metric: {
-          // TODO: need to block saving an invalid name
-          // TODO: for Atlas metrics, attempt to gather name when query changes
-          id: '[new]',
-          analysisConfigurations: {},
-          name: '',
-          query: {
-            type: event.target.dataset.metricStore,
-            serviceType: event.target.dataset.metricStore,
+      dispatch(
+        Creators.addMetric({
+          metric: {
+            // TODO: need to block saving an invalid name
+            // TODO: for Atlas metrics, attempt to gather name when query changes
+            id: '[new]',
+            analysisConfigurations: {},
+            name: '',
+            query: {
+              type: event.target.dataset.metricStore,
+              serviceType: event.target.dataset.metricStore,
+            },
+            groups: group ? [group] : [],
+            scopeName: 'default',
+            isNew: true,
           },
-          groups: group ? [group] : [],
-          scopeName: 'default',
-          isNew: true,
-        }
-      }));
+        }),
+      );
     },
     copyMetric: (metric: ICanaryMetricConfig) => {
       const metricCopy: ICanaryMetricConfig = cloneDeep(metric);
@@ -170,9 +173,11 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
     removeMetric: (event: any) => {
       dispatch(Creators.removeMetric({ id: event.target.dataset.id }));
     },
-    openChangeMetricGroupModal: (event: any) =>
-      dispatch(Creators.changeMetricGroup({ id: event.target.dataset.id })),
+    openChangeMetricGroupModal: (event: any) => dispatch(Creators.changeMetricGroup({ id: event.target.dataset.id })),
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MetricList);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(MetricList);

@@ -22,16 +22,16 @@ interface INameAndDescriptionStateProps {
 /*
  * Configures canary config name and description.
  */
-function NameAndDescription({ name, description, changeName, changeDescription }: INameAndDescriptionDispatchProps & INameAndDescriptionStateProps) {
+function NameAndDescription({
+  name,
+  description,
+  changeName,
+  changeDescription,
+}: INameAndDescriptionDispatchProps & INameAndDescriptionStateProps) {
   return (
     <FormList>
       <FormRow label="Configuration Name">
-        <DisableableInput
-          type="text"
-          value={name}
-          onChange={changeName}
-          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-        />
+        <DisableableInput type="text" value={name} onChange={changeName} disabledStateKeys={[DISABLE_EDIT_CONFIG]} />
       </FormRow>
       <MetricStoreSelector />
       <FormRow label="Description">
@@ -63,16 +63,23 @@ function mapStateToProps(state: ICanaryState) {
 function mapDispatchToProps(dispatch: (action: Action & any) => void) {
   return {
     changeName: (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(Creators.updateConfigName({
-        name: event.target.value,
-      }));
+      dispatch(
+        Creators.updateConfigName({
+          name: event.target.value,
+        }),
+      );
     },
     changeDescription: (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      dispatch(Creators.updateConfigDescription({
-        description: event.target.value,
-      }));
+      dispatch(
+        Creators.updateConfigDescription({
+          description: event.target.value,
+        }),
+      );
     },
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(NameAndDescription);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(NameAndDescription);

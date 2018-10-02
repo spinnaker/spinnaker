@@ -2,37 +2,18 @@
   "extends": ["tslint-eslint-rules", "tslint-react"],
   "rules": {
     "class-name": true,
-    "comment-format": [
-      true,
-      "check-space"
-    ],
+    "comment-format": [true, "check-space"],
     "curly": true,
     "eofline": true,
     "forin": true,
-    "indent": [
-      true,
-      "spaces"
-    ],
+    "indent": [true, "spaces"],
     "label-position": true,
     "max-line-length": false,
     "member-access": true,
-    "member-ordering": [
-      true,
-      "static-before-instance",
-      "variables-before-functions"
-    ],
+    "member-ordering": [true, "static-before-instance", "variables-before-functions"],
     "no-arg": true,
     "no-bitwise": true,
-    "no-console": [
-      true,
-      "log",
-      "warn",
-      "debug",
-      "info",
-      "time",
-      "timeEnd",
-      "trace"
-    ],
+    "no-console": [true, "log", "warn", "debug", "info", "time", "timeEnd", "trace"],
     "no-construct": true,
     "no-debugger": true,
     "no-duplicate-variable": true,
@@ -48,37 +29,18 @@
     "no-var-keyword": true,
     "object-curly-spacing": "always",
     "object-literal-sort-keys": false,
-    "one-line": [
-      true,
-      "check-catch",
-      "check-else",
-      "check-open-brace",
-      "check-whitespace"
-    ],
+    "one-line": [true, "check-catch", "check-else", "check-open-brace", "check-whitespace"],
     "prefer-const": [
       true,
       {
         "destructuring": "all"
       }
     ],
-    "quotemark": [
-      true,
-      "single",
-      "avoid-escape",
-      "jsx-double"
-    ],
+    "quotemark": [true, "single", "avoid-escape", "jsx-double"],
     "radix": true,
-    "semicolon": [
-      "always"
-    ],
-    "triple-equals": [
-      true,
-      "allow-null-check"
-    ],
-    "typedef": [
-      "call-signature",
-      "property-declaration"
-    ],
+    "semicolon": ["always"],
+    "triple-equals": [true, "allow-null-check"],
+    "typedef": ["call-signature", "property-declaration"],
     "typedef-whitespace": [
       true,
       {
@@ -89,19 +51,8 @@
         "variable-declaration": "nospace"
       }
     ],
-    "variable-name": [
-      true,
-      "ban-keywords",
-      "allow-leading-underscore"
-    ],
-    "whitespace": [
-      true,
-      "check-branch",
-      "check-decl",
-      "check-operator",
-      "check-separator",
-      "check-type"
-    ],
+    "variable-name": [true, "ban-keywords", "allow-leading-underscore"],
+    "whitespace": [true, "check-branch", "check-decl", "check-operator", "check-separator", "check-type"],
     "jsx-no-multiline-js": false,
     "jsx-no-lambda": false
   }

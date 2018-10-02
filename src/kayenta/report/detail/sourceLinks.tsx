@@ -15,10 +15,16 @@ const SourceLinks = ({ reportUrl, metricListUrl }: ISourceJsonStateProps) => {
   return (
     <ul className="list-unstyled small">
       <li>
-        <a target="_blank" href={reportUrl}>Report</a>
+        <a target="_blank" href={reportUrl}>
+          Report
+        </a>
       </li>
       <li>
-        <p><a target="_blank" href={metricListUrl}>Metrics</a></p>
+        <p>
+          <a target="_blank" href={metricListUrl}>
+            Metrics
+          </a>
+        </p>
       </li>
     </ul>
   );

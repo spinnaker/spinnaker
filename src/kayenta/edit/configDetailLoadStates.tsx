@@ -16,14 +16,15 @@ interface IConfigLoadStatesProps {
  */
 function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
   const LoadStates = new LoadStatesBuilder()
-    .onFulfilled(<ConfigDetail/>)
+    .onFulfilled(<ConfigDetail />)
     .onFailed(
       <CenteredDetail>
         <h3 className="heading-3">Could not load canary config.</h3>
-      </CenteredDetail>
-    ).build();
+      </CenteredDetail>,
+    )
+    .build();
 
-  return <LoadStates state={configLoadState}/>;
+  return <LoadStates state={configLoadState} />;
 }
 
 function mapStateToProps(state: ICanaryState): IConfigLoadStatesProps {
@@ -31,6 +32,5 @@ function mapStateToProps(state: ICanaryState): IConfigLoadStatesProps {
     configLoadState: state.selectedConfig.load.state,
   };
 }
-
 
 export default connect(mapStateToProps)(ConfigDetailLoadStates);

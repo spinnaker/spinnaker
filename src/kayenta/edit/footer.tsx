@@ -8,9 +8,5 @@ export interface IFooterProps {
 }
 
 export default function Footer({ children }: IFooterProps) {
-  return (
-    <div className={classNames('row', 'canary-footer')}>
-      {children}
-    </div>
-  );
+  return <div className={classNames('row', 'canary-footer')}>{children}</div>;
 }

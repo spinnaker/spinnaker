@@ -13,7 +13,9 @@ const buildHelpText = (ownedBy: string[]): string => {
   } else if (ownedBy.length === 1) {
     return `This config can only be edited from within the application <strong>${ownedBy[0]}.</strong>`;
   } else {
-    return `This config can only be edited from within the following applications: <strong>${ownedBy.join(', ')}.</strong>`;
+    return `This config can only be edited from within the following applications: <strong>${ownedBy.join(
+      ', ',
+    )}.</strong>`;
   }
 };
 

@@ -20,13 +20,13 @@ export default ({ className, onClick, score, scoreThresholds }: IAllMetricResult
     <div
       onClick={onClick}
       style={{
-        backgroundColor: mapGroupToColor(score, scoreThresholds)
+        backgroundColor: mapGroupToColor(score, scoreThresholds),
       }}
       className={classNames('clickable', 'text-center', 'all-metric-results-header')}
     >
       <h3 className="heading-3 label">ALL</h3>
-      <HeaderArrow className="outer" arrowColor="var(--color-titanium)"/>
-      <HeaderArrow className="inner" arrowColor={mapGroupToColor(score, scoreThresholds)}/>
+      <HeaderArrow className="outer" arrowColor="var(--color-titanium)" />
+      <HeaderArrow className="inner" arrowColor={mapGroupToColor(score, scoreThresholds)} />
     </div>
   </section>
 );

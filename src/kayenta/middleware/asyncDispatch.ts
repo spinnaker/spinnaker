@@ -11,7 +11,9 @@ import { ICanaryState } from '../reducers/index';
 
 // TODO: replace the `any` generic passed to MiddlewareAPI with ICanaryState. The Redux typings here are wrong.
 // Should be fixed in this PR: https://github.com/reactjs/redux/pull/2563
-export const asyncDispatchMiddleware: Middleware = (store: MiddlewareAPI<any>) => (next: Dispatch<ICanaryState>) => (action: Action & any) => {
+export const asyncDispatchMiddleware: Middleware = (store: MiddlewareAPI<any>) => (next: Dispatch<ICanaryState>) => (
+  action: Action & any,
+) => {
   let syncActivityFinished = false;
   let actionQueue: Action[] = [];
 

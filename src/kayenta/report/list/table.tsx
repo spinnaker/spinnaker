@@ -5,7 +5,12 @@ import { isEqual, get } from 'lodash';
 
 import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import { ICanaryState } from 'kayenta/reducers';
-import { ICanaryExecutionStatusResult, ICanaryMetricConfig, ICanaryScopesByName, CANARY_EXECUTION_NO_PIPELINE_STATUS } from 'kayenta/domain';
+import {
+  ICanaryExecutionStatusResult,
+  ICanaryMetricConfig,
+  ICanaryScopesByName,
+  CANARY_EXECUTION_NO_PIPELINE_STATUS,
+} from 'kayenta/domain';
 import FormattedDate from 'kayenta/layout/formattedDate';
 import CenteredDetail from 'kayenta/layout/centeredDetail';
 import Score from '../detail/score';
@@ -15,16 +20,14 @@ import { PipelineLink } from './pipelineLink';
 
 import './executionList.less';
 
-
 // Both this and the atlas-specific logic in `getScopeLocations` shouldn't really
 // be in this file, and probably shouldn't even be referenced directly.
 // Ideally this and any other metric store customizations should happen in a registry
 // of store-specific transformation functions or similar.
-const isAtlasScope = (scope: string, metrics: ICanaryMetricConfig[]) => (
-  metrics.some(({ query, scopeName }) => scopeName === scope && query.type === 'atlas')
-);
+const isAtlasScope = (scope: string, metrics: ICanaryMetricConfig[]) =>
+  metrics.some(({ query, scopeName }) => scopeName === scope && query.type === 'atlas');
 
-const getScopeLocations = (scopes: ICanaryScopesByName, metrics: ICanaryMetricConfig[]) => (
+const getScopeLocations = (scopes: ICanaryScopesByName, metrics: ICanaryMetricConfig[]) =>
   Object.keys(scopes).reduce((acc, scopeName) => {
     const { controlScope, experimentScope } = scopes[scopeName];
     const isAtlas = isAtlasScope(scopeName, metrics);
@@ -34,17 +37,16 @@ const getScopeLocations = (scopes: ICanaryScopesByName, metrics: ICanaryMetricCo
     if (isAtlas && get(controlScope, 'extendedScopeParams.dataset') === 'global') {
       acc.add('Global');
     } else {
-      acc.add(controlScope.location)
+      acc.add(controlScope.location);
     }
     if (isAtlas && get(experimentScope, 'extendedScopeParams.dataset') === 'global') {
       acc.add('Global');
     } else {
-      acc.add(experimentScope.location)
+      acc.add(experimentScope.location);
     }
 
     return acc;
-  }, new Set<string>())
-);
+  }, new Set<string>());
 
 const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
   {
@@ -56,19 +58,16 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
           executionId={execution.pipelineId}
           application={execution.application}
         >
-          <Score
-            score={execution.result.judgeResult.score}
-            showClassification={false}
-            inverse={true}
-          />{'  '}
+          <Score score={execution.result.judgeResult.score} showClassification={false} inverse={true} />
+          {'  '}
           <FormattedDate dateIso={execution.startTimeIso} />
-        </ReportLink>{'  '}
-        {
-          execution.startTimeIso &&
+        </ReportLink>
+        {'  '}
+        {execution.startTimeIso && (
           <span className="color-text-caption body-small" style={{ marginLeft: '10px' }}>
             {moment(execution.startTimeIso).fromNow()}
           </span>
-        }
+        )}
       </>
     ),
   },
@@ -79,7 +78,9 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
 
       return (
         <div className="vertical">
-          {locations.map((location) => <span key={location}>{location}</span>)}
+          {locations.map(location => (
+            <span key={location}>{location}</span>
+          ))}
         </div>
       );
     },
@@ -97,41 +98,49 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
   {
     label: 'Scopes',
     getContent: ({ canaryExecutionRequest: { scopes } }) => {
-      const baselineScopeNames = Object.keys(scopes).reduce((acc, scope) =>
-        acc.add(scopes[scope].controlScope.scope)
-      , new Set<string>())
-      const canaryScopeNames = Object.keys(scopes).reduce((acc, scope) =>
-        acc.add(scopes[scope].experimentScope.scope)
-      , new Set<string>())
+      const baselineScopeNames = Object.keys(scopes).reduce(
+        (acc, scope) => acc.add(scopes[scope].controlScope.scope),
+        new Set<string>(),
+      );
+      const canaryScopeNames = Object.keys(scopes).reduce(
+        (acc, scope) => acc.add(scopes[scope].experimentScope.scope),
+        new Set<string>(),
+      );
 
       const areScopesIdentical = isEqual(baselineScopeNames, canaryScopeNames);
 
       if (areScopesIdentical) {
         return (
           <div className="vertical">
-            {[...canaryScopeNames].map((scope) => <span key={scope}>{scope}</span>)}
+            {[...canaryScopeNames].map(scope => (
+              <span key={scope}>{scope}</span>
+            ))}
           </div>
         );
       } else {
         return (
           <div className="vertical">
             <span className="heading-6 uppercase color-text-caption">Baseline</span>
-            {[...baselineScopeNames].map((scope) => <span key={scope}>{scope}</span>)}
-            <span className="heading-6 uppercase color-text-caption" style={{ marginTop: '5px' }}>Canary</span>
-            {[...canaryScopeNames].map((scope) => <span key={scope}>{scope}</span>)}
+            {[...baselineScopeNames].map(scope => (
+              <span key={scope}>{scope}</span>
+            ))}
+            <span className="heading-6 uppercase color-text-caption" style={{ marginTop: '5px' }}>
+              Canary
+            </span>
+            {[...canaryScopeNames].map(scope => (
+              <span key={scope}>{scope}</span>
+            ))}
           </div>
         );
       }
     },
   },
   {
-    getContent: ({ parentPipelineExecutionId, application }) => (
-      parentPipelineExecutionId && parentPipelineExecutionId !== CANARY_EXECUTION_NO_PIPELINE_STATUS &&
-        <PipelineLink
-          parentPipelineExecutionId={parentPipelineExecutionId}
-          application={application}
-        />
-    ),
+    getContent: ({ parentPipelineExecutionId, application }) =>
+      parentPipelineExecutionId &&
+      parentPipelineExecutionId !== CANARY_EXECUTION_NO_PIPELINE_STATUS && (
+        <PipelineLink parentPipelineExecutionId={parentPipelineExecutionId} application={application} />
+      ),
   },
 ];
 

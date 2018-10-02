@@ -8,12 +8,11 @@ import MetricResultDetailLayout from './metricResultDetailLayout';
 
 const MetricSetPairLoadStates = ({ state }: { state: AsyncRequestState }) => {
   const LoadStates = new LoadStatesBuilder()
-    .onFulfilled(<MetricResultDetailLayout/>)
-    .onFailed(
-      <h3 className="heading-3 text-center">Could not load metrics.</h3>
-    ).build();
+    .onFulfilled(<MetricResultDetailLayout />)
+    .onFailed(<h3 className="heading-3 text-center">Could not load metrics.</h3>)
+    .build();
 
-  return <LoadStates state={state}/>;
+  return <LoadStates state={state} />;
 };
 
 const mapStateToProps = (state: ICanaryState) => ({

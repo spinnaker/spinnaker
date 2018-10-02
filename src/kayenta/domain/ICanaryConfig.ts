@@ -10,7 +10,7 @@ export interface ICanaryConfig {
   description: string;
   configVersion: string;
   metrics: ICanaryMetricConfig[];
-  templates: {[key: string]: string};
+  templates: { [key: string]: string };
   classifier: ICanaryClassifierConfig;
   judge: ICanaryJudgeConfig;
 }
@@ -36,7 +36,7 @@ export interface ICanaryMetricSetQueryConfig {
   customFilterTemplate?: string;
 }
 
-export type IGroupWeights = {[group: string]: number};
+export type IGroupWeights = { [group: string]: number };
 
 export interface ICanaryClassifierConfig {
   groupWeights: IGroupWeights;
@@ -57,5 +57,5 @@ export interface ICanaryMetricEffectSizeConfig {
 
 export interface ICanaryJudgeConfig {
   name: string;
-  judgeConfigurations: {[key: string]: any};
+  judgeConfigurations: { [key: string]: any };
 }

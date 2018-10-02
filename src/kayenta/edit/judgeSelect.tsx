@@ -27,7 +27,12 @@ export enum JudgeSelectRenderState {
 /*
  * Select field for picking canary judge.
  */
-function JudgeSelect({ judgeOptions, selectedJudge, handleJudgeSelect, renderState }: IJudgeSelectStateProps & IJudgeSelectDispatchProps) {
+function JudgeSelect({
+  judgeOptions,
+  selectedJudge,
+  handleJudgeSelect,
+  renderState,
+}: IJudgeSelectStateProps & IJudgeSelectDispatchProps) {
   switch (renderState) {
     case JudgeSelectRenderState.Multiple:
       return (
@@ -69,8 +74,11 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IJudgeSel
   return {
     handleJudgeSelect: (option: Option) => {
       dispatch(Creators.selectJudgeName({ judge: { name: option.value as string } }));
-    }
+    },
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(JudgeSelect);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(JudgeSelect);

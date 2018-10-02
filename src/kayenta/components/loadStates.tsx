@@ -36,16 +36,18 @@ export default class LoadStatesBuilder {
     return ({ state }: ILoadStatesProps) => {
       switch (state) {
         case AsyncRequestState.Requesting:
-          return this.requesting || (
-            <div className="horizontal center middle spinner-container">
-              <Spinner/>
-            </div>
+          return (
+            this.requesting || (
+              <div className="horizontal center middle spinner-container">
+                <Spinner />
+              </div>
+            )
           );
         case AsyncRequestState.Fulfilled:
           return this.fulfilled;
         case AsyncRequestState.Failed:
           return this.failed;
       }
-    }
+    };
   }
 }

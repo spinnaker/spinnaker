@@ -2,7 +2,7 @@ import {
   ICanaryMetricValidationErrors,
   validateMetric,
   validateMetricName,
-  validateMetricScopeName
+  validateMetricScopeName,
 } from './editMetricValidation';
 import { ICanaryMetricConfig } from '../domain';
 
@@ -25,13 +25,13 @@ describe('Canary metric validation', () => {
     it('Updates errors appropriately when metric name is empty', () => {
       editingMetric.name = '';
       expect(validateMetricName(errors, editingMetric, metricList).name).toEqual({
-        message: 'Name is required'
+        message: 'Name is required',
       });
     });
     it('Updates errors appropriately when metric name is not unique', () => {
       editingMetric.name = 'B';
       expect(validateMetricName(errors, editingMetric, metricList).name).toEqual({
-        message: "Metric 'B' already exists"
+        message: "Metric 'B' already exists",
       });
     });
   });
@@ -43,7 +43,7 @@ describe('Canary metric validation', () => {
     it('Updates errors appropriately when metric scope name is empty', () => {
       editingMetric.scopeName = '';
       expect(validateMetricScopeName(errors, editingMetric).scopeName).toEqual({
-        message: 'Scope name is required'
+        message: 'Scope name is required',
       });
     });
   });
@@ -57,7 +57,7 @@ describe('Canary metric validation', () => {
       editingMetric.scopeName = '';
       expect(validateMetric(editingMetric, metricList)).toEqual({
         name: { message: 'Name is required' },
-        scopeName: { message: 'Scope name is required' }
+        scopeName: { message: 'Scope name is required' },
       });
     });
   });
@@ -66,7 +66,7 @@ describe('Canary metric validation', () => {
 function createErrors(): ICanaryMetricValidationErrors {
   return {
     name: null,
-    scopeName: null
+    scopeName: null,
   };
 }
 
@@ -74,14 +74,10 @@ function createEditingMetric(name: string, id: string): ICanaryMetricConfig {
   return {
     name,
     id,
-    scopeName: 'default'
+    scopeName: 'default',
   } as ICanaryMetricConfig;
 }
 
 function createMetricList(): ICanaryMetricConfig[] {
-  return [
-    createEditingMetric('A', 'a'),
-    createEditingMetric('B', 'b'),
-    createEditingMetric('C', 'c')
-  ];
+  return [createEditingMetric('A', 'a'), createEditingMetric('B', 'b'), createEditingMetric('C', 'c')];
 }

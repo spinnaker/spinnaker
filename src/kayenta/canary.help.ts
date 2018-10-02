@@ -1,6 +1,6 @@
 import { HelpContentsRegistry } from '@spinnaker/core';
 
-const helpContents: {[key: string]: string} = {
+const helpContents: { [key: string]: string } = {
   'pipeline.config.canary.analysisType': `
     <p>
       <strong>Real Time</strong> analysis will be performed
@@ -20,32 +20,45 @@ const helpContents: {[key: string]: string} = {
       the baseline and canary server groups.
     </p>
   `,
-  'pipeline.config.canary.delayBeforeAnalysis': '<p>The number of minutes until the first canary analysis measurement interval begins.</p>',
+  'pipeline.config.canary.delayBeforeAnalysis':
+    '<p>The number of minutes until the first canary analysis measurement interval begins.</p>',
   'pipeline.config.canary.canaryInterval': `
         <p>The frequency at which a canary score is generated. The recommended interval is at least 30 minutes.</p>
         <p>If an interval is not specified, or the specified interval is larger than the overall time range, there will be one canary run over the full time range.</p>`,
-  'pipeline.config.canary.successfulScore': '<p>The minimum score the canary must achieve to be considered successful.</p>',
-  'pipeline.config.canary.unhealthyScore': '<p>The lowest score the canary can attain before it is aborted and disabled as a failure.</p>',
-  'pipeline.config.canary.baselineGroup': '<p>The server group to treat as the <em>control</em> in the canary analysis.</p>',
-  'pipeline.config.canary.baselineLocation': '<p>The location (could be a region, a namespace, or something else) of the server group to treat as the <em>control</em> in the canary analysis.</p>',
-  'pipeline.config.canary.canaryGroup': '<p>The server group to treat as the <em>experiment</em> in the canary analysis.</p>',
-  'pipeline.config.canary.canaryLocation': '<p>The location (could be a region, a namespace, or something else) of the server group to treat as the <em>experiment</em> in the canary analysis.</p>',
-  'pipeline.config.canary.startTimeIso': '<p>The overall start time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a> For example, `2018-07-12T20:28:29Z`.</p>',
-  'pipeline.config.canary.endTimeIso': '<p>The overall end time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a> For example, `2018-07-12T22:28:29Z`.</p>',
+  'pipeline.config.canary.successfulScore':
+    '<p>The minimum score the canary must achieve to be considered successful.</p>',
+  'pipeline.config.canary.unhealthyScore':
+    '<p>The lowest score the canary can attain before it is aborted and disabled as a failure.</p>',
+  'pipeline.config.canary.baselineGroup':
+    '<p>The server group to treat as the <em>control</em> in the canary analysis.</p>',
+  'pipeline.config.canary.baselineLocation':
+    '<p>The location (could be a region, a namespace, or something else) of the server group to treat as the <em>control</em> in the canary analysis.</p>',
+  'pipeline.config.canary.canaryGroup':
+    '<p>The server group to treat as the <em>experiment</em> in the canary analysis.</p>',
+  'pipeline.config.canary.canaryLocation':
+    '<p>The location (could be a region, a namespace, or something else) of the server group to treat as the <em>experiment</em> in the canary analysis.</p>',
+  'pipeline.config.canary.startTimeIso':
+    '<p>The overall start time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a> For example, `2018-07-12T20:28:29Z`.</p>',
+  'pipeline.config.canary.endTimeIso':
+    '<p>The overall end time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a> For example, `2018-07-12T22:28:29Z`.</p>',
   'pipeline.config.canary.extendedScopeParams': `
         <p>Metric source specific parameters which may be used to further alter the canary scope.</p>
         <p>Also used to provide variable bindings for use in the expansion of custom filter templates within the canary config.</p>`,
-  'pipeline.config.canary.lookback': '<p>With an analysis type of <strong>Growing</strong>, the entire duration of the canary will be considered during the analysis.</p><p>When choosing <strong>Sliding</strong>, the canary will use the most recent number of specified minutes for its analysis report (<b>useful for long running canaries that span multiple days</b>).</p>',
+  'pipeline.config.canary.lookback':
+    '<p>With an analysis type of <strong>Growing</strong>, the entire duration of the canary will be considered during the analysis.</p><p>When choosing <strong>Sliding</strong>, the canary will use the most recent number of specified minutes for its analysis report (<b>useful for long running canaries that span multiple days</b>).</p>',
   'pipeline.config.canary.marginalScore': `
     <p>A canary stage can include multiple canary runs.</p>
     <p>If a given canary run score is less than or equal to the marginal threshold, the canary stage will fail immediately.</p>
     <p>If the canary run score is greater than the marginal threshold, the canary stage will not fail and will execute the remaining downstream canary runs.</p>`,
-  'pipeline.config.canary.passingScore': '<p>When all canary runs in a stage have executed, a canary stage is considered a success if the final (that is, the latest) canary run score is greater than or equal to the pass threshold. Otherwise, it is a failure.</p>',
+  'pipeline.config.canary.passingScore':
+    '<p>When all canary runs in a stage have executed, a canary stage is considered a success if the final (that is, the latest) canary run score is greater than or equal to the pass threshold. Otherwise, it is a failure.</p>',
   'pipeline.config.canary.lifetime': `
     <p>The total time for which data will be collected and analyzed during this stage.</p>
   `,
-  'pipeline.config.metricsAccount': '<p>The account to be used to access the metric store defined in this stage\'s canary config.</p>',
-  'pipeline.config.storageAccount': '<p>The account to be used to access a storage service, which will be used to store artifacts generated by this stage.</p>',
+  'pipeline.config.metricsAccount':
+    "<p>The account to be used to access the metric store defined in this stage's canary config.</p>",
+  'pipeline.config.storageAccount':
+    '<p>The account to be used to access a storage service, which will be used to store artifacts generated by this stage.</p>',
   'canary.config.metricGroupWeights': `
     <p>A canary score is the weighted sum of metric group scores.</p>
     <p>Group weights must sum to 100.</p>

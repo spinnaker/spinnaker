@@ -13,7 +13,9 @@ import {
 } from 'kayenta/domain';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
-  return API.one('v2/canaryConfig').one(id).get()
+  return API.one('v2/canaryConfig')
+    .one(id)
+    .get()
     .then((config: ICanaryConfig) => ({
       ...config,
       id,
@@ -21,11 +23,15 @@ export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
 }
 
 export function getCanaryConfigSummaries(...application: string[]): Promise<ICanaryConfigSummary[]> {
-  return API.one('v2/canaryConfig').withParams({ application }).get();
+  return API.one('v2/canaryConfig')
+    .withParams({ application })
+    .get();
 }
 
 export function updateCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
-  return API.one('v2/canaryConfig').one(config.id).put(config);
+  return API.one('v2/canaryConfig')
+    .one(config.id)
+    .put(config);
 }
 
 export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
@@ -33,16 +39,21 @@ export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfig
 }
 
 export function deleteCanaryConfig(id: string): Promise<void> {
-  return API.one('v2/canaryConfig').one(id).remove();
+  return API.one('v2/canaryConfig')
+    .one(id)
+    .remove();
 }
 
 export function listJudges(): Promise<IJudge[]> {
-  return API.one('v2/canaries/judges').get()
+  return API.one('v2/canaries/judges')
+    .get()
     .then((judges: IJudge[]) => judges.filter(judge => judge.visible));
 }
 
 export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
-  return API.one('v2/canaries/credentials').useCache().get();
+  return API.one('v2/canaries/credentials')
+    .useCache()
+    .get();
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config
@@ -67,7 +78,8 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
 }
 
 export function buildNewConfig(state: ICanaryState): ICanaryConfig {
-  let configName = 'new-config', i = 1;
+  let configName = 'new-config',
+    i = 1;
   while ((state.data.configSummaries || []).some(summary => summary.name === configName)) {
     configName = `new-config-${i}`;
     i++;
@@ -82,16 +94,16 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     configVersion: '1',
     templates: {},
     classifier: {
-      groupWeights: {} as {[key: string]: number},
+      groupWeights: {} as { [key: string]: number },
       scoreThresholds: {
         pass: 75,
         marginal: 50,
-      }
+      },
     },
     judge: {
       name: CanarySettings.defaultJudge,
       judgeConfigurations: {},
-    }
+    },
   };
 }
 
@@ -105,15 +117,19 @@ export function buildConfigCopy(state: ICanaryState): ICanaryConfig {
   }
 
   // Probably a rare case, but someone could be lazy about naming their configs.
-  let configName = `${config.name}-copy`, i = 1;
+  let configName = `${config.name}-copy`,
+    i = 1;
   while ((state.data.configSummaries || []).some(summary => summary.name === configName)) {
     configName = `${config.name}-copy-${i}`;
     i++;
   }
 
-  return omit({
-    ...config,
-    name: configName,
-    isNew: true,
-  }, 'id');
+  return omit(
+    {
+      ...config,
+      name: configName,
+      isNew: true,
+    },
+    'id',
+  );
 }

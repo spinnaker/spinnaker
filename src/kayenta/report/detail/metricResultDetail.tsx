@@ -13,12 +13,8 @@ export interface IMetricResultDetailProps {
 * */
 export default ({ result }: IMetricResultDetailProps) => {
   if (result) {
-    return (
-      <MetricSetPairLoadStates/>
-    );
+    return <MetricSetPairLoadStates />;
   } else {
-    return (
-      <h3 className="heading-3 text-center">Select a metric result.</h3>
-    );
+    return <h3 className="heading-3 text-center">Select a metric result.</h3>;
   }
 };

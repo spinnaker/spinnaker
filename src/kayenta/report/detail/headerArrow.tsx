@@ -9,5 +9,5 @@ export interface IHeaderArrowProps {
 }
 
 export default ({ arrowColor, className }: IHeaderArrowProps) => (
-  <div className={classNames(ARROW_CLASS, className)} style={{ borderTopColor: arrowColor }}/>
+  <div className={classNames(ARROW_CLASS, className)} style={{ borderTopColor: arrowColor }} />
 );

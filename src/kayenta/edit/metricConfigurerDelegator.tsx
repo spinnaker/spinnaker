@@ -15,13 +15,9 @@ function MetricConfigurerDelegator({ editingMetric }: IMetricConfigurerDelegator
   const config = metricStoreConfigService.getDelegate(editingMetric.query.type);
   if (config && config.metricConfigurer) {
     const MetricConfigurer = config.metricConfigurer;
-    return <MetricConfigurer/>;
+    return <MetricConfigurer />;
   } else {
-    return (
-      <p>
-        Metric configuration has not been implemented for {editingMetric.query.type}.
-      </p>
-    );
+    return <p>Metric configuration has not been implemented for {editingMetric.query.type}.</p>;
   }
 }
 

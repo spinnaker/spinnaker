@@ -10,8 +10,8 @@ import GraphTypeSelector from './graphTypeSelector';
 * */
 export default () => (
   <section className="vertical flex-1" style={{ overflowY: 'auto' }}>
-    <Graph/>
-    <GraphTypeSelector/>
-    <MetricResultStats/>
+    <Graph />
+    <GraphTypeSelector />
+    <MetricResultStats />
   </section>
 );

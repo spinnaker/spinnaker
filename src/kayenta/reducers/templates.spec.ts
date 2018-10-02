@@ -5,18 +5,17 @@ import {
   EDIT_TEMPLATE_CANCEL,
   EDIT_TEMPLATE_CONFIRM,
   EDIT_TEMPLATE_NAME,
-  EDIT_TEMPLATE_VALUE
+  EDIT_TEMPLATE_VALUE,
 } from 'kayenta/actions';
 
 describe('Reducer: selectedConfig (templates)', () => {
-
   const createAction = (type: string, payload: any = {}) => ({
     type,
     payload,
   });
 
   const runActionSequence = (...actions: any[]) => (initialState: any) =>
-      actions.reduce((s: any, a: any) => reducer(s, a), initialState);
+    actions.reduce((s: any, a: any) => reducer(s, a), initialState);
 
   it('handles editing template name & value', () => {
     let state: any = {
@@ -24,36 +23,32 @@ describe('Reducer: selectedConfig (templates)', () => {
         templates: {
           'my-template': 'my-value',
           'my-other-template': 'my-other-value',
-        }
-      }
+        },
+      },
     };
 
     state = runActionSequence(
       createAction(EDIT_TEMPLATE_BEGIN, {
         name: 'my-template',
-        value: 'my-value'
+        value: 'my-value',
       }),
       createAction(EDIT_TEMPLATE_NAME, { name: 'my-edited-template' }),
       createAction(EDIT_TEMPLATE_VALUE, {
-        value: 'resource.metadata.tag.my-custom-tag-1=${tag1} ' +
-               'AND resource.metadata.tag.my-custom-tag-2=${tag2}'
+        value: 'resource.metadata.tag.my-custom-tag-1=${tag1} ' + 'AND resource.metadata.tag.my-custom-tag-2=${tag2}',
       }),
       createAction(EDIT_TEMPLATE_CONFIRM),
     )(state);
 
     const {
-      config: {
-        templates,
-      },
+      config: { templates },
     } = state;
 
     expect(templates).toEqual({
-      'my-edited-template': 'resource.metadata.tag.my-custom-tag-1=${tag1} ' +
-                            'AND resource.metadata.tag.my-custom-tag-2=${tag2}',
+      'my-edited-template':
+        'resource.metadata.tag.my-custom-tag-1=${tag1} ' + 'AND resource.metadata.tag.my-custom-tag-2=${tag2}',
       'my-other-template': 'my-other-value',
     });
   });
-
 
   it('leaves template name & value unchanged on EDIT_TEMPLATE_CANCEL', () => {
     let state: any = {
@@ -61,27 +56,24 @@ describe('Reducer: selectedConfig (templates)', () => {
         templates: {
           'my-template': 'my-value',
           'my-other-template': 'my-other-value',
-        }
-      }
+        },
+      },
     };
 
     state = runActionSequence(
       createAction(EDIT_TEMPLATE_BEGIN, {
         name: 'my-template',
-        value: 'my-value'
+        value: 'my-value',
       }),
       createAction(EDIT_TEMPLATE_NAME, { name: 'my-edited-template' }),
       createAction(EDIT_TEMPLATE_VALUE, {
-        value: 'resource.metadata.tag.my-custom-tag-1=${tag1} ' +
-               'AND resource.metadata.tag.my-custom-tag-2=${tag2}'
+        value: 'resource.metadata.tag.my-custom-tag-1=${tag1} ' + 'AND resource.metadata.tag.my-custom-tag-2=${tag2}',
       }),
       createAction(EDIT_TEMPLATE_CANCEL),
     )(state);
 
     const {
-      config: {
-        templates,
-      },
+      config: { templates },
     } = state;
 
     expect(templates).toEqual({
@@ -100,19 +92,15 @@ describe('Reducer: selectedConfig (templates)', () => {
       config: {
         templates: {
           'my-template': '',
-        }
-      }
+        },
+      },
     };
 
     const {
-      editingTemplate: {
-        name, editedName, editedValue,
-      },
+      editingTemplate: { name, editedName, editedValue },
     } = reducer(state, createAction(EDIT_TEMPLATE_CONFIRM));
 
-    [name, editedName, editedValue].forEach(
-      value => expect(value).toEqual(null),
-    );
+    [name, editedName, editedValue].forEach(value => expect(value).toEqual(null));
   });
 
   it('deletes a template', () => {
@@ -121,8 +109,8 @@ describe('Reducer: selectedConfig (templates)', () => {
         templates: {
           'my-template': 'my-value',
           'my-other-template': 'my-other-value',
-        }
-      }
+        },
+      },
     };
 
     state = reducer(state, createAction(DELETE_TEMPLATE, { name: 'my-template' }));
@@ -140,15 +128,15 @@ describe('Reducer: selectedConfig (templates)', () => {
       config: {
         templates: {
           'my-template': 'my-value',
-        }
-      }
+        },
+      },
     };
 
     state = runActionSequence(
       createAction(EDIT_TEMPLATE_BEGIN, { name: '', value: '' }),
       createAction(EDIT_TEMPLATE_VALUE, { value: 'new-value' }),
       createAction(EDIT_TEMPLATE_NAME, { name: 'new-name' }),
-      createAction(EDIT_TEMPLATE_CONFIRM)
+      createAction(EDIT_TEMPLATE_CONFIRM),
     )(state);
 
     expect(state.config.templates).toEqual({
@@ -162,15 +150,15 @@ describe('Reducer: selectedConfig (templates)', () => {
       config: {
         templates: {
           'my-template': 'my-value',
-        }
-      }
+        },
+      },
     };
 
     state = runActionSequence(
       createAction(EDIT_TEMPLATE_BEGIN, { name: '', value: '' }),
       createAction(EDIT_TEMPLATE_VALUE, { value: 'new-value' }),
       createAction(EDIT_TEMPLATE_NAME, { name: 'new-name' }),
-      createAction(EDIT_TEMPLATE_CANCEL)
+      createAction(EDIT_TEMPLATE_CANCEL),
     )(state);
 
     expect(state.config.templates).toEqual({

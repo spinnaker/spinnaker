@@ -40,53 +40,67 @@ export enum ConfigJsonModalTabState {
 /*
  * Modal for viewing canary config JSON.
  */
-function ConfigJsonModal({ show, configJson, id, deserializationError, closeModal, setConfigJson, updateConfig, setTabState, tabState, diff }: IConfigJsonDispatchProps & IConfigJsonStateProps) {
+function ConfigJsonModal({
+  show,
+  configJson,
+  id,
+  deserializationError,
+  closeModal,
+  setConfigJson,
+  updateConfig,
+  setTabState,
+  tabState,
+  diff,
+}: IConfigJsonDispatchProps & IConfigJsonStateProps) {
   return (
     <Modal show={show} onHide={onHide} bsSize="large">
       <Styleguide>
         <Modal.Header>
           <Modal.Title>JSON</Modal.Title>
         </Modal.Header>
-          <Modal.Body>
-            <section>
-              <Tabs>
-                <Tab selected={tabState === ConfigJsonModalTabState.Edit}>
-                  <a onClick={setTabState(ConfigJsonModalTabState.Edit)}>Edit</a>
-                </Tab>
-                <Tab selected={tabState === ConfigJsonModalTabState.Diff}>
-                  <a onClick={setTabState(ConfigJsonModalTabState.Diff)}>Diff</a>
-                </Tab>
-              </Tabs>
-            </section>
-            <section className="kayenta-config-json">
-              {tabState === ConfigJsonModalTabState.Edit && (
-                <DisableableTextarea
-                  rows={configJson.split('\n').length}
-                  className="form-control code flex-fill"
-                  spellCheck={false}
-                  value={configJson}
-                  onChange={setConfigJson}
-                  disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-                />
-              )}
-              {tabState === ConfigJsonModalTabState.Diff && !deserializationError && (
+        <Modal.Body>
+          <section>
+            <Tabs>
+              <Tab selected={tabState === ConfigJsonModalTabState.Edit}>
+                <a onClick={setTabState(ConfigJsonModalTabState.Edit)}>Edit</a>
+              </Tab>
+              <Tab selected={tabState === ConfigJsonModalTabState.Diff}>
+                <a onClick={setTabState(ConfigJsonModalTabState.Diff)}>Diff</a>
+              </Tab>
+            </Tabs>
+          </section>
+          <section className="kayenta-config-json">
+            {tabState === ConfigJsonModalTabState.Edit && (
+              <DisableableTextarea
+                rows={configJson.split('\n').length}
+                className="form-control code flex-fill"
+                spellCheck={false}
+                value={configJson}
+                onChange={setConfigJson}
+                disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+              />
+            )}
+            {tabState === ConfigJsonModalTabState.Diff &&
+              !deserializationError && (
                 <div className="modal-show-history">
                   <div className="show-history">
-                    <DiffView diff={diff}/>
+                    <DiffView diff={diff} />
                   </div>
                 </div>
               )}
-              {!!deserializationError && (
-                <div className="horizontal row center">
-                  <span className="error-message">Error: {deserializationError}</span>
-                </div>
-              )}
-            </section>
-          </Modal.Body>
+            {!!deserializationError && (
+              <div className="horizontal row center">
+                <span className="error-message">Error: {deserializationError}</span>
+              </div>
+            )}
+          </section>
+        </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
             <li>
-              <button className="passive" onClick={closeModal}>Close</button>
+              <button className="passive" onClick={closeModal}>
+                Close
+              </button>
             </li>
             <li>
               <button
@@ -95,7 +109,8 @@ function ConfigJsonModal({ show, configJson, id, deserializationError, closeModa
                 data-serialized={configJson}
                 onClick={updateConfig}
                 disabled={!!deserializationError}
-              >Update
+              >
+                Update
               </button>
             </li>
           </ul>
@@ -109,15 +124,18 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigJs
   return {
     closeModal: () => dispatch(Creators.closeConfigJsonModal()),
     setTabState: (state: ConfigJsonModalTabState) => () => dispatch(Creators.setConfigJsonModalTabState({ state })),
-    setConfigJson: (event: React.ChangeEvent<HTMLTextAreaElement>) => dispatch(Creators.setConfigJson({ json: event.target.value })),
+    setConfigJson: (event: React.ChangeEvent<HTMLTextAreaElement>) =>
+      dispatch(Creators.setConfigJson({ json: event.target.value })),
     updateConfig: (event: any) => {
-      dispatch(Creators.selectConfig({
-        config: {
-          id: event.target.dataset.id,
-          ...JSON.parse(event.target.dataset.serialized)
-        },
-      }));
-    }
+      dispatch(
+        Creators.selectConfig({
+          config: {
+            id: event.target.dataset.id,
+            ...JSON.parse(event.target.dataset.serialized),
+          },
+        }),
+      );
+    },
   };
 }
 
@@ -127,8 +145,9 @@ function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
     omit(state.data.configs.find(c => c.id === id) || {}, 'id'),
   );
 
-  const configJson = state.selectedConfig.json.configJson
-    || JsonUtils.makeSortedStringFromObject(omit(mapStateToConfig(state) || {}, 'id'));
+  const configJson =
+    state.selectedConfig.json.configJson ||
+    JsonUtils.makeSortedStringFromObject(omit(mapStateToConfig(state) || {}, 'id'));
 
   return {
     configJson,
@@ -142,4 +161,7 @@ function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
 
 const onHide = (): void => null;
 
-export default connect(mapStateToProps, mapDispatchToProps)(ConfigJsonModal);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ConfigJsonModal);

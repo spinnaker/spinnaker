@@ -24,7 +24,14 @@ interface IDeleteModalStateProps {
 /*
  * Modal to confirm canary config deletion.
  */
-function DeleteConfigModal({ show, selectedConfigName, deleteConfigState, deleteConfigErrorMessage, closeDeleteConfigModal, deleteConfig }: IDeleteModalDispatchProps & IDeleteModalStateProps) {
+function DeleteConfigModal({
+  show,
+  selectedConfigName,
+  deleteConfigState,
+  deleteConfigErrorMessage,
+  closeDeleteConfigModal,
+  deleteConfig,
+}: IDeleteModalDispatchProps & IDeleteModalStateProps) {
   return (
     <Modal show={show} onHide={null}>
       <Styleguide>
@@ -34,15 +41,21 @@ function DeleteConfigModal({ show, selectedConfigName, deleteConfigState, delete
         {deleteConfigState === AsyncRequestState.Failed && (
           <Modal.Body>
             {/*TODO: create generic error message component */}
-            <span className={classNames('alert', 'alert-danger')}>
-              {buildErrorMessage(deleteConfigErrorMessage)}
-            </span>
+            <span className={classNames('alert', 'alert-danger')}>{buildErrorMessage(deleteConfigErrorMessage)}</span>
           </Modal.Body>
         )}
         <Modal.Footer>
           <ul className="list-inline pull-right">
-            <li><button className="passive" onClick={closeDeleteConfigModal}>Cancel</button></li>
-            <li><button className="primary" onClick={deleteConfig}>Delete</button></li>
+            <li>
+              <button className="passive" onClick={closeDeleteConfigModal}>
+                Cancel
+              </button>
+            </li>
+            <li>
+              <button className="primary" onClick={deleteConfig}>
+                Delete
+              </button>
+            </li>
           </ul>
         </Modal.Footer>
       </Styleguide>
@@ -52,9 +65,7 @@ function DeleteConfigModal({ show, selectedConfigName, deleteConfigState, delete
 
 function buildErrorMessage(deleteConfigErrorMessage: string): string {
   const message = 'The was an error deleting your config';
-  return deleteConfigErrorMessage
-    ? message + `: ${deleteConfigErrorMessage}.`
-    : message + '.';
+  return deleteConfigErrorMessage ? message + `: ${deleteConfigErrorMessage}.` : message + '.';
 }
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IDeleteModalDispatchProps {
@@ -73,4 +84,7 @@ function mapStateToProps(state: ICanaryState): IDeleteModalStateProps {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DeleteConfigModal);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(DeleteConfigModal);

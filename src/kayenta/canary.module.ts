@@ -13,24 +13,15 @@ import 'kayenta/report/detail/graph/plotly';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
-templates.keys().forEach(function (key) {
+templates.keys().forEach(function(key) {
   templates(key);
 });
 
-const modules = [
-  CANARY_COMPONENTS,
-  CANARY_DATA_SOURCE,
-  CANARY_STATES,
-];
+const modules = [CANARY_COMPONENTS, CANARY_DATA_SOURCE, CANARY_STATES];
 
 export const KAYENTA_MODULE = 'spinnaker.kayenta';
 if (CanarySettings.featureDisabled) {
   module(KAYENTA_MODULE, []);
 } else {
-  module(
-    KAYENTA_MODULE,
-    CanarySettings.stagesEnabled
-      ? [CANARY_STAGES, ...modules]
-      : modules
-  );
+  module(KAYENTA_MODULE, CanarySettings.stagesEnabled ? [CANARY_STAGES, ...modules] : modules);
 }

@@ -12,14 +12,14 @@ interface IExecutionListLoadStatesStateProps {
 
 const ExecutionListLoadStates = ({ loadState }: IExecutionListLoadStatesStateProps) => {
   const LoadStates = new LoadStatesBuilder()
-    .onFulfilled(
-      <ExecutionListTable/>
-    ).onFailed(
+    .onFulfilled(<ExecutionListTable />)
+    .onFailed(
       <CenteredDetail>
         <h3 className="heading-3">Could not load canary execution history.</h3>
-      </CenteredDetail>
-    ).build();
-  return <LoadStates state={loadState}/>;
+      </CenteredDetail>,
+    )
+    .build();
+  return <LoadStates state={loadState} />;
 };
 
 const mapStateToProps = (state: ICanaryState) => {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import OpenDeleteModalButton from './openDeleteModalButton';
-import OpenEditConfigJsonModalButton from './openConfigJsonModalButton'
+import OpenEditConfigJsonModalButton from './openConfigJsonModalButton';
 import CopyConfigButton from './copyConfigButton';
 
 /*
@@ -10,9 +10,15 @@ import CopyConfigButton from './copyConfigButton';
 export default function ConfigDetailActionButtons() {
   return (
     <ul className="list-inline pull-right">
-      <li><OpenEditConfigJsonModalButton/></li>
-      <li><CopyConfigButton/></li>
-      <li><OpenDeleteModalButton/></li>
+      <li>
+        <OpenEditConfigJsonModalButton />
+      </li>
+      <li>
+        <CopyConfigButton />
+      </li>
+      <li>
+        <OpenDeleteModalButton />
+      </li>
     </ul>
   );
 }

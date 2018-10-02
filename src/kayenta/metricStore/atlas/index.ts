@@ -4,5 +4,5 @@ import AtlasMetricConfigurer, { queryFinder } from './atlasMetricConfigurer';
 metricStoreConfigStore.register({
   name: 'atlas',
   metricConfigurer: AtlasMetricConfigurer,
-  queryFinder
+  queryFinder,
 });

@@ -31,7 +31,7 @@ export interface IKayentaStageCanaryConfigScope {
   startTimeIso?: string;
   endTimeIso?: string;
   step?: number;
-  extendedScopeParams: {[key: string]: string};
+  extendedScopeParams: { [key: string]: string };
 }
 
 export interface IKayentaStageDeployments {

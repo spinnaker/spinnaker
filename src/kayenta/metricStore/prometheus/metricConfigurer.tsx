@@ -23,26 +23,22 @@ interface IPrometheusMetricConfigurerDispatchProps {
 /*
 * Component for configuring a Prometheus metric.
 * */
-function PrometheusMetricConfigurer({ editingMetric, updateMetricType, updateLabelBindings, updateGroupBy }: IPrometheusMetricConfigurerStateProps & IPrometheusMetricConfigurerDispatchProps) {
+function PrometheusMetricConfigurer({
+  editingMetric,
+  updateMetricType,
+  updateLabelBindings,
+  updateGroupBy,
+}: IPrometheusMetricConfigurerStateProps & IPrometheusMetricConfigurerDispatchProps) {
   return (
     <section>
       <FormRow label="Metric Name">
-        <PrometheusMetricTypeSelector
-          value={get(editingMetric, 'query.metricName', '')}
-          onChange={updateMetricType}
-        />
+        <PrometheusMetricTypeSelector value={get(editingMetric, 'query.metricName', '')} onChange={updateMetricType} />
       </FormRow>
       <FormRow label="Label Bindings">
-        <List
-          list={editingMetric.query.labelBindings || []}
-          actionCreator={updateLabelBindings}
-        />
+        <List list={editingMetric.query.labelBindings || []} actionCreator={updateLabelBindings} />
       </FormRow>
       <FormRow label="Group By">
-        <List
-          list={editingMetric.query.groupByFields || []}
-          actionCreator={updateGroupBy}
-        />
+        <List list={editingMetric.query.groupByFields || []} actionCreator={updateGroupBy} />
       </FormRow>
     </section>
   );
@@ -57,13 +53,18 @@ function mapStateToProps(state: ICanaryState): IPrometheusMetricConfigurerStateP
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IPrometheusMetricConfigurerDispatchProps {
   return {
     updateMetricType: (option: Select.Option): void => {
-      dispatch(Creators.updatePrometheusMetricType({
-        metricName: (option ? option.value : null) as string,
-      }));
+      dispatch(
+        Creators.updatePrometheusMetricType({
+          metricName: (option ? option.value : null) as string,
+        }),
+      );
     },
     updateLabelBindings: payload => dispatch(Creators.updatePrometheusLabelBindings(payload)),
     updateGroupBy: payload => dispatch(Creators.updatePrometheusGroupBy(payload)),
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(PrometheusMetricConfigurer);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(PrometheusMetricConfigurer);

@@ -22,11 +22,11 @@ function ConfigDetailHeader({ selectedConfig }: IConfigDetailStateProps) {
       </div>
       <div className="flex-1">
         <h5 className="heading-5">
-          <strong>Edited:</strong> <FormattedDate dateIso={selectedConfig ? selectedConfig.updatedTimestampIso : ''}/>
+          <strong>Edited:</strong> <FormattedDate dateIso={selectedConfig ? selectedConfig.updatedTimestampIso : ''} />
         </h5>
       </div>
       <div className="flex-2">
-        <ConfigDetailActionButtons/>
+        <ConfigDetailActionButtons />
       </div>
     </div>
   );

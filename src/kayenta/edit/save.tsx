@@ -11,9 +11,9 @@ import SaveConfigError from './saveConfigError';
 export default function Save() {
   return (
     <div className={classNames('col-sm-12', 'text-right')}>
-      <ValidationErrors/>
-      <SaveConfigError/>
-      <SaveConfigButton/>
+      <ValidationErrors />
+      <SaveConfigError />
+      <SaveConfigButton />
     </div>
   );
 }

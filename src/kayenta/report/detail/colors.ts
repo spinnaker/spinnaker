@@ -9,7 +9,8 @@ const RED = 'var(--color-danger)';
 const GREY = 'var(--color-text-caption)';
 const YELLOW = 'var(--color-warning)';
 
-export const mapMetricClassificationToColor = (classification: MetricClassificationLabel): string => ({
+export const mapMetricClassificationToColor = (classification: MetricClassificationLabel): string =>
+  ({
     [MetricClassificationLabel.High]: RED,
     [MetricClassificationLabel.Low]: RED,
     [MetricClassificationLabel.Error]: YELLOW,
@@ -17,7 +18,8 @@ export const mapMetricClassificationToColor = (classification: MetricClassificat
     [MetricClassificationLabel.Pass]: GREEN,
   }[classification]);
 
-export const mapScoreClassificationToColor = (classification: ScoreClassificationLabel): string => ({
+export const mapScoreClassificationToColor = (classification: ScoreClassificationLabel): string =>
+  ({
     [ScoreClassificationLabel.Fail]: RED,
     [ScoreClassificationLabel.Error]: YELLOW,
     [ScoreClassificationLabel.Marginal]: GREY,
@@ -25,7 +27,10 @@ export const mapScoreClassificationToColor = (classification: ScoreClassificatio
     [ScoreClassificationLabel.Pass]: GREEN,
   }[classification]);
 
-export const mapGroupToColor = (group: ICanaryJudgeGroupScore | ICanaryJudgeScore, scoreThresholds: ICanaryClassifierThresholdsConfig): string => {
+export const mapGroupToColor = (
+  group: ICanaryJudgeGroupScore | ICanaryJudgeScore,
+  scoreThresholds: ICanaryClassifierThresholdsConfig,
+): string => {
   if (typeof group.score !== 'number') {
     return YELLOW; // Some kind of error.
   } else if (group.score > scoreThresholds.pass) {

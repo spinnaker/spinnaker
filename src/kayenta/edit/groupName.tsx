@@ -26,7 +26,15 @@ export interface IGroupNameOwnProps {
 /*
  * Configures a group name.
  */
-function GroupName({ editing, edit, group, onClick, handleUpdate, handleSubmit, defaultGroup }: IGroupNameStateProps & IGroupNameDispatchProps & IGroupNameOwnProps) {
+function GroupName({
+  editing,
+  edit,
+  group,
+  onClick,
+  handleUpdate,
+  handleSubmit,
+  defaultGroup,
+}: IGroupNameStateProps & IGroupNameDispatchProps & IGroupNameOwnProps) {
   if (editing) {
     return (
       <form onSubmit={handleSubmit} onBlur={handleSubmit} data-group={group} data-edit={edit}>
@@ -40,7 +48,9 @@ function GroupName({ editing, edit, group, onClick, handleUpdate, handleSubmit, 
     );
   } else {
     return (
-      <a data-group={group} onClick={onClick}>{group || defaultGroup}</a>
+      <a data-group={group} onClick={onClick}>
+        {group || defaultGroup}
+      </a>
     );
   }
 }
@@ -65,4 +75,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IGroupNam
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GroupName);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(GroupName);

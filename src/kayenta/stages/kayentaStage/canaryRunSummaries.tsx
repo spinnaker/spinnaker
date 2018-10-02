@@ -27,18 +27,12 @@ const canaryRunColumns: ICanaryRunColumn[] = [
     getContent: run => {
       return (
         <span>
-          <CanaryScore
-            score={run.context.canaryScore}
-            health={run.health}
-            result={run.result}
-            inverse={false}
-          />
-          { get(run, ['context', 'warnings'], []).length > 0 && (
-              <HoverablePopover template={<CanaryRunWarningMessages messages={run.context.warnings} />}>
-                <i className="fa fa-exclamation-triangle" style={{ paddingLeft: '8px' }}/>
-              </HoverablePopover>
-            )
-          }
+          <CanaryScore score={run.context.canaryScore} health={run.health} result={run.result} inverse={false} />
+          {get(run, ['context', 'warnings'], []).length > 0 && (
+            <HoverablePopover template={<CanaryRunWarningMessages messages={run.context.warnings} />}>
+              <i className="fa fa-exclamation-triangle" style={{ paddingLeft: '8px' }} />
+            </HoverablePopover>
+          )}
         </span>
       );
     },
@@ -56,33 +50,31 @@ const canaryRunColumns: ICanaryRunColumn[] = [
   {
     width: 1,
     getContent: (run, firstScopeName) => {
-      const popoverTemplate = <CanaryRunTimestamps canaryRun={run} firstScopeName={firstScopeName}/>;
+      const popoverTemplate = <CanaryRunTimestamps canaryRun={run} firstScopeName={firstScopeName} />;
       return (
         <section className="horizontal text-center">
           <div className="flex-1">
-            <ReportLink canaryRun={run}/>
+            <ReportLink canaryRun={run} />
           </div>
           <div className="flex-1">
             <HoverablePopover template={popoverTemplate}>
-              <i className="far fa-clock"/>
+              <i className="far fa-clock" />
             </HoverablePopover>
           </div>
         </section>
-      )
+      );
     },
-  }
+  },
 ];
 
 export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICanarySummariesProps) {
   return (
     <Styleguide>
       <section className="canary-run-summaries">
-        <CanaryRunHeader/>
-        {
-          canaryRuns.map(run => (
-            <CanaryRunRow canaryRun={run} key={run.id} firstScopeName={firstScopeName}/>
-          ))
-        }
+        <CanaryRunHeader />
+        {canaryRuns.map(run => (
+          <CanaryRunRow canaryRun={run} key={run.id} firstScopeName={firstScopeName} />
+        ))}
       </section>
     </Styleguide>
   );
@@ -91,49 +83,40 @@ export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICana
 function CanaryRunHeader() {
   return (
     <section className="horizontal small grey-border-bottom" style={{ paddingLeft: 0 }}>
-      {
-        canaryRunColumns.map((column, i) => (
-          <div
-            className={`flex-${column.width}`}
-            key={i}
-          >
-            <strong>{column.label}</strong>
-          </div>
-        ))
-      }
+      {canaryRunColumns.map((column, i) => (
+        <div className={`flex-${column.width}`} key={i}>
+          <strong>{column.label}</strong>
+        </div>
+      ))}
     </section>
   );
 }
 
-function CanaryRunRow({ canaryRun, firstScopeName }: { canaryRun: IStage, firstScopeName: string }) {
+function CanaryRunRow({ canaryRun, firstScopeName }: { canaryRun: IStage; firstScopeName: string }) {
   return (
     <section className="horizontal small grey-border-bottom">
-      {
-        canaryRunColumns.map((column, i) => (
-          <div
-            className={`flex-${column.width}`}
-            key={i}
-          >
-            {column.getContent(canaryRun, firstScopeName)}
-          </div>
-        ))
-      }
+      {canaryRunColumns.map((column, i) => (
+        <div className={`flex-${column.width}`} key={i}>
+          {column.getContent(canaryRun, firstScopeName)}
+        </div>
+      ))}
     </section>
   );
 }
 
-function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage, firstScopeName: string }) {
+function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage; firstScopeName: string }) {
   const toolTipText = 'Copy timestamp to clipboard';
   return (
     <section className="small">
       <ul className="list-unstyled">
         <li>
-          <b>Start:</b>{timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.start))}
-          <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.start} toolTip={toolTipText}/>
+          <b>Start:</b>
+          {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.start))}
+          <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.start} toolTip={toolTipText} />
         </li>
         <li>
           <b>End:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.end))}
-          <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.end} toolTip={toolTipText}/>
+          <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.end} toolTip={toolTipText} />
         </li>
       </ul>
     </section>
@@ -141,32 +124,29 @@ function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage,
 }
 
 function ReportLink({ canaryRun }: { canaryRun: IStage }) {
-  if (!has(canaryRun, 'context.canaryConfigId')
-      || !has(canaryRun, 'context.canaryPipelineExecutionId')
-      || canaryRun.status === 'RUNNING') {
+  if (
+    !has(canaryRun, 'context.canaryConfigId') ||
+    !has(canaryRun, 'context.canaryPipelineExecutionId') ||
+    canaryRun.status === 'RUNNING'
+  ) {
     return null;
   }
 
   const onClick = () =>
-    ReactInjector.$state.go(
-      'home.applications.application.canary.report.reportDetail',
-      {
-        configId: canaryRun.context.canaryConfigId,
-        runId: canaryRun.context.canaryPipelineExecutionId,
-      },
-    );
+    ReactInjector.$state.go('home.applications.application.canary.report.reportDetail', {
+      configId: canaryRun.context.canaryConfigId,
+      runId: canaryRun.context.canaryPipelineExecutionId,
+    });
 
-  return <i className="fa fa-chart-bar clickable" onClick={onClick}/>;
+  return <i className="fa fa-chart-bar clickable" onClick={onClick} />;
 }
 
 function CanaryRunWarningMessages({ messages }: { messages: string[] }) {
-  return <div>
-    {
-      messages.map((message, i) =>
-        <p key={`${i}-${message}`}>
-          {message}
-        </p>
-      )
-    }
-  </div>;
+  return (
+    <div>
+      {messages.map((message, i) => (
+        <p key={`${i}-${message}`}>{message}</p>
+      ))}
+    </div>
+  );
 }

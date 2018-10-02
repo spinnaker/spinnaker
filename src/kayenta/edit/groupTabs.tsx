@@ -11,7 +11,6 @@ import GroupName from './groupName';
 
 export const ALL = 'all';
 
-
 interface IGroupTabsStateProps {
   groupList: string[];
   selectedGroup: string;
@@ -28,37 +27,40 @@ interface IGroupTabsDispatchProps {
 /*
  * Configures an entire list of metrics.
  */
-function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup, editing, editGroupBegin, disableConfigEdit }: IGroupTabsStateProps & IGroupTabsDispatchProps) {
-  const GroupTab = ({ group, editable = false }: { group: string, editable?: boolean }) => {
+function GroupTabs({
+  groupList,
+  selectedGroup,
+  selectGroup,
+  addGroup,
+  editing,
+  editGroupBegin,
+  disableConfigEdit,
+}: IGroupTabsStateProps & IGroupTabsDispatchProps) {
+  const GroupTab = ({ group, editable = false }: { group: string; editable?: boolean }) => {
     const selected = selectedGroup === group;
     return (
       <Tab selected={selected}>
-        <GroupName
-          group={group}
-          editing={selected && editing}
-          onClick={selectGroup}
-          defaultGroup={ALL}
-        />
-        {selected && editable && !editing && (
-          <i
-            data-group={group}
-            onClick={disableConfigEdit ? noop : editGroupBegin}
-            className={classNames('fas', 'fa-pencil-alt', { disabled: disableConfigEdit })}
-          />
-        )}
+        <GroupName group={group} editing={selected && editing} onClick={selectGroup} defaultGroup={ALL} />
+        {selected &&
+          editable &&
+          !editing && (
+            <i
+              data-group={group}
+              onClick={disableConfigEdit ? noop : editGroupBegin}
+              className={classNames('fas', 'fa-pencil-alt', { disabled: disableConfigEdit })}
+            />
+          )}
       </Tab>
     );
   };
   return (
     <section className="group-tabs">
       <Tabs>
-        <GroupTab group=""/>
-        {groupList.map(group => <GroupTab key={group} group={group} editable={true}/>)}
-        <DisableableButton
-          className="passive float-right"
-          onClick={addGroup}
-          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-        >
+        <GroupTab group="" />
+        {groupList.map(group => (
+          <GroupTab key={group} group={group} editable={true} />
+        ))}
+        <DisableableButton className="passive float-right" onClick={addGroup} disabledStateKeys={[DISABLE_EDIT_CONFIG]}>
           Add Group
         </DisableableButton>
       </Tabs>
@@ -89,8 +91,11 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IGroupTab
     },
     editGroupBegin: (event: any) => {
       dispatch(Creators.editGroupBegin({ group: event.target.dataset.group }));
-    }
+    },
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GroupTabs);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(GroupTabs);

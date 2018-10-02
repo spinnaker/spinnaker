@@ -14,10 +14,7 @@ import * as Actions from 'kayenta/actions';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
 import { ReactInjector } from '@spinnaker/core';
-import {
-  getCanaryRun,
-  getMetricSetPair
-} from '../service/canaryRun.service';
+import { getCanaryRun, getMetricSetPair } from '../service/canaryRun.service';
 import { runSelector } from 'kayenta/selectors';
 import { ICanaryConfigUpdateResponse, KayentaAccountType } from 'kayenta/domain';
 import { listMetricsServiceMetadata } from 'kayenta/service/metricsServiceMetadata.service';
@@ -25,13 +22,11 @@ import { listMetricsServiceMetadata } from 'kayenta/service/metricsServiceMetada
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
 const loadConfigEpic = (action$: Observable<Action & any>) =>
-  action$
-    .filter(typeMatches(Actions.LOAD_CONFIG_REQUEST, Actions.SAVE_CONFIG_SUCCESS))
-    .concatMap(action =>
-      Observable.fromPromise(getCanaryConfigById(action.payload.id))
-        .map(config => Creators.loadConfigSuccess({ config }))
-        .catch(error => Observable.of(Creators.loadConfigFailure({ error })))
-    );
+  action$.filter(typeMatches(Actions.LOAD_CONFIG_REQUEST, Actions.SAVE_CONFIG_SUCCESS)).concatMap(action =>
+    Observable.fromPromise(getCanaryConfigById(action.payload.id))
+      .map(config => Creators.loadConfigSuccess({ config }))
+      .catch(error => Observable.of(Creators.loadConfigFailure({ error }))),
+  );
 
 const selectConfigEpic = (action$: Observable<Action & any>) =>
   action$
@@ -39,36 +34,35 @@ const selectConfigEpic = (action$: Observable<Action & any>) =>
     .map(action => Creators.selectConfig({ config: action.payload.config }));
 
 const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
-  action$
-    .filter(typeMatches(Actions.SAVE_CONFIG_REQUEST))
-    .concatMap(() => {
-      const config = mapStateToConfig(store.getState());
-      let saveAction: Promise<ICanaryConfigUpdateResponse>;
-      if (config.isNew) {
-        delete config.isNew;
-        saveAction = createCanaryConfig(config);
-      } else {
-        saveAction = updateCanaryConfig(config);
-      }
+  action$.filter(typeMatches(Actions.SAVE_CONFIG_REQUEST)).concatMap(() => {
+    const config = mapStateToConfig(store.getState());
+    let saveAction: Promise<ICanaryConfigUpdateResponse>;
+    if (config.isNew) {
+      delete config.isNew;
+      saveAction = createCanaryConfig(config);
+    } else {
+      saveAction = updateCanaryConfig(config);
+    }
 
-      return Observable.fromPromise(saveAction)
-        .concatMap(({ canaryConfigId }) =>
-          Observable.forkJoin(
-            ReactInjector.$state.go('^.configDetail', { id: canaryConfigId, copy: false, 'new': false }),
-            store.getState().data.application.getDataSource('canaryConfigs').refresh(true)
-          ).mapTo(Creators.saveConfigSuccess({ id: canaryConfigId }))
-        )
-        .catch((error: Error) => Observable.of(Creators.saveConfigFailure({ error })));
-    });
+    return Observable.fromPromise(saveAction)
+      .concatMap(({ canaryConfigId }) =>
+        Observable.forkJoin(
+          ReactInjector.$state.go('^.configDetail', { id: canaryConfigId, copy: false, new: false }),
+          store
+            .getState()
+            .data.application.getDataSource('canaryConfigs')
+            .refresh(true),
+        ).mapTo(Creators.saveConfigSuccess({ id: canaryConfigId })),
+      )
+      .catch((error: Error) => Observable.of(Creators.saveConfigFailure({ error })));
+  });
 
 const deleteConfigRequestEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
-  action$
-    .filter(typeMatches(Actions.DELETE_CONFIG_REQUEST))
-    .concatMap(() =>
-      Observable.fromPromise(deleteCanaryConfig(store.getState().selectedConfig.config.id))
-        .mapTo(Creators.deleteConfigSuccess())
-        .catch((error: Error) => Observable.of(Creators.deleteConfigFailure({ error })))
-    );
+  action$.filter(typeMatches(Actions.DELETE_CONFIG_REQUEST)).concatMap(() =>
+    Observable.fromPromise(deleteCanaryConfig(store.getState().selectedConfig.config.id))
+      .mapTo(Creators.deleteConfigSuccess())
+      .catch((error: Error) => Observable.of(Creators.deleteConfigFailure({ error }))),
+  );
 
 const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
@@ -77,39 +71,45 @@ const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: Middl
       Observable.forkJoin(
         ReactInjector.$state.go('^.configDefault'),
         // TODO: handle config summary load failure (in general, not just here).
-        store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
-      )
-    ).mapTo(Creators.closeDeleteConfigModal());
+        store
+          .getState()
+          .data.application.getDataSource('canaryConfigs')
+          .refresh(true),
+      ),
+    )
+    .mapTo(Creators.closeDeleteConfigModal());
 
 const loadCanaryRunRequestEpic = (action$: Observable<Action & any>) =>
-  action$
-    .filter(typeMatches(Actions.LOAD_RUN_REQUEST))
-    .concatMap(action =>
-      Observable.fromPromise(getCanaryRun(action.payload.configId, action.payload.runId))
-        .map(run => Creators.loadRunSuccess({ run }))
-        .catch((error: Error) => Observable.of(Creators.loadRunFailure({ error })))
-    );
+  action$.filter(typeMatches(Actions.LOAD_RUN_REQUEST)).concatMap(action =>
+    Observable.fromPromise(getCanaryRun(action.payload.configId, action.payload.runId))
+      .map(run => Creators.loadRunSuccess({ run }))
+      .catch((error: Error) => Observable.of(Creators.loadRunFailure({ error }))),
+  );
 
 const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
-  action$
-    .filter(typeMatches(Actions.LOAD_METRIC_SET_PAIR_REQUEST))
-    .concatMap(action => {
-      const run = runSelector(store.getState());
-      return Observable.fromPromise(getMetricSetPair(run.metricSetPairListId || run.result.metricSetPairListId, action.payload.pairId))
-        .map(metricSetPair => Creators.loadMetricSetPairSuccess({ metricSetPair }))
-        .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })))
-    });
+  action$.filter(typeMatches(Actions.LOAD_METRIC_SET_PAIR_REQUEST)).concatMap(action => {
+    const run = runSelector(store.getState());
+    return Observable.fromPromise(
+      getMetricSetPair(run.metricSetPairListId || run.result.metricSetPairListId, action.payload.pairId),
+    )
+      .map(metricSetPair => Creators.loadMetricSetPairSuccess({ metricSetPair }))
+      .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })));
+  });
 
-const updatePrometheusMetricDescriptionFilterEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
+const updatePrometheusMetricDescriptionFilterEpic = (
+  action$: Observable<Action & any>,
+  store: MiddlewareAPI<ICanaryState>,
+) =>
   action$
     .filter(typeMatches(Actions.UPDATE_PROMETHEUS_METRIC_DESCRIPTOR_FILTER))
     .filter(action => action.payload.filter && action.payload.filter.length > 2)
     .debounceTime(200 /* milliseconds */)
     .map(action => {
-      const [metricsAccountName] = store.getState().data.kayentaAccounts.data
-        .filter(account =>
-          account.supportedTypes.includes(KayentaAccountType.MetricsStore) &&
-          account.type === 'prometheus')
+      const [metricsAccountName] = store
+        .getState()
+        .data.kayentaAccounts.data.filter(
+          account => account.supportedTypes.includes(KayentaAccountType.MetricsStore) && account.type === 'prometheus',
+        )
         .map(account => account.name);
 
       return Creators.loadMetricsServiceMetadataRequest({
@@ -118,16 +118,22 @@ const updatePrometheusMetricDescriptionFilterEpic = (action$: Observable<Action 
       });
     });
 
-const updateStackdriverMetricDescriptionFilterEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
+const updateStackdriverMetricDescriptionFilterEpic = (
+  action$: Observable<Action & any>,
+  store: MiddlewareAPI<ICanaryState>,
+) =>
   action$
     .filter(typeMatches(Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER))
     .filter(action => action.payload.filter && action.payload.filter.length > 2)
     .debounceTime(200 /* milliseconds */)
     .map(action => {
-      const [metricsAccountName] = store.getState().data.kayentaAccounts.data
-        .filter(account =>
-          account.supportedTypes.includes(KayentaAccountType.MetricsStore) &&
-          account.metricsStoreType === 'stackdriver')
+      const [metricsAccountName] = store
+        .getState()
+        .data.kayentaAccounts.data.filter(
+          account =>
+            account.supportedTypes.includes(KayentaAccountType.MetricsStore) &&
+            account.metricsStoreType === 'stackdriver',
+        )
         .map(account => account.name);
 
       return Creators.loadMetricsServiceMetadataRequest({
@@ -137,22 +143,18 @@ const updateStackdriverMetricDescriptionFilterEpic = (action$: Observable<Action
     });
 
 const loadMetricsServiceMetadataEpic = (action$: Observable<Action & any>) =>
-  action$
-    .filter(typeMatches(Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST))
-    .concatMap(action => {
-      return Observable.fromPromise(listMetricsServiceMetadata(action.payload.filter, action.payload.metricsAccountName))
-        .map(data => Creators.loadMetricsServiceMetadataSuccess({ data }))
-        .catch((error: Error) => Observable.of(Creators.loadMetricsServiceMetadataFailure({ error })));
-    });
+  action$.filter(typeMatches(Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST)).concatMap(action => {
+    return Observable.fromPromise(listMetricsServiceMetadata(action.payload.filter, action.payload.metricsAccountName))
+      .map(data => Creators.loadMetricsServiceMetadataSuccess({ data }))
+      .catch((error: Error) => Observable.of(Creators.loadMetricsServiceMetadataFailure({ error })));
+  });
 
 const loadKayentaAccountsEpic = (action$: Observable<Action & any>) =>
-  action$
-    .filter(typeMatches(Actions.LOAD_KAYENTA_ACCOUNTS_REQUEST, Actions.INITIALIZE))
-    .concatMap(() =>
-      Observable.fromPromise(listKayentaAccounts())
-        .map(accounts => Creators.loadKayentaAccountsSuccess({ accounts }))
-        .catch((error: Error) => Observable.of(Creators.loadKayentaAccountsFailure({ error })))
-    );
+  action$.filter(typeMatches(Actions.LOAD_KAYENTA_ACCOUNTS_REQUEST, Actions.INITIALIZE)).concatMap(() =>
+    Observable.fromPromise(listKayentaAccounts())
+      .map(accounts => Creators.loadKayentaAccountsSuccess({ accounts }))
+      .catch((error: Error) => Observable.of(Creators.loadKayentaAccountsFailure({ error }))),
+  );
 
 const rootEpic = combineEpics(
   loadConfigEpic,

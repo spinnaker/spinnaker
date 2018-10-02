@@ -29,7 +29,14 @@ interface IGroupScoresDispatchProps {
 /*
 * Renders list of group scores.
 * */
-const GroupScores = ({ groups, groupWeights, scoreThresholds, className, select, selectedGroup }: IGroupScoresOwnProps & IGroupScoresDispatchProps & IGroupScoresStateProps) => (
+const GroupScores = ({
+  groups,
+  groupWeights,
+  scoreThresholds,
+  className,
+  select,
+  selectedGroup,
+}: IGroupScoresOwnProps & IGroupScoresDispatchProps & IGroupScoresStateProps) => (
   <section className={classNames('horizontal', className)}>
     {groups.map(g => (
       <ClickableHeader
@@ -56,9 +63,11 @@ const mapDispatchToProps = (
   dispatch: Dispatch<ICanaryState>,
   ownProps: IGroupScoresOwnProps,
 ): IGroupScoresOwnProps & IGroupScoresDispatchProps => ({
-  select: (group: string) =>
-    dispatch(Creators.selectReportMetricGroup({ group })),
+  select: (group: string) => dispatch(Creators.selectReportMetricGroup({ group })),
   ...ownProps,
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(GroupScores);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(GroupScores);

@@ -25,7 +25,11 @@ interface IGroupWeightDispatchProps {
 /*
 * Component for configuring a group weight.
 * */
-function GroupWeight({ group, config, handleInputChange }: IGroupWeightOwnProps & IGroupWeightStateProps & IGroupWeightDispatchProps) {
+function GroupWeight({
+  group,
+  config,
+  handleInputChange,
+}: IGroupWeightOwnProps & IGroupWeightStateProps & IGroupWeightDispatchProps) {
   const groupWeight = getGroupWeights(config)[group];
   return (
     <FormRow label={group}>
@@ -41,26 +45,37 @@ function GroupWeight({ group, config, handleInputChange }: IGroupWeightOwnProps 
   );
 }
 
-function getGroupWeights(config: ICanaryConfig): {[key: string]: number} {
+function getGroupWeights(config: ICanaryConfig): { [key: string]: number } {
   return get(config, 'classifier.groupWeights', {});
 }
 
-function mapStateToProps(state: ICanaryState, ownProps: IGroupWeightOwnProps): IGroupWeightOwnProps & IGroupWeightStateProps {
+function mapStateToProps(
+  state: ICanaryState,
+  ownProps: IGroupWeightOwnProps,
+): IGroupWeightOwnProps & IGroupWeightStateProps {
   return {
     ...ownProps,
     config: mapStateToConfig(state),
   };
 }
 
-function mapDispatchToProps(dispatch: (action: Action & any) => void, { group }: IGroupWeightOwnProps): IGroupWeightDispatchProps {
+function mapDispatchToProps(
+  dispatch: (action: Action & any) => void,
+  { group }: IGroupWeightOwnProps,
+): IGroupWeightDispatchProps {
   return {
     handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(Creators.updateGroupWeight({
-        group,
-        weight: event.target.value ? parseInt(event.target.value, 10) : null,
-      }));
-    }
+      dispatch(
+        Creators.updateGroupWeight({
+          group,
+          weight: event.target.value ? parseInt(event.target.value, 10) : null,
+        }),
+      );
+    },
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GroupWeight);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(GroupWeight);

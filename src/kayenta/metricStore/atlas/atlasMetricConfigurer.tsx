@@ -24,7 +24,7 @@ interface IAtlasMetricConfigurerState {
 }
 
 export interface AtlasQuerySelector {
-  'class': string;
+  class: string;
   backends: string;
   query: string;
   hide: string;
@@ -56,7 +56,7 @@ if (CanarySettings.atlasWebComponentsUrl) {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      'atlas-query-selector': AtlasQuerySelector
+      'atlas-query-selector': AtlasQuerySelector;
     }
   }
 }
@@ -68,7 +68,6 @@ const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.q', '');
  */
 @autoBindMethods
 class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps, IAtlasMetricConfigurerState> {
-
   constructor(props: IAtlasMetricConfigurerProps) {
     super(props);
     this.state = { webComponent: null };
@@ -105,13 +104,12 @@ class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps,
       />
     );
   }
-
 }
 
 function mapStateToProps(state: ICanaryState): IAtlasMetricConfigurerStateProps {
   return {
     editingMetric: state.selectedConfig.editingMetric,
-  }
+  };
 }
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IAtlasMetricConfigurerDispatchProps {
@@ -119,12 +117,15 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IAtlasMet
     updateQuery: (query: string): void => {
       dispatch({
         type: UPDATE_ATLAS_QUERY,
-        query
+        query,
       });
     },
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AtlasMetricConfigurer);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(AtlasMetricConfigurer);
 
 export { queryFinder };

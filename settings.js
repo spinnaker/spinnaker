@@ -2,8 +2,9 @@
 
 var feedbackUrl = process.env.FEEDBACK_URL;
 var gateHost = process.env.API_HOST || 'http://localhost:8084';
-var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}');
-var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
+var bakeryDetailUrl =
+  process.env.BAKERY_DETAIL_URL || gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
+var authEndpoint = process.env.AUTH_ENDPOINT || gateHost + '/auth/user';
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
 var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
@@ -72,8 +73,8 @@ window.spinnakerSettings = {
     },
     slack: {
       enabled: true,
-      botName: 'spinnakerbot'
-    }
+      botName: 'spinnakerbot',
+    },
   },
   authEnabled: true,
   authTtl: 600000,

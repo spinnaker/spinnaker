@@ -24,9 +24,9 @@ const ReportHeader = ({ id, name, score }: IReportHeaderStateProps) => (
       </UISref>
     </h1>
     <div className="report-score-wrapper">
-      <ReportScore score={score} showClassification={true}/>
+      <ReportScore score={score} showClassification={true} />
     </div>
-    <ReportMetadata/>
+    <ReportMetadata />
   </section>
 );
 

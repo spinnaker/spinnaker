@@ -11,7 +11,7 @@ export interface ICanaryJudgeResult {
 export interface ICanaryAnalysisResult {
   name: string;
   id: string;
-  tags: {[key: string]: string};
+  tags: { [key: string]: string };
   classification: MetricClassificationLabel;
   classificationReason: string;
   groups: string[];
@@ -26,7 +26,7 @@ export interface ICanaryAnalysisResult {
     [key: string]: any;
     stats: ICanaryAnalysisResultsStats;
   };
-  resultMetadata: {[key: string]: any};
+  resultMetadata: { [key: string]: any };
 }
 
 export interface ICanaryAnalysisResultsStats {

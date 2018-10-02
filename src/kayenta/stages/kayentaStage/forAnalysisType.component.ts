@@ -18,25 +18,28 @@ class ForAnalysisTypeController implements IComponentController {
       .split(',')
       .map(type => {
         const val = type.trim() as KayentaAnalysisType;
-        if (![KayentaAnalysisType.Retrospective,
-              KayentaAnalysisType.RealTime,
-              KayentaAnalysisType.RealTimeAutomatic].includes(val)) {
+        if (
+          ![
+            KayentaAnalysisType.Retrospective,
+            KayentaAnalysisType.RealTime,
+            KayentaAnalysisType.RealTimeAutomatic,
+          ].includes(val)
+        ) {
           $log.warn(`${val} is not a Kayenta analysis type.`);
         }
         return val;
       })
       .includes(this.stage.analysisType);
-  }
+  };
 }
 
 export const FOR_ANALYSIS_TYPE_COMPONENT = 'spinnaker.kayenta.forAnalysisType.component';
-module(FOR_ANALYSIS_TYPE_COMPONENT, [])
-  .component('forAnalysisType', {
-    bindings: {
-      types: '@',
-      stage: '<',
-    },
-    controller: ForAnalysisTypeController,
-    transclude: true,
-    template: '<ng-transclude ng-if="$ctrl.showForAnalysisType()"></ng-transclude>',
-  });
+module(FOR_ANALYSIS_TYPE_COMPONENT, []).component('forAnalysisType', {
+  bindings: {
+    types: '@',
+    stage: '<',
+  },
+  controller: ForAnalysisTypeController,
+  transclude: true,
+  template: '<ng-transclude ng-if="$ctrl.showForAnalysisType()"></ng-transclude>',
+});

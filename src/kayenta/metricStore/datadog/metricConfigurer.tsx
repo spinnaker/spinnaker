@@ -49,7 +49,7 @@ class DatadogMetricConfigurer extends React.Component<DatadogMetricConfigurerPro
 
 function mapStateToProps(state: ICanaryState): IDatadogMetricConfigurerStateProps {
   return {
-    editingMetric: state.selectedConfig.editingMetric
+    editingMetric: state.selectedConfig.editingMetric,
   };
 }
 
@@ -61,4 +61,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IDatadogM
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DatadogMetricConfigurer);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(DatadogMetricConfigurer);

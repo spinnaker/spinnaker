@@ -1,7 +1,4 @@
-import {
-  GraphType,
-  metricSetPairGraphService
-} from '../metricSetPairGraph.service';
+import { GraphType, metricSetPairGraphService } from '../metricSetPairGraph.service';
 import ChartJSGraph from './graph';
 
 metricSetPairGraphService.register({

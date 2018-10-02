@@ -2,11 +2,16 @@ import { IComponentController, ILogService, IScope } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { cloneDeep, first, get, has, isEmpty, isFinite, isString, isNil, map, set, uniq } from 'lodash';
 import {
-  AccountService, AppListExtractor, CloudProviderRegistry, IAccountDetails,
-  NameUtils, ProviderSelectionService, ServerGroupCommandBuilderService
+  AccountService,
+  AppListExtractor,
+  CloudProviderRegistry,
+  IAccountDetails,
+  NameUtils,
+  ProviderSelectionService,
+  ServerGroupCommandBuilderService,
 } from '@spinnaker/core';
 import { CanarySettings } from 'kayenta/canary.settings';
-import { getCanaryConfigById, listKayentaAccounts, } from 'kayenta/service/canaryConfig.service';
+import { getCanaryConfigById, listKayentaAccounts } from 'kayenta/service/canaryConfig.service';
 import {
   ICanaryConfig,
   ICanaryConfigSummary,
@@ -16,7 +21,7 @@ import {
   IKayentaStageCanaryConfigScope,
   IKayentaStageLifetime,
   KayentaAccountType,
-  KayentaAnalysisType
+  KayentaAnalysisType,
 } from 'kayenta/domain';
 
 export class KayentaStageController implements IComponentController {
@@ -53,8 +58,10 @@ export class KayentaStageController implements IComponentController {
     await this.loadBackingData();
 
     this.stage.canaryConfig = {
-      storageAccountName: first(this.kayentaAccounts.get(KayentaAccountType.ConfigurationStore)) || CanarySettings.storageAccountName,
-      metricsAccountName: first(this.kayentaAccounts.get(KayentaAccountType.MetricsStore)) || CanarySettings.metricsAccountName,
+      storageAccountName:
+        first(this.kayentaAccounts.get(KayentaAccountType.ConfigurationStore)) || CanarySettings.storageAccountName,
+      metricsAccountName:
+        first(this.kayentaAccounts.get(KayentaAccountType.MetricsStore)) || CanarySettings.metricsAccountName,
       ...this.stage.canaryConfig,
       scoreThresholds: {
         marginal: null,
@@ -63,12 +70,10 @@ export class KayentaStageController implements IComponentController {
       },
     };
 
-    this.stage.analysisType =
-      this.stage.analysisType || KayentaAnalysisType.RealTimeAutomatic;
+    this.stage.analysisType = this.stage.analysisType || KayentaAnalysisType.RealTimeAutomatic;
 
     if (!this.stage.canaryConfig.scopes || !this.stage.canaryConfig.scopes.length) {
-      this.stage.canaryConfig.scopes =
-        [{ scopeName: 'default' } as IKayentaStageCanaryConfigScope];
+      this.stage.canaryConfig.scopes = [{ scopeName: 'default' } as IKayentaStageCanaryConfigScope];
     }
 
     const stageLifetime = this.getLifetimeFromStageLifetimeDuration();
@@ -90,8 +95,7 @@ export class KayentaStageController implements IComponentController {
     this.updateLifetimeFromHoursToDuration();
     this.deleteCanaryConfigIdIfMissing();
 
-    if (this.stage.isNew
-        && this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic) {
+    if (this.stage.isNew && this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic) {
       await this.initializeRealTimeAutomaticAnalysisType();
     }
   };
@@ -111,7 +115,7 @@ export class KayentaStageController implements IComponentController {
         this.loadKayentaAccounts(),
         this.loadProviders(),
         this.loadAccounts(),
-        Promise.resolve(this.$scope.application.getDataSource('canaryConfigs').data)
+        Promise.resolve(this.$scope.application.getDataSource('canaryConfigs').data),
       ]);
     } catch (e) {
       this.$log.warn('Error loading backing data for Kayenta stage: ', e);
@@ -140,9 +144,7 @@ export class KayentaStageController implements IComponentController {
     return isString(val) && val.includes('${');
   };
 
-  public handleScoreThresholdChange = (
-    scoreThresholds: { successfulScore: string, unhealthyScore: string }
-  ): void => {
+  public handleScoreThresholdChange = (scoreThresholds: { successfulScore: string; unhealthyScore: string }): void => {
     // Called from a React component.
     this.$scope.$applyAsync(() => {
       this.stage.canaryConfig.scoreThresholds.pass = scoreThresholds.successfulScore;
@@ -178,7 +180,7 @@ export class KayentaStageController implements IComponentController {
     this.stage.deployments = {
       ...this.stage.deployments,
       baseline: {
-        ...(get(this.stage, 'deployments.baseline')),
+        ...get(this.stage, 'deployments.baseline'),
         cloudProvider: this.providers[0],
         application: this.$scope.application.name,
         cluster: null,
@@ -209,10 +211,7 @@ export class KayentaStageController implements IComponentController {
   };
 
   private setMetricStore = (): void => {
-    this.metricStore = get(
-      this.selectedCanaryConfigDetails,
-      'metrics[0].query.type'
-    );
+    this.metricStore = get(this.selectedCanaryConfigDetails, 'metrics[0].query.type');
   };
 
   // Should only be called when selecting a canary config.
@@ -232,12 +231,14 @@ export class KayentaStageController implements IComponentController {
     }
 
     this.stage.canaryConfig.scoreThresholds.marginal = get(
-      this.selectedCanaryConfigDetails, 'classifier.scoreThresholds.marginal',
-      this.stage.canaryConfig.scoreThresholds.marginal || ''
+      this.selectedCanaryConfigDetails,
+      'classifier.scoreThresholds.marginal',
+      this.stage.canaryConfig.scoreThresholds.marginal || '',
     ).toString();
     this.stage.canaryConfig.scoreThresholds.pass = get(
-      this.selectedCanaryConfigDetails, 'classifier.scoreThresholds.pass',
-      this.stage.canaryConfig.scoreThresholds.pass || ''
+      this.selectedCanaryConfigDetails,
+      'classifier.scoreThresholds.pass',
+      this.stage.canaryConfig.scoreThresholds.pass || '',
     ).toString();
   };
 
@@ -246,8 +247,7 @@ export class KayentaStageController implements IComponentController {
       return;
     }
 
-    const scopeNames =
-      uniq(map(this.selectedCanaryConfigDetails.metrics, metric => metric.scopeName || 'default'));
+    const scopeNames = uniq(map(this.selectedCanaryConfigDetails.metrics, metric => metric.scopeName || 'default'));
     this.scopeNames = !isEmpty(scopeNames) ? scopeNames : ['default'];
 
     if (!isEmpty(this.stage.canaryConfig.scopes) && !scopeNames.includes(this.stage.canaryConfig.scopes[0].scopeName)) {
@@ -275,32 +275,34 @@ export class KayentaStageController implements IComponentController {
   };
 
   private deleteConfigAccountsIfMissing = (): void => {
-    if ((this.kayentaAccounts.get(KayentaAccountType.ObjectStore) || [])
-          .every(account => account.name !== this.stage.canaryConfig.storageAccountName)) {
+    if (
+      (this.kayentaAccounts.get(KayentaAccountType.ObjectStore) || []).every(
+        account => account.name !== this.stage.canaryConfig.storageAccountName,
+      )
+    ) {
       delete this.stage.canaryConfig.storageAccountName;
     }
-    if ((this.kayentaAccounts.get(KayentaAccountType.MetricsStore) || [])
-          .every(account => account.name !== this.stage.canaryConfig.metricsAccountName)) {
+    if (
+      (this.kayentaAccounts.get(KayentaAccountType.MetricsStore) || []).every(
+        account => account.name !== this.stage.canaryConfig.metricsAccountName,
+      )
+    ) {
       delete this.stage.canaryConfig.metricsAccountName;
     }
   };
 
   private deleteCanaryConfigIdIfMissing = (): void => {
-    if (this.canaryConfigSummaries
-        .every(s => s.id !== this.stage.canaryConfig.canaryConfigId)) {
+    if (this.canaryConfigSummaries.every(s => s.id !== this.stage.canaryConfig.canaryConfigId)) {
       delete this.stage.canaryConfig.canaryConfigId;
     }
   };
 
   public populateScopeWithExpressions = (): void => {
     this.stage.canaryConfig.scopes[0].controlScope =
-      '${ #stage(\'Clone Server Group\')[\'context\'][\'source\'][\'serverGroupName\'] }';
-    this.stage.canaryConfig.scopes[0].controlLocation =
-      '${ deployedServerGroups[0].region }';
-    this.stage.canaryConfig.scopes[0].experimentScope =
-      '${ deployedServerGroups[0].serverGroup }';
-    this.stage.canaryConfig.scopes[0].experimentLocation =
-      '${ deployedServerGroups[0].region }';
+      "${ #stage('Clone Server Group')['context']['source']['serverGroupName'] }";
+    this.stage.canaryConfig.scopes[0].controlLocation = '${ deployedServerGroups[0].region }';
+    this.stage.canaryConfig.scopes[0].experimentScope = '${ deployedServerGroups[0].serverGroup }';
+    this.stage.canaryConfig.scopes[0].experimentLocation = '${ deployedServerGroups[0].region }';
   };
 
   public onLifetimeChange = (): void => {
@@ -312,8 +314,7 @@ export class KayentaStageController implements IComponentController {
     if (has(this.stage, ['canaryConfig', 'lifetimeHours'])) {
       const hours = parseInt(this.stage.canaryConfig.lifetimeHours, 10);
       if (isFinite(hours)) {
-        const fractional =
-          parseFloat(this.stage.canaryConfig.lifetimeHours) - hours;
+        const fractional = parseFloat(this.stage.canaryConfig.lifetimeHours) - hours;
         const minutes = Math.floor(fractional * 60);
         this.stage.canaryConfig.lifetimeDuration = `PT${hours}H`;
         if (isFinite(minutes)) {
@@ -372,7 +373,7 @@ export class KayentaStageController implements IComponentController {
   private loadProviders = async (): Promise<string[]> => {
     const providers = await AccountService.listProviders(this.$scope.application);
     // TODO: Open up to all providers.
-    return this.providers = providers.filter(p => ['gce', 'aws', 'titus'].includes(p));
+    return (this.providers = providers.filter(p => ['gce', 'aws', 'titus'].includes(p)));
   };
 
   public handleProviderChange = async (): Promise<void> => {
@@ -391,12 +392,11 @@ export class KayentaStageController implements IComponentController {
   };
 
   private setClusterList = (): void => {
-    this.clusterList =
-      AppListExtractor.getClusters([this.$scope.application], sg =>
-        has(this.stage, 'deployments.baseline.account')
-          ? sg.account === this.stage.deployments.baseline.account
-          : true
-      );
+    this.clusterList = AppListExtractor.getClusters(
+      [this.$scope.application],
+      sg =>
+        has(this.stage, 'deployments.baseline.account') ? sg.account === this.stage.deployments.baseline.account : true,
+    );
   };
 
   public getRegion = (serverGroup: any): string => {
@@ -412,29 +412,22 @@ export class KayentaStageController implements IComponentController {
   };
 
   public getServerGroupName = (serverGroup: any): string => {
-    return NameUtils.getClusterName(
-      serverGroup.application,
-      serverGroup.stack,
-      serverGroup.freeFormDetails);
+    return NameUtils.getClusterName(serverGroup.application, serverGroup.stack, serverGroup.freeFormDetails);
   };
 
   public addPair = async (): Promise<void> => {
     this.stage.deployments.serverGroupPairs = this.stage.deployments.serverGroupPairs || [];
-    const provider =
-      await (
-        has(this.stage, 'deployments.baseline.cloudProvider')
-          ? Promise.resolve(this.stage.deployments.baseline.cloudProvider)
-          : Promise.resolve(this.providerSelectionService.selectProvider(this.$scope.application, 'serverGroup'))
-      );
+    const provider = await (has(this.stage, 'deployments.baseline.cloudProvider')
+      ? Promise.resolve(this.stage.deployments.baseline.cloudProvider)
+      : Promise.resolve(this.providerSelectionService.selectProvider(this.$scope.application, 'serverGroup')));
     this.stage.deployments.baseline.cloudProvider = provider;
     const config = CloudProviderRegistry.getValue(provider, 'serverGroup');
 
-    const command: any =
-      await this.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(
-        provider,
-        null,
-        null
-      );
+    const command: any = await this.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(
+      provider,
+      null,
+      null,
+    );
 
     command.viewState = {
       ...command.viewState,
@@ -445,7 +438,7 @@ export class KayentaStageController implements IComponentController {
         credentials: true,
         region: true,
         subnet: true,
-        useSourceCapacity: true
+        useSourceCapacity: true,
       },
       overrides: {
         capacity: {
@@ -499,40 +492,36 @@ export class KayentaStageController implements IComponentController {
 
       const cleanup = (serverGroup: any, type: string) => {
         delete serverGroup.backingData;
-        if (serverGroup.freeFormDetails
-            && serverGroup.freeFormDetails.split('-').pop() === type) {
+        if (serverGroup.freeFormDetails && serverGroup.freeFormDetails.split('-').pop() === type) {
           return;
         }
-        serverGroup.freeFormDetails =
-          `${serverGroup.freeFormDetails
-            ? `${serverGroup.freeFormDetails}-`
-            : ''}${type}`;
+        serverGroup.freeFormDetails = `${serverGroup.freeFormDetails ? `${serverGroup.freeFormDetails}-` : ''}${type}`;
       };
 
       cleanup(control, 'control');
       cleanup(experiment, 'experiment');
       this.stage.deployments.serverGroupPairs = [{ control, experiment }];
     } catch (e) {
-      this.$log.warn('Error creating server group pair for Kayenta stage: ', e)
+      this.$log.warn('Error creating server group pair for Kayenta stage: ', e);
     }
   };
 
   public editServerGroup = async (
     serverGroup: any,
     index: number,
-    type: keyof IKayentaServerGroupPair
+    type: keyof IKayentaServerGroupPair,
   ): Promise<void> => {
     serverGroup.provider = serverGroup.provider || serverGroup.cloudProvider;
     const config = CloudProviderRegistry.getValue(serverGroup.cloudProvider, 'serverGroup');
     try {
-      const title = `Configure ${type[0].toUpperCase() + type.substring(1)} Server Group`
+      const title = `Configure ${type[0].toUpperCase() + type.substring(1)} Server Group`;
       const application = this.$scope.application;
 
       const command = await this.serverGroupCommandBuilder.buildServerGroupCommandFromPipeline(
         application,
         serverGroup,
         null,
-        null
+        null,
       );
       command.viewState = {
         ...command.viewState,
@@ -542,7 +531,7 @@ export class KayentaStageController implements IComponentController {
           credentials: true,
           region: true,
           subnet: true,
-          useSourceCapacity: true
+          useSourceCapacity: true,
         },
         imageSourceText: this.resolveImageSourceText(type),
       };
@@ -570,10 +559,11 @@ export class KayentaStageController implements IComponentController {
         }).result;
       }
 
-      this.stage.deployments.serverGroupPairs[index][type] =
-        this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(result);
+      this.stage.deployments.serverGroupPairs[index][
+        type
+      ] = this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(result);
     } catch (e) {
-      this.$log.warn('Error editing server group pair for Kayenta stage: ', e)
+      this.$log.warn('Error editing server group pair for Kayenta stage: ', e);
     }
   };
 

@@ -16,35 +16,37 @@ export interface INativeTableProps<T> {
   className?: string;
 }
 
-export function NativeTable<T>({ rows, columns, rowKey, tableBodyClassName, rowClassName, onRowClick, customRow, className, headerClassName }: INativeTableProps<T>) {
+export function NativeTable<T>({
+  rows,
+  columns,
+  rowKey,
+  tableBodyClassName,
+  rowClassName,
+  onRowClick,
+  customRow,
+  className,
+  headerClassName,
+}: INativeTableProps<T>) {
   const TableRow = ({ row }: { row: T }) => (
     <tr
       onClick={onRowClick ? () => onRowClick(row) : null}
       className={classNames({ 'table-row': !rowClassName }, rowClassName && rowClassName(row))}
     >
-      {
-        columns.map(({ label, hide, getContent }, i) => (
-          <td key={label || i}>
-            {!hide && getContent(row)}
-          </td>
-        ))
-      }
+      {columns.map(({ label, hide, getContent }, i) => (
+        <td key={label || i}>{!hide && getContent(row)}</td>
+      ))}
     </tr>
   );
 
   return (
     <table className={className}>
-      <NativeTableHeader columns={columns} className={classNames('table-header', headerClassName)}/>
+      <NativeTableHeader columns={columns} className={classNames('table-header', headerClassName)} />
       <tbody className={tableBodyClassName}>
-        {
-          rows.map(r => (
-            customRow && customRow(r)
-              ? <td key={rowKey(r)}>{customRow(r)}</td>
-              : <TableRow key={rowKey(r)} row={r}/>
-          ))
-        }
+        {rows.map(
+          r =>
+            customRow && customRow(r) ? <td key={rowKey(r)}>{customRow(r)}</td> : <TableRow key={rowKey(r)} row={r} />,
+        )}
       </tbody>
     </table>
   );
 }
-

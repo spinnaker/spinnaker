@@ -17,7 +17,11 @@ interface IMetricStoreSelectorDispatchProps {
   select: (event: any) => void;
 }
 
-const MetricStoreSelector = ({ stores, selectedStore, select }: IMetricStoreSelectorDispatchProps & IMetricStoreSelectorStateProps) => {
+const MetricStoreSelector = ({
+  stores,
+  selectedStore,
+  select,
+}: IMetricStoreSelectorDispatchProps & IMetricStoreSelectorStateProps) => {
   if (stores.length < 2) {
     return null;
   }
@@ -30,11 +34,11 @@ const MetricStoreSelector = ({ stores, selectedStore, select }: IMetricStoreSele
         className="form-control input-sm"
         disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       >
-        {
-          stores.map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))
-        }
+        {stores.map(s => (
+          <option key={s} value={s}>
+            {s}
+          </option>
+        ))}
       </DisableableSelect>
     </FormRow>
   );
@@ -54,9 +58,11 @@ const mapStateToProps = (state: ICanaryState): IMetricStoreSelectorStateProps =>
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IMetricStoreSelectorDispatchProps => {
   return {
-    select: (event: any) =>
-      dispatch(Creators.selectMetricStore({ store: event.target.value })),
+    select: (event: any) => dispatch(Creators.selectMetricStore({ store: event.target.value })),
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(MetricStoreSelector)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(MetricStoreSelector);

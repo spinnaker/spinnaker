@@ -38,17 +38,21 @@ class ResultDetailLoader extends React.Component<IResultLoaderDispatchProps & IR
   }
 
   public render() {
-    return <ReportDetailLoadStates/>;
+    return <ReportDetailLoadStates />;
   }
 }
 
-
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IResultLoaderDispatchProps => ({
   loadResult: (stateParams: IResultLoaderStateParams) =>
-    dispatch(Creators.loadRunRequest({
-      configId: stateParams.configId,
-      runId: stateParams.runId,
-    })),
+    dispatch(
+      Creators.loadRunRequest({
+        configId: stateParams.configId,
+        runId: stateParams.runId,
+      }),
+    ),
 });
 
-export default connect(null, mapDispatchToProps)(ResultDetailLoader);
+export default connect(
+  null,
+  mapDispatchToProps,
+)(ResultDetailLoader);

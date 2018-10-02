@@ -18,5 +18,4 @@ class KayentaStageConfigSection implements IComponentOptions {
 }
 
 export const KAYENTA_STAGE_CONFIG_SECTION = 'spinnaker.kayenta.stageConfigSection';
-module(KAYENTA_STAGE_CONFIG_SECTION, [])
-  .component('kayentaStageConfigSection', new KayentaStageConfigSection());
+module(KAYENTA_STAGE_CONFIG_SECTION, []).component('kayentaStageConfigSection', new KayentaStageConfigSection());

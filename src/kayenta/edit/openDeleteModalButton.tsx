@@ -26,10 +26,10 @@ function DeleteConfigButton({ openDeleteConfigModal, disabled }: IDeleteButtonDi
         onClick={openDeleteConfigModal}
         disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       >
-        <i className="fa fa-trash"/>
+        <i className="fa fa-trash" />
         <span>Delete</span>
       </DisableableButton>
-      <DeleteConfigModal/>
+      <DeleteConfigModal />
     </div>
   );
 }
@@ -46,4 +46,7 @@ function mapDispatchToProps(dispatch: any): IDeleteButtonDispatchProps {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DeleteConfigButton);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(DeleteConfigButton);

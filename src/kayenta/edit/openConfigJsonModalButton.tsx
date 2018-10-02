@@ -16,10 +16,10 @@ function OpenConfigJsonModalButton({ openConfigJsonModal }: IOpenConfigJsonModal
   return (
     <div>
       <button className="passive" onClick={openConfigJsonModal}>
-        <i className="far fa-file-code"/>
+        <i className="far fa-file-code" />
         <span>JSON</span>
       </button>
-      <ConfigJsonModal/>
+      <ConfigJsonModal />
     </div>
   );
 }
@@ -30,4 +30,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IOpenConf
   };
 }
 
-export default connect(null, mapDispatchToProps)(OpenConfigJsonModalButton);
+export default connect(
+  null,
+  mapDispatchToProps,
+)(OpenConfigJsonModalButton);

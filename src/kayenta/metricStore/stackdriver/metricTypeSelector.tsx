@@ -6,14 +6,14 @@ import { ICanaryState } from 'kayenta/reducers';
 import { IStackdriverMetricDescriptor } from './domain/IStackdriverMetricDescriptor';
 import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
 import * as Creators from 'kayenta/actions/creators';
-import { DisableableReactSelect, DISABLE_EDIT_CONFIG } from'kayenta/layout/disableable';
+import { DisableableReactSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 interface IStackdriverMetricTypeSelectorDispatchProps {
   load: (filter: string) => void;
 }
 
 interface IStackdriverMetricTypeSelectorStateProps {
-  options: Option[]
+  options: Option[];
   loading: boolean;
 }
 
@@ -22,7 +22,15 @@ interface IStackdriverMetricTypeSelectorOwnProps {
   onChange: (option: Option) => void;
 }
 
-const StackdriverMetricTypeSelector = ({ loading, load, options, value, onChange }: IStackdriverMetricTypeSelectorDispatchProps & IStackdriverMetricTypeSelectorStateProps & IStackdriverMetricTypeSelectorOwnProps) => {
+const StackdriverMetricTypeSelector = ({
+  loading,
+  load,
+  options,
+  value,
+  onChange,
+}: IStackdriverMetricTypeSelectorDispatchProps &
+  IStackdriverMetricTypeSelectorStateProps &
+  IStackdriverMetricTypeSelectorOwnProps) => {
   if (value && options.every(o => o.value !== value)) {
     options = options.concat({ label: value, value });
   }
@@ -34,12 +42,10 @@ const StackdriverMetricTypeSelector = ({ loading, load, options, value, onChange
       onChange={onChange}
       value={value}
       placeholder={'Enter at least three characters to search.'}
-      onInputChange={
-        input => {
-          load(input);
-          return input;
-        }
-      }
+      onInputChange={input => {
+        load(input);
+        return input;
+      }}
       disabledStateKeys={[DISABLE_EDIT_CONFIG]}
     />
   );
@@ -63,4 +69,7 @@ const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(StackdriverMetricTypeSelector);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(StackdriverMetricTypeSelector);

@@ -13,30 +13,28 @@ interface IGraphTypeSelectorDispatchProps {
   selectGraphType: (type: GraphType) => void;
 }
 
-const GraphTypeSelector = ({ selected, selectGraphType }: IGraphTypeSelectorStateProps & IGraphTypeSelectorDispatchProps) => {
+const GraphTypeSelector = ({
+  selected,
+  selectGraphType,
+}: IGraphTypeSelectorStateProps & IGraphTypeSelectorDispatchProps) => {
   return (
     <ul className="list-inline">
       <li>
-        <label
-          className="label uppercase color-text-primary"
-          style={{ paddingLeft: 0 }}
-        >
+        <label className="label uppercase color-text-primary" style={{ paddingLeft: 0 }}>
           Graph:
         </label>
       </li>
-      {
-        Object.values(GraphType).map((type) => (
-          <li
-            style={selected === type ? { textDecoration: 'underline' } : null}
-            key={type}
-            onClick={() => selectGraphType(type)}
-          >
-            <a className="small clickable">{type}</a>
-          </li>
-        ))
-      }
+      {Object.values(GraphType).map(type => (
+        <li
+          style={selected === type ? { textDecoration: 'underline' } : null}
+          key={type}
+          onClick={() => selectGraphType(type)}
+        >
+          <a className="small clickable">{type}</a>
+        </li>
+      ))}
     </ul>
-  )
+  );
 };
 
 const mapStateToProps = (state: ICanaryState): IGraphTypeSelectorStateProps => ({
@@ -44,8 +42,10 @@ const mapStateToProps = (state: ICanaryState): IGraphTypeSelectorStateProps => (
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<ICanaryState>): IGraphTypeSelectorDispatchProps => ({
-  selectGraphType: (type: GraphType) =>
-    dispatch(Creators.selectGraphType({ type })),
+  selectGraphType: (type: GraphType) => dispatch(Creators.selectGraphType({ type })),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(GraphTypeSelector);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(GraphTypeSelector);

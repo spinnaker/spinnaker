@@ -1,10 +1,7 @@
 import { IScope, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 
-import {
-  ExecutionDetailsSectionService,
-  IExecutionStage
-} from '@spinnaker/core';
+import { ExecutionDetailsSectionService, IExecutionStage } from '@spinnaker/core';
 import { DEPLOY_CANARY_SERVER_GROUPS, RUN_CANARY } from './stageTypes';
 import { CANARY_RUN_SUMMARIES_COMPONENT } from './canaryRunSummaries.component';
 import { ICanaryConfigSummary, KayentaAnalysisType } from 'kayenta/domain';
@@ -12,23 +9,25 @@ import { ICanaryConfigSummary, KayentaAnalysisType } from 'kayenta/domain';
 import './kayentaStageExecutionDetails.less';
 
 class KayentaStageExecutionDetailsController {
-
   public canaryRuns: IExecutionStage[];
   public canaryConfigName: string;
   public firstScopeName: string;
   public resolvedControl: string;
   public resolvedExperiment: string;
 
-  constructor(public $scope: IScope,
-              private $stateParams: StateParams,
-              private executionDetailsSectionService: ExecutionDetailsSectionService) {
+  constructor(
+    public $scope: IScope,
+    private $stateParams: StateParams,
+    private executionDetailsSectionService: ExecutionDetailsSectionService,
+  ) {
     'ngInject';
     this.$scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
     this.$scope.application.ready().then(() => {
-      const canaryConfigSummary =
-        this.$scope.application.getDataSource('canaryConfigs').data.find(
-          (config: ICanaryConfigSummary) => config.id === this.$scope.stage.context.canaryConfig.canaryConfigId
+      const canaryConfigSummary = this.$scope.application
+        .getDataSource('canaryConfigs')
+        .data.find(
+          (config: ICanaryConfigSummary) => config.id === this.$scope.stage.context.canaryConfig.canaryConfigId,
         );
       if (canaryConfigSummary) {
         this.canaryConfigName = canaryConfigSummary.name;
@@ -60,24 +59,21 @@ class KayentaStageExecutionDetailsController {
 
   private resolveControlAndExperimentNames(): void {
     if (this.$scope.stage.context.analysisType === KayentaAnalysisType.RealTimeAutomatic) {
-      const deploy =
-        this.$scope.execution.stages.find((stage: IExecutionStage) =>
-          stage.type === DEPLOY_CANARY_SERVER_GROUPS
-            && stage.parentStageId === this.$scope.stage.id
-        );
+      const deploy = this.$scope.execution.stages.find(
+        (stage: IExecutionStage) =>
+          stage.type === DEPLOY_CANARY_SERVER_GROUPS && stage.parentStageId === this.$scope.stage.id,
+      );
 
       const [deployedServerGroups] = deploy.outputs.deployedServerGroups;
       this.resolvedControl = deployedServerGroups.controlScope;
       this.resolvedExperiment = deployedServerGroups.experimentScope;
     } else {
-      this.resolvedControl =
-        this.canaryRuns.length
-          ? this.canaryRuns[0].context.scopes[this.firstScopeName].controlScope.scope
-          : this.$scope.stage.context.canaryConfig.scopes[0].controlScope;
-      this.resolvedExperiment =
-        this.canaryRuns.length
-          ? this.canaryRuns[0].context.scopes[this.firstScopeName].experimentScope.scope
-          : this.$scope.stage.context.canaryConfig.scopes[0].experimentScope;
+      this.resolvedControl = this.canaryRuns.length
+        ? this.canaryRuns[0].context.scopes[this.firstScopeName].controlScope.scope
+        : this.$scope.stage.context.canaryConfig.scopes[0].controlScope;
+      this.resolvedExperiment = this.canaryRuns.length
+        ? this.canaryRuns[0].context.scopes[this.firstScopeName].experimentScope.scope
+        : this.$scope.stage.context.canaryConfig.scopes[0].experimentScope;
     }
   }
 
@@ -87,7 +83,6 @@ class KayentaStageExecutionDetailsController {
 }
 
 export const KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER = 'spinnaker.kayenta.kayentaStageExecutionDetails.controller';
-module(KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER, [
-  CANARY_RUN_SUMMARIES_COMPONENT,
-]).controller('kayentaStageExecutionDetailsCtrl', KayentaStageExecutionDetailsController)
+module(KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER, [CANARY_RUN_SUMMARIES_COMPONENT])
+  .controller('kayentaStageExecutionDetailsCtrl', KayentaStageExecutionDetailsController)
   .filter('dateToMillis', () => Date.parse);

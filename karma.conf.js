@@ -4,7 +4,7 @@ const path = require('path');
 const webpackCommon = require('./webpack.common');
 const webpackConfig = webpackCommon(true);
 
-module.exports = function (config) {
+module.exports = function(config) {
   config.set({
     autoWatch: true,
 
@@ -15,12 +15,10 @@ module.exports = function (config) {
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
-    files: [
-      {pattern: './karma-shim.js', watched: false}
-    ],
+    files: [{ pattern: './karma-shim.js', watched: false }],
 
     preprocessors: {
-      './karma-shim.js': ['webpack']
+      './karma-shim.js': ['webpack'],
     },
 
     webpack: webpackConfig,
@@ -32,12 +30,12 @@ module.exports = function (config) {
     customLaunchers: {
       Chrome_travis_ci: {
         base: 'Chrome',
-        flags: ['--no-sandbox']
+        flags: ['--no-sandbox'],
       },
       ChromeActive: {
         base: 'Chrome',
-        flags: ['--override-plugin-power-saver-for-testing=0']
-      }
+        flags: ['--override-plugin-power-saver-for-testing=0'],
+      },
     },
 
     plugins: [
@@ -54,9 +52,7 @@ module.exports = function (config) {
     // web server port
     port: 8081,
 
-    browsers: [
-      process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive',
-    ],
+    browsers: [process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive'],
 
     colors: true,
 
@@ -69,17 +65,17 @@ module.exports = function (config) {
 
     // the default configuration
     junitReporter: {
-     outputFile: 'test-results.xml'
+      outputFile: 'test-results.xml',
     },
 
     mochaReporter: {
-     ignoreSkipped: true,
+      ignoreSkipped: true,
     },
 
     client: {
       captureConsole: true,
     },
 
-    browserNoActivityTimeout: 200000
+    browserNoActivityTimeout: 200000,
   });
 };

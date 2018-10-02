@@ -26,7 +26,13 @@ interface IChangeMetricGroupModalDispatchProps {
   confirm: () => void;
 }
 
-function ChangeMetricGroupModal({ groups, toGroup, confirm, clear, select }: IChangeMetricGroupModalStateProps & IChangeMetricGroupModalDispatchProps) {
+function ChangeMetricGroupModal({
+  groups,
+  toGroup,
+  confirm,
+  clear,
+  select,
+}: IChangeMetricGroupModalStateProps & IChangeMetricGroupModalDispatchProps) {
   return (
     <Modal show={true} onHide={noop}>
       <Styleguide>
@@ -41,20 +47,24 @@ function ChangeMetricGroupModal({ groups, toGroup, confirm, clear, select }: ICh
             disabledStateKeys={[DISABLE_EDIT_CONFIG]}
           >
             <option value={''}>-- select group --</option>
-            {
-              groups.map(g => (
-                <option key={g} value={g}>{g}</option>
-              ))
-            }
+            {groups.map(g => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
           </DisableableSelect>
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
             <li>
-              <button className="passive" onClick={clear}>Cancel</button>
+              <button className="passive" onClick={clear}>
+                Cancel
+              </button>
             </li>
             <li>
-              <button className="primary" disabled={!toGroup} onClick={confirm}>OK</button>
+              <button className="primary" disabled={!toGroup} onClick={confirm}>
+                OK
+              </button>
             </li>
           </ul>
         </Modal.Footer>
@@ -63,7 +73,10 @@ function ChangeMetricGroupModal({ groups, toGroup, confirm, clear, select }: ICh
   );
 }
 
-function mapStateToProps(state: ICanaryState, { metric }: IChangeMetricGroupModalOwnProps): IChangeMetricGroupModalStateProps {
+function mapStateToProps(
+  state: ICanaryState,
+  { metric }: IChangeMetricGroupModalOwnProps,
+): IChangeMetricGroupModalStateProps {
   // If a metric belongs to more than one group, allow a move into one of those groups.
   // e.g., a [system, requests] -> [requests] move should be allowed, but
   // don't offer a [system] -> [system] move.
@@ -73,7 +86,10 @@ function mapStateToProps(state: ICanaryState, { metric }: IChangeMetricGroupModa
   };
 }
 
-function mapDispatchToProps(dispatch: (action: Action & any) => void, { metric }: IChangeMetricGroupModalOwnProps): IChangeMetricGroupModalDispatchProps {
+function mapDispatchToProps(
+  dispatch: (action: Action & any) => void,
+  { metric }: IChangeMetricGroupModalOwnProps,
+): IChangeMetricGroupModalDispatchProps {
   return {
     select: (event: any) => {
       dispatch(Creators.changeMetricGroupSelect({ group: event.target.value || null }));
@@ -87,4 +103,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void, { metric }
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChangeMetricGroupModal);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ChangeMetricGroupModal);

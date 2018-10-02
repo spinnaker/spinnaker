@@ -22,7 +22,7 @@ export interface ICanaryScoreState {
 
 export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScoreState> {
   public static defaultProps: Partial<ICanaryScoreProps> = {
-    health: ''
+    health: '',
   };
 
   constructor(props: ICanaryScoreProps) {
@@ -31,11 +31,11 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
   }
 
   private getLabelState(props: ICanaryScoreProps): ICanaryScoreState {
-    const score = (props.score === 0 || (props.score && props.score > 0)) ? props.score : 'N/A';
+    const score = props.score === 0 || (props.score && props.score > 0) ? props.score : 'N/A';
 
     return {
       healthLabel: getHealthLabel(props.health, props.result),
-      score: score
+      score: score,
     };
   }
 
@@ -50,7 +50,7 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
       'label',
       'score-label',
       'label-default',
-      `label-${this.state.healthLabel}`
+      `label-${this.state.healthLabel}`,
     ].join(' ');
     return (
       <span className={classNames(className, this.props.className)}>

@@ -21,9 +21,7 @@ interface IDisableableOwnProps {
 }
 
 const mapStateToProps = (state: ICanaryState, ownProps: IDisableableOwnProps) => ({
-  disabledBecauseOfState:
-    (ownProps.disabledStateKeys || []).some(
-      key => get<boolean>(state, key, false)),
+  disabledBecauseOfState: (ownProps.disabledStateKeys || []).some(key => get<boolean>(state, key, false)),
 });
 
 // A component wrapped in `disableable` is disabled if one of the keys passed
@@ -34,23 +32,17 @@ function disableable<T extends IDisableable>(Component: React.SFC<T>) {
 
     // Would use object spread except for weird interaction with TS generics.
     const otherProps = omit(props, ['disabled', 'disabledBecauseOfState', 'disabledStateKeys', 'dispatch']);
-    return (
-      <Component
-        {...otherProps}
-        disabled={disabled || disabledBecauseOfState}
-      />
-    );
+    return <Component {...otherProps} disabled={disabled || disabledBecauseOfState} />;
   });
 }
 
-type IDisableableButtonProps = React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>
+type IDisableableButtonProps = React.DetailedHTMLProps<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  HTMLButtonElement
+>;
 export const DisableableButton = disableable<IDisableableButtonProps>(props => {
   const { children, ...otherProps } = props;
-  return (
-    <button {...otherProps}>
-      {children}
-    </button>
-  );
+  return <button {...otherProps}>{children}</button>;
 });
 
 type IDisableableInputProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
@@ -59,37 +51,31 @@ export const DisableableInput = disableable<IDisableableInputProps>(props => {
   return (
     <input
       {...inputProps}
-      className={
-        classNames(className, {
-          'form-control': ![ 'radio', 'checkbox' ].includes(inputProps.type),
-          'input-sm': ![ 'radio', 'checkbox' ].includes(inputProps.type),
-        })}
+      className={classNames(className, {
+        'form-control': !['radio', 'checkbox'].includes(inputProps.type),
+        'input-sm': !['radio', 'checkbox'].includes(inputProps.type),
+      })}
     />
   );
 });
 
 export const DisableableReactSelect = disableable<ReactSelectProps>(props => {
   const { children, ...selectProps } = props;
-  return (<Select {...selectProps}>{children}</Select>);
+  return <Select {...selectProps}>{children}</Select>;
 });
 
-
-type IDisableableSelectProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>
+type IDisableableSelectProps = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>;
 export const DisableableSelect = disableable<IDisableableSelectProps>(props => {
   const { children, ...selectProps } = props;
-  return (<select {...selectProps}>{children}</select>);
+  return <select {...selectProps}>{children}</select>;
 });
 
 // TODO(dpeach): why do I have to type `rows` explicitly here?
-type IDisableableTextareaProps =
-  React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement> & { rows?: number };
+type IDisableableTextareaProps = React.DetailedHTMLProps<
+  React.InputHTMLAttributes<HTMLTextAreaElement>,
+  HTMLTextAreaElement
+> & { rows?: number };
 export const DisableableTextarea = disableable<IDisableableTextareaProps>(props => {
   const { className, ...textareaProps } = props;
-  return (
-    <textarea
-      className={classNames('form-control', 'input-sm', className)}
-      {...textareaProps}
-    />
-  );
+  return <textarea className={classNames('form-control', 'input-sm', className)} {...textareaProps} />;
 });
-

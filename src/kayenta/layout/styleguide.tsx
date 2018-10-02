@@ -12,9 +12,5 @@ export interface IStyleguideProps {
 }
 
 export default function Styleguide({ children, className }: IStyleguideProps) {
-  return (
-    <div className={classNames(STYLEGUIDE_CLASS, KAYENTA_CLASS, className)}>
-      {children}
-    </div>
-  );
+  return <div className={classNames(STYLEGUIDE_CLASS, KAYENTA_CLASS, className)}>{children}</div>;
 }

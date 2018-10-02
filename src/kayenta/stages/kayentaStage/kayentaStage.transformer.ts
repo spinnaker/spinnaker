@@ -1,23 +1,18 @@
 import { module } from 'angular';
 import { last, round } from 'lodash';
 
-import {
-  Application, IExecution, IExecutionStage, ITransformer,
-  OrchestratedItemTransformer
-} from '@spinnaker/core';
+import { Application, IExecution, IExecutionStage, ITransformer, OrchestratedItemTransformer } from '@spinnaker/core';
 import { KAYENTA_CANARY, RUN_CANARY, WAIT } from './stageTypes';
 
 export class KayentaStageTransformer implements ITransformer {
-
   public transform(_application: Application, execution: IExecution): void {
     let stagesToRenderAsTasks: IExecutionStage[] = [];
     execution.stages.forEach(stage => {
       if (stage.type === KAYENTA_CANARY) {
         OrchestratedItemTransformer.defineProperties(stage);
 
-        const syntheticCanaryStages = execution.stages.filter(s =>
-          s.parentStageId === stage.id
-           && [WAIT, RUN_CANARY].includes(s.type)
+        const syntheticCanaryStages = execution.stages.filter(
+          s => s.parentStageId === stage.id && [WAIT, RUN_CANARY].includes(s.type),
         );
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
 
@@ -77,7 +72,9 @@ export class KayentaStageTransformer implements ITransformer {
   }
 
   private getLastCanaryRunScore(runCanaryStages: IExecutionStage[] = []): number {
-    const canaryRunScores = runCanaryStages.filter(s => typeof s.getValueFor('canaryScore') === 'number').map(s => s.getValueFor('canaryScore'));
+    const canaryRunScores = runCanaryStages
+      .filter(s => typeof s.getValueFor('canaryScore') === 'number')
+      .map(s => s.getValueFor('canaryScore'));
     return last(canaryRunScores);
   }
 
@@ -95,7 +92,12 @@ export class KayentaStageTransformer implements ITransformer {
 
   private getException(stage: IExecutionStage): string {
     if (stage && stage.isFailed) {
-      if (stage.context && stage.context.exception && stage.context.exception.details && stage.context.exception.details.responseBody) {
+      if (
+        stage.context &&
+        stage.context.exception &&
+        stage.context.exception.details &&
+        stage.context.exception.details.responseBody
+      ) {
         return stage.context.exception.details.responseBody;
       } else {
         return stage.failureMessage;
@@ -107,5 +109,4 @@ export class KayentaStageTransformer implements ITransformer {
 }
 
 export const KAYENTA_STAGE_TRANSFORMER = 'spinnaker.kayenta.kayentaStageTransformer';
-module(KAYENTA_STAGE_TRANSFORMER, [])
-  .service('kayentaStageTransformer', KayentaStageTransformer);
+module(KAYENTA_STAGE_TRANSFORMER, []).service('kayentaStageTransformer', KayentaStageTransformer);

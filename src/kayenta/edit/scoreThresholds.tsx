@@ -6,7 +6,7 @@ import { CanaryScores } from 'kayenta/components/canaryScores';
 import * as Creators from 'kayenta/actions/creators';
 
 interface ICanaryClassifierThresholdsConfigDispatchProps {
-  handleThresholdsChange: (thresholds: { unhealthyScore: string, successfulScore: string }) => void;
+  handleThresholdsChange: (thresholds: { unhealthyScore: string; successfulScore: string }) => void;
 }
 
 interface IScoreThresholdStateProps {
@@ -18,7 +18,12 @@ interface IScoreThresholdStateProps {
 /*
  * Fields for updating score thresholds.
  */
-function ScoreThresholds({ pass, marginal, disabled, handleThresholdsChange }: IScoreThresholdStateProps & ICanaryClassifierThresholdsConfigDispatchProps) {
+function ScoreThresholds({
+  pass,
+  marginal,
+  disabled,
+  handleThresholdsChange,
+}: IScoreThresholdStateProps & ICanaryClassifierThresholdsConfigDispatchProps) {
   return (
     <CanaryScores
       unhealthyHelpFieldId={'pipeline.config.canary.marginalScore'}
@@ -30,7 +35,7 @@ function ScoreThresholds({ pass, marginal, disabled, handleThresholdsChange }: I
       onChange={handleThresholdsChange}
       disabled={disabled}
     />
-  )
+  );
 }
 
 function mapStateToProps(state: ICanaryState): IScoreThresholdStateProps {
@@ -43,13 +48,18 @@ function mapStateToProps(state: ICanaryState): IScoreThresholdStateProps {
 
 function mapDispatchToProps(dispatch: any): ICanaryClassifierThresholdsConfigDispatchProps {
   return {
-    handleThresholdsChange: (thresholds: { unhealthyScore: string, successfulScore: string }) => {
-      dispatch(Creators.updateScoreThresholds({
-        marginal: parseInt(thresholds.unhealthyScore, 10),
-        pass: parseInt(thresholds.successfulScore, 10),
-      }));
-    }
+    handleThresholdsChange: (thresholds: { unhealthyScore: string; successfulScore: string }) => {
+      dispatch(
+        Creators.updateScoreThresholds({
+          marginal: parseInt(thresholds.unhealthyScore, 10),
+          pass: parseInt(thresholds.successfulScore, 10),
+        }),
+      );
+    },
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ScoreThresholds);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ScoreThresholds);

@@ -17,4 +17,3 @@ export default function FormattedDate({ dateIso, format }: IDateLabelProps) {
     return <span>N/A</span>;
   }
 }
-

@@ -23,13 +23,10 @@ const middleware = [epicMiddleware, actionInterceptingMiddleware, asyncDispatchM
 
 export const canaryStore: Store<ICanaryState> = createStore<ICanaryState>(
   rootReducer,
-  applyMiddleware(
-    ...(CanarySettings.reduxLogger ? [...middleware, logger] : middleware)
-  )
+  applyMiddleware(...(CanarySettings.reduxLogger ? [...middleware, logger] : middleware)),
 );
 
 export default class Canary extends React.Component<ICanaryProps> {
-
   private readonly store: Store<ICanaryState>;
 
   constructor(props: ICanaryProps) {
@@ -40,7 +37,7 @@ export default class Canary extends React.Component<ICanaryProps> {
 
   public componentWillReceiveProps(nextProps: ICanaryProps) {
     if (this.props.app.name !== nextProps.app.name) {
-      this.initializeAppState(nextProps.app)
+      this.initializeAppState(nextProps.app);
     }
   }
 
@@ -63,7 +60,7 @@ export default class Canary extends React.Component<ICanaryProps> {
       <Styleguide className="kayenta-root vertical">
         <Provider store={this.store}>
           <div className="vertical flex-1">
-            <UIView {...noWrap} name="canary"/>
+            <UIView {...noWrap} name="canary" />
           </div>
         </Provider>
       </Styleguide>

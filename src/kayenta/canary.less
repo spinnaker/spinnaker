@@ -17,7 +17,8 @@
   }
 
   .list-detail {
-    > .col-md-2, .col-md-10 {
+    > .col-md-2,
+    .col-md-10 {
       padding-left: 0;
       padding-right: 0;
     }
@@ -25,7 +26,7 @@
 
   .config-list {
     ul {
-      max-height: calc(~"70vh - 44px"); // i.e., minus the footer.
+      max-height: calc(~'70vh - 44px'); // i.e., minus the footer.
       overflow: auto;
       @media screen and (max-height: 1000px) {
         max-height: 55vh;
@@ -77,35 +78,39 @@
   }
 
   .table-row {
-    > div, > td {
-      padding: .8rem 0;
+    > div,
+    > td {
+      padding: 0.8rem 0;
     }
 
     i {
-      &.fa, &.far {
-        padding: 0 .5rem;
+      &.fa,
+      &.far {
+        padding: 0 0.5rem;
         cursor: pointer;
-        &.fa-edit, &.fa-folder {
+        &.fa-edit,
+        &.fa-folder {
           font-weight: 100;
         }
         &.fa-folder {
-          margin-top: .2rem;
+          margin-top: 0.2rem;
         }
         &.fa-trash {
           font-size: small;
-          margin-top: .1rem;
+          margin-top: 0.1rem;
         }
       }
     }
 
     // This is the wrapper around the change metric group folder icon.
     g {
-      margin-top: -.25rem;
-      margin-right: .1rem;
+      margin-top: -0.25rem;
+      margin-right: 0.1rem;
     }
   }
 
-  .table-header, .table-row {
+  .table-header,
+  .table-row {
     border-bottom: 1px solid var(--color-divider);
     h6 {
       margin-bottom: 5px;

@@ -23,9 +23,7 @@ const createValidationReducer = (validator: IConfigValidator) => {
       ...state,
       selectedConfig: {
         ...state.selectedConfig,
-        validationErrors: state.selectedConfig.validationErrors.concat(
-          error ? [error] : []
-        ),
+        validationErrors: state.selectedConfig.validationErrors.concat(error ? [error] : []),
       },
     };
   };
@@ -34,13 +32,9 @@ const createValidationReducer = (validator: IConfigValidator) => {
 const isConfigNameUnique: IConfigValidator = state => {
   const selectedConfig = state.selectedConfig.config;
   const configSummaries = state.data.configSummaries;
-  const isUnique = configSummaries.every(s =>
-    selectedConfig.name !== s.name || selectedConfig.id === s.id
-  );
+  const isUnique = configSummaries.every(s => selectedConfig.name !== s.name || selectedConfig.id === s.id);
 
-  return isUnique
-    ? null
-    : { message: `Canary config '${selectedConfig.name}' already exists.` };
+  return isUnique ? null : { message: `Canary config '${selectedConfig.name}' already exists.` };
 };
 
 // See https://github.com/Netflix-Skunkworks/kayenta/blob/master/kayenta-web/src/main/java/com/netflix/kayenta/controllers/CanaryConfigController.java
@@ -48,9 +42,10 @@ const pattern = /^[a-zA-Z0-9\_\-]*$/;
 const isConfigNameValid: IConfigValidator = state => {
   const isValid = pattern.test(state.selectedConfig.config.name);
   return isValid
-      ? null
-      : { message: 'Canary config names must contain only letters,' +
-                   ' numbers, dashes (-) and underscores (_).' };
+    ? null
+    : {
+        message: 'Canary config names must contain only letters,' + ' numbers, dashes (-) and underscores (_).',
+      };
 };
 
 const isGroupWeightsSumValid: IConfigValidator = state => {
@@ -58,19 +53,13 @@ const isGroupWeightsSumValid: IConfigValidator = state => {
   const sumOfWeights = weights.reduce((sum, weight) => sum + weight, 0);
   const groupWeightsSumIsValid = weights.length === 0 || sumOfWeights === 100;
 
-  return groupWeightsSumIsValid
-    ? null
-    : { message: 'Metric group weights must sum to 100.' };
+  return groupWeightsSumIsValid ? null : { message: 'Metric group weights must sum to 100.' };
 };
 
 const isEveryGroupWeightValid: IConfigValidator = state => {
-  const everyGroupWeightIsValid =
-    Object.values(state.selectedConfig.group.groupWeights)
-      .every(weight => weight >= 0);
+  const everyGroupWeightIsValid = Object.values(state.selectedConfig.group.groupWeights).every(weight => weight >= 0);
 
-  return everyGroupWeightIsValid
-    ? null
-    : { message: 'A group weight must be greater than or equal to 0.' };
+  return everyGroupWeightIsValid ? null : { message: 'A group weight must be greater than or equal to 0.' };
 };
 
 const isEveryQueriedMetricStoreAvailable: IConfigValidator = state => {
@@ -105,9 +94,7 @@ const areMultipleMetricStoresQueried: IConfigValidator = state => {
     .uniq()
     .valueOf();
 
-  return queried.length > 1
-    ? { message: 'All metrics must be from the same metric store.' }
-    : null;
+  return queried.length > 1 ? { message: 'All metrics must be from the same metric store.' } : null;
 };
 
 export const validationErrorsReducer = (state: ICanaryState): ICanaryState => {
