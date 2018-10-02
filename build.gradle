@@ -69,6 +69,12 @@ allprojects {
   tasks.withType(Javadoc) {
     failOnError = false
   }
+
+  tasks.withType(JavaExec) {
+    if (System.getProperty('DEBUG', 'false') == 'true') {
+      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7103'
+    }
+  }
 }
 
 subprojects { project ->

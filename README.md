@@ -37,3 +37,13 @@ There are currently two user role providers: Google Groups (through a Google App
 ---
 
 Roadmap/Implementation Punch list has been moved to [Milestone 1 Issues](https://github.com/spinnaker/fiat/milestone/1)
+
+### Debugging
+
+To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+```
+./gradlew -DDEBUG=true
+```
+
+The JVM will then listen for a debugger to be attached on port 7103.  The JVM will _not_ wait for the debugger
+to be attached before starting Fiat; the relevant JVM arguments can be seen and modified as needed in `build.gradle`.
