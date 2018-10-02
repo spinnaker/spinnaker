@@ -30,6 +30,7 @@ import java.util.Optional;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Pubsubs extends Node implements Cloneable {
+  private Boolean enabled;
   private GooglePubsub google = new GooglePubsub();
 
   @Override
@@ -40,6 +41,20 @@ public class Pubsubs extends Node implements Cloneable {
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeReflectiveIterator(this);
+  }
+
+  public Boolean getEnabled() {
+    NodeIterator pubsubNodes = getChildren();
+    Pubsub pubsub;
+    Boolean allEnabled = true;
+    while ((pubsub = (Pubsub) pubsubNodes.getNext()) != null) {
+      allEnabled &= pubsub.isEnabled();
+    }
+    return allEnabled;
+  }
+
+  public void setEnabled() {
+    enabled = getEnabled();
   }
 
   @Override
