@@ -47,6 +47,10 @@ export class DockerImageAndTagSelector extends React.Component<
   public static defaultProps: Partial<IDockerImageAndTagSelectorProps> = {
     fieldClass: 'col-md-8',
     labelClass: 'col-md-3',
+    organization: '',
+    registry: '',
+    repository: '',
+    tag: '',
   };
 
   private images: IDockerImage[];
