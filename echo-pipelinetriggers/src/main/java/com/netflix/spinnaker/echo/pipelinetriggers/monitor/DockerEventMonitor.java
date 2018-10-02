@@ -32,7 +32,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.PatternSyntaxException;
 import lombok.NonNull;
-import lombok.val;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -127,14 +126,6 @@ public class DockerEventMonitor extends TriggerMonitor {
             ((triggerTagPattern == null && !eventTag.equals("latest"))
               || triggerTagPattern != null && matchTags(triggerTagPattern, eventTag)) &&
             anyArtifactsMatchExpected(getArtifacts(dockerEvent), trigger, pipeline);
-  }
-
-  @Override
-  protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
-    val id = registry.createId("pipelines.triggered")
-      .withTag("monitor", getClass().getSimpleName())
-      .withTag("application", pipeline.getApplication());
-    registry.counter(id).increment();
   }
 }
 

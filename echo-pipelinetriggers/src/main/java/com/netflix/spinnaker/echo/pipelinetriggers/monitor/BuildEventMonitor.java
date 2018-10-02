@@ -34,7 +34,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.NonNull;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.functions.Action1;
@@ -99,14 +98,6 @@ public class BuildEventMonitor extends TriggerMonitor {
       && trigger.getJob().equals(jobName)
       && trigger.getMaster().equals(master)
       && anyArtifactsMatchExpected(getArtifacts(buildEvent), trigger, pipeline);
-  }
-
-  @Override
-  protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
-    val id = registry.createId("pipelines.triggered")
-      .withTag("monitor", getClass().getSimpleName())
-      .withTag("application", pipeline.getApplication());
-    registry.counter(id).increment();
   }
 
   private boolean isBuildTrigger(Trigger trigger) {

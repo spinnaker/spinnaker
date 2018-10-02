@@ -4,6 +4,8 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,23 +61,34 @@ public class PipelineInitiator implements Action1<Pipeline> {
       log.info("Triggering {} due to {}", pipeline, pipeline.getTrigger());
       registry.counter("orca.requests").increment();
 
-      createTriggerObservable(pipeline)
+      Observable<OrcaService.TriggerResponse> orcaResponse = createTriggerObservable(pipeline)
         .retryWhen(new RetryWithDelay(retryCount, retryDelayMillis))
-        .subscribe(this::onOrcaResponse, throwable -> onOrcaError(pipeline, throwable));
+        .doOnNext(this::onOrcaResponse)
+        .doOnError(throwable -> onOrcaError(pipeline, throwable));
+
+      if (pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth()) {
+        // If the trigger is one that should propagate authentication, just directly call Orca as the request interceptor
+        // will pass along the current headers.
+        orcaResponse.subscribe();
+      } else {
+        // If we should not propagate authentication, create an empty User object for the request
+        User korkUser = new User();
+        if (fiatStatus.isEnabled() && pipeline.getTrigger() != null) {
+          korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
+        }
+        try {
+          AuthenticatedRequest.propagate(() -> orcaResponse.subscribe(), korkUser).call();
+        } catch (Exception e) {
+          log.error("Unable to trigger pipeline {}: {}", pipeline, e);
+        }
+      }
     } else {
       log.info("Would trigger {} due to {} but triggering is disabled", pipeline, pipeline.getTrigger());
     }
   }
 
   private Observable<OrcaService.TriggerResponse> createTriggerObservable(Pipeline pipeline) {
-    String runAsUser = null;
-    if (pipeline.getTrigger() != null) {
-      runAsUser = pipeline.getTrigger().getRunAsUser();
-    }
-
-    return (fiatStatus.isEnabled() && runAsUser != null && !runAsUser.isEmpty()) ?
-      orca.trigger(pipeline, runAsUser) :
-      orca.trigger(pipeline);
+    return orca.trigger(pipeline);
   }
 
   private void onOrcaResponse(TriggerResponse response) {

@@ -33,7 +33,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.lang.StringUtils;
 import rx.functions.Action1;
 
@@ -103,17 +102,11 @@ public class PubsubEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
-    val id = registry.createId("pipelines.triggered")
-      .withTag("application", pipeline.getApplication())
-      .withTag("monitor", getClass().getSimpleName());
-
-    if (isPubsubTrigger(pipeline.getTrigger())) {
-      id.withTag("pubsubSystem", pipeline.getTrigger().getPubsubSystem());
-      id.withTag("subscriptionName", pipeline.getTrigger().getSubscriptionName());
-    }
-
-    registry.counter(id).increment();
+  protected Map<String, String> getAdditionalTags(Pipeline pipeline) {
+    Map<String, String> tags = new HashMap<>();
+    tags.put("pubsubSystem", pipeline.getTrigger().getPubsubSystem());
+    tags.put("subscriptionName", pipeline.getTrigger().getSubscriptionName());
+    return tags;
   }
 
   private boolean isPubsubTrigger(Trigger trigger) {

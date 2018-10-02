@@ -20,12 +20,15 @@ import com.google.common.collect.ImmutableList
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.FilterType
+import org.springframework.core.Ordered
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
@@ -58,5 +61,12 @@ class ComponentConfig extends WebMvcConfigurerAdapter {
   @Bean
   InstanceInfo.InstanceStatus instanceStatus() {
     InstanceInfo.InstanceStatus.UNKNOWN
+  }
+
+  @Bean
+  FilterRegistrationBean authenticatedRequestFilter() {
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true, true, false))
+    frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
   }
 }

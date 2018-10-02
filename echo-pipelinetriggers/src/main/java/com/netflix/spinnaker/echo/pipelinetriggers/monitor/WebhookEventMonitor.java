@@ -22,8 +22,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
-import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
-import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
@@ -36,7 +34,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.functions.Action1;
@@ -58,7 +55,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
   @Override
   protected boolean handleEventType(String eventType) {
-    return eventType != null;
+    return eventType != null && !eventType.equals("manual");
   }
 
 
@@ -118,12 +115,10 @@ public class WebhookEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
-    val id = registry.createId("pipelines.triggered")
-      .withTag("application", pipeline.getApplication())
-      .withTag("monitor", getClass().getSimpleName());
-    id.withTag("type", pipeline.getTrigger().getType());
-    registry.counter(id).increment();
+  protected Map<String, String> getAdditionalTags(Pipeline pipeline) {
+    Map<String, String> tags = new HashMap<>();
+    tags.put("type", pipeline.getTrigger().getType());
+    return tags;
   }
 }
 

@@ -66,6 +66,9 @@ public class Trigger {
   @Builder.Default
   boolean rebake = false;
 
+  @Builder.Default
+  boolean dryRun = false;
+
   String id;
   String type;
   String master;
@@ -89,6 +92,7 @@ public class Trigger {
   String runAsUser;
   String secret;
   List<String> status;
+  String user;
 
   /**
    * Unique ID of a trigger that can be used to correlate a pipeline execution with its trigger.
@@ -104,6 +108,8 @@ public class Trigger {
   List<String> expectedArtifactIds;
   Map<String, ?> lastSuccessfulExecution;
 
+  List<Map<String, Object>> notifications;
+
   /**
    * Field to use for custom triggers involving artifacts
    */
@@ -118,6 +124,9 @@ public class Trigger {
   // this is set after deserialization, not in the json representation
   @JsonIgnore
   Pipeline parent;
+
+  @JsonIgnore
+  boolean propagateAuth;
 
   public String generateFallbackId() {
     return UUID.nameUUIDFromBytes(this.toString().getBytes()).toString();
@@ -189,7 +198,25 @@ public class Trigger {
       .build();
   }
 
+  public Trigger atNotifications(final List<Map<String,Object>> notifications) {
+    return this.toBuilder()
+      .notifications(notifications)
+      .build();
+  }
+
+  public Trigger atPropagateAuth(final boolean propagateAuth) {
+    return this.toBuilder()
+      .propagateAuth(propagateAuth)
+      .build();
+  }
+
   @JsonPOJOBuilder(withPrefix = "")
   public static final class TriggerBuilder {
+    // When deserializing triggers, always ignore the value of propagateAuth, which should only
+    // be set by Echo.
+    @JsonIgnore
+    private TriggerBuilder propagateAuth(boolean propagateAuth) {
+      return this;
+    }
   }
 }

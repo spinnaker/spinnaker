@@ -17,11 +17,15 @@
 package com.netflix.spinnaker.echo.events
 
 import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import rx.Observable
 import rx.Scheduler
 import rx.functions.Action0
 import rx.schedulers.Schedulers
+
+import java.util.concurrent.Callable
+
 /**
  *  responsible for sending events to classes that implement an EchoEventListener
  */
@@ -40,11 +44,15 @@ class EventPropagator {
 
     void processEvent(Event event) {
         Observable.from(listeners)
+            .map({ listener ->
+                AuthenticatedRequest.propagate({
+                  listener.processEvent(event)
+                } as Callable<Void>)})
             .observeOn(scheduler)
             .subscribe(
-            { EchoEventListener listener ->
+            { Callable<Void> callable ->
                 try {
-                    listener.processEvent(event)
+                    callable.call()
                 } catch (Exception e) {
                     log.error('failed processing event: {}', event.content,  e)
                 }

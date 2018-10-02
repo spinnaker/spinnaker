@@ -19,6 +19,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RestAdapter.LogLevel;
 import retrofit.client.Client;
@@ -34,6 +35,12 @@ import rx.schedulers.Schedulers;
 @EnableConfigurationProperties(FiatClientConfigurationProperties.class)
 public class PipelineTriggerConfiguration {
   private Client retrofitClient;
+  private RequestInterceptor requestInterceptor;
+
+  @Autowired
+  public void setRequestInterceptor(RequestInterceptor spinnakerRequestInterceptor) {
+    this.requestInterceptor = spinnakerRequestInterceptor;
+  }
 
   @Autowired
   public void setRetrofitClient(OkHttpClient okHttpClient) {
@@ -77,6 +84,7 @@ public class PipelineTriggerConfiguration {
     log.info("Connecting {} to {}", type.getSimpleName(), endpoint);
 
     return new RestAdapter.Builder().setClient(retrofitClient)
+                                    .setRequestInterceptor(requestInterceptor)
                                     .setConverter(new JacksonConverter(new ObjectMapper()))
                                     .setEndpoint(endpoint)
                                     .setLogLevel(LogLevel.BASIC)

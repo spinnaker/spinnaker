@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.events.EchoEventListener;
 import com.netflix.spinnaker.echo.model.Event;
@@ -24,7 +25,9 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -143,8 +146,6 @@ public abstract class TriggerMonitor implements EchoEventListener {
 
   protected abstract boolean isValidTrigger(final Trigger trigger);
 
-  protected abstract void emitMetricsOnMatchingPipeline(Pipeline pipeline);
-
   protected void onMatchingPipeline(Pipeline pipeline) {
     log.info("Found matching pipeline {}:{}", pipeline.getApplication(), pipeline.getName());
     emitMetricsOnMatchingPipeline(pipeline);
@@ -157,6 +158,18 @@ public abstract class TriggerMonitor implements EchoEventListener {
   private void onSubscriberError(Throwable error) {
     log.error("Subscriber raised an error processing pipeline", error);
     registry.counter("trigger.errors").increment();
+  }
+
+  protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
+    Id id = registry.createId("pipelines.triggered")
+      .withTag("monitor", getClass().getSimpleName())
+      .withTag("application", pipeline.getApplication())
+      .withTags(getAdditionalTags(pipeline));
+    registry.counter(id).increment();
+  }
+
+  protected Map<String,String> getAdditionalTags(Pipeline pipeline) {
+    return new HashMap<>();
   }
 }
 

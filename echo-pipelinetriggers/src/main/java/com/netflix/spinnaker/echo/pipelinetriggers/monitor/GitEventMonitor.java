@@ -32,7 +32,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,14 +110,6 @@ public class GitEventMonitor extends TriggerMonitor {
       .withTrigger(trigger.atHash(gitEvent.getHash())
         .atBranch(gitEvent.getBranch())
         .atEventId(gitEvent.getEventId()));
-  }
-
-  @Override
-  protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
-    val id = registry.createId("pipelines.triggered")
-      .withTag("application", pipeline.getApplication())
-      .withTag("monitor", getClass().getSimpleName());
-    registry.counter(id).increment();
   }
 
   private boolean passesGithubAuthenticationCheck(TriggerEvent event, Trigger trigger) {
