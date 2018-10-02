@@ -59,9 +59,8 @@ class JobExecutorLocal implements JobExecutor {
       new Action0() {
         @Override
         public void call() {
-          ByteArrayOutputStream stdOut = new ByteArrayOutputStream()
-          ByteArrayOutputStream stdErr = new ByteArrayOutputStream()
-          PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr)
+          ByteArrayOutputStream stdOutAndErr = new ByteArrayOutputStream()
+          PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOutAndErr)
           CommandLine commandLine
 
           if (jobRequest.tokenizedCommand) {
@@ -103,15 +102,10 @@ class JobExecutorLocal implements JobExecutor {
           // Give the job some time to spin up.
           sleep(500)
 
-          ByteArrayOutputStream stdOutAndErr = new ByteArrayOutputStream()
-          stdOutAndErr.write(stdOut.toByteArray())
-          stdOutAndErr.write(stdErr.toByteArray())
-
           jobIdToHandlerMap.put(jobId, [
             handler: resultHandler,
             watchdog: watchdog,
-            stdOutAndErr: stdOutAndErr,
-            stdOut: stdOut
+            stdOutAndErr: stdOutAndErr
           ])
         }
       }
@@ -135,12 +129,10 @@ class JobExecutorLocal implements JobExecutor {
 
         DefaultExecuteResultHandler resultHandler
         ByteArrayOutputStream stdOutAndErr
-        ByteArrayOutputStream stdOut
 
         jobIdToHandlerMap[jobId].with {
           resultHandler = it.handler
           stdOutAndErr = it.stdOutAndErr
-          stdOut = it.stdOut
         }
 
         String logsContent = new String(stdOutAndErr.toByteArray())
@@ -167,10 +159,6 @@ class JobExecutorLocal implements JobExecutor {
 
         if (logsContent) {
           bakeStatus.logsContent = logsContent
-        }
-
-        if (stdOut) {
-          bakeStatus.stdOut = new String(stdOut.toByteArray())
         }
 
         return bakeStatus

@@ -53,9 +53,6 @@ class BakeStatus implements Serializable {
   String logsContent
 
   @JsonIgnore
-  String stdOut
-
-  @JsonIgnore
   long createdTimestamp
 
   @JsonIgnore
