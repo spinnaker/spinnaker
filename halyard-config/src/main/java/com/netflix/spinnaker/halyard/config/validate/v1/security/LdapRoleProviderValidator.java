@@ -29,10 +29,10 @@ public class LdapRoleProviderValidator extends Validator<LdapRoleProvider> {
     if (l.getUrl() == null) {
       p.addProblem(Severity.ERROR, "No url specified.");
     }
-    if (StringUtils.isEmpty(l.getManagerDn())) {
+    if (StringUtils.isEmpty(l.getManagerDn()) && !StringUtils.isEmpty(l.getManagerPassword())) {
       p.addProblem(Problem.Severity.ERROR, "No manager dn specified.");
     }
-    if (StringUtils.isEmpty(l.getManagerPassword())) {
+    if (StringUtils.isEmpty(l.getManagerPassword()) && !StringUtils.isEmpty(l.getManagerDn())) {
       p.addProblem(Problem.Severity.ERROR, "No manager password specified.");
     }
   }
