@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.gate.interceptors;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.netflix.spectator.api.Id;
@@ -86,18 +87,31 @@ public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
   private final CopyOnWriteArrayList<Pattern> pathPatterns = new CopyOnWriteArrayList<>();
 
   public RequestSheddingInterceptor(DynamicConfigService configService, Registry registry) {
+    this(configService, registry, Executors.newScheduledThreadPool(1));
+  }
+
+  @VisibleForTesting
+  RequestSheddingInterceptor(DynamicConfigService configService,
+                             Registry registry,
+                             ScheduledExecutorService executorService) {
     this.configService = configService;
     this.registry = registry;
 
     this.requestsId = registry.createId("requestShedding.requests");
 
-    this.executorService = Executors.newScheduledThreadPool(1);
-    this.executorService.scheduleWithFixedDelay(this::compilePatterns, 0, 30, TimeUnit.SECONDS);
+    if (executorService != null) {
+      this.executorService = executorService;
+      this.executorService.scheduleWithFixedDelay(this::compilePatterns, 0, 30, TimeUnit.SECONDS);
+    } else {
+      this.executorService = null;
+    }
   }
 
   @PreDestroy
   protected void shutdown() {
-    this.executorService.shutdown();
+    if (this.executorService != null) {
+      this.executorService.shutdown();
+    }
   }
 
   @Override

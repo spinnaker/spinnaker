@@ -31,7 +31,7 @@ class RequestSheddingInterceptorSpec extends Specification {
   DynamicConfigService configService = Mock()
 
   @Subject
-  RequestSheddingInterceptor subject = new RequestSheddingInterceptor(configService, new NoopRegistry())
+  RequestSheddingInterceptor subject = new RequestSheddingInterceptor(configService, new NoopRegistry(), null)
 
   HttpServletRequest request = Mock()
   HttpServletResponse response = Mock()
