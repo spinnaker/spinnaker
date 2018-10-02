@@ -174,7 +174,7 @@ class SpinGcsUploader(object):
     """Reads the contents of a GCS file."""
     bucket = self.__client.get_bucket(self.__bucket)
     blob = bucket.get_blob(path)
-    return blob.read_as_string()
+    return blob.download_as_string()
 
   def write_file(self, path, contents):
     """Writes the contents to a GCS file."""
