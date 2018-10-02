@@ -21,8 +21,7 @@
     "test": "karma start",
     "tslint": "tslint --type-check --project tsconfig.json",
     "prepublishOnly": "npm run lib",
-    "lib": "node ./build_scripts/checkLicenses.js && rimraf lib && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js",
-    "precommit": "pretty-quick --staged"
+    "lib": "node ./build_scripts/checkLicenses.js && rimraf lib && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free-webfonts": "^1.0.4",

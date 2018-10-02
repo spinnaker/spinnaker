@@ -45,14 +45,25 @@ const cb = (err, licenses) => {
     if (unknownLicenses.length) {
       unknownLicenses.forEach(([pkg, properties]) => {
         if (!IGNORED.includes(pkg)) {
-          console.log(`Package ${pkg} found with license ${properties.licenses}`);
+          console.log(`Package ${pkg} found with unknown license ${properties.licenses}`);
           process.exitCode = 1;
         }
       });
     }
   }
+
+  if (process.exitCode > 0) {
+    console.log(
+      "At least one of @spinnaker/kayenta's dependencies uses an unacceptable license. " +
+        'Please remove these dependencies before committing or check with @spinnaker/google-reviewers ' +
+        'to determine if any of the licenses can be whitelisted.',
+    );
+  } else {
+    console.log("All of @spinnaker/kayenta's dependencies use acceptable licenses!");
+  }
 };
 
+console.log(`Checking @spinnaker/kayenta's dependency tree for unacceptable licenses...`);
 checker.init(
   {
     start: path.join(__dirname, '..'),

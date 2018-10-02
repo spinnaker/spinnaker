@@ -1,0 +1,5 @@
+{
+  "hooks": {
+    "pre-commit": "node ./build_scripts/checkLicenses.js && pretty-quick --staged"
+  }
+}
