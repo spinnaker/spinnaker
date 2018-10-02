@@ -109,7 +109,7 @@ class CreateWebhookTask implements RetryableTask {
         outputs.webhook << [statusEndpoint: statusUrl]
         return new TaskResult(ExecutionStatus.SUCCEEDED, outputsDeprecated + outputs)
       }
-      if (stage.context.containsKey("expectedArtifacts")) {
+      if (stage.context.containsKey("expectedArtifacts") && !((List) stage.context.get("expectedArtifacts")).isEmpty()) {
         try {
           def artifacts = new JsonContext().parse(response.body).read("artifacts")
           outputs << [artifacts: artifacts]
