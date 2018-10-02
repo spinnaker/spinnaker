@@ -41,10 +41,10 @@ class ProjectClustersServiceSpec extends Specification {
 
   @Shared
   Map projectConfig = [
-    name: "Spinnaker",
+    name  : "Spinnaker",
     config: [
       applications: ["orca", "deck"],
-      clusters: []
+      clusters    : []
     ]
   ]
 
@@ -108,24 +108,37 @@ class ProjectClustersServiceSpec extends Specification {
     clusters[0].applications[1].clusters[0].instanceCounts.up == 1
 
     1 * front50Service.getProject(_) >> { projectConfig }
-    1 * clusterProvider.getClusterDetails("orca") >> [
+    1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [new TestCluster(
         name: "orca-main",
         accountName: "prod",
-        serverGroups: [
-          makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 2L, new ServerGroup.InstanceCounts(total: 1, up: 1))
-        ]
+        serverGroups: []
       )] as Set
     ]
-    1 * clusterProvider.getClusterDetails("deck") >> [
+    1 * clusterProvider.getCluster("orca", "prod", "orca-main") >> new TestCluster(
+      name: "orca-main",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 2L, new ServerGroup.InstanceCounts(total: 1, up: 1))
+      ]
+    )
+
+    1 * clusterProvider.getClusterSummaries("deck") >> [
       prod: [new TestCluster(
         name: "deck-main",
         accountName: "prod",
-        serverGroups: [
-          makeServerGroup("prod", "deck-main-v001", "us-west-1", 31, 1L, new ServerGroup.InstanceCounts(total: 2, up: 1, down: 1))
-        ]
+        serverGroups: []
       )] as Set
     ]
+    1 * clusterProvider.getCluster("deck", "prod", "deck-main") >> new TestCluster(
+      name: "deck-main",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "deck-main-v001", "us-west-1", 31, 1L, new ServerGroup.InstanceCounts(total: 2, up: 1, down: 1))
+      ]
+    )
+
+    0 * clusterProvider._
   }
 
   void "includes all applications if none specified for a cluster"() {
@@ -142,24 +155,37 @@ class ProjectClustersServiceSpec extends Specification {
     clusters.size() == 1
     clusters[0].applications.application == ["orca", "deck"]
     1 * front50Service.getProject(_) >> { projectConfig }
-    1 * clusterProvider.getClusterDetails("orca") >> [
+    1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [new TestCluster(
         name: "orca-main",
         accountName: "prod",
-        serverGroups: [
-          makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1))
-        ]
+        serverGroups: []
       )] as Set
     ]
-    1 * clusterProvider.getClusterDetails("deck") >> [
+    1 * clusterProvider.getCluster("orca", "prod", "orca-main") >> new TestCluster(
+      name: "orca-main",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1))
+      ]
+    )
+
+    1 * clusterProvider.getClusterSummaries("deck") >> [
       prod: [new TestCluster(
         name: "deck-main",
         accountName: "prod",
-        serverGroups: [
-          makeServerGroup("prod", "deck-main-v001", "us-west-1", 31, 1L, new ServerGroup.InstanceCounts(total: 2, up: 1, down: 1))
-        ]
+        serverGroups: []
       )] as Set
     ]
+    1 * clusterProvider.getCluster("deck", "prod", "deck-main") >> new TestCluster(
+      name: "deck-main",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "deck-main-v001", "us-west-1", 31, 1L, new ServerGroup.InstanceCounts(total: 2, up: 1, down: 1))
+      ]
+    )
+
+    0 * clusterProvider._
   }
 
 
@@ -176,24 +202,37 @@ class ProjectClustersServiceSpec extends Specification {
     clusters.size() == 1
     clusters[0].applications.application == ["deck"]
     1 * front50Service.getProject(_) >> { projectConfig }
-    1 * clusterProvider.getClusterDetails("orca") >> [
+    1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [new TestCluster(
         name: "orca-main",
         accountName: "prod",
-        serverGroups: [
-          makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1))
-        ]
+        serverGroups: []
       )] as Set
     ]
-    1 * clusterProvider.getClusterDetails("deck") >> [
+    1 * clusterProvider.getCluster("orca", "prod", "orca-main") >> new TestCluster(
+      name: "orca-main",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1))
+      ]
+    )
+
+    1 * clusterProvider.getClusterSummaries("deck") >> [
       prod: [new TestCluster(
         name: "deck-main",
         accountName: "prod",
-        serverGroups: [
-          makeServerGroup("prod", "deck-main-v001", "us-west-1", 31, 1L, new ServerGroup.InstanceCounts(total: 2, up: 1, down: 1))
-        ]
+        serverGroups: []
       )] as Set
     ]
+    1 * clusterProvider.getCluster("deck", "prod", "deck-main") >> new TestCluster(
+      name: "deck-main",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "deck-main-v001", "us-west-1", 31, 1L, new ServerGroup.InstanceCounts(total: 2, up: 1, down: 1))
+      ]
+    )
+
+    0 * clusterProvider._
   }
 
   void "includes all clusters on stack wildcard"() {
@@ -215,28 +254,42 @@ class ProjectClustersServiceSpec extends Specification {
     clusters[0].instanceCounts.starting == 0
 
     1 * front50Service.getProject(_) >> { projectConfig }
-    1 * clusterProvider.getClusterDetails("orca") >> [
+    1 * clusterProvider.getClusterSummaries("deck") >> [:]
+    1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [
         new TestCluster(
           name: "orca-main",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1))
-          ]),
+          serverGroups: []
+        ),
         new TestCluster(
           name: "orca-test",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca-test-v001", "us-west-1", 3, 5L, new ServerGroup.InstanceCounts(total: 1, up: 1))
-          ]),
+          serverGroups: []
+        ),
         new TestCluster(
           name: "orca--foo",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca--foo-v001", "us-west-1", 3, 3L, new ServerGroup.InstanceCounts(total: 1, starting: 1))
-          ]),
+          serverGroups: []
+        ),
       ] as Set
     ]
+
+    1 * clusterProvider.getCluster("orca", "prod", "orca-main") >> new TestCluster(
+      name: "orca-main",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1))
+      ]
+    )
+    1 * clusterProvider.getCluster("orca", "prod", "orca-test") >> new TestCluster(
+      name: "orca-test",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "orca-test-v001", "us-west-1", 3, 5L, new ServerGroup.InstanceCounts(total: 1, up: 1))
+      ]
+    )
+    0 * clusterProvider._
   }
 
   void "excludes disabled server groups"() {
@@ -260,18 +313,25 @@ class ProjectClustersServiceSpec extends Specification {
     clusters[0].instanceCounts.up == 2
 
     1 * front50Service.getProject(_) >> { projectConfig }
-    1 * clusterProvider.getClusterDetails("orca") >> [
+    1 * clusterProvider.getClusterSummaries("deck") >> [:]
+    1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [
         new TestCluster(
           name: "orca-main",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-            makeServerGroup("prod", "orca-main-v002", "us-east-1", 4, 4L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-            disabledServerGroup
-          ]),
+          serverGroups: []),
       ] as Set
     ]
+    1 * clusterProvider.getCluster("orca", "prod", "orca-main") >> new TestCluster(
+      name: "orca-main",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "orca-main-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
+        makeServerGroup("prod", "orca-main-v002", "us-east-1", 4, 4L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
+        disabledServerGroup
+      ])
+
+    0 * clusterProvider._
   }
 
   void "includes exactly matched clusters"() {
@@ -292,34 +352,34 @@ class ProjectClustersServiceSpec extends Specification {
     clusters[0].instanceCounts.up == 1
 
     1 * front50Service.getProject(_) >> { projectConfig }
-    1 * clusterProvider.getClusterDetails("orca") >> [
+    1 * clusterProvider.getClusterSummaries("deck") >> [:]
+    1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [
         new TestCluster(
           name: "orca-main-foo",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca-main-foo-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-          ]),
+          serverGroups: []),
         new TestCluster(
           name: "orca-main-bar",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca-main-bar-v002", "us-east-1", 4, 5L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-          ]),
+          serverGroups: []),
         new TestCluster(
           name: "orca-main",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca-main-v002", "us-east-1", 4, 6L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-          ]),
+          serverGroups: []),
         new TestCluster(
           name: "orca--foo",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca--foo-v002", "us-east-1", 4, 7L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-          ]),
+          serverGroups: []),
       ] as Set
     ]
+    1 * clusterProvider.getCluster("orca", "prod", "orca-main-foo") >> new TestCluster(
+      name: "orca-main-foo",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "orca-main-foo-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
+      ])
+    0 * clusterProvider._
   }
 
   void "includes all builds per region with latest deployment date, ignoring disabled server groups"() {
@@ -333,8 +393,8 @@ class ProjectClustersServiceSpec extends Specification {
     when:
     def result = subject.getProjectClusters(allowList)
     def clusters = result["Spinnaker"]
-    def eastCluster = clusters[0].applications[0].clusters.find { it.region == "us-east-1"}
-    def westCluster = clusters[0].applications[0].clusters.find { it.region == "us-west-1"}
+    def eastCluster = clusters[0].applications[0].clusters.find { it.region == "us-east-1" }
+    def westCluster = clusters[0].applications[0].clusters.find { it.region == "us-west-1" }
 
     then:
     clusters.size() == 1
@@ -364,20 +424,24 @@ class ProjectClustersServiceSpec extends Specification {
     westCluster.instanceCounts.up == 3
 
     1 * front50Service.getProject(_) >> { projectConfig }
-    1 * clusterProvider.getClusterDetails("orca") >> [
+    1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [
         new TestCluster(
           name: "orca-main-foo",
           accountName: "prod",
-          serverGroups: [
-            makeServerGroup("prod", "orca-main-foo-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-            makeServerGroup("prod", "orca-main-foo-v003", "us-west-1", 4, 2L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-            makeServerGroup("prod", "orca-main-foo-v004", "us-west-1", 5, 3L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-            makeServerGroup("prod", "orca-main-foo-v005", "us-west-1", 5, 6L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
-            disabledServerGroup
-          ])
+          serverGroups: [])
       ] as Set
     ]
+    1 * clusterProvider.getCluster("orca", "prod", "orca-main-foo") >> new TestCluster(
+      name: "orca-main-foo",
+      accountName: "prod",
+      serverGroups: [
+        makeServerGroup("prod", "orca-main-foo-v001", "us-east-1", 3, 1L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
+        makeServerGroup("prod", "orca-main-foo-v003", "us-west-1", 4, 2L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
+        makeServerGroup("prod", "orca-main-foo-v004", "us-west-1", 5, 3L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
+        makeServerGroup("prod", "orca-main-foo-v005", "us-west-1", 5, 6L, new ServerGroup.InstanceCounts(total: 1, up: 1)),
+        disabledServerGroup
+      ])
   }
 
   private static List<ClusterModel> cachedClusters(Map<String, List<ClusterModel>> result, String projectName) {
@@ -404,7 +468,9 @@ class ProjectClustersServiceSpec extends Specification {
 
   static class TestImageSummary implements ServerGroup.ImageSummary {
     String getServerGroupName() { null }
+
     String getImageId() { null }
+
     String getImageName() { null }
 
     Map<String, Object> getImage() { null }

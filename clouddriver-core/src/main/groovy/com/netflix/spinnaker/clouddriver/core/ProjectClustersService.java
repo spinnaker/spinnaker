@@ -99,7 +99,7 @@ public class ProjectClustersService {
   public List<ClusterModel> getProjectClusters(Project project) {
     List<String> applicationsToRetrieve = Optional.ofNullable(project.config.applications)
       .orElse(Collections.emptyList());
-    Map<String, Set<Cluster>> allClusters = retrieveClusters(applicationsToRetrieve);
+    Map<String, Set<Cluster>> allClusters = retrieveClusters(applicationsToRetrieve, project);
 
     return project.config.clusters.stream()
       .map(projectCluster -> {
@@ -122,11 +122,11 @@ public class ProjectClustersService {
       .collect(Collectors.toList());
   }
 
-  private Map<String, Set<Cluster>> retrieveClusters(List<String> applications) {
+  private Map<String, Set<Cluster>> retrieveClusters(List<String> applications, Project project) {
     Map<String, Set<Cluster>> allClusters = new HashMap<>();
 
     for (String application : applications) {
-      for (RetrievedClusters clusters : retrieveClusters(application)) {
+      for (RetrievedClusters clusters : retrieveClusters(application, project)) {
         allClusters.computeIfAbsent(clusters.application, s -> new HashSet<>())
           .addAll(clusters.clusters);
       }
@@ -150,19 +150,31 @@ public class ProjectClustersService {
       .collect(Collectors.toSet());
   }
 
-  private List<RetrievedClusters> retrieveClusters(String application) {
+  private List<RetrievedClusters> retrieveClusters(String application, Project project) {
     return clusterProviders.get().stream()
       .map(clusterProvider -> {
-        Map<String, Set<Cluster>> details = clusterProvider.getClusterDetails(application);
-        if (details == null) {
+        Map<String, Set<Cluster>> clusterSummariesByAccount = clusterProvider.getClusterSummaries(application);
+        if (clusterSummariesByAccount == null) {
           return null;
         }
-        return new RetrievedClusters(
-          application,
-          details.values().stream()
-            .flatMap(Collection::stream)
-            .collect(Collectors.toSet())
-        );
+
+        Set<Cluster> allClusterSummaries = clusterSummariesByAccount
+          .values()
+          .stream()
+          .flatMap(Collection::stream)
+          .collect(Collectors.toSet());
+
+        Set<Cluster> matchingClusterSummaries = new HashSet<>();
+        for (ProjectCluster projectCluster : project.config.clusters) {
+          matchingClusterSummaries.addAll(findClustersForProject(allClusterSummaries, projectCluster));
+        }
+
+        Set<Cluster> expandedClusters = matchingClusterSummaries
+          .stream()
+          .map(c -> clusterProvider.getCluster(c.getMoniker().getApp(), c.getAccountName(), c.getName()))
+          .collect(Collectors.toSet());
+
+        return new RetrievedClusters(application, expandedClusters);
       })
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
