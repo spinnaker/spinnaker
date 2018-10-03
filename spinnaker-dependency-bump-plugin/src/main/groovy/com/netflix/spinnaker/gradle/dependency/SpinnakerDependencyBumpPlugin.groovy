@@ -107,9 +107,9 @@ class SpinnakerDependencyBumpPlugin implements Plugin<Project> {
         grgit.commit(
             message: "chore(dependencies): Autobump spinnaker-dependencies",
             all: true)
-        grgit.remote.add(name: "userFork", url: userFork.gitUrl)
+        grgit.remote.add(name: "userFork", url: userFork.cloneUrl)
 
-        println "Pushing changes to 'auto-bump' branch of ${userFork.gitUrl}"
+        println "Pushing changes to 'auto-bump' branch of ${userFork.cloneUrl}"
         grgit.push(
             remote: "userFork",
             refsOrSpecs: ["auto-bump"],
