@@ -61,7 +61,63 @@ public class Trigger {
 
   private static final Logger log = LoggerFactory.getLogger(Trigger.class);
 
+  String id;
+  String type;
   boolean enabled;
+
+  // Configuration for git triggers
+  String project;
+  String slug;
+  String source;
+  String branch;
+
+  // Configuration for Jenkins triggers
+  String master;
+  String job;
+  String propertyFile;
+
+  // Configuration for cron triggers
+  String cronExpression;
+
+  // Configuration for pubsub triggers
+  /**
+   * Logical name given to the subscription by the user, not the locator
+   * the pub/sub system uses.
+   */
+  String subscriptionName;
+  String pubsubSystem;
+
+  // Configuration for docker triggers
+  String account;
+  String repository;
+  String tag;
+
+  // Constraints for webhook and pubsub
+  Map payloadConstraints;
+  Map attributeConstraints;
+
+  // Configuration for pipeline triggers
+  List<String> status;
+  String user;
+
+  // Artifact constraints
+  List<String> expectedArtifactIds;
+
+  /**
+   * Field to use for custom triggers involving artifacts
+   */
+  String artifactName;
+
+  /**
+   * Properties that are bound at run-time
+   */
+  Integer buildNumber;
+  String hash;
+  Map parameters;
+  Map payload;
+  String runAsUser;
+  String secret;
+  String digest;
 
   @Builder.Default
   boolean rebake = false;
@@ -69,51 +125,14 @@ public class Trigger {
   @Builder.Default
   boolean dryRun = false;
 
-  String id;
-  String type;
-  String master;
-  String job;
-  Integer buildNumber;
-  String propertyFile;
-  String cronExpression;
-  String source;
-  String project;
-  String slug;
-  String hash;
-  Map parameters;
-  String account;
-  String repository;
-  String tag;
-  String digest;
-  Map payloadConstraints;
-  Map payload;
-  Map attributeConstraints;
-  String branch;
-  String runAsUser;
-  String secret;
-  List<String> status;
-  String user;
+  List<Map<String, Object>> notifications;
 
   /**
    * Unique ID of a trigger that can be used to correlate a pipeline execution with its trigger.
    */
   String eventId;
 
-  /**
-   * Logical name given to the subscription by the user, not the locator
-   * the pub/sub system uses.
-   */
-  String subscriptionName;
-  String pubsubSystem;
-  List<String> expectedArtifactIds;
   Map<String, ?> lastSuccessfulExecution;
-
-  List<Map<String, Object>> notifications;
-
-  /**
-   * Field to use for custom triggers involving artifacts
-   */
-  String artifactName;
 
   // url to triggering event
   String link;
