@@ -42,16 +42,14 @@ yarn start
 
 ## Publishing @spinnaker/kayenta
 
-This module is published as an NPM package. The current publishing process is manual:
+This module is published as an NPM package.
 
 - Create a pull request that increments `package.json`'s patch version - e.g., to `0.0.57`.
-- Once the pull request has been merged, run `npm publish` from the root of this repo if you have the NPM permissions to do so. If you don't, ask someone from `@spinnaker/reviewers` to publish the package.
+- Once the pull request has been merged, publish a release using the same tag as `package.json`'s version, e.g., `v0.0.57`. `@spinnaker/kayenta` will be automatically published to NPM.
 
 Once `@spinnaker/kayenta` has been published, it's likely that
 you'll want to update the main Deck repository: to do so, run `yarn add @spinnaker/kayenta@latest`
 in the main Deck repository, then open a pull request.
-
-If you'd like to automate this process, we'd appreciate it.
 
 ## Testing
 
