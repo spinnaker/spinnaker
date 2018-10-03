@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.docker
 
 import com.netflix.discovery.DiscoveryClient
+import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.model.GenericArtifact
@@ -33,6 +34,8 @@ import com.netflix.spinnaker.igor.polling.PollingDelta
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+
+import java.util.concurrent.TimeUnit
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 
@@ -95,12 +98,13 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         String account = ctx.context.name
         Boolean trackDigests = ctx.context.trackDigests ?: false
 
-        log.debug("Checking new tags for {}", account)
+        log.trace("Checking new tags for {}", account)
         Set<String> cachedImages = cache.getImages(account)
 
         long startTime = System.currentTimeMillis()
         List<TaggedImage> images = dockerRegistryAccounts.service.getImagesByAccount(account)
-        log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: {})", kv("account", account))
+        registry.timer("pollingMonitor.docker.retrieveImagesByAccount", [new BasicTag("account", account)])
+            .record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)
 
         List<ImageDelta> delta = []
         images.findAll { it != null }.forEach { TaggedImage image ->

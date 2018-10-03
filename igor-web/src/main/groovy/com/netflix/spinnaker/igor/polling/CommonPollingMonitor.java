@@ -51,6 +51,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     private final Id itemsCachedId;
     private final Id itemsOverThresholdId;
     private final Id pollCycleFailedId;
+    private final Id pollCycleTimingId;
     protected final Id missedNotificationId;
 
     private final Optional<LockService> lockService;
@@ -77,6 +78,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
         itemsOverThresholdId = registry.createId("pollingMonitor.itemsOverThreshold");
         pollCycleFailedId = registry.createId("pollingMonitor.failed");
         missedNotificationId = registry.createId("pollingMonitor.missedEchoNotification");
+        pollCycleTimingId = registry.createId("pollingMonitor.pollTiming");
     }
 
     @Override
@@ -84,13 +86,15 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
         log.info("Started");
         initialize();
         worker.schedulePeriodically(() -> {
-            if (isInService()) {
-                poll(true);
-                lastPoll.set(System.currentTimeMillis());
-            } else {
-                log.info("not in service (lastPoll: {})", (lastPoll == null) ? "n/a" : lastPoll.toString());
-                lastPoll.set(0);
-            }
+            registry.timer(pollCycleTimingId.withTag("monitor", getClass().getSimpleName())).record(() -> {
+                if (isInService()) {
+                    poll(true);
+                    lastPoll.set(System.currentTimeMillis());
+                } else {
+                    log.info("not in service (lastPoll: {})", (lastPoll == null) ? "n/a" : lastPoll.toString());
+                    lastPoll.set(0);
+                }
+            });
         }, 0, getPollInterval(), TimeUnit.SECONDS);
     }
 
