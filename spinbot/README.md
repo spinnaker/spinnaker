@@ -45,8 +45,8 @@ event:
 # optional
 database:
   influx:
-    host: localhost
-    port: 9086
+    host: monitoring
+    port: 8086
 ```
 
 Certain properties are exposed using command-line flags, such as
