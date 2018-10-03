@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.mapping;
@@ -324,6 +325,11 @@ public class RegionScopedTitusClient implements TitusClient {
 
     List<com.netflix.titus.grpc.protogen.Task> grpcTasks = getTasksWithFilter(taskQueryBuilder, 10000);
     return grpcTasks.stream().collect(Collectors.groupingBy(com.netflix.titus.grpc.protogen.Task::getJobId, mapping(com.netflix.titus.grpc.protogen.Task::getId, toList())));
+  }
+
+  @Override
+  public Iterator<JobChangeNotification> observeJobs() {
+    return grpcBlockingStub.observeJobs(Empty.newBuilder().build());
   }
 
   private Map<String, List<com.netflix.titus.grpc.protogen.Task>> getTasks(List<String> jobIds, boolean includeDoneJobs) {

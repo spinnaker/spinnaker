@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusClusterCachingAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusInstanceCachingAgent
+import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusStreamingUpdateAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusV2ClusterCachingAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.CachingSchemaUtil
@@ -73,6 +74,15 @@ class TitusCachingProviderConfig {
             pollIntervalMillis,
             timeoutMillis
           )
+        } else if (region.featureFlags.contains("streaming")) {
+          agents << new TitusStreamingUpdateAgent(
+            titusClientProvider,
+            account,
+            region,
+            objectMapper,
+            registry,
+            awsLookupUtilProvider
+          )
         } else { //use new split caching for this whole account
           agents << new TitusInstanceCachingAgent(
             titusClientProvider,
@@ -105,4 +115,5 @@ class TitusCachingProviderConfig {
     objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
     objectMapper
   }
+
 }
