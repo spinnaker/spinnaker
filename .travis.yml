@@ -12,3 +12,12 @@ script: travis/buildViaTravis.sh
 cache:
   directories:
   - node_modules
+deploy:
+  provider: npm
+  email: spinnakerteam@netflix.com
+  api_key:
+    secure: U2EESGo54esjxpWjFRVU3sIkecgAL//atr1IN5ZNW6QYnkk3BmhQ+DAMPBl5vxyAA0jAE/S2zw91O3GrDzpgyg9sM7yKs3Wc+/SBcojFF7yOv7p0yK62MMZyl1yCOBI6k0QBBvoM/fjVaC4oAWRXcuBUHv4EEPhEM+E0gZxez0iqBocqBsdXOmTFbVHxBSjeeFBOtgBdwtP1EFkZ0wU46U4dNNTnAiLJsEdJLV6AFYo2ipD2JXcF3hH4hBUDRisrG2F0wOcVFtFgxXmoYk0SzVA4ww7yzyG7yAZkiap/HuaE6YwkAxwI+1jSzA76uniksWSG+n95NkAn1BRMGGmNEpfatJnqLnAara319BIjVKRJtAkTukKWd0SMXcErROP6nphcEibxpVpMRpgpINp8eC03YGS3quxUd9qTXSIq8aBG+YhvW0XMGQDC7y0Q1DvDdjuGpKi8VMUA1pd4szmLLPmsO5cO/ljX03dqTcbaeLkQSfCTqY4gqrO+fF2GBc4qVTZCHRzXnyG1BHpdIIUMiSm3vdoudmt9zlvX9kpnmz8R0slx94OADlHXpW2pN37Z30ctSmvTxZhG1ZTTg6lJWbR/01vLUJQhMukvj+3jKGICZaqOLJIzV2S1HIvK0uWAjuPaacFCsup8WALCGXIT0jwXIMxmiHsDyhZgstfUqy4=
+  on:
+    tags: true
+    branch: master
+    repo: spinnaker/deck-kayenta
