@@ -87,7 +87,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   }
 
   default List<String> getReadinessExecCommand(ServiceSettings settings) {
-    return Arrays.asList("wget", "--spider", "-q", settings.getScheme() + "://localhost:" + settings.getPort() + settings.getHealthEndpoint());
+    return Arrays.asList("wget", "--no-check-certificate", "--spider", "-q", settings.getScheme() + "://localhost:" + settings.getPort() + settings.getHealthEndpoint());
   }
 
   default boolean hasPreStopCommand() {
