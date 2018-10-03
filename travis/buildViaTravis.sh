@@ -4,6 +4,6 @@
 echo -e "Running unit tests..."
 source ~/.nvm/nvm.sh
 NODE_JS_VERSION=`node -e 'console.log(require("./package.json").engines.node.replace(/[^\d\.]/g, ""))'`;
-nvm use $NODE_JS_VERSION
+nvm install $NODE_JS_VERSION
 
 ./node_modules/.bin/karma start --single-run
