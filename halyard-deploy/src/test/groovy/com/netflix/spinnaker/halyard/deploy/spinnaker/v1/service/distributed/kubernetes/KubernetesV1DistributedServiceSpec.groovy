@@ -33,7 +33,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v1.KubernetesV1DistributedService
 import io.fabric8.kubernetes.api.model.LocalObjectReference
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
