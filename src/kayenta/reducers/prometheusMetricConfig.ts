@@ -2,21 +2,24 @@ import { Action } from 'redux';
 import { handleActions } from 'redux-actions';
 
 import * as Actions from 'kayenta/actions';
-import { IUpdateListPayload, updateListReducer } from '../layout/list';
+import { IKayentaAction } from 'kayenta/actions/creators';
+import { IUpdateListPayload, updateListReducer } from 'kayenta/layout/list';
 import { IPrometheusCanaryMetricSetQueryConfig } from 'kayenta/metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
-import { IKayentaAction } from '../actions/creators';
+import { ICanaryMetricConfig } from 'kayenta/domain';
 
 const updateLabelBindingsReducer = updateListReducer();
 const updateGroupByReducer = updateListReducer();
 
-export const prometheusMetricConfigReducer = handleActions<IPrometheusCanaryMetricSetQueryConfig, Action & any>(
+type IPrometheusMetricConfig = ICanaryMetricConfig<IPrometheusCanaryMetricSetQueryConfig>;
+
+export const prometheusMetricConfigReducer = handleActions<IPrometheusMetricConfig, Action & any>(
   {
-    [Actions.UPDATE_PROMETHEUS_METRIC_TYPE]: (state: IPrometheusCanaryMetricSetQueryConfig, action: Action & any) => ({
+    [Actions.UPDATE_PROMETHEUS_METRIC_TYPE]: (state: ICanaryMetricConfig, action: Action & any) => ({
       ...state,
       query: { ...state.query, metricName: action.payload.metricName, type: 'prometheus' },
     }),
     [Actions.UPDATE_PROMETHEUS_LABEL_BINDINGS]: (
-      state: IPrometheusCanaryMetricSetQueryConfig,
+      state: IPrometheusMetricConfig,
       action: IKayentaAction<IUpdateListPayload>,
     ) => ({
       ...state,
@@ -26,7 +29,7 @@ export const prometheusMetricConfigReducer = handleActions<IPrometheusCanaryMetr
       },
     }),
     [Actions.UPDATE_PROMETHEUS_GROUP_BY_FIELDS]: (
-      state: IPrometheusCanaryMetricSetQueryConfig,
+      state: IPrometheusMetricConfig,
       action: IKayentaAction<IUpdateListPayload>,
     ) => ({
       ...state,

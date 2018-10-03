@@ -67,6 +67,14 @@ const helpContents: { [key: string]: string } = {
     <p>When there is no value for a metric at a given point in time, it can either be ignored or assumed to be zero. The right choice depends on what is being measured. For example, when measuring successful attempts (like health checks) replacing missing values with zero may be appropriate.</p>
     <p>The default strategy for a given metric will be used if no strategy is selected.</p>
   `,
+  // These come (almost) verbatim from Stackdriver's Metric Explorer.
+  'stackdriver.resourceType':
+    'For Stackdriver, a set of time series is identified by a <strong>resource type</strong> and a metric type that has data from that resource type.',
+  'stackdriver.metricType':
+    'For Stackdriver, a set of time series is identified by a resource type and a <strong>metric type</strong> that has data from that resource type.',
+  'stackdriver.groupBy': 'Group by resource or metric labels to reduce the number of time series.',
+  'stackdriver.crossSeriesReducer': 'Use an algorithm to group multiple time series together.',
+  'stackdriver.perSeriesAligner': 'Use an algorithm to align individual time series.',
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

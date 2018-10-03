@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ICanaryState } from '../reducers/index';
-import { ICanaryConfig } from '../domain/ICanaryConfig';
+import { ICanaryState } from 'kayenta/reducers';
+import { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
 import ConfigDetailActionButtons from './configDetailActionButtons';
-import { mapStateToConfig } from '../service/canaryConfig.service';
-import FormattedDate from '../layout/formattedDate';
+import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
+import FormattedDate from 'kayenta/layout/formattedDate';
 
 interface IConfigDetailStateProps {
   selectedConfig: ICanaryConfig;

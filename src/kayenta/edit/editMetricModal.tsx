@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as classNames from 'classnames';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get, isNull, values } from 'lodash';
@@ -173,7 +174,7 @@ function EditMetricModal({
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
   return (
-    <Modal show={true} onHide={noop} className="kayenta-edit-metric-modal">
+    <Modal bsSize="large" show={true} onHide={noop} className={classNames('kayenta-edit-metric-modal')}>
       <Styleguide>
         <Modal.Header>
           <Modal.Title>Configure Metric</Modal.Title>
@@ -270,12 +271,6 @@ function EditMetricModal({
               action={updateNanStrategy}
             />
           </FormRow>
-          <FilterTemplateSelector
-            metricStore={metric.query.type}
-            templates={templates}
-            template={filterTemplate}
-            select={selectTemplate}
-          />
           <FormRow label="Scope Name" error={get(validationErrors, 'scopeName.message', null)}>
             <DisableableInput
               type="text"
@@ -286,6 +281,12 @@ function EditMetricModal({
           </FormRow>
           <EffectSizeSummary effectSizes={effectSize} />
           <MetricConfigurerDelegator />
+          <FilterTemplateSelector
+            metricStore={metric.query.type}
+            templates={templates}
+            template={filterTemplate}
+            select={selectTemplate}
+          />
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">

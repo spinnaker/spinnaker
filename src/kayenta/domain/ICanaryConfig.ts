@@ -15,10 +15,10 @@ export interface ICanaryConfig {
   judge: ICanaryJudgeConfig;
 }
 
-export interface ICanaryMetricConfig {
+export interface ICanaryMetricConfig<T extends ICanaryMetricSetQueryConfig = any> {
   id: string;
   name: string;
-  query: ICanaryMetricSetQueryConfig;
+  query: T;
   groups: string[];
   analysisConfigurations: {
     [key: string]: any;
@@ -29,7 +29,6 @@ export interface ICanaryMetricConfig {
 }
 
 export interface ICanaryMetricSetQueryConfig {
-  [key: string]: any;
   type: string;
   serviceType: string;
   customFilter?: string;

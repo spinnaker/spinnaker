@@ -36,6 +36,7 @@ export const UPDATE_PROMETHEUS_METRIC_TYPE = 'update_prometheus_metric_type';
 export const UPDATE_PROMETHEUS_LABEL_BINDINGS = 'update_prometheus_label_bindings';
 export const UPDATE_PROMETHEUS_GROUP_BY_FIELDS = 'update_prometheus_group_by_fields';
 export const UPDATE_STACKDRIVER_METRIC_TYPE = 'update_stackdriver_metric_type';
+export const UPDATE_STACKDRIVER_METRIC_QUERY_FIELD = 'update_stackdriver_metric_query_field';
 export const UPDATE_STACKDRIVER_GROUP_BY_FIELDS = 'update_stackdriver_group_by_fields';
 export const UPDATE_JUDGES = 'update_judges';
 export const SELECT_JUDGE_NAME = 'select_judge_name';

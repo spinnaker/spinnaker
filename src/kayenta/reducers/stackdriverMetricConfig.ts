@@ -1,24 +1,21 @@
 import { Action } from 'redux';
 import { handleActions } from 'redux-actions';
+import { omit } from 'lodash';
 
 import * as Actions from 'kayenta/actions';
-import { IUpdateListPayload, updateListReducer } from '../layout/list';
+import { IKayentaAction } from 'kayenta/actions/creators';
+import { IUpdateListPayload, updateListReducer } from 'kayenta/layout/list';
 import { IStackdriverCanaryMetricSetQueryConfig } from 'kayenta/metricStore/stackdriver/domain/IStackdriverCanaryMetricSetQueryConfig';
-import { IKayentaAction } from '../actions/creators';
+import { ICanaryMetricConfig } from 'kayenta/domain';
 
 const updateGroupByReducer = updateListReducer();
 
-export const stackdriverMetricConfigReducer = handleActions<IStackdriverCanaryMetricSetQueryConfig, Action & any>(
+type IStackdriverMetricConfig = ICanaryMetricConfig<IStackdriverCanaryMetricSetQueryConfig>;
+
+export const stackdriverMetricConfigReducer = handleActions<IStackdriverMetricConfig, Action & any>(
   {
-    [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]: (
-      state: IStackdriverCanaryMetricSetQueryConfig,
-      action: Action & any,
-    ) => ({
-      ...state,
-      query: { ...state.query, metricType: action.payload.metricType, type: 'stackdriver' },
-    }),
     [Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS]: (
-      state: IStackdriverCanaryMetricSetQueryConfig,
+      state: IStackdriverMetricConfig,
       action: IKayentaAction<IUpdateListPayload>,
     ) => ({
       ...state,
@@ -27,6 +24,19 @@ export const stackdriverMetricConfigReducer = handleActions<IStackdriverCanaryMe
         groupByFields: updateGroupByReducer(state.query.groupByFields || [], action),
       },
     }),
+    [Actions.UPDATE_STACKDRIVER_METRIC_QUERY_FIELD]: (state: IStackdriverMetricConfig, action: Action & any) => {
+      if (!action.payload.value) {
+        return {
+          ...state,
+          query: omit(state.query, action.payload.field),
+        };
+      }
+
+      return {
+        ...state,
+        query: { ...state.query, [action.payload.field]: action.payload.value, type: 'stackdriver' },
+      };
+    },
   },
   null,
 );
