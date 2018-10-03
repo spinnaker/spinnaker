@@ -3128,8 +3128,8 @@ hal config deploy ha clouddriver edit [parameters]
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--redis-master-endpoint`: Set external Redis endpoint for clouddriver-rw and clouddriver-caching. clouddriver-rw and clouddriver-caching are configured to use the shared Redis, by default.
- * `--redis-slave-endpoint`: Set external Redis endpoint for clouddriver-ro. clouddriver-ro is configured to use the shared Redis, by default.
+ * `--redis-master-endpoint`: Set external Redis endpoint for clouddriver-rw and clouddriver-caching. The Redis URI schema is described here: https://www.iana.org/assignments/uri-schemes/prov/redis. clouddriver-rw and clouddriver-caching are configured to use the shared Redis, by default.
+ * `--redis-slave-endpoint`: Set external Redis endpoint for clouddriver-ro. The Redis URI schema is described here: https://www.iana.org/assignments/uri-schemes/prov/redis. clouddriver-ro is configured to use the shared Redis, by default.
 
 
 ---

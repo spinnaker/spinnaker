@@ -27,13 +27,17 @@ import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 public class ClouddriverHaServiceEditCommand extends AbstractHaServiceEditCommand<ClouddriverHaService> {
   @Parameter(
       names = "--redis-master-endpoint",
-      description = "Set external Redis endpoint for clouddriver-rw and clouddriver-caching. clouddriver-rw and clouddriver-caching are configured to use the shared Redis, by default."
+      description = "Set external Redis endpoint for clouddriver-rw and clouddriver-caching. "
+          + "The Redis URI schema is described here: https://www.iana.org/assignments/uri-schemes/prov/redis. "
+          + "clouddriver-rw and clouddriver-caching are configured to use the shared Redis, by default."
   )
   private String redisMasterEndpoint;
 
   @Parameter(
       names = "--redis-slave-endpoint",
-      description = "Set external Redis endpoint for clouddriver-ro. clouddriver-ro is configured to use the shared Redis, by default."
+      description = "Set external Redis endpoint for clouddriver-ro. "
+          + "The Redis URI schema is described here: https://www.iana.org/assignments/uri-schemes/prov/redis. "
+          + "clouddriver-ro is configured to use the shared Redis, by default."
   )
   private String redisSlaveEndpoint;
 
