@@ -21,7 +21,8 @@
     "test": "karma start",
     "tslint": "tslint --type-check --project tsconfig.json",
     "prepublishOnly": "npm run lib",
-    "lib": "rimraf lib && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
+    "lib": "rimraf lib && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js",
+    "format": "prettier --write 'src/**/*.{ts,tsx,less}'"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free-webfonts": "^1.0.4",
