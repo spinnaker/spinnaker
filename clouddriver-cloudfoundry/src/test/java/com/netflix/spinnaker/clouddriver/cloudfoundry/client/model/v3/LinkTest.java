@@ -16,17 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
-import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-@Data
-public class Link {
-  private String href;
+import static org.assertj.core.api.Assertions.assertThat;
 
-  /**
-   * If this link's last path segment is a GUID (i.e. it refers to a single resource),
-   * then this extracts that GUID.
-   */
-  public String getGuid() {
-    return href.substring(href.lastIndexOf('/') + 1);
+class LinkTest {
+  @Test
+  void getGuid() {
+    Link link = new Link();
+    link.setHref("https://api.sys.calabasas.cf-app.com/v3/spaces/72d50cd9-434e-4738-9349-cb146987b963");
+    assertThat(link.getGuid()).isEqualTo("72d50cd9-434e-4738-9349-cb146987b963");
   }
 }

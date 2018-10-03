@@ -27,5 +27,5 @@ public class Application {
   private String guid;
   private String state;
   private ZonedDateTime createdAt;
-  private Map<String, ToOneRelationship> relationships;
+  private Map<String, Link> links;
 }

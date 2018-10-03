@@ -96,7 +96,7 @@ public class Applications {
   private CloudFoundryServerGroup map(Application application) {
     CloudFoundryServerGroup.State state = CloudFoundryServerGroup.State.valueOf(application.getState());
 
-    CloudFoundrySpace space = safelyCall(() -> spaces.findById(application.getRelationships().get("space").getData().getGuid())).orElse(null);
+    CloudFoundrySpace space = safelyCall(() -> spaces.findById(application.getLinks().get("space").getGuid())).orElse(null);
     ApplicationEnv applicationEnv = safelyCall(() -> api.findApplicationEnvById(application.getGuid())).orElse(null);
     Process process = safelyCall(() -> api.findProcessById(application.getGuid())).orElse(null);
 
