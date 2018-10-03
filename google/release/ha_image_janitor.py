@@ -23,7 +23,8 @@ import sys
 import yaml
 
 from google.cloud import storage
-from spinnaker.run import check_run_quick, run_quick
+from buildtool import check_subprocess, run_subprocess
+
 
 """Provides a utility to clean up the Google Cloud VM images produced during a
  build of Spinnaker.
@@ -84,14 +85,16 @@ def __tag_images(versions_to_tag, project, account, project_images, bom_contents
     to_tag = [i for i in __derive_images_from_bom(bom_version, bom_contents_by_name) if i in project_images]
     images_to_tag.update(to_tag)
   for image in images_to_tag:
-    result = run_quick('gcloud compute images describe --project={project} --account={account} --format=json {image}'
-                       .format(project=project, account=account, image=image), echo=False)
+    return_code, stdout = run_subprocess(
+        'gcloud compute images describe'
+        ' --project={project} --account={account} --format=json {image}'
+        .format(project=project, account=account, image=image), echo=False)
     # Adding labels is idempotent, adding the same label again doesn't break anything.
-    if not result.returncode:
-      payload_str = result.stdout.strip()
+    if not return_code:
+      payload_str = stdout.strip()
       timestamp = json.loads(payload_str)['creationTimestamp']
       timestamp = timestamp[:timestamp.index('T')]
-      check_run_quick(
+      check_subprocess(
         'gcloud compute images add-labels --project={project} --account={account} --labels={key}={timestamp} {image}'
         .format(project=project, account=account, key=PUBLISHED_TAG_KEY, timestamp=timestamp, image=image))
 
@@ -105,15 +108,17 @@ def __write_image_delete_script(possible_versions_to_delete, days_before, projec
     images_to_delete.update(deletable)
   delete_script_lines = []
   for image in images_to_delete:
-    result = run_quick('gcloud compute images describe --project={project} --account={account} --format=json {image}'
-                       .format(project=project, account=account, image=image), echo=False)
+    return_code, stdout = run_subprocess(
+        'gcloud compute images describe'
+        ' --project={project} --account={account} --format=json {image}'
+        .format(project=project, account=account, image=image), echo=False)
     json_str = ''
-    if result.returncode:
+    if return_code:
       # Some BOMs may refer to service versions without HA images.
       print('Lookup for image {image} in project {project} failed, ignoring'.format(image=image, project=project))
       continue
     else:
-      json_str = result.stdout.strip()
+      json_str = stdout.strip()
     payload = json.loads(json_str)
 
     if __image_age_days(payload) > days_before:
@@ -159,8 +164,8 @@ def __delete_unused_bom_images(options):
 
   project = options.project
   service_account = options.service_account
-  image_list_str = check_run_quick('gcloud compute images list --format=json --project={project} --account={account}'
-                                   .format(project=project, account=service_account), echo=False).stdout.strip()
+  image_list_str = check_subprocess('gcloud compute images list --format=json --project={project} --account={account}'
+                                   .format(project=project, account=service_account), echo=False)
   image_list = json.loads(image_list_str)
   project_images = set([image['name'] for image in image_list])
   __tag_images(versions_to_tag, project, service_account, project_images,
