@@ -1,49 +1,50 @@
 buildscript {
     repositories {
-      jcenter()
-      maven { url "https://plugins.gradle.org/m2/" }
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
         classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:5.1.1'
     }
 }
 
-apply plugin: 'nebula.netflixoss'
-apply plugin: 'groovy'
-apply plugin: 'idea'
+allprojects {
+    repositories {
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
 
-group = 'com.netflix.spinnaker.gradle'
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+    apply plugin: 'nebula.netflixoss'
+    apply plugin: 'idea'
+}
+
 
 idea {
-  project {
-    jdkName = sourceCompatibility
-    languageLevel = targetCompatibility
-    vcs = 'Git'
-  }
-}
-
-bintray {
-  pkg {
-    userOrg = 'spinnaker'
-    repo = 'gradle'
-    labels = ['Spinnaker', 'Netflix']
-  }
-}
-
-repositories {
-  jcenter()
-  maven { url "https://plugins.gradle.org/m2/" }
+    project {
+        jdkName = '1.8'
+        languageLevel = '1.8'
+        vcs = 'Git'
+    }
 }
 
 
-dependencies {
-  compile gradleApi()
-  compile localGroovy()
-  compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:5.1.1'
-  compile 'com.netflix.nebula:gradle-ospackage-plugin:4.9.3'
-  compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.1'
-  compile 'org.yaml:snakeyaml:1.17'
-  compile 'gradle.plugin.com.github.jk1:gradle-license-report:1.2'
+subprojects {
+    apply plugin: 'groovy'
+
+    group = 'com.netflix.spinnaker.gradle'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    dependencies {
+        compile gradleApi()
+        compile localGroovy()
+    }
+
+    bintray {
+        pkg {
+            userOrg = 'spinnaker'
+            repo = 'gradle'
+            labels = ['Spinnaker', 'Netflix']
+        }
+    }
 }

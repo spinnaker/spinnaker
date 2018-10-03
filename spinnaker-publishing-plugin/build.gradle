@@ -1,0 +1,8 @@
+dependencies {
+  compile project(":spinnaker-dev-plugin")
+
+  // Seems to be an issue is 6.0.3, see
+  // https://github.com/nebula-plugins/gradle-netflixoss-project-plugin/issues/48
+  compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:6.0.2'
+  compile 'com.netflix.nebula:gradle-ospackage-plugin:4.10.0'
+}

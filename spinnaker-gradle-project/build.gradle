@@ -1,0 +1,4 @@
+dependencies {
+  compile project(":spinnaker-dev-plugin")
+  compile project(":spinnaker-publishing-plugin")
+}

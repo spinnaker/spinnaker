@@ -1,0 +1,5 @@
+dependencies {
+  compile 'org.yaml:snakeyaml:1.21'
+  compile 'gradle.plugin.com.github.jk1:gradle-license-report:1.2'
+}
+
