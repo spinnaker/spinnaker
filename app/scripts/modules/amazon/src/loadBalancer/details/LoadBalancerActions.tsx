@@ -49,9 +49,10 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
   }
 
   public editLoadBalancer = (): void => {
-    const { app, loadBalancer } = this.props;
+    const { loadBalancer } = this.props;
+    const { application } = this.state;
     const LoadBalancerModal = LoadBalancerTypes.find(t => t.type === loadBalancer.loadBalancerType).component;
-    LoadBalancerModal.show({ app, loadBalancer });
+    LoadBalancerModal.show({ app: application, loadBalancer });
   };
 
   public deleteLoadBalancer = (): void => {
