@@ -36,7 +36,7 @@ allprojects {
     group = "com.netflix.spinnaker.echo"
 
     ext {
-        spinnakerDependenciesVersion = '1.0.13'
+        spinnakerDependenciesVersion = '1.1.5'
         if (project.hasProperty('spinnakerDependenciesVersion')) {
             spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
         }
