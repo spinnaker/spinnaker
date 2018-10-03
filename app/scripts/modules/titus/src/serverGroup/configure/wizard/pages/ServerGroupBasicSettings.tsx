@@ -61,7 +61,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
     this.state = {
       ...this.getStateFromProps(props),
-      showImageIdField: props.formik.values.imageId.includes('${'),
+      showImageIdField: values.imageId && values.imageId.includes('${'),
     };
   }
 
