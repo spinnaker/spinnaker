@@ -73,7 +73,7 @@ chmod +x spin
 mv spin bin/
 
 replace() {
-  sed -i $1 manifests.yml
+  sed -i "$1" manifests.yml
 }
 
 replace 's|{%SPIN_GCS_ACCOUNT%}|'$SPIN_GCS_ACCOUNT'|g'
@@ -84,6 +84,7 @@ replace 's|{%SPIN_GCR_PUB_SUB%}|'$SPIN_GCR_PUB_SUB'|g'
 replace 's|{%PROJECT_ID%}|'$PROJECT_ID'|g'
 replace 's|{%BUCKET_URI%}|'$BUCKET_URI'|g'
 replace 's|{%BUCKET_NAME%}|'$BUCKET_NAME'|g'
+replace "s|{%SPINNAKER_VERSION%}|$SPINNAKER_VERSION|g"
 
 bold "Configuring pub/sub from $GCS_TOPIC -> $GCS_SUB..."
 

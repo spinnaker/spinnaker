@@ -30,3 +30,5 @@ export SPIN_GCS_ACCOUNT="my-gcs-account"
 
 export SPIN_GCS_PUB_SUB="my-gcs-pub-sub"
 export SPIN_GCR_PUB_SUB="my-gcr-pub-sub"
+
+export SPINNAKER_VERSION='$(hal version latest --daemon-endpoint http://spin-halyard.spinnaker:8064 -q)'

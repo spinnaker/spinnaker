@@ -30,6 +30,8 @@ gate:
   endpoint: http://localhost:8080/gate
 EOF
 
+sleep 10
+
 spin application save --file front50/demo-application.json
 spin pipeline save --file front50/deploy-to-staging-pipeline.json
 spin pipeline save --file front50/deploy-canary-pipeline.json

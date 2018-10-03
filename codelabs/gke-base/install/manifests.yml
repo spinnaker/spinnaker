@@ -307,4 +307,4 @@ spec:
         - /bin/bash
         args:
         - -c
-        - "hal config version edit --version $(hal version latest --daemon-endpoint http://spin-halyard.spinnaker:8064 -q) --daemon-endpoint http://spin-halyard.spinnaker:8064 && hal deploy apply --no-validate --daemon-endpoint http://spin-halyard.spinnaker:8064"
+        - "hal config version edit --version {%SPINNAKER_VERSION%} --daemon-endpoint http://spin-halyard.spinnaker:8064 && hal deploy apply --no-validate --daemon-endpoint http://spin-halyard.spinnaker:8064"
