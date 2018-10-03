@@ -123,11 +123,11 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
   """
   @property
   def finished(self):
-    self.__trigger_response.ok() and self.__check_executions()
+    return self.finished_ok or self.timed_out
 
   @property
   def finished_ok(self):
-    self.__trigger_response.ok() and self.__check_executions()
+    return self.__finished_ok
 
   @property
   def id(self):
@@ -139,9 +139,7 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
 
   @property
   def timed_out(self):
-    ping = datetime.datetime.utcnow()
-    diff = ping - self.__start
-    return diff > self.timeout_delta
+    return self.__is_timed_out
 
   @property
   def timeout_delta(self):
@@ -153,11 +151,22 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
 
   def __check_executions(self):
     resp = self.__trigger_response
-    executions = json.JSONDecoder().decode(resp.output) # Executions list
-    return len(executions) == 1
+    executions = len(json.JSONDecoder().decode(self.__trigger_response.output)) # len of Executions
+    return len(executions)
 
   def refresh(self):
+    if self.__finished_ok:
+      return
+
     self.__trigger_response = self.__gate_agent.get(self.__status_path)
+    self.__executions = json.JSONDecoder().decode(self.__trigger_response.output)
+    self.__finished_ok = self.__trigger_response.ok() and self.__executions
+    if self.__finished_ok:
+      return
+
+    ping = datetime.datetime.utcnow()
+    diff = ping - self.__start
+    self.__is_timed_out = diff > self.timeout_delta
 
   def __init__(self, operation, gate_agent, status_class, status_path):
     """Constructs a GcsPubsubTriggerOperationStatus object.
@@ -173,6 +182,8 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
     self.__trigger_response = self.__gate_agent.get(self.__status_path)
     self.__start = datetime.datetime.utcnow()
     self.__timeout_delta = datetime.timedelta(minutes=1)
+    self.__is_timed_out = False
+    self.__finished_ok = False
 
   def export_summary_to_json_snapshot(self, snapshot, entity):
     """Implements JsonSnapshotableEntity interface."""
