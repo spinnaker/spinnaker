@@ -65,6 +65,12 @@ class BasicSettingsImpl extends React.Component<
     });
   }
 
+  private startApplicationUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const startApplication = event.target.checked;
+    this.props.formik.values.startApplication = startApplication;
+    this.props.formik.setFieldValue('startApplication', startApplication);
+  };
+
   private accountUpdated = (account: string): void => {
     this.props.formik.values.credentials = account;
     this.props.formik.setFieldValue('credentials', account);
@@ -146,6 +152,18 @@ class BasicSettingsImpl extends React.Component<
               type="text"
               value={values.freeFormDetails}
               onChange={this.detailUpdated}
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <div className="col-md-3 sm-label-right">
+            Start on creation <HelpField id="cf.serverGroup.startApplication" />
+          </div>
+          <div className="checkbox checkbox-inline">
+            <input
+              type="checkbox"
+              checked={this.props.formik.values.startApplication}
+              onChange={this.startApplicationUpdated}
             />
           </div>
         </div>

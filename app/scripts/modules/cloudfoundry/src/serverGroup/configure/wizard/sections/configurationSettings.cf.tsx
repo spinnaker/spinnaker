@@ -40,12 +40,6 @@ function isManifestTriggerSource(
 class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroupConfigurationSettingsProps> {
   public static LABEL = 'Configuration';
 
-  private startApplicationUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const startApplication = event.target.checked;
-    this.props.formik.values.startApplication = startApplication;
-    this.props.formik.setFieldValue('startApplication', startApplication);
-  };
-
   private memoryUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
@@ -570,18 +564,6 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
     }
     return (
       <div>
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-            Start on creation <HelpField id="cf.serverGroup.startApplication" />
-          </div>
-          <div className="checkbox checkbox-inline">
-            <input
-              type="checkbox"
-              checked={this.props.formik.values.startApplication}
-              onChange={this.startApplicationUpdated}
-            />
-          </div>
-        </div>
         <div className="form-group row">
           <label className="col-md-3 sm-label-right">Source Type</label>
           <div className="col-md-7">
@@ -603,10 +585,10 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
                 <input
                   type="radio"
                   value="droplet"
-                  checked={manifest.type === 'direct'}
-                  onChange={() => this.manifestTypeUpdated('direct')}
+                  checked={manifest.type === 'artifact'}
+                  onChange={() => this.manifestTypeUpdated('artifact')}
                 />{' '}
-                Direct
+                Artifact
               </label>
             </div>
             <div className="radio radio-inline">
@@ -614,10 +596,10 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
                 <input
                   type="radio"
                   value="droplet"
-                  checked={manifest.type === 'artifact'}
-                  onChange={() => this.manifestTypeUpdated('artifact')}
+                  checked={manifest.type === 'direct'}
+                  onChange={() => this.manifestTypeUpdated('direct')}
                 />{' '}
-                Artifact
+                Form
               </label>
             </div>
           </div>
@@ -650,7 +632,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
           const regex = /^([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_.-]+)(\:[0-9]+)?([\/a-zA-Z0-9_-]+)?$/gm;
           if (route && regex.exec(route) === null) {
             errors.manifest = errors.manifest || {};
-            errors.manifest.routes = `A route did not match the expected format (host.some.domain[:9999][/some/path]`;
+            errors.manifest.routes = `A route did not match the expected format "host.some.domain[:9999][/some/path]"`;
           }
         });
       }

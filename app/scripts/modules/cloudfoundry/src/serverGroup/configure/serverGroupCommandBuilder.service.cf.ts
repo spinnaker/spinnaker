@@ -48,14 +48,9 @@ export class CloudFoundryServerGroupCommandBuilder {
         account: '',
       },
       manifest: {
-        type: 'direct',
-        memory: '1024M',
-        diskQuota: '1024M',
-        buildpack: '',
-        instances: 1,
-        routes: [],
-        env: [],
-        services: [],
+        type: 'artifact',
+        reference: '',
+        account: '',
       },
       startApplication: true,
     } as ICloudFoundryCreateServerGroupCommand);
