@@ -181,7 +181,7 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
     super(GcsPubsubTriggerOperationStatus, self).__init__(operation)
     self.__trigger_response = self.__gate_agent.get(self.__status_path)
     self.__start = datetime.datetime.utcnow()
-    self.__timeout_delta = datetime.timedelta(minutes=1)
+    self.__timeout_delta = datetime.timedelta(minutes=5)
     self.__is_timed_out = False
     self.__finished_ok = False
 
