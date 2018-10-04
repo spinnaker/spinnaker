@@ -41,7 +41,7 @@ allprojects {
   apply plugin: 'groovy'
 
   ext {
-    spinnakerDependenciesVersion = '1.1.5'
+    spinnakerDependenciesVersion = '1.2.0'
     if (project.hasProperty('spinnakerDependenciesVersion')) {
       spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
     }
