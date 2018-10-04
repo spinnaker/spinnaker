@@ -87,7 +87,7 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
     String bucketName = reference.substring(0, slash);
     String path = reference.substring(slash + 1);
 
-    int pound = reference.lastIndexOf("#");
+    int pound = path.lastIndexOf("#");
     if (pound >= 0) {
       generation = Long.valueOf(path.substring(pound + 1));
       path = path.substring(0, pound);
