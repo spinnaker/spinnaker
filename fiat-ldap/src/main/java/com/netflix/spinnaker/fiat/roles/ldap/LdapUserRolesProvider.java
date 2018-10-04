@@ -71,7 +71,7 @@ public class LdapUserRolesProvider implements UserRolesProvider {
     if (fullUserDn == null) {
       // Likely a service account
       log.debug("fullUserDn is null for {}", userId);
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     String[] params = new String[]{fullUserDn, userId};
