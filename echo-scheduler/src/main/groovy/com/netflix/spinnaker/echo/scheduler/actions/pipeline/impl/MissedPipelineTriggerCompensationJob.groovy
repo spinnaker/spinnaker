@@ -162,10 +162,12 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
   void triggerMissedExecutions(List<Pipeline> pipelines) {
     pipelines = pipelines.findAll { !it.disabled }
-    List<Trigger> triggers = getEnabledCronTriggers(pipelines)
+    List<Trigger> allEnabledCronTriggers = getEnabledCronTriggers(pipelines)
+    List<Trigger> triggers = getWithValidTimeInWindow(allEnabledCronTriggers)
     List<String> ids = getPipelineConfigIds(pipelines, triggers)
 
-    log.info("Checking ${ids.size()} pipelines with cron triggers (out of ${pipelines.size()})")
+    log.info("Checking ${ids.size()} pipelines with cron triggers in window (out of ${pipelines.size()} pipelines" +
+      " and ${allEnabledCronTriggers.size()} enabled cron triggers)")
     long startTime = System.currentTimeMillis()
     Lists.partition(ids, pipelineFetchSize).forEach { idsPartition ->
       try {
@@ -175,6 +177,10 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       }
     }
     log.info("Done searching for cron trigger misfires in ${(System.currentTimeMillis() - startTime)/1000}s")
+  }
+
+  private List<Trigger> getWithValidTimeInWindow(List<Trigger> triggers) {
+    return triggers.findAll({ trigger -> getLastValidTimeInWindow(trigger, dateContext) != null })
   }
 
   private Date getLastExecutionOrNull(List<Date> executions) {
@@ -232,6 +238,13 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       return new CronExpression(CronExpressionFuzzer.fuzz(trigger.id, trigger.cronExpression))
     }
     return new CronExpression(trigger.cronExpression)
+  }
+
+  private static Date getLastValidTimeInWindow(Trigger trigger, DateContext dateContext) {
+    return getLastValidTimeInWindow(
+      getCronExpression(trigger),
+      dateContext.triggerWindowFloor(),
+      dateContext.triggerWindowCeiling())
   }
 
   private static Date getLastValidTimeInWindow(CronExpression expr, Date from, Date to) {

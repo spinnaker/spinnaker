@@ -91,31 +91,80 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
   }
 
   def 'should no-op with no missed executions'() {
-    given:
+    given: '2 pipelines that should execute at minute 5'
     def pipelines = [
       pipelineBuilder('1').disabled(false).triggers([
-        new Trigger.TriggerBuilder().id('1').type(Trigger.Type.CRON.toString()).cronExpression('* 0/30 * * * ? *').enabled(true).build()
+        new Trigger.TriggerBuilder().id('1').type(Trigger.Type.CRON.toString()).cronExpression('* 5 * * * ? *').enabled(true).build()
       ]).build(),
       pipelineBuilder('2').disabled(false).triggers([
-        new Trigger.TriggerBuilder().id('2').type(Trigger.Type.CRON.toString()).cronExpression('* 0/30 * * * ? *').enabled(true).build()
+        new Trigger.TriggerBuilder().id('2').type(Trigger.Type.CRON.toString()).cronExpression('H 5 * * * ? *').enabled(true).build()
+      ]).build()
+    ]
+
+    and: 'a window that is scoped to minutes [0, 10]'
+    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
+      pipelineInitiator, registry, 30000L, 2000L,
+      'America/Los_Angeles', false, 900000, 20,
+      stubDateContext(0, 10))
+
+    when:
+    compensationJob.triggerMissedExecutions(pipelines)
+
+    then: 'they are both in window and queried, but have no missed execution'
+    1 * orcaService.getLatestPipelineExecutions(['1', '2'], _) >> {
+      [
+        new OrcaService.PipelineResponse(pipelineConfigId: '1', startTime: getDateOffset(5).time)
+        // pipeline 2 has _no_ execution, which is a special case that is not considered a missed execution
+      ]
+    }
+    0 * pipelineInitiator.call(_)
+    0 * _
+  }
+
+  @Unroll
+  def 'should only look up execution history for pipelines that have an eligible trigger in window [#floorOffset, #ceilingOffset]'() {
+    given:
+    def dateContext = Mock(MissedPipelineTriggerCompensationJob.DateContext)
+    dateContext.triggerWindowFloor() >> getDateOffset(floorOffset)
+    dateContext.triggerWindowCeiling() >> getDateOffset(ceilingOffset)
+    dateContext.getClock() >> Clock.system(ZoneId.of('America/Los_Angeles'))
+
+    def pipelines = [
+      pipelineBuilder('1').disabled(false).triggers([
+        new Trigger.TriggerBuilder()
+          .id('1')
+          .type(Trigger.Type.CRON.toString())
+          .cronExpression('* 10 * * * ? *')
+          .enabled(true).build()
+      ]).build(),
+      pipelineBuilder('2').disabled(false).triggers([
+        new Trigger.TriggerBuilder()
+          .id('2')
+          .type(Trigger.Type.CRON.toString())
+          .cronExpression('* 20 * * * ? *')
+          .enabled(true).build()
       ]).build()
     ]
 
     and:
     def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService,
-      pipelineInitiator, registry, 30000L, 2000L, 'America/Los_Angeles', true, 900000, 20)
+      pipelineInitiator, registry, 30000L, 2000L,
+      'America/Los_Angeles', true, 900000, 20, dateContext)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
 
     then:
-    1 * orcaService.getLatestPipelineExecutions(_, _) >> {
-      [
-        new OrcaService.PipelineResponse(pipelineConfigId: '1', startTime: getDateOffset(0).time)
-      ]
-    }
-    0 * pipelineInitiator.call(_)
-    0 * _
+    numCalls * orcaService.getLatestPipelineExecutions(queried, _)
+    0 * orcaService.getLatestPipelineExecutions(_, _) // does not have an eligible trigger in window, execution history should not be looked up
+
+    where:
+    floorOffset | ceilingOffset || numCalls || queried
+    0           | 5             || 0        || []
+    0           | 15            || 1        || ['1']
+    0           | 25            || 1        || ['1', '2']
+    15          | 25            || 1        || ['2']
+    25          | 30            || 0        || []
   }
 
   def 'should use only enabled cron triggers'() {
@@ -236,7 +285,19 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
   }
 
   Date getDateOffset(int minutesOffset) {
+    return getDateOffsetMillis(TimeUnit.MINUTES.toMillis(minutesOffset))
+  }
+
+  Date getDateOffsetMillis(long millisOffset) {
     def clock = Clock.systemDefaultZone()
-    Date.from(Instant.now(clock).truncatedTo(ChronoUnit.HOURS).plusMillis(TimeUnit.MINUTES.toMillis(minutesOffset)))
+    Date.from(Instant.now(clock).truncatedTo(ChronoUnit.HOURS).plusMillis(millisOffset))
+  }
+
+  MissedPipelineTriggerCompensationJob.DateContext stubDateContext(windowFloorOffset, windowCeilingOffset) {
+    return Stub(MissedPipelineTriggerCompensationJob.DateContext) {
+      getClock() >> Clock.system(ZoneId.of('America/Los_Angeles'))
+      triggerWindowFloor() >> getDateOffset(windowFloorOffset)
+      triggerWindowCeiling() >> getDateOffset(windowCeilingOffset)
+    }
   }
 }
