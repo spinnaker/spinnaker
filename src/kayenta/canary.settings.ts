@@ -8,6 +8,8 @@ export interface ICanarySettings {
   defaultJudge: string;
   metricStore: string;
   stagesEnabled: boolean;
+  stageName: string;
+  stageDescription: string;
   featureDisabled: boolean;
   optInAll: boolean;
   atlasWebComponentsUrl: string;

@@ -3,6 +3,7 @@ import { get, has, isEmpty, map, uniq, difference } from 'lodash';
 
 import { IPipeline, Registry } from '@spinnaker/core';
 
+import { CanarySettings } from 'kayenta/canary.settings';
 import { getCanaryConfigById } from 'kayenta/service/canaryConfig.service';
 import { IKayentaStage, KayentaAnalysisType } from 'kayenta/domain';
 import { CANARY_SCORES_CONFIG_COMPONENT } from 'kayenta/components/canaryScores.component';
@@ -78,8 +79,8 @@ module(KAYENTA_CANARY_STAGE, [
   .config(() => {
     'ngInject';
     Registry.pipeline.registerStage({
-      label: 'Canary Analysis',
-      description: 'Runs a canary task',
+      label: CanarySettings.stageName || 'Canary Analysis',
+      description: CanarySettings.stageDescription || 'Runs a canary task',
       key: 'kayentaCanary',
       templateUrl: require('./kayentaStage.html'),
       controller: 'KayentaCanaryStageCtrl',
