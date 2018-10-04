@@ -1,6 +1,13 @@
 import * as React from 'react';
 import { Modal, Button } from 'react-bootstrap';
-import { IManifest, IManifestEvent, InstanceReader } from '@spinnaker/core';
+import * as classNames from 'classnames';
+import {
+  IManifest,
+  IManifestEvent,
+  InstanceReader,
+  IInstanceConsoleOutput,
+  IInstanceMultiOutputLog,
+} from '@spinnaker/core';
 import { get, trim, bindAll } from 'lodash';
 
 // IJobManifestPodLogs is the data needed to get logs
@@ -11,8 +18,10 @@ export interface IJobManifestPodLogsProps {
 }
 
 export interface IJobManifestPodLogsState {
+  containerLogs: IInstanceMultiOutputLog[];
   showModal: boolean;
-  output: string;
+  selectedContainerLog: IInstanceMultiOutputLog;
+  errorMessage: string;
 }
 
 // JobManifestPodLogs exposes pod logs for Job type manifests in the deploy manifest stage
@@ -20,8 +29,10 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
   constructor(props: IJobManifestPodLogsProps) {
     super(props);
     this.state = {
-      output: '',
+      containerLogs: [],
+      selectedContainerLog: null,
       showModal: false,
+      errorMessage: null,
     };
     bindAll(this, ['open', 'close', 'onClick']);
   }
@@ -59,19 +70,25 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
     const { manifest } = this.props;
     const region = this.resourceRegion();
     InstanceReader.getConsoleOutput(manifest.account, region, this.podName(), 'kubernetes')
-      .then((response: any) => {
-        this.setState({ output: response.output });
+      .then((response: IInstanceConsoleOutput) => {
+        this.setState({
+          containerLogs: response.output as IInstanceMultiOutputLog[],
+          selectedContainerLog: response.output[0] as IInstanceMultiOutputLog,
+        });
         this.open();
       })
       .catch((exception: any) => {
-        this.setState({ output: exception.data.message });
+        this.setState({ errorMessage: exception.data.message });
         this.open();
       });
   }
 
-  public render() {
-    const { showModal, output } = this.state;
+  public selectLog(log: IInstanceMultiOutputLog) {
+    this.setState({ selectedContainerLog: log });
+  }
 
+  public render() {
+    const { showModal, containerLogs, errorMessage, selectedContainerLog } = this.state;
     if (this.canShow()) {
       return (
         <div>
@@ -83,7 +100,25 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
               <Modal.Title>Console Output: {this.podName()} </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              <pre>{output}</pre>
+              {containerLogs.length && (
+                <>
+                  <ul className="tabs-basic console-output-tabs">
+                    {containerLogs.map(log => (
+                      <li
+                        key={log.name}
+                        className={classNames('console-output-tab', {
+                          selected: log.name === selectedContainerLog.name,
+                        })}
+                        onClick={() => this.selectLog(log)}
+                      >
+                        {log.name}
+                      </li>
+                    ))}
+                  </ul>
+                  <pre className="body-small">{selectedContainerLog.output}</pre>
+                </>
+              )}
+              {errorMessage && <pre className="body-small">{errorMessage}</pre>}
             </Modal.Body>
             <Modal.Footer>
               <Button onClick={this.close}>Close</Button>

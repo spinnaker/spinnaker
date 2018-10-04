@@ -3,6 +3,11 @@ import { API } from 'core/api/ApiService';
 import { IInstance } from 'core/domain';
 
 export interface IInstanceConsoleOutput {
+  output: string | IInstanceMultiOutputLog[];
+}
+
+export interface IInstanceMultiOutputLog {
+  name: string;
   output: string;
 }
 
