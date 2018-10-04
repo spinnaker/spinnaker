@@ -40,25 +40,20 @@ class UpsertApplicationTask extends AbstractFront50Task {
      */
 
     def existingApplication = fetchApplication(application.name)
-    try {
-      if (existingApplication) {
-        outputs.previousState = existingApplication
-        log.info("Updating application (name: ${application.name})")
-        front50Service.update(application.name, application)
-      } else {
-        log.info("Creating application (name: ${application.name})")
-        front50Service.create(application)
-        if (application.permission?.permissions == null) {
-          application.setPermissions(Permissions.EMPTY)
-        }
+    if (existingApplication) {
+      outputs.previousState = existingApplication
+      log.info("Updating application (name: ${application.name})")
+      front50Service.update(application.name, application)
+    } else {
+      log.info("Creating application (name: ${application.name})")
+      front50Service.create(application)
+      if (application.permission?.permissions == null) {
+        application.setPermissions(Permissions.EMPTY)
       }
+    }
 
-      if (application.permission?.permissions != null) {
-        front50Service.updatePermission(application.name, application.permission)
-      }
-    } catch (RetrofitError re) {
-      log.error("Could not create or update application permission", re)
-      return new TaskResult(ExecutionStatus.TERMINAL, [:], outputs)
+    if (application.permission?.permissions != null) {
+      front50Service.updatePermission(application.name, application.permission)
     }
 
     outputs.newState = application ?: [:]
