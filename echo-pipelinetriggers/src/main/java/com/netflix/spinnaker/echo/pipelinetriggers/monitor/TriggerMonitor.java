@@ -47,12 +47,6 @@ import rx.functions.Func1;
 @Component
 @Slf4j
 public abstract class TriggerMonitor implements EchoEventListener {
-  @AllArgsConstructor
-  static class TriggerMatchParameters {
-    TriggerEvent event;
-    List<Pipeline> pipelines;
-  }
-
   protected final Action1<Pipeline> subscriber;
   protected final Registry registry;
   protected final ObjectMapper objectMapper = new ObjectMapper();
@@ -83,8 +77,7 @@ public abstract class TriggerMonitor implements EchoEventListener {
     TriggerEvent triggerEvent = convertEvent(event);
     Observable.just(triggerEvent)
       .doOnNext(this::onEchoResponse)
-      .zipWith(pipelineCache.getPipelines(), TriggerMatchParameters::new)
-      .subscribe(triggerEachMatch());
+      .subscribe(triggerEachMatchFrom(pipelineCache.getPipelinesSync()));
   }
 
   protected boolean matchesPattern(String s, String pattern) {
@@ -95,12 +88,6 @@ public abstract class TriggerMonitor implements EchoEventListener {
 
   protected void onEchoResponse(final TriggerEvent event) {
     registry.gauge("echo.events.per.poll", 1);
-  }
-
-  protected Action1<TriggerMatchParameters> triggerEachMatch() {
-    return parameters -> {
-      triggerEachMatchFrom(parameters.pipelines).call(parameters.event);
-    };
   }
 
   protected Action1<TriggerEvent> triggerEachMatchFrom(final List<Pipeline> pipelines) {

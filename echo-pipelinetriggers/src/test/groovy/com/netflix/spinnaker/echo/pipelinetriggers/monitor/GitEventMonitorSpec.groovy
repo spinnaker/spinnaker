@@ -41,7 +41,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   def "triggers pipelines for successful builds for #triggerType"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -59,7 +59,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "attaches stash trigger to the pipeline"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -79,7 +79,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "attaches bitbucket trigger to the pipeline"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -99,7 +99,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "an event can trigger multiple pipelines"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just(pipelines)
+    pipelineCache.getPipelinesSync() >> pipelines
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -122,7 +122,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -142,7 +142,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for stash"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -165,7 +165,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for bitbucket"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -188,7 +188,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled stash trigger with missing #field"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([badPipeline, goodPipeline])
+    pipelineCache.getPipelinesSync() >> [badPipeline, goodPipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -210,7 +210,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled bitbucket trigger with missing #field"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([badPipeline, goodPipeline])
+    pipelineCache.getPipelinesSync() >> [badPipeline, goodPipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -236,7 +236,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     gitEvent.content.branch = eventBranch
     def trigger = enabledStashTrigger.atBranch(triggerBranch)
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(gitEvent, Event))
@@ -262,7 +262,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     gitEvent.content.branch = eventBranch
     def trigger = enabledStashTrigger.atBranch(triggerBranch)
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(gitEvent, Event))
@@ -288,7 +288,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     def trigger = enabledGithubTrigger.atSecret(secret).atBranch("master")
 
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(gitEvent, Event))

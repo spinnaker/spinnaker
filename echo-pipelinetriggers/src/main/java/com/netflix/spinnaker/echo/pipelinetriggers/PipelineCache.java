@@ -111,6 +111,10 @@ public class PipelineCache implements MonitoredPoller {
     return pipelineSubject.take(1);
   }
 
+  public List<Pipeline> getPipelinesSync() {
+    return getPipelines().toBlocking().first();
+  }
+
   private void logRefresh(final List<Pipeline> pipelines) {
     log.info("Refreshing pipelines");
   }

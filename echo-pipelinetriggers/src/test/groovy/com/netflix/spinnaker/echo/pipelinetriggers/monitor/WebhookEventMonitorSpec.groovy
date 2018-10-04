@@ -52,7 +52,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
   def 'triggers pipelines for successful builds for webhook'() {
     given:
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -73,7 +73,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def 'attaches webhook trigger to the pipeline'() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -93,7 +93,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for webhook"() {
     given:
-    pipelineCache.getPipelines() >> Observable.just([pipeline])
+    pipelineCache.getPipelinesSync() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
