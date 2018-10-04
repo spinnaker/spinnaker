@@ -279,7 +279,8 @@ class GcsArtifactStorageConfiguratorHelper(Configurator):
 
     storage_client = GcsArtifactStorageConfiguratorHelper.__instantiate_client(options)
     if storage_client.lookup_bucket(options.artifact_gcs_bucket) is None:
-      storage_client.create_bucket(options.artifact_gcs_bucket)
+      created_bucket = storage_client.create_bucket(options.artifact_gcs_bucket)
+      logging.debug('Created bucket for Artifact storage: %s', created_bucket)
 
   @classmethod
   def teardown_environment(cls, options):
@@ -1249,7 +1250,8 @@ class GcsPubsubNotficationConfigurator(Configurator):
         options.gcs_pubsub_project, options.gcs_pubsub_subscription)
     subscriber_client.create_subscription(subscription_ref, topic_ref)
     if storage_client.lookup_bucket(options.gcs_pubsub_bucket) is None:
-      storage_client.create_bucket(options.gcs_pubsub_bucket)
+      created_bucket = storage_client.create_bucket(options.gcs_pubsub_bucket)
+      logging.debug('Created bucket for Pub/Sub artifacts: %s', created_bucket)
 
     bucket = storage_client.get_bucket(options.gcs_pubsub_bucket)
     notification = bucket.notification(
