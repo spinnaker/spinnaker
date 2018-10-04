@@ -32,6 +32,7 @@ public class DockerRegistryAccount extends Account {
   private String address;
   private String username;
   private String password;
+  private String passwordCommand;
   private String email;
   private Long cacheIntervalSeconds = 30L;
   private Long clientTimeoutMillis = 60_000L;

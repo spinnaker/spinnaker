@@ -24,23 +24,31 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 @Component
+@Slf4j
 public class DockerRegistryAccountValidator extends Validator<DockerRegistryAccount> {
   @Override
   public void validate(ConfigProblemSetBuilder p, DockerRegistryAccount n) {
     String resolvedPassword = null;
     String password = n.getPassword();
+    String passwordCommand = n.getPasswordCommand();
     String passwordFile = n.getPasswordFile();
     String username = n.getUsername();
 
     boolean passwordProvided = password != null && !password.isEmpty();
+    boolean passwordCommandProvided = passwordCommand != null && !passwordCommand.isEmpty();
     boolean passwordFileProvided = passwordFile != null && !passwordFile.isEmpty();
 
-    if (passwordProvided && passwordFileProvided) {
-      p.addProblem(Severity.ERROR, "You have provided both a password and a password file for your docker registry. You can specify at most one.");
+    if (passwordProvided && passwordFileProvided || passwordCommandProvided && passwordProvided || passwordCommandProvided && passwordFileProvided) {
+      p.addProblem(Severity.ERROR, "You have provided more than one of password, password command, or password file for your docker registry. You can specify at most one.");
       return;
     }
 
@@ -54,6 +62,30 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
 
       if (resolvedPassword.isEmpty()) {
         p.addProblem(Severity.WARNING, "The supplied password file is empty.");
+      }
+    } else if (passwordCommandProvided) {
+      try {
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", passwordCommand);
+        Process process = pb.start();
+        int errCode = process.waitFor();
+        log.debug("Full command is" + pb.command());
+
+        if (errCode != 0) {
+          String err = IOUtils.toString(process.getErrorStream());
+          log.error("Password command returned a non 0 return code, stderr/stdout was:" + err);
+          p.addProblem(Severity.WARNING, String.format("Password command returned non 0 return code, stderr/stdout was:" + err));
+        }
+
+        resolvedPassword = IOUtils.toString(process.getInputStream()).trim();
+
+        if (resolvedPassword.length() != 0) {
+          log.debug("resolvedPassword is" + resolvedPassword);
+        } else {
+          p.addProblem(Severity.WARNING, String.format("Resolved Password was empty, missing dependencies for running password command?"));
+        }
+
+      } catch(Exception e) {
+        p.addProblem(Severity.WARNING, String.format("Exception encountered when running password command: %s", e));
       }
     } else {
       resolvedPassword = "";
@@ -76,6 +108,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
           .address(n.getAddress())
           .email(n.getEmail())
           .password(n.getPassword())
+          .passwordCommand(n.getPasswordCommand())
           .passwordFile(n.getPasswordFile())
           .dockerconfigFile(n.getDockerconfigFile())
           .username(n.getUsername())

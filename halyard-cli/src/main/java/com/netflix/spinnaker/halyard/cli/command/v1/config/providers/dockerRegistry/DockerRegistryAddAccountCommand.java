@@ -53,6 +53,12 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
   private String password;
 
   @Parameter(
+      names = "--password-command",
+      description = DockerRegistryCommandProperties.PASSWORD_COMMAND_DESCRIPTION
+  )
+  private String passwordCommand;
+
+  @Parameter(
       names = "--password-file",
       converter = LocalFileConverter.class,
       description = DockerRegistryCommandProperties.PASSWORD_FILE_DESCRIPTION
@@ -123,6 +129,7 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
     account.setAddress(address)
         .setRepositories(repositories)
         .setPassword(password)
+        .setPasswordCommand(passwordCommand)
         .setPasswordFile(passwordFile)
         .setUsername(username)
         .setEmail(email)

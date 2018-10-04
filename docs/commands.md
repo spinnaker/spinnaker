@@ -4756,6 +4756,7 @@ hal config provider docker-registry account add ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--paginate-size`: (*Default*: `100`) Paginate size for the docker repository _catalog endpoint.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
+ * `--password-command`: Command to retrieve docker token/password, commands must be available in environment
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
@@ -4816,6 +4817,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--paginate-size`: Paginate size for the docker repository _catalog endpoint.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
+ * `--password-command`: Command to retrieve docker token/password, commands must be available in environment
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.

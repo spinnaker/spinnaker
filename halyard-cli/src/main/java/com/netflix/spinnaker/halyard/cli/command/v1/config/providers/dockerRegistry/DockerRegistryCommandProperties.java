@@ -32,6 +32,8 @@ class DockerRegistryCommandProperties {
 
   static final String PASSWORD_DESCRIPTION = "Your docker registry password";
 
+  static final String PASSWORD_COMMAND_DESCRIPTION = "Command to retrieve docker token/password, commands must be available in environment";
+
   static final String PASSWORD_FILE_DESCRIPTION =
       "The path to a file containing your docker password in plaintext "
           + "(not a docker/config.json file)";

@@ -64,6 +64,12 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
   private String password;
 
   @Parameter(
+      names = "--password-command",
+      description = DockerRegistryCommandProperties.PASSWORD_COMMAND_DESCRIPTION
+  )
+  private String passwordCommand;
+
+  @Parameter(
       names = "--password-file",
       converter = LocalFileConverter.class,
       description = DockerRegistryCommandProperties.PASSWORD_FILE_DESCRIPTION
@@ -140,15 +146,22 @@ public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand
 
     boolean passwordSet = isSet(password);
     boolean passwordFileSet = isSet(passwordFile);
+    boolean passwordCommandSet = isSet(passwordCommand);
 
-    if (passwordSet && passwordFileSet) {
-      throw new IllegalArgumentException("Set either --password or --password-file");
+    if (passwordSet && passwordFileSet || passwordSet && passwordCommandSet || passwordCommandSet && passwordFileSet)  {
+      throw new IllegalArgumentException("Set either --password or --password-command or --password-file");
     } else if (passwordSet) {
       account.setPassword(password);
+      account.setPasswordCommand(null);
       account.setPasswordFile(null);
     } else if (passwordFileSet) {
       account.setPassword(null);
+      account.setPasswordCommand(null);
       account.setPasswordFile(passwordFile);
+    } else if (passwordCommandSet) {
+      account.setPassword(null);
+      account.setPasswordCommand(passwordCommand);
+      account.setPasswordFile(null);
     }
 
     account.setUsername(isSet(username) ? username : account.getUsername());
