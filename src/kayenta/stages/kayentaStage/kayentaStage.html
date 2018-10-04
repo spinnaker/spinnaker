@@ -208,11 +208,33 @@
 
       <stage-config-field label="Baseline Location"
                           help-key="pipeline.config.canary.baselineLocation">
+        <select
+          required
+          class="form-control input-sm"
+          ng-if="kayentaCanaryStageCtrl.getLocationChoices().hasChoices"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlLocation"
+          ng-options="location for location in kayentaCanaryStageCtrl.getLocationChoices().combinedLocations.control">
+        </select>
         <input
           class="form-control input-sm"
+          ng-if="!kayentaCanaryStageCtrl.getLocationChoices().hasChoices"
           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlLocation"
           required
           type="text"/>
+        <div class="pull-right" ng-if="kayentaCanaryStageCtrl.getLocationChoices().hasChoices">
+          <button
+            ng-click="kayentaCanaryStageCtrl.toggleAllLocations('control')"
+            ng-if="!kayentaCanaryStageCtrl.state.showAllLocations.control && kayentaCanaryStageCtrl.getLocationChoices().locations.length > 0"
+            class="link">
+            Show all locations
+          </button>
+          <button
+            ng-click="kayentaCanaryStageCtrl.toggleAllLocations('control')"
+            ng-if="kayentaCanaryStageCtrl.state.showAllLocations.control && kayentaCanaryStageCtrl.getLocationChoices().recommendedLocations.length > 0"
+            class="link">
+            Only show recommended locations
+          </button>
+        </div>
       </stage-config-field>
 
       <stage-config-field label="Canary"
@@ -226,11 +248,33 @@
 
       <stage-config-field label="Canary Location"
                           help-key="pipeline.config.canary.canaryLocation">
+        <select
+          required
+          class="form-control input-sm"
+          ng-if="kayentaCanaryStageCtrl.getLocationChoices().hasChoices"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentLocation"
+          ng-options="location for location in kayentaCanaryStageCtrl.getLocationChoices().combinedLocations.experiment">
+        </select>
         <input
           class="form-control input-sm"
+          ng-if="!kayentaCanaryStageCtrl.getLocationChoices().hasChoices"
           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentLocation"
           required
           type="text"/>
+        <div class="pull-right" ng-if="kayentaCanaryStageCtrl.getLocationChoices().hasChoices">
+          <button
+            ng-click="kayentaCanaryStageCtrl.toggleAllLocations('experiment')"
+            ng-if="!kayentaCanaryStageCtrl.state.showAllLocations.experiment && kayentaCanaryStageCtrl.getLocationChoices().locations.length > 0"
+            class="link">
+            Show all locations
+          </button>
+          <button
+            ng-click="kayentaCanaryStageCtrl.toggleAllLocations('experiment')"
+            ng-if="kayentaCanaryStageCtrl.state.showAllLocations.experiment && kayentaCanaryStageCtrl.getLocationChoices().recommendedLocations.length > 0"
+            class="link">
+            Only show recommended locations
+          </button>
+        </div>
       </stage-config-field>
     </for-analysis-type>
 
@@ -288,6 +332,16 @@
 
   <kayenta-stage-config-section title="Metric Scope">
 
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTimeAutomatic">
+      <stage-config-field label="Dataset" ng-if="kayentaCanaryStageCtrl.metricStore === 'atlas'">
+        <input
+          type="checkbox"
+          ng-model="kayentaCanaryStageCtrl.state.useAtlasGlobalDataset"
+          ng-click="kayentaCanaryStageCtrl.handleAtlasDatasetChange($event)" />
+        Use Global Atlas Dataset
+      </stage-config-field>
+    </for-analysis-type>
+
     <stage-config-field label="Resource Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'prometheus'">
       <select
         class="form-control input-sm"
@@ -307,7 +361,8 @@
     <stage-config-field label="Extended Params"
                         help-key="pipeline.config.canary.extendedScopeParams">
       <map-editor
-        hidden-keys="['resourceType']"
+        hidden-keys="['resourceType', 'dataset', 'type', 'environment']"
+        on-change="kayentaCanaryStageCtrl.handleExtendedScopeParamsChange()"
         model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams">
       </map-editor>
     </stage-config-field>
@@ -328,10 +383,11 @@
                            unhealthy-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.marginal"></kayenta-canary-scores>
   </kayenta-stage-config-section>
 
-  <kayenta-stage-config-section title="Advanced Settings">
+  <kayenta-stage-config-section title="Advanced Settings" ng-if="kayentaCanaryStageCtrl.state.showAdvancedSettings">
 
     <stage-config-field label="Metrics Account"
-                        help-key="pipeline.config.metricsAccount">
+                        help-key="pipeline.config.metricsAccount"
+                        ng-if="kayentaCanaryStageCtrl.kayentaAccounts.get('METRICS_STORE').length > 1">
       <select
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.metricsAccountName"
@@ -340,7 +396,8 @@
       </select>
     </stage-config-field>
     <stage-config-field label="Storage Account"
-                        help-key="pipeline.config.storageAccount">
+                        help-key="pipeline.config.storageAccount"
+                        ng-if="kayentaCanaryStageCtrl.kayentaAccounts.get('OBJECT_STORE').length > 1">
       <select
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.storageAccountName"
@@ -349,7 +406,7 @@
       </select>
     </stage-config-field>
 
-    <stage-config-field label="Scope Name">
+    <stage-config-field label="Scope Name" ng-if="kayentaCanaryStageCtrl.scopeNames.length > 1">
       <ui-select required
                  ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].scopeName"
                  class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"

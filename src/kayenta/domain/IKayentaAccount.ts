@@ -3,6 +3,8 @@ export interface IKayentaAccount {
   type: string;
   supportedTypes: KayentaAccountType[];
   metricsStoreType?: string;
+  locations?: string[];
+  recommendedLocations?: string[];
 }
 
 export enum KayentaAccountType {
