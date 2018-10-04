@@ -35,7 +35,7 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.I
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.LOAD_BALANCERS
 
 @Component
-class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance.View> {
+class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance.View, String> {
   final String cloudProvider = OpenstackCloudProvider.ID
   final Cache cacheView
   final AccountCredentialsProvider accountCredentialsProvider

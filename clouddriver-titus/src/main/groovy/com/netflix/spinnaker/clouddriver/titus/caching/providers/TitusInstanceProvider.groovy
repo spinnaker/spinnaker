@@ -40,7 +40,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS
 
 @Component
-class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
+class TitusInstanceProvider implements InstanceProvider<TitusInstance, String> {
   final String cloudProvider = TitusCloudProvider.ID
   private final Cache cacheView
   private final ObjectMapper objectMapper

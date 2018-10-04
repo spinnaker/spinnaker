@@ -32,7 +32,7 @@ import static com.netflix.spinnaker.clouddriver.appengine.cache.Keys.Namespace.L
 import static com.netflix.spinnaker.clouddriver.appengine.cache.Keys.Namespace.SERVER_GROUPS
 
 @Component
-class AppengineInstanceProvider implements InstanceProvider<AppengineInstance> {
+class AppengineInstanceProvider implements InstanceProvider<AppengineInstance, String> {
   @Autowired
   Cache cacheView
 

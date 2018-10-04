@@ -35,7 +35,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
 
 @Component
-class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {
+class AmazonInstanceProvider implements InstanceProvider<AmazonInstance, String> {
 
   final String cloudProvider = AmazonCloudProvider.ID
   private final Cache cacheView

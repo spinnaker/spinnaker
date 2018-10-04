@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.model.ContainerLog;
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
@@ -38,11 +39,13 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Component
 @Slf4j
-public class KubernetesV2InstanceProvider implements InstanceProvider<KubernetesV2Instance> {
+public class KubernetesV2InstanceProvider implements InstanceProvider<KubernetesV2Instance, List<ContainerLog>> {
   private final KubernetesCacheUtils cacheUtils;
   private final KubernetesSpinnakerKindMap kindMap;
   private final AccountCredentialsRepository accountCredentialsRepository;
@@ -88,7 +91,7 @@ public class KubernetesV2InstanceProvider implements InstanceProvider<Kubernetes
   }
 
   @Override
-  public String getConsoleOutput(String account, String location, String fullName) {
+  public List<ContainerLog> getConsoleOutput(String account, String location, String fullName) {
     KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials;
     try {
       credentials = (KubernetesNamedAccountCredentials) accountCredentialsRepository.getOne(account);
@@ -115,20 +118,21 @@ public class KubernetesV2InstanceProvider implements InstanceProvider<Kubernetes
         V1Pod.class
     );
 
-    StringBuilder result = new StringBuilder();
+    List<ContainerLog> result = new ArrayList();
 
     // Make live calls rather than abuse the cache for storing all logs
     for (V1Container container : pod.getSpec().getContainers()) {
-      result.append("====== " + container.getName() + " ======\n\n");
+      ContainerLog log = new ContainerLog();
+      log.setName(container.getName());
       try {
-        result.append(credentials.getCredentials().logs(location, name, container.getName()));
+        log.setOutput(credentials.getCredentials().logs(location, name, container.getName()));
       } catch (KubectlJobExecutor.KubectlException e) {
         // Typically happens if the container/pod isn't running yet
-        result.append(e.getMessage());
+        log.setOutput(e.getMessage());
       }
-      result.append("\n\n");
+      result.add(log);
     }
 
-    return result.toString();
+    return result;
   }
 }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.model
 
-interface InstanceProvider<T extends Instance> {
+interface InstanceProvider<T extends Instance, S> {
 
   /**
    * Returns the platform the instance provider
@@ -26,5 +26,5 @@ interface InstanceProvider<T extends Instance> {
 
   T getInstance(String account, String region, String id)
 
-  String getConsoleOutput(String account, String region, String id)
+  S getConsoleOutput(String account, String region, String id)
 }

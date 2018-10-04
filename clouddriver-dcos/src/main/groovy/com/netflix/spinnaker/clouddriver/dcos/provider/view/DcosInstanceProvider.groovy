@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class DcosInstanceProvider implements InstanceProvider<DcosInstance> {
+class DcosInstanceProvider implements InstanceProvider<DcosInstance, String> {
   private final Cache cacheView
   private final ObjectMapper objectMapper
 

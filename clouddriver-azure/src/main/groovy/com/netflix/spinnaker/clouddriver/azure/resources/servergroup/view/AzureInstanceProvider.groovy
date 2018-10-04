@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class AzureInstanceProvider implements InstanceProvider<AzureInstance> {
+class AzureInstanceProvider implements InstanceProvider<AzureInstance, String> {
   final String cloudProvider = AzureCloudProvider.ID
   private final AzureCloudProvider azureCloudProvider
   private final Cache cacheView

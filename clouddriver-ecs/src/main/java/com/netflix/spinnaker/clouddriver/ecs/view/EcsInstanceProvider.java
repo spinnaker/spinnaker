@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class EcsInstanceProvider implements InstanceProvider<EcsTask> {
+public class EcsInstanceProvider implements InstanceProvider<EcsTask, String> {
 
   private final TaskCacheClient taskCacheClient;
   private final ContainerInstanceCacheClient containerInstanceCacheClient;

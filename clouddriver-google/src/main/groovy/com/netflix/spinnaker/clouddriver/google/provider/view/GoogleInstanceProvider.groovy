@@ -39,7 +39,7 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Component
 @Slf4j
-class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View>, GoogleExecutorTraits {
+class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View, String>, GoogleExecutorTraits {
 
   @Autowired
   final Cache cacheView

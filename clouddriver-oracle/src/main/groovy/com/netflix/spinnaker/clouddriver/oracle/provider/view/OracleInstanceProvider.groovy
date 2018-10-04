@@ -28,7 +28,7 @@ import static com.netflix.spinnaker.clouddriver.oracle.cache.Keys.Namespace.INST
 
 @Slf4j
 @Component
-class OracleInstanceProvider implements InstanceProvider<OracleInstance> {
+class OracleInstanceProvider implements InstanceProvider<OracleInstance, String> {
 
   private final Cache cacheView
   final ObjectMapper objectMapper

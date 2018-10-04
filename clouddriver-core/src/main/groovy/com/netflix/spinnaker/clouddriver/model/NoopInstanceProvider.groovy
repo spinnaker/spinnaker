@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.model
 
-class NoopInstanceProvider implements InstanceProvider<Instance> {
+class NoopInstanceProvider implements InstanceProvider<Instance, String> {
 
   final String cloudProvider = "none"
 

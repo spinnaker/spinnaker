@@ -60,7 +60,7 @@ class InstanceController {
                        @PathVariable String region,
                        @PathVariable String id) {
     String providerParam = cloudProvider ?: provider
-    Collection<String> outputs = instanceProviders.findResults {
+    Collection outputs = instanceProviders.findResults {
       if (!providerParam || it.cloudProvider == providerParam) {
         return it.getConsoleOutput(account, region, id)
       }
