@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -54,7 +55,23 @@ class V2CanaryController {
     v2CanaryService.listJudges()
   }
 
-  // TODO: Add endpoint for initiating a canary run.
+  @ApiOperation(value = 'Start a canary execution')
+  @RequestMapping(value = '/canary/{canaryConfigId:.+}', method = RequestMethod.POST)
+  Map initiateCanary(@PathVariable String canaryConfigId,
+                     @RequestBody Map executionRequest,
+                     @RequestParam(value = 'application', required = false) String application,
+                     @RequestParam(value = 'parentPipelineExecutionId', required = false) String parentPipelineExecutionId,
+                     @RequestParam(value = 'metricsAccountName', required = false) String metricsAccountName,
+                     @RequestParam(value = 'storageAccountName', required = false) String storageAccountName,
+                     @RequestParam(value = 'configurationAccountName', required = false) String configurationAccountName) {
+    v2CanaryService.initiateCanary(canaryConfigId,
+                                   executionRequest,
+                                   application,
+                                   parentPipelineExecutionId,
+                                   metricsAccountName,
+                                   storageAccountName,
+                                   configurationAccountName)
+  }
 
   @ApiOperation(value = 'Retrieve a canary result')
   @RequestMapping(value = '/canary/{canaryConfigId}/{canaryExecutionId}', method = RequestMethod.GET)

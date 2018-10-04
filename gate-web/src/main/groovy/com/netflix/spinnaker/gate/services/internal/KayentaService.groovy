@@ -51,6 +51,15 @@ interface KayentaService {
   @GET("/judges")
   List listJudges()
 
+  @POST("/canary/{canaryConfigId}")
+  Map initiateCanary(@Path("canaryConfigId") String canaryConfigId,
+                     @Body Map executionRequest,
+                     @Query("application") String application,
+                     @Query("parentPipelineExecutionId") String parentPipelineExecutionId,
+                     @Query("metricsAccountName") String metricsAccountName,
+                     @Query("storageAccountName") String storageAccountName,
+                     @Query("configurationAccountName") String configurationAccountName)
+
   @GET("/canary/{canaryExecutionId}")
   Map getCanaryResult(@Path("canaryExecutionId") String canaryExecutionId,
                       @Query("storageAccountName") String storageAccountName)
