@@ -34,7 +34,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import rx.functions.Action1;
-import rx.functions.Func1;
 
 /**
  * Triggers pipelines in _Orca_ when a user manually starts a pipeline.
@@ -61,19 +60,18 @@ public class ManualEventMonitor extends TriggerMonitor {
     super(pipelineCache, subscriber, registry);
   }
 
-  protected Func1<Pipeline, Optional<Pipeline>> withMatchingTrigger(final TriggerEvent event) {
-    return pipeline -> {
-      if (pipeline.isDisabled()) {
-        return Optional.empty();
-      } else {
-        ManualEvent manualEvent = (ManualEvent) event;
-        Trigger trigger = manualEvent.getContent().getTrigger();
-        return Stream.of(trigger)
-          .filter(matchTriggerFor(event, pipeline))
-          .findFirst()
-          .map(buildTrigger(pipeline, event));
-      }
-    };
+  @Override
+  protected Optional<Pipeline> withMatchingTrigger(final TriggerEvent event, Pipeline pipeline) {
+    if (pipeline.isDisabled()) {
+      return Optional.empty();
+    } else {
+      ManualEvent manualEvent = (ManualEvent) event;
+      Trigger trigger = manualEvent.getContent().getTrigger();
+      return Stream.of(trigger)
+        .filter(matchTriggerFor(event, pipeline))
+        .findFirst()
+        .map(buildTrigger(pipeline, event));
+    }
   }
 
   @Override

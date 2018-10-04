@@ -33,13 +33,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import rx.Observable;
 import rx.functions.Action1;
-import rx.functions.Func1;
 
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
@@ -73,11 +70,9 @@ public abstract class TriggerMonitor implements EchoEventListener {
     if (!handleEventType(event.getDetails().getType())) {
       return;
     }
-
     TriggerEvent triggerEvent = convertEvent(event);
-    Observable.just(triggerEvent)
-      .doOnNext(this::onEchoResponse)
-      .subscribe(triggerEachMatchFrom(pipelineCache.getPipelinesSync()));
+    onEchoResponse(triggerEvent);
+    triggerMatchingPipelines(triggerEvent, pipelineCache.getPipelinesSync());
   }
 
   protected boolean matchesPattern(String s, String pattern) {
@@ -90,35 +85,36 @@ public abstract class TriggerMonitor implements EchoEventListener {
     registry.gauge("echo.events.per.poll", 1);
   }
 
-  protected Action1<TriggerEvent> triggerEachMatchFrom(final List<Pipeline> pipelines) {
-    return event -> {
-      if (isSuccessfulTriggerEvent(event)) {
-        Observable.from(pipelines)
-          .doOnCompleted(() -> onEventProcessed(event))
-          .map(withMatchingTrigger(event))
-          .filter(Optional::isPresent)
-          .map(Optional::get)
-          .doOnNext(this::onMatchingPipeline)
-          .subscribe(subscriber, this::onSubscriberError);
-      } else {
-        onEventProcessed(event);
-      }
-    };
+  protected void triggerMatchingPipelines(final TriggerEvent event, List<Pipeline> pipelines) {
+    onEventProcessed(event);
+    if (isSuccessfulTriggerEvent(event)) {
+      pipelines.stream()
+        .map(p -> withMatchingTrigger(event, p))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .forEach(p -> {
+          onMatchingPipeline(p);
+          subscriber.call(p);
+        });
+    }
   }
 
-  protected Func1<Pipeline, Optional<Pipeline>> withMatchingTrigger(final TriggerEvent event) {
-    return pipeline -> {
-      if (pipeline.getTriggers() == null || pipeline.isDisabled()) {
-        return Optional.empty();
-      } else {
+  protected Optional<Pipeline> withMatchingTrigger(final TriggerEvent event, Pipeline pipeline) {
+    if (pipeline.getTriggers() == null || pipeline.isDisabled()) {
+      return Optional.empty();
+    } else {
+      try {
         return pipeline.getTriggers()
           .stream()
           .filter(this::isValidTrigger)
           .filter(matchTriggerFor(event, pipeline))
           .findFirst()
           .map(buildTrigger(pipeline, event));
+      } catch (Exception e) {
+        onSubscriberError(e);
+        return Optional.empty();
       }
-    };
+    }
   }
 
   protected abstract boolean handleEventType(String eventType);
