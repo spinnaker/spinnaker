@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.requestqueue;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.requestqueue.pooled.PooledRequestQueue;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -30,24 +31,50 @@ public interface RequestQueue {
   long DEFAULT_TIMEOUT_MILLIS = 60000;
   long DEFAULT_START_WORK_TIMEOUT_MILLIS = 10000;
 
-  static RequestQueue forConfig(Registry registry, RequestQueueConfiguration config) {
+  static RequestQueue forConfig(DynamicConfigService dynamicConfigService,
+                                Registry registry,
+                                RequestQueueConfiguration config) {
     if (!config.isEnabled()) {
       return noop();
     }
 
-    return pooled(registry, config.getStartWorkTimeoutMillis(), config.getTimeoutMillis(), config.getPoolSize());
+    return pooled(
+      dynamicConfigService,
+      registry,
+      config.getStartWorkTimeoutMillis(),
+      config.getTimeoutMillis(),
+      config.getPoolSize()
+    );
   }
 
   static RequestQueue noop() {
     return new NOOP();
   }
 
-  static RequestQueue pooled(Registry registry, int poolSize) {
-    return pooled(registry, DEFAULT_START_WORK_TIMEOUT_MILLIS, DEFAULT_TIMEOUT_MILLIS, poolSize);
+  static RequestQueue pooled(DynamicConfigService dynamicConfigService,
+                             Registry registry,
+                             int poolSize) {
+    return pooled(
+      dynamicConfigService,
+      registry,
+      DEFAULT_START_WORK_TIMEOUT_MILLIS,
+      DEFAULT_TIMEOUT_MILLIS,
+      poolSize
+    );
   }
 
-  static RequestQueue pooled(Registry registry, long startWorkTimeoutMillis, long timeoutMillis, int poolSize) {
-    return new PooledRequestQueue(registry, startWorkTimeoutMillis, timeoutMillis, poolSize);
+  static RequestQueue pooled(DynamicConfigService dynamicConfigService,
+                             Registry registry,
+                             long startWorkTimeoutMillis,
+                             long timeoutMillis,
+                             int poolSize) {
+    return new PooledRequestQueue(
+      dynamicConfigService,
+      registry,
+      startWorkTimeoutMillis,
+      timeoutMillis,
+      poolSize
+    );
   }
 
   default long getDefaultTimeoutMillis() {

@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
 import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PreDestroy;
 import java.util.Collection;
@@ -29,24 +32,33 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class PooledRequestQueue implements RequestQueue {
+  private final Logger log = LoggerFactory.getLogger(getClass());
   private final ConcurrentMap<String, Queue<PooledRequest<?>>> partitionedRequests = new ConcurrentHashMap<>();
   private final PollCoordinator pollCoordinator = new PollCoordinator();
 
   private final long defaultStartWorkTimeout;
   private final long defaultTimeout;
-  private final ExecutorService executorService;
+  private final int defaultCorePoolSize;
+  private final ThreadPoolExecutor executorService;
   private final BlockingQueue<Runnable> submittedRequests;
   private final Collection<Queue<PooledRequest<?>>> requestQueues;
   private final RequestDistributor requestDistributor;
+
+  private final DynamicConfigService dynamicConfigService;
   private final Registry registry;
 
-  public PooledRequestQueue(Registry registry, long defaultStartWorkTimeout, long defaultTimeout, int requestPoolSize) {
+
+
+  public PooledRequestQueue(DynamicConfigService dynamicConfigService,
+                            Registry registry,
+                            long defaultStartWorkTimeout,
+                            long defaultTimeout,
+                            int requestPoolSize) {
 
     if (defaultStartWorkTimeout <= 0) {
       throw new IllegalArgumentException("defaultStartWorkTimeout");
@@ -59,13 +71,21 @@ public class PooledRequestQueue implements RequestQueue {
     if (requestPoolSize < 1) {
       throw new IllegalArgumentException("requestPoolSize");
     }
+
+    this.dynamicConfigService = dynamicConfigService;
     this.registry = registry;
+
     this.defaultStartWorkTimeout = defaultStartWorkTimeout;
     this.defaultTimeout = defaultTimeout;
+    this.defaultCorePoolSize = requestPoolSize;
+
     this.submittedRequests = new LinkedBlockingQueue<>();
     registry.gauge("pooledRequestQueue.executorQueue.size", submittedRequests, Queue::size);
+
     final int actualThreads = requestPoolSize + 1;
     this.executorService = new ThreadPoolExecutor(actualThreads, actualThreads, 0, TimeUnit.MILLISECONDS, submittedRequests);
+    registry.gauge("pooledRequestQueue.corePoolSize", executorService, ThreadPoolExecutor::getCorePoolSize);
+
     this.requestQueues = new CopyOnWriteArrayList<>();
     this.requestDistributor = new RequestDistributor(registry, pollCoordinator, executorService, requestQueues);
     executorService.submit(requestDistributor);
@@ -124,6 +144,26 @@ public class PooledRequestQueue implements RequestQueue {
       throw t;
     } finally {
       registry.timer(id).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+    }
+  }
+
+  @Scheduled(fixedDelayString = "${requestQueue.corePoolSizeRefreshMs:120000}")
+  public void refreshCorePoolSize() {
+    int currentCorePoolSize = executorService.getCorePoolSize();
+    int desiredCorePoolSize = dynamicConfigService.getConfig(
+      Integer.class,
+      "requestQueue.poolSize",
+      defaultCorePoolSize
+    ) + 1;
+
+    if (desiredCorePoolSize != currentCorePoolSize) {
+      log.info(
+        "Updating core pool size (original: {}, updated: {})",
+        currentCorePoolSize,
+        desiredCorePoolSize
+      );
+      executorService.setCorePoolSize(desiredCorePoolSize);
+      executorService.setMaximumPoolSize(desiredCorePoolSize);
     }
   }
 }
