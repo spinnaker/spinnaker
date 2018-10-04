@@ -15,8 +15,8 @@ module.exports = angular
     const keysToOmit = ['backendServices', 'healthChecks', 'listeners', 'stack', 'detail'];
 
     function serialize(originalCommand, originalLoadBalancer) {
-      let command = _.cloneDeep(originalCommand);
-      let { loadBalancer, backingData } = command;
+      const command = _.cloneDeep(originalCommand);
+      const { loadBalancer, backingData } = command;
 
       mapComponentNamesToObjects(loadBalancer, backingData);
 
@@ -31,7 +31,7 @@ module.exports = angular
         );
       }, []);
 
-      let commands = buildCommandForEachListener(loadBalancer);
+      const commands = buildCommandForEachListener(loadBalancer);
 
       if (originalLoadBalancer) {
         commands[0].listenersToDelete = _.chain(originalLoadBalancer.listeners)
@@ -44,11 +44,11 @@ module.exports = angular
     }
 
     function mapComponentNamesToObjects(loadBalancer, backingData) {
-      let unifiedHealthChecksKeyedByName = _.assign(
+      const unifiedHealthChecksKeyedByName = _.assign(
         backingData.healthChecksKeyedByName,
         _.keyBy(loadBalancer.healthChecks, 'name'),
       );
-      let unifiedBackendServicesKeyedByName = _.assign(
+      const unifiedBackendServicesKeyedByName = _.assign(
         backingData.backendServicesKeyedByName,
         _.keyBy(loadBalancer.backendServices, 'name'),
       );
@@ -65,7 +65,7 @@ module.exports = angular
 
     function mapBackendServiceNamesToObjects(hostRules, servicesByName) {
       hostRules.forEach(hostRule => {
-        let p = hostRule.pathMatcher;
+        const p = hostRule.pathMatcher;
 
         p.defaultService = servicesByName[p.defaultService];
 
@@ -91,9 +91,9 @@ module.exports = angular
     // DESERIALIZE
 
     function deserialize(loadBalancer) {
-      let { backendServices, healthChecks, defaultService } = getHealthChecksAndBackendServices(loadBalancer);
-      let hostRules = getHostRules(loadBalancer);
-      let listeners = getListeners(loadBalancer);
+      const { backendServices, healthChecks, defaultService } = getHealthChecksAndBackendServices(loadBalancer);
+      const hostRules = getHostRules(loadBalancer);
+      const listeners = getListeners(loadBalancer);
 
       return {
         defaultService: defaultService.name,
@@ -107,7 +107,7 @@ module.exports = angular
     }
 
     function getHealthChecksAndBackendServices(loadBalancer) {
-      let defaultService = loadBalancer.defaultService;
+      const defaultService = loadBalancer.defaultService;
       let backendServices = [loadBalancer.defaultService];
 
       if (loadBalancer.hostRules) {
@@ -120,7 +120,7 @@ module.exports = angular
         }, backendServices);
       }
 
-      let healthChecks = _.chain(backendServices)
+      const healthChecks = _.chain(backendServices)
         .map('healthCheck')
         .uniqBy('name')
         .cloneDeep()
@@ -146,7 +146,7 @@ module.exports = angular
 
     function getListeners(loadBalancer) {
       loadBalancer.listeners.forEach(listener => {
-        let { stack, freeFormDetails } = NameUtils.parseLoadBalancerName(listener.name);
+        const { stack, freeFormDetails } = NameUtils.parseLoadBalancerName(listener.name);
         listener.stack = stack;
         listener.detail = freeFormDetails;
         listener.created = true;
@@ -158,7 +158,7 @@ module.exports = angular
     function mapBackendServicesToNames(hostRules) {
       // Map backend service to backend service name so we don't have to deal with object references
       hostRules.forEach(hostRule => {
-        let p = hostRule.pathMatcher;
+        const p = hostRule.pathMatcher;
 
         p.defaultService = p.defaultService.name;
 

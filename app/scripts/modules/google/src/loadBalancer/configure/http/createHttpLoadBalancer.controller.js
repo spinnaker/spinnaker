@@ -52,7 +52,7 @@ module.exports = angular
       hostRules: require('./hostRule/hostRules.html'),
     };
 
-    let keyToTemplateMap = {
+    const keyToTemplateMap = {
       backendServices: BackendServiceTemplate,
       healthChecks: HealthCheckTemplate,
       hostRules: HostRuleTemplate,
@@ -67,15 +67,15 @@ module.exports = angular
       this.command.loadBalancer[key].splice(index, 1);
     };
 
-    let onApplicationRefresh = () => {
+    const onApplicationRefresh = () => {
       // If the user has already closed the modal, do not navigate to the new details view
       if ($scope.$$destroyed) {
         return;
       }
       $uibModalInstance.close();
 
-      let lb = this.command.loadBalancer;
-      let newStateParams = {
+      const lb = this.command.loadBalancer;
+      const newStateParams = {
         name: lb.urlMapName,
         accountId: lb.credentials,
         region: lb.region,
@@ -89,7 +89,7 @@ module.exports = angular
       }
     };
 
-    let onTaskComplete = () => {
+    const onTaskComplete = () => {
       application.loadBalancers.refresh();
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     };
@@ -102,8 +102,8 @@ module.exports = angular
     });
 
     this.submit = () => {
-      let serializedCommands = gceHttpLoadBalancerTransformer.serialize(this.command, loadBalancer);
-      let descriptor = this.isNew ? 'Create' : 'Update';
+      const serializedCommands = gceHttpLoadBalancerTransformer.serialize(this.command, loadBalancer);
+      const descriptor = this.isNew ? 'Create' : 'Update';
 
       this.taskMonitor.submit(() =>
         gceHttpLoadBalancerWriter.upsertLoadBalancers(serializedCommands, application, descriptor),

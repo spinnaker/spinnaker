@@ -84,7 +84,7 @@ module.exports = angular
     }
 
     function showAdvanced() {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
       return !!(
         stage.templateFileName ||
         (stage.extendedAttributes && _.size(stage.extendedAttributes) > 0) ||

@@ -99,8 +99,8 @@ module.exports = angular
 
     this.upsert = function() {
       $scope.taskMonitor.submit(function() {
-        var allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
-          var rule = {
+        const allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
+          const rule = {
             ipProtocol: ipIngressRule.type,
           };
 

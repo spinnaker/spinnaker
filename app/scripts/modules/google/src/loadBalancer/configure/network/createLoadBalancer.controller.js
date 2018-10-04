@@ -19,7 +19,7 @@ module.exports = angular
     loadBalancer,
     isNew,
   ) {
-    var ctrl = this;
+    const ctrl = this;
 
     $scope.isNew = isNew;
 
@@ -41,7 +41,7 @@ module.exports = angular
         return;
       }
       $uibModalInstance.close();
-      var newStateParams = {
+      const newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
         region: $scope.loadBalancer.region,
@@ -73,7 +73,7 @@ module.exports = angular
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
-        var accountNames = _.map($scope.accounts, 'name');
+        const accountNames = _.map($scope.accounts, 'name');
         if (accountNames.length && !accountNames.includes($scope.loadBalancer.credentials)) {
           $scope.loadBalancer.credentials = accountNames[0];
         }
@@ -83,7 +83,7 @@ module.exports = angular
     }
 
     function updateLoadBalancerNames() {
-      var account = $scope.loadBalancer.credentials;
+      const account = $scope.loadBalancer.credentials;
 
       const accountLoadBalancersByRegion = {};
       application
@@ -127,8 +127,8 @@ module.exports = angular
     };
 
     this.getName = function() {
-      var loadBalancer = $scope.loadBalancer;
-      var loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
+      const loadBalancer = $scope.loadBalancer;
+      const loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
@@ -150,7 +150,7 @@ module.exports = angular
     };
 
     this.setVisibilityHealthCheckTab = function() {
-      var wizard = ModalWizard;
+      const wizard = ModalWizard;
 
       if ($scope.loadBalancer.listeners[0].healthCheck) {
         wizard.includePage('Health Check');
@@ -167,16 +167,16 @@ module.exports = angular
     };
 
     this.submit = function() {
-      var descriptor = isNew ? 'Create' : 'Update';
+      const descriptor = isNew ? 'Create' : 'Update';
 
       $scope.taskMonitor.submit(function() {
-        let params = {
+        const params = {
           cloudProvider: 'gce',
           loadBalancerName: $scope.loadBalancer.name,
         };
 
         if ($scope.loadBalancer.listeners && $scope.loadBalancer.listeners.length > 0) {
-          let listener = $scope.loadBalancer.listeners[0];
+          const listener = $scope.loadBalancer.listeners[0];
 
           if (listener.protocol) {
             params.ipProtocol = listener.protocol;

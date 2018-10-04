@@ -43,8 +43,8 @@ module.exports = angular
     gceTagManager,
     gceLoadBalancerSetTransformer,
   ) {
-    var persistentDiskTypes = ['pd-standard', 'pd-ssd'];
-    var authScopes = [
+    const persistentDiskTypes = ['pd-standard', 'pd-ssd'];
+    const authScopes = [
       'cloud-platform',
       'userinfo.email',
       'compute.readonly',
@@ -95,10 +95,10 @@ module.exports = angular
           healthChecks: gceHealthCheckReader.listHealthChecks(),
         })
         .then(function(backingData) {
-          var loadBalancerReloader = $q.when(null);
-          var securityGroupReloader = $q.when(null);
-          var networkReloader = $q.when(null);
-          var healthCheckReloader = $q.when(null);
+          let loadBalancerReloader = $q.when(null);
+          let securityGroupReloader = $q.when(null);
+          let networkReloader = $q.when(null);
+          let healthCheckReloader = $q.when(null);
           backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
           backingData.filtered = {};
           command.backingData = backingData;
@@ -106,21 +106,21 @@ module.exports = angular
 
           if (command.loadBalancers && command.loadBalancers.length) {
             // Verify all load balancers are accounted for; otherwise, try refreshing load balancers cache.
-            var loadBalancerNames = _.map(getLoadBalancers(command), 'name');
+            const loadBalancerNames = _.map(getLoadBalancers(command), 'name');
             if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
               loadBalancerReloader = refreshLoadBalancers(command, true);
             }
           }
           if (command.securityGroups && command.securityGroups.length) {
             // Verify all firewalls are accounted for; otherwise, try refreshing firewalls cache.
-            var securityGroupIds = _.map(getSecurityGroups(command), 'id');
+            const securityGroupIds = _.map(getSecurityGroups(command), 'id');
             if (_.intersection(command.securityGroups, securityGroupIds).length < command.securityGroups.length) {
               securityGroupReloader = refreshSecurityGroups(command, true);
             }
           }
           if (command.network) {
             // Verify network is accounted for; otherwise, try refreshing networks cache.
-            var networkNames = getNetworkNames(command);
+            const networkNames = getNetworkNames(command);
             if (!networkNames.includes(command.network)) {
               networkReloader = refreshNetworks(command);
             }
@@ -130,7 +130,7 @@ module.exports = angular
           }
           if (_.has(command, 'autoHealingPolicy.healthCheck')) {
             // Verify health check is accounted for; otherwise, try refreshing health checks cache.
-            var healthChecks = getHealthChecks(command);
+            const healthChecks = getHealthChecks(command);
             if (
               !_.chain(healthChecks)
                 .includes(command.autoHealingPolicy.healthCheck)
@@ -167,8 +167,8 @@ module.exports = angular
     function loadImagesFromImageName(command) {
       command.image = command.viewState.imageId;
 
-      var packageBase = command.image.split('_')[0];
-      var parts = packageBase.split('-');
+      let packageBase = command.image.split('_')[0];
+      const parts = packageBase.split('-');
       if (parts.length > 3) {
         packageBase = parts.slice(0, -3).join('-');
       }
@@ -183,9 +183,9 @@ module.exports = angular
     }
 
     function configureInstanceTypes(command) {
-      let result = { dirty: {} };
+      const result = { dirty: {} };
       if (command.region) {
-        let results = [result.dirty];
+        const results = [result.dirty];
 
         results.push(configureCustomInstanceTypes(command).dirty);
         results.push(configureStandardInstanceTypes(command).dirty);
@@ -198,14 +198,14 @@ module.exports = angular
     }
 
     function configureCpuPlatforms(command) {
-      let result = { dirty: {} };
-      let filteredData = command.backingData.filtered;
-      let locationToCpuPlatformsMap =
+      const result = { dirty: {} };
+      const filteredData = command.backingData.filtered;
+      const locationToCpuPlatformsMap =
         command.backingData.credentialsKeyedByAccount[command.credentials].locationToCpuPlatformsMap;
 
       filteredData.cpuPlatforms = ['(Automatic)'];
 
-      let location = command.regional ? command.region : command.zone;
+      const location = command.regional ? command.region : command.zone;
 
       if (_.has(locationToCpuPlatformsMap, location)) {
         filteredData.cpuPlatforms = _.concat(filteredData.cpuPlatforms, locationToCpuPlatformsMap[location]);
@@ -219,10 +219,10 @@ module.exports = angular
     }
 
     function configureStandardInstanceTypes(command) {
-      let c = command;
-      let result = { dirty: {} };
+      const c = command;
+      const result = { dirty: {} };
 
-      let locations = c.regional ? [c.region] : [c.zone],
+      const locations = c.regional ? [c.region] : [c.zone],
         { credentialsKeyedByAccount } = c.backingData,
         { locationToInstanceTypesMap } = credentialsKeyedByAccount[c.credentials];
 
@@ -233,7 +233,7 @@ module.exports = angular
       let filtered = gceInstanceTypeService.getAvailableTypesForLocations(locationToInstanceTypesMap, locations);
 
       filtered = sortInstanceTypes(filtered);
-      let instanceType = c.instanceType;
+      const instanceType = c.instanceType;
       if (_.every([instanceType, !_.startsWith(instanceType, 'custom'), !_.includes(filtered, instanceType)])) {
         result.dirty.instanceType = c.instanceType;
         c.instanceType = null;
@@ -243,7 +243,7 @@ module.exports = angular
     }
 
     function configureCustomInstanceTypes(command) {
-      let c = command;
+      const c = command;
       let result = { dirty: {} },
         vCpuCount = _.get(c, 'viewState.customInstance.vCpuCount'),
         memory = _.get(c, 'viewState.customInstance.memory'),
@@ -289,8 +289,8 @@ module.exports = angular
 
     // n1-standard-8 should come before n1-standard-16, so we must sort by the individual segments of the names.
     function sortInstanceTypes(instanceTypes) {
-      var tokenizedInstanceTypes = _.map(instanceTypes, instanceType => {
-        let tokens = instanceType.split('-');
+      const tokenizedInstanceTypes = _.map(instanceTypes, instanceType => {
+        const tokens = instanceType.split('-');
 
         return {
           class: tokens[0],
@@ -299,7 +299,7 @@ module.exports = angular
         };
       });
 
-      let sortedTokenizedInstanceTypes = _.sortBy(tokenizedInstanceTypes, ['class', 'group', 'index']);
+      const sortedTokenizedInstanceTypes = _.sortBy(tokenizedInstanceTypes, ['class', 'group', 'index']);
 
       return _.map(sortedTokenizedInstanceTypes, sortedTokenizedInstanceType => {
         return (
@@ -312,10 +312,10 @@ module.exports = angular
     }
 
     function configureImages(command) {
-      var result = { dirty: {} };
+      const result = { dirty: {} };
       if (command.credentials !== command.viewState.lastImageAccount) {
         command.viewState.lastImageAccount = command.credentials;
-        var filteredImages = extractFilteredImages(command);
+        const filteredImages = extractFilteredImages(command);
         command.backingData.filtered.images = filteredImages;
         if (
           !_.chain(filteredImages)
@@ -330,12 +330,12 @@ module.exports = angular
     }
 
     function configureZones(command) {
-      var result = { dirty: {} };
-      var filteredData = command.backingData.filtered;
+      const result = { dirty: {} };
+      const filteredData = command.backingData.filtered;
       if (command.region === null) {
         return result;
       }
-      let regions = command.backingData.credentialsKeyedByAccount[command.credentials].regions;
+      const regions = command.backingData.credentialsKeyedByAccount[command.credentials].regions;
       if (_.isArray(regions)) {
         filteredData.zones = _.find(regions, { name: command.region }).zones;
         filteredData.truncatedZones = _.takeRight(filteredData.zones.sort(), 3);
@@ -364,8 +364,8 @@ module.exports = angular
     }
 
     function configureHealthChecks(command) {
-      var result = { dirty: {} };
-      var filteredData = command.backingData.filtered;
+      const result = { dirty: {} };
+      const filteredData = command.backingData.filtered;
 
       if (command.credentials === null) {
         return result;
@@ -407,9 +407,9 @@ module.exports = angular
     }
 
     function configureLoadBalancerOptions(command) {
-      var results = { dirty: {} };
-      var current = command.loadBalancers;
-      var newLoadBalancerObjects = gceLoadBalancerSetTransformer.normalizeLoadBalancerSet(getLoadBalancers(command));
+      const results = { dirty: {} };
+      const current = command.loadBalancers;
+      const newLoadBalancerObjects = gceLoadBalancerSetTransformer.normalizeLoadBalancerSet(getLoadBalancers(command));
       command.backingData.filtered.loadBalancerIndex = _.keyBy(newLoadBalancerObjects, 'name');
       command.backingData.filtered.loadBalancers = _.map(newLoadBalancerObjects, 'name');
 
@@ -419,8 +419,8 @@ module.exports = angular
           command.credentials,
           newLoadBalancerObjects,
         );
-        var matched = _.intersection(command.backingData.filtered.loadBalancers, command.loadBalancers);
-        var removed = _.xor(matched, command.loadBalancers);
+        const matched = _.intersection(command.backingData.filtered.loadBalancers, command.loadBalancers);
+        const removed = _.xor(matched, command.loadBalancers);
         command.loadBalancers = matched;
         configureBackendServiceOptions(command);
 
@@ -438,10 +438,10 @@ module.exports = angular
         but it is the best we can do with the given data.
       */
 
-      let backendsFromMetadata = command.backendServiceMetadata;
-      let lbIndex = command.backingData.filtered.loadBalancerIndex;
+      const backendsFromMetadata = command.backendServiceMetadata;
+      const lbIndex = command.backingData.filtered.loadBalancerIndex;
 
-      let backendServices = command.loadBalancers.reduce((backendServices, lbName) => {
+      const backendServices = command.loadBalancers.reduce((backendServices, lbName) => {
         if (gceHttpLoadBalancerUtils.isHttpLoadBalancer(lbIndex[lbName])) {
           backendServices[lbName] = _.intersection(lbIndex[lbName].backendServices, backendsFromMetadata);
         }
@@ -486,8 +486,8 @@ module.exports = angular
     }
 
     function configureSubnets(command) {
-      var result = { dirty: {} };
-      var filteredData = command.backingData.filtered;
+      const result = { dirty: {} };
+      const filteredData = command.backingData.filtered;
       if (command.region === null) {
         return result;
       }
@@ -508,7 +508,7 @@ module.exports = angular
     }
 
     function getSecurityGroups(command) {
-      var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { gce: {} };
+      let newSecurityGroups = command.backingData.securityGroups[command.credentials] || { gce: {} };
       newSecurityGroups = _.filter(newSecurityGroups.gce.global, function(securityGroup) {
         return securityGroup.network === command.network;
       });
@@ -526,20 +526,20 @@ module.exports = angular
     }
 
     function configureSecurityGroupOptions(command) {
-      var results = { dirty: {} };
-      var currentOptions = command.backingData.filtered.securityGroups;
-      var newSecurityGroups = getSecurityGroups(command);
+      const results = { dirty: {} };
+      const currentOptions = command.backingData.filtered.securityGroups;
+      const newSecurityGroups = getSecurityGroups(command);
       if (currentOptions && command.securityGroups) {
         // not initializing - we are actually changing groups
-        var currentGroupNames = command.securityGroups.map(function(groupId) {
-          var match = _.chain(currentOptions)
+        const currentGroupNames = command.securityGroups.map(function(groupId) {
+          const match = _.chain(currentOptions)
             .find({ id: groupId })
             .value();
           return match ? match.id : groupId;
         });
-        var matchedGroups = command.securityGroups
+        const matchedGroups = command.securityGroups
           .map(function(groupId) {
-            var securityGroup = _.chain(currentOptions)
+            const securityGroup = _.chain(currentOptions)
               .find({ id: groupId })
               .value();
             return securityGroup ? securityGroup.id : null;
@@ -553,7 +553,7 @@ module.exports = angular
             return group;
           });
         command.securityGroups = _.map(matchedGroups, 'id');
-        var removed = _.xor(currentGroupNames, command.securityGroups);
+        const removed = _.xor(currentGroupNames, command.securityGroups);
         if (removed.length) {
           results.dirty.securityGroups = removed;
         }
@@ -570,8 +570,8 @@ module.exports = angular
       });
 
       // Only include explicitly-selected firewalls in the body of the command.
-      var xpnHostProject = getXpnHostProjectIfAny(command.network);
-      var decoratedSecurityGroups = _.map(
+      const xpnHostProject = getXpnHostProjectIfAny(command.network);
+      const decoratedSecurityGroups = _.map(
         command.securityGroups,
         sg => (!sg.startsWith(xpnHostProject) ? xpnHostProject + sg : sg),
       );
@@ -612,9 +612,9 @@ module.exports = angular
 
     function attachEventHandlers(cmd) {
       cmd.regionalChanged = function regionalChanged(command) {
-        var result = { dirty: {} };
-        var filteredData = command.backingData.filtered;
-        var defaults = GCEProviderSettings.defaults;
+        const result = { dirty: {} };
+        const filteredData = command.backingData.filtered;
+        const defaults = GCEProviderSettings.defaults;
         if (command.regional) {
           command.zone = null;
         } else if (!command.zone) {
@@ -633,8 +633,8 @@ module.exports = angular
       };
 
       cmd.regionChanged = function regionChanged(command) {
-        var result = { dirty: {} };
-        var filteredData = command.backingData.filtered;
+        const result = { dirty: {} };
+        const filteredData = command.backingData.filtered;
         angular.extend(result.dirty, configureSubnets(command).dirty);
         if (command.region) {
           angular.extend(result.dirty, configureInstanceTypes(command).dirty);
@@ -653,10 +653,10 @@ module.exports = angular
       };
 
       cmd.credentialsChanged = function credentialsChanged(command) {
-        var result = { dirty: {} };
-        var backingData = command.backingData;
+        const result = { dirty: {} };
+        const backingData = command.backingData;
         if (command.credentials) {
-          let regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
+          const regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
           if (_.isArray(regions)) {
             backingData.filtered.regions = _.map(regions, 'name');
           } else {
@@ -691,7 +691,7 @@ module.exports = angular
       };
 
       cmd.networkChanged = function networkChanged(command) {
-        var result = { dirty: {} };
+        const result = { dirty: {} };
 
         command.viewState.autoCreateSubnets = _.chain(command.backingData.networks)
           .filter({ account: command.credentials, id: command.network })
@@ -717,7 +717,7 @@ module.exports = angular
       };
 
       cmd.zoneChanged = function zoneChanged(command) {
-        var result = { dirty: {} };
+        const result = { dirty: {} };
         if (command.zone === undefined && !command.regional) {
           result.dirty.zone = true;
         }
@@ -729,7 +729,7 @@ module.exports = angular
       };
 
       cmd.customInstanceChanged = function customInstanceChanged(command) {
-        var result = { dirty: {} };
+        const result = { dirty: {} };
 
         command.viewState.dirty = command.viewState.dirty || {};
         angular.extend(result, command.viewState.dirty, configureCustomInstanceTypes(command).dirty);

@@ -17,10 +17,10 @@ module.exports = angular
     templateUrl: require('./listener.component.html'),
     controller: function() {
       this.certificates = this.command.backingData.certificates;
-      let loadBalancerMap = this.command.backingData.loadBalancerMap;
+      const loadBalancerMap = this.command.backingData.loadBalancerMap;
 
       this.getName = (listener, applicationName) => {
-        let listenerName = [applicationName, listener.stack || '', listener.detail || ''].join('-');
+        const listenerName = [applicationName, listener.stack || '', listener.detail || ''].join('-');
         return _.trimEnd(listenerName, '-');
       };
 

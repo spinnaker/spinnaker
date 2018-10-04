@@ -17,7 +17,7 @@ module.exports = angular
     controller: function() {
       this.backingData = this.command.backingData;
       this.loadBalancer = this.command.loadBalancer;
-      let servicesByName = this.backingData.backendServicesKeyedByName;
+      const servicesByName = this.backingData.backendServicesKeyedByName;
 
       this.onBackendServiceSelect = selectedBackendService => {
         assign(selectedBackendService);
@@ -27,7 +27,7 @@ module.exports = angular
       this.toggleEditExisting = () => {
         this.editExisting = !this.editExisting;
         if (!this.editExisting) {
-          let template = new BackendServiceTemplate();
+          const template = new BackendServiceTemplate();
           assign(template);
         } else {
           delete this.backendService.name;
@@ -35,7 +35,7 @@ module.exports = angular
       };
 
       this.getAllHealthChecks = () => {
-        let allHealthChecks = this.loadBalancer.healthChecks.concat(this.backingData.healthChecks);
+        const allHealthChecks = this.loadBalancer.healthChecks.concat(this.backingData.healthChecks);
         return _.chain(allHealthChecks)
           .filter(hc => hc.account === this.loadBalancer.credentials || !hc.account)
           .map(hc => hc.name)
@@ -51,7 +51,7 @@ module.exports = angular
 
       this.maxCookieTtl = 60 * 60 * 24; // One day.
 
-      let getBackendServiceName = () => {
+      const getBackendServiceName = () => {
         return _.get(this, 'backendService.name');
       };
 
@@ -59,7 +59,7 @@ module.exports = angular
         this.editExisting = true;
       }
 
-      let assign = toAssign => {
+      const assign = toAssign => {
         this.loadBalancer.backendServices[this.index] = this.backendService = toAssign;
       };
     },

@@ -17,7 +17,7 @@ module.exports = angular
     },
     templateUrl: require('./resizeAutoscalingPolicy.component.html'),
     controller: function($scope, gceAutoscalingPolicyWriter) {
-      let newPolicyBounds = ['newMinNumReplicas', 'newMaxNumReplicas'];
+      const newPolicyBounds = ['newMinNumReplicas', 'newMaxNumReplicas'];
       newPolicyBounds.forEach(prop => (this.command[prop] = null));
 
       angular.extend(this.formMethods, {

@@ -31,7 +31,7 @@ module.exports = angular
     });
 
     this.save = () => {
-      let submitMethod = () =>
+      const submitMethod = () =>
         gceAutoscalingPolicyWriter.upsertAutoscalingPolicy(application, serverGroup, this.policy);
 
       this.taskMonitor.submit(submitMethod);

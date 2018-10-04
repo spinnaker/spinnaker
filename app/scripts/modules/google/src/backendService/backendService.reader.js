@@ -11,7 +11,7 @@ module.exports = angular
       if (kind) {
         return listBackendServices().then(([services]) => {
           if (services) {
-            let results = services.results || [];
+            const results = services.results || [];
             return results.filter(service => service.kind === kind);
           }
           return [];

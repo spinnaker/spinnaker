@@ -21,7 +21,7 @@ module.exports = angular
     });
   })
   .controller('gceEnableAsgStageCtrl', function($scope) {
-    let stage = $scope.stage;
+    const stage = $scope.stage;
 
     $scope.state = {
       accounts: false,

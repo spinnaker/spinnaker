@@ -15,7 +15,7 @@ module.exports = angular
     templateUrl: require('./hostRule.component.html'),
     controller: function() {
       this.loadBalancer = this.command.loadBalancer;
-      let pathRules = this.hostRule.pathMatcher.pathRules;
+      const pathRules = this.hostRule.pathMatcher.pathRules;
 
       this.addPathRule = () => {
         pathRules.push(new PathRuleTemplate());

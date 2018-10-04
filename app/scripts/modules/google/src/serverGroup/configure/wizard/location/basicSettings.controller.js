@@ -29,7 +29,7 @@ module.exports = angular
       );
     }
 
-    var imageSearchResultsStream = new Subject();
+    const imageSearchResultsStream = new Subject();
 
     imageSearchResultsStream
       .debounceTime(250)
@@ -68,14 +68,14 @@ module.exports = angular
 
     this.stackPattern = {
       test: function(stack) {
-        var pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
+        const pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
         return pattern.test(stack);
       },
     };
 
     this.detailPattern = {
       test: function(detail) {
-        var pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9-]*(\${.+})*)*$/ : /^[a-zA-Z0-9-]*$/;
+        const pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9-]*(\${.+})*)*$/ : /^[a-zA-Z0-9-]*$/;
         return pattern.test(detail);
       },
     };

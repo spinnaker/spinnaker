@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.gce.serverGroup.details.scalingPolicy.write.service', [])
   .factory('gceAutoscalingPolicyWriter', function() {
     function upsertAutoscalingPolicy(application, serverGroup, policy, params = {}) {
-      let job = {
+      const job = {
         type: 'upsertScalingPolicy',
         cloudProvider: serverGroup.type,
         credentials: serverGroup.account,
@@ -42,7 +42,7 @@ module.exports = angular
     }
 
     function upsertAutoHealingPolicy(application, serverGroup, policy, params = {}) {
-      let job = {
+      const job = {
         type: 'upsertScalingPolicy',
         cloudProvider: serverGroup.type,
         credentials: serverGroup.account,

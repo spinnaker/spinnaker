@@ -30,9 +30,9 @@ module.exports = angular
     });
   })
   .controller('gceResizeAsgStageCtrl', function($scope) {
-    var ctrl = this;
+    const ctrl = this;
 
-    let stage = $scope.stage;
+    const stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,

@@ -8,7 +8,7 @@ module.exports = angular
   .module('spinnaker.gce.validation.applicationName', [])
   .factory('gceApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
-      let pattern = /^([a-zA-Z][a-zA-Z0-9]*)?$/;
+      const pattern = /^([a-zA-Z][a-zA-Z0-9]*)?$/;
       if (!pattern.test(name)) {
         errors.push(
           'The application name must begin with a letter and must contain only letters or digits. No ' +
@@ -20,15 +20,15 @@ module.exports = angular
     function validateLength(name, warnings, errors) {
       // GCE resource names must comply with https://www.ietf.org/rfc/rfc1035.txt
       // [a-z]([-a-z0-9]*[a-z0-9])?
-      let maxResourceNameLength = 63;
+      const maxResourceNameLength = 63;
 
       // e.g. $appName-$stack-$detail-tp-1451531076528 and $appName-$stack-$detail-hc-1451531076528
-      let loadBalancerNameSuffixLength = 17;
-      let maxLengthForLoadBalancers = maxResourceNameLength - loadBalancerNameSuffixLength;
+      const loadBalancerNameSuffixLength = 17;
+      const maxLengthForLoadBalancers = maxResourceNameLength - loadBalancerNameSuffixLength;
 
       // e.g. $appName-$stack-$detail-v000-abcd
-      let instanceNameSuffixLength = 10;
-      let maxLengthForServerGroups = maxResourceNameLength - instanceNameSuffixLength;
+      const instanceNameSuffixLength = 10;
+      const maxLengthForServerGroups = maxResourceNameLength - instanceNameSuffixLength;
 
       if (name.length > maxResourceNameLength) {
         errors.push('The maximum length for an application in Google is 63 characters.');
@@ -87,7 +87,7 @@ module.exports = angular
     }
 
     function validate(name) {
-      let warnings = [],
+      const warnings = [],
         errors = [];
 
       if (name && name.length) {

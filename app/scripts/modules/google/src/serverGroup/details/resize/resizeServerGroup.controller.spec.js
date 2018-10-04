@@ -2,7 +2,7 @@
 
 import { SERVER_GROUP_WRITER } from '@spinnaker/core';
 
-let template = require('./resizeServerGroup.html');
+const template = require('./resizeServerGroup.html');
 
 // template dependencies
 require('../../../common/footer.directive.html');
@@ -46,7 +46,7 @@ describe('Controller: gceResizeServerGroupCtrl', function() {
   );
 
   it('should instantiate the controller', function() {
-    let controller = $controller('gceResizeServerGroupCtrl', {
+    const controller = $controller('gceResizeServerGroupCtrl', {
       $scope: scope,
       $uibModalInstance: { result: { then: angular.noop } },
       application: {},

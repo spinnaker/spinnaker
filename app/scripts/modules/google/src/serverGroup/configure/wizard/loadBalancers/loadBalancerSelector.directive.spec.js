@@ -17,7 +17,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
     ),
   );
 
-  var selector, element, gceServerGroupConfigurationService, expectedTime;
+  let selector, element, gceServerGroupConfigurationService, expectedTime;
 
   beforeEach(
     window.inject(function(_gceServerGroupConfigurationService_, _cacheInitializer_) {
@@ -28,7 +28,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
       InfrastructureCaches.get('loadBalancers').getStats = function() {
         return { ageMax: lastRefreshed };
       };
-      var m = momentTimezone.tz(lastRefreshed, SETTINGS.defaultTimeZone);
+      const m = momentTimezone.tz(lastRefreshed, SETTINGS.defaultTimeZone);
       expectedTime = m.format('YYYY-MM-DD HH:mm:ss z');
 
       selector = angular.element('<gce-server-group-load-balancer-selector command="command" />');
@@ -47,7 +47,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
   );
 
   it('should render the last refreshed time', function() {
-    var refreshedSpan = element.find('span:contains("last refreshed")');
+    const refreshedSpan = element.find('span:contains("last refreshed")');
     expect(refreshedSpan.length).toEqual(1);
     expect(refreshedSpan.html()).toEqual(`last refreshed ${expectedTime}`);
   });
@@ -57,7 +57,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
     element = this.compile(selector)(this.scope);
     this.scope.$apply();
 
-    var a = element.find('a');
+    const a = element.find('a');
     $(a)
       .click()
       .trigger('click');

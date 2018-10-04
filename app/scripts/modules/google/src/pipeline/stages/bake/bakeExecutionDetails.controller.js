@@ -14,14 +14,14 @@ module.exports = angular
   ) {
     $scope.configSections = ['bakeConfig', 'taskStatus', 'artifactStatus'];
 
-    let initialized = () => {
+    const initialized = () => {
       $scope.detailsSection = $stateParams.details;
       $scope.provider = $scope.stage.context.cloudProviderType || 'gce';
       $scope.roscoMode = SETTINGS.feature.roscoMode;
       $scope.bakeryDetailUrl = $interpolate(SETTINGS.bakeryDetailUrl);
     };
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+    const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 

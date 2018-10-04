@@ -13,13 +13,13 @@ module.exports = angular
     },
     templateUrl: require('./metricSettings.component.html'),
     controller: function() {
-      let multipleAllowedFor = {
+      const multipleAllowedFor = {
         cpuUtilization: false,
         loadBalancingUtilization: false,
         customMetricUtilizations: true,
       };
 
-      let metricTypes = Object.keys(multipleAllowedFor);
+      const metricTypes = Object.keys(multipleAllowedFor);
 
       this.targetTypesToDisplayMap = {
         GAUGE: 'Gauge',
@@ -46,7 +46,7 @@ module.exports = angular
       };
 
       this.showMetric = metricType => {
-        let metric = this.policy[metricType];
+        const metric = this.policy[metricType];
         // should not show policy form if the policy is undefined or an empty object.
         return !emptyOrUndefined(metric);
       };

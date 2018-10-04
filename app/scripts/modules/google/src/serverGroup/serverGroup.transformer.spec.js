@@ -37,7 +37,7 @@ describe('gceServerGroupTransformer', () => {
     });
 
     it('should map listener names to url map names', function() {
-      let serverGroup = {
+      const serverGroup = {
         account: 'my-google-account',
         loadBalancers: [
           'network-load-balancer',

@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { NetworkReader } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.subnet.renderer', []).factory('gceSubnetRenderer', function() {
-  var gceNetworks;
+  let gceNetworks;
 
   NetworkReader.listNetworksByProvider('gce').then(function(networks) {
     gceNetworks = networks;
@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.gce.subnet.renderer', []).factory('gc
     if (serverGroup.subnet) {
       return serverGroup.subnet;
     } else {
-      let autoCreateSubnets = _.chain(gceNetworks)
+      const autoCreateSubnets = _.chain(gceNetworks)
         .filter({ account: serverGroup.account, name: serverGroup.network })
         .map('autoCreateSubnets')
         .head()

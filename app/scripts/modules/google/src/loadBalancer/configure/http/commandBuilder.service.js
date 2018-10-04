@@ -68,7 +68,7 @@ module.exports = angular
           addresses: gceAddressReader.listAddresses('global'),
         })
         .then(backingData => {
-          let loadBalancer = buildLoadBalancer(isNew, originalLoadBalancer, backingData);
+          const loadBalancer = buildLoadBalancer(isNew, originalLoadBalancer, backingData);
 
           unifyDataSources(backingData, loadBalancer);
 
@@ -77,7 +77,7 @@ module.exports = angular
     }
 
     function buildLoadBalancer(isNew, loadBalancer) {
-      let loadBalancerTemplate = new HttpLoadBalancerTemplate(GCEProviderSettings.defaults.account || null);
+      const loadBalancerTemplate = new HttpLoadBalancerTemplate(GCEProviderSettings.defaults.account || null);
 
       let mixinData;
       if (isNew) {
@@ -90,7 +90,7 @@ module.exports = angular
         mixinData = gceHttpLoadBalancerTransformer.deserialize(loadBalancer);
       }
 
-      let loadBalancerData = _.assign(loadBalancerTemplate, mixinData);
+      const loadBalancerData = _.assign(loadBalancerTemplate, mixinData);
       return loadBalancerData;
     }
 
@@ -99,15 +99,15 @@ module.exports = angular
       removeExistingListenersFromBackingData(backingData, loadBalancer.listeners);
 
       // update backing data with any values coming from load balancer -- they are more up to date.
-      let lbHealthCheckMap = _.keyBy(loadBalancer.healthChecks, 'name');
-      let backingDataHealthCheckMap = _.keyBy(backingData.healthChecks, 'name');
+      const lbHealthCheckMap = _.keyBy(loadBalancer.healthChecks, 'name');
+      const backingDataHealthCheckMap = _.keyBy(backingData.healthChecks, 'name');
 
       backingData.healthChecksKeyedByName = _.assign(backingDataHealthCheckMap, _.cloneDeep(lbHealthCheckMap));
       backingData.healthChecksKeyedByNameCopy = _.cloneDeep(backingDataHealthCheckMap);
       backingData.healthChecks = _.map(backingDataHealthCheckMap, _.identity);
 
-      let lbBackendServicesMap = _.keyBy(loadBalancer.backendServices, 'name');
-      let backingDataBackendServiceMap = _.keyBy(backingData.backendServices, 'name');
+      const lbBackendServicesMap = _.keyBy(loadBalancer.backendServices, 'name');
+      const backingDataBackendServiceMap = _.keyBy(backingData.backendServices, 'name');
 
       backingData.backendServicesKeyedByName = _.assign(
         backingDataBackendServiceMap,
@@ -118,7 +118,7 @@ module.exports = angular
     }
 
     function removeExistingListenersFromBackingData(backingData, existingListeners) {
-      let accountNames = backingData.accounts.map(account => account.name);
+      const accountNames = backingData.accounts.map(account => account.name);
 
       accountNames.forEach(accountName => {
         if (_.has(backingData, ['loadBalancerMap', accountName, 'listeners'])) {
@@ -131,8 +131,8 @@ module.exports = angular
     }
 
     function setAccount(accounts, loadBalancerData) {
-      let accountNames = _.map(accounts, 'name');
-      let credentials = _.get(loadBalancerData, 'credentials.name') || loadBalancerData.credentials;
+      const accountNames = _.map(accounts, 'name');
+      const credentials = _.get(loadBalancerData, 'credentials.name') || loadBalancerData.credentials;
 
       if (!accountNames.includes(credentials)) {
         loadBalancerData.credentials = _.first(accountNames);
@@ -148,7 +148,7 @@ module.exports = angular
         backendServices.forEach(service => {
           service.healthCheck = service.healthCheckLink.split('/').pop();
 
-          let ttlIsDefined = typeof service.affinityCookieTtlSec === 'string';
+          const ttlIsDefined = typeof service.affinityCookieTtlSec === 'string';
           service.affinityCookieTtlSec = ttlIsDefined ? Number(service.affinityCookieTtlSec) : null;
 
           service.sessionAffinity = sessionAffinityModelToViewMap[service.sessionAffinity] || service.sessionAffinity;
@@ -173,7 +173,7 @@ module.exports = angular
           .flatten()
           .groupBy('name')
           .mapValues(accounts => {
-            let loadBalancers = _.chain(accounts)
+            const loadBalancers = _.chain(accounts)
               .map(a => a.regions)
               .flatten()
               .filter(region => region.name === gceHttpLoadBalancerUtils.REGION)
@@ -181,11 +181,11 @@ module.exports = angular
               .flatten()
               .value();
 
-            let urlMapNames = _.chain(loadBalancers)
+            const urlMapNames = _.chain(loadBalancers)
               .map('urlMapName')
               .uniq()
               .value();
-            let listeners = _.chain(loadBalancers)
+            const listeners = _.chain(loadBalancers)
               .map('name')
               .uniq()
               .value();
@@ -203,7 +203,7 @@ module.exports = angular
         command.backingData.healthChecksKeyedByNameCopy = _.cloneDeep(command.backingData.healthChecksKeyedByName);
 
         command.loadBalancer.healthChecks = command.loadBalancer.healthChecks.map(hc => {
-          let updated = command.backingData.healthChecksKeyedByName[_.get(hc, 'name')];
+          const updated = command.backingData.healthChecksKeyedByName[_.get(hc, 'name')];
           if (updated) {
             return _.cloneDeep(updated);
           } else {
@@ -228,7 +228,7 @@ module.exports = angular
         );
 
         command.loadBalancer.backendServices = command.loadBalancer.backendServices.map(service => {
-          let updated = command.backingData.backendServicesKeyedByName[_.get(service, 'name')];
+          const updated = command.backingData.backendServicesKeyedByName[_.get(service, 'name')];
           if (updated) {
             return _.cloneDeep(updated);
           } else {
@@ -240,7 +240,7 @@ module.exports = angular
 
     function onHealthCheckSelected(selectedName, command) {
       if (!command.loadBalancer.healthChecks.find(hc => _.get(hc, 'name') === selectedName)) {
-        let selectedObject = command.backingData.healthChecksKeyedByName[selectedName];
+        const selectedObject = command.backingData.healthChecksKeyedByName[selectedName];
         if (selectedObject) {
           command.loadBalancer.healthChecks.push(selectedObject);
         }
@@ -249,7 +249,7 @@ module.exports = angular
 
     function onBackendServiceSelected(selectedName, command) {
       if (!command.loadBalancer.backendServices.find(service => service.name === selectedName)) {
-        let selectedObject = command.backingData.backendServicesKeyedByName[selectedName];
+        const selectedObject = command.backingData.backendServicesKeyedByName[selectedName];
         command.loadBalancer.backendServices.push(selectedObject);
         if (selectedObject.healthCheck) {
           onHealthCheckSelected(selectedObject.healthCheck, command);
@@ -258,7 +258,7 @@ module.exports = angular
     }
 
     function getAllBackendServices(command) {
-      let allBackendServices = command.loadBalancer.backendServices.concat(command.backingData.backendServices);
+      const allBackendServices = command.loadBalancer.backendServices.concat(command.backingData.backendServices);
       return _.chain(allBackendServices)
         .filter(service => {
           return (
@@ -281,15 +281,15 @@ module.exports = angular
     }
 
     function getUnusedBackendServices(command) {
-      let defaultService = command.loadBalancer.defaultService;
-      let hostRuleServices = _.map(command.loadBalancer.hostRules, 'pathMatcher.defaultService');
-      let pathRuleServices = _.chain(command.loadBalancer.hostRules)
+      const defaultService = command.loadBalancer.defaultService;
+      const hostRuleServices = _.map(command.loadBalancer.hostRules, 'pathMatcher.defaultService');
+      const pathRuleServices = _.chain(command.loadBalancer.hostRules)
         .map('pathMatcher.pathRules')
         .flatten()
         .map('backendService')
         .value();
 
-      let usedServices = _.chain([defaultService, ...hostRuleServices, ...pathRuleServices])
+      const usedServices = _.chain([defaultService, ...hostRuleServices, ...pathRuleServices])
         .compact()
         .uniq()
         .value();
@@ -303,14 +303,14 @@ module.exports = angular
     }
 
     function removeUnusedBackendServices(command) {
-      let unusedBackendServices = getUnusedBackendServices(command);
+      const unusedBackendServices = getUnusedBackendServices(command);
       command.loadBalancer.backendServices = command.loadBalancer.backendServices.filter(
         service => !unusedBackendServices.includes(service.name),
       );
     }
 
     function removeUnusedHealthChecks(command) {
-      let unusedHealthChecks = getUnusedHealthChecks(command);
+      const unusedHealthChecks = getUnusedHealthChecks(command);
       command.loadBalancer.healthChecks = command.loadBalancer.healthChecks.filter(
         healthCheck => !unusedHealthChecks.includes(healthCheck.name),
       );

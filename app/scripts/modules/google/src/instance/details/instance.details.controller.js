@@ -58,14 +58,14 @@ module.exports = angular
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(function(metric) {
+      const displayableMetrics = instance.health.filter(function(metric) {
         return metric.type !== 'Google' || metric.state !== 'Unknown';
       });
 
       // backfill details where applicable
       if (latest.health) {
         displayableMetrics.forEach(function(metric) {
-          var detailsMatch = latest.health.filter(function(latestHealth) {
+          const detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -77,8 +77,8 @@ module.exports = angular
     }
 
     function retrieveInstance() {
-      var extraData = {};
-      var instanceSummary, loadBalancers, account, region, vpcId;
+      const extraData = {};
+      let instanceSummary, loadBalancers, account, region, vpcId;
       if (!app.serverGroups) {
         // standalone instance
         instanceSummary = {};
@@ -163,7 +163,7 @@ module.exports = angular
 
           $scope.baseIpAddress = $scope.instance.externalIpAddress || $scope.instance.internalIpAddress;
 
-          var projectId = gceXpnNamingService.deriveProjectId($scope.instance);
+          const projectId = gceXpnNamingService.deriveProjectId($scope.instance);
           $scope.instance.logsLink =
             'https://console.developers.google.com/project/' +
             projectId +
@@ -209,7 +209,7 @@ module.exports = angular
 
     function augmentTagsWithHelp() {
       if (_.has($scope, 'instance.tags.items') && _.has($scope, 'instance.securityGroups')) {
-        let securityGroups = _.chain($scope.instance.securityGroups)
+        const securityGroups = _.chain($scope.instance.securityGroups)
           .map(securityGroup => {
             return _.find(app.securityGroups.data, {
               accountName: $scope.instance.account,
@@ -220,16 +220,16 @@ module.exports = angular
           .compact()
           .value();
 
-        let helpMap = {};
+        const helpMap = {};
 
         $scope.instance.tags.items.forEach(tag => {
-          let securityGroupsMatches = _.filter(securityGroups, securityGroup =>
+          const securityGroupsMatches = _.filter(securityGroups, securityGroup =>
             _.includes(securityGroup.targetTags, tag),
           );
-          let securityGroupMatchNames = _.map(securityGroupsMatches, 'name');
+          const securityGroupMatchNames = _.map(securityGroupsMatches, 'name');
 
           if (!_.isEmpty(securityGroupMatchNames)) {
-            let groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
+            const groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
 
             helpMap[tag] =
               'This tag associates this instance with security ' +
@@ -245,18 +245,18 @@ module.exports = angular
     }
 
     function getNetwork(projectId) {
-      let networkUrl = _.get($scope.instance, 'networkInterfaces[0].network');
+      const networkUrl = _.get($scope.instance, 'networkInterfaces[0].network');
       return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, networkUrl);
     }
 
     function getSubnet(projectId) {
-      let subnetUrl = _.get($scope.instance, 'networkInterfaces[0].subnetwork');
+      const subnetUrl = _.get($scope.instance, 'networkInterfaces[0].subnetwork');
       return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, subnetUrl);
     }
 
     this.canRegisterWithLoadBalancer = function() {
-      var instance = $scope.instance;
-      var instanceLoadBalancerDoesNotSupportRegister =
+      const instance = $scope.instance;
+      const instanceLoadBalancerDoesNotSupportRegister =
         !app.loadBalancers ||
         _.chain(app.loadBalancers.data)
           .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
@@ -267,18 +267,18 @@ module.exports = angular
       if (!instance.loadBalancers || !instance.loadBalancers.length || instanceLoadBalancerDoesNotSupportRegister) {
         return false;
       }
-      var outOfService = instance.health.some(function(health) {
+      const outOfService = instance.health.some(function(health) {
         return health.type === 'LoadBalancer' && health.state === 'OutOfService';
       });
-      var hasLoadBalancerHealth = instance.health.some(function(health) {
+      const hasLoadBalancerHealth = instance.health.some(function(health) {
         return health.type === 'LoadBalancer';
       });
       return outOfService || !hasLoadBalancerHealth;
     };
 
     this.canDeregisterFromLoadBalancer = function() {
-      var instance = $scope.instance;
-      var instanceLoadBalancerDoesNotSupportDeregister =
+      const instance = $scope.instance;
+      const instanceLoadBalancerDoesNotSupportDeregister =
         !app.loadBalancers ||
         _.chain(app.loadBalancers.data)
           .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
@@ -289,15 +289,15 @@ module.exports = angular
       if (!instance.loadBalancers || !instance.loadBalancers.length || instanceLoadBalancerDoesNotSupportDeregister) {
         return false;
       }
-      var hasLoadBalancerHealth = instance.health.some(function(health) {
+      const hasLoadBalancerHealth = instance.health.some(function(health) {
         return health.type === 'LoadBalancer';
       });
       return hasLoadBalancerHealth;
     };
 
     this.canRegisterWithDiscovery = function() {
-      var instance = $scope.instance;
-      var discoveryHealth = instance.health.filter(function(health) {
+      const instance = $scope.instance;
+      const discoveryHealth = instance.health.filter(function(health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
@@ -313,9 +313,9 @@ module.exports = angular
     };
 
     this.terminateInstance = function terminateInstance() {
-      var instance = $scope.instance;
+      const instance = $scope.instance;
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
@@ -325,8 +325,8 @@ module.exports = angular
         },
       };
 
-      var submitMethod = function() {
-        let params = { cloudProvider: 'gce' };
+      const submitMethod = function() {
+        const params = { cloudProvider: 'gce' };
 
         if (instance.serverGroup) {
           params.managedInstanceGroupName = instance.serverGroup;
@@ -346,9 +346,9 @@ module.exports = angular
     };
 
     this.terminateInstanceAndShrinkServerGroup = function terminateInstanceAndShrinkServerGroup() {
-      var instance = $scope.instance;
+      const instance = $scope.instance;
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
@@ -358,7 +358,7 @@ module.exports = angular
         },
       };
 
-      var submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app, {
           serverGroupName: instance.serverGroup,
           instanceIds: [instance.instanceId],
@@ -377,14 +377,14 @@ module.exports = angular
     };
 
     this.rebootInstance = function rebootInstance() {
-      var instance = $scope.instance;
+      const instance = $scope.instance;
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Rebooting ' + instance.instanceId,
       };
 
-      var submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.rebootInstance(instance, app, {
           // We can't really reliably do anything other than ignore health here.
           interestingHealthProviderNames: [],
@@ -402,15 +402,15 @@ module.exports = angular
     };
 
     this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
-      var instance = $scope.instance;
-      var loadBalancerNames = instance.loadBalancers.join(' and ');
+      const instance = $scope.instance;
+      const loadBalancerNames = instance.loadBalancers.join(' and ');
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
-      var submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
@@ -424,15 +424,15 @@ module.exports = angular
     };
 
     this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
-      var instance = $scope.instance;
-      var loadBalancerNames = instance.loadBalancers.join(' and ');
+      const instance = $scope.instance;
+      const loadBalancerNames = instance.loadBalancers.join(' and ');
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
-      var submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
@@ -447,14 +447,14 @@ module.exports = angular
     };
 
     this.enableInstanceInDiscovery = function enableInstanceInDiscovery() {
-      var instance = $scope.instance;
+      const instance = $scope.instance;
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -468,14 +468,14 @@ module.exports = angular
     };
 
     this.disableInstanceInDiscovery = function disableInstanceInDiscovery() {
-      var instance = $scope.instance;
+      const instance = $scope.instance;
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -490,13 +490,13 @@ module.exports = angular
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      var instance = $scope.instance;
+      const instance = $scope.instance;
       return instance.health.some(function(health) {
         return health.type === healthProviderType && health.state === state;
       });
     };
 
-    let initialize = app.isStandalone
+    const initialize = app.isStandalone
       ? retrieveInstance()
       : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 

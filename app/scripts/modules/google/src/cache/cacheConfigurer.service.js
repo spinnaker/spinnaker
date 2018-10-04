@@ -29,7 +29,7 @@ module.exports = angular
     instanceTypeService,
     loadBalancerReader,
   ) {
-    let config = Object.create(null);
+    const config = Object.create(null);
 
     config.addresses = {
       initializers: [() => gceAddressReader.listAddresses()],

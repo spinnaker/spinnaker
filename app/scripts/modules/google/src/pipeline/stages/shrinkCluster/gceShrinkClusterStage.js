@@ -22,9 +22,9 @@ module.exports = angular
     });
   })
   .controller('gceShrinkClusterStageCtrl', function($scope) {
-    var ctrl = this;
+    const ctrl = this;
 
-    let stage = $scope.stage;
+    const stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
