@@ -292,6 +292,7 @@ class GcsArtifactStorageConfiguratorHelper(Configurator):
     bucket = storage_client.lookup_bucket(options.artifact_gcs_bucket)
     if bucket is not None:
       bucket.delete(force=True)
+      logging.debug('Deleted bucket for Artifact storage: %s', bucket)
 
 
 class GcsStorageConfiguratorHelper(Configurator):
@@ -1276,6 +1277,7 @@ class GcsPubsubNotficationConfigurator(Configurator):
     bucket = storage_client.lookup_bucket(options.gcs_pubsub_bucket)
     if bucket is not None:
       bucket.delete(force=True)
+      logging.debug('Deleted bucket for Pub/Sub artifacts: %s', bucket)
 
 
 class JenkinsConfigurator(Configurator):
