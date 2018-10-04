@@ -136,8 +136,12 @@ public class RequestSheddingInterceptor extends HandlerInterceptorAdapter {
   private boolean isDroppable(HttpServletRequest request) {
     String uri = request.getRequestURI();
 
-    // We want our error handler to service the errors correctly
+    if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+      return false;
+    }
+
     if ("/error".equals(uri)) {
+      // we want our error handler to service the errors correctly
       return false;
     }
 

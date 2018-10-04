@@ -57,6 +57,7 @@ class RequestSheddingInterceptorSpec extends Specification {
     1 * configService.isEnabled(ENABLED_KEY, false) >> true
     1 * request.getHeader(PRIORITY_HEADER) >> "normal"
     1 * request.getRequestURI() >> "/foo"
+    1 * request.getMethod() >> "GET"
     0 * _
     result == true
   }
@@ -72,6 +73,7 @@ class RequestSheddingInterceptorSpec extends Specification {
     1 * configService.isEnabled(ENABLED_KEY, false) >> true
     1 * request.getHeader(PRIORITY_HEADER) >> "low"
     1 * request.getRequestURI() >> requestPath
+    1 * request.getMethod() >> "GET"
     1 * configService.getConfig(String, PATHS_KEY, "") >> pathMatchers
     0 * _
 
@@ -95,6 +97,7 @@ class RequestSheddingInterceptorSpec extends Specification {
     1 * configService.isEnabled(ENABLED_KEY, false) >> true
     1 * request.getHeader(PRIORITY_HEADER) >> "low"
     2 * request.getRequestURI() >> requestPath
+    1 * request.getMethod() >> "GET"
     1 * configService.getConfig(String, PATHS_KEY, "") >> pathMatchers
     1 * configService.getConfig(Integer, CHANCE_KEY, 100) >> 100
     1 * response.setDateHeader("Retry-After", _)
