@@ -11,7 +11,7 @@ export class NumberListController implements IController {
   public constraints: INumberListConstraints;
   public label: string;
   public backingModel: number[];
-  public parameterized: boolean;
+  public parameterized = false;
   public onChange: () => any;
 
   public synchronize(): void {
@@ -127,11 +127,12 @@ class NumberListComponent implements IComponentOptions {
              ng-max="$ctrl.constraints.max"
              ng-change="$ctrl.synchronize()"
              />
-      <button class="btn btn-link btn-sm" ng-click="$ctrl.remove($index)" ng-if="$index > 0"><span class="glyphicon glyphicon-trash"></span></button>
+      <button type="button" class="btn btn-link btn-sm" ng-click="$ctrl.remove($index)" ng-if="$index > 0"><span class="glyphicon glyphicon-trash"></span></button>
     </div>
     <div>
       <button class="btn btn-xs btn-block add-new"
               is-visible="!$ctrl.parameterized"
+              type="button"
               ng-click="$ctrl.addNumber()">
         <span class="glyphicon glyphicon-plus-sign"></span>
         Add {{$ctrl.label}}

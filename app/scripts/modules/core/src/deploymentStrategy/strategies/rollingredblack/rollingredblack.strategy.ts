@@ -13,7 +13,7 @@ DeploymentStrategyRegistry.registerStrategy({
     }
 
     if (!command.pipelineBeforeCleanup) {
-      command.beforeCleanupPipeline = {
+      command.pipelineBeforeCleanup = {
         application: command.application,
       };
     }
