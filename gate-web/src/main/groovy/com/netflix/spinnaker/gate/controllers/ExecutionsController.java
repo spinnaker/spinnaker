@@ -19,6 +19,8 @@ import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+
+import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +44,10 @@ public class ExecutionsController {
   List getLatestExecutionsByConfigIds(@RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
                                       @RequestParam(value = "limit", required = false) Integer limit,
                                       @RequestParam(value = "statuses", required = false) String statuses) {
+    if (pipelineConfigIds == null || pipelineConfigIds.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+
     return orcaServiceSelector.withContext(RequestContext.get()).getLatestExecutionsByConfigIds(pipelineConfigIds, limit, statuses);
   }
 
