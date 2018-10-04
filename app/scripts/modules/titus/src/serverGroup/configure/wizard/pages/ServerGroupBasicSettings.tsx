@@ -163,10 +163,8 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   public componentWillReceiveProps(nextProps: IServerGroupBasicSettingsProps) {
-    const { values, touched } = nextProps.formik;
-    if (touched.repository || touched.tag) {
-      this.updateImageId(values.repository, values.tag);
-    }
+    const { values } = nextProps.formik;
+    this.updateImageId(values.repository, values.tag);
     this.setState(this.getStateFromProps(nextProps));
   }
 
