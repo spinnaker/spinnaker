@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.ExecutionLevel
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.*
+import net.logstash.logback.argument.StructuredArguments.kv
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -114,7 +115,13 @@ class AtlasQueueMonitor
           log.info("Completed zombie check in ${Duration.between(startedAt, clock.instant())}")
         }
         .subscribe {
-          log.error("Found zombie {} {} {} {}", it.type, value("application", it.application), it.name, value("executionId", it.id))
+          log.error(
+            "Found zombie {} {} {} {}",
+            kv("executionType", it.type),
+            kv("application", it.application),
+            kv("executionName", it.name),
+            kv("executionId", it.id)
+          )
           val tags = mutableListOf<Tag>(
             BasicTag("application", it.application),
             BasicTag("type", it.type.name)
