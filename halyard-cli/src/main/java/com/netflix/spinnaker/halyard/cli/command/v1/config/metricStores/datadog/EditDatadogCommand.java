@@ -24,6 +24,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog.Datado
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Parameters(separators = "=")
 public class EditDatadogCommand extends AbstractEditMetricStoreCommand<DatadogStore> {
   public MetricStores.MetricStoreType getMetricStoreType() {
@@ -42,10 +45,36 @@ public class EditDatadogCommand extends AbstractEditMetricStoreCommand<DatadogSt
   )
   private String appKey;
 
+  @Parameter(
+    names = "--tags",
+    variableArity = true,
+    description = "Your datadog custom tags. Please delimit the KVP with colons i.e. --tags app:test env:dev"
+  )
+  private List<String> tags = new ArrayList<>();
+
+  @Parameter(
+    names = "--add-tag",
+    description = "Add this tag to the list of Datadog tags."
+  )
+  private String addTag;
+
+  @Parameter(
+    names = "--remove-tag",
+    description = "Remove this tag from the list of Datadog tags."
+  )
+  private String removeTag;
+
   @Override
   protected MetricStore editMetricStore(DatadogStore datadogStore) {
     datadogStore.setApiKey(isSet(apiKey) ? apiKey : datadogStore.getApiKey());
     datadogStore.setAppKey(isSet(appKey) ? appKey : datadogStore.getAppKey());
+
+    try {
+      datadogStore.setTags(
+          updateStringList(datadogStore.getTags(), tags, addTag, removeTag));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Set either --tags or --[add/remove]-tag");
+    }
 
     return datadogStore;
   }

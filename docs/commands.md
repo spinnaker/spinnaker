@@ -3150,7 +3150,7 @@ hal config deploy ha clouddriver enable [parameters]
 ---
 ## hal config deploy ha echo
 
-Manage and view Spinnaker configuration for the echo high availability service Manage and view Spinnaker configuration for the echo high availability service. When echo high availability is enabled, Halyard will deploy echo as two separate services in order to increase availability: echo-scheduler and echo-worker. The echo-scheduler service only handles Spinnaker cron-jobs and is isolated from the rest of Spinnaker.. The echo-worker handles everything else.
+Manage and view Spinnaker configuration for the echo high availability service Manage and view Spinnaker configuration for the echo high availability service. When echo high availability is enabled, Halyard will deploy echo as two separate services in order to increase availability: echo-scheduler and echo-worker. The echo-scheduler service only handles Spinnaker cron-jobs and is isolated from the rest of Spinnaker. The echo-worker handles everything else.
 
 #### Usage
 ```
@@ -3347,10 +3347,13 @@ hal config metric-stores datadog edit [parameters]
 ```
 
 #### Parameters
+ * `--add-tag`: Add this tag to the list of Datadog tags.
  * `--api-key`: Your datadog API key.
  * `--app-key`: Your datadog app key. This is only required if you want Spinnaker to push pre-configured Spinnaker dashboards to your Datadog account.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--remove-tag`: Remove this tag from the list of Datadog tags.
+ * `--tags`: (*Default*: `[]`) Your datadog custom tags. Please delimit the KVP with colons i.e. --tags app:test env:dev
 
 
 ---
