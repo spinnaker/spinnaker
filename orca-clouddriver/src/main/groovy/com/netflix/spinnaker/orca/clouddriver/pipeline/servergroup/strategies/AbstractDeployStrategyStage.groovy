@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
+import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.AcquireLockStage
 import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage
 import com.netflix.spinnaker.orca.pipeline.TaskNode
@@ -55,6 +56,9 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
 
   @Autowired
   TrafficGuard trafficGuard
+
+  @Autowired
+  LockingConfigurationProperties lockingConfigurationProperties
 
   AbstractDeployStrategyStage(String name) {
     super(name)
@@ -111,14 +115,18 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     def preProcessors = deployStagePreProcessors.findAll { it.supports(stage) }
     def stageData = stage.mapTo(StageData)
     def stages = []
-    def moniker = stageData.moniker?.cluster ? stageData.moniker : MonikerHelper.friggaToMoniker(stageData.cluster)
-    def location = TargetServerGroup.Support.locationFromStageData(stageData)
-    def lockName = ClusterLockHelper.clusterLockName(moniker, stageData.account, location)
-    boolean addLocking = trafficGuard.hasDisableLock(moniker, stageData.account, location)
-    if (addLocking) {
-      def lockCtx = [lock: [lockName: lockName]]
-      def lockStage = newStage(stage.execution, AcquireLockStage.PIPELINE_TYPE, "acquireLock", lockCtx, stage, SyntheticStageOwner.STAGE_BEFORE)
-      stages << lockStage
+    boolean addLocking = false
+    String lockName = null
+    if (lockingConfigurationProperties.isEnabled()) {
+      def moniker = stageData.moniker?.cluster ? stageData.moniker : MonikerHelper.friggaToMoniker(stageData.cluster)
+      def location = TargetServerGroup.Support.locationFromStageData(stageData)
+      lockName = ClusterLockHelper.clusterLockName(moniker, stageData.account, location)
+      addLocking = trafficGuard.hasDisableLock(moniker, stageData.account, location)
+      if (addLocking) {
+        def lockCtx = [lock: [lockName: lockName]]
+        def lockStage = newStage(stage.execution, AcquireLockStage.PIPELINE_TYPE, "acquireLock", lockCtx, stage, SyntheticStageOwner.STAGE_BEFORE)
+        stages << lockStage
+      }
     }
     stages.addAll(strategy.composeFlow(stage))
 

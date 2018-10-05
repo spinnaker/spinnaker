@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
+import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
+import org.springframework.core.env.StandardEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -27,11 +30,13 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
   def resolver = Stub(TargetServerGroupResolver)
   def trafficGuard = Stub(TrafficGuard)
+  def lockingConfig = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: new StandardEnvironment()))
   def supportStage = new TestSupport()
 
   def setup() {
     supportStage.resolver = resolver
     supportStage.trafficGuard = trafficGuard
+    supportStage.lockingConfigurationProperties = lockingConfig
   }
 
   @Unroll

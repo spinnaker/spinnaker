@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster
 
+import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask
@@ -7,22 +8,27 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClust
 import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.AcquireLockStage
 import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
+import org.springframework.mock.env.MockEnvironment
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class AbstractClusterWideClouddriverOperationStageSpec extends Specification {
 
   def guard = Mock(TrafficGuard)
-  def stageBuilder = new TestStage(guard)
+  def env = new MockEnvironment()
+  def config = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
+  def stageBuilder = new TestStage(guard, config)
 
   @Unroll
   def "should #desc1 inject #expectedType for #desc2 traffic guard protected cluster"() {
     given:
+    env.setProperty('locking.enabled', 'true')
     Stage testStage = ExecutionBuilder.stage {
       context = stageContext
     }
@@ -62,8 +68,8 @@ class AbstractClusterWideClouddriverOperationStageSpec extends Specification {
 
 
   static class TestStage extends AbstractClusterWideClouddriverOperationStage {
-    TestStage(TrafficGuard trafficGuard) {
-      super(trafficGuard)
+    TestStage(TrafficGuard trafficGuard, LockingConfigurationProperties config) {
+      super(trafficGuard, config)
     }
 
     @Override

@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster
 
+import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.mock.env.MockEnvironment
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -29,9 +32,15 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 class RollbackClusterStageSpec extends Specification {
 
   def trafficGuard = Mock(TrafficGuard)
+  def env = new MockEnvironment()
+  def lockingConfig = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
 
   @Subject
-  def stageBuilder = new RollbackClusterStage(trafficGuard)
+  def stageBuilder = new RollbackClusterStage(trafficGuard, lockingConfig)
+
+  def setup() {
+    env.setProperty('locking.enabled', 'true')
+  }
 
   def "should not build any aroundStages()"() {
     expect:

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.AcquireLockStage
 import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage
 import groovy.transform.stc.ClosureParams
@@ -43,6 +44,7 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
 
   @Autowired TargetServerGroupResolver resolver
   @Autowired TrafficGuard trafficGuard
+  @Autowired LockingConfigurationProperties lockingConfigurationProperties
 
   /**
    * Override to supply tasks that individual target stages will run. The top level
@@ -140,11 +142,13 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
                    'java.lang.String',
                    'com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location'
                  ]) Closure handleGuard) {
-    def param = TargetServerGroup.Params.fromStage(parent)
-    def moniker = param.moniker ?: MonikerHelper.friggaToMoniker(param.cluster ?: param.serverGroupName)
-    def location = param.locations[0]
-    if (trafficGuard.hasDisableLock(moniker,param.credentials, location)) {
-      handleGuard.call(moniker, param.credentials, location)
+    if (lockingConfigurationProperties.isEnabled()) {
+      def param = TargetServerGroup.Params.fromStage(parent)
+      def moniker = param.moniker ?: MonikerHelper.friggaToMoniker(param.cluster ?: param.serverGroupName)
+      def location = param.locations[0]
+      if (trafficGuard.hasDisableLock(moniker, param.credentials, location)) {
+        handleGuard.call(moniker, param.credentials, location)
+      }
     }
   }
 

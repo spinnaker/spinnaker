@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.orca.pipeline.tasks
 
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.DetermineRollbackCandidatesTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper;
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard;
+import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties;
 import com.netflix.spinnaker.orca.pipeline.*;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -40,10 +41,13 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "rollbackCluster";
 
   private final TrafficGuard trafficGuard;
+  private final LockingConfigurationProperties lockingConfigurationProperties;
 
   @Autowired
-  public RollbackClusterStage(TrafficGuard trafficGuard) {
+  public RollbackClusterStage(TrafficGuard trafficGuard,
+                              LockingConfigurationProperties lockingConfigurationProperties) {
     this.trafficGuard = trafficGuard;
+    this.lockingConfigurationProperties = lockingConfigurationProperties;
   }
 
   @Override
@@ -69,14 +73,20 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       .collect(Collectors.toList());
 
     for (String region : regionsToRollback) {
-      final Location location = Location.region(region);
-      final boolean addLocking = trafficGuard.hasDisableLock(stageData.moniker, stageData.credentials, location);
-      final String lockName = ClusterLockHelper.clusterLockName(stageData.moniker, stageData.credentials, location);
-      if (addLocking) {
-        graph.append(stage -> {
-          stage.setType(AcquireLockStage.PIPELINE_TYPE);
-          stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
-        });
+      boolean addLocking = false;
+      String lockName;
+      if (lockingConfigurationProperties.isEnabled()) {
+        final Location location = Location.region(region);
+        addLocking = trafficGuard.hasDisableLock(stageData.moniker, stageData.credentials, location);
+        lockName = ClusterLockHelper.clusterLockName(stageData.moniker, stageData.credentials, location);
+        if (addLocking) {
+          graph.append(stage -> {
+            stage.setType(AcquireLockStage.PIPELINE_TYPE);
+            stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+          });
+        }
+      } else {
+        lockName = null;
       }
       Map<String, Object> context = new HashMap<>();
       context.put(

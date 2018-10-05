@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCache
 import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard;
+import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties;
 import com.netflix.spinnaker.orca.pipeline.AcquireLockStage;
 import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
@@ -44,9 +45,12 @@ import java.util.stream.Collectors;
 public abstract class AbstractClusterWideClouddriverOperationStage implements StageDefinitionBuilder {
 
   private final TrafficGuard trafficGuard;
+  private final LockingConfigurationProperties lockingConfigurationProperties;
 
-  protected AbstractClusterWideClouddriverOperationStage(TrafficGuard trafficGuard) {
+  protected AbstractClusterWideClouddriverOperationStage(TrafficGuard trafficGuard,
+                                                         LockingConfigurationProperties lockingConfigurationProperties) {
     this.trafficGuard = Objects.requireNonNull(trafficGuard);
+    this.lockingConfigurationProperties = Objects.requireNonNull(lockingConfigurationProperties);
   }
 
   protected abstract Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask();
@@ -62,18 +66,20 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
 
   @Override
   public final void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-    List<Location> locations = locationsFromStage(parent.getContext());
-    ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
-    for (Location location : locations) {
-      String lockName = ClusterLockHelper.clusterLockName(
-        clusterSelection.getMoniker(),
-        clusterSelection.getCredentials(),
-        location);
-      if (trafficGuard.hasDisableLock(clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
-        graph.add(stage -> {
-          stage.setType(AcquireLockStage.PIPELINE_TYPE);
-          stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
-        });
+    if (lockingConfigurationProperties.isEnabled()) {
+      List<Location> locations = locationsFromStage(parent.getContext());
+      ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
+      for (Location location : locations) {
+        String lockName = ClusterLockHelper.clusterLockName(
+          clusterSelection.getMoniker(),
+          clusterSelection.getCredentials(),
+          location);
+        if (trafficGuard.hasDisableLock(clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
+          graph.add(stage -> {
+            stage.setType(AcquireLockStage.PIPELINE_TYPE);
+            stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+          });
+        }
       }
     }
     addAdditionalBeforeStages(parent, graph);
@@ -86,18 +92,20 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
   @Override
   public final void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
     addAdditionalAfterStages(parent, graph);
-    List<Location> locations = locationsFromStage(parent.getContext());
-    ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
-    for (Location location : locations) {
-      String lockName = ClusterLockHelper.clusterLockName(
-        clusterSelection.getMoniker(),
-        clusterSelection.getCredentials(),
-        location);
-      if (trafficGuard.hasDisableLock(clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
-        graph.append(stage -> {
-          stage.setType(ReleaseLockStage.PIPELINE_TYPE);
-          stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
-        });
+    if (lockingConfigurationProperties.isEnabled()) {
+      List<Location> locations = locationsFromStage(parent.getContext());
+      ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
+      for (Location location : locations) {
+        String lockName = ClusterLockHelper.clusterLockName(
+          clusterSelection.getMoniker(),
+          clusterSelection.getCredentials(),
+          location);
+        if (trafficGuard.hasDisableLock(clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
+          graph.append(stage -> {
+            stage.setType(ReleaseLockStage.PIPELINE_TYPE);
+            stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
+          });
+        }
       }
     }
   }

@@ -27,4 +27,5 @@ dependencies {
   testCompile project(":orca-test")
   testCompile project(":orca-test-groovy")
   testCompile "com.github.tomakehurst:wiremock:2.15.0"
+  testCompile spinnaker.dependency('springTest')
 }
