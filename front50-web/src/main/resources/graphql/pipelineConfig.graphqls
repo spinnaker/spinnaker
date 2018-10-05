@@ -1,0 +1,84 @@
+scalar JSON
+
+schema {
+  query: Query
+}
+
+type Query {
+  version: String!
+  pipelines(havingTriggerType: String): [Pipeline]!
+}
+
+type Pipeline {
+  id: ID!
+  type: String!
+  name: String!
+  application: String!
+  description: String
+  disabled: Boolean!
+  executionEngine: String!
+  keepWaitingPipelines: Boolean!
+  lastModifiedBy: String!
+  limitConcurrent: Boolean!
+  parameterConfig: [ParameterConfig]!
+  spelEvaluator: String!
+  stageCounter: Int
+  stages: [Stage]!
+  triggers: [Trigger]!
+  updateTs: String!
+  extra: JSON
+}
+
+type ParameterConfig {
+  name: String!
+  label: String
+  description: String
+  default: String
+  hasOptions: Boolean
+  options: [ParameterConfigOption]
+  extra: JSON
+}
+
+type ParameterConfigOption {
+  value: String
+}
+
+type Stage {
+  id: ID!
+  type: String!
+  name: String
+  refId: ID
+  requisiteStageRefIds: [ID]
+
+  failPipeline: Boolean
+  failOnFailedExpressions: Boolean
+  continuePipeline: Boolean
+  completeOtherBranchesThenFail: Boolean
+
+  startTimeExpiry: Long
+  overrideTimeout: Boolean
+  stageTimeoutMs: Long
+
+  restrictExecutionDuringTimeWindow: Boolean
+  restrictedExecutionWindow: JSON
+
+  sendNotifications: Boolean
+  notifications: [JSON]
+
+  extra: JSON
+}
+
+interface Trigger {
+  id: ID!
+  type: String!
+  enabled: Boolean!
+  extra: JSON
+}
+
+type CronTrigger implements Trigger {
+  id: ID!
+  type: String!
+  enabled: Boolean!
+  cronExpression: String!
+  extra: JSON
+}

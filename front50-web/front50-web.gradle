@@ -41,6 +41,8 @@ dependencies {
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("kork")
 
+  compile "com.graphql-java:graphql-spring-boot-starter:3.9.2"
+
   testCompile project(":front50-test")
 
   // Add each included cloud provider project as a runtime dependency
