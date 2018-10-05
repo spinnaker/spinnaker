@@ -186,7 +186,7 @@ export class DockerImageAndTagSelector extends React.Component<
     const organizations = this.getOrganizationsList(accountMap);
 
     organization =
-      !organizations.includes(organization) && organization && !organization.includes('${') ? null : organization;
+      !organizations.includes(organization) && organization && !organization.includes('${') ? '' : organization;
 
     if (showRegistry) {
       registry = registryMap[account];
