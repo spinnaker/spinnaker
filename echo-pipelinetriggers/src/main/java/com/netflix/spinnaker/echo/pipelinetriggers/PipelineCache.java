@@ -16,21 +16,10 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers;
 
-import static java.time.Instant.now;
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.services.Front50Service;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +29,16 @@ import rx.Scheduler;
 import rx.Subscription;
 import rx.subjects.ReplaySubject;
 import rx.subjects.SerializedSubject;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.time.Instant.now;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Component
 @Slf4j
