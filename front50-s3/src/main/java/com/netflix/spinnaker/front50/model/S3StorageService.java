@@ -47,6 +47,7 @@ public class S3StorageService implements StorageService {
   private final Boolean readOnlyMode;
   private final String region;
   private final Boolean versioning;
+  private final Integer maxKeys;
 
   public S3StorageService(ObjectMapper objectMapper,
                           AmazonS3 amazonS3,
@@ -54,7 +55,8 @@ public class S3StorageService implements StorageService {
                           String rootFolder,
                           Boolean readOnlyMode,
                           String region,
-                          Boolean versioning) {
+                          Boolean versioning,
+                          Integer maxKeys) {
     this.objectMapper = objectMapper;
     this.amazonS3 = amazonS3;
     this.bucket = bucket;
@@ -62,6 +64,7 @@ public class S3StorageService implements StorageService {
     this.readOnlyMode = readOnlyMode;
     this.region = region;
     this.versioning = versioning;
+    this.maxKeys = maxKeys;
   }
 
   @Override
@@ -180,7 +183,7 @@ public class S3StorageService implements StorageService {
   public Map<String, Long> listObjectKeys(ObjectType objectType) {
     long startTime = System.currentTimeMillis();
     ObjectListing bucketListing = amazonS3.listObjects(
-      new ListObjectsRequest(bucket, buildTypedFolder(rootFolder, objectType.group), null, null, 10000)
+      new ListObjectsRequest(bucket, buildTypedFolder(rootFolder, objectType.group), null, null, maxKeys)
     );
     List<S3ObjectSummary> summaries = bucketListing.getObjectSummaries();
 
