@@ -2,7 +2,7 @@ import * as React from 'react';
 import Select, { Option } from 'react-select';
 import { groupBy, reduce, trim, uniq } from 'lodash';
 
-import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip, Spinner } from '@spinnaker/core';
+import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip } from '@spinnaker/core';
 
 import { DockerImageReader, IDockerImage } from './DockerImageReader';
 
@@ -59,16 +59,23 @@ export class DockerImageAndTagSelector extends React.Component<
   public constructor(props: IDockerImageAndTagSelectorProps) {
     super(props);
 
+    const accountOptions = props.account ? [{ label: props.account, value: props.account }] : [];
+    const organizationOptions =
+      props.organization && props.organization.length ? [{ label: props.organization, value: props.organization }] : [];
+    const repositoryOptions =
+      props.repository && props.repository.length ? [{ label: props.repository, value: props.repository }] : [];
+    const tagOptions = props.tag && props.tag.length ? [{ label: props.tag, value: props.tag }] : [];
+
     this.state = {
-      accountOptions: [],
+      accountOptions,
       imagesLoaded: false,
       imagesLoading: false,
       imagesRefreshing: false,
       organizationMap: {},
-      organizationOptions: [],
+      organizationOptions,
       repositoryMap: {},
-      repositoryOptions: [],
-      tagOptions: [],
+      repositoryOptions,
+      tagOptions,
     };
   }
 
@@ -181,7 +188,6 @@ export class DockerImageAndTagSelector extends React.Component<
     const newAccounts = this.accounts || Object.keys(accountMap);
 
     const organizationMap = this.getOrganizationMap(this.images);
-    // this.organizations.push(...Object.keys(this.organizationMap)); // wat...
     const repositoryMap = this.getRepositoryMap(this.images);
     const organizations = this.getOrganizationsList(accountMap);
 
@@ -312,6 +318,7 @@ export class DockerImageAndTagSelector extends React.Component<
                 disabled={imagesRefreshing}
                 onChange={(o: Option<string>) => this.valueChanged('account', o.value)}
                 options={accountOptions}
+                isLoading={imagesRefreshing}
               />
             </div>
             <div className="col-md-1 text-center">
@@ -326,53 +333,45 @@ export class DockerImageAndTagSelector extends React.Component<
         <div className="form-group">
           <div className={`sm-label-right ${labelClass}`}>Organization</div>
           <div className={fieldClass}>
-            {imagesLoading && (
-              <div className="form-field-loading">
-                <Spinner size="small" />
-              </div>
+            {organization.includes('${') ? (
+              <input
+                disabled={imagesRefreshing}
+                className="form-control input-sm"
+                value={organization}
+                onChange={e => this.valueChanged('organization', e.target.value)}
+              />
+            ) : (
+              <Select
+                value={organization}
+                disabled={imagesRefreshing}
+                onChange={(o: Option<string>) => this.valueChanged('organization', (o && o.value) || '')}
+                placeholder="No organization"
+                options={organizationOptions}
+                isLoading={imagesRefreshing}
+              />
             )}
-            {!imagesLoading &&
-              (organization.includes('${') ? (
-                <input
-                  className="form-control input-sm"
-                  value={organization}
-                  onChange={e => this.valueChanged('organization', e.target.value)}
-                />
-              ) : (
-                <Select
-                  value={organization}
-                  disabled={imagesRefreshing}
-                  onChange={(o: Option<string>) => this.valueChanged('organization', (o && o.value) || '')}
-                  placeholder="No organization"
-                  options={organizationOptions}
-                />
-              ))}
           </div>
         </div>
         <div className="form-group">
           <div className={`sm-label-right ${labelClass}`}>Image</div>
           <div className={fieldClass}>
-            {imagesLoading && (
-              <div className="form-field-loading">
-                <Spinner size="small" />
-              </div>
+            {repository.includes('${') ? (
+              <input
+                className="form-control input-sm"
+                disabled={imagesRefreshing}
+                value={repository}
+                onChange={e => this.valueChanged('repository', e.target.value)}
+              />
+            ) : (
+              <Select
+                value={repository}
+                disabled={imagesRefreshing}
+                onChange={(o: Option<string>) => this.valueChanged('repository', (o && o.value) || '')}
+                options={repositoryOptions}
+                required={true}
+                isLoading={imagesRefreshing}
+              />
             )}
-            {!imagesLoading &&
-              (repository.includes('${') ? (
-                <input
-                  className="form-control input-sm"
-                  value={repository}
-                  onChange={e => this.valueChanged('repository', e.target.value)}
-                />
-              ) : (
-                <Select
-                  value={repository}
-                  disabled={imagesRefreshing}
-                  onChange={(o: Option<string>) => this.valueChanged('repository', (o && o.value) || '')}
-                  options={repositoryOptions}
-                  required={true}
-                />
-              ))}
           </div>
         </div>
         {specifyTagByRegex && (
@@ -395,29 +394,25 @@ export class DockerImageAndTagSelector extends React.Component<
           <div className="form-group">
             <div className={`sm-label-right ${labelClass}`}>Tag</div>
             <div className={fieldClass}>
-              {imagesLoading && (
-                <div className="form-field-loading">
-                  <Spinner size="small" />
-                </div>
+              {tag.includes('${') ? (
+                <input
+                  className="form-control input-sm"
+                  disabled={imagesRefreshing}
+                  value={tag}
+                  onChange={e => this.valueChanged('tag', e.target.value)}
+                  required={true}
+                />
+              ) : (
+                <Select
+                  value={tag}
+                  disabled={imagesRefreshing || !repository}
+                  isLoading={imagesLoading}
+                  onChange={(o: Option<string>) => this.valueChanged('tag', o.value)}
+                  options={tagOptions}
+                  placeholder="No tag"
+                  required={true}
+                />
               )}
-              {!imagesLoading &&
-                (tag.includes('${') ? (
-                  <input
-                    className="form-control input-sm"
-                    value={tag}
-                    onChange={e => this.valueChanged('tag', e.target.value)}
-                    required={true}
-                  />
-                ) : (
-                  <Select
-                    value={tag}
-                    disabled={imagesRefreshing || !repository}
-                    onChange={(o: Option<string>) => this.valueChanged('tag', o.value)}
-                    options={tagOptions}
-                    placeholder="No tag"
-                    required={true}
-                  />
-                ))}
             </div>
           </div>
         )}
