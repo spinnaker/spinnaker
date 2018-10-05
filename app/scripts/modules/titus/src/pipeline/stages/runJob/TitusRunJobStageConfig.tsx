@@ -4,7 +4,6 @@ import { defaultsDeep, set } from 'lodash';
 import {
   AccountTag,
   IStageConfigProps,
-  NgReact,
   RegionSelectField,
   StageConfigField,
   HelpField,
@@ -13,6 +12,7 @@ import {
   AccountService,
   FirewallLabels,
   MapEditor,
+  AccountSelectField,
 } from '@spinnaker/core';
 
 import { DockerImageAndTagSelector, IDockerImageAndTagChanges } from '@spinnaker/docker';
@@ -161,7 +161,6 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
   public render() {
     const { stage } = this.props;
     const { credentials, loaded, regions } = this.state;
-    const { AccountSelectField } = NgReact;
     const awsAccount = (this.credentialsKeyedByAccount[stage.credentials] || { awsAccount: '' }).awsAccount;
 
     return (
