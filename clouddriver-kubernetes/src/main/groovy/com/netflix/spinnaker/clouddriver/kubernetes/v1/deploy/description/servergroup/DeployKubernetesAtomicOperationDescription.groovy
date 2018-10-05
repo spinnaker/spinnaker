@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
+import groovy.transform.builder.Builder
 
 @AutoClone
 @Canonical
@@ -82,6 +83,7 @@ class KubernetesContainerPort {
 
 @AutoClone
 @Canonical
+@Builder
 class KubernetesImageDescription {
   String uri
   String registry
