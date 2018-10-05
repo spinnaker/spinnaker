@@ -49,16 +49,6 @@ import java.util.concurrent.TimeUnit
 @Import(OkHttp3ClientConfiguration)
 @EnableConfigurationProperties
 class RetrofitConfiguration {
-
-   @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
-   int maxIdleConnections
-
-   @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
-   int keepAliveDurationMs
-
-   @Value('${okHttpClient.retryOnConnectionFailure:true}')
-   boolean retryOnConnectionFailure
-
    @Bean(name = ["retrofitClient"])
    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
    Ok3Client ok3Client(Registry registry, OkHttp3ClientConfiguration okHttpClientConfig) {
@@ -72,11 +62,6 @@ class RetrofitConfiguration {
            chain.proceed(req)
          }
        })
-     .addInterceptor(
-       new OkHttp3MetricsInterceptor(registry)
-     )
-       .connectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs, TimeUnit.MILLISECONDS))
-       .retryOnConnectionFailure(retryOnConnectionFailure)
 
      new Ok3Client(builder.build())
   }
@@ -93,11 +78,6 @@ class RetrofitConfiguration {
         chain.proceed(req)
       }
     })
-    cfg.interceptors().add(
-      new OkHttpMetricsInterceptor(registry)
-    )
-    cfg.setConnectionPool(new com.squareup.okhttp.ConnectionPool(maxIdleConnections, keepAliveDurationMs))
-    cfg.retryOnConnectionFailure = retryOnConnectionFailure
 
     new OkClient(cfg)
   }
