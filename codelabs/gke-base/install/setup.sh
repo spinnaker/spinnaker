@@ -44,6 +44,8 @@ if [ -f "overrides/predeploy.sh" ]; then
   overrides/predeploy.sh
 fi
 
+./enable_apis.sh
+
 bold "Creating a service account $SERVICE_ACCOUNT_NAME..."
 
 gcloud iam service-accounts create \
