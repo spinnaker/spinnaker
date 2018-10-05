@@ -70,7 +70,6 @@ public class FiatAuthenticationConfig {
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     OkHttpClient okHttpClient = okHttpClientConfiguration.create();
-    okHttpClient.interceptors().add(new OkHttpMetricsInterceptor(registry));
 
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
