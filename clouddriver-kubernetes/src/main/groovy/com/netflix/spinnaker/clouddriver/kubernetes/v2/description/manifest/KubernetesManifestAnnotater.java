@@ -213,6 +213,7 @@ public class KubernetesManifestAnnotater {
 
     return KubernetesCachingProperties.builder()
         .ignore(getAnnotation(annotations, IGNORE_CACHING, new TypeReference<Boolean>() {}, false))
+        .application(getAnnotation(annotations, APPLICATION, new TypeReference<String>() {}, ""))
         .build();
   }
 

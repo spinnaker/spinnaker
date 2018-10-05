@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -138,7 +139,12 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
         .peek(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m))
         .map(rs -> {
           try {
-            return KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs));
+            CacheData cacheData = KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs));
+            if (credentials.getOnlySpinnakerManaged() && StringUtils.isEmpty((String) cacheData.getAttributes().get("application"))) {
+              return null;
+            } else {
+              return cacheData;
+            }
           } catch (Exception e) {
             log.warn("Failure converting {} as resource", rs, e);
             return null;

@@ -55,6 +55,7 @@ class KubernetesConfigurationProperties {
     List<KubernetesCachingPolicy> cachingPolicies;
     List<String> kinds
     List<String> omitKinds
+    Boolean onlySpinnakerManaged
   }
 
   List<ManagedAccount> accounts = []

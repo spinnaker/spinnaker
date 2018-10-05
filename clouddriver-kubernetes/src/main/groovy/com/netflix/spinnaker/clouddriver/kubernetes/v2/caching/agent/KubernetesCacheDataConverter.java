@@ -206,6 +206,7 @@ public class KubernetesCacheDataConverter {
         .put("fullResourceName", manifest.getFullResourceName())
         .put("manifest", manifest)
         .put("moniker", moniker)
+        .put("application", cachingProperties.getApplication())
         .build();
 
     Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest);

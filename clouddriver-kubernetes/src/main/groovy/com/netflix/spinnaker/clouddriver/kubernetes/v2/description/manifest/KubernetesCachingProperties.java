@@ -28,4 +28,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class KubernetesCachingProperties {
   boolean ignore;
+  String application;
+
+  public String getApplication() {
+    return this.application;
+  }
 }
