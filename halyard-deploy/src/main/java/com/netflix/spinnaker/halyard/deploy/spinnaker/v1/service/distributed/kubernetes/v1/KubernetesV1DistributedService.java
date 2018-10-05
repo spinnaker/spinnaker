@@ -127,7 +127,11 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
     version = Versions.isLocal(version) ? Versions.fromLocal(version) : version;
 
-    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName, getArtifact()));
+    KubernetesImageDescription image = KubernetesImageDescription.builder()
+        .registry(getDockerRegistry(deploymentName, getArtifact()))
+        .repository(artifactName)
+        .tag(version)
+        .build();
     return KubernetesUtil.getImageId(image);
   }
 
