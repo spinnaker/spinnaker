@@ -101,6 +101,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     const { setFieldValue, values } = this.props.formik;
     values.credentials = account;
     values.credentialsChanged(values);
+    setFieldValue('account', account);
     setFieldValue('credentials', account);
   };
 

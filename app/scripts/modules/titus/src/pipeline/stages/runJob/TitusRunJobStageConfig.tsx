@@ -97,6 +97,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
   }
 
   private accountChanged = (account: string) => {
+    set(this.props.stage, 'account', account);
     this.stageFieldChanged('credentials', account);
     this.setRegistry(account);
     this.updateRegions(account);
