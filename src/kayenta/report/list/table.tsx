@@ -3,6 +3,9 @@ import { connect } from 'react-redux';
 import * as moment from 'moment';
 import { isEqual, get } from 'lodash';
 
+import { Application } from '@spinnaker/core';
+
+import { CanarySettings } from 'kayenta/canary.settings';
 import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import { ICanaryState } from 'kayenta/reducers';
 import {
@@ -10,6 +13,7 @@ import {
   ICanaryMetricConfig,
   ICanaryScopesByName,
   CANARY_EXECUTION_NO_PIPELINE_STATUS,
+  IKayentaAccount,
 } from 'kayenta/domain';
 import FormattedDate from 'kayenta/layout/formattedDate';
 import CenteredDetail from 'kayenta/layout/centeredDetail';
@@ -17,6 +21,7 @@ import Score from '../detail/score';
 import ReportLink from './reportLink';
 import ConfigLink from './configLink';
 import { PipelineLink } from './pipelineLink';
+import { ManualAnalysisModal } from 'kayenta/manualAnalysis/ManualAnalysisModal';
 
 import './executionList.less';
 
@@ -144,11 +149,21 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
   },
 ];
 
+const startManualAnalysis = (application: Application, accounts: IKayentaAccount[]) => {
+  ManualAnalysisModal.show({
+    title: 'Start Manual Analysis',
+    application,
+    accounts,
+  });
+};
+
 interface IExecutionListTableStateProps {
   executions: ICanaryExecutionStatusResult[];
+  application: Application;
+  accounts: IKayentaAccount[];
 }
 
-const ExecutionListTable = ({ executions }: IExecutionListTableStateProps) => {
+const ExecutionListTable = ({ executions, application, accounts }: IExecutionListTableStateProps) => {
   if (!executions || !executions.length) {
     return (
       <CenteredDetail>
@@ -159,6 +174,15 @@ const ExecutionListTable = ({ executions }: IExecutionListTableStateProps) => {
 
   return (
     <div className="vertical execution-list-container">
+      {CanarySettings.manualAnalysisEnabled && (
+        <button
+          style={{ alignSelf: 'flex-end', flexShrink: 0 }}
+          className="primary"
+          onClick={() => startManualAnalysis(application, accounts)}
+        >
+          <i className="fa fa-play" /> Start Manual Analysis
+        </button>
+      )}
       <NativeTable
         rows={executions}
         className="flex-1 execution-list-table"
@@ -171,6 +195,8 @@ const ExecutionListTable = ({ executions }: IExecutionListTableStateProps) => {
 
 const mapStateToProps = (state: ICanaryState) => ({
   executions: Object.values(state.data.executions.data).filter(e => e.result),
+  application: state.data.application,
+  accounts: state.data.kayentaAccounts.data,
 });
 
 export default connect(mapStateToProps)(ExecutionListTable);

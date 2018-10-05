@@ -33,6 +33,18 @@ export interface ICanaryExecutionRequest {
   };
 }
 
+export interface ICanaryExecutionRequestParams {
+  application?: string;
+  parentPipelineExecutionId?: string;
+  metricsAccountName?: string;
+  storageAccountName?: string;
+  configurationAccountName?: string;
+}
+
+export interface ICanaryExecutionResponse {
+  canaryExecutionId: string;
+}
+
 export type ICanaryScopesByName = ICanaryExecutionRequest['scopes'];
 
 export interface ICanaryScopePair {

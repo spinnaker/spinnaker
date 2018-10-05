@@ -3,7 +3,13 @@ import { sortBy } from 'lodash';
 import { API } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
-import { IMetricSetPair, ICanaryExecutionStatusResult } from 'kayenta/domain';
+import {
+  IMetricSetPair,
+  ICanaryExecutionStatusResult,
+  ICanaryExecutionRequest,
+  ICanaryExecutionRequestParams,
+  ICanaryExecutionResponse,
+} from 'kayenta/domain';
 
 export const getCanaryRun = (configId: string, canaryExecutionId: string): Promise<ICanaryExecutionStatusResult> =>
   API.one('v2/canaries/canary')
@@ -19,6 +25,17 @@ export const getCanaryRun = (configId: string, canaryExecutionId: string): Promi
       run.result.judgeResult.results = sortBy(run.result.judgeResult.results, 'name');
       return run;
     });
+
+export const startCanaryRun = (
+  configId: string,
+  executionRequest: ICanaryExecutionRequest,
+  params: ICanaryExecutionRequestParams = {},
+): Promise<ICanaryExecutionResponse> => {
+  return API.one('v2/canaries/canary')
+    .one(configId)
+    .withParams(params)
+    .post(executionRequest);
+};
 
 export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: string): Promise<IMetricSetPair> =>
   API.one('v2/canaries/metricSetPairList')

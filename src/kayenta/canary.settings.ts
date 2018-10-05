@@ -16,6 +16,7 @@ export interface ICanarySettings {
   atlasWebComponentsPolyfillUrl: string;
   atlasGraphBaseUrl: string;
   templatesEnabled: boolean;
+  manualAnalysisEnabled: boolean;
 }
 
 export const CanarySettings: ICanarySettings = SETTINGS.canary || { featureDisabled: true };
