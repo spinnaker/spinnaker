@@ -29,6 +29,7 @@ import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
@@ -79,8 +80,9 @@ public class ConfigBinStorageService implements StorageService {
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
     String json;
 
+    RetrySupport retrySupport = new RetrySupport();
     try {
-       json = remoteService.get(ownerApp, configType, objectKey);
+      json = retrySupport.retry(() -> remoteService.get(ownerApp, configType, objectKey), 10, 1000, false);
     } catch (RetrofitError e) {
       throw new NotFoundException("No such object named " + objectKey);
     }
