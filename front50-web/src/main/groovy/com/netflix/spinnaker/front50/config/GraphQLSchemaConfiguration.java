@@ -28,6 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import static graphql.schema.idl.TypeRuntimeWiring.newTypeWiring;
 
@@ -49,10 +51,10 @@ public class GraphQLSchemaConfiguration {
 
   @Bean
   GraphQLSchema graphQLSchema(RuntimeWiring runtimeWiring) {
-    File pipelineConfigSchema = new File(getClass().getResource("/graphql/pipelineConfig.graphqls").getFile());
+    InputStream pipelineConfigSchema = getClass().getResourceAsStream("/graphql/pipelineConfig.graphqls");
 
     SchemaParser schemaParser = new SchemaParser();
-    TypeDefinitionRegistry registry = schemaParser.parse(pipelineConfigSchema);
+    TypeDefinitionRegistry registry = schemaParser.parse(new InputStreamReader(pipelineConfigSchema));
 
     SchemaGenerator schemaGenerator = new SchemaGenerator();
     GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(registry, runtimeWiring);
