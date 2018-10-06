@@ -1,4 +1,5 @@
 # oss-approvers
+* aglover
 * ajordens
 * alanmquach
 * anph
