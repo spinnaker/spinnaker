@@ -22,7 +22,7 @@ const isNotExpressionLanguage = (field: string) => field && !field.includes('${'
 const isStackPattern = (stack: string) =>
   isNotExpressionLanguage(stack) ? /^([a-zA-Z_0-9._${}]*(\${.+})*)*$/.test(stack) : true;
 const isDetailPattern = (detail: string) =>
-  isNotExpressionLanguage(detail) ? /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/.test(detail) : true;
+  isNotExpressionLanguage(detail) ? /^([a-zA-Z_0-9._$-{}\\\^~]*(\${.+})*)*$/.test(detail) : true;
 
 export interface IServerGroupBasicSettingsProps extends IWizardPageProps<ITitusServerGroupCommand> {
   app: Application;
@@ -121,7 +121,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
     if (!isDetailPattern(values.freeFormDetails)) {
       errors.freeFormDetails =
-        'Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.';
+        'Only dot(.), underscore(_), caret (^), tilde (~), and dash(-) special characters are allowed in the Detail field.';
     }
 
     if (!values.viewState.disableImageSelection) {
