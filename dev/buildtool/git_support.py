@@ -1069,6 +1069,22 @@ class GitRunner(object):
     self.check_run(git_dir, 'tag -d ' + ' '.join(tags_to_remove))
     logging.debug('%d of %d tags removed', len(tags_to_remove), len(all_tags))
 
+  def determine_pull_url(self, repository):
+    """Return the pull URL for a given repository from its origin."""
+    parts = self.normalize_repo_url(repository.origin)
+    if len(parts) == 3:
+      return (self.make_ssh_url(*parts) if self.__options.github_pull_ssh
+              else self.make_https_url(*parts))
+    return repository.origin
+
+  def determine_push_url(self, repository):
+    """Return the push URL for a given repository from its origin."""
+    parts = self.normalize_repo_url(repository.origin)
+    if len(parts) == 3:
+      return (self.make_ssh_url(*parts) if self.__options.github_push_ssh
+              else self.make_https_url(*parts))
+    return repository.origin
+
   def clone_repository_to_path(
       self, repository, commit=None, branch=None, default_branch=None):
     """Clone the remote repository at the given commit or branch.
@@ -1082,14 +1098,7 @@ class GitRunner(object):
       raise_and_log_error(
           ConfigError('At most one of commit or branch can be specified.'))
 
-    origin = repository.origin
-    parts = self.normalize_repo_url(repository.origin)
-    if len(parts) == 3:
-      pull_url = (self.make_ssh_url(*parts) if self.__options.github_pull_ssh
-                  else self.make_https_url(*parts))
-    else:
-      pull_url = origin
-
+    pull_url = self.determine_pull_url(repository)
     git_dir = repository.git_dir
     logging.debug('Begin cloning %s', pull_url)
     parent_dir = os.path.dirname(git_dir)
@@ -1109,6 +1118,7 @@ class GitRunner(object):
       self.check_run(git_dir, 'checkout -q ' + commit, echo=True)
 
     upstream = repository.upstream_or_none()
+    origin = repository.origin
     if upstream and not self.is_same_repo(upstream, origin):
       logging.debug('Adding upstream %s with disabled push', upstream)
       self.check_run(git_dir, 'remote add upstream ' + upstream)
@@ -1124,8 +1134,7 @@ class GitRunner(object):
       if len(parts) == 3:
         # Origin is not a local path
         logging.debug('Fixing origin push url')
-        push_url = (self.make_ssh_url(*parts) if self.__options.github_push_ssh
-                    else self.make_https_url(*parts))
+        push_url = self.determine_push_url(repository)
         self.check_run(git_dir, 'remote set-url --push origin ' + push_url)
 
     logging.debug('Finished cloning %s', pull_url)

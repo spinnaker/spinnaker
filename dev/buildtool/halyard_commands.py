@@ -526,7 +526,7 @@ class PublishHalyardCommand(CommandProcessor):
     git_dir = repository.git_dir
     git = self.__scm.git
 
-    release_url = repository.origin
+    release_url = git.determine_push_url(repository)
     logging.info('Pushing branch=%s and tag=%s to %s',
                  self.__release_branch, self.__release_tag, release_url)
 
