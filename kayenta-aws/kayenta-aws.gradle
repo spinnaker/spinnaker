@@ -4,4 +4,5 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
   compile spinnaker.dependency('aws')
+  compile spinnaker.dependency('awsS3')
 }

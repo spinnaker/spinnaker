@@ -33,7 +33,6 @@ import java.util.UUID;
 
 @Configuration
 @Import({
-  RedisExecutionRepository.class,
   com.netflix.spinnaker.orca.config.OrcaConfiguration.class,
   PropertyPlaceholderAutoConfiguration.class,
   QueueConfiguration.class,
