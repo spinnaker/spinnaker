@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import com.google.common.io.CharStreams;
 import com.google.common.util.concurrent.Uninterruptibles;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
@@ -45,6 +46,8 @@ public class HttpClientUtils {
   private static final int MAX_RETRIES = 5;
   private static final int RETRY_INTERVAL = 5000;
   private static final int TIMEOUT_MILLIS = 30000;
+  private static final String JVM_HTTP_PROXY_HOST = "http.proxyHost";
+  private static final String JVM_HTTP_PROXY_PORT = "http.proxyPort";
   private static List<Integer> RETRYABLE_500_HTTP_STATUS_CODES = Arrays.asList(
     HttpStatus.SC_SERVICE_UNAVAILABLE,
     HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -88,6 +91,14 @@ public class HttpClientUtils {
       LOGGER.info("Encountered network error. Retrying request {},  Count {} Max is {}", currentReq.getURI(), executionCount, MAX_RETRIES);
       return executionCount <= MAX_RETRIES;
     });
+
+    String proxyHostname = System.getProperty(JVM_HTTP_PROXY_HOST);
+    if (proxyHostname != null) {
+      int proxyPort = System.getProperty(JVM_HTTP_PROXY_PORT) != null ? Integer.parseInt(System.getProperty(JVM_HTTP_PROXY_PORT)) : 8080;
+      LOGGER.info("Found system properties for proxy configuration. Setting up http client to use proxy with " +
+        "hostname {} and port {}", proxyHostname, proxyPort );
+      httpClientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort, "http"));
+    }
 
     httpClientBuilder.setDefaultRequestConfig(
       RequestConfig.custom()
