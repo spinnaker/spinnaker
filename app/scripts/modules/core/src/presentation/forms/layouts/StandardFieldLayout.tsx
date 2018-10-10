@@ -1,9 +1,10 @@
-import { IValidationMessageProps } from 'core';
 import * as React from 'react';
-import { IFieldLayoutProps } from '../interface';
-import { ValidationMessage } from 'core/validation';
 
-export class BasicLayout extends React.Component<IFieldLayoutProps> {
+import { ValidationMessage, IValidationMessageProps } from 'core/validation';
+
+import { IFieldLayoutProps } from '../interface';
+
+export class StandardFieldLayout extends React.Component<IFieldLayoutProps> {
   public render() {
     const { label, help, input, actions, touched, error, warning, preview } = this.props;
 
