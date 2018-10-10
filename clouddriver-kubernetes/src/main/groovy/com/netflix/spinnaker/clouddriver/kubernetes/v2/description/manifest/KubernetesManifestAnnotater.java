@@ -186,6 +186,7 @@ public class KubernetesManifestAnnotater {
   public static Moniker getMoniker(KubernetesManifest manifest) {
     Names parsed = Names.parseName(manifest.getName());
     Map<String, String> annotations = manifest.getAnnotations();
+    Integer defaultSequence = parsed.getSequence();
 
     return Moniker.builder()
         .cluster(getAnnotation(annotations, CLUSTER, new TypeReference<String>() {}, parsed.getCluster()))
@@ -194,8 +195,8 @@ public class KubernetesManifestAnnotater {
         .detail(getAnnotation(annotations, DETAIL, new TypeReference<String>() {}, null))
         .sequence(getAnnotation(annotations, SEQUENCE, new TypeReference<Integer>() {},
             manifest.getKind() == KubernetesKind.REPLICA_SET ?
-                getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, null) :
-                null
+                getAnnotation(annotations, DEPLOYMENT_REVISION, new TypeReference<Integer>() {}, defaultSequence) :
+              defaultSequence
         ))
         .build();
   }
