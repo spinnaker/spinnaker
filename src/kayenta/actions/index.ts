@@ -81,3 +81,6 @@ export const LOAD_KAYENTA_ACCOUNTS_REQUEST = 'load_kayenta_accounts_request';
 export const LOAD_KAYENTA_ACCOUNTS_SUCCESS = 'load_kayenta_accounts_success';
 export const LOAD_KAYENTA_ACCOUNTS_FAILURE = 'load_kayenta_accounts_failure';
 export const SELECT_METRIC_STORE = 'select_metric_store';
+export const UPDATE_SIGNAL_FX_METRIC_NAME = 'update_signalfx_metric_name';
+export const UPDATE_SIGNAL_FX_AGGREGATION_METHOD = 'update_signalfx_aggregation_method';
+export const UPDATE_SIGNAL_FX_QUERY_PAIRS = 'update_signalfx_query_pairs';

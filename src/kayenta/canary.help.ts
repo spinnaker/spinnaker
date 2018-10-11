@@ -67,6 +67,30 @@ const helpContents: { [key: string]: string } = {
     <p>When there is no value for a metric at a given point in time, it can either be ignored or assumed to be zero. The right choice depends on what is being measured. For example, when measuring successful attempts (like health checks) replacing missing values with zero may be appropriate.</p>
     <p>The default strategy for a given metric will be used if no strategy is selected.</p>
   `,
+  'canary.config.signalFx.queryPairs': `
+    <p><strong>Query pairs are optional</strong></p>
+    <p>Can be dimensions, properties, or tags (Use tag as key for tags).</p>
+    <p>
+        Example: Given a metric with name <pre>'request.count'</pre> that gets reported with dimensions uri, and stats_code. </br>
+        If I added the following query pairs</br>
+        <pre>{
+  "uri": "v1/some-endpoint",
+  "status_code": "5*"
+}</pre>
+        I could make a metric that tracks the number of server errors for endpoint <pre>/v1/some-endpoint</pre>
+    </p>
+    <p>These k,v pairs are used to construct filters for the compiled SignalFlow program. EX:<pre>data('request.count', filters=filter('uri', 'v1/some-endpoint') and filter('status_code', '5*') and filter('version', '1.0.0') and filter('environment', 'production')).sum(by=['version', 'environment']).publish()</pre>
+        Note that the version and environment would come from the canary scope and the sum method comes from the aggregation method.
+    </p>
+  `,
+  'canary.config.signalFx.aggregationMethod': `
+    <p>This must be a method defined in the <a target="_blank" href="https://developers.signalfx.com/reference#signalflow-stream-methods-1">SignalFlow Stream Methods</a> that supports aggregation</p>
+    <p>These are methods such as min, max, sum, mean and are documented with supporting the <strong>'by'</strong> keyword, ex: <pre>sum(by=['version', 'environment'])</pre></p>
+    <p>Simply put the name of the method that should be used in this field such as sum, Kayenta will populate the by clauses using the canary scope filter keys</p>
+    <p>This method is used to construct the compiled SignalFlow program. EX:<pre>data('request.count', filters=filter('uri', 'v1/some-endpoint') and filter('status_code', '5*') and filter('version', '1.0.0') and filter('environment', 'production')).sum(by=['version', 'environment']).publish()</pre>
+        Note that the version and environment k,v pairs are sourced from the canary scope. The other k,v pairs come from the metric specific k,v pair list.
+    </p>
+  `,
   // These come (almost) verbatim from Stackdriver's Metric Explorer.
   'stackdriver.resourceType':
     'For Stackdriver, a set of time series is identified by a <strong>resource type</strong> and a metric type that has data from that resource type.',

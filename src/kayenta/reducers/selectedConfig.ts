@@ -14,6 +14,7 @@ import { AsyncRequestState } from './asyncRequest';
 import { IConfigValidationError } from './validators';
 import { editingTemplate, IEditingTemplateState } from './editingTemplate';
 import { prometheusMetricConfigReducer } from './prometheusMetricConfig';
+import { signalFxMetricConfigReducer } from './signalFxMetricConfig';
 import { stackdriverMetricConfigReducer } from './stackdriverMetricConfig';
 
 export interface ILoadState {
@@ -472,7 +473,7 @@ const combined = combineReducers<ISelectedConfigState>({
   judge,
   metricList,
   editingMetric: (metric, action) =>
-    [editingMetric, prometheusMetricConfigReducer, stackdriverMetricConfigReducer].reduce(
+    [editingMetric, prometheusMetricConfigReducer, signalFxMetricConfigReducer, stackdriverMetricConfigReducer].reduce(
       (s, reducer) => reducer(s, action),
       metric,
     ),
