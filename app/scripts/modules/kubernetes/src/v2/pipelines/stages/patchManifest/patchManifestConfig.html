@@ -25,7 +25,7 @@
     <yaml-editor
       ng-if="stage.source === ctrl.textSource"
       on-change="ctrl.handleYamlChange"
-      value="stage.patchBody">
+      value="ctrl.rawPatchBody">
     </yaml-editor>
     <stage-config-field label="Expected Artifact" help-key="kubernetes.manifest.expectedArtifact" field-columns="8" ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
       <expected-artifact-selector-react

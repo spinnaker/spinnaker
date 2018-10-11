@@ -1,5 +1,6 @@
 import { IController, IScope } from 'angular';
 import { get, defaults } from 'lodash';
+import { dump } from 'js-yaml';
 import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate } from '@spinnaker/core';
 import { IPatchOptions, MergeStrategy } from './patchOptionsForm.component';
 import {
@@ -16,12 +17,19 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
   public textSource = 'text';
   public artifactSource = 'artifact';
   public sources = [this.textSource, this.artifactSource];
+  public rawPatchBody: string;
 
   private manifestArtifactDelegate: NgManifestArtifactDelegate;
   private manifestArtifactController: ExpectedArtifactSelectorViewController;
 
   constructor(private $scope: IScope) {
     'ngInject';
+
+    try {
+      this.rawPatchBody = $scope.stage.patchBody ? dump($scope.stage.patchBody) : null;
+    } catch (e) {
+      this.rawPatchBody = null;
+    }
 
     const defaultOptions: IPatchOptions = {
       mergeStrategy: MergeStrategy.strategic,
@@ -58,7 +66,8 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
     });
   }
 
-  public handleYamlChange = (patchBody: any): void => {
+  public handleYamlChange = (rawPatchBody: string, patchBody: any): void => {
+    this.rawPatchBody = rawPatchBody;
     this.$scope.stage.patchBody = patchBody;
     // Called from a React component.
     this.$scope.$applyAsync();
