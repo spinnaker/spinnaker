@@ -66,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -81,11 +82,11 @@ public class TravisService implements BuildService {
     private final TravisClient travisClient;
     private final TravisCache travisCache;
     private final Collection<String> artifactRegexes;
-    private final ArtifactDecorator artifactDecorator;
+    private final Optional<ArtifactDecorator> artifactDecorator;
     protected AccessToken accessToken;
     private Accounts accounts;
 
-    public TravisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, @Nullable ArtifactDecorator artifactDecorator, Collection<String> artifactRegexes) {
+    public TravisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Optional<ArtifactDecorator> artifactDecorator, Collection<String> artifactRegexes) {
         this.numberOfRepositories = numberOfRepositories;
         this.groupKey = travisHostId;
         this.gitHubAuth = new GithubAuth(githubToken);
@@ -471,10 +472,7 @@ public class TravisService implements BuildService {
 
     private void parseAndDecorateArtifacts(String log, GenericBuild genericBuild) {
         genericBuild.setArtifacts(ArtifactParser.getArtifactsFromLog(log, artifactRegexes));
-        if (artifactDecorator != null) {
-            artifactDecorator.decorate(genericBuild);
-        }
-
+        artifactDecorator.ifPresent(decorator -> decorator.decorate(genericBuild));
     }
 
     public final String getBaseUrl() {

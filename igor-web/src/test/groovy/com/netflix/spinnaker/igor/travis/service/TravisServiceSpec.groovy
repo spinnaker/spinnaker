@@ -42,11 +42,11 @@ class TravisServiceSpec extends Specification{
     TravisService service
 
     @Shared
-    ArtifactDecorator artifactDecorator
+    Optional<ArtifactDecorator> artifactDecorator
 
     void setup() {
         client = Mock(TravisClient)
-        artifactDecorator = new ArtifactDecorator([new DebDetailsDecorator(), new RpmDetailsDecorator()], null)
+        artifactDecorator = Optional.of(new ArtifactDecorator([new DebDetailsDecorator(), new RpmDetailsDecorator()], null))
         service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, null, artifactDecorator, [])
 
         AccessToken accessToken = new AccessToken()

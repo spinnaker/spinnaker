@@ -41,6 +41,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,7 +56,7 @@ public class TravisConfig {
     private Logger log = LoggerFactory.getLogger(getClass());
 
     @Bean
-    public Map<String, TravisService> travisMasters(BuildMasters buildMasters, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties, ObjectMapper objectMapper, ArtifactDecorator artifactDecorator) {
+    public Map<String, TravisService> travisMasters(BuildMasters buildMasters, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties, ObjectMapper objectMapper, Optional<ArtifactDecorator> artifactDecorator) {
         log.info("creating travisMasters");
 
         Map<String, TravisService> travisMasters = (travisProperties == null ? new ArrayList<TravisProperties.TravisHost>() : travisProperties.getMasters()).stream()
@@ -72,7 +73,7 @@ public class TravisConfig {
         return travisMasters;
     }
 
-    public static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, ArtifactDecorator artifactDecorator, Collection<String> artifactRexeges) {
+    public static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Optional<ArtifactDecorator> artifactDecorator, Collection<String> artifactRexeges) {
         return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactDecorator, artifactRexeges);
     }
 
