@@ -52,6 +52,7 @@ public class ArtifactParser {
                 .filter(Matcher::find)
                 .map(match -> match.group(1))
                 .peek(match -> log.debug("Found artifact: " + match))
+                .distinct()
                 .map(match -> new GenericArtifact(match, match, match))
                 .collect(Collectors.toList()).stream())
             .collect(Collectors.toList());

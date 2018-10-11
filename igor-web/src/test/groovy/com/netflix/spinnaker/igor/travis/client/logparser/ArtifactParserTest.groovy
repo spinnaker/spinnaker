@@ -44,6 +44,22 @@ class ArtifactParserTest extends Specification {
         then:
         artifacts.first().fileName == "some-package-1.2.3-4.noarch.rpm"
         artifacts.last().fileName == "another-package-4.3.2.deb"
+        artifacts.size == 2
+    }
+
+    def "make sure we only have one unique entry for each artifact"() {
+        String buildLog = "Upload https://foo.host/artifactory/yum-local/theorg/theprj/some-package-1.2.3-4.noarch.rpm\n"
+
+        List<String> gradleRegex = [/Upload https?:\/\/.+\/(.+\.(deb|rpm))$/,
+                                    /(?:\s)?Upload https?:\/\/.+\/(.+\.(deb|rpm))$/
+                                    ].toList()
+
+        when:
+        List<GenericArtifact> artifacts = ArtifactParser.getArtifactsFromLog(buildLog, gradleRegex)
+
+        then:
+        artifacts.first().fileName == "some-package-1.2.3-4.noarch.rpm"
+        artifacts.size == 1
     }
 
     def "get multiple artifactory deb from log using default regexes"() {
