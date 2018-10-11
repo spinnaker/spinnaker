@@ -1,7 +1,7 @@
 Spinnaker Application & Project Metadata Repository
 ------------------------------------
 [![Build Status](https://api.travis-ci.org/spinnaker/front50.svg?branch=master)](https://travis-ci.org/spinnaker/front50)
-This service fronts a Spinnaker datastore. By default it's Cassandra, however, it's intended that any datastore could work. Front50 written using [Spring Boot][0]. 
+This service fronts a Spinnaker datastore. It's intended that any datastore could work, there are a number of current storage providers. Front50 written using [Spring Boot][0].
 
 ### Debugging
 
@@ -19,7 +19,7 @@ modified as needed in `build.gradle`.
 
 ### Modular builds
 
-By default, Front50 is built with all storage providers included. To build only a subset of 
+By default, Front50 is built with all storage providers included. To build only a subset of
 providers, use the `includeProviders` flag:
 
 ```
