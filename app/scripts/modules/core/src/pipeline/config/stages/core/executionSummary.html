@@ -2,7 +2,7 @@
   <h5 class="execution-details-title">
     Stage details: {{stageSummary.name || stageSummary.type }}
 
-    <div ng-if="(!stage.isRunning && !stage.isCompleted) && $ctrl.isRestartable(stage)" uib-dropdown class="btn-group pull-right">
+    <div ng-if="$ctrl.isRestartable(stage) || $ctrl.canManuallySkip()" uib-dropdown class="btn-group pull-right">
       <button type="button"
               class="btn btn-default btn-sm dropdown-toggle"
               analytics-on="click"
@@ -13,16 +13,33 @@
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" uib-dropdown-menu uib-dropdown-append-to-body="true" role="menu">
-        <li><a href ng-controller="RestartStageCtrl as restartCtrl"
-               analytics-on="click"
-               analytics-category="Pipeline"
-               analytics-event="Execution restart clicked"
-               ng-click="restartCtrl.restart()">Restart {{ stageSummary.name }}</a></li>
+        <li ng-if="$ctrl.isRestartable(stage)">
+          <a
+             href
+             ng-controller="RestartStageCtrl as restartCtrl"
+             analytics-on="click"
+             analytics-category="Pipeline"
+             analytics-event="Execution restart clicked"
+             ng-click="restartCtrl.restart()">Restart {{ stageSummary.name }}</a>
+        </li>
+        <li ng-if="$ctrl.canManuallySkip()">
+          <a
+            href
+            analytics-on="click"
+            analytics-category="Pipeline"
+            analytics-event="Stage skip clicked"
+            ng-click="$ctrl.openManualSkipStageModal()">Skip {{ $ctrl.getTopLevelStage().name }}</a>
+        </li>
       </ul>
     </div>
   </h5>
   <h6 class="duration">Duration: {{stageSummary.runningTimeInMs | duration}}</h6>
   <h6 ng-if="stage.context.restartDetails">Restarted by {{stage.context.restartDetails.restartedBy}} &mdash; {{stage.context.restartDetails.restartTime | timestamp}}</h6>
+  <h6 ng-if="$ctrl.getTopLevelStage().context.manualSkip" uib-tooltip="{{$ctrl.getTopLevelStage().context.reason}}">
+    Manually skipped by {{$ctrl.getTopLevelStage().lastModified.user}}
+    &mdash;
+    {{$ctrl.getTopLevelStage().lastModified.lastModifiedTime | timestamp}}
+  </h6>
 
   <table class="table">
     <thead>
