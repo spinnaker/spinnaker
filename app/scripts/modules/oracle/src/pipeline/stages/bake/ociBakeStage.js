@@ -2,16 +2,7 @@
 
 const angular = require('angular');
 
-import _ from 'lodash';
-
-import {
-  AccountService,
-  AuthenticationService,
-  BakeryReader,
-  NetworkReader,
-  Registry,
-  SubnetReader,
-} from '@spinnaker/core';
+import { AccountService, AuthenticationService, BakeryReader, Registry } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oracle.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller.js').name])
@@ -79,8 +70,10 @@ module.exports = angular
 
         if ($scope.stage.accountName) {
           AccountService.getRegionsForAccount($scope.stage.accountName).then(function(regions) {
-            $scope.regions = regions;
-            $scope.stage.region = $scope.regions[0].name;
+            if (Array.isArray(regions) && regions.length != 0) {
+              // there is exactly one region per account
+              $scope.stage.region = regions[0].name;
+            }
           });
         }
 
@@ -94,8 +87,10 @@ module.exports = angular
 
     this.accountUpdated = function() {
       AccountService.getRegionsForAccount($scope.stage.accountName).then(function(regions) {
-        $scope.regions = regions;
-        $scope.stage.region = $scope.regions[0].name;
+        if (Array.isArray(regions) && regions.length != 0) {
+          // there is exactly one region per account
+          $scope.stage.region = regions[0].name;
+        }
       });
     };
 
