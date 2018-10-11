@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { $q } from 'ngimport';
-import { flatten, has, intersection, isEqual, map, uniq, xor } from 'lodash';
+import { flatten, has, isEqual, map, uniq, xor } from 'lodash';
 
 import { IAccount } from 'core/account';
 import { AccountService } from 'core/account/AccountService';
@@ -45,13 +45,16 @@ export class AccountSelectField extends React.Component<IAccountSelectFieldProps
     }
 
     const accountsAreObjects = Boolean((accounts[0] as IAccount).name);
-    let getAccountDetails = provider ? AccountService.getAllAccountDetailsForProvider(provider) : $q.when([]);
-
-    if (provider && accountsAreObjects) {
-      const providers = uniq(map(accounts as IAccount[], 'type'));
-      getAccountDetails = $q
-        .all(providers.map(p => AccountService.getAllAccountDetailsForProvider(p)))
-        .then(details => flatten(details));
+    let getAccountDetails = $q.when([]);
+    if (provider) {
+      if (accountsAreObjects) {
+        const providers = uniq(map(accounts as IAccount[], 'type'));
+        getAccountDetails = $q
+          .all(providers.map(p => AccountService.getAllAccountDetailsForProvider(p)))
+          .then(details => flatten(details));
+      } else {
+        getAccountDetails = AccountService.getAllAccountDetailsForProvider(provider);
+      }
     }
 
     getAccountDetails.then(details => {
@@ -74,11 +77,8 @@ export class AccountSelectField extends React.Component<IAccountSelectFieldProps
       }
 
       if (component) {
-        mergedAccounts = mergedAccounts || [];
-        const comp = flatten([component[field]]);
-
-        if (intersection(mergedAccounts, comp).length !== comp.length) {
-          onChange(null);
+        if (!mergedAccounts.includes(component[field])) {
+          onChange('');
         }
       }
 
