@@ -38,6 +38,13 @@ fun StageDefinitionBuilder.buildTasks(stage: Stage) {
     .forEachWithMetadata { processTaskNode(stage, it) }
 }
 
+fun StageDefinitionBuilder.addContextFlags(stage: Stage) {
+  if (canManuallySkip()) {
+    // Provides a flag for the UI to indicate that the stage can be skipped.
+    stage.context["canManuallySkip"] = true
+  }
+}
+
 private fun processTaskNode(
   stage: Stage,
   element: IteratorElement<TaskNode>,

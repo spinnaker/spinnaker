@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.TaskComplete
+import com.netflix.spinnaker.orca.ext.isManuallySkipped
 import com.netflix.spinnaker.orca.ext.nextTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
@@ -57,7 +58,9 @@ class CompleteTaskHandler(
       } else {
         repository.storeStage(mergedContextStage)
 
-        if (shouldCompleteStage(task, message.status, message.originalStatus)) {
+        if (stage.isManuallySkipped()) {
+          queue.push(SkipStage(stage.topLevelStage))
+        } else if (shouldCompleteStage(task, message.status, message.originalStatus)) {
           queue.push(CompleteStage(message))
         } else {
           mergedContextStage.nextTask(task).let {

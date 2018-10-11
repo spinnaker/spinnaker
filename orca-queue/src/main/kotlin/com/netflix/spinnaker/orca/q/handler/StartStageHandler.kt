@@ -137,6 +137,7 @@ class StartStageHandler(
 
   private fun Stage.plan() {
     builder().let { builder ->
+      builder.addContextFlags(this)
       builder.buildTasks(this)
       builder.buildBeforeStages(this) { it: Stage ->
         repository.addStage(it.withMergedContext())

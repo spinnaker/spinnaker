@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -75,6 +76,9 @@ class TaskController {
 
   @Autowired
   Registry registry
+
+  @Autowired
+  StageDefinitionBuilderFactory stageDefinitionBuilderFactory
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -404,6 +408,7 @@ class TaskController {
     def stage = pipeline.stages.find { it.id == stageId }
     if (stage) {
       stage.context.putAll(context)
+      validateStageUpdate(stage)
 
       stage.lastModified = new Stage.LastModifiedDetails(
         user: AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
@@ -419,6 +424,14 @@ class TaskController {
       executionRunner.reschedule(pipeline)
     }
     pipeline
+  }
+
+  // If other execution mutations need validation, factor this out.
+  void validateStageUpdate(Stage stage) {
+    if (stage.context.manualSkip
+        && !stageDefinitionBuilderFactory.builderFor(stage)?.canManuallySkip()) {
+      throw new CannotUpdateExecutionStage("Cannot manually skip stage.")
+    }
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
@@ -721,4 +734,8 @@ class TaskController {
       super("Cannot delete a running $type, please cancel it first.")
     }
   }
+
+  @InheritConstructors
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  private static class CannotUpdateExecutionStage extends RuntimeException {}
 }

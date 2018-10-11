@@ -21,10 +21,7 @@ import com.netflix.spectator.api.histogram.BucketCounter
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
-import com.netflix.spinnaker.orca.ext.afterStages
-import com.netflix.spinnaker.orca.ext.failureStatus
-import com.netflix.spinnaker.orca.ext.firstAfterStages
-import com.netflix.spinnaker.orca.ext.syntheticStages
+import com.netflix.spinnaker.orca.ext.*
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage

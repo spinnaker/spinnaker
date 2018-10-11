@@ -241,4 +241,87 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       }
     }
   }
+
+  describe("manual skip behavior") {
+    given("a stage with a manual skip flag") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          type = "whatever"
+          status = RUNNING
+          context["manualSkip"] = true
+
+          stage {
+            refId = "1<1"
+            type = "whatever"
+            status = RUNNING
+
+            stage {
+              refId = "1<1<1"
+              type = "whatever"
+              status = RUNNING
+            }
+          }
+        }
+      }
+      val message = SkipStage(pipeline.stageByRef("1"))
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("sets the top-level stage status to SKIPPED") {
+        assertThat(pipeline.stageByRef("1").status).isEqualTo(SKIPPED)
+      }
+
+      it("sets synthetic stage statuses to SKIPPED") {
+        assertThat(pipeline.stageByRef("1<1").status).isEqualTo(SKIPPED)
+        assertThat(pipeline.stageByRef("1<1<1").status).isEqualTo(SKIPPED)
+      }
+    }
+
+    setOf(TERMINAL, FAILED_CONTINUE, SUCCEEDED).forEach { childStageStatus ->
+      given("a stage with a manual skip flag and a synthetic stage with status $childStageStatus") {
+        val pipeline = pipeline {
+          stage {
+            refId = "1"
+            type = "whatever"
+            status = RUNNING
+            context["manualSkip"] = true
+
+            stage {
+              refId = "1<1"
+              type = "whatever"
+              status = childStageStatus
+            }
+          }
+        }
+        val message = SkipStage(pipeline.stageByRef("1"))
+
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("sets the top-level stage status to SKIPPED") {
+          assertThat(pipeline.stageByRef("1").status).isEqualTo(SKIPPED)
+        }
+
+        it("retains the synthetic stage's status") {
+          assertThat(pipeline.stageByRef("1<1").status).isEqualTo(childStageStatus)
+        }
+      }
+    }
+  }
 })

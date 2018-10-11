@@ -295,4 +295,80 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       subject.shouldCompleteStage(task(false), FAILED_CONTINUE, FAILED_CONTINUE) == false
     }
   }
+
+  describe("manual skip behavior") {
+    given("a stage with a manual skip flag") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          singleTaskStage.buildTasks(this)
+          context["manualSkip"] = true
+        }
+      }
+      val message = CompleteTask(
+        pipeline.type,
+        pipeline.id,
+        pipeline.application,
+        pipeline.stageByRef("1").id,
+        "1",
+        SKIPPED,
+        SKIPPED
+      )
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("skips the stage") {
+        verify(queue).push(SkipStage(pipeline.stageByRef("1")))
+      }
+    }
+
+    given("a stage whose parent has a manual skip flag") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          type = singleTaskStage.type
+          singleTaskStage.buildTasks(this)
+          context["manualSkip"] = true
+
+          stage {
+            refId = "1<1"
+            type = singleTaskStage.type
+            singleTaskStage.buildTasks(this)
+          }
+        }
+      }
+      val message = CompleteTask(
+        pipeline.type,
+        pipeline.id,
+        pipeline.application,
+        pipeline.stageByRef("1<1").id,
+        "1",
+        SKIPPED,
+        SKIPPED
+      )
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("skips the parent stage") {
+        verify(queue).push(SkipStage(pipeline.stageByRef("1")))
+      }
+    }
+  }
 })

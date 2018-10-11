@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
+import com.netflix.spinnaker.orca.ext.isManuallySkipped
+import com.netflix.spinnaker.orca.ext.recursiveSyntheticStages
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.SkipStage
 import com.netflix.spinnaker.q.Queue
@@ -37,8 +37,18 @@ class SkipStageHandler(
 ) : OrcaMessageHandler<SkipStage> {
   override fun handle(message: SkipStage) {
     message.withStage { stage ->
-      if (stage.status in setOf(RUNNING, NOT_STARTED)) {
+      if (stage.status in setOf(RUNNING, NOT_STARTED) || stage.isManuallySkipped()) {
         stage.status = SKIPPED
+        if (stage.isManuallySkipped()) {
+          stage.recursiveSyntheticStages().forEach {
+            if (it.status !in setOf(SUCCEEDED, TERMINAL, FAILED_CONTINUE)) {
+              it.status = SKIPPED
+              it.endTime = clock.millis()
+              repository.storeStage(it)
+              publisher.publishEvent(StageComplete(this, it))
+            }
+          }
+        }
         stage.endTime = clock.millis()
         repository.storeStage(stage)
         stage.startNext()

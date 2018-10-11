@@ -83,6 +83,11 @@ fun Stage.anyUpstreamStagesFailed(): Boolean =
 fun Stage.syntheticStages(): List<Stage> =
   execution.stages.filter { it.parentStageId == id }
 
+fun Stage.recursiveSyntheticStages(): List<Stage> =
+  syntheticStages() + syntheticStages().flatMap {
+    it.recursiveSyntheticStages()
+  }
+
 fun Stage.beforeStages(): List<Stage> =
   syntheticStages().filter { it.syntheticStageOwner == STAGE_BEFORE }
 
@@ -126,3 +131,7 @@ fun Stage.failureStatus(default: ExecutionStatus = TERMINAL) =
     shouldFailPipeline()      -> default
     else                      -> STOPPED
   }
+
+fun Stage.isManuallySkipped(): Boolean {
+  return context["manualSkip"] == true || parent?.isManuallySkipped() == true
+}

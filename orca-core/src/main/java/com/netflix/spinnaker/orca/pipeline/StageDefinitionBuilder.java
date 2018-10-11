@@ -162,4 +162,11 @@ public interface StageDefinitionBuilder {
     stage.setSyntheticStageOwner(stageOwner);
     return stage;
   }
+
+  /**
+   * Return true if the stage can be manually skipped from the API.
+   */
+  default boolean canManuallySkip() {
+    return false;
+  }
 }

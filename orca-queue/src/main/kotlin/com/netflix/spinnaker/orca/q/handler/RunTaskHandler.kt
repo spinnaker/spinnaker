@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.ext.failureStatus
+import com.netflix.spinnaker.orca.ext.isManuallySkipped
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
@@ -81,6 +82,8 @@ class RunTaskHandler(
           queue.push(CompleteTask(message, CANCELED))
         } else if (execution.status == PAUSED) {
           queue.push(PauseTask(message))
+        } else if (stage.isManuallySkipped()) {
+          queue.push(CompleteTask(message, SKIPPED))
         } else {
           try {
             task.checkForTimeout(stage, taskModel, message)
