@@ -22,8 +22,10 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
@@ -34,18 +36,23 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
   private JedisPool jedisPool;
   private RateLimiterConfiguration rateLimiterConfiguration;
 
+  private boolean supportsDeckSourceApp;
+
   public RedisRateLimitPrincipalProvider(JedisPool jedisPool, RateLimiterConfiguration rateLimiterConfiguration) {
     this.jedisPool = jedisPool;
     this.rateLimiterConfiguration = rateLimiterConfiguration;
+
+    // normally rate limits apply to _all_ principals but those originating from 'deck' were historically excluded
+    supportsDeckSourceApp = getCapacityForSourceApp(DECK_APP).isPresent();
   }
 
   @Override
-  public RateLimitPrincipal getPrincipal(String name) {
+  public RateLimitPrincipal getPrincipal(String name, @Nullable String sourceApp) {
     String configName = normalizeAnonymousNameForConfig(name);
     try (Jedis jedis = jedisPool.getResource()) {
-      int capacity = getCapacity(jedis, configName);
+      int capacity = getCapacity(jedis, configName, sourceApp);
       int rateSeconds = getRateSeconds(jedis, configName);
-      boolean learning = getLearningFlag(jedis, configName);
+      boolean learning = getLearningFlag(jedis, configName, sourceApp);
 
       return new RateLimitPrincipal(
         name,
@@ -64,7 +71,16 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     }
   }
 
-  private int getCapacity(Jedis jedis, String name) {
+  @Override
+  public boolean supports(@Nullable String sourceApp) {
+    if (DECK_APP.equalsIgnoreCase(sourceApp)) {
+      return supportsDeckSourceApp;
+    }
+
+    return true;
+  }
+
+  private int getCapacity(Jedis jedis, String name, @Nullable String sourceApp) {
     String capacity = jedis.get(getCapacityKey(name));
     if (capacity != null) {
       try {
@@ -74,7 +90,12 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
           value("principal", name), value("capacity", capacity));
       }
     }
-    return overrideOrDefault(name, rateLimiterConfiguration.getCapacityByPrincipal(), rateLimiterConfiguration.getCapacity());
+
+    return overrideOrDefault(
+      name,
+      rateLimiterConfiguration.getCapacityByPrincipal(),
+      getCapacityForSourceApp(sourceApp).orElse(rateLimiterConfiguration.getCapacity())
+    );
   }
 
   private int getRateSeconds(Jedis jedis, String name) {
@@ -90,9 +111,14 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     return overrideOrDefault(name, rateLimiterConfiguration.getRateSecondsByPrincipal(), rateLimiterConfiguration.getRateSeconds());
   }
 
-  private boolean getLearningFlag(Jedis jedis, String name) {
+  private boolean getLearningFlag(Jedis jedis, String name, @Nullable String sourceApp) {
     List<String> enforcing = new ArrayList<>(jedis.smembers(getEnforcingKey()));
     List<String> ignoring = new ArrayList<>(jedis.smembers(getIgnoringKey()));
+
+    if (sourceApp != null && getCapacityForSourceApp(sourceApp).isPresent()) {
+      // enforcing source app limits _must_ be explicitly enabled (for now!)
+      return !enforcing.contains("app:" + sourceApp.toLowerCase());
+    }
 
     if (enforcing.contains(name) && ignoring.contains(name)) {
       log.warn("principal is configured to be enforced AND ignored in Redis, ENFORCING for request (principal: {})",
@@ -142,5 +168,33 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       return "anonymous";
     }
     return name;
+  }
+
+  private Optional<Integer> getCapacityForSourceApp(@Nullable String sourceApp) {
+    if (sourceApp == null) {
+      return Optional.empty();
+    }
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      String capacity = jedis.get(getCapacityKey("app:" + sourceApp));
+      if (capacity != null) {
+        try {
+          return Optional.of(Integer.parseInt(capacity));
+        } catch (NumberFormatException e) {
+          log.error(
+            "invalid source app capacity value, expected integer (sourceApp: {}, value: {})",
+            value("sourceApp", sourceApp),
+            value("capacity", capacity)
+          );
+        }
+      }
+    }
+
+    return rateLimiterConfiguration
+      .getCapacityBySourceApp()
+      .stream()
+      .filter(o -> o.getSourceApp().equalsIgnoreCase(sourceApp))
+      .map(RateLimiterConfiguration.SourceAppOverride::getOverride)
+      .findFirst();
   }
 }

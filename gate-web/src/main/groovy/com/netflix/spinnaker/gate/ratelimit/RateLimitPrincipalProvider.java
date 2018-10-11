@@ -16,6 +16,11 @@
 package com.netflix.spinnaker.gate.ratelimit;
 
 public interface RateLimitPrincipalProvider {
+  String DECK_APP = "deck";
 
-  RateLimitPrincipal getPrincipal(String name);
+  RateLimitPrincipal getPrincipal(String name, String sourceApp);
+
+  default boolean supports(String sourceApp) {
+    return !DECK_APP.equalsIgnoreCase(sourceApp);
+  }
 }

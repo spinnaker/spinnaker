@@ -105,7 +105,7 @@ class RateLimitingInterceptorSpec extends Specification {
 
     then:
     noExceptionThrown()
-    2 * request.getHeader("X-RateLimit-App") >> { return "deck" }
+    1 * request.getHeader("X-RateLimit-App") >> { return "deck" }
     0 * _
   }
 }

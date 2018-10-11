@@ -49,7 +49,9 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
   private Counter throttlingCounter;
   private Counter learningThrottlingCounter;
 
-  public RateLimitingInterceptor(RateLimiter rateLimiter, Registry registry, RateLimitPrincipalProvider rateLimitPrincipalProvider) {
+  public RateLimitingInterceptor(RateLimiter rateLimiter,
+                                 Registry registry,
+                                 RateLimitPrincipalProvider rateLimitPrincipalProvider) {
     this.rateLimiter = rateLimiter;
     this.rateLimitPrincipalProvider = rateLimitPrincipalProvider;
     this.registry = registry;
@@ -59,11 +61,11 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    MDC.put("sourceApp", request.getHeader("X-RateLimit-App"));
+    String sourceApp = request.getHeader("X-RateLimit-App");
+    MDC.put("sourceApp", sourceApp);
 
-    if ("deck".equalsIgnoreCase(request.getHeader("X-RateLimit-App"))) {
-      // If the API request is being made from deck, just let it through without question.
-      // Better than trying to keep tuning the rate limiter based on changes to deck.
+    if (!rateLimitPrincipalProvider.supports(sourceApp)) {
+      // api requests from particular source applications (ie. deck) may not be subject to rate limits
       return true;
     }
 
@@ -74,7 +76,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       return true;
     }
 
-    RateLimitPrincipal principal = rateLimitPrincipalProvider.getPrincipal(principalName);
+    RateLimitPrincipal principal = rateLimitPrincipalProvider.getPrincipal(principalName, sourceApp);
 
     Rate rate = rateLimiter.incrementAndGetRate(principal);
 

@@ -17,6 +17,7 @@ package com.netflix.spinnaker.gate.ratelimit
 
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.PrincipalOverride
+import com.netflix.spinnaker.gate.config.RateLimiterConfiguration.SourceAppOverride
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -39,10 +40,6 @@ class RedisRateLimitPrincipalProviderSpec extends Specification {
     port = embeddedRedis.port
   }
 
-  def cleanup() {
-    embeddedRedis.jedis.flushDB()
-  }
-
   @Unroll("#principalName should have capacity=#expectedCapacity, rateSeconds=#expectedRateSeconds, learning=#expectedLearning")
   def 'should allow static and dynamic overrides'() {
     given:
@@ -58,24 +55,24 @@ class RedisRateLimitPrincipalProviderSpec extends Specification {
           new PrincipalOverride(principal: 'anonymous', override: 5),
           new PrincipalOverride(principal: 'static-override', override: 20)
         ],
+        capacityBySourceApp: [
+            new SourceAppOverride(sourceApp: 'deck', override: 7)
+        ],
         learning: true
       )
     )
 
     and:
-    Jedis jedis
-    try {
-      jedis = embeddedRedis.pool.resource
-      jedis.sadd("rateLimit:enforcing", 'redis-enforced', 'redis-conflict')
+    embeddedRedis.pool.resource.withCloseable { jedis ->
+      jedis.sadd("rateLimit:enforcing", 'redis-enforced', 'redis-conflict', 'app:deck')
       jedis.sadd("rateLimit:ignoring", 'redis-ignored', 'redis-conflict')
       jedis.set('rateLimit:capacity:redis-override', '15')
+      jedis.set('rateLimit:capacity:app:gate', '25')
       jedis.set('rateLimit:rateSeconds:redis-override', '15')
-    } finally {
-      jedis?.close()
     }
 
     when:
-    def principal = subject.getPrincipal(principalName)
+    def principal = subject.getPrincipal(principalName, sourceApp)
 
     then:
     principal.capacity == expectedCapacity
@@ -83,12 +80,15 @@ class RedisRateLimitPrincipalProviderSpec extends Specification {
     principal.learning == expectedLearning
 
     where:
-    principalName           || expectedCapacity | expectedRateSeconds | expectedLearning
-    'anonymous-10.10.10.10' || 5                | 5                   | true
-    'redis-enforced'        || 60               | 10                  | false
-    'redis-ignored'         || 60               | 10                  | true
-    'redis-conflict'        || 60               | 10                  | false
-    'static-override'       || 20               | 20                  | true
-    'redis-override'        || 15               | 15                  | true
+    principalName           | sourceApp  || expectedCapacity | expectedRateSeconds | expectedLearning
+    'anonymous-10.10.10.10' | null       || 5                | 5                   | true
+    'redis-enforced'        | null       || 60               | 10                  | false
+    'redis-ignored'         | null       || 60               | 10                  | true
+    'redis-conflict'        | null       || 60               | 10                  | false
+    'static-override'       | null       || 20               | 20                  | true
+    'redis-override'        | null       || 15               | 15                  | true
+    'source-app-user'       | 'non-deck' || 60               | 10                  | true
+    'source-app-user'       | 'gate'     || 25               | 10                  | true
+    'source-app-user'       | 'deck'     || 7                | 10                  | false
   }
 }

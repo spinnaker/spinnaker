@@ -51,6 +51,13 @@ public class RateLimiterConfiguration {
   List<PrincipalOverride> capacityByPrincipal = new ArrayList<>();
 
   /**
+   * A source app-specific capacity override map. This can be defined if
+   * you want to give a specific source app more or less capacity per
+   * rateSeconds than the default.
+   */
+  List<SourceAppOverride> capacityBySourceApp = new ArrayList<>();
+
+  /**
    * A principal-specific rate override map.
    */
   List<PrincipalOverride> rateSecondsByPrincipal = new ArrayList<>();
@@ -86,6 +93,10 @@ public class RateLimiterConfiguration {
     return rateSecondsByPrincipal;
   }
 
+  public List<SourceAppOverride> getCapacityBySourceApp() {
+    return capacityBySourceApp;
+  }
+
   public boolean isLearning() {
     return learning;
   }
@@ -109,6 +120,35 @@ public class RateLimiterConfiguration {
 
     public Integer getOverride() {
       return override;
+    }
+
+    public void setPrincipal(String principal) {
+      this.principal = principal;
+    }
+
+    public void setOverride(Integer override) {
+      this.override = override;
+    }
+  }
+
+  public static class SourceAppOverride {
+    String sourceApp;
+    Integer override;
+
+    public String getSourceApp() {
+      return sourceApp;
+    }
+
+    public Integer getOverride() {
+      return override;
+    }
+
+    public void setSourceApp(String sourceApp) {
+      this.sourceApp = sourceApp;
+    }
+
+    public void setOverride(Integer override) {
+      this.override = override;
     }
   }
 }
