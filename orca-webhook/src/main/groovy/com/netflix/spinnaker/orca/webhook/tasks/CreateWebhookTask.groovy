@@ -63,7 +63,7 @@ class CreateWebhookTask implements RetryableTask {
       if (statusCode.is5xxServerError() || statusCode.value() == 429) {
         String errorMessage = "error submitting webhook for pipeline ${stage.execution.id} to ${url}, will retry."
         log.warn(errorMessage, e)
-        outputs.webhook << [statusCode: statusCode]
+        outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
         outputs.webhook << [errorMessage: errorMessage]
         return new TaskResult(ExecutionStatus.RUNNING, outputs)
       }
@@ -72,7 +72,7 @@ class CreateWebhookTask implements RetryableTask {
 
     def statusCode = response.statusCode
 
-    outputs.webhook << [statusCode: statusCode]
+    outputs.webhook << [statusCode: statusCode, statusCodeValue: statusCode.value()]
     outputsDeprecated << [statusCode: statusCode]
     if (response.body) {
       outputs.webhook << [body: response.body]

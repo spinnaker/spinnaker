@@ -62,7 +62,8 @@ class CreateWebhookTaskSpec extends Specification {
       deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
       statusCode: HttpStatus.OK,
       webhook: [
-        statusCode: HttpStatus.OK
+        statusCode: HttpStatus.OK,
+        statusCodeValue: HttpStatus.OK.value()
       ]
     ]
   }
@@ -142,6 +143,7 @@ class CreateWebhookTaskSpec extends Specification {
       buildInfo: [error: "Oh noes, you can't do this"],
       webhook: [
         statusCode: HttpStatus.BAD_REQUEST,
+        statusCodeValue: HttpStatus.BAD_REQUEST.value(),
         body: [error: "Oh noes, you can't do this"],
         error: "The request did not return a 2xx/3xx status"
       ]
@@ -171,6 +173,7 @@ class CreateWebhookTaskSpec extends Specification {
       buildInfo: [success: true],
       webhook: [
         statusCode: HttpStatus.CREATED,
+        statusCodeValue: HttpStatus.CREATED.value(),
         body: [success: true],
         statusEndpoint: "https://my-service.io/api/"
       ]
@@ -203,6 +206,7 @@ class CreateWebhookTaskSpec extends Specification {
       buildInfo: [success: true],
       webhook: [
         statusCode: HttpStatus.CREATED,
+        statusCodeValue: HttpStatus.CREATED.value(),
         body: [success: true],
         statusEndpoint: "https://my-service.io/api/status/123"
       ]
@@ -236,6 +240,7 @@ class CreateWebhookTaskSpec extends Specification {
       buildInfo: body,
       webhook: [
         statusCode: HttpStatus.CREATED,
+        statusCodeValue: HttpStatus.CREATED.value(),
         body: body,
         statusEndpoint: "https://my-service.io/api/status/123"
       ]
@@ -272,6 +277,7 @@ class CreateWebhookTaskSpec extends Specification {
     result.context as Map == [
       webhook: [
         statusCode: HttpStatus.CREATED,
+        statusCodeValue: HttpStatus.CREATED.value(),
         body: body,
         error: "The status URL couldn't be resolved, but 'Wait for completion' was checked",
         statusEndpoint: ["this", "is", "a", "list"]
@@ -337,6 +343,7 @@ class CreateWebhookTaskSpec extends Specification {
       buildInfo: "<html></html>",
       webhook: [
         statusCode: HttpStatus.OK,
+        statusCodeValue: HttpStatus.OK.value(),
         body: "<html></html>"
       ]
     ]
@@ -369,7 +376,8 @@ class CreateWebhookTaskSpec extends Specification {
       deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
       statusCode: HttpStatus.OK,
       webhook: [
-        statusCode: HttpStatus.OK
+        statusCode: HttpStatus.OK,
+        statusCodeValue: HttpStatus.OK.value(),
       ]
     ]
   }

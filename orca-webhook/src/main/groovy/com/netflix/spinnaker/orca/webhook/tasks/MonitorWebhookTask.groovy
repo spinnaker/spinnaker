@@ -93,7 +93,8 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
       webhook: [
         monitor: [
           body: response.body,
-          statusCode: response.statusCode
+          statusCode: response.statusCode,
+          statusCodeValue: response.statusCode.value()
         ]
       ],
       buildInfo: response.body, // TODO: deprecated
