@@ -27,7 +27,8 @@ include 'kork-core',
   'kork-dynomite',
   'kork-aws',
   'kork-sql',
-  'kork-sql-test'
+  'kork-sql-test',
+  'kork-test'
 
 rootProject.name='kork'
 
