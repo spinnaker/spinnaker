@@ -10,12 +10,15 @@
       <stage-config-field label="Manifest Source" help-key="kubernetes.manifest.source">
         <label class="sm-label-right">
           <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}">
-          {{ ctrl.textSource | robotToHuman }} -
-          <kubernetes-copy-from-template-button
-            application="application"
-            handle-copy="ctrl.handleCopy"
-          >
+          {{ ctrl.textSource | robotToHuman }}
+          <span ng-if="stage.source === ctrl.textSource">
+            -
+            <kubernetes-copy-from-template-button
+              application="application"
+              handle-copy="ctrl.handleCopy"
+            >
           </kubernetes-copy-from-template-button>
+          </span>
         </label><br/>
         <label class="sm-label-right">
           <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}">
