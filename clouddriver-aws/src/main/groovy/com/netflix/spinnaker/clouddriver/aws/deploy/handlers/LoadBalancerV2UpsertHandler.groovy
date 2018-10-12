@@ -18,39 +18,12 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.Action
-import com.amazonaws.services.elasticloadbalancingv2.model.CreateListenerRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.CreateListenerResult
-import com.amazonaws.services.elasticloadbalancingv2.model.CreateLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.CreateRuleRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.CreateTargetGroupRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.CreateTargetGroupResult
-import com.amazonaws.services.elasticloadbalancingv2.model.DeleteListenerRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DeleteRuleRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DeleteTargetGroupRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeRulesRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.Listener
-import com.amazonaws.services.elasticloadbalancingv2.model.ListenerNotFoundException
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerTypeEnum
-import com.amazonaws.services.elasticloadbalancingv2.model.Matcher
-import com.amazonaws.services.elasticloadbalancingv2.model.ModifyListenerRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupAttributesRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.ModifyTargetGroupRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.ProtocolEnum
-import com.amazonaws.services.elasticloadbalancingv2.model.ResourceInUseException
-import com.amazonaws.services.elasticloadbalancingv2.model.Rule
-import com.amazonaws.services.elasticloadbalancingv2.model.RuleCondition
-import com.amazonaws.services.elasticloadbalancingv2.model.SetSecurityGroupsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupAttribute
-import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
+import com.amazonaws.services.elasticloadbalancingv2.model.*
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 
 class LoadBalancerV2UpsertHandler {
 
@@ -122,9 +95,16 @@ class LoadBalancerV2UpsertHandler {
           .withTargetType(targetGroup.targetType)
 
         if (targetGroup.healthCheckProtocol in [ProtocolEnum.HTTP, ProtocolEnum.HTTPS]) {
-          createTargetGroupRequest.withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+          createTargetGroupRequest
             .withHealthCheckPath(targetGroup.healthCheckPath)
-            .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+
+          // HTTP(s) health checks for TCP does not support custom matchers and timeouts. Also, health thresholds must be equal.
+          if (targetGroup.protocol == ProtocolEnum.TCP) {
+            createTargetGroupRequest.withUnhealthyThresholdCount(createTargetGroupRequest.getHealthyThresholdCount())
+          } else {
+            createTargetGroupRequest.withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+              .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+          }
         }
 
         CreateTargetGroupResult createTargetGroupResult = loadBalancing.createTargetGroup( createTargetGroupRequest )
@@ -180,9 +160,16 @@ class LoadBalancerV2UpsertHandler {
         .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
 
       if (targetGroup.healthCheckProtocol in [ProtocolEnum.HTTP, ProtocolEnum.HTTPS]) {
-        modifyTargetGroupRequest.withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+        modifyTargetGroupRequest
           .withHealthCheckPath(targetGroup.healthCheckPath)
-          .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+
+        // HTTP(s) health checks for TCP does not support custom matchers and timeouts. Also, health thresholds must be equal.
+        if (targetGroup.protocol == ProtocolEnum.TCP) {
+          modifyTargetGroupRequest.withUnhealthyThresholdCount(modifyTargetGroupRequest.getHealthyThresholdCount())
+        } else {
+          modifyTargetGroupRequest.withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+            .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+        }
       }
 
       loadBalancing.modifyTargetGroup(modifyTargetGroupRequest)
