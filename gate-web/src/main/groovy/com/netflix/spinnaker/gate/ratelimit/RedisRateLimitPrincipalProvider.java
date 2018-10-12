@@ -16,8 +16,10 @@
 package com.netflix.spinnaker.gate.ratelimit;
 
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
@@ -42,8 +44,7 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     this.jedisPool = jedisPool;
     this.rateLimiterConfiguration = rateLimiterConfiguration;
 
-    // normally rate limits apply to _all_ principals but those originating from 'deck' were historically excluded
-    supportsDeckSourceApp = getCapacityForSourceApp(DECK_APP).isPresent();
+    refreshSupportsDeckSourceApp();
   }
 
   @Override
@@ -74,6 +75,7 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
   @Override
   public boolean supports(@Nullable String sourceApp) {
     if (DECK_APP.equalsIgnoreCase(sourceApp)) {
+      // normally rate limits apply to _all_ principals but those originating from 'deck' were historically excluded
       return supportsDeckSourceApp;
     }
 
@@ -94,7 +96,7 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     return overrideOrDefault(
       name,
       rateLimiterConfiguration.getCapacityByPrincipal(),
-      getCapacityForSourceApp(sourceApp).orElse(rateLimiterConfiguration.getCapacity())
+      getCapacityForSourceApp(jedis, sourceApp).orElse(rateLimiterConfiguration.getCapacity())
     );
   }
 
@@ -115,7 +117,7 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     List<String> enforcing = new ArrayList<>(jedis.smembers(getEnforcingKey()));
     List<String> ignoring = new ArrayList<>(jedis.smembers(getIgnoringKey()));
 
-    if (sourceApp != null && getCapacityForSourceApp(sourceApp).isPresent()) {
+    if (sourceApp != null && getCapacityForSourceApp(jedis, sourceApp).isPresent()) {
       // enforcing source app limits _must_ be explicitly enabled (for now!)
       return !enforcing.contains("app:" + sourceApp.toLowerCase());
     }
@@ -170,23 +172,21 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
     return name;
   }
 
-  private Optional<Integer> getCapacityForSourceApp(@Nullable String sourceApp) {
+  private Optional<Integer> getCapacityForSourceApp(Jedis jedis, @Nullable String sourceApp) {
     if (sourceApp == null) {
       return Optional.empty();
     }
 
-    try (Jedis jedis = jedisPool.getResource()) {
-      String capacity = jedis.get(getCapacityKey("app:" + sourceApp));
-      if (capacity != null) {
-        try {
-          return Optional.of(Integer.parseInt(capacity));
-        } catch (NumberFormatException e) {
-          log.error(
-            "invalid source app capacity value, expected integer (sourceApp: {}, value: {})",
-            value("sourceApp", sourceApp),
-            value("capacity", capacity)
-          );
-        }
+    String capacity = jedis.get(getCapacityKey("app:" + sourceApp));
+    if (capacity != null) {
+      try {
+        return Optional.of(Integer.parseInt(capacity));
+      } catch (NumberFormatException e) {
+        log.error(
+          "invalid source app capacity value, expected integer (sourceApp: {}, value: {})",
+          value("sourceApp", sourceApp),
+          value("capacity", capacity)
+        );
       }
     }
 
@@ -196,5 +196,16 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
       .filter(o -> o.getSourceApp().equalsIgnoreCase(sourceApp))
       .map(RateLimiterConfiguration.SourceAppOverride::getOverride)
       .findFirst();
+  }
+
+  @Scheduled(fixedDelay = 60000L)
+  void refreshSupportsDeckSourceApp() {
+    log.debug("Refreshing 'rateLimit.deck' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      supportsDeckSourceApp = jedis.sismember(getEnforcingKey(), "app:deck");
+    }
+
+    log.debug("Refreshed 'rateLimit.deck' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
   }
 }
