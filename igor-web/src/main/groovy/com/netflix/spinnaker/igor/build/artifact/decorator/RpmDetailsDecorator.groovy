@@ -51,8 +51,8 @@ class RpmDetailsDecorator implements ArtifactDetailsDecorator {
 
     String extractVersion(String file) {
         List<String> parts = file.tokenize(versionDelimiter)
-        parts.pop()
-        return parts.pop()
+        String suffix = parts.pop().replaceAll(".rpm", '')
+        return parts.pop() + versionDelimiter + suffix
     }
 
     String extractName(String file) {

@@ -51,13 +51,13 @@ class ArtifactDecoratorSpec extends Specification {
         genericArtifact.type    == type
 
         where:
-        reference                                   || name               | version            | type
-        "openmotif22-libs-2.2.4-192.1.3.x86_64.rpm" || "openmotif22-libs" | "2.2.4"            | "rpm"
-        "api_1.1.1-h01.sha123_all.deb"              || "api"              | "1.1.1-h01.sha123" | "deb"
-        "test-2.13.jar"                             || "test"             | "2.13"             | "jar"
-        "wara-2.13.war"                             || "wara"             | "2.13"             | "war"
-        "unknown-3.2.1.apk"                         || null               | null               | null
-        null                                        || null               | null               | null
+        reference                                   || name               | version                | type
+        "openmotif22-libs-2.2.4-192.1.3.x86_64.rpm" || "openmotif22-libs" | "2.2.4-192.1.3.x86_64" | "rpm"
+        "api_1.1.1-h01.sha123_all.deb"              || "api"              | "1.1.1-h01.sha123"     | "deb"
+        "test-2.13.jar"                             || "test"             | "2.13"                 | "jar"
+        "wara-2.13.war"                             || "wara"             | "2.13"                 | "war"
+        "unknown-3.2.1.apk"                         || null               | null                   | null
+        null                                        || null               | null                   | null
     }
 
     @Unroll

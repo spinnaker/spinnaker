@@ -37,9 +37,9 @@ class RpmDetailsDecoratorSpec extends Specification {
 
         where:
         file                                        || version
-        "api-4.11.4h-1.x86_64.rpm"                  || "4.11.4h"
-        "alsa-lib-1.0.17-1.el5.i386.rpm"            || "1.0.17"
-        "openmotif22-libs-2.2.4-192.1.3.x86_64.rpm" || "2.2.4"
+        "api-4.11.4h-1.x86_64.rpm"                  || "4.11.4h-1.x86_64"
+        "alsa-lib-1.0.17-1.el5.i386.rpm"            || "1.0.17-1.el5.i386"
+        "openmotif22-libs-2.2.4-192.1.3.x86_64.rpm" || "2.2.4-192.1.3.x86_64"
     }
 
     @Unroll
