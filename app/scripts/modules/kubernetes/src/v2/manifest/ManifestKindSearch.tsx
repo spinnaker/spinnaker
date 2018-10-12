@@ -1,4 +1,5 @@
 import { IPromise } from 'angular';
+import { chain } from 'lodash';
 
 import { SearchService } from '@spinnaker/core';
 
@@ -19,9 +20,12 @@ export class ManifestKindSearchService {
       type: kind,
     })
       .then(response =>
-        (response ? response.results : []).filter(
-          result => result.namespace === namespace && result.account === account,
-        ),
+        chain(response ? response.results : [])
+          .filter(
+            result => result.namespace === namespace && result.account === account && result.kubernetesKind === kind,
+          )
+          .uniqBy('name')
+          .valueOf(),
       )
       .catch(() => []);
   }

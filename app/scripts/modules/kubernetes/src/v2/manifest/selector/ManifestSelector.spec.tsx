@@ -4,7 +4,7 @@ import { Creatable, Option } from 'react-select';
 import { $q } from 'ngimport';
 import Spy = jasmine.Spy;
 
-import { AccountService, noop, NgReact } from 'core';
+import { AccountService, noop, AccountSelectField } from 'core';
 
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
@@ -92,6 +92,24 @@ describe('<ManifestSelector />', () => {
       expect(searchService).toHaveBeenCalledWith('configMap', 'kube-system', 'my-account');
     });
 
+    it('calls the search service after updating the `Account` field', () => {
+      const wrapper = component({
+        manifestName: 'configMap my-config-map',
+        account: 'my-account',
+        location: 'default',
+      });
+      wrapper.setState({
+        accounts: [
+          { name: 'my-account', namespaces: ['default'] },
+          { name: 'my-other-account', namespaces: ['default'] },
+        ],
+      });
+
+      const account = wrapper.find(AccountSelectField).first();
+      account.props().onChange('my-other-account');
+      expect(searchService).toHaveBeenCalledWith('configMap', 'default', 'my-other-account');
+    });
+
     it('clears namespace when changing account if account does not have selected namespace', () => {
       const wrapper = component({
         manifestName: 'configMap my-config-map',
@@ -105,7 +123,7 @@ describe('<ManifestSelector />', () => {
         ],
       });
 
-      const account = wrapper.find(NgReact.AccountSelectField).first();
+      const account = wrapper.find(AccountSelectField).first();
       account.props().onChange('my-other-account');
       expect(wrapper.instance().state.selector.location).toBeFalsy();
     });

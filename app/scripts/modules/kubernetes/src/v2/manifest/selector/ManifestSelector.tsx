@@ -4,7 +4,7 @@ import { IPromise } from 'angular';
 import { Observable, Subject } from 'rxjs';
 import { $q } from 'ngimport';
 
-import { IAccountDetails, SETTINGS, StageConfigField, NgReact, AccountService } from '@spinnaker/core';
+import { IAccountDetails, SETTINGS, StageConfigField, AccountSelectField, AccountService } from '@spinnaker/core';
 
 import { IManifestSelector } from 'kubernetes/v2/manifest/selector/IManifestSelector';
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
@@ -87,7 +87,13 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
     if (namespaces.every(ns => ns !== this.state.selector.location)) {
       this.state.selector.location = null;
     }
+    this.state.selector.account = selectedAccount;
 
+    this.search$.next({
+      kind: this.parseSpinnakerName(this.state.selector.manifestName).kind,
+      namespace: this.state.selector.location,
+      account: this.state.selector.account,
+    });
     this.setState({
       namespaces,
       kinds,
@@ -147,7 +153,6 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   };
 
   public render() {
-    const { AccountSelectField } = NgReact;
     const { selector, accounts, kinds, namespaces, resources, loading } = this.state;
     const { kind, name } = this.parseSpinnakerName(selector.manifestName);
     const resourceNames = resources.map(resource => this.parseSpinnakerName(resource).name);
