@@ -102,6 +102,15 @@
  * [**hal config canary datadog account list**](#hal-config-canary-datadog-account-list)
  * [**hal config canary datadog disable**](#hal-config-canary-datadog-disable)
  * [**hal config canary datadog enable**](#hal-config-canary-datadog-enable)
+ * [**hal config canary signalfx**](#hal-config-canary-signalfx)
+ * [**hal config canary signalfx account**](#hal-config-canary-signalfx-account)
+ * [**hal config canary signalfx account add**](#hal-config-canary-signalfx-account-add)
+ * [**hal config canary signalfx account delete**](#hal-config-canary-signalfx-account-delete)
+ * [**hal config canary signalfx account edit**](#hal-config-canary-signalfx-account-edit)
+ * [**hal config canary signalfx account get**](#hal-config-canary-signalfx-account-get)
+ * [**hal config canary signalfx account list**](#hal-config-canary-signalfx-account-list)
+ * [**hal config canary signalfx disable**](#hal-config-canary-signalfx-disable)
+ * [**hal config canary signalfx enable**](#hal-config-canary-signalfx-enable)
  * [**hal config canary disable**](#hal-config-canary-disable)
  * [**hal config canary edit**](#hal-config-canary-edit)
  * [**hal config canary enable**](#hal-config-canary-enable)
@@ -1793,6 +1802,7 @@ hal config canary [parameters] [subcommands]
  * `enable`: Set Spinnaker's canary analysis to enabled.
  * `google`: Configure your canary analysis Google service integration settings for Spinnaker.
  * `prometheus`: Configure your canary analysis Prometheus service integration settings for Spinnaker.
+ * `signalfx`: Configure your canary analysis SignalFx service integration settings for Spinnaker.
 
 ---
 ## hal config canary aws
@@ -2526,6 +2536,160 @@ Set Spinnaker's canary analysis Prometheus service integration to enabled.
 #### Usage
 ```
 hal config canary prometheus enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary signalfx
+
+Configure your canary analysis SignalFx service integration settings for Spinnaker.
+
+#### Usage
+```
+hal config canary signalfx [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the SignalFx service integration's canary accounts.
+ * `disable`: Set Spinnaker's canary analysis SignalFx service integration to disabled.
+ * `enable`: Set Spinnaker's canary analysis SignalFx service integration to enabled.
+
+---
+## hal config canary signalfx account
+
+Manage and view Spinnaker configuration for the SignalFx service integration's canary accounts.
+
+#### Usage
+```
+hal config canary signalfx account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a canary account to the SignalFx service integration.
+ * `delete`: Delete a specific SignalFx canary account by name.
+ * `edit`: Edit a canary account in the SignalFx service integration.
+ * `get`: Get the specified canary account details for the SignalFx service integration.
+ * `list`: List the canary account names for the SignalFx service integration.
+
+---
+## hal config canary signalfx account add
+
+Add a canary account to the SignalFx service integration.
+
+#### Usage
+```
+hal config canary signalfx account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--access-token`: (*Required*) (*Sensitive data* - user will be prompted on standard input) The SignalFx access token.
+ * `--base-url`: (*Required*) The base URL to the SignalFx server.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary signalfx account delete
+
+Delete a specific SignalFx canary account by name.
+
+#### Usage
+```
+hal config canary signalfx account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary signalfx account edit
+
+Edit a canary account in the SignalFx service integration.
+
+#### Usage
+```
+hal config canary signalfx account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--access-token`: (*Sensitive data* - user will be prompted on standard input) The SignalFx access token.
+ * `--base-url`: The base URL to the SignalFx server.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary signalfx account get
+
+Get the specified canary account details for the SignalFx service integration.
+
+#### Usage
+```
+hal config canary signalfx account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary signalfx account list
+
+List the canary account names for the SignalFx service integration.
+
+#### Usage
+```
+hal config canary signalfx account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary signalfx disable
+
+Set Spinnaker's canary analysis SignalFx service integration to disabled.
+
+#### Usage
+```
+hal config canary signalfx disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary signalfx enable
+
+Set Spinnaker's canary analysis SignalFx service integration to enabled.
+
+#### Usage
+```
+hal config canary signalfx enable [parameters]
 ```
 
 #### Parameters

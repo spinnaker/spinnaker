@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google, Inc.
+ * Copyright (c) 2018 Nike, inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,42 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.canary;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.signalfx;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws.CanaryAwsCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.datadog.CanaryDatadogCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CanaryGoogleCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus.CanaryPrometheusCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.signalfx.CanarySignalfxCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.EnableDisableCanaryServiceIntegrationCommandBuilder;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.signalfx.account.SignalfxCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCanaryServiceIntegration;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Parameters(separators = "=")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class CanaryCommand extends AbstractConfigCommand {
+public class CanarySignalfxCommand extends AbstractConfigCommand {
 
-  String commandName = "canary";
+  String commandName = SignalfxCanaryServiceIntegration.NAME;
 
-  String shortDescription = "Configure your canary analysis settings for Spinnaker.";
+  String shortDescription = "Configure your canary analysis SignalFx service integration settings for Spinnaker.";
 
   String longDescription = shortDescription;
 
-  public CanaryCommand() {
-    registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(true).build());
-    registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(false).build());
-    registerSubcommand(new EditCanaryCommand());
-    registerSubcommand(new CanaryGoogleCommand());
-    registerSubcommand(new CanaryPrometheusCommand());
-    registerSubcommand(new CanaryDatadogCommand());
-    registerSubcommand(new CanarySignalfxCommand());
-    registerSubcommand(new CanaryAwsCommand());
+  public CanarySignalfxCommand() {
+    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Signalfx").setEnable(true).build());
+    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Signalfx").setEnable(false).build());
+    registerSubcommand(new SignalfxCanaryAccountCommand());
   }
 
   @Override

@@ -25,6 +25,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryA
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
@@ -44,6 +46,7 @@ public class Canary extends Node implements Cloneable {
       Lists.newArrayList(new GoogleCanaryServiceIntegration(),
                          new PrometheusCanaryServiceIntegration(),
                          new DatadogCanaryServiceIntegration(),
+                         new SignalfxCanaryServiceIntegration(),
                          new AwsCanaryServiceIntegration());
   boolean reduxLoggerEnabled = true;
   String defaultMetricsAccount;
@@ -78,6 +81,8 @@ public class Canary extends Node implements Cloneable {
         return PrometheusCanaryAccount.class;
       case DatadogCanaryServiceIntegration.NAME :
         return DatadogCanaryAccount.class;
+      case SignalfxCanaryServiceIntegration.NAME :
+        return SignalfxCanaryAccount.class;
       case AwsCanaryServiceIntegration.NAME :
         return AwsCanaryAccount.class;
       default:
