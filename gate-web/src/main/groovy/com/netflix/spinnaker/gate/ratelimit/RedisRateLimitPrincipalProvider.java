@@ -200,12 +200,12 @@ public class RedisRateLimitPrincipalProvider extends AbstractRateLimitPrincipalP
 
   @Scheduled(fixedDelay = 60000L)
   void refreshSupportsDeckSourceApp() {
-    log.debug("Refreshing 'rateLimit.deck' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
+    log.debug("Refreshing 'supportsDeckSourceApp' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
 
     try (Jedis jedis = jedisPool.getResource()) {
       supportsDeckSourceApp = jedis.sismember(getEnforcingKey(), "app:deck");
     }
 
-    log.debug("Refreshed 'rateLimit.deck' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
+    log.debug("Refreshed 'supportsDeckSourceApp' (supportsDeckSourceApp: {})", supportsDeckSourceApp);
   }
 }
