@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServer
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
+import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,6 +33,7 @@ class ExplicitRollback implements Rollback {
   String rollbackServerGroupName
   String restoreServerGroupName
   Integer targetHealthyRollbackPercentage
+  Integer delayBeforeDisableSeconds
   Boolean disableOnly
   Boolean enableAndDisableOnly
 
@@ -54,6 +56,10 @@ class ExplicitRollback implements Rollback {
   @Autowired
   @JsonIgnore
   ApplySourceServerGroupCapacityStage applySourceServerGroupCapacityStage
+
+  @Autowired
+  @JsonIgnore
+  WaitStage waitStage
 
   @JsonIgnore
   @Override
@@ -106,6 +112,13 @@ class ExplicitRollback implements Rollback {
     stages << newStage(
       parentStage.execution, resizeServerGroupStage.type, "resize", resizeServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
+
+    if (delayBeforeDisableSeconds != null && delayBeforeDisableSeconds > 0) {
+      def waitStage = newStage(
+        parentStage.execution, waitStage.type, "waitBeforeDisable", [waitTime: delayBeforeDisableSeconds], parentStage, SyntheticStageOwner.STAGE_AFTER
+      )
+      stages << waitStage
+    }
 
     stages << disableServerGroupStage
     stages << buildApplySourceServerGroupCapacityStage(parentStage, parentStage.mapTo(ResizeStrategy.Source))

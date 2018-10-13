@@ -22,10 +22,12 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServer
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
+import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
 
@@ -45,13 +47,17 @@ class ExplicitRollbackSpec extends Specification {
   @Shared
   def applySourceServerGroupCapacityStage = new ApplySourceServerGroupCapacityStage()
 
+  @Shared
+  def waitStage = new WaitStage()
+
   @Subject
   def rollback = new ExplicitRollback(
     enableServerGroupStage: enableServerGroupStage,
     disableServerGroupStage: disableServerGroupStage,
     resizeServerGroupStage: resizeServerGroupStage,
     captureSourceServerGroupCapacityStage: captureSourceServerGroupCapacityStage,
-    applySourceServerGroupCapacityStage: applySourceServerGroupCapacityStage
+    applySourceServerGroupCapacityStage: applySourceServerGroupCapacityStage,
+    waitStage: waitStage
   )
 
   def "should inject enable, resize and disable stages corresponding to the server group being restored and rollbacked"() {
@@ -118,5 +124,36 @@ class ExplicitRollbackSpec extends Specification {
       ],
       credentials: "test"
     ]
+  }
+
+  @Unroll
+  def "should inject wait stage before disable stage when 'delayBeforeDisableSeconds' > 0"() {
+    given:
+    rollback.rollbackServerGroupName = "servergroup-v002"
+    rollback.restoreServerGroupName = "servergroup-v001"
+    rollback.targetHealthyRollbackPercentage = 95
+    rollback.delayBeforeDisableSeconds = delayBeforeDisableSeconds
+
+    def stage = stage {
+      type = "rollbackServerGroup"
+      context = [
+        credentials                  : "test",
+        cloudProvider                : "aws",
+        "region"                     : "us-west-1"
+      ]
+    }
+
+    when:
+    def allStages = rollback.buildStages(stage)
+    def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+
+    then:
+    afterStages*.type == expectedAfterStageTypes
+
+    where:
+    delayBeforeDisableSeconds || expectedAfterStageTypes
+    null                      || ["enableServerGroup", "captureSourceServerGroupCapacity", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
+    0                         || ["enableServerGroup", "captureSourceServerGroupCapacity", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
+    1                         || ["enableServerGroup", "captureSourceServerGroupCapacity", "resizeServerGroup", "wait", "disableServerGroup", "applySourceServerGroupCapacity"]
   }
 }

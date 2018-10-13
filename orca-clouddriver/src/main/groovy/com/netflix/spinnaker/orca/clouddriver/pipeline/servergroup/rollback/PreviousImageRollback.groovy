@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
+import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +34,7 @@ class PreviousImageRollback implements Rollback {
   String imageName
   String imageId
   Integer targetHealthyRollbackPercentage
+  Integer delayBeforeDisableSeconds
 
   @Autowired
   @JsonIgnore
@@ -94,6 +96,7 @@ class PreviousImageRollback implements Rollback {
       region                       : parentStageContext.region,
       credentials                  : parentStageContext.credentials,
       cloudProvider                : parentStageContext.cloudProvider,
+      delayBeforeDisableSec        : delayBeforeDisableSeconds ?: 0,
       source                       : [
         asgName          : rollbackServerGroupName,
         serverGroupName  : rollbackServerGroupName,

@@ -64,6 +64,7 @@ class PreviousImageRollbackSpec extends Specification {
     rollback.rollbackServerGroupName = "application-v002"
     rollback.targetHealthyRollbackPercentage = 95
     rollback.imageName = imageName
+    rollback.delayBeforeDisableSeconds = delay
 
     when:
     def allStages = rollback.buildStages(stage)
@@ -105,6 +106,7 @@ class PreviousImageRollbackSpec extends Specification {
       region                       : "us-west-1",
       credentials                  : "test",
       cloudProvider                : "aws",
+      delayBeforeDisableSec : expectedDelay,
       source                       : [
         asgName          : "application-v002",
         serverGroupName  : "application-v002",
@@ -116,9 +118,9 @@ class PreviousImageRollbackSpec extends Specification {
     ]
 
     where:
-    imageName        | imageSource                                          || expectedImageName                 || expectedImageId
-    "explicit_image" | "explicitly provided image"                          || "explicit_image"                  || null
-    null             | "image fetched from `spinnaker:metadata` entity tag" || "previous_image_from_entity_tags" || "previous_image_from_entity_tags_id"
+    imageName        | imageSource                                          | delay || expectedImageName                 || expectedImageId                      || expectedDelay
+    "explicit_image" | "explicitly provided image"                          | null  || "explicit_image"                  || null                                 || 0
+    null             | "image fetched from `spinnaker:metadata` entity tag" | 100   || "previous_image_from_entity_tags" || "previous_image_from_entity_tags_id" || 100
   }
 
   @Unroll
