@@ -1,5 +1,6 @@
 dependencies {
   compile 'org.yaml:snakeyaml:1.21'
   compile 'gradle.plugin.com.github.jk1:gradle-license-report:1.2'
+  compile 'org.owasp:dependency-check-gradle:3.3.2'
 }
 
