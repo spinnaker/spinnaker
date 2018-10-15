@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gradle.project
 
-import com.netflix.spinnaker.gradle.baseproject.SpinnakerBaseProjectPlugin
 import com.netflix.spinnaker.gradle.publishing.SpinnakerBintrayPublishingPlugin
 import nebula.plugin.netflixossproject.NetflixOssProjectPlugin
 import org.gradle.api.JavaVersion
@@ -29,9 +28,8 @@ class SpinnakerProjectPlugin implements Plugin<Gradle> {
 
     @Override
     void apply(Gradle gradle) {
-        gradle.allprojects { project ->
+        gradle.rootProject { project ->
             project.plugins.apply(NetflixOssProjectPlugin)
-            project.plugins.apply(SpinnakerBaseProjectPlugin)
             project.plugins.apply(SpinnakerBintrayPublishingPlugin)
 
             //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
