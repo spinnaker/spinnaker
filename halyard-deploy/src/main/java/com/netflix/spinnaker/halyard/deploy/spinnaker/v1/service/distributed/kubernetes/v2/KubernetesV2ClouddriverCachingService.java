@@ -55,11 +55,13 @@ public class KubernetesV2ClouddriverCachingService extends KubernetesV2Clouddriv
     return profiles;
   }
 
+  @Override
   protected boolean hasServiceOverrides(DeploymentConfiguration deploymentConfiguration) {
     HaServices haServices = deploymentConfiguration.getDeploymentEnvironment().getHaServices();
     return haServices.getClouddriver().getRedisMasterEndpoint() != null;
   }
 
+  @Override
   protected SpinnakerRuntimeSettings getServiceOverrides(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     SpinnakerRuntimeSettings serviceOverrides = super.getServiceOverrides(deploymentConfiguration, endpoints);
 

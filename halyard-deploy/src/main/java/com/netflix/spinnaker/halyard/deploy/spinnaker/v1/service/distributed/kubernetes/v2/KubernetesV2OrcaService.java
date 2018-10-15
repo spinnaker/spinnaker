@@ -27,7 +27,9 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -82,5 +84,16 @@ public class KubernetesV2OrcaService extends OrcaService implements KubernetesV2
         Type.CLOUDDRIVER_RW,
         Type.ECHO_WORKER
     );
+  }
+
+  @Override
+  protected void appendReadonlyClouddriver(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    if (hasServiceOverrides(deploymentConfiguration)) {
+      Map<String, Map<String, Map<String, String>>> clouddriver = Collections.singletonMap(
+          "clouddriver", Collections.singletonMap(
+              "readonly", Collections.singletonMap(
+                  "baseUrl", endpoints.getServiceSettings(Type.CLOUDDRIVER_RO).getBaseUrl())));
+      profile.appendContents("\n" + getYamlParser().dump(clouddriver));
+    }
   }
 }

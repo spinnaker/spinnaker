@@ -57,6 +57,9 @@ abstract public class OrcaService extends SpringService<OrcaService.Orca> {
     return Orca.class;
   }
 
+  protected void appendReadonlyClouddriver(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  }
+
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
@@ -64,6 +67,8 @@ abstract public class OrcaService extends SpringService<OrcaService.Orca> {
 
     String path = Paths.get(getConfigOutputPath(), filename).toString();
     Profile profile = orcaProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+
+    appendReadonlyClouddriver(profile, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
     return profiles;
