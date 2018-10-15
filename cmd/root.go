@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/application"
 	"github.com/spinnaker/spin/cmd/pipeline"
+	"github.com/spinnaker/spin/version"
 )
 
 type RootOptions struct {
@@ -35,6 +36,7 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 		--output <output format>      Formats CLI output.
 	`,
 		SilenceUsage: true,
+		Version:      version.String(),
 	}
 
 	cmd.PersistentFlags().StringVar(&options.configFile, "config", "", "config file (default is $HOME/.spin/config)")
