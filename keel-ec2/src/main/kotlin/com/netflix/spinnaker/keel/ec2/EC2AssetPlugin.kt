@@ -57,8 +57,8 @@ class EC2AssetPlugin(
             flattenAssetContainer(request)
           )
         }
-        log.info("{} current state: {}", request.asset.id, assetPair.first)
-        log.info("{} desired state: {}", request.asset.id, assetPair.second)
+        log.info("{} current state: {}", request.asset.id, assetPair.first?.spec?.unpack())
+        log.info("{} desired state: {}", request.asset.id, assetPair.second.spec?.unpack())
         with(responseObserver) {
           onNext(CurrentResponse
             .newBuilder()
