@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
+import com.netflix.spinnaker.clouddriver.search.SearchQueryCommand
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
+import com.netflix.spinnaker.clouddriver.search.executor.SearchExecutor
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
@@ -35,6 +37,9 @@ class SearchController {
 
   @Autowired
   List<SearchProvider> searchProviders
+
+  @Autowired(required = false)
+  SearchExecutor searchExecutor
 
   /**
    * Simple search endpoint that delegates to {@link SearchProvider}s.
@@ -69,7 +74,12 @@ class SearchController {
       searchProviders.findAll { it.platform == searchQuery.platform } :
       searchProviders
 
-    List<SearchResultSet> results = searchAllProviders(providers, searchQuery)
+    List<SearchResultSet> results = []
+    if (searchExecutor) {
+      results = searchExecutor.searchAllProviders(providers, searchQuery)
+    } else {
+      results = searchAllProviders(providers, searchQuery)
+    }
 
     if (results.size() == 1) {
       results
@@ -97,11 +107,12 @@ class SearchController {
       Map<String, String> filters = searchQuery.filters.findAll {
         !provider.excludedFilters().contains(it.key)
       }
+
       try {
         if (searchQuery.type && !searchQuery.type.isEmpty()) {
-          it.search(searchQuery.q, searchQuery.type, searchQuery.page, searchQuery.pageSize, filters)
+          provider.search(searchQuery.q, searchQuery.type, searchQuery.page, searchQuery.pageSize, filters)
         } else {
-          it.search(searchQuery.q, searchQuery.page, searchQuery.pageSize, filters)
+          provider.search(searchQuery.q, searchQuery.page, searchQuery.pageSize, filters)
         }
       } catch (Exception e) {
         log.error("Search for '${searchQuery.q}' in '${it.platform}' failed", e)
@@ -110,39 +121,5 @@ class SearchController {
     }
 
     results
-  }
-
-  static class SearchQueryCommand {
-    /**
-     * the phrase to query
-     */
-    String q
-
-    /**
-     * (optional) a filter, used to only return results of that type. If no value is supplied, all types will be returned
-     */
-    List<String> type
-
-    /**
-     * a filter, used to only return results from providers whose platform value matches this
-     */
-    String platform = ''
-
-    /**
-     * the page number, starting with 1
-     */
-    Integer page = 1
-
-    /**
-     * the maximum number of results to return per page
-     */
-    Integer pageSize = 10
-
-    /**
-     * (optional) a map of ad-hoc key-value pairs to further filter the keys,
-     * based on the map provided by {@link com.netflix.spinnaker.oort.aws.data.Keys#parse(java.lang.String)}
-     * potential matches must fully intersect the filter map entries
-     */
-    Map<String, String> filters
   }
 }
