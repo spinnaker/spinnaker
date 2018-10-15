@@ -130,10 +130,10 @@ internal object EC2AssetPluginSpec : Spek({
 
       it("returns null") {
         expectThat(response) {
-          chain { it.hasSuccess() }.isTrue()
+          get { hasSuccess() }.isTrue()
         }.and {
-          chain { it.success.hasCurrent() }.isFalse()
-          chain { it.success.hasDesired() }.isTrue()
+          get { success.hasCurrent() }.isFalse()
+          get { success.hasDesired() }.isTrue()
         }
       }
     }
@@ -173,16 +173,16 @@ internal object EC2AssetPluginSpec : Spek({
 
       it("returns the security group") {
         expectThat(response) {
-          chain { it.hasSuccess() }.isTrue()
+          get { hasSuccess() }.isTrue()
         }.and {
-          chain { it.success.hasCurrent() }.isTrue()
-          chain { it.success.current.spec }
+          get { success.hasCurrent() }.isTrue()
+          get { success.current.spec }
             .unpacksTo<SecurityGroup>()
             .unpack<SecurityGroup>()
             .isEqualTo(securityGroup)
 
-          chain { it.success.hasDesired() }.isTrue()
-          chain { it.success.desired.spec }
+          get { success.hasDesired() }.isTrue()
+          get { success.desired.spec }
             .unpacksTo<SecurityGroup>()
             .unpack<SecurityGroup>()
             .isEqualTo(securityGroup)
@@ -330,7 +330,7 @@ internal object EC2AssetPluginSpec : Spek({
 })
 
 private val Assertion.Builder<OrchestrationRequest>.application: Assertion.Builder<String>
-  get() = chain(OrchestrationRequest::application)
+  get() = get(OrchestrationRequest::application)
 
 private val Assertion.Builder<OrchestrationRequest>.job: Assertion.Builder<List<Job>>
-  get() = chain(OrchestrationRequest::job)
+  get() = get(OrchestrationRequest::job)

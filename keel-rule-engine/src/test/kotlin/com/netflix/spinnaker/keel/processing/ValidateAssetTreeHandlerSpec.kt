@@ -22,8 +22,10 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import strikt.api.Assertion
 import strikt.api.expectThat
+import strikt.assertions.first
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
+import strikt.assertions.second
 import java.lang.System.nanoTime
 import java.time.Clock
 import java.time.Instant
@@ -99,8 +101,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           (assets + rootAsset).forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                chain { it.first }.isEqualTo(Ok)
-                chain { it.second }.isEqualTo(clock.instant())
+                first.isEqualTo(Ok)
+                second.isEqualTo(clock.instant())
               }
             }
           }
@@ -137,8 +139,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           validAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                chain { it.first }.isEqualTo(Ok)
-                chain { it.second }.isEqualTo(clock.instant())
+                first.isEqualTo(Ok)
+                second.isEqualTo(clock.instant())
               }
             }
           }
@@ -148,8 +150,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           invalidAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                chain { it.first }.isEqualTo(Diff)
-                chain { it.second }.isEqualTo(clock.instant())
+                first.isEqualTo(Diff)
+                second.isEqualTo(clock.instant())
               }
             }
           }
@@ -186,8 +188,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           validAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                chain { it.first }.isEqualTo(Ok)
-                chain { it.second }.isEqualTo(clock.instant())
+                first.isEqualTo(Ok)
+                second.isEqualTo(clock.instant())
               }
             }
           }
@@ -197,8 +199,8 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           missingAssets.forEach {
             repository.lastKnownState(it.id) expect {
               isNotNull().and {
-                chain { it.first }.isEqualTo(Missing)
-                chain { it.second }.isEqualTo(clock.instant())
+                first.isEqualTo(Missing)
+                second.isEqualTo(clock.instant())
               }
             }
           }

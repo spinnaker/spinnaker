@@ -114,7 +114,7 @@ internal class GrpcStartupTest {
       .let(VetoPluginGrpc::newFutureStub)
       .allow(Asset.getDefaultInstance())
     expectThat(response.get())
-      .chain(AllowResponse::getDecision)
+      .get(AllowResponse::getDecision)
       .isEqualTo(proceed)
   }
 }

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
@@ -161,7 +162,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
     expectThat(subject.lastKnownState(asset.id))
       .isNotNull()
-      .chain { it.first }
+      .first
       .isEqualTo(Unknown)
   }
 
@@ -209,7 +210,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
     expectThat(subject.get(asset1.id))
       .isNotNull()
-      .chain(Asset::spec)
+      .get(Asset::spec)
       .isEqualTo(asset2.spec)
   }
 }

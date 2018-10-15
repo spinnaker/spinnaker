@@ -65,7 +65,7 @@ internal object GrpcAssetRegistrySpec : Spek({
         grpc.withChannel { stub ->
           val response = stub.managedAssets(ManagedAssetsRequest.getDefaultInstance())
 
-          expectThat(response).chain { it.hasNext() }.isFalse()
+          expectThat(response).get { hasNext() }.isFalse()
         }
       }
     }
@@ -165,10 +165,10 @@ internal object GrpcAssetRegistrySpec : Spek({
                   .hasSize(1)
                   .first()
                   .and {
-                    chain { it.status }.isEqualTo(INSERTED)
+                    get { status }.isEqualTo(INSERTED)
                   }
                   .and {
-                    chain { it.id.value }.isEqualTo(asset.id.value)
+                    get { id.value }.isEqualTo(asset.id.value)
                   }
               }
           }
@@ -238,8 +238,8 @@ internal object GrpcAssetRegistrySpec : Spek({
 })
 
 private val Assertion.Builder<Iterator<ManagedAssetResponse>>.assets: Assertion.Builder<Collection<AssetBase>>
-  get() = chain {
-    it.asSequence().mapNotNull {
+  get() = get {
+    asSequence().mapNotNull {
       when {
         it.hasAsset() -> it.asset.fromProto()
         it.hasPartialAsset() -> it.partialAsset.fromProto()

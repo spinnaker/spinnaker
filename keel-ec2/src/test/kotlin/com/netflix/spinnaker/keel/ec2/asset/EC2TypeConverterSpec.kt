@@ -14,12 +14,14 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
+import com.netflix.spinnaker.keel.ec2.SecurityGroup as SecurityGroupProto
 
 internal object EC2TypeConverterSpec : Spek({
 
@@ -41,13 +43,13 @@ internal object EC2TypeConverterSpec : Spek({
 
       it("maps inbound rules") {
         expectThat(proto.inboundRuleList.first()) {
-          chain { it.hasSelfReferencingRule() }.isTrue()
-          chain { it.selfReferencingRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
-          chain { it.selfReferencingRule.portRangeList } and {
+          get { hasSelfReferencingRule() }.isTrue()
+          get { selfReferencingRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
+          get { selfReferencingRule.portRangeList } and {
             hasSize(1)
             first() and {
-              chain { it.startPort }.isEqualTo(6565)
-              chain { it.endPort }.isEqualTo(6565)
+              get { startPort }.isEqualTo(6565)
+              get { endPort }.isEqualTo(6565)
             }
           }
         }
@@ -65,18 +67,18 @@ internal object EC2TypeConverterSpec : Spek({
 
       it("maps inbound rules") {
         expectThat(proto.inboundRuleList.first()) {
-          chain { it.hasReferenceRule() }.isTrue()
-          chain { it.referenceRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
-          chain { it.referenceRule.name }.isEqualTo(riverModel.inboundRules.first().securityGroup?.name)
-          chain { it.referenceRule.portRangeList } and {
+          get { hasReferenceRule() }.isTrue()
+          get { referenceRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
+          get { referenceRule.name }.isEqualTo(riverModel.inboundRules.first().securityGroup?.name)
+          get { referenceRule.portRangeList } and {
             hasSize(2)
             any {
-              chain { it.startPort }.isEqualTo(7001)
-              chain { it.endPort }.isEqualTo(7001)
+              get { startPort }.isEqualTo(7001)
+              get { endPort }.isEqualTo(7001)
             }
             any {
-              chain { it.startPort }.isEqualTo(7002)
-              chain { it.endPort }.isEqualTo(7002)
+              get { startPort }.isEqualTo(7002)
+              get { endPort }.isEqualTo(7002)
             }
           }
         }
@@ -94,23 +96,23 @@ internal object EC2TypeConverterSpec : Spek({
 
       it("maps the core properties of the security group") {
         expectThat(proto) {
-          chain { it.application }.isEqualTo(riverModel.moniker.app)
-          chain { it.name }.isEqualTo(riverModel.name)
-          chain { it.accountName }.isEqualTo(riverModel.accountName)
-          chain { it.region }.isEqualTo(riverModel.region)
-          chain { it.vpcName }.isEqualTo(vpc.name)
-          chain { it.description }.isEqualTo(riverModel.description)
+          get { application }.isEqualTo(riverModel.moniker.app)
+          get { name }.isEqualTo(riverModel.name)
+          get { accountName }.isEqualTo(riverModel.accountName)
+          get { region }.isEqualTo(riverModel.region)
+          get { vpcName }.isEqualTo(vpc.name)
+          get { description }.isEqualTo(riverModel.description)
         }
       }
 
       it("maps inbound rules") {
         expectThat(proto.inboundRuleList.first()) {
-          chain { it.cidrRule.blockRange }.isEqualTo("104.24.115.229/24")
-          chain { it.cidrRule.protocol }.isEqualTo("-1")
-          chain { it.cidrRule.portRangeList } and {
+          get { cidrRule.blockRange }.isEqualTo("104.24.115.229/24")
+          get { cidrRule.protocol }.isEqualTo("-1")
+          get { cidrRule.portRangeList } and {
             hasSize(1)
-            first().chain { it.startPort }.isEqualTo(-1)
-            first().chain { it.endPort }.isEqualTo(-1)
+            first().get { startPort }.isEqualTo(-1)
+            first().get { endPort }.isEqualTo(-1)
           }
         }
       }
