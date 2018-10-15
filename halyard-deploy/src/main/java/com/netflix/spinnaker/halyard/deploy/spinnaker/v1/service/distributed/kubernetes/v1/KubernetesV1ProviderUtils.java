@@ -130,7 +130,7 @@ class KubernetesV1ProviderUtils {
         account.getCluster(),
         account.getUser(),
         account.getNamespaces(),
-        false);
+        account.usesServiceAccount());
 
     return new DefaultKubernetesClient(config);
   }
