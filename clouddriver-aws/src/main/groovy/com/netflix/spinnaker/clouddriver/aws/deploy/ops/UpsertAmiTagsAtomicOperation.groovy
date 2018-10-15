@@ -50,11 +50,18 @@ class UpsertAmiTagsAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing Upsert AMI Tags operation for ${descriptor}..."
 
     description.regions.each { String region ->
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
+      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region, false)
       def describeImagesRequest = new DescribeImagesRequest().withFilters(
         new Filter("name", [description.amiName])
       )
       def images = amazonEC2.describeImages(describeImagesRequest).images
+
+      if (!images?.isEmpty()) {
+        // Edda doesn't support filtering, so we need to do runtime filtering here. This is basically a no-op with
+        // Edda-less deployments.
+        images = images.findAll { it.name == description.amiName }
+      }
+
       if (!images) {
         task.updateStatus BASE_PHASE, "No AMI found for ${descriptor} in ${region}."
         task.fail()
