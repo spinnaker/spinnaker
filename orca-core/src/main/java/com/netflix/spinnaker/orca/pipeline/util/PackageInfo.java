@@ -282,12 +282,21 @@ public class PackageInfo {
 
   private String extractPackageVersion(Map<String, Object> artifact, String filePrefix, String fileExtension) {
     String fileName = artifact.get("fileName").toString();
+    if (packageType.equals("rpm")) {
+      return extractRpmVersion(fileName);
+    }
     String version = fileName.substring(fileName.indexOf(filePrefix) + filePrefix.length(), fileName.lastIndexOf(fileExtension));
     if (version.contains(versionDelimiter)) {
       // further strip in case of _all is in the file name
       version = version.substring(0, version.indexOf(versionDelimiter));
     }
     return version;
+  }
+
+  private String extractRpmVersion(String fileName) {
+    String[] parts = fileName.split(versionDelimiter);
+    String suffix = parts[parts.length - 1].replaceAll(".rpm", "");
+    return parts[parts.length - 2] + versionDelimiter + suffix;
   }
 
   private Map<String, Object> filterArtifacts(List<Map<String, Object>> artifacts, String prefix, String fileExtension) {

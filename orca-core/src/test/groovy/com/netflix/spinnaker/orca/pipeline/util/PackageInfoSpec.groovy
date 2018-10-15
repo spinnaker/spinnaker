@@ -745,4 +745,44 @@ class PackageInfoSpec extends Specification {
     triggerFilename                            | buildFilename                                | requestPackage     | result
     [["fileName": "test-package_1.0.0.deb"]]   | [["fileName": "test-package_1.0.0.deb"]]     | "test-package"     | "test-package_1.0.0"
   }
+
+  def "should work if the same RPM artifact is present in different places"() {
+    given:
+    Stage bakeStage = new Stage()
+    PackageType packageType = RPM
+    boolean extractBuildDetails = false
+
+    Artifact artifact1 = new Artifact.ArtifactBuilder()
+            .type("rpm")
+            .name("test-package")
+            .version("1539516142-1.x86_64")
+            .reference("test-package-1539516142-1.x86_64.rpm")
+            .provenance("https://jenkins/test-package-build-master")
+            .build()
+    List<Artifact> artifacts = new ArrayList<>()
+    artifacts.add(artifact1)
+
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+            artifacts,
+            packageType.packageType,
+            packageType.versionDelimiter,
+            extractBuildDetails,
+            false,
+            mapper)
+    def allowMissingPackageInstallation = true
+
+    Map trigger = ["buildInfo": ["artifacts": triggerFilename], "artifacts": artifacts]
+    Map buildInfo = ["artifacts": buildFilename]
+    Map stageContext = ["package": requestPackage]
+
+    when:
+    Map returnedStageContext = packageInfo.createAugmentedRequest(trigger, buildInfo, stageContext, allowMissingPackageInstallation)
+
+    then:
+    returnedStageContext.package == result
+
+    where:
+    triggerFilename                            | buildFilename                                | requestPackage     | result
+    [["fileName": "test-package-1539516142-1.x86_64.rpm"]]   | [["fileName": "test-package-1539516142-1.x86_64.rpm"]]     | "test-package"     | "test-package-1539516142-1.x86_64"
+  }
 }
