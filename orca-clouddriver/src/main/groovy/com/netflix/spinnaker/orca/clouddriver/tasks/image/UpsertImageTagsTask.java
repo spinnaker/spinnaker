@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
@@ -29,7 +27,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -40,6 +42,9 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
 
   @Autowired
   List<ImageTagger> imageTaggers;
+
+  @Value("${tasks.upsertImageTagsTimeoutMillis:600000}")
+  private Long upsertImageTagsTimeoutMillis;
 
   @Override
   public TaskResult execute(Stage stage) {
@@ -77,6 +82,6 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
 
   @Override
   public long getTimeout() {
-    return TimeUnit.MINUTES.toMillis(10);
+    return upsertImageTagsTimeoutMillis;
   }
 }
