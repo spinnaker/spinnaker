@@ -216,7 +216,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     """
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     clause = (builder.new_clause_builder('Instances Deleted',
-                                         retryable_for_secs=15,
+                                         retryable_for_secs=30,
                                          strict=True)
               .aggregated_list_resource('instances'))
     for name in names:
