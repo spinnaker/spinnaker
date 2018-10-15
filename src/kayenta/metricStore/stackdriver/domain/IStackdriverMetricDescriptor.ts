@@ -2,7 +2,7 @@ import { IMetricsServiceMetadata } from 'kayenta/domain/IMetricsServiceMetadata'
 
 export interface IStackdriverMetricDescriptor extends IMetricsServiceMetadata {
   metricKind: string;
-  labels: IStackdriverMetricDescriptorLabels[];
+  labels?: IStackdriverMetricDescriptorLabels[];
   name: string;
   displayName: string;
   type: string;

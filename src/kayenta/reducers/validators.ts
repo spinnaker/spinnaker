@@ -44,7 +44,7 @@ const isConfigNameValid: IConfigValidator = state => {
   return isValid
     ? null
     : {
-        message: 'Canary config names must contain only letters,' + ' numbers, dashes (-) and underscores (_).',
+        message: 'Canary config names must contain only letters, numbers, dashes (-) and underscores (_).',
       };
 };
 
