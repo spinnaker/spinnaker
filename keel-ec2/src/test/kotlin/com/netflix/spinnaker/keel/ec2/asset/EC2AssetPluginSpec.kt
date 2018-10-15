@@ -35,8 +35,12 @@ import com.netflix.spinnaker.keel.ec2.SecurityGroupRules
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.orca.TaskRef
+import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.proto.pack
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.mock
@@ -50,6 +54,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import strikt.api.Assertion
 import strikt.api.expectThat
+import strikt.assertions.contentEquals
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
@@ -116,9 +121,7 @@ internal object EC2AssetPluginSpec : Spek({
               kind = "ec2.SecurityGroup"
               apiVersion = "1.0"
             }
-            specBuilder.apply {
-              value = securityGroup.toByteString()
-            }
+            spec = securityGroup.pack()
           }
             .build()
         }
@@ -189,6 +192,83 @@ internal object EC2AssetPluginSpec : Spek({
         }
       }
     }
+
+    given("a matching security group with rules exists") {
+      val securityGroupWithRules = SecurityGroup.newBuilder()
+        .apply {
+          name = "fnord"
+          accountName = vpc.account
+          region = vpc.region
+          vpcName = vpc.name
+
+          // add rules for a bunch of ports in no particular order
+          listOf(6565, 1337, 80, 8081).forEach { port ->
+            addInboundRule(
+              SecurityGroupRule.newBuilder().apply {
+                selfReferencingRuleBuilder.apply {
+                  protocol = "tcp"
+                  addPortRange(
+                    PortRange.newBuilder().apply {
+                      startPort = port
+                      endPort = port
+                    }
+                  )
+                }
+              }
+            )
+          }
+        }
+        .build()
+
+      beforeGroup {
+        securityGroup.apply {
+          whenever(cloudDriverService.getSecurityGroup(accountName, CLOUD_PROVIDER, name, region, vpc.id)) doReturn com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup(
+            CLOUD_PROVIDER, UUID.randomUUID().toString(), name, description, accountName, region, vpc.id,
+            securityGroupWithRules.inboundRuleList.reversed().map { rule ->
+              com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRule(
+                rule.selfReferencingRule.protocol,
+                rule.selfReferencingRule.portRangeList.reversed().map {
+                  com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort)
+                },
+                com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleReference(name, accountName, region, vpc.id),
+                null
+              )
+            }.toSet(),
+            Moniker(application)
+          )
+        }
+      }
+
+      afterGroup {
+        reset(cloudDriverService)
+      }
+
+      val request = AssetContainer
+        .newBuilder()
+        .apply {
+          asset = assetBuilder.apply {
+            typeMetadataBuilder.apply {
+              kind = "ec2.SecurityGroup"
+              apiVersion = "1.0"
+            }
+            spec = securityGroupWithRules.pack()
+          }.build()
+        }
+        .build()
+
+
+      val response by memoized {
+        grpc.withChannel { stub ->
+          stub.current(request)
+        }
+      }
+
+      it("returns consistent models of the security group") {
+        val current = response.success.current
+        val desired = response.success.desired
+        expectThat(current.spec.toByteArray()).contentEquals(desired.spec.toByteArray())
+      }
+    }
   }
 
   describe("converging a security group") {
@@ -214,6 +294,12 @@ internal object EC2AssetPluginSpec : Spek({
       .build()
 
     given("no rule partial assets provided") {
+      beforeGroup {
+        whenever(orcaService.orchestrate(any())) doAnswer {
+          TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
+        }
+      }
+
       afterGroup {
         reset(cloudDriverService, orcaService)
       }
@@ -249,6 +335,12 @@ internal object EC2AssetPluginSpec : Spek({
     }
 
     given("rule partial assets provided") {
+      beforeGroup {
+        whenever(orcaService.orchestrate(any())) doAnswer {
+          TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
+        }
+      }
+
       afterGroup {
         reset(cloudDriverService, orcaService)
       }

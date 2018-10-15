@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.asset.AmazonSecurityGroupHandler
+import com.netflix.spinnaker.keel.ec2.asset.canonicalize
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import com.netflix.spinnaker.keel.proto.isA
@@ -53,8 +54,8 @@ class EC2AssetPlugin(
         val spec: SecurityGroup = request.asset.spec.unpack()
         val assetPair = securityGroupHandler.run {
           Pair(
-            current(spec, request),
-            flattenAssetContainer(request)
+            current(spec, request)?.canonicalize(),
+            flattenAssetContainer(request).canonicalize()
           )
         }
         log.info("{} requested state: {}", request.asset.id, spec)

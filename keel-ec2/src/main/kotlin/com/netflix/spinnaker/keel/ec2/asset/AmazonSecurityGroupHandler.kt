@@ -63,14 +63,10 @@ class AmazonSecurityGroupHandler(
       .unpack<SecurityGroupProto>()
       .toBuilder().apply {
         assetContainer.partialAssetList
-          .map { it.spec.unpack(SecurityGroupRules::class.java) }
+          .map { it.spec.unpack<SecurityGroupRules>() }
           .forEach { rules ->
-            inboundRuleOrBuilderList.apply {
-              addAllInboundRule(rules.inboundRuleList)
-            }
-            outboundRuleOrBuilderList.apply {
-              addAllOutboundRule(rules.outboundRuleList)
-            }
+            addAllInboundRule(rules.inboundRuleList)
+            addAllOutboundRule(rules.outboundRuleList)
           }
       }.build()
 

@@ -13,3 +13,9 @@ dependencies {
   testImplementation "io.strikt:strikt-protobuf:$striktVersion"
   testImplementation project(":keel-api-test")
 }
+
+test {
+  useJUnitPlatform {
+    includeEngines "spek", "junit-jupiter"
+  }
+}
