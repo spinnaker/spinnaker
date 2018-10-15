@@ -133,7 +133,8 @@ class MannWhitneyClassifier(tolerance: Double=0.25,
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
       if (nanStrategy == NaNStrategy.Remove) {
-        return MetricClassification(Nodata, None, 1.0, isCriticalMetric)
+        val reason = s"Missing data for ${experiment.name}"
+        return MetricClassification(Nodata, Some(reason), 1.0, isCriticalMetric)
       } else {
         return MetricClassification(Pass, None, 1.0, critical = false)
       }

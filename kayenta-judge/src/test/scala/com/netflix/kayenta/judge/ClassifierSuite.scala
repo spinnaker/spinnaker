@@ -18,6 +18,7 @@ package com.netflix.kayenta.judge
 
 import com.netflix.kayenta.judge.classifiers.metric._
 import org.scalatest.FunSuite
+import org.scalatest.Matchers._
 
 
 class ClassifierSuite extends FunSuite{
@@ -583,6 +584,19 @@ class ClassifierSuite extends FunSuite{
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease, NaNStrategy.Replace)
 
     assert(result.classification == Pass)
+  }
+
+  test("Mann-Whitney Missing Data: Reason String") {
+    val experimentData = Array[Double]()
+    val controlData = Array[Double]()
+
+    val experimentMetric = Metric("test-critical-metric", experimentData, "canary")
+    val controlMetric = Metric("test-critical-metric", controlData, "baseline")
+
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
+    val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease, isCriticalMetric = true)
+
+    result.reason should not be empty
   }
 
   test("Mann-Whitney Majority Tied Observations"){
