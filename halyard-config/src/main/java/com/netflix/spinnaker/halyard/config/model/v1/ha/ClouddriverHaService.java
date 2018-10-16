@@ -26,6 +26,7 @@ import lombok.EqualsAndHashCode;
 public class ClouddriverHaService extends HaService {
   String redisMasterEndpoint;
   String redisSlaveEndpoint;
+  String redisSlaveDeckEndpoint;
 
   @Override
   public HaServiceType haServiceType() { return HaServiceType.CLOUDDRIVER; }

@@ -102,15 +102,6 @@
  * [**hal config canary datadog account list**](#hal-config-canary-datadog-account-list)
  * [**hal config canary datadog disable**](#hal-config-canary-datadog-disable)
  * [**hal config canary datadog enable**](#hal-config-canary-datadog-enable)
- * [**hal config canary signalfx**](#hal-config-canary-signalfx)
- * [**hal config canary signalfx account**](#hal-config-canary-signalfx-account)
- * [**hal config canary signalfx account add**](#hal-config-canary-signalfx-account-add)
- * [**hal config canary signalfx account delete**](#hal-config-canary-signalfx-account-delete)
- * [**hal config canary signalfx account edit**](#hal-config-canary-signalfx-account-edit)
- * [**hal config canary signalfx account get**](#hal-config-canary-signalfx-account-get)
- * [**hal config canary signalfx account list**](#hal-config-canary-signalfx-account-list)
- * [**hal config canary signalfx disable**](#hal-config-canary-signalfx-disable)
- * [**hal config canary signalfx enable**](#hal-config-canary-signalfx-enable)
  * [**hal config canary disable**](#hal-config-canary-disable)
  * [**hal config canary edit**](#hal-config-canary-edit)
  * [**hal config canary enable**](#hal-config-canary-enable)
@@ -134,6 +125,15 @@
  * [**hal config canary prometheus disable**](#hal-config-canary-prometheus-disable)
  * [**hal config canary prometheus edit**](#hal-config-canary-prometheus-edit)
  * [**hal config canary prometheus enable**](#hal-config-canary-prometheus-enable)
+ * [**hal config canary signalfx**](#hal-config-canary-signalfx)
+ * [**hal config canary signalfx account**](#hal-config-canary-signalfx-account)
+ * [**hal config canary signalfx account add**](#hal-config-canary-signalfx-account-add)
+ * [**hal config canary signalfx account delete**](#hal-config-canary-signalfx-account-delete)
+ * [**hal config canary signalfx account edit**](#hal-config-canary-signalfx-account-edit)
+ * [**hal config canary signalfx account get**](#hal-config-canary-signalfx-account-get)
+ * [**hal config canary signalfx account list**](#hal-config-canary-signalfx-account-list)
+ * [**hal config canary signalfx disable**](#hal-config-canary-signalfx-disable)
+ * [**hal config canary signalfx enable**](#hal-config-canary-signalfx-enable)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
@@ -2558,14 +2558,14 @@ hal config canary signalfx [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
- * `account`: Manage and view Spinnaker configuration for the SignalFx service integration's canary accounts.
- * `disable`: Set Spinnaker's canary analysis SignalFx service integration to disabled.
- * `enable`: Set Spinnaker's canary analysis SignalFx service integration to enabled.
+ * `account`: Manage and view Spinnaker configuration for the Signalfx service integration's canary accounts.
+ * `disable`: Set Spinnaker's canary analysis Signalfx service integration to disabled.
+ * `enable`: Set Spinnaker's canary analysis Signalfx service integration to enabled.
 
 ---
 ## hal config canary signalfx account
 
-Manage and view Spinnaker configuration for the SignalFx service integration's canary accounts.
+Manage and view Spinnaker configuration for the Signalfx service integration's canary accounts.
 
 #### Usage
 ```
@@ -2578,16 +2578,16 @@ hal config canary signalfx account ACCOUNT [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
- * `add`: Add a canary account to the SignalFx service integration.
- * `delete`: Delete a specific SignalFx canary account by name.
- * `edit`: Edit a canary account in the SignalFx service integration.
- * `get`: Get the specified canary account details for the SignalFx service integration.
- * `list`: List the canary account names for the SignalFx service integration.
+ * `add`: Add a canary account to the Signalfx service integration.
+ * `delete`: Delete a specific Signalfx canary account by name.
+ * `edit`: Edit a canary account in the Signalfx service integration.
+ * `get`: Get the specified canary account details for the Signalfx service integration.
+ * `list`: List the canary account names for the Signalfx service integration.
 
 ---
 ## hal config canary signalfx account add
 
-Add a canary account to the SignalFx service integration.
+Add a canary account to the Signalfx service integration.
 
 #### Usage
 ```
@@ -2605,7 +2605,7 @@ hal config canary signalfx account add ACCOUNT [parameters]
 ---
 ## hal config canary signalfx account delete
 
-Delete a specific SignalFx canary account by name.
+Delete a specific Signalfx canary account by name.
 
 #### Usage
 ```
@@ -2621,7 +2621,7 @@ hal config canary signalfx account delete ACCOUNT [parameters]
 ---
 ## hal config canary signalfx account edit
 
-Edit a canary account in the SignalFx service integration.
+Edit a canary account in the Signalfx service integration.
 
 #### Usage
 ```
@@ -2639,7 +2639,7 @@ hal config canary signalfx account edit ACCOUNT [parameters]
 ---
 ## hal config canary signalfx account get
 
-Get the specified canary account details for the SignalFx service integration.
+Get the specified canary account details for the Signalfx service integration.
 
 #### Usage
 ```
@@ -2655,7 +2655,7 @@ hal config canary signalfx account get ACCOUNT [parameters]
 ---
 ## hal config canary signalfx account list
 
-List the canary account names for the SignalFx service integration.
+List the canary account names for the Signalfx service integration.
 
 #### Usage
 ```
@@ -2670,7 +2670,7 @@ hal config canary signalfx account list [parameters]
 ---
 ## hal config canary signalfx disable
 
-Set Spinnaker's canary analysis SignalFx service integration to disabled.
+Set Spinnaker's canary analysis Signalfx service integration to disabled.
 
 #### Usage
 ```
@@ -2685,7 +2685,7 @@ hal config canary signalfx disable [parameters]
 ---
 ## hal config canary signalfx enable
 
-Set Spinnaker's canary analysis SignalFx service integration to enabled.
+Set Spinnaker's canary analysis Signalfx service integration to enabled.
 
 #### Usage
 ```
@@ -3293,6 +3293,7 @@ hal config deploy ha clouddriver edit [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--redis-master-endpoint`: Set external Redis endpoint for clouddriver-rw and clouddriver-caching. The Redis URI schema is described here: https://www.iana.org/assignments/uri-schemes/prov/redis. clouddriver-rw and clouddriver-caching are configured to use the shared Redis, by default.
+ * `--redis-slave-deck-endpoint`: Set external Redis endpoint for clouddriver-ro-deck. The Redis URI schema is described here: https://www.iana.org/assignments/uri-schemes/prov/redis. clouddriver-ro-deck is configured to use the shared Redis, by default.
  * `--redis-slave-endpoint`: Set external Redis endpoint for clouddriver-ro. The Redis URI schema is described here: https://www.iana.org/assignments/uri-schemes/prov/redis. clouddriver-ro is configured to use the shared Redis, by default.
 
 

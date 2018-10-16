@@ -147,6 +147,7 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     CLOUDDRIVER_BOOTSTRAP(CLOUDDRIVER, "bootstrap"),
     CLOUDDRIVER_CACHING(CLOUDDRIVER, "caching"),
     CLOUDDRIVER_RO(CLOUDDRIVER, "ro"),
+    CLOUDDRIVER_RO_DECK(CLOUDDRIVER, "ro-deck"),
     CLOUDDRIVER_RW(CLOUDDRIVER, "rw"),
     CONSUL_CLIENT("consul-client"),
     CONSUL_SERVER("consul-server"),

@@ -46,7 +46,11 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
   KubernetesV2ClouddriverCachingService clouddriverCachingService;
 
   @Autowired
+  @Qualifier("kubernetesV2ClouddriverRoService")
   KubernetesV2ClouddriverRoService clouddriverRoService;
+
+  @Autowired
+  KubernetesV2ClouddriverRoDeckService clouddriverRoDeckService;
 
   @Autowired
   KubernetesV2ClouddriverRwService clouddriverRwService;

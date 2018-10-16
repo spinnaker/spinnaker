@@ -20,12 +20,16 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -70,5 +74,18 @@ public class KubernetesV2GateService extends GateService implements KubernetesV2
         Type.CLOUDDRIVER_RO,
         Type.ECHO_WORKER
     );
+  }
+
+  @Override
+  protected void appendReadonlyClouddriverForDeck(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    if (hasServiceOverrides(deploymentConfiguration)) {
+      Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>> services = Collections.singletonMap(
+          "services", Collections.singletonMap(
+              "clouddriver", Collections.singletonMap(
+                  "config", Collections.singletonMap(
+                      "dynamicEndpoints", Collections.singletonMap(
+                          "deck", endpoints.getServiceSettings(Type.CLOUDDRIVER_RO_DECK).getBaseUrl())))));
+      profile.appendContents(getYamlParser().dump(services));
+    }
   }
 }

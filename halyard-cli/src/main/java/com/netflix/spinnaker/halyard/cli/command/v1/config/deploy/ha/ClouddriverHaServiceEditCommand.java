@@ -41,10 +41,19 @@ public class ClouddriverHaServiceEditCommand extends AbstractHaServiceEditComman
   )
   private String redisSlaveEndpoint;
 
+  @Parameter(
+      names = "--redis-slave-deck-endpoint",
+      description = "Set external Redis endpoint for clouddriver-ro-deck. "
+          + "The Redis URI schema is described here: https://www.iana.org/assignments/uri-schemes/prov/redis. "
+          + "clouddriver-ro-deck is configured to use the shared Redis, by default."
+  )
+  private String redisSlaveDeckEndpoint;
+
   @Override
   protected HaService editHaService(ClouddriverHaService haService) {
     haService.setRedisMasterEndpoint(isSet(redisMasterEndpoint) ? redisMasterEndpoint : haService.getRedisMasterEndpoint());
     haService.setRedisSlaveEndpoint(isSet(redisSlaveEndpoint) ? redisSlaveEndpoint : haService.getRedisSlaveEndpoint());
+    haService.setRedisSlaveDeckEndpoint(isSet(redisSlaveDeckEndpoint) ? redisSlaveDeckEndpoint : haService.getRedisSlaveDeckEndpoint());
 
     return haService;
   }

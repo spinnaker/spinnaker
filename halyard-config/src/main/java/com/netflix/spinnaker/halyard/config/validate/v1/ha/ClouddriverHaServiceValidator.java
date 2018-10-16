@@ -22,18 +22,23 @@ import com.netflix.spinnaker.halyard.config.model.v1.ha.ClouddriverHaService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang.StringUtils;
 
 public class ClouddriverHaServiceValidator extends Validator<ClouddriverHaService> {
   @Override
   public void validate(ConfigProblemSetBuilder p, ClouddriverHaService clouddriverHaService) {
-    if (!StringUtils.isBlank(clouddriverHaService.getRedisMasterEndpoint()) &&
-        StringUtils.isBlank(clouddriverHaService.getRedisSlaveEndpoint())) {
-      p.addProblem(Problem.Severity.ERROR, "A Clouddriver Redis master endpoint must be supplied when a slave endpoint is provided.");
-    }
-    if (StringUtils.isBlank(clouddriverHaService.getRedisMasterEndpoint()) &&
-        !StringUtils.isBlank(clouddriverHaService.getRedisSlaveEndpoint())) {
-      p.addProblem(Problem.Severity.ERROR, "A Clouddriver Redis slave endpoint must be supplied when a master endpoint is provided.");
+    List<String> redisEndpoints = Stream.of(
+        clouddriverHaService.getRedisMasterEndpoint(),
+        clouddriverHaService.getRedisSlaveEndpoint(),
+        clouddriverHaService.getRedisSlaveDeckEndpoint()
+    ).filter(e -> !StringUtils.isBlank(e))
+        .collect(Collectors.toList());
+
+    if (redisEndpoints.size() != 3 && redisEndpoints.size() != 0) {
+      p.addProblem(Problem.Severity.ERROR, "Please provide values for Clouddriver Redis master endpoint, Redis slave endpoint, and Redis slave-deck endpoint or leave them all blank.");
     }
   }
 }

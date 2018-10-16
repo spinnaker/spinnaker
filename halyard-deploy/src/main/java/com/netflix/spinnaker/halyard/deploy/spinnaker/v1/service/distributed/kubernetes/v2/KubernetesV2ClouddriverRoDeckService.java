@@ -33,22 +33,17 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesV2ClouddriverRoService extends KubernetesV2ClouddriverService{
+public class KubernetesV2ClouddriverRoDeckService extends KubernetesV2ClouddriverRoService{
   @Override
   public Type getType() {
-    return Type.CLOUDDRIVER_RO;
-  }
-
-  @Override
-  public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
-    return deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().isEnabled();
+    return Type.CLOUDDRIVER_RO_DECK;
   }
 
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
 
-    String filename = "clouddriver-ro.yml";
+    String filename = "clouddriver-ro-deck.yml";
     String path = Paths.get(getConfigOutputPath(), filename).toString();
     profiles.add(getClouddriverProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints));
 
@@ -58,14 +53,14 @@ public class KubernetesV2ClouddriverRoService extends KubernetesV2ClouddriverSer
   @Override
   protected boolean hasServiceOverrides(DeploymentConfiguration deploymentConfiguration) {
     HaServices haServices = deploymentConfiguration.getDeploymentEnvironment().getHaServices();
-    return haServices.getClouddriver().getRedisSlaveEndpoint() != null;
+    return haServices.getClouddriver().getRedisSlaveDeckEndpoint() != null;
   }
 
   @Override
   protected SpinnakerRuntimeSettings getServiceOverrides(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     SpinnakerRuntimeSettings serviceOverrides = super.getServiceOverrides(deploymentConfiguration, endpoints);
 
-    serviceOverrides.setServiceSettings(Type.REDIS, new ServiceSettings(deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().getRedisSlaveEndpoint()));
+    serviceOverrides.setServiceSettings(Type.REDIS, new ServiceSettings(deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().getRedisSlaveDeckEndpoint()));
 
     return serviceOverrides;
   }
