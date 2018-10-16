@@ -279,7 +279,7 @@ class GcsFront50TestScenario(sk.SpinnakerTestScenario):
     # from the cache thinking it is fresh. We need the extra second to allow
     # for the retry on the timestamp update to write out to GCS.
     (f50_builder.new_clause_builder('Unlists Application',
-                                    retryable_for_secs=2)
+                                    retryable_for_secs=8)
      .get_url_path('/v2/applications')
      .EXPECT(ov_factory.value_list_path_excludes(
          'name', jp.STR_SUBSTR(self.TEST_APP.upper()))))
