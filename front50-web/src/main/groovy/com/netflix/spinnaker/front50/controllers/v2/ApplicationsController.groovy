@@ -59,8 +59,8 @@ public class ApplicationsController {
   @Autowired(required = false)
   List<ApplicationEventListener> applicationEventListeners = []
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
-  @PostFilter("hasPermission(filterObject.name, 'APPLICATION', 'READ')")
+  @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
+  @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @ApiOperation(value = "", notes = """Fetch all applications.
 
     Supports filtering by one or more attributes:
@@ -68,8 +68,10 @@ public class ApplicationsController {
     - ?email=my@email.com&name=flex""")
   @RequestMapping(method = RequestMethod.GET)
   Set<Application> applications(@RequestParam(value = "pageSize", required = false) Integer pageSize,
+                                @RequestParam(required = false, value = 'restricted', defaultValue = 'true') boolean restricted,
                                 @RequestParam Map<String, String> params) {
     params.remove("pageSize")
+    params.remove("restricted")
 
     def applications
     if (params.isEmpty()) {
