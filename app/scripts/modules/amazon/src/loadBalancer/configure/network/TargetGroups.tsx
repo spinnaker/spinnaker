@@ -30,6 +30,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
   public static LABEL = 'Target Groups';
 
   public protocols = ['TCP'];
+  public healthProtocols = ['TCP', 'HTTP', 'HTTPS'];
   public targetTypes = ['instance', 'ip'];
   private destroy$ = new Subject();
 
@@ -155,6 +156,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
       targetType: 'instance',
       healthCheckProtocol: 'TCP',
       healthCheckPort: '7001',
+      healthCheckPath: '/healthcheck',
       healthCheckTimeout: 5,
       healthCheckInterval: 10,
       healthyThreshold: 10,
@@ -192,6 +194,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
     const { oldTargetGroupCount } = this.state;
 
     const ProtocolOptions = this.protocols.map(p => <option key={p}>{p}</option>);
+    const HealthProtocolOptions = this.healthProtocols.map(p => <option key={p}>{p}</option>);
     const TargetTypeOptions = this.targetTypes.map(p => <option key={p}>{p}</option>);
 
     return (
@@ -284,13 +287,14 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
                           <span className="wizard-pod-content">
                             <label>Protocol </label>
                             <select
+                              disabled={index < oldTargetGroupCount}
                               className="form-control input-sm inline-number"
                               value={targetGroup.healthCheckProtocol}
                               onChange={event =>
                                 this.targetGroupFieldChanged(index, 'healthCheckProtocol', event.target.value)
                               }
                             >
-                              {ProtocolOptions}
+                              {HealthProtocolOptions}
                             </select>
                           </span>
                           <span className="wizard-pod-content">
@@ -306,6 +310,21 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
                               }
                             />
                           </span>
+                          {targetGroup.healthCheckProtocol !== 'TCP' && (
+                            <span className="wizard-pod-content">
+                              <label>Path </label>
+                              <SpInput
+                                className="form-control input-sm inline-text"
+                                error={tgErrors.healthCheckPath}
+                                name="healthCheckPath"
+                                required={true}
+                                value={targetGroup.healthCheckPath}
+                                onChange={event =>
+                                  this.targetGroupFieldChanged(index, 'healthCheckPath', event.target.value)
+                                }
+                              />
+                            </span>
+                          )}
                           <span className="wizard-pod-content">
                             <label>Timeout </label>
                             <SpInput

@@ -191,7 +191,8 @@ export interface INLBTargetGroupDescription {
   // Defaults to 10
   healthCheckInterval?: number;
   healthCheckPort: string;
-  healthCheckProtocol: 'TCP';
+  healthCheckProtocol: 'TCP' | 'HTTP' | 'HTTPS';
+  healthCheckPath: string;
   // Defaults to 10
   healthyThreshold?: number;
   // Defaults to 5
