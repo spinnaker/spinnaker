@@ -26,7 +26,7 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.0.4-rc.1'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.0.4'
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
     classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
   }
@@ -60,5 +60,12 @@ allprojects {
 
   spinnaker {
     dependenciesVersion = spinnakerDependenciesVersion
+  }
+
+  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last.
+  project.plugins.withType(JavaBasePlugin) {
+    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+    convention.sourceCompatibility = JavaVersion.VERSION_1_8
+    convention.targetCompatibility = JavaVersion.VERSION_1_8
   }
 }
