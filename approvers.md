@@ -27,6 +27,7 @@
 * jrsquared
 * jtk54
 * lwander
+* maggieneterval
 * robfletcher
 * robzienert
 * sbwsg
