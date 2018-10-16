@@ -72,7 +72,8 @@ javadoc {
   exclude 'com/netflix/titus/grpc/protogen/**'
 }
 
-license {
-  exclude 'io/titanframework/**'
-  exclude 'com/netflix/titus/grpc/protogen/**'
+def licenseExtension = project.extensions.findByName('license')
+if (licenseExtension != null) {
+  licenseExtension.exclude('io/titanframework/**')
+  licenseExtension.exclude('com/netflix/titus/grpc/protogen/**')
 }
