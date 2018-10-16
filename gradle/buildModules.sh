@@ -1,4 +1,5 @@
 #!/bin/bash -e
+set -x
 
 # Params to be passed in
 MODULES_TO_BE_BUILT=("$@")  # optional, if no list of modules are provided, we'll go do all of them except SKIPPED_MODULES
