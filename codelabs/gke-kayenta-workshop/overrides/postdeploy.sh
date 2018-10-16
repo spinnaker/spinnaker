@@ -13,4 +13,4 @@ HALYARD_POD=$(kubectl get po -n spinnaker -l "stack=halyard" \
 
 kubectl exec $HALYARD_POD -n spinnaker -- bash -c "$(cat overrides/enable_kayenta.sh | envsubst)"
 
-overrides/publish_configs.sh
+overrides/publish_samples.sh

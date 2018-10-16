@@ -4,15 +4,17 @@ bold() {
   echo ". $(tput bold)" "$*" "$(tput sgr0)";
 }
 
-./connect.sh
-
-bold "Configuring sample code & pipelines..."
+sleep 30
 
 gsutil cp gs://gke-spinnaker-codelab/kayenta-workshop/front50.tar .
 tar -xvf front50.tar
 
+gsutil cp gs://gke-spinnaker-codelab/kayenta-workshop/services.tar .
+tar -xvf services.tar
+
 replace() {
   find front50 -type f -name "*.json" -print0 | xargs -0 sed -i $1
+  find services -type f -name "*" -print0 | xargs -0 sed -i $1
 }
 
 replace 's|{%SPIN_GCS_ACCOUNT%}|'$SPIN_GCS_ACCOUNT'|g'
@@ -30,7 +32,39 @@ gate:
   endpoint: http://localhost:8080/gate
 EOF
 
+
+bold "Publishing sample manifests into $BUCKET_URI/manifests..."
+
+gsutil cp -r services/manifests/frontend.yml $BUCKET_URI/manifests/frontend.yml
+gsutil cp -r services/manifests/backend.yml $BUCKET_URI/manifests/backend.yml
+
+
+bold "Pushing sample images into gcr.io/$PROJECT_ID..."
+
+gcloud docker -- pull gcr.io/spinnaker-marketplace/frontend
+
+gcloud docker -- tag gcr.io/spinnaker-marketplace/frontend \
+  gcr.io/$PROJECT_ID/frontend
+
+gcloud docker -- push gcr.io/$PROJECT_ID/frontend
+
+pushd services/backend
+./build.sh 
+popd
+
+bold "Deploying sample service..."
+
+kubectl apply -f services/manifests/seeding.yml
+
+
+bold "Starting port forwarding..."
+
+./connect.sh
+
 sleep 10
+
+
+bold "Configuring sample application & pipelines via spin cli..."
 
 spin application save --file front50/demo-application.json
 spin pipeline save --file front50/deploy-to-staging-pipeline.json
