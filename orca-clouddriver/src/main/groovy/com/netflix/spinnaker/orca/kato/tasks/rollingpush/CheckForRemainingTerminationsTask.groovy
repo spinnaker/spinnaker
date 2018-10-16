@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import javafx.util.Duration
 import org.springframework.stereotype.Component
 
 import java.time.Instant
