@@ -27,8 +27,8 @@ interface Front50Service {
   //
   // Application-related
   //
-  @GET('/v2/applications')
-  List<Map> getAllApplications()
+  @GET('/v2/applications?restricted=false')
+  List<Map> getAllApplicationsUnrestricted()
 
   @GET('/v2/applications/{applicationName}')
   Map getApplication(@Path('applicationName') String applicationName)
