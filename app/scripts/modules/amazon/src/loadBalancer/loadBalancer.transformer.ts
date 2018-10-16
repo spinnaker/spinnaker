@@ -450,6 +450,7 @@ export class AwsLoadBalancerTransformer {
             healthCheckInterval: targetGroup.healthCheckIntervalSeconds,
             healthyThreshold: targetGroup.healthyThresholdCount,
             unhealthyThreshold: targetGroup.unhealthyThresholdCount,
+            healthCheckPath: targetGroup.healthCheckPath,
             attributes: {
               deregistrationDelay: Number(targetGroup.attributes['deregistration_delay.timeout_seconds']),
             },
@@ -581,6 +582,7 @@ export class AwsLoadBalancerTransformer {
           port: 7001,
           targetType: 'instance',
           healthCheckProtocol: 'TCP',
+          healthCheckPath: '/healthcheck',
           healthCheckPort: '7001',
           healthCheckTimeout: 5,
           healthCheckInterval: 10,
