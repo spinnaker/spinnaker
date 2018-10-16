@@ -28,7 +28,7 @@ class SpinnakerProjectPlugin implements Plugin<Gradle> {
 
     @Override
     void apply(Gradle gradle) {
-        gradle.rootProject { project ->
+        gradle.allprojects { project ->
             project.plugins.apply(NetflixOssProjectPlugin)
             project.plugins.apply(SpinnakerBintrayPublishingPlugin)
 
