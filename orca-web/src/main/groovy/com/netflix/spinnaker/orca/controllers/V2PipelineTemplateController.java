@@ -35,15 +35,15 @@ public class V2PipelineTemplateController {
 
   // TODO(jacobkiefer): Add fiat authz
   // TODO(jacobkiefer): Un-stub
-  @RequestMapping(value = "/pipelineTemplate", method = RequestMethod.GET)
-  PipelineTemplate getPipelineTemplate(@RequestParam Map template,
-                                       @RequestParam(required = false) String executionId,
-                                       @RequestParam(required = false) String pipelineConfigId) {
+  @RequestMapping(value = "/v2/pipelineTemplate", method = RequestMethod.GET)
+  PipelineTemplate getV2PipelineTemplate(@RequestParam Map template,
+                                         @RequestParam(required = false) String executionId,
+                                         @RequestParam(required = false) String pipelineConfigId) {
     return null;
   }
 
-  @RequestMapping(value = "/convertPipelineToTemplate", method = RequestMethod.POST)
-  String convertPipelineToPipelineTemplate(@RequestBody Map<String, Object> pipeline) {
+  @RequestMapping(value = "/v2/convertPipelineToTemplate", method = RequestMethod.POST)
+  String convertV2PipelineToPipelineTemplate(@RequestBody Map<String, Object> pipeline) {
     return null;
   }
 }
