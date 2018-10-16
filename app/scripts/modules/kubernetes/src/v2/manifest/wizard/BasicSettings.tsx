@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FormikErrors } from 'formik';
 
-import { NgReact, HelpField, IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
+import { AccountSelectField, HelpField, IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
 
 import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
@@ -24,7 +24,6 @@ class ManifestBasicSettingsImpl extends React.Component<IManifestBasicSettingsPr
 
   public render() {
     const { formik, app } = this.props;
-    const { AccountSelectField } = NgReact;
 
     const accounts = formik.values.metadata.backingData.accounts;
 

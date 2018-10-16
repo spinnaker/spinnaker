@@ -4,12 +4,12 @@ import { FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
+  AccountSelectField,
   AccountService,
   IAccount,
   IDeploymentStrategy,
   IRegion,
   IWizardPageProps,
-  NgReact,
   wizardPage,
   HelpField,
   RegionSelectField,
@@ -111,7 +111,6 @@ class BasicSettingsImpl extends React.Component<
   public render(): JSX.Element {
     const { accounts, regions } = this.state;
     const { values, errors } = this.props.formik;
-    const { AccountSelectField } = NgReact;
     return (
       <div>
         <div className="form-group">

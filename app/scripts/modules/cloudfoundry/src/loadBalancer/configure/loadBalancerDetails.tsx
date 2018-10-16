@@ -3,12 +3,12 @@ import * as React from 'react';
 import { FormikErrors } from 'formik';
 
 import {
+  AccountSelectField,
   AccountService,
   Application,
   IAccount,
   IWizardPageProps,
   wizardPage,
-  NgReact,
   RegionSelectField,
   IRegion,
 } from '@spinnaker/core';
@@ -126,7 +126,6 @@ class LoadBalancerDetailsImpl extends React.Component<ILoadBalancerDetailsProps,
   public render() {
     const { values } = this.props.formik;
     const { accounts, domains, regions } = this.state;
-    const { AccountSelectField } = NgReact;
     return (
       <div className="container-fluid form-horizontal">
         <div className="modal-body">

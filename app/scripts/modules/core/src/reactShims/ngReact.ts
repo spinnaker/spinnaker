@@ -2,7 +2,6 @@ import * as React from 'react';
 import { angular2react } from 'angular2react';
 import IInjectorService = angular.auto.IInjectorService;
 
-import { AccountSelectFieldWrapperComponent } from '../account/accountSelectFieldWrapper.component';
 import { AddEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
 import { ButtonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
 import { CopyToClipboardComponent } from '../utils/clipboard/copyToClipboard.component';
@@ -10,7 +9,6 @@ import { DeploymentStrategySelectorWrapper } from 'core/deploymentStrategy/deplo
 import { IDiffViewProps } from '../pipeline/config/actions/history/DiffView';
 import { EntitySourceComponent } from 'core/entityTag/entitySource.component';
 import { HelpFieldWrapperComponent } from '../help/helpField.component';
-import { IAccountSelectFieldProps } from 'core/account/AccountSelectField';
 import { IAddEntityTagLinksProps } from 'core/entityTag/AddEntityTagLinks';
 import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
 import { ICopyToClipboardProps } from '../utils/clipboard/CopyToClipboard';
@@ -43,7 +41,6 @@ export class NgReactInjector extends ReactInject {
   public $injectorProxy = {} as IInjectorService;
 
   // Reactified components
-  public AccountSelectField: React.ComponentClass<IAccountSelectFieldProps>                   = angular2react('accountSelectFieldWrapper', new AccountSelectFieldWrapperComponent(), this.$injectorProxy) as any;
   public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps>                     = angular2react('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent(), this.$injectorProxy) as any;
   public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps>                 = angular2react('buttonBusyIndicator', new ButtonBusyIndicatorComponent(), this.$injectorProxy) as any;
   public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps>                         = angular2react('copyToClipboard', new CopyToClipboardComponent(), this.$injectorProxy) as any;

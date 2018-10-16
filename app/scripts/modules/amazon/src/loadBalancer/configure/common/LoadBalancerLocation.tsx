@@ -5,6 +5,7 @@ import { chain, find, isEqual, isNil, trimEnd, uniq } from 'lodash';
 import { Field, FormikErrors } from 'formik';
 
 import {
+  AccountSelectField,
   AccountService,
   Application,
   HelpField,
@@ -14,7 +15,6 @@ import {
   ISubnet,
   IWizardPageProps,
   NameUtils,
-  NgReact,
   RegionSelectField,
   Spinner,
   SubnetReader,
@@ -311,7 +311,6 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     const { app } = this.props;
     const { errors, values } = this.props.formik;
     const { accounts, availabilityZones, hideInternalFlag, regions, subnets } = this.state;
-    const { AccountSelectField } = NgReact;
     const { SubnetSelectField } = AwsNgReact;
 
     const className = classNames({

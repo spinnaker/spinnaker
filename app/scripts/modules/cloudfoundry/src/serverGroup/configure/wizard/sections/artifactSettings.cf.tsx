@@ -4,6 +4,7 @@ import { FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
+  AccountSelectField,
   AccountService,
   HelpField,
   IAccountDetails,
@@ -12,7 +13,6 @@ import {
   IRegion,
   wizardPage,
   RegionSelectField,
-  NgReact,
   ValidationMessage,
 } from '@spinnaker/core';
 
@@ -254,7 +254,6 @@ class ArtifactSettingsImpl extends React.Component<
     const { values, errors } = this.props.formik;
     const { artifact } = values;
     const { regions, filteredClusters, serverGroups, allCloudFoundryCredentials } = this.state;
-    const { AccountSelectField } = NgReact;
 
     return (
       <div>

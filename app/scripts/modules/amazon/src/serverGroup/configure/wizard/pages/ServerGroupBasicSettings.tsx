@@ -4,6 +4,7 @@ import { Observable, Subject } from 'rxjs';
 import * as DOMPurify from 'dompurify';
 
 import {
+  AccountSelectField,
   NgReact,
   HelpField,
   IWizardPageProps,
@@ -285,7 +286,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
       namePreview,
       showPreviewAsWarning,
     } = this.state;
-    const { AccountSelectField, DeploymentStrategySelector } = NgReact;
+    const { DeploymentStrategySelector } = NgReact;
     const { SubnetSelectField } = AwsNgReact;
 
     const accounts = values.backingData.accounts;

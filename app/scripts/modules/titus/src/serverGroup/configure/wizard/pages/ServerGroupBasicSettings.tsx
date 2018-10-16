@@ -11,6 +11,7 @@ import {
   Application,
   ReactInjector,
   IServerGroup,
+  AccountSelectField,
   AccountTag,
 } from '@spinnaker/core';
 
@@ -183,7 +184,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   public render() {
     const { errors, setFieldValue, values } = this.props.formik;
     const { createsNewCluster, latestServerGroup, namePreview, showImageIdField, showPreviewAsWarning } = this.state;
-    const { AccountSelectField, DeploymentStrategySelector } = NgReact;
+    const { DeploymentStrategySelector } = NgReact;
 
     const accounts = values.backingData.accounts;
     const readOnlyFields = values.viewState.readOnlyFields || {};
