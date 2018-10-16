@@ -19,13 +19,12 @@ import com.google.common.collect.Lists;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.util.Assert;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.util.Assert;
 
 public class RedisPipelineTemplateDAO implements PipelineTemplateDAO {
 

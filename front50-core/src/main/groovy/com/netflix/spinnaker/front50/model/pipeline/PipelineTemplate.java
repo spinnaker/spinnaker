@@ -17,14 +17,13 @@ package com.netflix.spinnaker.front50.model.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.front50.model.Timestamped;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.PatternSyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PipelineTemplate extends HashMap<String, Object> implements Timestamped {
 
