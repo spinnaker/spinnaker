@@ -86,6 +86,10 @@ export class AccountSelectField extends React.Component<IAccountSelectFieldProps
     });
   };
 
+  public componentDidMount() {
+    this.groupAccounts(this.props.accounts);
+  }
+
   public componentWillReceiveProps(nextProps: IAccountSelectFieldProps) {
     if (!isEqual(nextProps.accounts, this.props.accounts)) {
       this.groupAccounts(nextProps.accounts);
