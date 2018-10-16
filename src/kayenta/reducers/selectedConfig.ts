@@ -348,14 +348,14 @@ export function editGroupConfirmReducer(
     return state;
   }
 
-  const metricUpdator = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
+  const metricUpdater = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...c,
     groups: (c.groups || []).includes(payload.group)
       ? [payload.edit].concat((c.groups || []).filter(g => g !== payload.group))
       : c.groups,
   });
 
-  const weightsUpdator = (weights: IGroupWeights): IGroupWeights => {
+  const weightsUpdater = (weights: IGroupWeights): IGroupWeights => {
     const weight = weights[payload.group];
     weights = omit(weights, payload.group);
     return {
@@ -364,16 +364,16 @@ export function editGroupConfirmReducer(
     };
   };
 
-  const listUpdator = (groupList: string[]): string[] =>
+  const listUpdater = (groupList: string[]): string[] =>
     [payload.edit].concat((groupList || []).filter(g => g !== payload.group));
   return {
     ...state,
-    metricList: state.metricList.map(metricUpdator),
+    metricList: state.metricList.map(metricUpdater),
     group: {
       ...state.group,
       selected: payload.edit,
-      groupWeights: weightsUpdator(state.group.groupWeights),
-      list: listUpdator(state.group.list),
+      groupWeights: weightsUpdater(state.group.groupWeights),
+      list: listUpdater(state.group.list),
     },
   };
 }
@@ -396,14 +396,14 @@ export function changeMetricGroupConfirmReducer(
     return state;
   }
 
-  const metricUpdator = (m: ICanaryMetricConfig): ICanaryMetricConfig => ({
+  const metricUpdater = (m: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...m,
     groups: m.id === metricId ? [toGroup] : m.groups,
   });
 
   return {
     ...state,
-    metricList: state.metricList.map(metricUpdator),
+    metricList: state.metricList.map(metricUpdater),
   };
 }
 
@@ -450,6 +450,19 @@ const editingTemplateConfirmReducer = (state: ISelectedConfigState, action: Acti
     [editedName]: editedValue,
   };
 
+  const metricUpdater = (metric: ICanaryMetricConfig) => {
+    if (get(metric, 'query.customFilterTemplate') !== name) {
+      return metric;
+    }
+    return {
+      ...metric,
+      query: {
+        ...metric.query,
+        customFilterTemplate: editedName,
+      },
+    };
+  };
+
   return {
     ...state,
     editingTemplate: {
@@ -461,6 +474,7 @@ const editingTemplateConfirmReducer = (state: ISelectedConfigState, action: Acti
       ...state.config,
       templates,
     },
+    metricList: (state.metricList || []).map(metricUpdater),
   };
 };
 

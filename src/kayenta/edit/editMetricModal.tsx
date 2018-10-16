@@ -4,23 +4,20 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get, isNull, values } from 'lodash';
 import { Option } from 'react-select';
+
 import { noop, HelpField } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
 import { ICanaryMetricConfig, ICanaryMetricEffectSizeConfig } from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
-import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import Styleguide from 'kayenta/layout/styleguide';
 import FormRow from 'kayenta/layout/formRow';
-import {
-  DisableableInput,
-  DisableableSelect,
-  DisableableReactSelect,
-  DISABLE_EDIT_CONFIG,
-} from 'kayenta/layout/disableable';
+import { DisableableInput, DisableableSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 import { configTemplatesSelector, editingMetricValidationErrorsSelector } from 'kayenta/selectors';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryMetricValidationErrors } from './editMetricValidation';
+import { FilterTemplateSelector } from './filterTemplateSelector';
+import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 
 import './editMetricModal.less';
 
@@ -38,7 +35,7 @@ interface IEditMetricModalDispatchProps {
 
 interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig;
-  templates: Option[];
+  templates: { [name: string]: string };
   filterTemplate: string;
   groups: string[];
   validationErrors: ICanaryMetricValidationErrors;
@@ -69,35 +66,6 @@ function RadioChoice({
       />{' '}
       {label}
     </label>
-  );
-}
-
-interface IFilterTemplateSelectorProps {
-  metricStore: string;
-  templates: Option[];
-  template: string;
-  select: (template: Option) => void;
-}
-
-function FilterTemplateSelector({ metricStore, template, templates, select }: IFilterTemplateSelectorProps) {
-  const config = metricStoreConfigService.getDelegate(metricStore);
-  if (!config || !config.useTemplates) {
-    return null;
-  }
-
-  if (!CanarySettings.templatesEnabled) {
-    return null;
-  }
-
-  return (
-    <FormRow label="Filter Template">
-      <DisableableReactSelect
-        value={template}
-        options={templates}
-        onChange={select}
-        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-      />
-    </FormRow>
   );
 }
 
@@ -281,12 +249,11 @@ function EditMetricModal({
           </FormRow>
           <EffectSizeSummary effectSizes={effectSize} />
           <MetricConfigurerDelegator />
-          <FilterTemplateSelector
-            metricStore={metric.query.type}
-            templates={templates}
-            template={filterTemplate}
-            select={selectTemplate}
-          />
+          {metricStoreConfigService.getDelegate(metric.query.type) &&
+            metricStoreConfigService.getDelegate(metric.query.type).useTemplates &&
+            CanarySettings.templatesEnabled && (
+              <FilterTemplateSelector templates={templates} template={filterTemplate} select={selectTemplate} />
+            )}
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
@@ -339,10 +306,7 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
 function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   return {
     metric: state.selectedConfig.editingMetric,
-    templates: Object.keys(configTemplatesSelector(state) || {}).map(t => ({
-      label: t,
-      value: t,
-    })),
+    templates: configTemplatesSelector(state),
     filterTemplate: get(state, 'selectedConfig.editingMetric.query.customFilterTemplate'),
     groups: state.selectedConfig.group.list.sort(),
     validationErrors: editingMetricValidationErrorsSelector(state),

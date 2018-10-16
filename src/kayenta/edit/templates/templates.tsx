@@ -21,7 +21,7 @@ interface ITemplatesDispatchProps {
   add: () => void;
 }
 
-interface ITemplate {
+export interface ITemplate {
   name: string;
   value: string;
 }
