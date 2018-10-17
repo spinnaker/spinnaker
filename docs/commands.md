@@ -1521,6 +1521,7 @@ hal config artifact oracle account add ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
+ * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 
@@ -1559,6 +1560,7 @@ hal config artifact oracle account edit ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
+ * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 
@@ -6231,6 +6233,7 @@ hal config provider oracle account add ACCOUNT [parameters]
  * `--region`: (*Required*) An Oracle region (e.g., us-phoenix-1)
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
+ * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancyId`: (*Required*) Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: (*Required*) Provide the OCID of the Oracle User you're authenticating as
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
@@ -6280,6 +6283,7 @@ hal config provider oracle account edit ACCOUNT [parameters]
  * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
+ * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancyId`: Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
@@ -7633,6 +7637,7 @@ hal config storage oracle edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
+ * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 

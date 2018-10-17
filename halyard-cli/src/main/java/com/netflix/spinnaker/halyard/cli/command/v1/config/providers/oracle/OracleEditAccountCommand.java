@@ -49,6 +49,13 @@ public class OracleEditAccountCommand extends AbstractEditAccountCommand<OracleA
   private String sshPrivateKeyFilePath;
 
   @Parameter(
+          names = "--private-key-passphrase",
+          description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
+          password = true
+  )
+  private String privateKeyPassphrase;
+
+  @Parameter(
           names = "--tenancyId",
           description = OracleCommandProperties.TENANCY_ID_DESCRIPTION
   )
@@ -66,6 +73,7 @@ public class OracleEditAccountCommand extends AbstractEditAccountCommand<OracleA
     account.setUserId(isSet(userId) ? userId : account.getUserId());
     account.setFingerprint(isSet(fingerprint) ? fingerprint : account.getFingerprint());
     account.setSshPrivateKeyFilePath(isSet(sshPrivateKeyFilePath) ? sshPrivateKeyFilePath : account.getSshPrivateKeyFilePath());
+    account.setPrivateKeyPassphrase(isSet(privateKeyPassphrase) ? privateKeyPassphrase : account.getPrivateKeyPassphrase());
     account.setTenancyId(isSet(tenancyId) ? tenancyId : account.getTenancyId());
     account.setRegion(isSet(region) ? region : account.getRegion());
     return account;

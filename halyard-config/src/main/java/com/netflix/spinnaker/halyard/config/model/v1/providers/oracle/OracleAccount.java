@@ -23,6 +23,7 @@ public class OracleAccount extends Account {
   private String userId;
   private String fingerprint;
   @LocalFile private String sshPrivateKeyFilePath;
+  private String privateKeyPassphrase;
   private String tenancyId;
   private String region;
 

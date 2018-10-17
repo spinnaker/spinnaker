@@ -53,6 +53,13 @@ public class OracleAddAccountCommand extends AbstractAddAccountCommand {
   private String sshPrivateKeyFilePath;
 
   @Parameter(
+          names = "--private-key-passphrase",
+          description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
+          password = true
+  )
+  private String privateKeyPassphrase;
+
+  @Parameter(
           names = "--tenancyId",
           description = OracleCommandProperties.TENANCY_ID_DESCRIPTION,
           required = true
@@ -74,6 +81,7 @@ public class OracleAddAccountCommand extends AbstractAddAccountCommand {
     account.setUserId(userId);
     account.setFingerprint(fingerprint);
     account.setSshPrivateKeyFilePath(sshPrivateKeyFilePath);
+    account.setPrivateKeyPassphrase(privateKeyPassphrase);
     account.setTenancyId(tenancyId);
     account.setRegion(region);
 

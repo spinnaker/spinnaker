@@ -14,6 +14,7 @@ public class OracleCommandProperties {
   public static final String USER_ID_DESCRIPTION = "Provide the OCID of the Oracle User you're authenticating as";
   public static final String FINGERPRINT_DESCRIPTION = "Fingerprint of the public key";
   public static final String SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION = "Path to the private key in PEM format";
+  public static final String PRIVATE_KEY_PASSPHRASE_DESCRIPTION = "Passphrase used for the private key, if it is encrypted";
   public static final String TENANCY_ID_DESCRIPTION = "Provide the OCID of the Oracle Tenancy to use.";
   public static final String REGION_DESCRIPTION = "An Oracle region (e.g., us-phoenix-1)";
 

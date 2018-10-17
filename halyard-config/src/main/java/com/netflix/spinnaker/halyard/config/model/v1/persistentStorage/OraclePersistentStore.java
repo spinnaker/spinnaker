@@ -50,6 +50,8 @@ public class OraclePersistentStore extends PersistentStore {
   @Size(min = 1)
   private String sshPrivateKeyFilePath;
 
+  private String privateKeyPassphrase;
+
   @NotNull
   @Size(min = 1)
   private String tenancyId;

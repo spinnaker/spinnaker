@@ -49,6 +49,13 @@ public class OracleEditCommand extends AbstractPersistentStoreEditCommand<Oracle
   private String sshPrivateKeyFilePath;
 
   @Parameter(
+          names = "--private-key-passphrase",
+          description = OracleCommandProperties.PRIVATE_KEY_PASSPHRASE_DESCRIPTION,
+          password = true
+  )
+  private String privateKeyPassphrase;
+
+  @Parameter(
           names = "--tenancy-id",
           description = OracleCommandProperties.TENANCY_ID_DESCRIPTION
   )
@@ -78,6 +85,7 @@ public class OracleEditCommand extends AbstractPersistentStoreEditCommand<Oracle
     persistentStore.setUserId(isSet(userId) ? userId : persistentStore.getUserId());
     persistentStore.setFingerprint(isSet(fingerprint) ? fingerprint : persistentStore.getFingerprint());
     persistentStore.setSshPrivateKeyFilePath(isSet(sshPrivateKeyFilePath) ? sshPrivateKeyFilePath : persistentStore.getSshPrivateKeyFilePath());
+    persistentStore.setPrivateKeyPassphrase(isSet(privateKeyPassphrase) ? privateKeyPassphrase : persistentStore.getPrivateKeyPassphrase());
     persistentStore.setTenancyId(isSet(tenancyId) ? tenancyId : persistentStore.getTenancyId());
     persistentStore.setRegion(isSet(region) ? region : persistentStore.getRegion());
     persistentStore.setBucketName(isSet(bucketName) ? bucketName : persistentStore.getBucketName());
