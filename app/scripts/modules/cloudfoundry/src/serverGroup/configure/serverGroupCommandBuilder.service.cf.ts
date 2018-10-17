@@ -75,7 +75,7 @@ export class CloudFoundryServerGroupCommandBuilder {
         buildpack: serverGroup.droplet.buildpacks.length > 0 ? serverGroup.droplet.buildpacks[0].name : '',
         instances: serverGroup.instances.length,
         routes: serverGroup.loadBalancers,
-        env: serverGroup.env,
+        environment: [],
         services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
         reference: '',
         account: '',

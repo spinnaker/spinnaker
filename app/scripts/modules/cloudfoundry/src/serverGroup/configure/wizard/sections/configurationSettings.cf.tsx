@@ -91,7 +91,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
           instances: 1,
           buildpack: undefined,
           routes: [],
-          env: [],
+          environment: [],
           services: [],
         };
         break;
@@ -129,35 +129,35 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
   private addEnvironmentVariable = (): void => {
     const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
-      if (manifest.env === undefined) {
-        manifest.env = [];
+      if (manifest.environment === undefined) {
+        manifest.environment = [];
       }
-      manifest.env.push({ key: '', value: '' });
-      this.props.formik.setFieldValue('manifest.env', manifest.env);
+      manifest.environment.push({ key: '', value: '' });
+      this.props.formik.setFieldValue('manifest.env', manifest.environment);
     }
   };
 
   private removeEnvironmentVariable = (index: number): void => {
     const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
-      manifest.env.splice(index, 1);
-      this.props.formik.setFieldValue('manifest.env', manifest.env);
+      manifest.environment.splice(index, 1);
+      this.props.formik.setFieldValue('manifest.env', manifest.environment);
     }
   };
 
   private environmentKeyUpdated = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
     const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
-      manifest.env[index].key = event.target.value;
-      this.props.formik.setFieldValue('manifest.env', manifest.env);
+      manifest.environment[index].key = event.target.value;
+      this.props.formik.setFieldValue('manifest.env', manifest.environment);
     }
   };
 
   private environmentValueUpdated = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
     const { manifest } = this.props.formik.values;
     if (isManifestDirectSource(manifest)) {
-      manifest.env[index].value = event.target.value;
-      this.props.formik.setFieldValue('manifest.env', manifest.env);
+      manifest.environment[index].value = event.target.value;
+      this.props.formik.setFieldValue('manifest.env', manifest.environment);
     }
   };
 
@@ -316,15 +316,15 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
                   </tr>
                 </thead>
                 <tbody>
-                  {manifest.env &&
-                    manifest.env.map(function(env, index) {
+                  {manifest.environment &&
+                    manifest.environment.map(function(environment, index) {
                       return (
                         <tr key={index}>
                           <td>
                             <input
                               className="form-control input-sm"
                               type="text"
-                              value={env.key}
+                              value={environment.key}
                               required={true}
                               onChange={event => environmentKeyUpdated(index, event)}
                             />
@@ -333,7 +333,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
                             <input
                               className="form-control input-sm"
                               type="text"
-                              value={env.value}
+                              value={environment.value}
                               required={true}
                               onChange={event => environmentValueUpdated(index, event)}
                             />
@@ -650,9 +650,9 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
           existingServices[service] = service;
         });
       }
-      if (values.manifest.env) {
+      if (values.manifest.environment) {
         const existingKeys: any = {};
-        values.manifest.env.forEach(function(e) {
+        values.manifest.environment.forEach(function(e) {
           if (!e.key || !e.value) {
             errors.manifest = errors.manifest || {};
             errors.manifest.env = `An environment variable was not set`;
