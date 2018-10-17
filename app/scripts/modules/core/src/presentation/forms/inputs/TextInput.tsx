@@ -14,8 +14,9 @@ export class TextInput extends React.Component<ITextInputProps> {
 
     const validationClassName = classNames({
       'form-control': true,
-      'ng-dirty': validation.touched,
-      'ng-invalid': validation.error,
+      'ng-dirty': !!validation.touched,
+      'ng-invalid': validation.validationStatus === 'error',
+      'ng-warning': validation.validationStatus === 'warning',
     });
 
     return (

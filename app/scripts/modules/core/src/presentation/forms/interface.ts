@@ -1,17 +1,19 @@
 import * as React from 'react';
 import { FieldProps } from 'formik';
 
+export type IFieldValidationStatus = 'error' | 'warning' | 'message';
+
 /** These props are used by FormField and FormikFormField components */
 export interface IFieldLayoutPropsWithoutInput extends IValidationProps {
   required?: boolean;
-  label?: string | JSX.Element;
-  help?: string | JSX.Element;
-  actions?: string | JSX.Element;
+  label?: React.ReactNode;
+  help?: React.ReactNode;
+  actions?: React.ReactNode;
 }
 
 /** These props are used by FieldLayout components, such as StandardFieldLayout */
 export interface IFieldLayoutProps extends IFieldLayoutPropsWithoutInput {
-  input: string | JSX.Element;
+  input: React.ReactNode;
 }
 
 /** These props are used by controlled components, such as <input> or Input components like TextInput */
@@ -24,10 +26,9 @@ export interface IControlledInputProps {
 
 /** These props are used by Input components, such as TextInput */
 export interface IValidationProps {
-  error?: string | JSX.Element;
   touched?: boolean;
-  warning?: string | JSX.Element; // TODO: remove this prop
-  preview?: string | JSX.Element; // TODO: remove this prop
+  validationMessage?: React.ReactNode;
+  validationStatus?: IFieldValidationStatus;
 }
 
 /** These props are used by Input components, such as TextInput */

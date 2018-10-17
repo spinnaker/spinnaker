@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Field, FieldProps, FormikProps } from 'formik';
 
-interface ICurrentFormProps<T> {
+interface IFormikFormProps<T> {
   render: (props: FormikProps<T>) => React.ReactNode;
 }
 
@@ -11,7 +11,7 @@ interface ICurrentFormProps<T> {
  *
  * Example:
  * ```js
- * <CurrentForm render={formik => {
+ * <FormikForm render={formik => {
  *   const username = formik.values.username;
  *   return (
  *     <h1>Hello {username}</h1>
@@ -19,7 +19,7 @@ interface ICurrentFormProps<T> {
  * }} />
  * ```
  */
-export class CurrentForm<T = any> extends React.Component<ICurrentFormProps<T>> {
+export class FormikForm<T = any> extends React.Component<IFormikFormProps<T>> {
   public render() {
     return <Field name="" render={(props: FieldProps<T>) => this.props.render(props.form)} />;
   }

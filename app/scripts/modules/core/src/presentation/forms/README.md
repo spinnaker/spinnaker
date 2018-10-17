@@ -51,7 +51,7 @@ It accepts "all the props", organizes them, and passes them down to the Input an
 - `layout`: the (optional) Layout component to use. (see Layout section for details. `StandardFieldLayout` is used by default)
 - `name`: the path to the field's value in the formik `values`
 - `label`, `help`, `required`, `actions` (see `IFieldLayoutPropsWithoutInput`)
-- `touched`, `error` (see: `IValidationProps`)
+- `touched`, `validationMessage`, `validationStatus` (see: `IValidationProps`)
 
 A field validation function can be attached directly to the `FormikFormField` component via the `validate` prop,
 or the field can be validated at the form level using the `Formik` component's `validate` prop.
@@ -107,7 +107,7 @@ It has a submit button which is disabled when the form is being submitted.
     input={TextInput}
     value={this.state.name}
     onChange={evt => this.setState({ name: evt.target.value })}
-    error={!this.state.name && <span>Please enter your name</span>}
+    validate={val => !val && <span>Please enter your name</span>}
   />
   <FormField
     name="email"
@@ -115,7 +115,7 @@ It has a submit button which is disabled when the form is being submitted.
     input={TextInput}
     value={this.state.email}
     onChange={evt => this.setState({ email: evt.target.value })}
-    error={this.state.email.indexOf('@') === -1 && <span>Please enter a valid email</span>}
+    validate={val => val && val.indexOf('@') === -1 && <span>Please enter a valid email</span>}
   />
   <button disabled={this.state.isSubmitting} className={`pull-right primary`}>
     {this.state.isSubmitting ? 'Submitting...' : 'Submit Form'}
@@ -132,7 +132,7 @@ The props accepted by FormField are:
 - `layout`: the Layout component to use. (optional, `StandardFieldLayout` is used by default)
 - `label`, `help`, `required`, `actions` (see `IFieldLayoutPropsWithoutInput`)
 - `name`, `value`, `onChange`, `onBlur`, (see `IControlledInputProps`)
-- `touched`, `error` (see: `IValidationProps`)
+- `touched`, `validationMessage`, `validationStatus` (see: `IValidationProps`)
 
 ### Custom Input Example:
 
@@ -145,7 +145,7 @@ This example uses an input which is defined inline:
   input={({ field, validation }) => <input type="text" className={!!validation.error && 'error'} {...field} />}
   value={this.state.email}
   onChange={evt => this.setState({ email: evt.target.value })}
-  error={this.state.email.indexOf('@') === -1 && <span>Please enter a valid email</span>}
+  validate={val => val && val.indexOf('@') === -1 && <span>Please enter a valid email</span>}
 />
 ```
 
@@ -166,7 +166,7 @@ This example uses a custom layout to render the error above the input
   )}
   value={this.state.email}
   onChange={evt => this.setState({ email: evt.target.value })}
-  error={this.state.email.indexOf('@') === -1 && <span>Please enter a valid email</span>}
+  validate={val => val && val.indexOf('@') === -1 && <span>Please enter a valid email</span>}
 />
 ```
 
@@ -184,14 +184,15 @@ An Input receives two important props (see `IFormInputProps`):
   - `name`, `value`, `onChange`, `onBlur`
   - The contents of this prop is typically spread onto an input, e.g., `<input {...field} />`
 - `validation`: Can be used to visually indicate the current validation state of the input
-  - `error`: truthy if the input is invalid, falsey otherwise -- do not render the actual error in an Input; do that using a Layout
+  - `validationMessage`: The validation message -- in general, render the message in a Layout, not here
+  - `validationStatus`: The validation status -- visually indicate the validation status (See IValidationStatus)
   - `touched`: a flag which indicates if the the input has been "touched", which generally means "blurred"
 
 ### Example:
 
 ```
 const SimpleTextInput = ({ field, validation }: IFormInputProps) =>
-  <input type="text" className={!!validation.error && 'error'} {...field} />
+  <input type="text" className={validation.validationStatus} {...field} />
 ```
 
 An Input can accept additional props, as needed.
@@ -203,7 +204,7 @@ const SimpleTextInput = ({ field, validation, text }: IFormInputProps & { text: 
   <span> <input type="checkbox" {...field} /> {text} </span>
 ```
 
-Commonly used inputs such as `type="text"` should be should be encapsulated in a reusable component, such as `TextField`.
+Commonly used inputs such as `type="text"` should be should be encapsulated in a reusable component, such as `TextInput`.
 
 # Layouts
 
@@ -218,7 +219,7 @@ The components that a Layout manages are:
 - Help widget (i.e., popover)
 - Required field indicator
 - Action Icons (trash, etc)
-- Validation error
+- Validation message
 
 ### Example Layout:
 
@@ -226,7 +227,7 @@ The components that a Layout manages are:
 +-----------------------------------------------------------------+
 + * Label Text [Help] | Text Input Field                | [Trash] |
 +-----------------------------------------------------------------+
-+ Validation error message                                        |
++ Validation message                                              |
 +-----------------------------------------------------------------+
 ```
 

@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 export interface IValidationMessageProps {
-  message: string | JSX.Element;
-  type: 'error' | 'warning' | 'preview';
+  message: React.ReactNode;
+  type: 'error' | 'warning' | 'message';
 }
 
 export const ValidationMessage = (props: IValidationMessageProps) => (

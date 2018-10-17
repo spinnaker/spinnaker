@@ -1,7 +1,15 @@
 import * as React from 'react';
-import { get } from 'lodash';
+import { getIn } from 'formik';
 
-import { CollapsibleSection, CurrentForm, FormikFormField, IFieldLayoutProps, TextInput } from 'core/presentation';
+import {
+  CollapsibleSection,
+  ExpressionError,
+  FormikForm,
+  FormikFormField,
+  IFieldLayoutProps,
+  IFieldValidationStatus,
+  TextInput,
+} from 'core/presentation';
 import { ValidationMessage } from 'core/validation';
 
 import { ExpressionInput, ExpressionPreview, ISpelError } from '../inputs';
@@ -30,7 +38,7 @@ export class FormikExpressionRegexField extends React.Component<
     spelError: null,
   };
 
-  private renderRegexFields(props: IFormikExpressionRegexFieldProps) {
+  private renderRegexFields(props: IFormikExpressionRegexFieldProps, defaultExpanded: boolean) {
     const { RegexHelp, regexName, replaceName } = props;
 
     const sectionHeading = ({ chevron }: { chevron: JSX.Element }) => (
@@ -52,72 +60,52 @@ export class FormikExpressionRegexField extends React.Component<
     const RegexLayout = ({ input }: IFieldLayoutProps) => <div style={{ flex: '1 1 40%' }}> {input} </div>;
 
     return (
-      <CurrentForm
-        render={formik => {
-          const regex = get(formik.values, regexName);
-
-          return (
-            <CollapsibleSection
-              heading={sectionHeading}
-              outerDivClassName=""
-              toggleClassName="clickable"
-              defaultExpanded={!!regex}
-            >
-              <div className="flex-container-h baseline">
-                <code>s/</code>
-                <FormikFormField
-                  name={regexName}
-                  validate={validateRegexString}
-                  layout={RegexLayout}
-                  input={TextInput}
-                />
-                <code>/</code>
-                <FormikFormField name={replaceName} layout={RegexLayout} input={TextInput} />
-                <code>/g</code>
-              </div>
-            </CollapsibleSection>
-          );
-        }}
-      />
+      <CollapsibleSection
+        heading={sectionHeading}
+        outerDivClassName=""
+        toggleClassName="clickable"
+        defaultExpanded={defaultExpanded}
+      >
+        <div className="flex-container-h baseline">
+          <code>s/</code>
+          <FormikFormField
+            name={regexName}
+            validate={validateRegexString}
+            layout={RegexLayout}
+            input={TextInput}
+            touched={true}
+          />
+          <code>/</code>
+          <FormikFormField name={replaceName} layout={RegexLayout} input={TextInput} />
+          <code>/g</code>
+        </div>
+      </CollapsibleSection>
     );
   }
 
-  private renderErrorOrPreview(props: IFormikExpressionRegexFieldProps) {
-    const { spelPreview, spelError } = this.state;
-    const { markdown, regexName, replaceName } = props;
+  private renderPreview(
+    props: IFormikExpressionRegexFieldProps,
+    spelPreview: string,
+    regex: string,
+    replace: string,
+  ): React.ReactNode {
+    const { markdown } = props;
 
-    if (spelError) {
-      return <ValidationMessage type="error" message={spelError.message} />;
+    if (!regex) {
+      return <ExpressionPreview spelPreview={spelPreview} markdown={markdown} />;
     }
 
-    return (
-      <CurrentForm
-        render={formik => {
-          const regex: string = get(formik.values, regexName);
-          const replace: string = get(formik.values, replaceName);
-
-          if (spelPreview && regex) {
-            try {
-              const replacedSpelPreview = spelPreview.replace(new RegExp(regex, 'g'), replace);
-              return (
-                !!replacedSpelPreview && <ExpressionPreview spelPreview={replacedSpelPreview} markdown={markdown} />
-              );
-            } catch (err) {
-              return <ValidationMessage type="error" message={err.message} />;
-            }
-          }
-
-          return false;
-        }}
-      />
-    );
+    try {
+      const replacedSpelPreview = spelPreview.replace(new RegExp(regex, 'g'), replace);
+      return !!replacedSpelPreview && <ExpressionPreview spelPreview={replacedSpelPreview} markdown={markdown} />;
+    } catch (err) {
+      // Fallback when regex error -- shouldn't happen with formik 1.x
+      return <ExpressionPreview spelPreview={spelPreview} markdown={markdown} />;
+    }
   }
 
-  public render() {
+  private renderFormField(validationMessage: React.ReactNode, validationStatus: IFieldValidationStatus, regex: string) {
     const { context, placeholder, help, label, actions } = this.props;
-
-    const regexFields = this.renderRegexFields(this.props);
-    const error = this.renderErrorOrPreview(this.props);
 
     return (
       <FormikFormField
@@ -131,14 +119,44 @@ export class FormikExpressionRegexField extends React.Component<
               {...props}
             />
 
-            {regexFields}
+            {this.renderRegexFields(this.props, !!regex)}
           </div>
         )}
         help={help}
         label={label}
         actions={actions}
-        error={error}
+        validationMessage={validationMessage}
+        validationStatus={validationStatus}
         touched={true}
+      />
+    );
+  }
+
+  public render() {
+    const { spelPreview, spelError } = this.state;
+    const { regexName, replaceName } = this.props;
+
+    return (
+      <FormikForm
+        render={formik => {
+          const regex: string = getIn(formik.values, regexName);
+          const replace: string = getIn(formik.values, replaceName);
+
+          const regexError = getIn(formik.errors, regexName) || getIn(formik.errors, replaceName);
+
+          if (regexError) {
+            const message = <ValidationMessage type="error" message={regexError} />;
+            return this.renderFormField(message, 'error', regex);
+          } else if (spelError) {
+            const message = <ExpressionError spelError={spelError} />;
+            return this.renderFormField(message, 'error', regex);
+          } else if (spelPreview) {
+            const message = this.renderPreview(this.props, spelPreview, regex, replace);
+            return this.renderFormField(message, 'message', regex);
+          }
+
+          return this.renderFormField(null, 'message', regex);
+        }}
       />
     );
   }

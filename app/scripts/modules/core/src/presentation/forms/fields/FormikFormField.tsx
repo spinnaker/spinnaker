@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Field, FieldProps } from 'formik';
-import { get, isUndefined } from 'lodash';
+import { Field, FieldProps, getIn } from 'formik';
+import { isUndefined } from 'lodash';
 
 import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput, IValidationProps } from '../interface';
 import { StandardFieldLayout } from '../layouts';
@@ -22,7 +22,7 @@ export class FormikFormField extends React.Component<IFormikFormFieldProps> {
     const { input, layout, name, validate } = this.props; // ICommonFieldProps & name & validate
     const { label, help, required, actions } = this.props; // IFieldLayoutPropsWithoutInput
     const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
-    const { touched, error } = this.props; // IValidationProps
+    const { touched, validationMessage, validationStatus } = this.props; // IValidationProps
 
     return (
       <Field
@@ -31,11 +31,15 @@ export class FormikFormField extends React.Component<IFormikFormFieldProps> {
         render={(props: FieldProps<any>) => {
           const { field, form } = props;
 
+          const formikError = getIn(form.errors, name);
+          const message = !isUndefined(validationMessage) ? validationMessage : formikError;
+          const status = !isUndefined(validationStatus) ? validationStatus : formikError ? 'error' : null;
+          const isTouched = !isUndefined(touched) ? touched : getIn(form.touched, name);
+
           const validationProps: IValidationProps = {
-            error: !isUndefined(error) ? error : get(form.errors, name),
-            touched: !isUndefined(touched) ? touched : get(form.touched, name),
-            preview: null,
-            warning: null,
+            validationMessage: message,
+            validationStatus: status,
+            touched: isTouched,
           };
 
           const inputElement = renderContent(input, { field, validation: validationProps });

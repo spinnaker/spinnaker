@@ -11,7 +11,12 @@ import {
 import { StandardFieldLayout } from '../layouts';
 import { renderContent } from './renderContent';
 
-export type IFormFieldProps = ICommonFormFieldProps &
+export interface IFormFieldValidationProps {
+  validate?: (value: any) => string;
+}
+
+export type IFormFieldProps = IFormFieldValidationProps &
+  ICommonFormFieldProps &
   Partial<IControlledInputProps> &
   IFieldLayoutPropsWithoutInput &
   IValidationProps;
@@ -19,6 +24,7 @@ export type IFormFieldProps = ICommonFormFieldProps &
 export class FormField extends React.Component<IFormFieldProps> {
   public static defaultProps: Partial<IFormFieldProps> = {
     layout: StandardFieldLayout,
+    validate: noop,
     onBlur: noop,
     onChange: noop,
     name: null,
@@ -30,8 +36,10 @@ export class FormField extends React.Component<IFormFieldProps> {
     const { onChange, onBlur, value, name } = this.props; // IControlledInputProps
     const controlledInputProps: IControlledInputProps = { onChange, onBlur, value, name };
 
-    const { touched, error, warning, preview } = this.props; // IValidationProps
-    const validationProps: IValidationProps = { touched, error, warning, preview };
+    const { touched, validationMessage: message, validationStatus: status } = this.props; // IValidationProps
+    const validationMessage = message || this.props.validate(value);
+    const validationStatus = status || !!validationMessage ? 'error' : null;
+    const validationProps: IValidationProps = { touched, validationMessage, validationStatus };
 
     const { label, help, required, actions } = this.props; // IFieldLayoutPropsWithoutInput
     const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };

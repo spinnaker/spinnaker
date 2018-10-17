@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { truncate, isEqual } from 'lodash';
 
-import { IFormInputProps } from 'core/presentation';
+import { IFormInputProps, TextInput } from 'core/presentation';
 
 import { parseSpelExpressions } from './spel2js.templateParser';
 
@@ -73,8 +73,7 @@ export class ExpressionInput extends React.Component<IExpressionInputProps> {
   }
 
   public render(): JSX.Element {
-    const { field, placeholder } = this.props;
-
-    return <input autoComplete="off" className="form-control" type="text" placeholder={placeholder} {...field} />;
+    const { field, placeholder, validation } = this.props;
+    return <TextInput autoComplete="off" field={field} placeholder={placeholder} validation={validation} />;
   }
 }

@@ -1,18 +1,19 @@
+import { IValidationMessageProps, ValidationMessage } from 'core/validation';
 import * as React from 'react';
-
-import { ValidationMessage, IValidationMessageProps } from 'core/validation';
 
 import { IFieldLayoutProps } from '../interface';
 
 export class StandardFieldLayout extends React.Component<IFieldLayoutProps> {
   public render() {
-    const { label, help, input, actions, touched, error, warning, preview } = this.props;
+    const { label, help, input, actions, touched, validationMessage, validationStatus } = this.props;
 
-    const renderMessage = (message: string | JSX.Element, type: IValidationMessageProps['type']) =>
+    const showLabel = !!label || !!help;
+
+    const renderMessage = (message: React.ReactNode, type: IValidationMessageProps['type']) =>
       typeof message === 'string' ? <ValidationMessage type={type} message={message} /> : message;
 
-    const validation = touched && (renderMessage(error, 'error') || renderMessage(warning, 'warning'));
-    const showLabel = !!label || !!help;
+    const isErrorOrWarning = validationStatus === 'error' || validationStatus === 'warning';
+    const validation = isErrorOrWarning && !touched ? null : renderMessage(validationMessage, validationStatus);
 
     return (
       <div className="flex-container-h baseline margin-between-lg">
@@ -28,7 +29,7 @@ export class StandardFieldLayout extends React.Component<IFieldLayoutProps> {
               {input} {actions}
             </div>
 
-            {validation || preview}
+            {validation}
           </div>
         </div>
       </div>

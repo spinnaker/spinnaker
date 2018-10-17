@@ -27,13 +27,12 @@ export class FormikExpressionField extends React.Component<IFormikExpressionFiel
   public render() {
     const { spelError, spelPreview } = this.state;
     const { markdown, context } = this.props;
-    const { name, label, error: errorMsg, warning: warningMsg, help, actions } = this.props;
+    const { name, label, help, actions, validationMessage: message, validationStatus } = this.props;
 
-    const error =
-      (errorMsg && <ValidationMessage type="error" message={errorMsg} />) ||
-      (context && spelError && <ExpressionError spelError={spelError} />);
-    const warning = warningMsg && <ValidationMessage type="warning" message={warningMsg} />;
-    const preview = spelPreview && <ExpressionPreview spelPreview={spelPreview} markdown={markdown} />;
+    const validationMessage =
+      (message && status && <ValidationMessage type={validationStatus} message={message} />) ||
+      (spelError && context && <ExpressionError spelError={spelError} />) ||
+      (spelPreview && <ExpressionPreview spelPreview={spelPreview} markdown={markdown} />);
 
     return (
       <FormikFormField
@@ -44,7 +43,8 @@ export class FormikExpressionField extends React.Component<IFormikExpressionFiel
         label={label}
         help={help}
         actions={actions}
-        error={error || warning || preview}
+        validationMessage={validationMessage}
+        validationStatus={validationStatus || 'message'}
       />
     );
   }
