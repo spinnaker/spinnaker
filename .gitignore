@@ -11,3 +11,4 @@ out/
 .classpath
 .settings/
 bin/
+/dump.rdb

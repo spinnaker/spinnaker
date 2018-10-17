@@ -29,6 +29,7 @@ dependencies {
   compile project(':kayenta-orca')
   compile project(':kayenta-prometheus')
   compile project(':kayenta-s3')
+  compile project(':kayenta-signalfx')
   compile project(':kayenta-stackdriver')
 
   compile spinnaker.dependency('bootActuator')

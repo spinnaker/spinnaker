@@ -30,6 +30,7 @@ include 'kayenta-objectstore-memory'
 include 'kayenta-orca'
 include 'kayenta-prometheus'
 include 'kayenta-s3'
+include 'kayenta-signalfx'
 include 'kayenta-stackdriver'
 include 'kayenta-web'
 

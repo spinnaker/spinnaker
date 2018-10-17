@@ -42,6 +42,7 @@ import com.netflix.kayenta.judge.config.NetflixJudgeConfiguration;
 import com.netflix.kayenta.memory.config.MemoryConfiguration;
 import com.netflix.kayenta.prometheus.config.PrometheusConfiguration;
 import com.netflix.kayenta.s3.config.S3Configuration;
+import com.netflix.kayenta.signalfx.config.SignalFxConfiguration;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
 
 @Configuration
@@ -57,6 +58,7 @@ import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
   MemoryConfiguration.class,
   PrometheusConfiguration.class,
   S3Configuration.class,
+  SignalFxConfiguration.class,
   StackdriverConfiguration.class,
   WebConfiguration.class,
   NetflixJudgeConfiguration.class,

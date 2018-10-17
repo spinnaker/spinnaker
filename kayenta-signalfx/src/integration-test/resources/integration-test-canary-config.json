@@ -1,0 +1,65 @@
+{
+  "name": "integration-test-canary-config",
+  "description": "A very simple config for integration testing the SignalFx metric source Kayenta module.",
+  "judge": {
+    "judgeConfigurations": {},
+    "name": "NetflixACAJudge-v1.0"
+  },
+  "metrics": [
+    {
+      "name": "Cpu Usage Percentage",
+      "query": {
+        "metricName": "kayenta.integration-test.cpu.avg",
+        "serviceType": "signalfx",
+        "type": "signalfx"
+      },
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "increase"
+        }
+      },
+      "groups": [
+        "Integration Test Group"
+      ],
+      "scopeName": "default"
+    },
+    {
+      "name": "Bad Request Rate for /v1/some-endpoint",
+      "query": {
+        "metricName": "kayenta.integration-test.request.count",
+        "queryPairs": [
+          {
+            "key": "uri",
+            "value": "/v1/some-endpoint"
+          },
+          {
+            "key": "status_code",
+            "value": "4*"
+          }
+        ],
+        "aggregationMethod": "sum",
+        "serviceType": "signalfx",
+        "type": "signalfx"
+      },
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "increase",
+          "critical": true
+        }
+      },
+      "groups": [
+        "Integration Test Group"
+      ],
+      "scopeName": "default"
+    }
+  ],
+  "classifier": {
+    "groupWeights": {
+      "Integration Test Group": 100
+    },
+    "scoreThresholds": {
+      "marginal": 50,
+      "pass": 75
+    }
+  }
+}
