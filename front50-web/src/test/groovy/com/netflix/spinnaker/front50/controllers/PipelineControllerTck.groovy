@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
@@ -293,8 +294,8 @@ class S3PipelineControllerTck extends PipelineControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
-    pipelineDAO = new DefaultPipelineDAO(storageService, scheduler, 0, new NoopRegistry())
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us-east-1", true, 10_000)
+    pipelineDAO = new DefaultPipelineDAO(storageService, scheduler,new DefaultObjectKeyLoader(storageService), 0,false, new NoopRegistry())
 
     return pipelineDAO
   }

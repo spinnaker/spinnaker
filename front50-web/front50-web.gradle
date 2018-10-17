@@ -51,4 +51,9 @@ dependencies {
   }
 }
 
+test {
+  environment "AWS_ACCESS_KEY_ID", "null"
+  environment "AWS_SECRET_KEY", "null"
+}
+
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)

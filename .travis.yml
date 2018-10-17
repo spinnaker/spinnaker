@@ -3,6 +3,11 @@ jdk:
 - oraclejdk8
 sudo: required
 dist: trusty
+services:
+- docker
+before_install:
+  - docker pull andrewgaul/s3proxy
+  - docker run -d -p9999:80 --env S3PROXY_AUTHORIZATION="none" --env JCLOUDS_PROVIDER="filesystem" --env JCLOUDS_IDENTITY="remote-identity" --env JCLOUDS_CREDENTIAL="remote-credential" andrewgaul/s3proxy
 install: gradle/installViaTravis.sh
 script: gradle/buildViaTravis.sh
 before_cache: gradle/prepCaches.sh

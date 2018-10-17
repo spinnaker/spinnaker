@@ -19,8 +19,10 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
@@ -86,8 +88,13 @@ abstract class NotificationControllerTck extends Specification {
 
     then:
     response1.andExpect(status().isOk())
-    dao.getGlobal() == global
-    dao.all() == [global]
+    with(dao.getGlobal()){
+      email == this.global.email
+      type == this.global.type
+      address == this.global.address
+    }
+
+    dao.all().size() == 1
 
     when:
     def response2 = mockMvc.perform(
@@ -95,7 +102,12 @@ abstract class NotificationControllerTck extends Specification {
     )
 
     then:
-    response2.andReturn().response.contentAsString == objectMapper.writeValueAsString([global])
+    with(objectMapper.readValue(response2.andReturn().response.contentAsString,new TypeReference<List<Map>>(){})[0]) {
+      email == this.global.email
+      type == this.global.type
+      address == this.global.address
+    }
+
   }
 
   void "should save application notification"() {
@@ -131,7 +143,14 @@ abstract class NotificationControllerTck extends Specification {
 
     then:
     response2.andExpect(status().isOk())
-    response2.andReturn().response.contentAsString == objectMapper.writeValueAsString(expectedApplication)
+
+
+    with(objectMapper.readValue(response2.andReturn().response.contentAsString, Map)) {
+      hipchat == application.hipchat
+      type == application.type
+      address == application.address
+    }
+
   }
 
   void "should delete application and global notifications"() {
@@ -175,8 +194,8 @@ class S3NotificationControllerTck extends NotificationControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
-    notificationDAO = new DefaultNotificationDAO(storageService, scheduler, 0, new NoopRegistry())
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us-east-1", true, 10_000)
+    notificationDAO = new DefaultNotificationDAO(storageService, scheduler, new DefaultObjectKeyLoader(storageService), 0, false, new NoopRegistry())
 
     return notificationDAO
   }

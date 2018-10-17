@@ -22,6 +22,7 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
@@ -92,7 +93,7 @@ abstract class ApplicationsControllerTck extends Specification {
 
   def "should create a new application"() {
     given:
-    def sampleApp = new Application(name: "SAMPLEAPP", type: "Standalone App", email: "web@netflix.com")
+    def sampleApp = new Application(name: "SAMPLEAPP", type: "Standalone App", email: "web@netflix.com", lastModifiedBy: "anonymous")
 
     when:
     def response = mockMvc
@@ -147,13 +148,15 @@ abstract class ApplicationsControllerTck extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(dao.all()))
+
+    //The results are not in a consistent order from the DAO so sort them
+    response.andExpect content().string(new ObjectMapper().writeValueAsString(dao.all().sort {it.name}))
   }
 
   def "should update an application"() {
     given:
     def owner = "Andy McEntee"
-    def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", owner: owner)
+    def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", owner: owner, lastModifiedBy: "anonymous")
     dao.create("SAMPLEAPP", new Application())
 
     when:
@@ -241,7 +244,8 @@ abstract class ApplicationsControllerTck extends Specification {
       email: newEmail,
       dynamicPropertyToUpdate: dynamicPropertyToUpdate,
       unchangedDynamicProperty: unchangedDynamicProperty,
-      brandNewDynamicProperty: brandNewDynamicProperty
+      brandNewDynamicProperty: brandNewDynamicProperty,
+      lastModifiedBy: "anonymous"
     ))
   }
 
@@ -375,8 +379,8 @@ class S3ApplicationsControllerTck extends ApplicationsControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false)
-    applicationDAO = new DefaultApplicationDAO(storageService, scheduler, 0, new NoopRegistry())
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us_east1", true, 10000)
+    applicationDAO = new DefaultApplicationDAO(storageService, scheduler, new DefaultObjectKeyLoader(storageService), 0, false, new NoopRegistry())
     return applicationDAO
   }
 }
