@@ -25,7 +25,7 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesDisableManifestDescription extends KubernetesManifestOperationDescription {
+public class KubernetesEnableDisableManifestDescription extends KubernetesManifestOperationDescription {
   int targetPercentage = 100;
   // optional: can be inferred from the annotations as well
   List<String> loadBalancers = new ArrayList<>();

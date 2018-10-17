@@ -28,6 +28,7 @@ import java.util.List;
 public interface CanLoadBalance {
   void attach(KubernetesManifest loadBalancer, KubernetesManifest target);
   List<JsonPatch> detachPatch(KubernetesManifest loadBalancer, KubernetesManifest target);
+  List<JsonPatch> attachPatch(KubernetesManifest loadBalancer, KubernetesManifest target);
 
   static CanLoadBalance lookupProperties(KubernetesResourcePropertyRegistry registry, String accountName, Pair<KubernetesKind, String> name) {
     KubernetesResourceProperties loadBalancerProperties = registry.get(accountName, name.getLeft());

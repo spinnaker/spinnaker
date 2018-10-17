@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesC
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch.Op;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -168,17 +169,40 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
     labels.putAll(selector);
   }
 
+  private String pathPrefix(KubernetesManifest target) {
+    if (target.getSpecTemplateLabels().isPresent()) {
+      return "/spec/template/metadata/labels";
+    } else {
+      return "/metadata/labels";
+    }
+  }
+
+  private Map<String, String> labels(KubernetesManifest target) {
+    if (target.getSpecTemplateLabels().isPresent()) {
+      return target.getSpecTemplateLabels().get();
+    } else {
+      return target.getLabels();
+    }
+  }
+
+  @Override
+  public List<JsonPatch> attachPatch(KubernetesManifest loadBalancer, KubernetesManifest target) {
+    String pathPrefix = pathPrefix(target);
+    Map<String, String> labels = labels(target);
+
+    return getSelector(loadBalancer).entrySet().stream()
+        .map(kv -> JsonPatch.builder()
+            .op(labels.containsKey(kv.getKey()) ? Op.replace : Op.remove)
+            .path(String.join("/", pathPrefix, kv.getKey()))
+            .value(kv.getValue())
+            .build())
+        .collect(Collectors.toList());
+  }
+
   @Override
   public List<JsonPatch> detachPatch(KubernetesManifest loadBalancer, KubernetesManifest target) {
-    String pathPrefix;
-    Map<String, String> labels;
-    if (target.getSpecTemplateLabels().isPresent()) {
-      pathPrefix = "/spec/template/metadata/labels";
-      labels = target.getSpecTemplateLabels().get();
-    } else {
-      pathPrefix = "/metadata/labels";
-      labels = target.getLabels();
-    }
+    String pathPrefix = pathPrefix(target);
+    Map<String, String> labels = labels(target);
 
     return getSelector(loadBalancer).keySet().stream()
         .filter(labels::containsKey)
