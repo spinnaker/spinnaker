@@ -17,7 +17,7 @@ class KubernetesPatchManifestOptionsFormCtrl implements IController {
 }
 
 class KubernetesPatchManifestOptionsFormComponent implements IComponentOptions {
-  public bindings: any = { options: '=' };
+  public bindings: any = { options: '=', onChange: '<' };
   public controller: any = KubernetesPatchManifestOptionsFormCtrl;
   public controllerAs = 'ctrl';
 
@@ -42,7 +42,9 @@ class KubernetesPatchManifestOptionsFormComponent implements IComponentOptions {
         </div>
         <div class="col-md-4">
           <div class="input-group">
-            <select class="form-control input-sm" ng-model="ctrl.options.mergeStrategy">
+            <select class="form-control input-sm"
+                    ng-model="ctrl.options.mergeStrategy"
+                    ng-change="ctrl.onChange(ctrl.options.mergeStrategy)">
               <option ng-repeat="strategy in ctrl.mergeStrategies" value="{{strategy}}"
                       ng-selected="ctrl.options.mergeStrategy === strategy">
                 {{strategy}}

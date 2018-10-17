@@ -5,11 +5,11 @@ import { load, YAMLException } from 'js-yaml';
 
 import 'brace/theme/textmate';
 import 'brace/mode/yaml';
-import './yamlEditor.less';
+import '../editor.less';
 
 export interface IYamlEditorProps {
   value: string;
-  onChange(raw: string, manifest: any): void;
+  onChange(raw: string, obj: any): void;
 }
 
 export interface IYamlEditorState {
@@ -46,9 +46,9 @@ export class YamlEditor extends React.Component<IYamlEditorProps, IYamlEditorSta
   private handleChange = (raw: string) => {
     this.setState({ value: raw });
     try {
-      const manifest = load(raw);
+      const obj = load(raw);
       this.props.onChange
-        ? this.props.onChange(raw, manifest)
+        ? this.props.onChange(raw, obj)
         : $log.warn('No `onChange` handler provided for YAML editor.');
       this.setState({ errors: [] });
     } catch (e) {
@@ -97,6 +97,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps, IYamlEditorSta
           showLineNumbers: false,
           showFoldWidgets: false,
         }}
+        className="ace-editor"
       />
     );
   };
