@@ -24,6 +24,7 @@ class OracleConfigurationProperties {
     String userId
     String fingerprint
     String sshPrivateKeyFilePath
+    String privateKeyPassphrase
     String tenancyId
     String region
   }

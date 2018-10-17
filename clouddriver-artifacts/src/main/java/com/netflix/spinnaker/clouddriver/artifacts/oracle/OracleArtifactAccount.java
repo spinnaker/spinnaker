@@ -23,5 +23,6 @@ public class OracleArtifactAccount extends ArtifactAccount {
   private String userId;
   private String fingerprint;
   private String sshPrivateKeyFilePath;
+  private String privateKeyPassphrase;
   private String tenancyId;
 }

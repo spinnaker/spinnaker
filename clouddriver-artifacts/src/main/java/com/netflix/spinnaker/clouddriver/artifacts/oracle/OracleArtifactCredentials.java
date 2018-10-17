@@ -40,6 +40,7 @@ public class OracleArtifactCredentials implements ArtifactCredentials {
   private final String userId;
   private final String fingerprint;
   private final String sshPrivateKeyFilePath;
+  private final String privateKeyPassphrase;
   private final String tenancyId;
 
   @JsonIgnore
@@ -53,9 +54,10 @@ public class OracleArtifactCredentials implements ArtifactCredentials {
     this.userId = account.getUserId();
     this.fingerprint = account.getFingerprint();
     this.sshPrivateKeyFilePath = account.getSshPrivateKeyFilePath();
+    this.privateKeyPassphrase = account.getPrivateKeyPassphrase();
     this.tenancyId = account.getTenancyId();
 
-    this.client = new OracleArtifactClient(userId, sshPrivateKeyFilePath, fingerprint, tenancyId);
+    this.client = new OracleArtifactClient(userId, sshPrivateKeyFilePath, privateKeyPassphrase, fingerprint, tenancyId);
   }
 
   public InputStream download(Artifact artifact) throws IOException {

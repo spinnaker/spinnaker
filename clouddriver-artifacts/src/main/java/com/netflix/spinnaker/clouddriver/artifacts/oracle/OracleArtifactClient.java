@@ -37,12 +37,13 @@ public class OracleArtifactClient {
 
   private Client client;
 
-  public OracleArtifactClient(String userId, String sshPrivateKeyFilePath, String fingerprint, String tenancyId) {
+  public OracleArtifactClient(String userId, String sshPrivateKeyFilePath, String privateKeyPassphrase, String fingerprint, String tenancyId) {
     Supplier<InputStream> privateKeySupplier = new SimplePrivateKeySupplier(sshPrivateKeyFilePath);
     AuthenticationDetailsProvider provider = SimpleAuthenticationDetailsProvider.builder()
             .userId(userId)
             .fingerprint(fingerprint)
             .privateKeySupplier(privateKeySupplier)
+            .passPhrase(privateKeyPassphrase)
             .tenantId(tenancyId)
             .build();
 

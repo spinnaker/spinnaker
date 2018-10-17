@@ -32,6 +32,7 @@ class OracleNamedAccountCredentials implements AccountCredentials<Object> {
   String userId
   String fingerprint
   String sshPrivateKeyFilePath
+  String privateKeyPassphrase
   String tenancyId
   String region
   List<String> requiredGroupMembership = []
@@ -51,6 +52,7 @@ class OracleNamedAccountCredentials implements AccountCredentials<Object> {
                                     String userId,
                                     String fingerprint,
                                     String sshPrivateKeyFilePath,
+                                    String privateKeyPassphrase,
                                     String tenancyId,
                                     String region) {
     this.name = name
@@ -61,6 +63,7 @@ class OracleNamedAccountCredentials implements AccountCredentials<Object> {
     this.userId = userId
     this.fingerprint = fingerprint
     this.sshPrivateKeyFilePath = sshPrivateKeyFilePath
+    this.privateKeyPassphrase = privateKeyPassphrase
     this.tenancyId = tenancyId
     this.region = region
 
@@ -71,6 +74,7 @@ class OracleNamedAccountCredentials implements AccountCredentials<Object> {
       .userId(this.userId)
       .fingerprint(this.fingerprint)
       .privateKeySupplier(privateKeySupplier)
+      .passPhrase(this.privateKeyPassphrase)
       .tenantId(this.tenancyId)
       .build()
 
@@ -100,6 +104,7 @@ class OracleNamedAccountCredentials implements AccountCredentials<Object> {
     String userId
     String fingerprint
     String sshPrivateKeyFilePath
+    String privateKeyPassphrase
     String tenancyId
     String region
 
@@ -143,6 +148,11 @@ class OracleNamedAccountCredentials implements AccountCredentials<Object> {
       return this
     }
 
+    Builder privateKeyPassphrase(String privateKeyPassphrase) {
+      this.privateKeyPassphrase = privateKeyPassphrase
+      return this
+    }
+
     Builder tenancyId(String tenancyId) {
       this.tenancyId = tenancyId
       return this
@@ -163,6 +173,7 @@ class OracleNamedAccountCredentials implements AccountCredentials<Object> {
         this.userId,
         this.fingerprint,
         this.sshPrivateKeyFilePath,
+        this.privateKeyPassphrase,
         this.tenancyId,
         this.region)
     }

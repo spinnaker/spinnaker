@@ -60,6 +60,7 @@ class OracleCredentialsInitializer implements CredentialsInitializerSynchronizab
           userId(managedAccount.userId).
           fingerprint(managedAccount.fingerprint).
           sshPrivateKeyFilePath(managedAccount.sshPrivateKeyFilePath).
+          privateKeyPassphrase(managedAccount.privateKeyPassphrase).
           tenancyId(managedAccount.tenancyId).
           region(managedAccount.region).
           build()
