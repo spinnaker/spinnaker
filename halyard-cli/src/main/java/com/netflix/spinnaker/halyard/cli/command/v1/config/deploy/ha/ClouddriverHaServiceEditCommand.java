@@ -55,6 +55,8 @@ public class ClouddriverHaServiceEditCommand extends AbstractHaServiceEditComman
     haService.setRedisSlaveEndpoint(isSet(redisSlaveEndpoint) ? redisSlaveEndpoint : haService.getRedisSlaveEndpoint());
     haService.setRedisSlaveDeckEndpoint(isSet(redisSlaveDeckEndpoint) ? redisSlaveDeckEndpoint : haService.getRedisSlaveDeckEndpoint());
 
+    // TODO(joonlim): Add flag to enable/disable clouddriver-ro-deck using this command.
+
     return haService;
   }
 

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
@@ -29,6 +30,7 @@ import java.util.Map;
 
 @Data
 public class SpinnakerRuntimeSettings {
+  @JsonPropertyOrder(alphabetic = true)
   protected Map<Type, ServiceSettings> services = new HashMap<>();
 
   public SpinnakerRuntimeSettings newServiceOverrides(List<Type> overrideServiceEndpoints) {

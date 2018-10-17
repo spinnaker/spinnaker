@@ -30,15 +30,24 @@ import org.apache.commons.lang.StringUtils;
 public class ClouddriverHaServiceValidator extends Validator<ClouddriverHaService> {
   @Override
   public void validate(ConfigProblemSetBuilder p, ClouddriverHaService clouddriverHaService) {
-    List<String> redisEndpoints = Stream.of(
-        clouddriverHaService.getRedisMasterEndpoint(),
-        clouddriverHaService.getRedisSlaveEndpoint(),
-        clouddriverHaService.getRedisSlaveDeckEndpoint()
-    ).filter(e -> !StringUtils.isBlank(e))
-        .collect(Collectors.toList());
+    boolean redisMasterEndpointIsBlank = StringUtils.isBlank(clouddriverHaService.getRedisMasterEndpoint());
+    boolean redisSlaveEndpointIsBlank = StringUtils.isBlank(clouddriverHaService.getRedisSlaveEndpoint());
+    boolean redisSlaveDeckEndpointIsBlank = StringUtils.isBlank(clouddriverHaService.getRedisSlaveDeckEndpoint());
 
-    if (redisEndpoints.size() != 3 && redisEndpoints.size() != 0) {
-      p.addProblem(Problem.Severity.ERROR, "Please provide values for Clouddriver Redis master endpoint, Redis slave endpoint, and Redis slave-deck endpoint or leave them all blank.");
+    if (clouddriverHaService.isDisableClouddriverRoDeck()) {
+      if (redisMasterEndpointIsBlank && redisSlaveEndpointIsBlank) {
+        return;
+      }
+      if (redisMasterEndpointIsBlank || redisSlaveEndpointIsBlank) {
+        p.addProblem(Problem.Severity.ERROR, "Please provide values for Clouddriver Redis master endpoint and Redis slave endpoint, or leave them both blank.");
+      }
+    } else {
+      if (redisMasterEndpointIsBlank && redisSlaveEndpointIsBlank && redisSlaveDeckEndpointIsBlank) {
+        return;
+      }
+      if (redisMasterEndpointIsBlank || redisSlaveEndpointIsBlank || redisSlaveDeckEndpointIsBlank) {
+        p.addProblem(Problem.Severity.ERROR, "Please provide values for Clouddriver Redis master endpoint, Redis slave endpoint, and Redis slave-deck endpoint or leave them all blank.");
+      }
     }
   }
 }

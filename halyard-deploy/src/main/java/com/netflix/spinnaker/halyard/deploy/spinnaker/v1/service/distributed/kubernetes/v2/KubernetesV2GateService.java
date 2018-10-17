@@ -78,7 +78,8 @@ public class KubernetesV2GateService extends GateService implements KubernetesV2
 
   @Override
   protected void appendReadonlyClouddriverForDeck(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    if (hasServiceOverrides(deploymentConfiguration)) {
+    if (hasServiceOverrides(deploymentConfiguration)
+        && !deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().isDisableClouddriverRoDeck()) {
       Map<String, Map<String, Map<String, Map<String, Map<String, String>>>>> services = Collections.singletonMap(
           "services", Collections.singletonMap(
               "clouddriver", Collections.singletonMap(

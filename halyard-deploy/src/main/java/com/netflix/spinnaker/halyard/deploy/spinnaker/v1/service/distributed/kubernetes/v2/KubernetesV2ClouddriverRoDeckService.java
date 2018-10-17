@@ -40,6 +40,12 @@ public class KubernetesV2ClouddriverRoDeckService extends KubernetesV2Clouddrive
   }
 
   @Override
+  public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
+    return super.isEnabled(deploymentConfiguration)
+        && !deploymentConfiguration.getDeploymentEnvironment().getHaServices().getClouddriver().isDisableClouddriverRoDeck();
+  }
+
+  @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
 
