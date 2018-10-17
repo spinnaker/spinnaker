@@ -1,5 +1,8 @@
 import * as React from 'react';
 import { truncate, isEqual } from 'lodash';
+
+import { IFormInputProps, TextInput } from 'core/presentation';
+
 import { parseSpelExpressions } from './spel2js.templateParser';
 
 export interface ISpelError {
@@ -14,9 +17,7 @@ export interface IExpressionChange {
   spelPreview: string;
 }
 
-export interface IExpressionInputProps {
-  value: string;
-  onChange: (evt: React.ChangeEvent<HTMLInputElement>) => void;
+export interface IExpressionInputProps extends IFormInputProps {
   onExpressionChange: (expressionChange: IExpressionChange) => void;
   placeholder?: string;
   context?: object;
@@ -64,25 +65,15 @@ export class ExpressionInput extends React.Component<IExpressionInputProps> {
   }
 
   public componentDidUpdate(prevProps: IExpressionInputProps) {
-    const { context, value } = this.props;
-    if (value !== prevProps.value || !isEqual(context, prevProps.context)) {
-      const expressionChange = ExpressionInput.evaluateExpression(context, value);
+    const { context, field } = this.props;
+    if (field.value !== prevProps.field.value || !isEqual(context, prevProps.context)) {
+      const expressionChange = ExpressionInput.evaluateExpression(context, field.value);
       this.props.onExpressionChange(expressionChange);
     }
   }
 
   public render(): JSX.Element {
-    const { value, placeholder, onChange } = this.props;
-
-    return (
-      <input
-        autoComplete="off"
-        className="form-control"
-        type="text"
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-      />
-    );
+    const { field, placeholder, validation } = this.props;
+    return <TextInput autoComplete="off" field={field} placeholder={placeholder} validation={validation} />;
   }
 }
