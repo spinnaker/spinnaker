@@ -20,6 +20,7 @@ public class OracleProperties {
   private String userId;
   private String fingerprint;
   private String sshPrivateKeyFilePath;
+  private String privateKeyPassphrase;
   private String tenancyId;
 
 
@@ -77,6 +78,14 @@ public class OracleProperties {
 
   public void setSshPrivateKeyFilePath(String sshPrivateKeyFilePath) {
     this.sshPrivateKeyFilePath = sshPrivateKeyFilePath;
+  }
+
+  public String getPrivateKeyPassphrase() {
+    return privateKeyPassphrase;
+  }
+
+  public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
+    this.privateKeyPassphrase = privateKeyPassphrase;
   }
 
   public String getTenancyId() {
