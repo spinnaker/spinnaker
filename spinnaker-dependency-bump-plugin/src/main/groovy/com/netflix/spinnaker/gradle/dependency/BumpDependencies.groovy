@@ -18,7 +18,7 @@ import org.gradle.api.tasks.TaskAction
 class BumpDependencies extends DefaultTask {
 
   private static final String COMMIT_BODY =
-      '''This is an automated PR! If you have any issues, please contact <at>ttomsu.
+      '''This is an automated PR! If you have any issues, please contact ttomsu@.
 
 You can merge all of these PRs using the command below and a Github access token. Generate a GH token from https://github.com/settings/tokens, and run the following:
 
@@ -43,6 +43,17 @@ GITHUB_ACCESS_TOKEN=
 
     UserService userSvc = new UserService(client)
     User user = userSvc.getUser()
+
+    String reviewer
+    try {
+      String latestReleaseUri = "/repos/spinnaker/spinnaker-dependencies/releases/latest"
+      GitHubResponse resp = client.get(new GitHubRequest(uri: latestReleaseUri, type: LatestRelease.class))
+      reviewer = (resp.body as LatestRelease)?.author?.login
+      logger.lifecycle("Found author of last release: $reviewer.")
+    } catch (Exception e) {
+      logger.lifecycle("Could not get most recent spinnaker-dependencies releaser: ${e.getMessage()}")
+    }
+
 
     RepositoryService repoSvc = new RepositoryService(client)
     repoSvc.getRepositories().findAll {
@@ -126,11 +137,6 @@ GITHUB_ACCESS_TOKEN=
         } catch (Exception e) {
           logger.lifecycle("Could not apply labels ${labels} to PR ${pr.htmlUrl}: ${e.getMessage()}")
         }
-
-        def latestReleaseUri = "/repos/spinnaker/spinnaker-dependencies/releases/latest"
-        GitHubResponse resp = client.get(new GitHubRequest(uri: latestReleaseUri, type: LatestRelease.class))
-        String reviewer = (resp.body as LatestRelease)?.author?.login
-        logger.lifecycle("Found author of last release: $reviewer.")
 
         if (reviewer) {
           logger.lifecycle("Requesting review from ${reviewer}")

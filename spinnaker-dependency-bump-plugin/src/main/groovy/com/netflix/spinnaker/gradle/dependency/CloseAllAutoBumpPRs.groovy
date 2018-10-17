@@ -2,7 +2,6 @@ package com.netflix.spinnaker.gradle.dependency
 
 import org.eclipse.egit.github.core.Issue
 import org.eclipse.egit.github.core.Repository
-import org.eclipse.egit.github.core.User
 import org.eclipse.egit.github.core.client.GitHubClient
 import org.eclipse.egit.github.core.service.IssueService
 import org.eclipse.egit.github.core.service.RepositoryService
@@ -25,14 +24,12 @@ class CloseAllAutoBumpPRs extends DefaultTask {
       issueService.getIssues(upstream, ["labels": "autobump", "state": "open"]).findAll { Issue i ->
         i.pullRequest != null
       }.each { Issue i ->
-
         try {
           def commentURI = "/repos/spinnaker/${upstream.name}/issues/${i.number}/comments"
           def data = ["body": "Closed by autobump tool"]
           client.post(commentURI, data, null /* return type */)
         } catch (Exception e) {
-          logger.lifecycle("Could not comment on issue ${i.htmlUrl}")
-          return
+          logger.lifecycle("Could not comment on issue ${i.htmlUrl}: ${e.message}")
         }
 
         try {
@@ -41,7 +38,8 @@ class CloseAllAutoBumpPRs extends DefaultTask {
           issueService.editIssue(upstream, i)
           logger.lifecycle("Closed ${i.htmlUrl}")
         } catch (Exception e) {
-          logger.lifecycle("Error closing issue ${i.htmlUrl}")
+          logger.lifecycle("Error closing issue ${i.htmlUrl}: ${e.message}")
+          return
         }
       }
     }

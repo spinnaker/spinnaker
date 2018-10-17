@@ -34,7 +34,7 @@ class MergeAllAutoBumpPRs extends DefaultTask {
           }
           logger.lifecycle("Merged ${i.htmlUrl}")
         } catch (Exception e) {
-          logger.lifecycle("Error merging PR ${i.htmlUrl}")
+          logger.lifecycle("Error merging PR ${i.htmlUrl}: ${e.message}")
         }
       }
     }
