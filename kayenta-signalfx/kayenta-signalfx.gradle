@@ -81,7 +81,7 @@ task stopEmbeddedRedis() {
 String getRequiredSystemProp(String key) {
   String value = System.getProperty(key)
   if (value == null || value == "") {
-    throw new IllegalStateException("The system property ${key} was not supplied to the gradle script via a -D prarm".toString())
+    throw new IllegalStateException("The system property ${key} was not supplied to the gradle script via a -D param".toString())
   }
   return value
 }
