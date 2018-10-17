@@ -40,6 +40,10 @@ public class KubernetesSelectorList {
     this.selectors.addAll(Arrays.asList(selectors));
   }
 
+  public boolean isNotEmpty() {
+    return !selectors.isEmpty();
+  }
+
   public KubernetesSelectorList addSelector(KubernetesSelector selector) {
     selectors.add(selector);
     return this;

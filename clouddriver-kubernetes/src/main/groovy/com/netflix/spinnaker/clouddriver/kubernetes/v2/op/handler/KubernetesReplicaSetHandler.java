@@ -26,12 +26,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.Kub
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSelector;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1beta1ReplicaSet;
 import io.kubernetes.client.models.V1beta2ReplicaSet;
 import io.kubernetes.client.models.V1beta2ReplicaSetStatus;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
@@ -42,6 +45,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.Kuberne
 public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     CanResize,
     CanScale,
+    HasPods,
     ServerGroupHandler {
 
   public KubernetesReplicaSetHandler() {
@@ -150,5 +154,11 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     result.put("serverGroup", result.get("name"));
 
     return result;
+  }
+
+  @Override
+  public List<KubernetesManifest> pods(KubernetesV2Credentials credentials, KubernetesManifest object) {
+    KubernetesManifestSelector selector = object.getManifestSelector();
+    return credentials.list(KubernetesKind.POD, object.getNamespace(), selector.toSelectorList());
   }
 }

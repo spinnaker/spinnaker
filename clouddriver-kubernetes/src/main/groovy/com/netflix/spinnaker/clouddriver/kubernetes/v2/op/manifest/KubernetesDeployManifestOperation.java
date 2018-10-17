@@ -32,8 +32,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestTraffic;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesSourceCapacity;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanScale;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanLoadBalance;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanScale;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
@@ -215,19 +215,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       throw new IllegalArgumentException("Load balancers must be specified in the form '<kind> <name>', e.g. 'service my-service'", e);
     }
 
-    KubernetesResourceProperties loadBalancerProperties = registry.get(accountName, name.getLeft());
-    if (loadBalancerProperties == null) {
-      throw new IllegalArgumentException("No properties are registered for " + loadBalancerName + ", are you sure it's a valid load balancer type?");
-
-    }
-    KubernetesHandler loadBalancerHandler = loadBalancerProperties.getHandler();
-    if (loadBalancerHandler == null) {
-      throw new IllegalArgumentException("No handler registered for " + loadBalancerName + ", are you sure it's a valid load balancer type?");
-    }
-
-    if (!(loadBalancerHandler instanceof CanLoadBalance)) {
-      throw new IllegalArgumentException("No support for load balancing via " + loadBalancerName + " exists in Spinnaker");
-    }
+    CanLoadBalance handler = CanLoadBalance.lookupProperties(registry, accountName, name);
 
     // TODO(lwander): look into using a combination of the cache & other resources passed in with this request instead of making a live call here.
     KubernetesManifest loadBalancer = credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
@@ -237,7 +225,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     getTask().updateStatus(OP_NAME, "Attaching load balancer " + loadBalancer.getFullResourceName() + " to " + target.getFullResourceName());
 
-    ((CanLoadBalance) loadBalancerHandler).attach(loadBalancer, target);
+    handler.attach(loadBalancer, target);
   }
 
   private boolean isVersioned(KubernetesResourceProperties properties, KubernetesManifestStrategy strategy) {

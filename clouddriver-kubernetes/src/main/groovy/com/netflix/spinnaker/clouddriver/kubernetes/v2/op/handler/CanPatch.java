@@ -21,13 +21,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+
 import java.util.HashMap;
 
 public interface CanPatch {
   KubernetesKind kind();
 
   default OperationResult patch(KubernetesV2Credentials credentials, String namespace, String name,
-    KubernetesPatchOptions options, KubernetesManifest manifest) {
+      KubernetesPatchOptions options, KubernetesManifest manifest) {
     credentials.patch(kind(), namespace, name, options, manifest);
 
     KubernetesManifest patchedManifest = new KubernetesManifest();

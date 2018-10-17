@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.lang.Double;
 
 public class KubernetesManifest extends HashMap<String, Object> {
   private static ObjectMapper mapper = new ObjectMapper();
@@ -116,6 +115,25 @@ public class KubernetesManifest extends HashMap<String, Object> {
     }
 
     return mapper.convertValue(ownerReferences, new TypeReference<List<OwnerReference>>() {});
+  }
+
+  @JsonIgnore
+  public KubernetesManifestSelector getManifestSelector() {
+    if (!containsKey("spec")) {
+      return null;
+    }
+
+    Map<String, Object> spec = (Map<String, Object>) get("spec");
+    if (!spec.containsKey("selector")) {
+      return null;
+    }
+
+    Map<String, Object> selector = (Map<String, Object>) spec.get("selector");
+    if (!selector.containsKey("matchExpressions") && !selector.containsKey("matchLabels")) {
+      return new KubernetesManifestSelector().setMatchLabels((Map<String, String>) spec.get("selector"));
+    } else {
+      return mapper.convertValue(selector, KubernetesManifestSelector.class);
+    }
   }
 
   @JsonIgnore

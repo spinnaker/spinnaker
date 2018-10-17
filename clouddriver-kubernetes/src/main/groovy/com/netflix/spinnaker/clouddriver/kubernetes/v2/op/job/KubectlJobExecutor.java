@@ -22,6 +22,7 @@ import com.google.gson.JsonSyntaxException;
 import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.jobs.JobRequest;
 import com.netflix.spinnaker.clouddriver.jobs.JobStatus;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric.ContainerMetric;
@@ -342,8 +343,13 @@ public class KubectlJobExecutor {
     }
   }
 
-  public List<KubernetesManifest> list(KubernetesV2Credentials credentials, List<KubernetesKind> kinds, String namespace) {
-    String jobId = jobExecutor.startJob(new JobRequest(kubectlNamespacedGet(credentials, kinds, namespace)),
+  public List<KubernetesManifest> list(KubernetesV2Credentials credentials, List<KubernetesKind> kinds, String namespace, KubernetesSelectorList selectors) {
+    List<String> command = kubectlNamespacedGet(credentials, kinds, namespace);
+    if (selectors.isNotEmpty()) {
+      command.add("-l=" + selectors.toString());
+    }
+
+    String jobId = jobExecutor.startJob(new JobRequest(command),
         System.getenv(),
         new ByteArrayInputStream(new byte[0]));
 
@@ -601,9 +607,15 @@ public class KubectlJobExecutor {
     return result.values();
   }
 
+  public Void patch(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options, List<JsonPatch> patches) {
+    return patch(credentials, kind, namespace, name, options, gson.toJson(patches));
+  }
 
-  public Void patch(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace,
-    String name, KubernetesPatchOptions options, KubernetesManifest manifest) {
+  public Void patch(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options, KubernetesManifest manifest) {
+    return patch(credentials, kind, namespace, name, options, gson.toJson(manifest));
+  }
+
+  private Void patch(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options, String patchBody) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
 
     command.add("patch");
@@ -621,7 +633,7 @@ public class KubectlJobExecutor {
     }
 
     command.add("--patch");
-    command.add(gson.toJson(manifest));
+    command.add(patchBody);
 
     String jobId = jobExecutor.startJob(new JobRequest(command),
       System.getenv(),
@@ -634,6 +646,11 @@ public class KubectlJobExecutor {
       if (StringUtils.isEmpty(errMsg)) {
         errMsg = status.getStdOut();
       }
+      if (errMsg.contains("not patched")) {
+        log.warn("No change occurred after patching {} {}:{}, ignoring", kind, namespace, name);
+        return null;
+      }
+
       throw new KubectlException("Patch failed: " + errMsg);
     }
 

@@ -16,8 +16,34 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
 
 public interface CanLoadBalance {
   void attach(KubernetesManifest loadBalancer, KubernetesManifest target);
+  List<JsonPatch> detachPatch(KubernetesManifest loadBalancer, KubernetesManifest target);
+
+  static CanLoadBalance lookupProperties(KubernetesResourcePropertyRegistry registry, String accountName, Pair<KubernetesKind, String> name) {
+    KubernetesResourceProperties loadBalancerProperties = registry.get(accountName, name.getLeft());
+    if (loadBalancerProperties == null) {
+      throw new IllegalArgumentException("No properties are registered for " + name + ", are you sure it's a valid load balancer type?");
+    }
+
+    KubernetesHandler loadBalancerHandler = loadBalancerProperties.getHandler();
+    if (loadBalancerHandler == null) {
+      throw new IllegalArgumentException("No handler registered for " + name + ", are you sure it's a valid load balancer type?");
+    }
+
+    if (!(loadBalancerHandler instanceof CanLoadBalance)) {
+      throw new IllegalArgumentException("No support for load balancing via " + name + " exists in Spinnaker");
+    }
+
+    return (CanLoadBalance) loadBalancerHandler;
+  }
 }

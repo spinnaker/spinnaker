@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesC
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -35,7 +36,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch.Op.remove;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.V1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.REPLICA_SET;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
@@ -163,5 +166,23 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
     Map<String, String> labels = target.getSpecTemplateLabels().orElse(target.getLabels());
     Map<String, String> selector = getSelector(loadBalancer);
     labels.putAll(selector);
+  }
+
+  @Override
+  public List<JsonPatch> detachPatch(KubernetesManifest loadBalancer, KubernetesManifest target) {
+    String pathPrefix;
+    Map<String, String> labels;
+    if (target.getSpecTemplateLabels().isPresent()) {
+      pathPrefix = "/spec/template/metadata/labels";
+      labels = target.getSpecTemplateLabels().get();
+    } else {
+      pathPrefix = "/metadata/labels";
+      labels = target.getLabels();
+    }
+
+    return getSelector(loadBalancer).keySet().stream()
+        .filter(labels::containsKey)
+        .map(k -> JsonPatch.builder().op(remove).path(String.join("/", pathPrefix, k)).build())
+        .collect(Collectors.toList());
   }
 }

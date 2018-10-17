@@ -24,6 +24,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -64,9 +65,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final List<String> omitNamespaces;
   private final List<KubernetesKind> kinds;
   private final List<KubernetesKind> omitKinds;
-  @Getter private final boolean serviceAccount;
-  @Getter private boolean metrics;
-  @Getter private final List<KubernetesCachingPolicy> cachingPolicies;
+  @Getter
+  private final boolean serviceAccount;
+  @Getter
+  private boolean metrics;
+  @Getter
+  private final List<KubernetesCachingPolicy> cachingPolicies;
   private final boolean onlySpinnakerManaged;
 
   // TODO(lwander) make configurable
@@ -365,7 +369,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.omitKinds = omitKinds;
     this.onlySpinnakerManaged = onlySpinnakerManaged;
 
-    this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, Collections.singletonList(KubernetesKind.NAMESPACE), "")
+    this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, Collections.singletonList(KubernetesKind.NAMESPACE), "", new KubernetesSelectorList())
         .stream()
         .map(KubernetesManifest::getName)
         .collect(Collectors.toList()), namespaceExpirySeconds, TimeUnit.SECONDS);
@@ -404,7 +408,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     if (namespaces.isEmpty()) {
       log.warn("There are no namespaces configured (or loadable) -- please check that the list of 'omitNamespaces' for account '"
-          + accountName +"' doesn't prevent access from all namespaces in this cluster, or that the cluster is reachable.");
+          + accountName + "' doesn't prevent access from all namespaces in this cluster, or that the cluster is reachable.");
       return;
     }
 
@@ -450,14 +454,18 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   public List<KubernetesManifest> list(KubernetesKind kind, String namespace) {
-    return runAndRecordMetrics("list", kind, namespace, () -> jobExecutor.list(this, Collections.singletonList(kind), namespace));
+    return runAndRecordMetrics("list", kind, namespace, () -> jobExecutor.list(this, Collections.singletonList(kind), namespace, new KubernetesSelectorList()));
+  }
+
+  public List<KubernetesManifest> list(KubernetesKind kind, String namespace, KubernetesSelectorList selectors) {
+    return runAndRecordMetrics("list", kind, namespace, () -> jobExecutor.list(this, Collections.singletonList(kind), namespace, selectors));
   }
 
   public List<KubernetesManifest> list(List<KubernetesKind> kinds, String namespace) {
     if (kinds.isEmpty()) {
       return new ArrayList<>();
     } else {
-      return runAndRecordMetrics("list", kinds, namespace, () -> jobExecutor.list(this, kinds, namespace));
+      return runAndRecordMetrics("list", kinds, namespace, () -> jobExecutor.list(this, kinds, namespace, new KubernetesSelectorList()));
     }
   }
 
@@ -497,9 +505,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     runAndRecordMetrics("resumeRollout", kind, namespace, () -> jobExecutor.resumeRollout(this, kind, namespace, name));
   }
 
-  public void patch(KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options,
-    KubernetesManifest manifest) {
+  public void patch(KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options, KubernetesManifest manifest) {
     runAndRecordMetrics("patch", kind, namespace, () -> jobExecutor.patch(this, kind, namespace, name, options, manifest));
+  }
+
+  public void patch(KubernetesKind kind, String namespace, String name, KubernetesPatchOptions options, List<JsonPatch> patches) {
+    runAndRecordMetrics("patch", kind, namespace, () -> jobExecutor.patch(this, kind, namespace, name, options, patches));
   }
 
   private <T> T runAndRecordMetrics(String action, KubernetesKind kind, String namespace, Supplier<T> op) {
