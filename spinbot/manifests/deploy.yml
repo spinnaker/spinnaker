@@ -105,5 +105,5 @@ data:
 
     database:
       influx:
-        host: 10.240.0.8
-        port: 9086
+        host: 10.240.0.7
+        port: 8086
