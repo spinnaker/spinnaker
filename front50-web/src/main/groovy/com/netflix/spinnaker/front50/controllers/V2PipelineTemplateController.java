@@ -65,11 +65,13 @@ public class V2PipelineTemplateController {
 
   @RequestMapping(value = "", method = RequestMethod.POST)
   void save(@RequestBody PipelineTemplate pipelineTemplate) {
+    checkForDuplicatePipelineTemplate(pipelineTemplate.getId());
+    getPipelineTemplateDAO().create(pipelineTemplate.getId(), pipelineTemplate);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   PipelineTemplate get(@PathVariable String id) {
-    return null;
+    return getPipelineTemplateDAO().findById(id);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
