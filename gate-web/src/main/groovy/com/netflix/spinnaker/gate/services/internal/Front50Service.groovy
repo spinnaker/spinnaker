@@ -98,6 +98,10 @@ interface Front50Service {
   List<Map<String, Object>> getPipelineTemplateDependents(@Path("pipelineTemplateId") String pipelineTemplateId,
                                                           @Query("recursive") boolean recursive)
 
+  // v2
+  @GET('/v2/pipelineTemplates/{pipelineTemplateId}')
+  Map getV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
+
   //
   // Notification-related
   //

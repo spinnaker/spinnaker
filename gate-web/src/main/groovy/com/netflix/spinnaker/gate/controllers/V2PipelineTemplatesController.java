@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static com.netflix.spinnaker.gate.controllers.PipelineTemplatesController.encodeAsBase64;
+import static com.netflix.spinnaker.gate.controllers.PipelineTemplatesController.getApplicationFromTemplate;
+import static com.netflix.spinnaker.gate.controllers.PipelineTemplatesController.getNameFromTemplate;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.gate.controllers.PipelineTemplatesController.PipelineTemplate;
 import com.netflix.spinnaker.gate.services.PipelineTemplateService.PipelineTemplateDependent;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.gate.services.V2PipelineTemplateService;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,15 +46,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/v2/pipelineTemplates")
 public class V2PipelineTemplatesController {
 
-  private V2PipelineTemplateService pipelineTemplateService;
+  private static final String DEFAULT_APPLICATION = "spinnaker";
+  private static final String SCHEMA = "schema";
+  private static final String V2_SCHEMA_VERSION = "v2";
+
+  private V2PipelineTemplateService v2PipelineTemplateService;
   private TaskService taskService;
   private ObjectMapper objectMapper;
 
   @Autowired
-  public V2PipelineTemplatesController(V2PipelineTemplateService pipelineTemplateService,
+  private PipelineTemplatesController pipelineTemplatesController;
+
+  @Autowired
+  public V2PipelineTemplatesController(V2PipelineTemplateService v2PipelineTemplateService,
                                        TaskService taskService,
                                        ObjectMapper objectMapper) {
-    this.pipelineTemplateService = pipelineTemplateService;
+    this.v2PipelineTemplateService = v2PipelineTemplateService;
     this.taskService = taskService;
     this.objectMapper = objectMapper;
   }
@@ -66,7 +77,33 @@ public class V2PipelineTemplatesController {
   @RequestMapping(method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map create(@RequestBody Map<String, Object> pipelineTemplate) {
-    return null;
+    String schema = (String) pipelineTemplate.get(SCHEMA);
+    if (schema != null && !schema.equals(V2_SCHEMA_VERSION)) {
+      throw new RuntimeException("Pipeline template schema version is invalid");
+    } else if (schema == null) {
+      pipelineTemplate.put(SCHEMA, V2_SCHEMA_VERSION);
+    }
+
+    PipelineTemplate template;
+    try {
+      template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
+    } catch (IllegalArgumentException e) {
+      throw new RuntimeException("Pipeline template is invalid", e);
+    }
+
+    List<Map<String, Object>> jobs = new ArrayList<>();
+    Map<String, Object> job = new HashMap<>();
+    job.put("type", "createV2PipelineTemplate");
+    job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate, objectMapper));
+    job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    jobs.add(job);
+
+    Map<String, Object> operation = new HashMap<>();
+    operation.put("description", "Create pipeline template '" + getNameFromTemplate(template) + "'");
+    operation.put("application", getApplicationFromTemplate(template));
+    operation.put("job", jobs);
+
+    return taskService.create(operation);
   }
 
   @ApiOperation(value = "Resolve a pipeline template.", response = HashMap.class)
@@ -78,7 +115,7 @@ public class V2PipelineTemplatesController {
   @ApiOperation(value = "Get a pipeline template.", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   public Map get(@PathVariable String id) {
-    return null;
+    return v2PipelineTemplateService.get(id);
   }
 
   @ApiOperation(value = "Update a pipeline template.", response = HashMap.class)
@@ -95,7 +132,19 @@ public class V2PipelineTemplatesController {
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map delete(@PathVariable String id,
                     @RequestParam(value = "application", required = false) String application) {
-    return null;
+    List<Map<String, Object>> jobs = new ArrayList<>();
+    Map<String, Object> job = new HashMap<>();
+    job.put("type", "deletePipelineTemplate");
+    job.put("pipelineTemplateId", id);
+    job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    jobs.add(job);
+
+    Map<String, Object> operation = new HashMap<>();
+    operation.put("description", "Delete pipeline template '" + id + "'");
+    operation.put("application", application != null ? application : DEFAULT_APPLICATION);
+    operation.put("job", jobs);
+
+    return taskService.create(operation);
   }
 
   @ApiOperation(value = "List all pipelines that implement a pipeline template", response = List.class)
@@ -105,22 +154,5 @@ public class V2PipelineTemplatesController {
     @RequestParam(value = "recursive", required = false) boolean recursive
   ) {
     return null;
-  }
-
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  static class PipelineTemplate {
-    @JsonProperty
-    String id;
-
-    @JsonProperty
-    Metadata metadata = new Metadata();
-
-    static class Metadata {
-      @JsonProperty
-      String name;
-
-      @JsonProperty
-      List<String> scopes = new ArrayList<>();
-    }
   }
 }

@@ -40,19 +40,19 @@ public class V2PipelineTemplateService {
   }
 
   // TODO(jacobkiefer): Un-stub
-  Map get(String id) {
+  public Map get(String id) {
+    return front50Service.getV2PipelineTemplate(id);
+  }
+
+  public Map resolve(String source, String executionId, String pipelineConfigId) {
     return null;
   }
 
-  Map resolve(String source, String executionId, String pipelineConfigId) {
+  public List<Map> findByScope(List<String> scopes) {
     return null;
   }
 
-  List<Map> findByScope(List<String> scopes) {
-    return null;
-  }
-
-  List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId, boolean recursive) {
+  public List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId, boolean recursive) {
     return null;
   }
 }
