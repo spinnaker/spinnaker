@@ -15,6 +15,7 @@ public class ManagedOracleAccount {
   private String userId;
   private String fingerprint;
   private String sshPrivateKeyFilePath;
+  private String privateKeyPassphrase;
   private String tenancyId;
   private String region;
 
@@ -48,6 +49,14 @@ public class ManagedOracleAccount {
 
   public void setSshPrivateKeyFilePath(String sshPrivateKeyFilePath) {
     this.sshPrivateKeyFilePath = sshPrivateKeyFilePath;
+  }
+
+  public String getPrivateKeyPassphrase() {
+    return privateKeyPassphrase;
+  }
+
+  public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
+    this.privateKeyPassphrase = privateKeyPassphrase;
   }
 
   public String getTenancyId() {

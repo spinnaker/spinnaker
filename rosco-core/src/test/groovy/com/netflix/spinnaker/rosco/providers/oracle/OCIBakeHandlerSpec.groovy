@@ -75,6 +75,7 @@ class OCIBakeHandlerSpec extends Specification implements TestDefaults {
           userId: "ocid1.user.oc1..user",
           fingerprint: "myfingerprint",
           sshPrivateKeyFilePath: "mysshPrivateKeyFilePath",
+          privateKeyPassphrase: "mypassphrase",
           tenancyId: "ocid1.tenancy.oc1..tenancy",
           region: "us-ashburn-1"
         ],
@@ -84,6 +85,7 @@ class OCIBakeHandlerSpec extends Specification implements TestDefaults {
           userId: "userId2",
           fingerprint: "fingerprint2",
           sshPrivateKeyFilePath: "sshPrivateKeyFilePath2",
+          privateKeyPassphrase: "mypassphrase2",
           tenancyId: "tenancyId2",
           region: "region2"
         ]
@@ -157,6 +159,7 @@ class OCIBakeHandlerSpec extends Specification implements TestDefaults {
       oracle_user_id: oracleConfigurationProperties.accounts.get(accountIndex).userId,
       oracle_fingerprint: oracleConfigurationProperties.accounts.get(accountIndex).fingerprint,
       oracle_ssh_private_key_file_path: oracleConfigurationProperties.accounts.get(accountIndex).sshPrivateKeyFilePath,
+      oracle_pass_phrase: oracleConfigurationProperties.accounts.get(accountIndex).privateKeyPassphrase,
       oracle_region: oracleConfigurationProperties.accounts.get(accountIndex).region,
       oracle_availability_domain: oracleBakeryDefaults.availabilityDomain,
       oracle_subnet_id: oracleBakeryDefaults.subnetId,

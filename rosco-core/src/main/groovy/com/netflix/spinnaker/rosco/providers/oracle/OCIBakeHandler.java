@@ -103,6 +103,7 @@ public class OCIBakeHandler extends CloudProviderBakeHandler {
         put("oracle_user_id", managedAccount.getUserId());
         put("oracle_fingerprint", managedAccount.getFingerprint());
         put("oracle_ssh_private_key_file_path", managedAccount.getSshPrivateKeyFilePath());
+        put("oracle_pass_phrase", managedAccount.getPrivateKeyPassphrase());
         put("oracle_region", managedAccount.getRegion());
         put("oracle_availability_domain", oracleBakeryDefaults.getAvailabilityDomain());
         put("oracle_instance_shape", oracleBakeryDefaults.getInstanceShape());

@@ -12,6 +12,7 @@
     "oracle_user_id": null,
     "oracle_fingerprint": null,
     "oracle_ssh_private_key_file_path": null,
+    "oracle_pass_phrase": null,
 
     "appversion": "",
     "build_host": "",
@@ -36,7 +37,8 @@
       "tenancy_ocid": "{{user `oracle_tenancy_id`}}",
       "user_ocid": "{{user `oracle_user_id`}}",
       "fingerprint": "{{user `oracle_fingerprint`}}",
-      "key_file": "{{user `oracle_ssh_private_key_file_path`}}"
+      "key_file": "{{user `oracle_ssh_private_key_file_path`}}",
+      "pass_phrase": "{{user `oracle_pass_phrase`}}"
     }
   ],
   "provisioners": [
