@@ -1,5 +1,4 @@
 #!/bin/bash -e
-set -x
 
 # Params to be passed in
 MODULES_TO_BE_BUILT=("$@")  # optional, if no list of modules are provided, we'll go do all of them except SKIPPED_MODULES
@@ -9,7 +8,7 @@ PROJECT_ROOT=$(pwd)
 
 source ~/.nvm/nvm.sh
 NODE_JS_VERSION=`node -e 'console.log(require("./package.json").engines.node.replace(/[^\d\.]/g, ""))'`;
-nvm use ${NODE_JS_VERSION}
+nvm install ${NODE_JS_VERSION}
 
 # go find all the modules and add them
 if [[ ${#MODULES_TO_BE_BUILT[0]} -eq 0 ]]; then
