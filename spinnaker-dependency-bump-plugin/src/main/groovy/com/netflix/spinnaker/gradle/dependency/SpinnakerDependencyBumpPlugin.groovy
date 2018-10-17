@@ -69,7 +69,7 @@ class SpinnakerDependencyBumpPlugin implements Plugin<Project> {
       }.collect { Repository userFork ->
         // The parent and source details are only populated from this get request
         // (as in they're not in the list request above).
-        println "Getting details for ${userFork.cloneUrl}"
+        logger.lifecycle("Getting details for ${userFork.cloneUrl}")
         repoSvc.getRepository(userFork)
       }.each { Repository userFork ->
         Repository upstream = userFork.source
@@ -79,7 +79,7 @@ class SpinnakerDependencyBumpPlugin implements Plugin<Project> {
           dest.deleteDir()
         }
 
-        println "Cloning repo ${upstream.cloneUrl} into clones/${upstream.name}"
+        logger.lifecycle("Cloning repo ${upstream.cloneUrl} into clones/${upstream.name}")
         def grgit = Grgit.clone(
             dir: "clones/${userFork.name}",
             uri: upstream.cloneUrl,
@@ -88,7 +88,7 @@ class SpinnakerDependencyBumpPlugin implements Plugin<Project> {
 
         def branches = grgit.branch.list()
         if (branches.find { it.name == "auto-bump" }) {
-          println "Deleting branch 'auto-bump' in repo $upstream.name"
+          logger.lifecycle("Deleting branch 'auto-bump' in repo $upstream.name")
           grgit.branch.remove(names: ["auto-bump"], force: true)
         }
 
@@ -97,48 +97,69 @@ class SpinnakerDependencyBumpPlugin implements Plugin<Project> {
             createBranch: true
         )
 
-        println "Updating spinnakerDependenciesVersion to ${project.version}"
+        logger.lifecycle("Updating spinnakerDependenciesVersion to ${project.version}")
         ant.replaceregexp(
             file: "clones/${upstream.name}/build.gradle",
             match: "spinnakerDependenciesVersion = '.*?'",
             replace: "spinnakerDependenciesVersion = '${project.version}'")
 
-        println "Committing changes"
+        logger.lifecycle("Committing changes")
         grgit.commit(
             message: "chore(dependencies): Autobump spinnaker-dependencies",
             all: true)
         grgit.remote.add(name: "userFork", url: userFork.cloneUrl)
 
-        println "Pushing changes to 'auto-bump' branch of ${userFork.cloneUrl}"
+        logger.lifecycle("Pushing changes to 'auto-bump' branch of ${userFork.cloneUrl}")
         grgit.push(
             remote: "userFork",
             refsOrSpecs: ["auto-bump"],
             force: true)
 
+        PullRequest pr
         if (!project.hasProperty("dryrun")) {
           PullRequestService prSvc = new PullRequestService(client)
-          def createdPr = prSvc.createPullRequest(upstream, new PullRequest(
-                  title: "chore(dependencies): Autobump spinnaker-dependencies",
-                  body: "This is an automated PR! If you have any issues, please contact @ttomsu.",
-                  base: new PullRequestMarker(label: "master"),
-                  head: new PullRequestMarker(label: "${userFork.owner.login}:auto-bump"),
-          ))
-          println "Created PR ${createdPr.htmlUrl}"
+          try {
+            pr = prSvc.createPullRequest(upstream, new PullRequest(
+                    title: "chore(dependencies): Autobump spinnaker-dependencies",
+                    body: "This is an automated PR! If you have any issues, please contact <at>ttomsu.",
+                    base: new PullRequestMarker(label: "master"),
+                    head: new PullRequestMarker(label: "${userFork.owner.login}:auto-bump"),
+            ))
+            logger.lifecycle("Created PR ${pr.htmlUrl}")
+          } catch (Exception e) {
+            logger.lifecycle("Could not create PR in ${userFork.cloneUrl}: ${e.getMessage()}")
+            pr = prSvc.getPullRequests(upstream, "open").find { PullRequest existingPR ->
+              existingPR.head.label == "${userFork.owner.login}:auto-bump"
+            }
+            if (!pr) {
+              logger.lifecycle("Couldn't find existing PR")
+              return
+            }
+          }
+
+          def labelsUri = "/repos/spinnaker/${upstream.name}/issues/${pr.number}/labels"
+          List<String> labels = ["autobump"]
+          logger.lifecycle("Applying labels ${labels} to issue using ${labelsUri}")
+          try {
+            client.post(labelsUri, labels, List.class)
+          } catch (Exception e) {
+            logger.lifecycle("Could not apply labels ${labels} to PR ${pr.htmlUrl}: ${e.getMessage()}")
+          }
 
           def latestReleaseUri = "/repos/spinnaker/spinnaker-dependencies/releases/latest"
           GitHubResponse resp = client.get(new GitHubRequest(uri: latestReleaseUri, type: LatestRelease.class))
           String reviewer = (resp.body as LatestRelease)?.author?.login
-          println "Found author of last release: $reviewer."
+          logger.lifecycle("Found author of last release: $reviewer.")
 
           if (reviewer) {
-            println "Requesting review from ${reviewer}"
-            def uri = "/repos/spinnaker/${upstream.name}/pulls/${createdPr.number}/requested_reviewers"
+            logger.lifecycle("Requesting review from ${reviewer}")
+            def uri = "/repos/spinnaker/${upstream.name}/pulls/${pr.number}/requested_reviewers"
             def data = ["reviewers": [reviewer]]
             client.post(uri, data, null /* return Type */)
-            println "Reviewers requested!"
+            logger.lifecycle("Reviewers requested!")
           }
         } else {
-          println "Skipping PR creation because of -Pdryrun"
+          logger.lifecycle("Skipping PR creation because of -Pdryrun")
         }
       }
     }
