@@ -192,7 +192,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
 
     return getSelector(loadBalancer).entrySet().stream()
         .map(kv -> JsonPatch.builder()
-            .op(labels.containsKey(kv.getKey()) ? Op.replace : Op.remove)
+            .op(labels.containsKey(kv.getKey()) ? Op.replace : Op.add)
             .path(String.join("/", pathPrefix, kv.getKey()))
             .value(kv.getValue())
             .build())
