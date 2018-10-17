@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,6 +35,14 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
 
   @Autowired
   private Registry registry;
+
+  @Autowired
+  TaskScheduler taskScheduler;
+
+  private long maxWaitInterval = 60000;
+  private long retryIntervalbase = 2;
+  private long jitterMultiplier = 1000;
+  private long maxRetries = 10;
 
   @Override
   public void validate(ConfigProblemSetBuilder ps, GcsPersistentStore n) {
@@ -46,6 +55,11 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
           n.getProject(),
           jsonPath != null ? jsonPath : "",
           "halyard",
+          maxWaitInterval,
+          retryIntervalbase,
+          jitterMultiplier,
+          maxRetries,
+          taskScheduler,
           registry);
 
       storageService.ensureBucketExists();

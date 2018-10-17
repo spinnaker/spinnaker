@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -38,6 +41,11 @@ public class ResourceConfig {
   @Bean
   String halconfigDirectory(@Value("${halyard.halconfig.directory:~/.hal}") String path) {
     return normalizePath(path);
+  }
+
+  @Bean
+  TaskScheduler taskScheduler() {
+    return new ConcurrentTaskScheduler(Executors.newSingleThreadScheduledExecutor());
   }
 
   @Bean
