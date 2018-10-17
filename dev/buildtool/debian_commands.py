@@ -63,6 +63,9 @@ class BuildDebianCommand(GradleCommandProcessor):
         or (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       args.append('-x test')
 
+    if (os.path.isfile(os.path.join(repository.git_dir, "gradle", "init-publish.gradle"))):
+      args.append('-I gradle/init-publish.gradle')
+
     args.extend(self.gradle.get_debian_args('trusty,xenial,bionic'))
 
     with self.__semaphore:
