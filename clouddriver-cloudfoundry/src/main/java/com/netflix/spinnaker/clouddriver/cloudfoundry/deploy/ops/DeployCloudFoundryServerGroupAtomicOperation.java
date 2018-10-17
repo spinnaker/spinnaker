@@ -110,12 +110,8 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     CloudFoundryClient client = description.getClient();
     getTask().updateStatus(PHASE, "Creating Cloud Foundry application '" + description.getServerGroupName() + "'");
 
-    Map<String, String> convertedEnvVariables = Optional.ofNullable(description.getApplicationAttributes().getEnv())
-      .map(env -> env.stream().collect(toMap(Object::toString, Object::toString)))
-      .orElse(Collections.emptyMap());
-
     CloudFoundryServerGroup serverGroup = client.getApplications().createApplication(description.getServerGroupName(),
-      description.getSpace(), description.getApplicationAttributes().getBuildpack(), convertedEnvVariables);
+      description.getSpace(), description.getApplicationAttributes().getBuildpack(), description.getApplicationAttributes().getEnv());
     getTask().updateStatus(PHASE, "Created Cloud Foundry application '" + description.getServerGroupName() + "'");
 
     return serverGroup;

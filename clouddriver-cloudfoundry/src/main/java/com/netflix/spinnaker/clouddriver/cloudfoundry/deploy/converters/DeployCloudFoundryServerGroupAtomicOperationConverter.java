@@ -34,15 +34,20 @@ import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 @CloudFoundryOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component
@@ -97,8 +102,8 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
 
     Map manifest = (Map) input.get("manifest");
     if ("direct".equals(manifest.get("type"))) {
-      converted.setApplicationAttributes(getObjectMapper().convertValue(manifest,
-        DeployCloudFoundryServerGroupDescription.ApplicationAttributes.class));
+      DeployCloudFoundryServerGroupDescription.ApplicationAttributes attrs = getObjectMapper().convertValue(manifest, DeployCloudFoundryServerGroupDescription.ApplicationAttributes.class);
+      converted.setApplicationAttributes(attrs);
     } else if ("artifact".equals(manifest.get("type"))) {
       Artifact manifestArtifact = convertToArtifact(manifest.get("account").toString(), manifest.get("reference").toString());
       ArtifactCredentials manifestArtifactCredentials = credentialsRepository.getAllCredentials().stream()
@@ -111,19 +116,52 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
         Yaml parser = new Yaml();
         Map manifestMap = (Map) parser.load(manifestInput);
 
-        List<DeployCloudFoundryServerGroupDescription.ApplicationAttributes> apps = new ObjectMapper()
+        List<CloudFoundryManifest> manifestApps = new ObjectMapper()
           .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-          .convertValue(manifestMap.get("applications"),
-            new TypeReference<List<DeployCloudFoundryServerGroupDescription.ApplicationAttributes>>() {
-            });
+          .convertValue(manifestMap.get("applications"), new TypeReference<List<CloudFoundryManifest>>() {
+          });
 
-        apps.stream().findFirst().ifPresent(converted::setApplicationAttributes);
+        manifestApps.stream().findFirst().ifPresent(app -> {
+          DeployCloudFoundryServerGroupDescription.ApplicationAttributes attrs = new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
+          attrs.setInstances(app.getInstances() == null ? 1 : app.getInstances());
+          attrs.setMemory(app.getMemory() == null ? "1024" : app.getMemory());
+          attrs.setDiskQuota(app.getDiskQuota() == null ? "1024" : app.getDiskQuota());
+          attrs.setBuildpack(app.getBuildpack());
+          attrs.setServices(app.getServices());
+          attrs.setRoutes(app.getRoutes() == null ? null : app.getRoutes().stream().flatMap(route -> route.values().stream()).collect(toList()));
+          attrs.setEnv(app.getEnv() == null ? null : app.getEnv().stream().flatMap(env -> env.entrySet().stream()).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
+          converted.setApplicationAttributes(attrs);
+        });
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
     }
     return converted;
+  }
+
+  @Data
+  private static class CloudFoundryManifest {
+    @Nullable
+    private Integer instances;
+
+    @Nullable
+    private String memory;
+
+    @Nullable
+    private String diskQuota;
+
+    @Nullable
+    private String buildpack;
+
+    @Nullable
+    private List<String> services;
+
+    @Nullable
+    private List<Map<String, String>> routes;
+
+    @Nullable
+    private List<Map<String, String>> env;
   }
 
   private Artifact convertToArtifact(String account, String reference) {

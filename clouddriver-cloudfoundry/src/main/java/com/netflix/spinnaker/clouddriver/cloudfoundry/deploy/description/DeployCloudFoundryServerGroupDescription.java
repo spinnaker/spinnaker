@@ -20,9 +20,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -49,9 +52,17 @@ public class DeployCloudFoundryServerGroupDescription extends AbstractCloudFound
     private int instances;
     private String memory;
     private String diskQuota;
-    private String buildpack;
+
+    @Nullable
     private List<String> routes;
-    private List<Map<String, String>> env;
+
+    @Nullable
+    private String buildpack;
+
+    @Nullable
+    private Map<String, String> env;
+
+    @Nullable
     private List<String> services;
   }
 }

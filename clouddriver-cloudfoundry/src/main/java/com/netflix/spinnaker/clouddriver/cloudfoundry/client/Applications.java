@@ -245,7 +245,7 @@ public class Applications {
   }
 
   public CloudFoundryServerGroup createApplication(String appName, CloudFoundrySpace space, @Nullable String buildpack,
-                                                   Map<String, String> environmentVariables) throws CloudFoundryApiException {
+                                                   @Nullable Map<String, String> environmentVariables) throws CloudFoundryApiException {
     Map<String, ToOneRelationship> relationships = new HashMap<>();
     relationships.put("space", new ToOneRelationship(new Relationship(space.getId())));
 

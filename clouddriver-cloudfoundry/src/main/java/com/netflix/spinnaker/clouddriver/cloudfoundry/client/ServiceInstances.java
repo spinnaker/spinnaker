@@ -40,8 +40,8 @@ import static java.util.stream.Collectors.toList;
 public class ServiceInstances {
   private final ServiceInstanceService api;
 
-  public void createServiceBindingsByName(CloudFoundryServerGroup cloudFoundryServerGroup, List<String> serviceNames) throws CloudFoundryApiException {
-    if (!serviceNames.isEmpty()) {
+  public void createServiceBindingsByName(CloudFoundryServerGroup cloudFoundryServerGroup, @Nullable List<String> serviceNames) throws CloudFoundryApiException {
+    if (serviceNames != null && !serviceNames.isEmpty()) {
       String spaceGuid = cloudFoundryServerGroup.getSpace().getId();
       String query = "name IN " + String.join(",", serviceNames);
 

@@ -32,12 +32,14 @@ import static java.util.Collections.singletonList;
 public class CreateApplication {
   private final String name;
   private final Map<String, ToOneRelationship> relationships;
+
+  @Nullable
   private final Map<String, String> environmentVariables;
 
   @Nullable
   private final BuildpackLifecycle lifecycle;
 
-  public CreateApplication(String name, Map<String, ToOneRelationship> relationships, Map<String, String> environmentVariables,
+  public CreateApplication(String name, Map<String, ToOneRelationship> relationships, @Nullable Map<String, String> environmentVariables,
                            String buildpack) {
     this.name = name;
     this.relationships = relationships;
