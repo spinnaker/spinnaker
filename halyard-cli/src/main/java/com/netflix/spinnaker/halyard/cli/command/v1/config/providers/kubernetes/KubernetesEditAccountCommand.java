@@ -213,6 +213,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   )
   public String skin;
 
+  @Parameter(
+      names = "--only-spinnaker-managed",
+      arity = 1,
+      description = KubernetesCommandProperties.ONLY_SPINNAKER_MANAGED_DESCRIPTION
+  )
+  public Boolean onlySpinnakerManaged;
+
   @Override
   protected Account editAccount(KubernetesAccount account) {
     boolean contextSet = context != null && !context.isEmpty();
@@ -280,6 +287,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     account.setOAuthServiceAccount(isSet(oAuthServiceAccount) ? oAuthServiceAccount : account.getOAuthServiceAccount());
     account.setNamingStrategy(isSet(namingStrategy) ? namingStrategy : account.getNamingStrategy());
     account.setSkin(isSet(skin) ? skin : account.getSkin());
+    account.setOnlySpinnakerManaged(isSet(onlySpinnakerManaged) ? onlySpinnakerManaged : account.getOnlySpinnakerManaged());
     
     return account;
   }

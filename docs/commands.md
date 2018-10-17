@@ -5664,7 +5664,7 @@ This can only be set when --namespaces is empty or not set.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-account`: When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/.
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
-
+ * `--only-spinnaker-managed`: Spinnaker only caches resources it has created.
 
 ---
 ## hal config provider kubernetes account delete
@@ -5734,7 +5734,7 @@ This can only be set when --namespaces is empty or not set.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-account`: When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/.
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
-
+ * `--only-spinnaker-managed`: Spinnaker only caches resources it has created.
 
 ---
 ## hal config provider kubernetes account get

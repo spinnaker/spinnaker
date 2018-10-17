@@ -120,6 +120,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   )
   public String skin;
 
+  @Parameter(
+      names = "--only-spinnaker-managed",
+      arity = 1,
+      description = KubernetesCommandProperties.ONLY_SPINNAKER_MANAGED_DESCRIPTION
+  )
+  public Boolean onlySpinnakerManaged = false;
+
   @Override
   protected Account buildAccount(String accountName) {
     KubernetesAccount account = (KubernetesAccount) new KubernetesAccount().setName(accountName);
@@ -136,6 +143,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setOAuthScopes(oAuthScopes);
     account.setNamingStrategy(namingStrategy);
     account.setSkin(skin);
+    account.setOnlySpinnakerManaged(onlySpinnakerManaged);
     return account;
   }
 

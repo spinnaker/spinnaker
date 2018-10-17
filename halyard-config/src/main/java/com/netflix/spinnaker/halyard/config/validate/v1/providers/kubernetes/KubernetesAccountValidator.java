@@ -77,6 +77,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
             .collect(Collectors.toList());
         validateDockerRegistries(psBuilder, deploymentConfiguration, dockerRegistryNames, Provider.ProviderType.KUBERNETES);
         validateKubeconfig(psBuilder, account);
+        validateOnlySpinnakerConfig(psBuilder, account);
       case V2:
         break;
       default:
@@ -121,6 +122,16 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
 
       if (CollectionUtils.isNotEmpty(matchedKinds)) {
         psBuilder.addProblem(WARNING, "The following custom resources \"" + customResources + "\" will not be cached since they are listed in you've omitted them in you omitKinds configuration: \"" + omitKinds + "\".");
+      }
+    }
+  }
+
+  private void validateOnlySpinnakerConfig(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
+    Boolean onlySpinnakerManaged = account.getOnlySpinnakerManaged();
+
+    if (account.getProviderVersion() == Provider.ProviderVersion.V1) {
+      if (onlySpinnakerManaged) {
+        psBuilder.addProblem(WARNING, "Kubernetes accounts at V1 does not support configuring caching behavior for a only spinnaker managed resources.");
       }
     }
   }
