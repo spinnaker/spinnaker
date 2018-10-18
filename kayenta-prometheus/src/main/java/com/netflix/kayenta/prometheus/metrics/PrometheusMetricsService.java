@@ -196,7 +196,6 @@ public class PrometheusMetricsService implements MetricsService {
       ? queryConfig.getResourceType()
       : prometheusCanaryScope.getResourceType();
 
-    // TODO(duftler): I think resourceType will not be resolved properly here now. Fix this.
     String customFilter = QueryConfigUtils.expandCustomFilter(
       canaryConfig,
       queryConfig,

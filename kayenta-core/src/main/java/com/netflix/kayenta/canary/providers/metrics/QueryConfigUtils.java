@@ -37,6 +37,7 @@ import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,23 +74,8 @@ public class QueryConfigUtils {
         log.debug("extendedScopeParams={}", canaryScope.getExtendedScopeParams());
 
         Map<String, String> templateBindings = new LinkedHashMap<>();
-
-        for (String baseScopeAttribute : baseScopeAttributes) {
-          try {
-            BeanInfo beanInfo = Introspector.getBeanInfo(canaryScope.getClass());
-            PropertyDescriptor propertyDescriptor = Stream.of(beanInfo.getPropertyDescriptors())
-              .filter(p -> p.getName().equals(baseScopeAttribute))
-              .findFirst()
-              .orElseThrow(() -> new IllegalArgumentException("Unable to find property '" + baseScopeAttribute + "'."));
-            String propertyValue = (String)propertyDescriptor.getReadMethod().invoke(canaryScope);
-
-            if (!StringUtils.isEmpty(propertyValue)) {
-              templateBindings.put(baseScopeAttribute, propertyValue);
-            }
-          } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException(e);
-          }
-        }
+        populateTemplateBindings(canaryScope, baseScopeAttributes, templateBindings, false);
+        populateTemplateBindings(metricSetQuery, baseScopeAttributes, templateBindings, true);
 
         if (!CollectionUtils.isEmpty(canaryScope.getExtendedScopeParams())) {
           templateBindings.putAll(canaryScope.getExtendedScopeParams());
@@ -106,6 +92,45 @@ public class QueryConfigUtils {
     log.debug("Expanded: customFilter={}", customFilter);
 
     return customFilter;
+  }
+
+  private static void populateTemplateBindings(Object bean,
+                                               String[] baseScopeAttributes,
+                                               Map<String, String> templateBindings,
+                                               boolean lenient) {
+    BeanInfo beanInfo;
+
+    try {
+      beanInfo = Introspector.getBeanInfo(bean.getClass());
+    } catch (IntrospectionException e) {
+      throw new IllegalArgumentException(e);
+    }
+
+    PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+
+    for (String baseScopeAttribute : baseScopeAttributes) {
+      try {
+        Optional<PropertyDescriptor> propertyDescriptor = Stream.of(propertyDescriptors)
+          .filter(p -> p.getName().equals(baseScopeAttribute))
+          .findFirst();
+
+        if (!propertyDescriptor.isPresent()) {
+          if (lenient) {
+            continue;
+          } else {
+            throw new IllegalArgumentException("Unable to find property '" + baseScopeAttribute + "'.");
+          }
+        }
+
+        String propertyValue = (String)propertyDescriptor.get().getReadMethod().invoke(bean);
+
+        if (!StringUtils.isEmpty(propertyValue)) {
+          templateBindings.put(baseScopeAttribute, propertyValue);
+        }
+      } catch (IllegalAccessException | InvocationTargetException e) {
+        throw new IllegalArgumentException(e);
+      }
+    }
   }
 
   @VisibleForTesting
