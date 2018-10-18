@@ -29,6 +29,7 @@ import static com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2Pipel
 public interface SaveV2PipelineTemplateTask {
 
   default void validate(V2PipelineTemplate template) {
+    // TODO(jacobkiefer): Codify in a regex.
     if (template.getId().contains(".")) {
       throw new IllegalArgumentException("Pipeline Template IDs cannot have dots");
     }

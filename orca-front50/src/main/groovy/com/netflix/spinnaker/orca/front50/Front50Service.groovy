@@ -84,12 +84,18 @@ interface Front50Service {
   @DELETE("/pipelineTemplates/{pipelineTemplateId}")
   Response deletePipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
 
-  // v2
-  @POST("/pipelineTemplates")
-  Response saveV2PipelineTemplate(@Body Map pipelineTemplate)
-
   @GET("/pipelineTemplates/{pipelineTemplateId}/dependentPipelines")
   List<Map<String, Object>> getPipelineTemplateDependents(@Path("pipelineTemplateId") String pipelineTemplateId, @Query("recursive") boolean recursive)
+
+  // v2
+  @POST("/v2/pipelineTemplates")
+  Response saveV2PipelineTemplate(@Body Map pipelineTemplate)
+
+  @GET("/v2/pipelineTemplates/{pipelineTemplateId}/dependentPipelines")
+  List<Map<String, Object>> getDependentPipelinesForTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
+
+  @PUT("/v2/pipelineTemplates/{pipelineTemplateId}")
+  Response updateV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId, @Body Map pipelineTemplate)
 
   @GET("/strategies")
   List<Map<String, Object>> getAllStrategies()
