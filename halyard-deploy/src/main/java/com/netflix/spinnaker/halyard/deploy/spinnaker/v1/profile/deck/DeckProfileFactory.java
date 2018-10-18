@@ -47,6 +47,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -154,9 +155,9 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("aws.default.account", awsProvider.getPrimaryAccount());
     if (awsProvider.getPrimaryAccount() != null) {
       AwsAccount awsAccount = (AwsAccount) accountService.getProviderAccount(deploymentConfiguration.getName(), "aws", awsProvider.getPrimaryAccount());
-      AwsProvider.AwsRegion firstRegion = awsAccount.getRegions().get(0);
-      if (firstRegion != null) {
-        bindings.put("aws.default.region", firstRegion.getName());
+      List<AwsProvider.AwsRegion> regionList = awsAccount.getRegions();
+      if (!regionList.isEmpty() && regionList.get(0) != null) {
+        bindings.put("aws.default.region", regionList.get(0).getName());
       }
     }
 
