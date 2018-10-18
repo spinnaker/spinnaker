@@ -32,6 +32,9 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
 
   public static final String SERVICE_TYPE = "prometheus";
 
+  @Getter
+  private String resourceType;
+
   @NotNull
   @Getter
   private String metricName;

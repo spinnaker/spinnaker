@@ -186,32 +186,17 @@ public class PrometheusMetricsService implements MetricsService {
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String accountName,
-                                      CanaryConfig canaryConfig,
-                                      CanaryMetricConfig canaryMetricConfig,
-                                      CanaryScope canaryScope) throws IOException {
-    if (!(canaryScope instanceof PrometheusCanaryScope)) {
-      throw new IllegalArgumentException("Canary scope not instance of PrometheusCanaryScope: " + canaryScope +
-                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
-                                         "neglecting to explicitly specify which account to use for a given request.");
-    }
-
-    PrometheusCanaryScope prometheusCanaryScope = (PrometheusCanaryScope)canaryScope;
-    PrometheusNamedAccountCredentials credentials = (PrometheusNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    PrometheusRemoteService prometheusRemoteService = credentials.getPrometheusRemoteService();
+  public String buildQuery(CanaryConfig canaryConfig,
+                           CanaryMetricConfig canaryMetricConfig,
+                           CanaryScope canaryScope) throws IOException {
     PrometheusCanaryMetricSetQueryConfig queryConfig = (PrometheusCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
-    String resourceType = prometheusCanaryScope.getResourceType();
+    PrometheusCanaryScope prometheusCanaryScope = (PrometheusCanaryScope)canaryScope;
+    String resourceType =
+      StringUtils.hasText(queryConfig.getResourceType())
+      ? queryConfig.getResourceType()
+      : prometheusCanaryScope.getResourceType();
 
-    if (StringUtils.isEmpty(prometheusCanaryScope.getStart())) {
-      throw new IllegalArgumentException("Start time is required.");
-    }
-
-    if (StringUtils.isEmpty(prometheusCanaryScope.getEnd())) {
-      throw new IllegalArgumentException("End time is required.");
-    }
-
+    // TODO(duftler): I think resourceType will not be resolved properly here now. Fix this.
     String customFilter = QueryConfigUtils.expandCustomFilter(
       canaryConfig,
       queryConfig,
@@ -225,14 +210,43 @@ public class PrometheusMetricsService implements MetricsService {
 
     log.debug("query={}", queryBuilder);
 
+    return queryBuilder.toString();
+  }
+
+  @Override
+  public List<MetricSet> queryMetrics(String accountName,
+                                      CanaryConfig canaryConfig,
+                                      CanaryMetricConfig canaryMetricConfig,
+                                      CanaryScope canaryScope) throws IOException {
+    if (!(canaryScope instanceof PrometheusCanaryScope)) {
+      throw new IllegalArgumentException("Canary scope not instance of PrometheusCanaryScope: " + canaryScope +
+                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
+                                         "neglecting to explicitly specify which account to use for a given request.");
+    }
+
+    PrometheusNamedAccountCredentials credentials = (PrometheusNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    PrometheusRemoteService prometheusRemoteService = credentials.getPrometheusRemoteService();
+
+    if (StringUtils.isEmpty(canaryScope.getStart())) {
+      throw new IllegalArgumentException("Start time is required.");
+    }
+
+    if (StringUtils.isEmpty(canaryScope.getEnd())) {
+      throw new IllegalArgumentException("End time is required.");
+    }
+
+    String query = buildQuery(canaryConfig, canaryMetricConfig, canaryScope).toString();
+
     long startTime = registry.clock().monotonicTime();
     List<PrometheusResults> prometheusResultsList;
 
     try {
-      prometheusResultsList = prometheusRemoteService.rangeQuery(queryBuilder.toString(),
-                                                                 prometheusCanaryScope.getStart().toString(),
-                                                                 prometheusCanaryScope.getEnd().toString(),
-                                                                 prometheusCanaryScope.getStep());
+      prometheusResultsList = prometheusRemoteService.rangeQuery(query,
+                                                                 canaryScope.getStart().toString(),
+                                                                 canaryScope.getEnd().toString(),
+                                                                 canaryScope.getStep());
     } finally {
       long endTime = registry.clock().monotonicTime();
       // TODO(ewiseblatt/duftler): Add appropriate tags.
@@ -260,7 +274,7 @@ public class PrometheusMetricsService implements MetricsService {
           metricSetBuilder.tags(tags);
         }
 
-        metricSetBuilder.attribute("query", queryBuilder.toString());
+        metricSetBuilder.attribute("query", query);
 
         metricSetList.add(metricSetBuilder.build());
       }
@@ -268,14 +282,14 @@ public class PrometheusMetricsService implements MetricsService {
       MetricSet.MetricSetBuilder metricSetBuilder =
         MetricSet.builder()
           .name(canaryMetricConfig.getName())
-          .startTimeMillis(prometheusCanaryScope.getStart().toEpochMilli())
-          .startTimeIso(prometheusCanaryScope.getStart().toString())
-          .endTimeMillis(prometheusCanaryScope.getEnd().toEpochMilli())
-          .endTimeIso(prometheusCanaryScope.getEnd().toString())
-          .stepMillis(TimeUnit.SECONDS.toMillis(prometheusCanaryScope.getStep()))
+          .startTimeMillis(canaryScope.getStart().toEpochMilli())
+          .startTimeIso(canaryScope.getStart().toString())
+          .endTimeMillis(canaryScope.getEnd().toEpochMilli())
+          .endTimeIso(canaryScope.getEnd().toString())
+          .stepMillis(TimeUnit.SECONDS.toMillis(canaryScope.getStep()))
           .values(Collections.emptyList());
 
-      metricSetBuilder.attribute("query", queryBuilder.toString());
+      metricSetBuilder.attribute("query", query);
 
       metricSetList.add(metricSetBuilder.build());
     }

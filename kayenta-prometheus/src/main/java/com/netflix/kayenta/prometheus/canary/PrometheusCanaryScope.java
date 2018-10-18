@@ -21,8 +21,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -30,6 +28,9 @@ public class PrometheusCanaryScope extends CanaryScope {
 
   private String project;
 
-  @NotNull
+  /**
+   * @deprecated Use resourceType on PrometheusCanaryMetricSetQueryConfig instead.
+   */
+  @Deprecated
   private String resourceType;
 }

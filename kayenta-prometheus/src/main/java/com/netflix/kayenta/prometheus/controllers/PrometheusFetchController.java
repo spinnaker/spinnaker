@@ -114,6 +114,10 @@ public class PrometheusFetchController {
         .labelBindings(labelBindings)
         .groupByFields(groupByFields);
 
+    if (!StringUtils.isEmpty(resourceType)) {
+      prometheusCanaryMetricSetQueryConfigBuilder.resourceType(resourceType);
+    }
+
     if (!StringUtils.isEmpty(customFilter)) {
       prometheusCanaryMetricSetQueryConfigBuilder.customFilter(customFilter);
     }
@@ -128,7 +132,6 @@ public class PrometheusFetchController {
     PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
     prometheusCanaryScope.setScope(scope);
     prometheusCanaryScope.setLocation(location);
-    prometheusCanaryScope.setResourceType(resourceType);
     prometheusCanaryScope.setStart(Instant.parse(start));
     prometheusCanaryScope.setEnd(Instant.parse(end));
     prometheusCanaryScope.setStep(step);
