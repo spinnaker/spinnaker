@@ -1,36 +1,45 @@
 import * as React from 'react';
-import { FormikProps } from 'formik';
+import { FieldProps } from 'formik';
 
+export type IFieldValidationStatus = 'error' | 'warning' | 'message';
+
+/** These props are used by FormField and FormikFormField components */
 export interface IFieldLayoutPropsWithoutInput extends IValidationProps {
-  label?: string | JSX.Element;
-  help?: JSX.Element;
   required?: boolean;
-  actions?: JSX.Element;
+  label?: React.ReactNode;
+  help?: React.ReactNode;
+  actions?: React.ReactNode;
 }
 
+/** These props are used by FieldLayout components, such as StandardFieldLayout */
 export interface IFieldLayoutProps extends IFieldLayoutPropsWithoutInput {
-  input: JSX.Element;
+  input: React.ReactNode;
 }
 
+/** These props are used by controlled components, such as <input> or Input components like TextInput */
+export interface IControlledInputProps {
+  value: FieldProps['field']['value'];
+  onChange: FieldProps['field']['onChange'];
+  onBlur: FieldProps['field']['onBlur'];
+  name: FieldProps['field']['name'];
+}
+
+/** These props are used by Input components, such as TextInput */
 export interface IValidationProps {
-  error?: string | JSX.Element;
   touched?: boolean;
-  warning?: string | JSX.Element;
-  preview?: string | JSX.Element;
+  validationMessage?: React.ReactNode;
+  validationStatus?: IFieldValidationStatus;
 }
 
-export interface IFieldProps<T = string> extends IFieldLayoutPropsWithoutInput, IValidationProps {
-  value: T;
-  onChange: (value: T) => void;
-  FieldLayout?: React.ComponentType<IFieldLayoutProps>;
+/** These props are used by Input components, such as TextInput */
+export interface IFormInputProps {
+  field: IControlledInputProps;
+  validation: IValidationProps;
+  inputClassName?: string;
 }
 
-export interface IFormikFieldProps extends IFieldLayoutPropsWithoutInput {
-  name: string;
-  formik: FormikProps<any>;
-  FieldLayout?: React.ComponentType<IFieldLayoutProps>;
+/** These props are used by FormFields such as FormikFormField and FormField */
+export interface ICommonFormFieldProps {
+  input: React.ComponentType<IFormInputProps>;
+  layout?: React.ComponentType<IFieldLayoutProps>;
 }
-
-export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
-// Exclude props from HTML input that collide with FormField props
-export type PartialInputProps = Omit<React.HTMLProps<HTMLInputElement>, 'label' | 'onChange' | 'value'>;
