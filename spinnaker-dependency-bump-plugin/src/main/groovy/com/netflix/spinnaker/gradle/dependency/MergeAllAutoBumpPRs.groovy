@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.gradle.dependency
 
 import org.eclipse.egit.github.core.Issue
+import org.eclipse.egit.github.core.MergeStatus
 import org.eclipse.egit.github.core.Repository
 import org.eclipse.egit.github.core.client.GitHubClient
 import org.eclipse.egit.github.core.service.IssueService
@@ -30,13 +31,21 @@ class MergeAllAutoBumpPRs extends DefaultTask {
           logger.lifecycle("Merging found PR: ${i.htmlUrl} ")
           def pr = prService.getPullRequest(upstream, i.number)
           if (pr.isMergeable()) {
-            prService.merge(upstream, i.number, "Merged with autobump tool.")
+            merge(client, upstream, i.number)
           }
-          logger.lifecycle("Merged ${i.htmlUrl}")
+          logger.lifecycle("Merged ${i.htmlUrl} successfully")
         } catch (Exception e) {
           logger.lifecycle("Error merging PR ${i.htmlUrl}: ${e.message}")
         }
       }
     }
+  }
+
+  // Need to do our own `merge` command because the built in one doesn't support squash merges.
+  // See PullRequestService.merge() for original impl.
+  MergeStatus merge(GitHubClient client, Repository repo, int pullRequestID) {
+    def uri = "/repos/spinnaker/${repo.name}/pulls/${pullRequestID}/merge"
+    def body = ["merge_method": "squash"]
+    return client.put(uri, body, MergeStatus.class)
   }
 }

@@ -20,7 +20,7 @@ class BumpDependencies extends DefaultTask {
   private static final String COMMIT_BODY =
       '''This is an automated PR! If you have any issues, please contact ttomsu@.
 
-You can merge all of these PRs using the command below and a Github access token. Generate a GH token from https://github.com/settings/tokens, and run the following:
+You can merge all of these PRs from the `spinnaker-dependencies` project using the command below and a Github access token. Generate a GH token from https://github.com/settings/tokens, and run the following:
 
 ```
 GITHUB_ACCESS_TOKEN=
