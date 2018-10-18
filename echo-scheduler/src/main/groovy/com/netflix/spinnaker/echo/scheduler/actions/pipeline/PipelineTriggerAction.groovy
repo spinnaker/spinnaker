@@ -37,7 +37,7 @@ class PipelineTriggerAction extends ActionSupport {
             def pipeline = PipelineTriggerConverter.fromParameters(pipelineCache, context.parameters)
 
             LOGGER.info("Executing PipelineTriggerAction for '${pipeline}'...")
-            pipelineInitiator.call(pipeline)
+            pipelineInitiator.startPipeline(pipeline)
             LOGGER.info("Successfully executed PipelineTriggerAction for '${pipeline}")
         } catch (Exception e) {
             LOGGER.error("Exception occurred while executing PipelineTriggerAction", e)

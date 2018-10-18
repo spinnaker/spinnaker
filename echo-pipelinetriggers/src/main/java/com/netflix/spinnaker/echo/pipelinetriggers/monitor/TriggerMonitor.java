@@ -94,7 +94,7 @@ public abstract class TriggerMonitor implements EchoEventListener {
         .map(Optional::get)
         .forEach(p -> {
           onMatchingPipeline(p);
-          pipelineInitiator.call(p);
+          pipelineInitiator.startPipeline(p);
         });
     }
   }

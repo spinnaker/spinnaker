@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 @Slf4j
-public class PipelineInitiator implements Action1<Pipeline> {
+public class PipelineInitiator {
 
   private final Registry registry;
   private final OrcaService orca;
@@ -55,8 +55,7 @@ public class PipelineInitiator implements Action1<Pipeline> {
     }
   }
 
-  @Override
-  public void call(Pipeline pipeline) {
+  public void startPipeline(Pipeline pipeline) {
     if (enabled) {
       log.info("Triggering {} due to {}", pipeline, pipeline.getTrigger());
       registry.counter("orca.requests").increment();

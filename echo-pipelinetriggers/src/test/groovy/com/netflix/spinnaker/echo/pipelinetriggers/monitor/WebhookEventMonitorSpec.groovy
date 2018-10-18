@@ -31,7 +31,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def objectMapper = new ObjectMapper()
   def pipelineCache = Mock(PipelineCache)
-  def subscriber = Mock(PipelineInitiator)
+  def pipelineInitiator = Mock(PipelineInitiator)
   def registry = new NoopRegistry()
 
   @Shared
@@ -46,7 +46,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
   ]
 
   @Subject
-  def monitor = new WebhookEventMonitor(pipelineCache, subscriber, registry)
+  def monitor = new WebhookEventMonitor(pipelineCache, pipelineInitiator, registry)
 
   def 'triggers pipelines for successful builds for webhook'() {
     given:
@@ -57,7 +57,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    1 * subscriber.call({
+    1 * pipelineInitiator.startPipeline({
       it.application == pipeline.application && it.name == pipeline.name
     })
 
@@ -78,7 +78,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    1 * subscriber.call({
+    1 * pipelineInitiator.startPipeline({
       it.trigger.type == enabledWebhookTrigger.type
     })
 
@@ -98,7 +98,7 @@ class WebhookEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    0 * subscriber._
+    0 * pipelineInitiator._
 
     where:
     trigger                                              | description

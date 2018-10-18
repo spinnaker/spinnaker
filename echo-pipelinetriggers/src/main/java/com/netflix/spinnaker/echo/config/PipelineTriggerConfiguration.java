@@ -75,8 +75,8 @@ public class PipelineTriggerConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(PubsubEventMonitor.class)
-  PubsubEventMonitor pubsubEventMonitor(PipelineCache pipelineCache, PipelineInitiator subscriber, Registry registry) {
-    return new PubsubEventMonitor(pipelineCache, subscriber, registry);
+  PubsubEventMonitor pubsubEventMonitor(PipelineCache pipelineCache, PipelineInitiator pipelineInitiator, Registry registry) {
+    return new PubsubEventMonitor(pipelineCache, pipelineInitiator, registry);
   }
 
   private <T> T bindRetrofitService(final Class<T> type, final String endpoint) {

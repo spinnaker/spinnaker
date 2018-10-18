@@ -16,11 +16,11 @@ import static com.netflix.spinnaker.echo.model.trigger.BuildEvent.Result.*
 class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
   def pipelineCache = Mock(PipelineCache)
-  def subscriber = Mock(PipelineInitiator)
+  def pipelineInitiator = Mock(PipelineInitiator)
   def registry = new NoopRegistry()
 
   @Subject
-  def monitor = new BuildEventMonitor(pipelineCache, subscriber, registry)
+  def monitor = new BuildEventMonitor(pipelineCache, pipelineInitiator, registry)
 
   @Unroll
   def "triggers pipelines for successful builds for #triggerType"() {
@@ -32,7 +32,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    1 * subscriber.call({
+    1 * pipelineInitiator.startPipeline({
       it.application == pipeline.application && it.name == pipeline.name
     })
 
@@ -52,7 +52,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    1 * subscriber.call({
+    1 * pipelineInitiator.startPipeline({
       it.trigger.type == enabledJenkinsTrigger.type
       it.trigger.master == enabledJenkinsTrigger.master
       it.trigger.job == enabledJenkinsTrigger.job
@@ -74,7 +74,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    pipelines.size() * subscriber.call(_ as Pipeline)
+    pipelines.size() * pipelineInitiator.startPipeline(_ as Pipeline)
 
     where:
     event = createBuildEventWith(SUCCESS)
@@ -97,7 +97,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    0 * subscriber._
+    0 * pipelineInitiator._
 
     where:
     result   | _
@@ -120,7 +120,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    0 * subscriber._
+    0 * pipelineInitiator._
 
     where:
     trigger                                 | description
@@ -147,7 +147,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     monitor.processEvent(objectMapper.convertValue(event, Event))
 
     then:
-    1 * subscriber.call({ it.id == goodPipeline.id })
+    1 * pipelineInitiator.startPipeline({ it.id == goodPipeline.id })
 
     where:
     trigger                                | field    | triggerType
