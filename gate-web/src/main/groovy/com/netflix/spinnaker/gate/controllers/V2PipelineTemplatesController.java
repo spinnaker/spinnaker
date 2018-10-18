@@ -25,10 +25,13 @@ import com.netflix.spinnaker.gate.controllers.PipelineTemplatesController.Pipeli
 import com.netflix.spinnaker.gate.services.PipelineTemplateService.PipelineTemplateDependent;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.gate.services.V2PipelineTemplateService;
+import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import groovy.transform.InheritConstructors;
 import io.swagger.annotations.ApiOperation;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +91,7 @@ public class V2PipelineTemplatesController {
     try {
       template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
     } catch (IllegalArgumentException e) {
-      throw new RuntimeException("Pipeline template is invalid", e);
+      throw new PipelineTemplateException("Pipeline template is invalid");
     }
 
     List<Map<String, Object>> jobs = new ArrayList<>();
@@ -124,7 +127,28 @@ public class V2PipelineTemplatesController {
   public Map update(@PathVariable String id,
                     @RequestBody Map<String, Object> pipelineTemplate,
                     @RequestParam(value = "skipPlanDependents", defaultValue = "false") boolean skipPlanDependents) {
-    return null;
+    PipelineTemplate template;
+    try {
+      template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
+    } catch (IllegalArgumentException e) {
+      throw new PipelineTemplateException("Pipeline template is invalid");
+    }
+
+    List<Map<String, Object>> jobs = new ArrayList<>();
+    Map<String, Object> job = new HashMap<>();
+    job.put("type", "updateV2PipelineTemplate");
+    job.put("id", id);
+    job.put("pipelineTemplate", encodeAsBase64(pipelineTemplate, objectMapper));
+    job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
+    job.put("skipPlanDependents", skipPlanDependents);
+    jobs.add(job);
+
+    Map<String, Object> operation = new HashMap<>();
+    operation.put("description", "Update pipeline template '" + getNameFromTemplate(template) + "'");
+    operation.put("application", getApplicationFromTemplate(template));
+    operation.put("job", jobs);
+
+    return taskService.create(operation);
   }
 
   @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
@@ -154,5 +178,19 @@ public class V2PipelineTemplatesController {
     @RequestParam(value = "recursive", required = false) boolean recursive
   ) {
     return null;
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @InheritConstructors
+  class PipelineTemplateException extends RuntimeException implements HasAdditionalAttributes {
+    Map<String, Object> additionalAttributes = Collections.EMPTY_MAP;
+
+    PipelineTemplateException(String message) {
+      super(message);
+    }
+
+    PipelineTemplateException(Map<String, Object> additionalAttributes) {
+      this.additionalAttributes = additionalAttributes;
+    }
   }
 }
