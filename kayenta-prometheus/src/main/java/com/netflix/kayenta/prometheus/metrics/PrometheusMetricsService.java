@@ -203,14 +203,24 @@ public class PrometheusMetricsService implements MetricsService {
       prometheusCanaryScope,
       new String[]{"project", "resourceType", "scope", "location"});
 
-    StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
-    queryBuilder = addScopeFilter(queryBuilder, prometheusCanaryScope, resourceType, queryConfig, customFilter);
-    queryBuilder = addAvgQuery(queryBuilder);
-    queryBuilder = addGroupByQuery(queryBuilder, queryConfig);
 
-    log.debug("query={}", queryBuilder);
+    if (!StringUtils.isEmpty(customFilter) && customFilter.startsWith("PromQL:")) {
+      String promQlExpr = customFilter.substring(7);
 
-    return queryBuilder.toString();
+      log.debug("Detected complete PromQL expression: {}", promQlExpr);
+
+      return promQlExpr;
+    } else {
+      StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
+
+      queryBuilder = addScopeFilter(queryBuilder, prometheusCanaryScope, resourceType, queryConfig, customFilter);
+      queryBuilder = addAvgQuery(queryBuilder);
+      queryBuilder = addGroupByQuery(queryBuilder, queryConfig);
+
+      log.debug("query={}", queryBuilder);
+
+      return queryBuilder.toString();
+    }
   }
 
   @Override
