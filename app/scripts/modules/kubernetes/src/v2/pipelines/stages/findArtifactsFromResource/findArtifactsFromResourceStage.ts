@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { Registry, SETTINGS } from '@spinnaker/core';
+import { Registry, SETTINGS, ExecutionDetailsTasks, ExecutionArtifactTab } from '@spinnaker/core';
 
 import { KubernetesV2FindArtifactsFromResourceConfigCtrl } from './findArtifactsFromResourceConfig.controller';
 import { KUBERNETES_MANIFEST_SELECTOR } from '../../../manifest/selector/selector.component';
@@ -20,6 +20,7 @@ module(KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE, [KUBERNETES_MANIFEST_SELEC
         templateUrl: require('./findArtifactsFromResourceConfig.html'),
         controller: 'KubernetesV2FindArtifactsFromResourceConfigCtrl',
         controllerAs: 'ctrl',
+        executionDetailsSections: [ExecutionDetailsTasks, ExecutionArtifactTab],
         producesArtifacts: true,
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
