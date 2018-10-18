@@ -1,11 +1,17 @@
-apply plugin: 'spinnaker.application'
+apply plugin: 'org.springframework.boot'
+// Applying the spring-boot plugin pulls in a newer version of jedis that we can't use yet. The
+// other ways to override versions (namely the subprojects.configurations.all.resolutionStrategy in
+// build.gradle) didn't work.
+ext['jedis.version'] = spinnaker.version('jedis')
+
+apply plugin: 'spinnaker.package'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
-mainClassName = 'com.netflix.spinnaker.clouddriver.Main'
-run {
+tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
 
@@ -17,6 +23,7 @@ configurations.all {
 
 repositories {
   maven { url "http://adxsnapshots.azurewebsites.net" }
+  maven { url 'https://dl.bintray.com/netflixoss' }
 }
 
 dependencies {
@@ -44,4 +51,6 @@ dependencies {
     runtime project(":${it}")
   }
 }
+
+tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
 

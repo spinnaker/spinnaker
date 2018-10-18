@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will build the project.
 
-GRADLE="./gradlew -I gradle/init-publish.gradle --no-daemon --max-workers=1"
+GRADLE="./gradlew --no-daemon --max-workers=1"
 export GRADLE_OPTS="-Xmx1g -Xms1g"
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
