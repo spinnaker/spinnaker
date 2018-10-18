@@ -41,6 +41,7 @@ import java.util.*;
 abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> implements SidecarService {
   protected final String CONFIG_OUTPUT_PATH = "/opt/spinnaker-monitoring/config/";
   protected final String REGISTRY_OUTPUT_PATH = "/opt/spinnaker-monitoring/registry/";
+  protected final String FILTERS_OUTPUT_PATH = "/opt/spinnaker-monitoring/filters/";
 
   @Autowired
   SpinnakerMonitoringDaemonProfileFactory spinnakerMonitoringDaemonProfileFactory;
@@ -130,6 +131,9 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
 
   @Override
   protected Optional<String> customProfileOutputPath(String profileName) {
+    if ("monitoring-daemon/filters/default.yml".equalsIgnoreCase(profileName)) {
+      return Optional.of(Paths.get(FILTERS_OUTPUT_PATH ,"default.yml").toString());
+    }
     return Optional.empty();
   }
 }
