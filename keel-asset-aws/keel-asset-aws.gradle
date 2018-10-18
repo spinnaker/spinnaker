@@ -1,7 +1,0 @@
-dependencies {
-  compile project(":keel-asset")
-
-  compile spinnaker.dependency('awsObjectMapper')
-
-  testCompile project(":keel-test")
-}

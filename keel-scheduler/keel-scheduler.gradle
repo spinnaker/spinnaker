@@ -1,9 +1,0 @@
-dependencies {
-  compile project(":keel-core")
-  compile project(":keel-orca")
-  compile("com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion") {
-    exclude module: "kork-core"
-  }
-
-  testCompile project(":keel-test")
-}

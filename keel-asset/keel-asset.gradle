@@ -1,7 +1,0 @@
-dependencies {
-  compile project(":keel-core")
-  compile project(":keel-front50")
-  compile project(":keel-clouddriver")
-
-  testCompile project(":keel-test")
-}
