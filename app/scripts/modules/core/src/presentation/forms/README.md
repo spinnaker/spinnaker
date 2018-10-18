@@ -49,12 +49,12 @@ It accepts "all the props", organizes them, and passes them down to the Input an
 
 - `input`: the Input component to use (see Input section below for details)
 - `layout`: the (optional) Layout component to use. (see Layout section for details. `StandardFieldLayout` is used by default)
+- `validate`: the (optional) formik [field validation function](https://jaredpalmer.com/formik/docs/api/field#validate) which receives the value and should return an error message, or a promise (for async)
 - `name`: the path to the field's value in the formik `values`
 - `label`, `help`, `required`, `actions` (see `IFieldLayoutPropsWithoutInput`)
 - `touched`, `validationMessage`, `validationStatus` (see: `IValidationProps`)
 
-A field validation function can be attached directly to the `FormikFormField` component via the `validate` prop,
-or the field can be validated at the form level using the `Formik` component's `validate` prop.
+In addition to the `validate` prop, the field can also be validated at the form level using the `Formik` component's `validate` prop.
 
 ### Form level validation Example:
 
@@ -84,8 +84,8 @@ This example shows validation of a formik field using the `Formik` component's `
 
 # FormField
 
-`FormField` is a component used to render form fields in Spinnaker
-using externally managed form state and validation.
+`FormField` is a [controlled component](https://reactjs.org/docs/forms.html#controlled-components)
+used to render form fields in Spinnaker using externally managed form state and validation.
 
 ### TL;DR Example:
 
@@ -130,6 +130,7 @@ The props accepted by FormField are:
 
 - `input`: the Input component to use
 - `layout`: the Layout component to use. (optional, `StandardFieldLayout` is used by default)
+- `validate`: an (optional) validation function which receives the value and should return an error message
 - `label`, `help`, `required`, `actions` (see `IFieldLayoutPropsWithoutInput`)
 - `name`, `value`, `onChange`, `onBlur`, (see `IControlledInputProps`)
 - `touched`, `validationMessage`, `validationStatus` (see: `IValidationProps`)
