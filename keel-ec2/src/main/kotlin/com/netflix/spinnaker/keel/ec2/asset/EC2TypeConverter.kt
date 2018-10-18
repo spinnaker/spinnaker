@@ -33,7 +33,11 @@ class EC2TypeConverter(
         builder.region = securityGroup.region
         builder.vpcName = securityGroup.vpcId?.let { cloudDriverCache.networkBy(it).name }
         builder.description = securityGroup.description
-        securityGroup.inboundRules.forEach { rule ->
+        securityGroup.inboundRules
+          .flatMap { rule ->
+            rule.portRanges?.map { rule to it } ?: listOf(rule to null)
+          }
+          .forEach { (rule, portRange) ->
           builder.addInboundRule(
             SecurityGroupRule.newBuilder().also { builder ->
               val referencedGroup = rule.securityGroup
@@ -42,9 +46,7 @@ class EC2TypeConverter(
                 referencedGroup != null && (referencedGroup.vpcId == securityGroup.vpcId && referencedGroup.name == securityGroup.name) -> {
                   builder.selfReferencingRuleBuilder.also { ruleBuilder ->
                     ruleBuilder.protocol = rule.protocol
-                    rule.portRanges?.forEach {
-                      ruleBuilder.addPortRange(it.toProto())
-                    }
+                    ruleBuilder.portRange = portRange?.toProto()
                   }
                 }
                 referencedGroup != null && (referencedGroup.accountName != securityGroup.accountName || referencedGroup.region != securityGroup.region) -> {
@@ -53,26 +55,20 @@ class EC2TypeConverter(
                     ruleBuilder.account = referencedGroup.accountName
                     ruleBuilder.vpcName = referencedGroup.vpcId?.let { cloudDriverCache.networkBy(it).name }
                     ruleBuilder.name = referencedGroup.name
-                    rule.portRanges?.forEach {
-                      ruleBuilder.addPortRange(it.toProto())
-                    }
+                    ruleBuilder.portRange = portRange?.toProto()
                   }
                 }
                 referencedGroup != null -> {
                   builder.referenceRuleBuilder.also { ruleBuilder ->
                     ruleBuilder.protocol = rule.protocol
                     ruleBuilder.name = referencedGroup.name
-                    rule.portRanges?.forEach {
-                      ruleBuilder.addPortRange(it.toProto())
-                    }
+                    ruleBuilder.portRange = portRange?.toProto()
                   }
                 }
                 cidrRange != null -> {
                   builder.cidrRuleBuilder.also { ruleBuilder ->
                     ruleBuilder.protocol = rule.protocol
-                    rule.portRanges?.forEach {
-                      ruleBuilder.addPortRange(it.toProto())
-                    }
+                    ruleBuilder.portRange = portRange?.toProto()
                     ruleBuilder.blockRange = cidrRange.ip + cidrRange.cidr
                   }
                 }

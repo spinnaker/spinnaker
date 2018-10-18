@@ -99,9 +99,9 @@ class AmazonSecurityGroupHandler(
             "vpcId" to spec.vpcName,
             "description" to spec.description,
             "securityGroupIngress" to portRangeRuleToJob(spec),
-            "ipIngress" to spec.inboundRuleList.filter { it.hasCidrRule() }.flatMap {
-              convertCidrRuleToJob(it)
-            },
+            "ipIngress" to spec.inboundRuleList
+              .filter { it.hasCidrRule() }
+              .flatMap { convertCidrRuleToJob(it) },
             // TODO rz - egress
             "accountName" to spec.accountName
           )
@@ -132,13 +132,13 @@ class AmazonSecurityGroupHandler(
     return spec
       .inboundRuleList
       .filter { it.hasReferenceRule() || it.hasSelfReferencingRule() }
-      .flatMap { rule ->
+      .mapNotNull { rule ->
         when {
-          rule.hasReferenceRule() -> rule.referenceRule.portRangeList
-          rule.hasSelfReferencingRule() -> rule.selfReferencingRule.portRangeList
-          else -> emptyList()
+          rule.hasReferenceRule() -> rule.referenceRule.portRange
+          rule.hasSelfReferencingRule() -> rule.selfReferencingRule.portRange
+          else -> null
         }
-          .map { Pair(rule, it) }
+          .let { if (it != null) Pair(rule, it) else null }
       }
       .map { (rule, ports) ->
         mutableMapOf<String, Any?>(
@@ -169,13 +169,13 @@ typealias JobRules = List<MutableMap<String, Any?>>
 
 private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
   when {
-    rule.hasCidrRule() -> rule.cidrRule.portRangeList.map { ports ->
-      mutableMapOf(
+    rule.hasCidrRule() -> rule.cidrRule.portRange.let { ports ->
+      listOf(mutableMapOf(
         "type" to rule.protocol,
         "startPort" to ports.startPort,
         "endPort" to ports.endPort,
         "cidr" to rule.cidrRule.blockRange
-      )
+      ))
     }
     else -> emptyList()
   }

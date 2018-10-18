@@ -14,10 +14,9 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
-import strikt.api.expect
 import strikt.api.expectThat
+import strikt.assertions.all
 import strikt.assertions.any
-import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
@@ -45,13 +44,8 @@ internal object EC2TypeConverterSpec : Spek({
         expectThat(proto.inboundRuleList.first()) {
           get { hasSelfReferencingRule() }.isTrue()
           get { selfReferencingRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
-          get { selfReferencingRule.portRangeList } and {
-            hasSize(1)
-            first() and {
-              get { startPort }.isEqualTo(6565)
-              get { endPort }.isEqualTo(6565)
-            }
-          }
+          get { selfReferencingRule.portRange.startPort }.isEqualTo(6565)
+          get { selfReferencingRule.portRange.endPort }.isEqualTo(6565)
         }
       }
     }
@@ -66,22 +60,21 @@ internal object EC2TypeConverterSpec : Spek({
       val proto = subject.toProto(riverModel)
 
       it("maps inbound rules") {
-        expectThat(proto.inboundRuleList.first()) {
-          get { hasReferenceRule() }.isTrue()
-          get { referenceRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
-          get { referenceRule.name }.isEqualTo(riverModel.inboundRules.first().securityGroup?.name)
-          get { referenceRule.portRangeList } and {
-            hasSize(2)
-            any {
-              get { startPort }.isEqualTo(7001)
-              get { endPort }.isEqualTo(7001)
-            }
-            any {
-              get { startPort }.isEqualTo(7002)
-              get { endPort }.isEqualTo(7002)
-            }
+        expectThat(proto.inboundRuleList)
+          .hasSize(2)
+          .all {
+            get { hasReferenceRule() }.isTrue()
+            get { referenceRule.protocol }.isEqualTo(riverModel.inboundRules.first().protocol)
+            get { referenceRule.name }.isEqualTo(riverModel.inboundRules.first().securityGroup?.name)
           }
-        }
+          .any {
+            get { referenceRule.portRange.startPort }.isEqualTo(7001)
+            get { referenceRule.portRange.endPort }.isEqualTo(7001)
+          }
+          .any {
+            get { referenceRule.portRange.startPort }.isEqualTo(7002)
+            get { referenceRule.portRange.endPort }.isEqualTo(7002)
+          }
       }
     }
 
@@ -109,14 +102,10 @@ internal object EC2TypeConverterSpec : Spek({
         expectThat(proto.inboundRuleList.first()) {
           get { cidrRule.blockRange }.isEqualTo("104.24.115.229/24")
           get { cidrRule.protocol }.isEqualTo("-1")
-          get { cidrRule.portRangeList } and {
-            hasSize(1)
-            first().get { startPort }.isEqualTo(-1)
-            first().get { endPort }.isEqualTo(-1)
-          }
+          get { cidrRule.portRange.startPort }.isEqualTo(-1)
+          get { cidrRule.portRange.endPort }.isEqualTo(-1)
         }
       }
     }
   }
-
 })

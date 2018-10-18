@@ -26,7 +26,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.CidrRule
 import com.netflix.spinnaker.keel.ec2.EC2AssetPlugin
-import com.netflix.spinnaker.keel.ec2.PortRange
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.ec2.SecurityGroup
@@ -207,12 +206,10 @@ internal object EC2AssetPluginSpec : Spek({
               SecurityGroupRule.newBuilder().apply {
                 selfReferencingRuleBuilder.apply {
                   protocol = "tcp"
-                  addPortRange(
-                    PortRange.newBuilder().apply {
-                      startPort = port
-                      endPort = port
-                    }
-                  )
+                  portRangeBuilder.apply {
+                    startPort = port
+                    endPort = port
+                  }
                 }
               }
             )
@@ -227,8 +224,8 @@ internal object EC2AssetPluginSpec : Spek({
             securityGroupWithRules.inboundRuleList.reversed().map { rule ->
               com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRule(
                 rule.selfReferencingRule.protocol,
-                rule.selfReferencingRule.portRangeList.reversed().map {
-                  com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort)
+                rule.selfReferencingRule.portRange?.let {
+                  listOf(com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort))
                 },
                 com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleReference(name, accountName, region, vpc.id),
                 null
@@ -283,10 +280,10 @@ internal object EC2AssetPluginSpec : Spek({
             ReferenceRule.newBuilder().apply {
               protocol = "tcp"
               name = "otherapp"
-              addPortRange(PortRange.newBuilder().apply {
+              portRangeBuilder.apply {
                 startPort = 8080
                 endPort = 8081
-              })
+              }
             }
           ))
         }
@@ -352,10 +349,10 @@ internal object EC2AssetPluginSpec : Spek({
               CidrRule.newBuilder().apply {
                 protocol = "tcp"
                 blockRange = "10.0.0.0/16"
-                addPortRange(PortRange.newBuilder().apply {
+                portRangeBuilder.apply {
                   startPort = 443
                   endPort = 443
-                })
+                }
               }
             ))
           }

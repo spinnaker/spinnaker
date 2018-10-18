@@ -46,7 +46,7 @@ object ReferenceRuleComparator : Comparator<ReferenceRule> {
       .start()
       .compare(a?.protocol, b?.protocol, nullsFirst())
       .compare(a?.name, b?.name, nullsFirst())
-      .compare(a?.portRangeList, b?.portRangeList, nullsFirst(Ordering.from<PortRange>(PortRangeComparator).lexicographical<PortRange>()))
+      .compare(a?.portRange, b?.portRange, nullsFirst(Ordering.from(PortRangeComparator)))
       .result()
 }
 
@@ -58,7 +58,7 @@ object CrossRegionReferenceRuleComparator : Comparator<CrossRegionReferenceRule>
       .compare(a?.account, b?.account, nullsFirst())
       .compare(a?.vpcName, b?.vpcName, nullsFirst())
       .compare(a?.name, b?.name, nullsFirst())
-      .compare(a?.portRangeList, b?.portRangeList, nullsFirst(Ordering.from<PortRange>(PortRangeComparator).lexicographical<PortRange>()))
+      .compare(a?.portRange, b?.portRange, nullsFirst(Ordering.from(PortRangeComparator)))
       .result()
 }
 
@@ -67,7 +67,7 @@ object SelfReferencingRuleComparator : Comparator<SelfReferencingRule> {
     ComparisonChain
       .start()
       .compare(a?.protocol, b?.protocol, nullsFirst())
-      .compare(a?.portRangeList, b?.portRangeList, nullsFirst(Ordering.from<PortRange>(PortRangeComparator).lexicographical<PortRange>()))
+      .compare(a?.portRange, b?.portRange, nullsFirst(Ordering.from(PortRangeComparator)))
       .result()
 }
 
@@ -77,7 +77,7 @@ object CidrRuleComparator : Comparator<CidrRule> {
       .start()
       .compare(a?.protocol, b?.protocol, nullsFirst())
       .compare(a?.blockRange, b?.blockRange, nullsFirst())
-      .compare(a?.portRangeList, b?.portRangeList, nullsFirst(Ordering.from<PortRange>(PortRangeComparator).lexicographical<PortRange>()))
+      .compare(a?.portRange, b?.portRange, nullsFirst(Ordering.from(PortRangeComparator)))
       .result()
 }
 
@@ -114,66 +114,7 @@ private fun SecurityGroup.canonicalize(): SecurityGroup {
     .newBuilder(this).apply {
       clearInboundRule()
       originalInboundRuleList.sortedWith(SecurityGroupRuleComparator).forEach { originalRule ->
-        addInboundRule(originalRule.toBuilder().apply {
-          when {
-            hasReferenceRule() ->
-              referenceRule = referenceRule.canonicalize()
-            hasCrossRegionReferenceRule() ->
-              crossRegionReferenceRule = crossRegionReferenceRule.canonicalize()
-            hasSelfReferencingRule() ->
-              selfReferencingRule = selfReferencingRule.canonicalize()
-            hasCidrRule() ->
-              cidrRule = cidrRule.canonicalize()
-          }
-        }.build())
-      }
-    }
-    .build()
-}
-
-private fun ReferenceRule.canonicalize(): ReferenceRule {
-  val originalPortRangeList = portRangeList
-  return toBuilder()
-    .apply {
-      clearPortRange()
-      originalPortRangeList.sortedWith(PortRangeComparator).forEach {
-        addPortRange(it)
-      }
-    }
-    .build()
-}
-
-private fun CrossRegionReferenceRule.canonicalize(): CrossRegionReferenceRule {
-  val originalPortRangeList = portRangeList
-  return toBuilder()
-    .apply {
-      clearPortRange()
-      originalPortRangeList.sortedWith(PortRangeComparator).forEach {
-        addPortRange(it)
-      }
-    }
-    .build()
-}
-
-private fun SelfReferencingRule.canonicalize(): SelfReferencingRule {
-  val originalPortRangeList = portRangeList
-  return toBuilder()
-    .apply {
-      clearPortRange()
-      originalPortRangeList.sortedWith(PortRangeComparator).forEach {
-        addPortRange(it)
-      }
-    }
-    .build()
-}
-
-private fun CidrRule.canonicalize(): CidrRule {
-  val originalPortRangeList = portRangeList
-  return toBuilder()
-    .apply {
-      clearPortRange()
-      originalPortRangeList.sortedWith(PortRangeComparator).forEach {
-        addPortRange(it)
+        addInboundRule(originalRule)
       }
     }
     .build()

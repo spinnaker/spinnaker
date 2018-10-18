@@ -31,27 +31,27 @@ message SecurityGroupRule {
 }
 
 message ReferenceRule {
-  repeated PortRange portRange = 1;
-  string protocol = 2; // TODO: enum
-  string name = 3;
+  string protocol = 1; // TODO: enum
+  string name = 2;
+  PortRange portRange = 3;
 }
 
 message CrossRegionReferenceRule {
-  repeated PortRange portRange = 1;
-  string protocol = 2; // TODO: enum
-  string name = 3;
-  string account = 4;
-  string vpcName = 5;
+  string protocol = 1; // TODO: enum
+  string name = 2;
+  string account = 3;
+  string vpcName = 4;
+  PortRange portRange = 5;
 }
 
 message SelfReferencingRule {
-  repeated PortRange portRange = 1;
-  string protocol = 2; // TODO: enum
+  string protocol = 1; // TODO: enum
+  PortRange portRange = 2;
 }
 
 message CidrRule {
   string protocol = 1; // TODO: enum
-  repeated PortRange portRange = 2;
+  PortRange portRange = 2;
   string blockRange = 3;
 }
 

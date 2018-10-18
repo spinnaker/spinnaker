@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.model
 
-import com.netflix.spinnaker.keel.ec2.PortRange
 import com.netflix.spinnaker.keel.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.grpc.fromProto
@@ -58,29 +57,27 @@ internal class AssetTests {
         SecurityGroupRule.newBuilder().apply {
           selfReferencingRuleBuilder.apply {
             protocol = "tcp"
-            addPortRange(PortRange.newBuilder().apply {
+            portRangeBuilder.apply {
               startPort = 6565
               endPort = 6565
-            })
+            }
           }
         }
       )
-      addInboundRule(
-        SecurityGroupRule.newBuilder().apply {
-          referenceRuleBuilder.apply {
-            name = "keel-elb"
-            protocol = "tcp"
-            addPortRange(PortRange.newBuilder().apply {
-              startPort = 7001
-              endPort = 7001
-            })
-            addPortRange(PortRange.newBuilder().apply {
-              startPort = 7002
-              endPort = 7002
-            })
+      listOf(7001, 7002).forEach { port ->
+        addInboundRule(
+          SecurityGroupRule.newBuilder().apply {
+            referenceRuleBuilder.apply {
+              name = "keel-elb"
+              protocol = "tcp"
+              portRangeBuilder.apply {
+                startPort = port
+                endPort = port
+              }
+            }
           }
-        }
-      )
+        )
+      }
       build().pack()
     }
 
