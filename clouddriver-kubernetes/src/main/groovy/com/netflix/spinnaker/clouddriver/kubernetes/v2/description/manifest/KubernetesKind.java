@@ -54,8 +54,8 @@ public class KubernetesKind {
   public static KubernetesKind POD_SECURITY_POLICY = new KubernetesKind("podSecurityPolicy");
   public static KubernetesKind POD_DISRUPTION_BUDGET = new KubernetesKind("podDisruptionBudget");
   public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs", true, true);
-  public static KubernetesKind ROLE = new KubernetesKind("role", false);
-  public static KubernetesKind ROLE_BINDING = new KubernetesKind("roleBinding", false);
+  public static KubernetesKind ROLE = new KubernetesKind("role", true);
+  public static KubernetesKind ROLE_BINDING = new KubernetesKind("roleBinding", true);
   public static KubernetesKind SECRET = new KubernetesKind("secret");
   public static KubernetesKind SERVICE = new KubernetesKind("service", "svc", true, true);
   public static KubernetesKind SERVICE_ACCOUNT = new KubernetesKind("serviceAccount", "sa");
