@@ -291,7 +291,7 @@ class OperationsController {
   private Map<String, String> markPipelineFailed(Map config, Exception e) {
     injectPipelineOrigin(config)
     def json = objectMapper.writeValueAsString(config)
-    log.info('requested pipeline: {}', json)
+    log.warn('requested pipeline marked as failed: {}', json)
 
     def pipeline = executionLauncher.fail(PIPELINE, json, e)
 
