@@ -27,6 +27,7 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -34,7 +35,6 @@ import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import rx.functions.Action1;
 
 /**
  * Triggers pipelines in _Orca_ when a trigger-enabled pubsub message arrives.
@@ -45,9 +45,9 @@ public class PubsubEventMonitor extends TriggerMonitor {
   public static final String PUBSUB_TRIGGER_TYPE = "pubsub";
 
   public PubsubEventMonitor(@NonNull PipelineCache pipelineCache,
-                            @NonNull Action1<Pipeline> subscriber,
+                            @NonNull PipelineInitiator pipelineInitiator,
                             @NonNull Registry registry) {
-    super(pipelineCache, subscriber, registry);
+    super(pipelineCache, pipelineInitiator, registry);
   }
 
   @Override

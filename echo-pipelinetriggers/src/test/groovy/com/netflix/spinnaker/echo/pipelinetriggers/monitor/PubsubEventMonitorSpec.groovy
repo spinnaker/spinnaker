@@ -24,12 +24,11 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import groovy.json.JsonOutput
-import rx.Observable
-import rx.functions.Action1
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,7 +37,7 @@ import spock.lang.Unroll
 class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
   def pipelineCache = Mock(PipelineCache)
-  def subscriber = Mock(Action1)
+  def subscriber = Mock(PipelineInitiator)
   def registry = new NoopRegistry()
 
   @Shared

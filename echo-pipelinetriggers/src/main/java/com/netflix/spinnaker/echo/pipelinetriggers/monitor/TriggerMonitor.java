@@ -25,6 +25,7 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,6 @@ import java.util.regex.Pattern;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import rx.functions.Action1;
 
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
@@ -44,7 +44,7 @@ import rx.functions.Action1;
 @Component
 @Slf4j
 public abstract class TriggerMonitor implements EchoEventListener {
-  protected final Action1<Pipeline> subscriber;
+  protected final PipelineInitiator pipelineInitiator;
   protected final Registry registry;
   protected final ObjectMapper objectMapper = new ObjectMapper();
   protected final PipelineCache pipelineCache;
@@ -58,9 +58,9 @@ public abstract class TriggerMonitor implements EchoEventListener {
   }
 
   public TriggerMonitor(@NonNull PipelineCache pipelineCache,
-                        @NonNull Action1<Pipeline> subscriber,
+                        @NonNull PipelineInitiator pipelineInitiator,
                         @NonNull Registry registry) {
-    this.subscriber = subscriber;
+    this.pipelineInitiator = pipelineInitiator;
     this.registry = registry;
     this.pipelineCache = pipelineCache;
   }
@@ -94,7 +94,7 @@ public abstract class TriggerMonitor implements EchoEventListener {
         .map(Optional::get)
         .forEach(p -> {
           onMatchingPipeline(p);
-          subscriber.call(p);
+          pipelineInitiator.call(p);
         });
     }
   }

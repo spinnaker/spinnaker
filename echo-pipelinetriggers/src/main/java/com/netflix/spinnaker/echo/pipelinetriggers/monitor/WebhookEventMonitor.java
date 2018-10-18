@@ -26,6 +26,7 @@ import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +37,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.functions.Action1;
 
 @Component @Slf4j
 public class WebhookEventMonitor extends TriggerMonitor {
@@ -48,9 +48,9 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
   @Autowired
   public WebhookEventMonitor(@NonNull PipelineCache pipelineCache,
-                             @NonNull Action1<Pipeline> subscriber,
+                             @NonNull PipelineInitiator pipelineInitiator,
                              @NonNull Registry registry) {
-    super(pipelineCache, subscriber, registry);
+    super(pipelineCache, pipelineInitiator, registry);
   }
 
   @Override

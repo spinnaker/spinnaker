@@ -25,6 +25,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +36,6 @@ import lombok.NonNull;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.functions.Action1;
 
 @Component
 public class DockerEventMonitor extends TriggerMonitor {
@@ -44,9 +44,9 @@ public class DockerEventMonitor extends TriggerMonitor {
 
   @Autowired
   public DockerEventMonitor(@NonNull PipelineCache pipelineCache,
-                            @NonNull Action1<Pipeline> subscriber,
+                            @NonNull PipelineInitiator pipelineInitiator,
                             @NonNull Registry registry) {
-    super(pipelineCache, subscriber, registry);
+    super(pipelineCache, pipelineInitiator, registry);
   }
 
   @Override

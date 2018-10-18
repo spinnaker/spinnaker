@@ -25,6 +25,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,6 @@ import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.functions.Action1;
 
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
@@ -51,9 +51,9 @@ public class GitEventMonitor extends TriggerMonitor {
 
   @Autowired
   public GitEventMonitor(@NonNull PipelineCache pipelineCache,
-                         @NonNull Action1<Pipeline> subscriber,
+                         @NonNull PipelineInitiator pipelineInitiator,
                          @NonNull Registry registry) {
-    super(pipelineCache, subscriber, registry);
+    super(pipelineCache, pipelineInitiator, registry);
   }
 
   @Override

@@ -21,9 +21,8 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
 import com.netflix.spinnaker.echo.test.RetrofitStubs
-import rx.Observable
-import rx.functions.Action1
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -31,7 +30,7 @@ import spock.lang.Unroll
 class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
   def pipelineCache = Mock(PipelineCache)
-  def subscriber = Mock(Action1)
+  def subscriber = Mock(PipelineInitiator)
   def registry = new NoopRegistry()
 
   @Subject

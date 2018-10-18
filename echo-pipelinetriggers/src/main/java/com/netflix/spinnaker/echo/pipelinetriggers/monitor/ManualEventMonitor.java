@@ -23,6 +23,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.ManualEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import rx.functions.Action1;
 
 /**
  * Triggers pipelines in _Orca_ when a user manually starts a pipeline.
@@ -55,9 +55,9 @@ public class ManualEventMonitor extends TriggerMonitor {
   }
 
   public ManualEventMonitor(@NonNull PipelineCache pipelineCache,
-    @NonNull Action1<Pipeline> subscriber,
+    @NonNull PipelineInitiator pipelineInitiator,
     @NonNull Registry registry) {
-    super(pipelineCache, subscriber, registry);
+    super(pipelineCache, pipelineInitiator, registry);
   }
 
   @Override
