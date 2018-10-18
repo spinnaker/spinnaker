@@ -75,6 +75,10 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
     return "spinnaker-monitoring.yml";
   }
 
+  private static String defaultFilterProfileName() {
+    return "monitoring-daemon/filters/default.yml";
+  }
+
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> results = new ArrayList<>();
@@ -107,6 +111,12 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
 
     profile = monitoringProfiles.get(monitoringProfileName());
     result.add(profile);
+
+    profile = monitoringProfiles.get(defaultFilterProfileName());
+    if (profile != null) {
+      result.add(profile);
+    }
+
     return result;
   }
 
@@ -131,7 +141,7 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
 
   @Override
   protected Optional<String> customProfileOutputPath(String profileName) {
-    if ("monitoring-daemon/filters/default.yml".equalsIgnoreCase(profileName)) {
+    if (defaultFilterProfileName().equalsIgnoreCase(profileName)) {
       return Optional.of(Paths.get(FILTERS_OUTPUT_PATH ,"default.yml").toString());
     }
     return Optional.empty();
