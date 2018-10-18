@@ -76,7 +76,15 @@ public class V2PipelineTemplateController {
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
   PipelineTemplate update(@PathVariable String id, @RequestBody PipelineTemplate pipelineTemplate) {
-    return null;
+    PipelineTemplate existingPipelineTemplate = getPipelineTemplateDAO().findById(id);
+    if (!pipelineTemplate.getId().equals(existingPipelineTemplate.getId())) {
+      throw new InvalidRequestException("The provided id " + id + " doesn't match the pipeline template id " + pipelineTemplate.getId());
+    }
+
+    pipelineTemplate.setLastModified(System.currentTimeMillis());
+    getPipelineTemplateDAO().update(id, pipelineTemplate);
+
+    return pipelineTemplate;
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
@@ -84,19 +92,43 @@ public class V2PipelineTemplateController {
   }
 
   @RequestMapping(value = "{id}/dependentPipelines", method = RequestMethod.GET)
-  List<Pipeline> listDependentPipelines(@PathVariable String id,
-    @RequestParam(required = false, value = "recursive", defaultValue = "false") boolean recursive) {
-    return null;
+  List<Pipeline> listDependentPipelines(@PathVariable String id) {
+    List<String> dependentConfigsIds = getDependentConfigs(id);
+
+    return pipelineDAO.all()
+      .stream()
+      .filter(pipeline -> dependentConfigsIds.contains(pipeline.getId()))
+      .collect(Collectors.toList());
   }
 
   @VisibleForTesting
-  List<String> getDependentConfigs(String templateId, boolean recursive) {
-    return null;
+  List<String> getDependentConfigs(String templateId) {
+    List<String> dependentConfigIds = new ArrayList<>();
+
+    pipelineDAO.all()
+      .stream()
+      .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals(TYPE_TEMPLATED))
+      .forEach(templatedPipeline -> {
+        String source;
+        try {
+          TemplateConfiguration config =
+            objectMapper.convertValue(templatedPipeline.getConfig(), TemplateConfiguration.class);
+
+          source = config.getPipeline().getTemplate().getSource();
+        } catch (Exception e) {
+          return;
+        }
+
+        if (source != null && source.equalsIgnoreCase(templateId)) {
+          dependentConfigIds.add(templatedPipeline.getId());
+        }
+      });
+    return dependentConfigIds;
   }
 
   @VisibleForTesting
-  void checkForDependentConfigs(String templateId, boolean recursive) {
-    List<String> dependentConfigIds = getDependentConfigs(templateId, recursive);
+  void checkForDependentConfigs(String templateId) {
+    List<String> dependentConfigIds = getDependentConfigs(templateId);
     if (dependentConfigIds.size() != 0) {
       throw new InvalidRequestException("The following pipeline configs"
         + " depend on this template: " + String.join(", ", dependentConfigIds));
