@@ -146,7 +146,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .collect(Collectors.toSet())
         .stream()
         .map(id -> {
-          TemplatedResource volume = new JinjaJarResource("/kubernetes/manifests/volume.yml");
+          TemplatedResource volume = new JinjaJarResource("/kubernetes/manifests/secretVolume.yml");
           volume.addBinding("name", id);
           return volume.toString();
         }).collect(Collectors.toList());
@@ -246,7 +246,9 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     TemplatedResource container = new JinjaJarResource("/kubernetes/manifests/container.yml");
     container.addBinding("name", name);
     container.addBinding("imageId", settings.getArtifactId());
-    container.addBinding("port", settings.getPort());
+    TemplatedResource port = new JinjaJarResource("/kubernetes/manifests/port.yml");
+    port.addBinding("port", settings.getPort());
+    container.addBinding("port", port.toString());
     container.addBinding("volumeMounts", volumeMounts);
     container.addBinding("probe", probe.toString());
     container.addBinding("lifecycle", lifecycle);

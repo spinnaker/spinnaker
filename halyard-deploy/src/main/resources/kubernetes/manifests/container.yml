@@ -3,9 +3,7 @@
 
   "image": "{{ imageId }}",
 
-  "ports": [{
-    "containerPort": {{ port }}
-  }],
+  "ports": [{{ port }}],
 
   "readinessProbe": {{ probe }},
 
