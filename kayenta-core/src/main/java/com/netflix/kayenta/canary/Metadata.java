@@ -15,12 +15,11 @@
  */
 package com.netflix.kayenta.canary;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.*;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Metadata {
   @Getter
   @NonNull
@@ -33,6 +32,5 @@ public class Metadata {
   // 'hidden' is a UI-hint to show or not show this value by default in the UI,
   // likely in a generic way.
   @Getter
-  @Builder.Default
   protected Boolean hidden = false;
 }
