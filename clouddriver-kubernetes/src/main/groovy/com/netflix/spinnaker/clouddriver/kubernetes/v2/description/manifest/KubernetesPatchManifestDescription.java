@@ -36,7 +36,7 @@ public class KubernetesPatchManifestDescription extends KubernetesAtomicOperatio
   // This will only be a portion of a full manifest so calls to some required fields can fail.
   // Using the KubernetesManifest type makes it simpler to reuse the ArtifactReplacement logic.
   // TODO: change Orca to only send a single manifest.
-  private KubernetesManifest patchBody;
+  private Object patchBody;
   private List<Artifact> requiredArtifacts;
   private List<Artifact> allArtifacts;
   private Artifact manifestArtifact;

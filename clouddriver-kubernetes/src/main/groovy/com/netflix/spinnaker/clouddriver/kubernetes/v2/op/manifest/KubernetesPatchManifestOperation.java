@@ -16,13 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.ReplaceResult;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions.MergeStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesPatchManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
@@ -30,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,6 +49,9 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
   private final KubernetesResourcePropertyRegistry registry;
   private final String accountName;
   private static final String OP_NAME = "PATCH_KUBERNETES_MANIFEST";
+
+  @Autowired
+  private ObjectMapper objectMapper;
 
   public KubernetesPatchManifestOperation(KubernetesPatchManifestDescription description,
     KubernetesResourcePropertyRegistry registry) {
@@ -64,15 +73,26 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
     updateStatus("Finding patch handler for " + objToPatch + "...");
     KubernetesHandler patchHandler = findPatchHandler(objToPatch);
 
-    updateStatus("Swapping out artifacts in " + objToPatch + " from context...");
-    ReplaceResult replaceResult = replaceArtifacts(objToPatch, patchHandler);
-
-    updateStatus("Submitting manifest " + description.getManifestName() + " to Kubernetes master...");
     OperationResult result = new OperationResult();
-    result.merge(patchHandler.patch(credentials, objToPatch.getNamespace(), objToPatch.getName(),
-      description.getOptions(), replaceResult.getManifest()));
 
-    result.getBoundArtifacts().addAll(replaceResult.getBoundArtifacts());
+    MergeStrategy mergeStrategy = description.getOptions().getMergeStrategy();
+
+    if (mergeStrategy == MergeStrategy.json) {
+      // Skip artifact replacement for json patches
+      updateStatus("Submitting manifest " + description.getManifestName() + " to Kubernetes master...");
+      List<JsonPatch> jsonPatches = objectMapper.convertValue(description.getPatchBody(), new TypeReference<List<JsonPatch>>(){});
+      result.merge(patchHandler.patchWithJson(credentials, objToPatch.getNamespace(),
+        objToPatch.getName(), description.getOptions(), jsonPatches));
+    } else {
+      updateStatus("Swapping out artifacts in " + objToPatch + " from context...");
+      ReplaceResult replaceResult = replaceArtifacts(objToPatch, patchHandler);
+
+      updateStatus("Submitting manifest " + description.getManifestName() + " to Kubernetes master...");
+      result.merge(patchHandler.patchWithManifest(credentials, objToPatch.getNamespace(),
+        objToPatch.getName(), description.getOptions(), replaceResult.getManifest()));
+      result.getBoundArtifacts().addAll(replaceResult.getBoundArtifacts());
+    }
+
     result.removeSensitiveKeys(registry, accountName);
     return result;
   }
@@ -86,7 +106,8 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
     List<Artifact> allArtifacts = description.getAllArtifacts() == null ? new ArrayList<>() :
       description.getAllArtifacts();
 
-    ReplaceResult replaceResult = patchHandler.replaceArtifacts(description.getPatchBody(),
+    KubernetesManifest manifest = objectMapper.convertValue(description.getPatchBody(), KubernetesManifest.class);
+    ReplaceResult replaceResult = patchHandler.replaceArtifacts(manifest,
       allArtifacts, objToPatch.getNamespace(), description.getAccount());
 
     if (description.getRequiredArtifacts() != null) {

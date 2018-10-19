@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -23,14 +24,24 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 
 import java.util.HashMap;
+import java.util.List;
 
 public interface CanPatch {
   KubernetesKind kind();
 
-  default OperationResult patch(KubernetesV2Credentials credentials, String namespace, String name,
-      KubernetesPatchOptions options, KubernetesManifest manifest) {
+  default OperationResult patchWithManifest(KubernetesV2Credentials credentials, String namespace,
+    String name, KubernetesPatchOptions options, KubernetesManifest manifest) {
     credentials.patch(kind(), namespace, name, options, manifest);
+    return patch(namespace, name);
+  }
 
+  default OperationResult patchWithJson(KubernetesV2Credentials credentials, String namespace,
+    String name, KubernetesPatchOptions options, List<JsonPatch> patches) {
+    credentials.patch(kind(), namespace, name, options, patches);
+    return patch(namespace, name);
+  }
+
+  default OperationResult patch(String namespace, String name) {
     KubernetesManifest patchedManifest = new KubernetesManifest();
     patchedManifest.putIfAbsent("metadata", new HashMap<String, Object>()); // Hack: Set mandatory field
     patchedManifest.setNamespace(namespace);
