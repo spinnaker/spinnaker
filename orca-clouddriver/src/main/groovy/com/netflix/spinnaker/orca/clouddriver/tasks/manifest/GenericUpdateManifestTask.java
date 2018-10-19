@@ -56,6 +56,11 @@ public abstract class GenericUpdateManifestTask extends AbstractCloudProviderAwa
         .put("manifest.account.name", credentials)
         .put("manifest.name", stage.getContext().get("manifestName"))
         .put("manifest.location", stage.getContext().get("location"))
+        .put("outputs.manifestNamesByNamespace", new ImmutableMap.Builder<String, Object>()
+          .put(
+              (String) stage.getContext().getOrDefault("location", "_"),
+              Collections.singletonList(stage.getContext().get("manifestName"))
+          ).build())
         .build();
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);

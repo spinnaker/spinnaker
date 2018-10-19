@@ -49,6 +49,11 @@ public class DelegatingOortService
   }
 
   @Override
+  public Manifest getDynamicManifest(String account, String location, String kind, String app, String cluster, String criteria) {
+    return getService().getDynamicManifest(account, location, kind, app, cluster, criteria);
+  }
+
+  @Override
   public Response getServerGroupFromCluster(String app, String account, String cluster, String serverGroup, String region, String cloudProvider) {
     return getService().getServerGroupFromCluster(app, account, cluster, serverGroup, region, cloudProvider);
   }

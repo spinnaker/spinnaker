@@ -54,6 +54,14 @@ interface OortService {
                        @Path("location") String location,
                        @Path("manifest") String manifest)
 
+  @GET("/manifests/{account}/{location}/{kind}/cluster/{app}/{clusterName}/dynamic/{criteria}")
+  Manifest getDynamicManifest(@Path("account") String account,
+                              @Path("location") String location,
+                              @Path("kind") String kind,
+                              @Path("app") String app,
+                              @Path("clusterName") String clusterName,
+                              @Path("criteria") String criteria)
+
   @Deprecated
   @GET("/applications/{app}/serverGroups/{account}/{region}/{serverGroup}")
   Response getServerGroup(@Path("app") String app,
