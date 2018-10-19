@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Warning;
+import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -182,5 +184,27 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
           .findFirst()
           .orElseThrow(() -> new IllegalArgumentException("No such priority '" + val + "'"));
     }
+  }
+
+  public Comparator<KubernetesManifest> comparatorFor(ManifestProvider.Sort sort) {
+    switch (sort) {
+      case AGE:
+        return ageComparator();
+      case SIZE:
+        return sizeComparator();
+      default:
+        throw new IllegalArgumentException("No comparator for " + sort + " found");
+
+    }
+  }
+
+  // can be overridden by each handler
+  protected Comparator<KubernetesManifest> ageComparator() {
+    return Comparator.comparing(KubernetesManifest::getCreationTimestamp);
+  }
+
+  // can be overridden by each handler
+  protected Comparator<KubernetesManifest> sizeComparator() {
+    return Comparator.comparing(m -> m.getReplicas() == null ? -1 : m.getReplicas());
   }
 }

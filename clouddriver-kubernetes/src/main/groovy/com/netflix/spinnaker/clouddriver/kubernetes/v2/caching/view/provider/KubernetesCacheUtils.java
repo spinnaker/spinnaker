@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +112,10 @@ public class KubernetesCacheUtils {
         .map(kind -> loadRelationshipsFromCache(cacheData, kind.toString()))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
+  }
+
+  public Collection<CacheData> loadRelationshipsFromCache(CacheData source, String relationshipType) {
+    return loadRelationshipsFromCache(Collections.singleton(source), relationshipType);
   }
 
   public Collection<CacheData> loadRelationshipsFromCache(Collection<CacheData> sources, String relationshipType) {

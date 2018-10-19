@@ -21,7 +21,6 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -35,14 +34,17 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
 
 @Component
 @Slf4j
@@ -84,6 +86,35 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     }
 
     CacheData data = dataOptional.get();
+
+    return fromCacheData(data, account);
+  }
+
+  @Override
+  public List<KubernetesV2Manifest> getClusterAndSortAscending(String account, String location, String kind, String app, String cluster, Sort sort) {
+    KubernetesResourceProperties properties = registry.get(account, KubernetesKind.fromString(kind));
+    if (properties == null) {
+      return null;
+    }
+
+    KubernetesHandler handler = properties.getHandler();
+
+    return cacheUtils.getSingleEntry(CLUSTERS.toString(), Keys.cluster(account, app, cluster))
+        .map(c -> cacheUtils.loadRelationshipsFromCache(c, kind).stream()
+            .map(cd -> fromCacheData(cd, account)) // todo(lwander) perf improvement by checking namespace before converting
+            .filter(Objects::nonNull)
+            .filter(m -> m.getLocation().equals(location))
+            .sorted((m1, m2) -> handler.comparatorFor(sort).compare(m1.getManifest(), m2.getManifest()))
+            .collect(Collectors.toList()))
+        .orElse(new ArrayList<>());
+  }
+
+  private KubernetesV2Manifest fromCacheData(CacheData data, String account) {
+    KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
+    String namespace = manifest.getNamespace();
+    KubernetesKind kind = manifest.getKind();
+    String key = data.getId();
+
     KubernetesResourceProperties properties = registry.get(account, kind);
     if (properties == null) {
       return null;
@@ -97,19 +128,18 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .sorted(Comparator.comparing(lastEventTimestamp))
         .collect(Collectors.toList());
 
-    String metricKey = Keys.metric(kind, account, location, parsedName.getRight());
+    Moniker moniker = KubernetesCacheDataConverter.getMoniker(data);
+
+    String metricKey = Keys.metric(kind, account, namespace, manifest.getName());
     List<Map> metrics = cacheUtils.getSingleEntry(Keys.Kind.KUBERNETES_METRIC.toString(), metricKey)
         .map(KubernetesCacheDataConverter::getMetrics)
         .orElse(Collections.emptyList());
 
     KubernetesHandler handler = properties.getHandler();
 
-    KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
-    Moniker moniker = KubernetesCacheDataConverter.getMoniker(data);
-
     return new KubernetesV2Manifest().builder()
         .account(account)
-        .location(location)
+        .location(namespace)
         .manifest(manifest)
         .moniker(moniker)
         .status(handler.status(manifest))
@@ -118,5 +148,6 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .warnings(handler.listWarnings(manifest))
         .metrics(metrics)
         .build();
+
   }
 }

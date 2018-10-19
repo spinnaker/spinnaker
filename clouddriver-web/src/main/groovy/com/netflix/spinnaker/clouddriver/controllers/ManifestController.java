@@ -19,8 +19,10 @@ package com.netflix.spinnaker.clouddriver.controllers;
 
 import com.netflix.spinnaker.clouddriver.model.Manifest;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
+import com.netflix.spinnaker.clouddriver.model.ManifestProvider.Sort;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -87,7 +89,66 @@ public class ManifestController {
 
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
   Manifest getForAccountLocationAndName(@PathVariable String account,
-                                        @PathVariable String name) {
+      @PathVariable String name) {
     return getForAccountLocationAndName(account, "", name);
+  }
+
+  @RequestMapping(value = "/{account:.+}/{location:.+}/{kind:.+}/cluster/{app:.+}/{cluster:.+}/dynamic/{criteria:.+}", method = RequestMethod.GET)
+  Manifest getDynamicManifestFromCluster(@PathVariable String account,
+      @PathVariable String location,
+      @PathVariable String kind,
+      @PathVariable String app,
+      @PathVariable String cluster,
+      @PathVariable Criteria criteria) {
+    final String request = String.format("(account: %s, location: %s, kind: %s, app %s, cluster: %s, criteria: %s)", account, location, kind, app, cluster, criteria);
+    List<List<Manifest>> manifestSet = manifestProviders.stream()
+        .map(p -> {
+          try {
+            return (List<Manifest>) requestQueue.execute(account, () -> p.getClusterAndSortAscending(account, location, kind, app, cluster, criteria.getSort()));
+          } catch (Throwable t) {
+            log.warn("Failed to read {}", request, t);
+            return null;
+          }
+        }).filter(l -> l != null && !l.isEmpty())
+        .collect(Collectors.toList());
+
+    if (manifestSet.isEmpty()) {
+      throw new NotFoundException("No manifests matching " + request + " found");
+    } else if (manifestSet.size() > 1) {
+      throw new IllegalStateException("Multiple sets of manifests matching " + request + " found");
+    }
+
+    List<Manifest> manifests = manifestSet.get(0);
+    try {
+      switch (criteria) {
+        case oldest:
+        case smallest:
+          return manifests.get(0);
+        case newest:
+        case largest:
+          return manifests.get(manifests.size() - 1);
+        case second_newest:
+          return manifests.get(manifests.size() - 2);
+        default:
+          throw new IllegalArgumentException("Unknown criteria: " + criteria);
+      }
+    } catch (IndexOutOfBoundsException e) {
+      throw new NotFoundException("No manifests matching " + request + " found");
+    }
+  }
+
+  enum Criteria {
+    oldest(Sort.AGE),
+    newest(Sort.AGE),
+    second_newest(Sort.AGE),
+    largest(Sort.SIZE),
+    smallest(Sort.SIZE);
+
+    @Getter
+    private final Sort sort;
+
+    Criteria(Sort sort) {
+      this.sort = sort;
+    }
   }
 }

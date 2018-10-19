@@ -17,6 +17,13 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
-public interface ManifestProvider <T extends Manifest> {
+import java.util.List;
+
+public interface ManifestProvider<T extends Manifest> {
+  enum Sort {
+    AGE, SIZE
+  }
+
   T getManifest(String account, String location, String name);
+  List<T> getClusterAndSortAscending(String account, String location, String kind, String app, String cluster, Sort sort);
 }
