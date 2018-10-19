@@ -158,7 +158,7 @@ public class V2PipelineTemplatesController {
                     @RequestParam(value = "application", required = false) String application) {
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
-    job.put("type", "deletePipelineTemplate");
+    job.put("type", "deleteV2PipelineTemplate");
     job.put("pipelineTemplateId", id);
     job.put("user", AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
     jobs.add(job);
