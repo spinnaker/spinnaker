@@ -8,21 +8,21 @@ dependencies {
   protobuf project(":keel-api")
 
   implementation project(":keel-common")
-  implementation "org.lognet:grpc-spring-boot-starter:$springGrpcVersion"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
-  implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
-  implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion"
+  implementation "org.lognet:grpc-spring-boot-starter:+"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
+  implementation "com.netflix.spinnaker.kork:kork-core:+"
+  implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:+"
 
   implementation "org.springframework.boot:spring-boot-starter-actuator:$bootVersion"
   implementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
 
-  testImplementation "io.strikt:strikt-protobuf:$striktVersion"
+  testImplementation "io.strikt:strikt-protobuf:+"
   testImplementation project(":keel-api-test")
   testImplementation project(":keel-rule-engine-tck")
   testImplementation(project(":keel-ec2")) {
     because("want access to real protos to test conversion between model & proto")
   }
-  testImplementation "io.grpc:grpc-netty:$grpcVersion"
+  testImplementation "io.grpc:grpc-netty:+"
 }
 
 test {

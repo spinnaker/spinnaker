@@ -19,11 +19,11 @@ repositories {
 }
 
 dependencies {
-  testCompile "org.junit.platform:junit-platform-runner:$junitVersion"
-  testCompile "com.nhaarman:mockito-kotlin:$mockitoVersion"
+  testCompile "org.junit.platform:junit-platform-runner:+"
+  testCompile "com.nhaarman:mockito-kotlin:+"
 
-  testRuntime "org.junit.platform:junit-platform-launcher:$junitVersion"
-  testRuntime "org.junit.vintage:junit-vintage-engine:$jupiterVersion"
+  testRuntime "org.junit.platform:junit-platform-launcher:+"
+  testRuntime "org.junit.vintage:junit-vintage-engine:+"
 }
 
 test {

@@ -2,10 +2,10 @@ apply plugin: "java-library"
 apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
-  api "org.jetbrains.spek:spek-api:$spekVersion"
+  api "org.jetbrains.spek:spek-api:+"
   implementation project(":keel-rule-engine")
-  implementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
-  implementation "io.strikt:strikt-core:$striktVersion"
-  implementation "com.nhaarman:mockito-kotlin:$mockitoVersion"
-  implementation "com.oneeyedmen:minutest:$minutestVersion"
+  implementation "org.junit.jupiter:junit-jupiter-api:+"
+  implementation "io.strikt:strikt-core:+"
+  implementation "com.nhaarman:mockito-kotlin:+"
+  implementation "com.oneeyedmen:minutest:+"
 }

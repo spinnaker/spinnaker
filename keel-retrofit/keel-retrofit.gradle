@@ -15,10 +15,10 @@
  */
 
 dependencies {
-  compile "com.squareup.retrofit:retrofit:$retrofitVersion"
-  compile "com.squareup.okhttp:okhttp-urlconnection:$okHttpVersion"
-  compile "com.squareup.okhttp:okhttp-apache:$okHttpVersion"
-  compile "com.squareup.retrofit:converter-jackson:$retrofitVersion"
+  compile "com.squareup.retrofit:retrofit:(,2.0["
+  compile "com.squareup.okhttp:okhttp-urlconnection:+"
+  compile "com.squareup.okhttp:okhttp-apache:+"
+  compile "com.squareup.retrofit:converter-jackson:(,2.0["
 
-  compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
+  compile "com.netflix.spinnaker.kork:kork-web:+"
 }

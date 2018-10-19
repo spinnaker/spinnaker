@@ -8,9 +8,9 @@ dependencies {
   implementation project(":keel-plugin")
   implementation project(":keel-clouddriver")
   implementation project(":keel-orca")
-  implementation "com.netflix.spinnaker.kork:kork-core:$korkVersion"
+  implementation "com.netflix.spinnaker.kork:kork-core:+"
 
-  testImplementation "io.strikt:strikt-protobuf:$striktVersion"
+  testImplementation "io.strikt:strikt-protobuf:+"
   testImplementation project(":keel-api-test")
 }
 

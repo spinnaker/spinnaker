@@ -18,11 +18,11 @@ apply plugin: "java-library"
 
 dependencies {
   implementation project(":keel-clouddriver")
-  implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-  implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+  implementation "com.fasterxml.jackson.core:jackson-databind:[2.9.6,)"
+  implementation "com.fasterxml.jackson.core:jackson-annotations:[2.9.6,)"
   implementation "org.jetbrains.kotlin:kotlin-reflect"
 
-  api "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
-  api "com.github.jonpeterson:jackson-module-model-versioning:1.2.2"
-  api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+  api "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
+  api "com.github.jonpeterson:jackson-module-model-versioning:+"
+  api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:[2.9.6,)"
 }

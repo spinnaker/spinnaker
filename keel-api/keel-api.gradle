@@ -21,5 +21,5 @@ apply from: "$rootDir/gradle/junit5.gradle"
 dependencies {
   testImplementation project(":keel-api-test")
   testImplementation project(":keel-plugin")
-  testImplementation "io.strikt:strikt-core:$striktVersion"
+  testImplementation "io.strikt:strikt-core:+"
 }

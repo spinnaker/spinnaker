@@ -1,7 +1,7 @@
 dependencies {
-  testCompile "org.jetbrains.spek:spek-api:$spekVersion"
-  testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spekVersion"
-  testRuntime "org.junit.platform:junit-platform-launcher:$junitVersion"
+  testCompile "org.jetbrains.spek:spek-api:+"
+  testRuntime "org.jetbrains.spek:spek-junit-platform-engine:+"
+  testRuntime "org.junit.platform:junit-platform-launcher:+"
 }
 
 test {

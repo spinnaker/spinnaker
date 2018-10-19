@@ -49,6 +49,27 @@ subprojects {
     jcenter()
   }
 
+  configurations {
+    all {
+      resolutionStrategy {
+        eachDependency {
+          if (it.requested.group.startsWith("com.fasterxml.jackson")) {
+            it.useVersion "2.9.6"
+          }
+          if (it.requested.group.startsWith("org.springframework.boot")) {
+            it.useVersion bootVersion
+          }
+        }
+      }
+    }
+
+    ["compile", "runtime", "testCompile", "testRuntime"].each { scope ->
+      getByName("${scope}Classpath") {
+        resolutionStrategy.activateDependencyLocking()
+      }
+    }
+  }
+
   test {
     testLogging {
       exceptionFormat = "full"
@@ -56,4 +77,4 @@ subprojects {
   }
 }
 
-defaultTasks ":keel-web:run"
+defaultTasks ":keel-rule-engine:run"

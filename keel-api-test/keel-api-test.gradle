@@ -21,11 +21,11 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "com.google.protobuf:protobuf-gradle-plugin:$protobufVersion"
+    classpath "com.google.protobuf:protobuf-gradle-plugin:+"
   }
 }
 
 dependencies {
-  api "com.netflix.spinnaker.kork:kork-core:$korkVersion"
+  api "com.netflix.spinnaker.kork:kork-core:+"
   compile project(":keel-api")
 }
