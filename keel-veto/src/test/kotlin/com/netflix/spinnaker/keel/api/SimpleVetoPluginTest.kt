@@ -24,8 +24,8 @@ internal object SimpleVetoPluginSpec {
   fun `vetoing asset convergence`() = junitTests<Fixture> {
     fixture {
       Fixture(
-        GrpcStubManager(VetoPluginGrpc::newBlockingStub),
-        mock<DynamicConfigService>()
+        grpc = GrpcStubManager(VetoPluginGrpc::newBlockingStub),
+        dynamicConfigService = mock()
       )
     }
 

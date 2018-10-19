@@ -8,7 +8,5 @@ internal class InMemoryAssetRepositoryTest : AssetRepositoryTests<InMemoryAssetR
 
   val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
 
-  override val subject: InMemoryAssetRepository by lazy {
-    InMemoryAssetRepository(clock)
-  }
+  override fun factory() = InMemoryAssetRepository(clock)
 }

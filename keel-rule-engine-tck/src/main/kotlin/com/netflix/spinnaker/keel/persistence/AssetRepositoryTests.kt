@@ -13,8 +13,8 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
+import com.oneeyedmen.minutest.junit.junitTests
+import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
@@ -25,194 +25,180 @@ import java.util.*
 
 abstract class AssetRepositoryTests<T : AssetRepository> {
 
-  abstract val subject: T
+  abstract fun factory(): T
+  open fun flush() {}
 
-  val callback: (AssetBase) -> Unit = mock()
+  data class Fixture<T : AssetRepository>(
+    val subject: T,
+    val callback: (AssetBase) -> Unit
+  )
 
-  @AfterEach
-  fun resetMocks() {
-    reset(callback)
-  }
+  @TestFactory
+  fun `an asset repository`() = junitTests<Fixture<T>>() {
 
-  @Test
-  fun `when no assets exist rootAssets is a no-op`() {
-    subject.rootAssets(callback)
-
-    verifyZeroInteractions(callback)
-  }
-
-  @Test
-  fun `when no assets exist allAssets returns an empty collection`() {
-    subject.allAssets(callback)
-
-    verifyZeroInteractions(callback)
-  }
-
-  @Test
-  fun `after storing a asset with no dependencies it is returned by rootAssets`() {
-    val asset = Asset(
-      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
-      spec = randomBytes()
-    )
-
-    subject.store(asset)
-    subject.rootAssets(callback)
-
-    verify(callback).invoke(asset)
-  }
-
-  @Test
-  fun `after storing a asset with no dependencies it is returned by allAssets`() {
-    val asset = Asset(
-      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
-      spec = randomBytes()
-    )
-
-    subject.store(asset)
-    subject.allAssets(callback)
-
-    verify(callback).invoke(asset)
-  }
-
-  @Test
-  fun `after storing a asset with dependencies it is not returned by rootAssets`() {
-    val asset = Asset(
-      id = AssetId("LoadBalancer:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:LoadBalancer",
-      dependsOn = setOf(AssetId("SecurityGroup:ec2:test:us-west-2:fnord")),
-      spec = randomBytes()
-    )
-
-    subject.store(asset)
-    subject.rootAssets(callback)
-
-    verify(callback, never()).invoke(asset)
-  }
-
-  @Test
-  fun `after storing a asset with dependencies it is returned by allAssets`() {
-    val asset = Asset(
-      id = AssetId("LoadBalancer:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:LoadBalancer",
-      dependsOn = setOf(AssetId("SecurityGroup:ec2:test:us-west-2:fnord")),
-      spec = randomBytes()
-    )
-
-    subject.store(asset)
-    subject.allAssets(callback)
-
-    verify(callback).invoke(asset)
-  }
-
-  @Test
-  fun `after storing a partial asset it is returned by allAssets`() {
-    val asset = Asset(
-      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
-      spec = randomBytes()
-    )
-
-    val partial = PartialAsset(
-      id = AssetId("SecurityGroupRule:ec2:test:us-west-2:fnord:whatever"),
-      root = asset.id,
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroupRule",
-      spec = randomBytes()
-    )
-
-    subject.store(asset)
-    subject.store(partial)
-
-    subject.allAssets(callback)
-
-    verify(callback).invoke(asset)
-    verify(callback).invoke(partial)
-  }
-
-  @Test
-  fun `after storing an asset it is can be retrieved by id`() {
-    val asset = Asset(
-      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
-      spec = randomBytes()
-    )
-
-    subject.store(asset)
-
-    expectThat(subject.get(asset.id)).isEqualTo(asset)
-  }
-
-  @Test
-  fun `after storing an asset its state is unknown`() {
-    val asset = Asset(
-      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
-      spec = randomBytes()
-    )
-
-    subject.store(asset)
-
-    expectThat(subject.lastKnownState(asset.id))
-      .isNotNull()
-      .first
-      .isEqualTo(Unknown)
-  }
-
-  @Test
-  fun `assets with different ids do not overwrite each other`() {
-    val asset1 = Asset(
-      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
-      spec = randomBytes()
-    )
-    val asset2 = Asset(
-      id = AssetId("SecurityGroup:ec2:test:us-east-1:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
-      spec = randomBytes()
-    )
-
-    subject.store(asset1)
-    subject.store(asset2)
-    subject.rootAssets(callback)
-
-    argumentCaptor<Asset>().apply {
-      verify(callback, times(2)).invoke(capture())
-      expectThat(allValues)
-        .hasSize(2)
-        .containsExactlyInAnyOrder(asset1, asset2)
+    fixture {
+      Fixture(
+        subject = factory(),
+        callback = mock()
+      )
     }
-  }
 
-  @Test
-  fun `storing a new version of an asset replaces the old`() {
-    val asset1 = Asset(
-      id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-      apiVersion = "1.0",
-      kind = "ec2:SecurityGroup",
-      spec = randomBytes()
-    )
-    subject.store(asset1)
+    after { reset(callback) }
+    after { flush() }
 
-    val asset2 = asset1.copy(
-      spec = randomBytes()
-    )
-    subject.store(asset2)
+    context("no assets exist") {
+      test("rootAssets is a no-op") {
+        subject.rootAssets(callback)
 
-    expectThat(subject.get(asset1.id))
-      .isNotNull()
-      .get(Asset::spec)
-      .isEqualTo(asset2.spec)
+        verifyZeroInteractions(callback)
+      }
+
+      test("allAssets is a no-op") {
+        subject.allAssets(callback)
+
+        verifyZeroInteractions(callback)
+      }
+    }
+
+    context("an asset with no dependencies") {
+      val asset = Asset(
+        id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
+        apiVersion = "1.0",
+        kind = "ec2:SecurityGroup",
+        spec = randomBytes()
+      )
+
+      before {
+        subject.store(asset)
+      }
+
+      test("it is returned by rootAssets") {
+        subject.rootAssets(callback)
+
+        verify(callback).invoke(asset)
+      }
+
+      test("it is returned by allAssets") {
+        subject.allAssets(callback)
+
+        verify(callback).invoke(asset)
+      }
+
+      test("it can be retrieved by id") {
+        expectThat(subject.get(asset.id)).isEqualTo(asset)
+      }
+
+      test("its state is unknown") {
+        expectThat(subject.lastKnownState(asset.id))
+          .isNotNull()
+          .first
+          .isEqualTo(Unknown)
+      }
+
+      context("storing another asset with a different id") {
+        val anotherAsset = Asset(
+          id = AssetId("SecurityGroup:ec2:test:us-east-1:fnord"),
+          apiVersion = "1.0",
+          kind = "ec2:SecurityGroup",
+          spec = randomBytes()
+        )
+
+        before {
+          subject.store(anotherAsset)
+        }
+
+        test("it does not overwrite the first asset") {
+          subject.rootAssets(callback)
+
+          argumentCaptor<Asset>().apply {
+            verify(callback, times(2)).invoke(capture())
+            expectThat(allValues)
+              .hasSize(2)
+              .containsExactlyInAnyOrder(asset, anotherAsset)
+          }
+        }
+      }
+
+
+      context("storing a new version of the asset") {
+        val updatedAsset = asset.copy(
+          spec = randomBytes()
+        )
+
+        before {
+          subject.store(updatedAsset)
+        }
+
+        test("it replaces the original asset") {
+          expectThat(subject.get(asset.id))
+            .isNotNull()
+            .get(Asset::spec)
+            .isEqualTo(updatedAsset.spec)
+        }
+      }
+    }
+
+    context("an asset with dependencies") {
+      val asset = Asset(
+        id = AssetId("LoadBalancer:ec2:test:us-west-2:fnord"),
+        apiVersion = "1.0",
+        kind = "ec2:LoadBalancer",
+        dependsOn = setOf(AssetId("SecurityGroup:ec2:test:us-west-2:fnord")),
+        spec = randomBytes()
+      )
+
+      before {
+        subject.store(asset)
+      }
+
+      test("it is not returned by rootAssets") {
+        subject.rootAssets(callback)
+
+        verify(callback, never()).invoke(asset)
+      }
+
+      test("it is returned by allAssets") {
+        subject.allAssets(callback)
+
+        verify(callback).invoke(asset)
+      }
+    }
+
+    context("a partial asset") {
+      val asset = Asset(
+        id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
+        apiVersion = "1.0",
+        kind = "ec2:SecurityGroup",
+        spec = randomBytes()
+      )
+
+      val partial = PartialAsset(
+        id = AssetId("SecurityGroupRule:ec2:test:us-west-2:fnord:whatever"),
+        root = asset.id,
+        apiVersion = "1.0",
+        kind = "ec2:SecurityGroupRule",
+        spec = randomBytes()
+      )
+
+      before {
+        subject.store(asset)
+        subject.store(partial)
+      }
+
+      test("it is returned by allAssets") {
+        subject.allAssets(callback)
+
+        verify(callback).invoke(asset)
+        verify(callback).invoke(partial)
+      }
+
+      test("it is not returned by rootAssets") {
+        subject.rootAssets(callback)
+
+        verify(callback).invoke(asset)
+        verify(callback, never()).invoke(partial)
+      }
+    }
   }
 }
 
