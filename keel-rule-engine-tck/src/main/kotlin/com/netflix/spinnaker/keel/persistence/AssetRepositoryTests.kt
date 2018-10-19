@@ -4,8 +4,8 @@ import com.netflix.spinnaker.keel.model.Asset
 import com.netflix.spinnaker.keel.model.AssetBase
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.PartialAsset
+import com.netflix.spinnaker.keel.model.TypedByteArray
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
-import com.netflix.spinnaker.keel.processing.randomBytes
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
@@ -21,6 +21,7 @@ import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
+import java.util.*
 
 abstract class AssetRepositoryTests<T : AssetRepository> {
 
@@ -214,3 +215,9 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       .isEqualTo(asset2.spec)
   }
 }
+
+fun randomBytes(length: Int = 20) =
+  TypedByteArray(
+    "whatever",
+    ByteArray(length).also(Random(System.nanoTime())::nextBytes)
+  )

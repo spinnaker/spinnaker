@@ -4,5 +4,7 @@ apply from: "$rootDir/gradle/spek.gradle"
 dependencies {
   api "org.jetbrains.spek:spek-api:$spekVersion"
   implementation project(":keel-rule-engine")
+  implementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
   implementation "io.strikt:strikt-core:$striktVersion"
+  implementation "com.nhaarman:mockito-kotlin:$mockitoVersion"
 }

@@ -33,6 +33,6 @@ dependencies {
 
 test {
   useJUnitPlatform {
-    includeEngines "junit-vintage", "spek"
+    includeEngines "junit-jupiter", "junit-vintage", "spek"
   }
 }
