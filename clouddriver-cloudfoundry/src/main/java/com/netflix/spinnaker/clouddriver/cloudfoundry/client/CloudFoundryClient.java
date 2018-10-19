@@ -91,6 +91,7 @@ public class CloudFoundryClient {
       try {
         return retry.executeCallable(() -> {
           Response response = chain.proceed(chain.request());
+          lastResponse.set(response);
 
           switch (response.code()) {
             case 401:
@@ -110,7 +111,6 @@ public class CloudFoundryClient {
               throw new RetryableApiException();
           }
 
-          lastResponse.set(response);
           return response;
         });
       } catch (Exception e) {
