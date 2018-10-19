@@ -46,6 +46,8 @@ import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Duration
+import java.time.Duration.*
 
 object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
@@ -637,7 +639,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
                   assertThat(parentStageId).isEqualTo(message.stageId)
                   assertThat(name).isEqualTo("After Stage")
                 }
-                else          ->
+                else ->
                   fail("Expected a StartStage message but got a ${capturedMessage.javaClass.simpleName}")
               }
             }
@@ -886,10 +888,10 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
 
           it("signals the parent stage to run") {
-            verify(queue).push(ContinueParentStage(
+            verify(queue).ensure(ContinueParentStage(
               pipeline.stageByRef("1"),
               STAGE_BEFORE
-            ))
+            ), ZERO)
           }
         }
       }
@@ -956,10 +958,10 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
           it("tells the parent stage to continue") {
             verify(queue)
-              .push(ContinueParentStage(
+              .ensure(ContinueParentStage(
                 pipeline.stageById(message.stageId).parent!!,
                 STAGE_AFTER
-              ))
+              ), ZERO)
           }
         }
       }
@@ -1068,7 +1070,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
         it("signals the parent stage to try to run") {
           verify(queue)
-            .push(ContinueParentStage(pipeline.stageByRef("1"), STAGE_BEFORE))
+            .ensure(ContinueParentStage(pipeline.stageByRef("1"), STAGE_BEFORE), ZERO)
         }
       }
 
@@ -1105,7 +1107,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
         it("signals the parent stage to try to run") {
           verify(queue)
-            .push(ContinueParentStage(pipeline.stageByRef("1"), STAGE_BEFORE))
+            .ensure(ContinueParentStage(pipeline.stageByRef("1"), STAGE_BEFORE), ZERO)
         }
       }
     }

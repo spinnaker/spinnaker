@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.MessageHandler
+import java.time.Duration
 
 internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
   val repository: ExecutionRepository
@@ -78,7 +79,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
           queue.push(StartStage(it))
         }
       } else if (phase != null) {
-        queue.push(ContinueParentStage(parent(), phase))
+        queue.ensure(ContinueParentStage(parent(), phase), Duration.ZERO)
       } else {
         queue.push(CompleteExecution(execution))
       }
