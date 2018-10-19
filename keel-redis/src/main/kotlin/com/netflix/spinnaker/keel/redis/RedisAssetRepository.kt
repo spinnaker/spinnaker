@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.model.PartialAsset
 import com.netflix.spinnaker.keel.model.TypedByteArray
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState
-import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisCommands
 import java.time.Clock
@@ -17,7 +17,7 @@ import java.util.*
 import javax.annotation.PostConstruct
 
 class RedisAssetRepository(
-  private val redisClient: JedisClientDelegate,
+  private val redisClient: RedisClientDelegate,
   private val clock: Clock
 ) : AssetRepository {
 

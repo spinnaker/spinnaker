@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
 import com.netflix.spinnaker.keel.processing.ConvergeAsset
 import com.netflix.spinnaker.keel.processing.ValidateAssetTree
 import com.netflix.spinnaker.keel.registry.PluginRepository
@@ -24,9 +25,12 @@ import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
+import java.time.Clock
 import javax.annotation.PostConstruct
 
 object MainDefaults {
@@ -50,6 +54,10 @@ object MainDefaults {
 class RuleEngineApp {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  @Bean
+  @ConditionalOnMissingBean(AssetRepository::class)
+  fun assetRepository(clock: Clock) = InMemoryAssetRepository(clock)
 
   @Autowired
   lateinit var pluginRepository: PluginRepository

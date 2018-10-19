@@ -15,14 +15,26 @@
  */
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.redis.RedisAssetRepository
+import com.netflix.spinnaker.keel.redis.RedisPluginRepository
+import com.netflix.spinnaker.keel.registry.PluginRepository
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientConfiguration
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration
-import org.springframework.context.annotation.ComponentScan
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-
+import java.time.Clock
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.keel.redis")
 @Import(JedisClientConfiguration::class, DynomiteClientConfiguration::class)
-class RedisConfiguration
+class RedisConfiguration {
+  @Bean
+  fun pluginRepository(redisClientSelector: RedisClientSelector): PluginRepository =
+    RedisPluginRepository(redisClientSelector.primary("default"))
+
+  @Bean
+  fun assetRepository(redisClientSelector: RedisClientSelector, clock: Clock): AssetRepository =
+    RedisAssetRepository(redisClientSelector.primary("default"), clock)
+}

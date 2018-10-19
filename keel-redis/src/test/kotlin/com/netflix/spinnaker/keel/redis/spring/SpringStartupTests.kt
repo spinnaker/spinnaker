@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.redis.spring
 
 import com.netflix.spinnaker.keel.RuleEngineApp
+import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.redis.RedisAssetRepository
 import com.netflix.spinnaker.keel.redis.RedisPluginRepository
 import com.netflix.spinnaker.keel.registry.PluginRepository
 import org.junit.Test
@@ -23,8 +25,16 @@ internal class SpringStartupTests {
   @Autowired
   lateinit var pluginRepository: PluginRepository
 
+  @Autowired
+  lateinit var assetRepository: AssetRepository
+
   @Test
   fun `uses RedisPluginRepository`() {
     expectThat(pluginRepository).isA<RedisPluginRepository>()
+  }
+
+  @Test
+  fun `uses RedisAssetRepository`() {
+    expectThat(assetRepository).isA<RedisAssetRepository>()
   }
 }

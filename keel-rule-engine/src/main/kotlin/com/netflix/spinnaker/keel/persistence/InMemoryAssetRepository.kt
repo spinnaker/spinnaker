@@ -21,12 +21,9 @@ import com.netflix.spinnaker.keel.model.AssetContainer
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.PartialAsset
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
-import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Instant
 
-@Component
-//@ConditionalOnMissingBean(AssetRepository::class)
 class InMemoryAssetRepository(
   private val clock: Clock
 ) : AssetRepository {
