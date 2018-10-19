@@ -38,6 +38,9 @@
     gcsObject():: artifact('gcs/object'),
   },
 
+  // expected artifacts
+  // TODO: This section may need splitting out by artifact type due to differing field requirements.
+
   expectedArtifact(id):: {
     id: id,
     // Defaults to kind: custom
@@ -45,6 +48,7 @@
     withMatchArtifact(matchArtifact):: self + {
       matchArtifact+: {
         kind: std.splitLimit(matchArtifact.type, '/', 1)[0],
+        // TODO: For Docker, the name field should be registry and repository.
         name: matchArtifact.name,
         type: matchArtifact.type,
       },
@@ -54,7 +58,8 @@
         kind: 'default.' + std.splitLimit(defaultArtifact.type, '/', 1)[0],
         reference: defaultArtifact.reference,
         type: defaultArtifact.type,
-        version: defaultArtifact.version,
+        // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
+        [if std.objectHas(defaultArtifact, 'version') then 'version']: defaultArtifact.version,
       },
     },
     withUsePriorArtifact(usePriorArtifact):: self + { usePriorArtifact: usePriorArtifact },
@@ -79,6 +84,7 @@
     },
     withType(type):: self + { type: type },
   },
+
   local notification = self.notification,
   notifications:: notification('', '', '', '', ''),
 
@@ -90,8 +96,8 @@
     type: type,
     withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
   },
-  local trigger = self.trigger,
 
+  local trigger = self.trigger,
   triggers:: {
     docker(name):: trigger(name, 'docker') {
       withAccount(account):: self + { account: account },
@@ -129,7 +135,6 @@
     },
 
     // jenkins stages
-
     jenkins(name):: stage(name, 'jenkins') {
       withJob(job):: self + { job: job },
       withMaster(master):: self + { master: master },

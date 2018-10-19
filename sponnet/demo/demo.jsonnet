@@ -23,7 +23,7 @@ local myManifestArtifactLocation = 'someLocation';
 // Must be specified in pipeline, but not in artifact creation
 local myManifestArtifactAccount = 'gitlab-account';
 
-local myDockerArtifact = 'myDockerArtifactName';
+local myDockerArtifactName = 'docker-name';
 local myDockerAccount = 'docker-account';
 local myDockerOrganization = 'your-docker-org';
 local myDockerRegistry = 'index.docker.io';
@@ -36,9 +36,14 @@ local mySlug = 'your-project';
 local mySource = 'gitlab';
 
 
-local docker_artifact = sponnet.expectedArtifact('myImageArtifact')
-                        .withMatchArtifact('myContainerArtifact')
-                        .withDefaultArtifact(true)
+local docker_artifact = sponnet.artifacts
+                        .dockerImage()
+                        .withName(myDockerArtifactName)
+                        .withReference(myDockerRegistry + '/' + myDockerRepository);
+
+local expected_docker = sponnet.expectedArtifact(myDockerArtifactName)
+                        .withMatchArtifact(docker_artifact)
+                        .withDefaultArtifact(docker_artifact)
                         .withUsePriorArtifact(false)
                         .withUseDefaultArtifact(true);
 
@@ -57,8 +62,8 @@ local expected_manifest = sponnet.expectedArtifact(myManifestArtifactName)
 
 local docker_trigger = sponnet.triggers
                        .docker('myDockerTrigger')
-                       // TODO verify expected artifact is inserted correctly in configuration.
-                       // .withExpectedArtifacts([expected_image])
+                       // If ExpectedArtifact Required, add below.
+                       // .withExpectedArtifacts([expected_docker])
                        .withAccount(myDockerAccount)
                        .withOrganization(myDockerOrganization)
                        .withRegistry(myDockerRegistry)
@@ -67,7 +72,7 @@ local docker_trigger = sponnet.triggers
 
 local git_trigger = sponnet.triggers
                     .git('myGitTrigger')
-                    // TODO verify expected artifact is inserted correctly in configuration.
+                    // If ExpectedArtifact Required, add below.
                     // .withExpectedArtifacts([expected_manifest])
                     .withBranch(myBranch)
                     .withProject(myProject)
@@ -117,9 +122,8 @@ local jenkins_job = sponnet.stages
 
 sponnet.pipeline()
 .withApplication(app)
-.withExpectedArtifacts(expected_manifest)
+.withExpectedArtifacts([expected_docker, expected_manifest])
 .withName('Demo pipeline')
 .withNotifications(slack)
-// TO DO add ExpectedArtifactId somehow if constraint....
 .withTriggers([docker_trigger, git_trigger])
 .withStages([wait, manifest_baseline, manifest_canary, manifest_artifact, jenkins_job])
