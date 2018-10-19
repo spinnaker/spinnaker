@@ -4,7 +4,7 @@ import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pip
 import { AccountTag } from 'core/account';
 import { StageFailureMessage } from 'core/pipeline/details';
 
-export function DeleteServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
+export function DestroyServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
@@ -25,6 +25,6 @@ export function DeleteServiceExecutionDetails(props: IExecutionDetailsSectionPro
   );
 }
 
-export namespace DeleteServiceExecutionDetails {
-  export const title = 'deleteServiceConfig';
+export namespace DestroyServiceExecutionDetails {
+  export const title = 'destroyServiceConfig';
 }

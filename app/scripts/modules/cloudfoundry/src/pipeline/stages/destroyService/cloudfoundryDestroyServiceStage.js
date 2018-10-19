@@ -5,13 +5,13 @@ const angular = require('angular');
 import { AccountService, Registry } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.cloudfoundry.pipeline.stage.deleteServiceStage', [])
+  .module('spinnaker.cloudfoundry.pipeline.stage.destroyServiceStage', [])
   .config(function() {
     Registry.pipeline.registerStage({
-      provides: 'deleteService',
+      provides: 'destroyService',
       cloudProvider: 'cloudfoundry',
-      templateUrl: require('./deleteServiceStage.html'),
-      executionStepLabelUrl: require('./deleteServiceStepLabel.html'),
+      templateUrl: require('./destroyServiceStage.html'),
+      executionStepLabelUrl: require('./destroyServiceStepLabel.html'),
       accountExtractor: stage => [stage.context.credentials],
       configAccountExtractor: stage => [stage.credentials],
       validators: [
@@ -22,9 +22,9 @@ module.exports = angular
       ],
     });
   })
-  .controller('CloudfoundryDeleteServiceStageCtrl', function($scope) {
+  .controller('CloudfoundryDestroyServiceStageCtrl', function($scope) {
     let stage = $scope.stage;
-    stage.action = 'deleteService';
+    stage.action = 'destroyService';
     $scope.state = {
       accounts: false,
       regionsLoaded: false,

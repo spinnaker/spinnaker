@@ -44,7 +44,7 @@ module(CLOUD_FOUNDRY_MODULE, [
   require('./pipeline/stages/resizeAsg/cloudfoundryResizeAsgStage.js').name,
   require('./pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.js').name,
   require('./pipeline/stages/deployService/cloudfoundryDeployServiceStage.js').name,
-  require('./pipeline/stages/deleteService/cloudfoundryDeleteServiceStage.js').name,
+  require('./pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.js').name,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('cloudfoundry', {
     name: 'Cloud Foundry',
