@@ -17,26 +17,26 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceDescription;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeleteCloudFoundryServiceAtomicOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DestroyCloudFoundryServiceDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DestroyCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.servicebroker.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@CloudFoundryOperation(AtomicOperations.DELETE_SERVICE)
+@CloudFoundryOperation(AtomicOperations.DESTROY_SERVICE)
 @Component
-public class DeleteCloudFoundryServiceAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
+public class DestroyCloudFoundryServiceAtomicOperationConverter extends AbstractCloudFoundryAtomicOperationConverter {
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new DeleteCloudFoundryServiceAtomicOperation(convertDescription(input));
+    return new DestroyCloudFoundryServiceAtomicOperation(convertDescription(input));
   }
 
   @Override
-  public DeleteCloudFoundryServiceDescription convertDescription(Map input) {
-    DeleteCloudFoundryServiceDescription converted =  getObjectMapper().convertValue(input,DeleteCloudFoundryServiceDescription.class);
+  public DestroyCloudFoundryServiceDescription convertDescription(Map input) {
+    DestroyCloudFoundryServiceDescription converted =  getObjectMapper().convertValue(input, DestroyCloudFoundryServiceDescription.class);
     converted.setClient(getClient(input));
     converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
       .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));

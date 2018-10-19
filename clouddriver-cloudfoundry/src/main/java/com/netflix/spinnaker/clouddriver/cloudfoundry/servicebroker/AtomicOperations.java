@@ -18,5 +18,5 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.servicebroker;
 
 public class AtomicOperations {
   public static final String DEPLOY_SERVICE = "deployService";
-  public static final String DELETE_SERVICE = "deleteService";
+  public static final String DESTROY_SERVICE = "destroyService";
 }

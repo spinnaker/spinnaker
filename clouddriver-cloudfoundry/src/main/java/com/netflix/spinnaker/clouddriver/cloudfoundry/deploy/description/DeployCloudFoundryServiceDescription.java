@@ -23,7 +23,7 @@ import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DeployCloudFoundryServiceDescription extends DeleteCloudFoundryServiceDescription {
+public class DeployCloudFoundryServiceDescription extends DestroyCloudFoundryServiceDescription {
   String service;
   String servicePlan;
   Set<String> tags;

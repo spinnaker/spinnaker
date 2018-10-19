@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DeleteCloudFoundryServiceDescription extends AbstractCloudFoundryDescription {
+public class DestroyCloudFoundryServiceDescription extends AbstractCloudFoundryDescription {
   String serviceName;
   CloudFoundrySpace space;
 }

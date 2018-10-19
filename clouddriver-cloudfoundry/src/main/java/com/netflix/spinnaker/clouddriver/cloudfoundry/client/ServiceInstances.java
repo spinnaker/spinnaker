@@ -107,16 +107,16 @@ public class ServiceInstances {
     return services.get(0);
   }
 
-  public void deleteServiceInstance(CloudFoundrySpace space, String serviceInstanceName) throws CloudFoundryApiException {
+  public void destroyServiceInstance(CloudFoundrySpace space, String serviceInstanceName) throws CloudFoundryApiException {
     Resource<ServiceInstance> serviceInstance = getServiceInstances(space, serviceInstanceName);
     String serviceInstanceId = serviceInstance.getMetadata().getGuid();
     List<Resource<ServiceBinding>> serviceBindings = collectPageResources("service bindings",
       pg -> api.getBindingsForServiceInstance(serviceInstanceId, pg, null));
 
     if (serviceBindings.isEmpty()) {
-      safelyCall(() -> api.deleteServiceInstance(serviceInstanceId));
+      safelyCall(() -> api.destroyServiceInstance(serviceInstanceId));
     } else {
-      throw new CloudFoundryApiException("Unable to delete service instance while " + serviceBindings.size() + " service binding(s) exist");
+      throw new CloudFoundryApiException("Unable to destroy service instance while " + serviceBindings.size() + " service binding(s) exist");
     }
   }
 

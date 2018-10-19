@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DestroyCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -25,9 +25,9 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class DeleteCloudFoundryServiceAtomicOperation implements AtomicOperation<Void> {
+public class DestroyCloudFoundryServiceAtomicOperation implements AtomicOperation<Void> {
   private static final String PHASE = "DELETE_SERVICE";
-  private final DeleteCloudFoundryServiceDescription description;
+  private final DestroyCloudFoundryServiceDescription description;
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
@@ -39,7 +39,7 @@ public class DeleteCloudFoundryServiceAtomicOperation implements AtomicOperation
     task.updateStatus(PHASE, "Initializing the removal of service instance '" + description.getServiceName() + "' from space " + description.getSpace().getName());
     description.getClient()
       .getServiceInstances()
-      .deleteServiceInstance(description.getSpace(), description.getServiceName());
+      .destroyServiceInstance(description.getSpace(), description.getServiceName());
     task.updateStatus(PHASE, "Done removing service instance '" + description.getServiceName() + "'");
     return null;
   }
