@@ -2,38 +2,49 @@ package com.netflix.spinnaker.keel.api
 
 import com.netflix.spinnaker.keel.api.Decision.halt
 import com.netflix.spinnaker.keel.api.Decision.proceed
+import com.netflix.spinnaker.keel.api.VetoPluginGrpc.VetoPluginBlockingStub
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.whenever
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.gherkin.Feature
+import com.oneeyedmen.minutest.junit.junitTests
+import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-internal object SimpleVetoPluginSpec : Spek({
+internal object SimpleVetoPluginSpec {
 
-  val grpc = GrpcStubManager(VetoPluginGrpc::newBlockingStub)
-  val dynamicConfigService = mock<DynamicConfigService>()
+  data class Fixture(
+    val grpc: GrpcStubManager<VetoPluginBlockingStub>,
+    val dynamicConfigService: DynamicConfigService
+  )
 
-  beforeGroup {
-    grpc.startServer {
-      addService(SimpleVetoPlugin(dynamicConfigService))
+  @TestFactory
+  fun `vetoing asset convergence`() = junitTests<Fixture> {
+    fixture {
+      Fixture(
+        GrpcStubManager(VetoPluginGrpc::newBlockingStub),
+        mock<DynamicConfigService>()
+      )
     }
-  }
 
-  Feature("vetoing asset convergence") {
-    Scenario("convergence is enabled") {
-      beforeGroup {
+    before {
+      grpc.startServer {
+        addService(SimpleVetoPlugin(dynamicConfigService))
+      }
+    }
+
+    context("convergence is enabled") {
+      before {
         whenever(dynamicConfigService.isEnabled("keel.converge.enabled", false)) doReturn true
       }
 
-      afterGroup {
+      after {
         reset(dynamicConfigService)
       }
 
-      Then("the plugin approves an asset convergence") {
+      test("it approves asset convergence") {
         val request = Asset
           .newBuilder()
           .apply {
@@ -50,16 +61,16 @@ internal object SimpleVetoPluginSpec : Spek({
       }
     }
 
-    Scenario("convergence is disabled") {
-      beforeGroup {
+    context("convergence is disabled") {
+      before {
         whenever(dynamicConfigService.isEnabled("keel.converge.enabled", false)) doReturn false
       }
 
-      afterGroup {
+      after {
         reset(dynamicConfigService)
       }
 
-      Then("the plugin approves an asset convergence") {
+      test("it denies asset convergence") {
         val request = Asset
           .newBuilder()
           .apply {
@@ -76,5 +87,4 @@ internal object SimpleVetoPluginSpec : Spek({
       }
     }
   }
-
-})
+}

@@ -1,5 +1,5 @@
 apply plugin: "java-library"
-apply from: "$rootDir/gradle/spek2.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
   implementation project(":keel-plugin")
@@ -7,5 +7,6 @@ dependencies {
 
   testImplementation "io.strikt:strikt-protobuf:$striktVersion"
   testImplementation project(":keel-api-test")
+  testImplementation "com.oneeyedmen:minutest:$minutestVersion"
 }
 
