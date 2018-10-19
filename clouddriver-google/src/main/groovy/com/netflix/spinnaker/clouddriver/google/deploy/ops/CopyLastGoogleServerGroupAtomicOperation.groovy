@@ -159,7 +159,9 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
 
           new GoogleDisk(type: initializeParams.diskType,
                          sizeGb: initializeParams.diskSizeGb,
-                         autoDelete: attachedDisk.autoDelete)
+                         autoDelete: attachedDisk.autoDelete,
+                         sourceImage: GCEUtil.getLocalName(initializeParams.sourceImage)
+          )
         }
       }
 

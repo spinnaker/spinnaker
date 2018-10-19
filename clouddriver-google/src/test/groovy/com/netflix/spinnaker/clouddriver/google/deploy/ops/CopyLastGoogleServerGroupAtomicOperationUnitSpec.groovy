@@ -74,7 +74,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   private static final long DISK_SIZE_GB = 100
   private static final String DISK_TYPE = "pd-standard"
-  private static final GoogleDisk DISK_PD_STANDARD = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB)
+
+  private static final GoogleDisk DISK_PD_STANDARD = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB, sourceImage: IMAGE)
   private static final String DEFAULT_NETWORK_NAME = "default"
   private static final String DEFAULT_NETWORK_URL =
           "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/networks/$DEFAULT_NETWORK_NAME"
