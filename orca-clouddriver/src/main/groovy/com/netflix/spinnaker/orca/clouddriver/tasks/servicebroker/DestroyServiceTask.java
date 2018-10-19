@@ -31,11 +31,11 @@ import java.util.Collections;
 import java.util.Map;
 
 @Component
-public class DeleteServiceTask extends AbstractCloudProviderAwareTask implements Task {
+public class DestroyServiceTask extends AbstractCloudProviderAwareTask implements Task {
 
   private final KatoService kato;
 
-  public DeleteServiceTask(KatoService kato) {
+  public DestroyServiceTask(KatoService kato) {
     this.kato = kato;
   }
 
@@ -45,11 +45,11 @@ public class DeleteServiceTask extends AbstractCloudProviderAwareTask implements
     String cloudProvider = getCloudProvider(stage);
     String account = getCredentials(stage);
     Map<String, Map> operation = new ImmutableMap.Builder<String, Map>()
-      .put("deleteService", stage.getContext())
+      .put("destroyService", stage.getContext())
       .build();
     TaskId taskId = kato.requestOperations(cloudProvider, Collections.singletonList(operation)).toBlocking().first();
     Map<String, Object> outputs = new ImmutableMap.Builder<String, Object>()
-      .put("notification.type", "deleteService")
+      .put("notification.type", "destroyService")
       .put("kato.last.task.id", taskId)
       .put("service.region",  stage.getContext().get("region"))
       .put("service.account", account)

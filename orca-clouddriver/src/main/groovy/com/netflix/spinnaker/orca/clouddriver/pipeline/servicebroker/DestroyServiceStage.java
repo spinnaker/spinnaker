@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servicebroker;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker.DeleteServiceTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker.DestroyServiceTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -28,13 +28,13 @@ import javax.annotation.Nonnull;
 
 @Component
 @CompileStatic
-class DeleteServiceStage implements StageDefinitionBuilder {
+class DestroyServiceStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
     builder
-      .withTask("deleteService", DeleteServiceTask.class)
-      .withTask("monitorDeleteService", MonitorKatoTask.class);
+      .withTask("destroyService", DestroyServiceTask.class)
+      .withTask("monitorDestroyService", MonitorKatoTask.class);
   }
 }
 
