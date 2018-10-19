@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
@@ -159,6 +160,9 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
   @Override
   public List<KubernetesManifest> pods(KubernetesV2Credentials credentials, KubernetesManifest object) {
     KubernetesManifestSelector selector = object.getManifestSelector();
-    return credentials.list(KubernetesKind.POD, object.getNamespace(), selector.toSelectorList());
+    return credentials.list(KubernetesKind.POD, object.getNamespace(), selector.toSelectorList())
+        .stream()
+        .filter(p -> p.getOwnerReferences().stream().anyMatch(or -> or.getName().equals(object.getName())))
+        .collect(Collectors.toList());
   }
 }
