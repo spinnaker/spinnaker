@@ -4,7 +4,7 @@ import { dump } from 'js-yaml';
 
 import { IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
 
-import { YamlEditor } from 'kubernetes/v2/manifest/yaml/YamlEditor';
+import { YamlEditor } from 'kubernetes/v2/manifest/editor/yaml/YamlEditor';
 import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
 export interface IManifestBasicSettingsProps extends IWizardPageProps<IKubernetesManifestCommandData> {

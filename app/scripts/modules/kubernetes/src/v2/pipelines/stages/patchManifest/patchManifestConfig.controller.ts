@@ -7,6 +7,18 @@ import {
   IKubernetesManifestCommandMetadata,
   KubernetesManifestCommandBuilder,
 } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
+import { JSON_EDITOR_TAB_SIZE } from 'kubernetes/v2/manifest/editor/json/JsonEditor';
+
+export enum EditorMode {
+  json = 'json',
+  yaml = 'yaml',
+}
+
+export const mergeStrategyToEditorMode: { [m in MergeStrategy]: EditorMode } = {
+  [MergeStrategy.strategic]: EditorMode.yaml,
+  [MergeStrategy.json]: EditorMode.json,
+  [MergeStrategy.merge]: EditorMode.json,
+};
 
 export class KubernetesV2PatchManifestConfigCtrl implements IController {
   public state = {
@@ -25,12 +37,6 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
   constructor(private $scope: IScope) {
     'ngInject';
 
-    try {
-      this.rawPatchBody = $scope.stage.patchBody ? dump($scope.stage.patchBody) : null;
-    } catch (e) {
-      this.rawPatchBody = null;
-    }
-
     const defaultOptions: IPatchOptions = {
       mergeStrategy: MergeStrategy.strategic,
       record: true,
@@ -39,6 +45,8 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
     if (this.$scope.stage.isNew) {
       this.$scope.stage.options = defaultOptions;
     }
+
+    this.setRawPatchBody(this.getMergeStrategy());
 
     this.manifestArtifactDelegate = new NgManifestArtifactDelegate($scope);
     this.manifestArtifactController = new ExpectedArtifactSelectorViewController(this.manifestArtifactDelegate);
@@ -66,7 +74,7 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
     });
   }
 
-  public handleYamlChange = (rawPatchBody: string, patchBody: any): void => {
+  public handlePatchBodyChange = (rawPatchBody: string, patchBody: any): void => {
     this.rawPatchBody = rawPatchBody;
     this.$scope.stage.patchBody = patchBody;
     // Called from a React component.
@@ -82,6 +90,33 @@ export class KubernetesV2PatchManifestConfigCtrl implements IController {
   }
 
   public handleManifestSelectorChange = (): void => {
+    this.$scope.$applyAsync();
+  };
+
+  private getMergeStrategy = (): MergeStrategy => {
+    return this.$scope.stage.options.mergeStrategy;
+  };
+
+  public getEditorMode = (): EditorMode => {
+    return mergeStrategyToEditorMode[this.getMergeStrategy()];
+  };
+
+  private setRawPatchBody = (mergeStrategy: MergeStrategy): void => {
+    const editorMode = mergeStrategyToEditorMode[mergeStrategy];
+    const patchBody = this.$scope.stage.patchBody;
+    try {
+      if (editorMode === EditorMode.yaml) {
+        this.rawPatchBody = patchBody ? dump(patchBody) : null;
+      } else {
+        this.rawPatchBody = patchBody ? JSON.stringify(patchBody, null, JSON_EDITOR_TAB_SIZE) : null;
+      }
+    } catch (e) {
+      this.rawPatchBody = null;
+    }
+  };
+
+  public handleMergeStrategyChange = (mergeStrategy: MergeStrategy): void => {
+    this.setRawPatchBody(mergeStrategy);
     this.$scope.$applyAsync();
   };
 }
