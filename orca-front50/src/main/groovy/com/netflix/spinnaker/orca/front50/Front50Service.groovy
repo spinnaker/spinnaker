@@ -97,6 +97,9 @@ interface Front50Service {
   @PUT("/v2/pipelineTemplates/{pipelineTemplateId}")
   Response updateV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId, @Body Map pipelineTemplate)
 
+  @DELETE("/v2/pipelineTemplates/{pipelineTemplateId}")
+  Response deleteV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
+
   @GET("/strategies")
   List<Map<String, Object>> getAllStrategies()
 
