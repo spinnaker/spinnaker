@@ -139,6 +139,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
 
     return new KubernetesV2Manifest().builder()
         .account(account)
+        .name(manifest.getFullResourceName())
         .location(namespace)
         .manifest(manifest)
         .moniker(moniker)

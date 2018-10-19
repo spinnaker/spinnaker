@@ -38,6 +38,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class KubernetesV2Manifest implements Manifest {
   private String account;
+  private String name;
   private String location;
   private Moniker moniker;
   private KubernetesManifest manifest;
