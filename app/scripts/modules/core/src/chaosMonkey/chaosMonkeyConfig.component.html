@@ -12,7 +12,7 @@
     <div class="col-md-5 col-md-offset-1">
       <label>Mean time between terms</label>
       <input type="number" class="form-control input-sm"
-             min="0"
+             min="1"
              ng-model="$ctrl.config.meanTimeBetweenKillsInWorkDays"
              ng-change="$ctrl.configChanged()"/>
       days <help-field key="chaos.meanTime"></help-field>
@@ -20,7 +20,7 @@
     <div class="col-md-6">
       <label>Min time between terms</label>
       <input type="number" class="form-control input-sm"
-             min="0"
+             min="1"
              ng-model="$ctrl.config.minTimeBetweenKillsInWorkDays"
              ng-change="$ctrl.configChanged()"/>
       days <help-field key="chaos.minTime"></help-field>
