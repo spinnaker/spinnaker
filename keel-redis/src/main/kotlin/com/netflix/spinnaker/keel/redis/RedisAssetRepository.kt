@@ -11,12 +11,14 @@ import com.netflix.spinnaker.keel.persistence.AssetState
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisCommands
+import java.time.Clock
 import java.time.Instant
 import java.util.*
 import javax.annotation.PostConstruct
 
 class RedisAssetRepository(
-  private val redisClient: JedisClientDelegate
+  private val redisClient: JedisClientDelegate,
+  private val clock: Clock
 ) : AssetRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -24,13 +26,13 @@ class RedisAssetRepository(
   override fun rootAssets(callback: (Asset) -> Unit) {
     withRedis { redis ->
       redis.smembers(INDEX_SET)
+        .asSequence()
         .map(::AssetId)
+        .filter { redis.scard(it.dependsOnKey) == 0L }
         .forEach { id ->
-          if (redis.scard(id.dependsOnKey) == 0L) {
-            readAsset(redis, id)
-              ?.also { (it as? Asset)?.also(callback) }
-              ?: onInvalidIndex(id)
-          }
+          readAsset(redis, id)
+            ?.also { (it as? Asset)?.also(callback) }
+            ?: onInvalidIndex(id)
         }
     }
   }
@@ -52,49 +54,84 @@ class RedisAssetRepository(
       readAsset(redis, id) as? Asset
     }
 
-  override fun getPartial(id: AssetId): PartialAsset? {
-    TODO("not implemented")
-  }
+  override fun getPartial(id: AssetId): PartialAsset? =
+    withRedis { redis ->
+      readAsset(redis, id) as? PartialAsset
+    }
 
-  override fun getContainer(id: AssetId): AssetContainer? {
-    TODO("not implemented")
-  }
+  override fun getContainer(id: AssetId): AssetContainer? =
+    withRedis { redis ->
+      val root = readAsset(redis, id) as? Asset
+      if (root != null) {
+        val partials = redis
+          .smembers(id.partialsKey)
+          .asSequence()
+          // TODO: optimally this should be done with a single read operation
+          .map { readAsset(redis, it.let(::AssetId)) as? PartialAsset }
+          .filterNotNull()
+          .toSet()
+        AssetContainer(root, partials)
+      } else {
+        null
+      }
+    }
 
   override fun store(asset: AssetBase) {
     withRedis { redis ->
-      redis.hmset(asset.key, asset.toHash())
+      redis.hmset(asset.id.key, asset.toHash())
       if (asset is Asset && asset.dependsOn.isNotEmpty()) {
+        redis.sadd(asset.id.dependsOnKey, *asset.dependsOn.map { it.value }.toTypedArray())
+        asset.dependsOn.forEach {
+          redis.sadd(it.dependenciesKey, asset.id.value)
+        }
+      } else if (asset is PartialAsset) {
         redis.sadd(
-          asset.dependsOnKey,
-          *asset.dependsOn.map { it.value }.toTypedArray()
+          asset.root.partialsKey,
+          asset.id.value
         )
       }
       redis.sadd(INDEX_SET, asset.id.value)
+      redis.zadd(asset.id.stateKey, timestamp(), AssetState.Unknown.name)
     }
   }
 
-  override fun dependents(id: AssetId): Iterable<AssetId> {
-    TODO("not implemented")
-  }
+  override fun dependents(id: AssetId): Iterable<AssetId> =
+    withRedis { redis ->
+      redis.smembers(id.dependenciesKey).map(::AssetId)
+    }
 
-  override fun lastKnownState(id: AssetId): Pair<AssetState, Instant>? {
-    TODO("not implemented")
-  }
+  override fun lastKnownState(id: AssetId): Pair<AssetState, Instant>? =
+    withRedis { redis ->
+      redis.zrangeByScoreWithScores(id.stateKey, Double.MIN_VALUE, Double.MAX_VALUE, 0, 1)
+        .asSequence()
+        .map { AssetState.valueOf(it.element) to Instant.ofEpochMilli(it.score.toLong()) }
+        .firstOrNull()
+    }
 
   override fun updateState(id: AssetId, state: AssetState) {
-    TODO("not implemented")
+    withRedis { redis ->
+      redis.zadd(id.stateKey, timestamp(), state.name)
+    }
   }
 
   @PostConstruct
-  fun logKnownPlugins() {
+  fun logKnownAssets() {
     withRedis { redis ->
+      redis
+        .smembers(INDEX_SET)
+        .sorted()
+        .also { log.info("Managing the following assets:") }
+        .forEach { log.info(" - $it") }
     }
   }
 
   companion object {
     private const val INDEX_SET = "keel:assets"
     private const val ASSET_HASH = "keel:asset:%s"
+    private const val DEPENDENCIES_SET = "keel:asset:%s:dependencies"
     private const val DEPENDS_ON_SET = "keel:asset:%s:dependsOn"
+    private const val PARTIALS_SET = "keel:asset:%s:partials"
+    private const val STATE_SORTED_SET = "keel:asset:%s:state"
   }
 
   private fun readAsset(redis: JedisCommands, id: AssetId): AssetBase? {
@@ -136,14 +173,17 @@ class RedisAssetRepository(
   private val AssetId.key: String
     get() = ASSET_HASH.format(value)
 
-  private val AssetBase.key: String
-    get() = id.key
+  private val AssetId.dependenciesKey: String
+    get() = DEPENDENCIES_SET.format(value)
 
   private val AssetId.dependsOnKey: String
     get() = DEPENDS_ON_SET.format(value)
 
-  private val AssetBase.dependsOnKey: String
-    get() = id.dependsOnKey
+  private val AssetId.partialsKey: String
+    get() = PARTIALS_SET.format(value)
+
+  private val AssetId.stateKey: String
+    get() = STATE_SORTED_SET.format(value)
 
   private fun AssetBase.toHash(): Map<String, String> = mutableMapOf(
     "@class" to javaClass.name,
@@ -156,6 +196,8 @@ class RedisAssetRepository(
       it["root"] = root.value
     }
   }
+
+  private fun timestamp() = clock.millis().toDouble()
 
   private fun ByteArray.encodeBase64() =
     String(Base64.getEncoder().encode(this))

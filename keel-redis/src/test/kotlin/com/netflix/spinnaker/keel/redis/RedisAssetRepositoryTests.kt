@@ -5,9 +5,11 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import org.junit.jupiter.api.AfterAll
 import redis.clients.jedis.Jedis
+import java.time.Clock
 
 internal object RedisAssetRepositoryTests : AssetRepositoryTests<RedisAssetRepository>() {
-  override fun factory() = RedisAssetRepository(redisClient)
+
+  override fun factory(clock: Clock) = RedisAssetRepository(redisClient, clock)
 
   private val embeddedRedis = EmbeddedRedis.embed()
   private val redisClient = JedisClientDelegate(embeddedRedis.pool)

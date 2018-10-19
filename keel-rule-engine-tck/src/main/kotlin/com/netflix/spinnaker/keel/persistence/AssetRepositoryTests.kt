@@ -5,6 +5,8 @@ import com.netflix.spinnaker.keel.model.AssetBase
 import com.netflix.spinnaker.keel.model.AssetId
 import com.netflix.spinnaker.keel.model.PartialAsset
 import com.netflix.spinnaker.keel.model.TypedByteArray
+import com.netflix.spinnaker.keel.persistence.AssetState.Diff
+import com.netflix.spinnaker.keel.persistence.AssetState.Ok
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.mock
@@ -16,16 +18,22 @@ import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.oneeyedmen.minutest.junit.junitTests
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.hasSize
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import java.util.*
 
 abstract class AssetRepositoryTests<T : AssetRepository> {
 
-  abstract fun factory(): T
+  abstract fun factory(clock: Clock): T
+
   open fun flush() {}
 
   data class Fixture<T : AssetRepository>(
@@ -37,8 +45,9 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
   fun `an asset repository`() = junitTests<Fixture<T>>() {
 
     fixture {
+      val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
       Fixture(
-        subject = factory(),
+        subject = factory(clock),
         callback = mock()
       )
     }
@@ -86,6 +95,15 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
       test("it can be retrieved by id") {
         expectThat(subject.get(asset.id)).isEqualTo(asset)
+      }
+
+      test("it can be retrieved in a container with no partials") {
+        expectThat(subject.getContainer(asset.id))
+          .isNotNull()
+          .and {
+            get { this.asset }.isEqualTo(asset)
+            get { partialAssets }.isEmpty()
+          }
       }
 
       test("its state is unknown") {
@@ -136,31 +154,77 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
             .isEqualTo(updatedAsset.spec)
         }
       }
+
+      context("updating the state of the asset") {
+        before {
+          subject.updateState(asset.id, Ok)
+        }
+
+        test("it reports the new state") {
+          expectThat(subject.lastKnownState(asset.id))
+            .isNotNull()
+            .first
+            .isEqualTo(Ok)
+        }
+
+        context("updating the state again") {
+          before {
+            subject.updateState(asset.id, Diff)
+          }
+
+          test("it reports the newest state") {
+            expectThat(subject.lastKnownState(asset.id))
+              .isNotNull()
+              .first
+              .isEqualTo(Diff)
+          }
+        }
+      }
     }
 
     context("an asset with dependencies") {
-      val asset = Asset(
+      val rootAsset = Asset(
+        id = AssetId("SecurityGroup:ec2:test:us-east-1:fnord"),
+        apiVersion = "1.0",
+        kind = "ec2:SecurityGroup",
+        spec = randomBytes()
+      )
+      val dependentAsset = Asset(
         id = AssetId("LoadBalancer:ec2:test:us-west-2:fnord"),
         apiVersion = "1.0",
         kind = "ec2:LoadBalancer",
-        dependsOn = setOf(AssetId("SecurityGroup:ec2:test:us-west-2:fnord")),
+        dependsOn = setOf(rootAsset.id),
         spec = randomBytes()
       )
 
       before {
-        subject.store(asset)
+        subject.store(rootAsset)
+        subject.store(dependentAsset)
       }
 
       test("it is not returned by rootAssets") {
         subject.rootAssets(callback)
 
-        verify(callback, never()).invoke(asset)
+        verify(callback, never()).invoke(dependentAsset)
       }
 
       test("it is returned by allAssets") {
         subject.allAssets(callback)
 
-        verify(callback).invoke(asset)
+        verify(callback).invoke(dependentAsset)
+      }
+
+      test("it can be retrieved in a container with no partials") {
+        expectThat(subject.getContainer(dependentAsset.id))
+          .isNotNull()
+          .and {
+            get { this.asset }.isEqualTo(dependentAsset)
+            get { partialAssets }.isEmpty()
+          }
+      }
+
+      test("it can be retrieved by the id of the asset it depends on") {
+        expectThat(subject.dependents(rootAsset.id)).containsExactly(dependentAsset.id)
       }
     }
 
@@ -197,6 +261,19 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
         verify(callback).invoke(asset)
         verify(callback, never()).invoke(partial)
+      }
+
+      test("it can be retrieved by id") {
+        expectThat(subject.getPartial(partial.id)).isEqualTo(partial)
+      }
+
+      test("it can be retrieved alongside its parent asset") {
+        expectThat(subject.getContainer(asset.id))
+          .isNotNull()
+          .and {
+            get { this.asset }.isEqualTo(asset)
+            get { partialAssets }.hasSize(1).first().isEqualTo(partial)
+          }
       }
     }
   }

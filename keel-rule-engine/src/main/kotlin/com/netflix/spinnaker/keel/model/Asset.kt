@@ -95,7 +95,7 @@ data class PartialAsset(
  */
 data class AssetContainer(
   val asset: Asset,
-  val partialAssets: Set<PartialAsset> = setOf()
+  val partialAssets: Set<PartialAsset> = emptySet()
 )
 
 data class AssetId(
