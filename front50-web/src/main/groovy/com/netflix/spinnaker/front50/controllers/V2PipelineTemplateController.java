@@ -12,12 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.front50.controllers;
 
 import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED;
-import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -31,9 +31,7 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -89,6 +87,8 @@ public class V2PipelineTemplateController {
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   void delete(@PathVariable String id) {
+    checkForDependentConfigs(id);
+    getPipelineTemplateDAO().delete(id);
   }
 
   @RequestMapping(value = "{id}/dependentPipelines", method = RequestMethod.GET)
