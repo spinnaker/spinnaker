@@ -27,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestTraffic;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
@@ -99,12 +101,13 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     return disabled;
   }
 
-  protected KubernetesV2ServerGroup(KubernetesManifest manifest, String key, List<KubernetesV2Instance> instances, Set<String> loadBalancers, List<ServerGroupManagerSummary> serverGroupManagers) {
+  protected KubernetesV2ServerGroup(KubernetesManifest manifest, String key, List<KubernetesV2Instance> instances, Set<String> loadBalancers, List<ServerGroupManagerSummary> serverGroupManagers, Boolean disabled) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
     this.instances = new HashSet<>(instances);
     this.loadBalancers = loadBalancers;
     this.serverGroupManagers = serverGroupManagers;
+    this.disabled = disabled;
 
     Object odesired = ((Map<String, Object>) manifest
         .getOrDefault("spec", new HashMap<String, Object>()))
@@ -155,6 +158,13 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
+
+    KubernetesManifestTraffic traffic = KubernetesManifestAnnotater.getTraffic(manifest);
+    Set<String> explicitLoadBalancers = traffic.getLoadBalancers().stream()
+        .map(KubernetesManifest::fromFullResourceName)
+        .map(p -> KubernetesManifest.getFullResourceName(p.getLeft(), p.getRight())) // this ensures the names are serialized correctly when the get merged below
+        .collect(Collectors.toSet());
+
     Set<String> loadBalancers = loadBalancerData.stream()
         .map(CacheData::getId)
         .map(Keys::parseKey)
@@ -164,7 +174,10 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .map(k -> KubernetesManifest.getFullResourceName(k.getKubernetesKind(), k.getName()))
         .collect(Collectors.toSet());
 
-    return new KubernetesV2ServerGroup(manifest, cd.getId(), instances, loadBalancers, serverGroupManagers);
+    Boolean disabled = loadBalancers.isEmpty() && !explicitLoadBalancers.isEmpty();
+    loadBalancers.addAll(explicitLoadBalancers);
+
+    return new KubernetesV2ServerGroup(manifest, cd.getId(), instances, loadBalancers, serverGroupManagers, disabled);
   }
 
   public static KubernetesV2ServerGroup fromCacheData(KubernetesV2ServerGroupCacheData cacheData) {

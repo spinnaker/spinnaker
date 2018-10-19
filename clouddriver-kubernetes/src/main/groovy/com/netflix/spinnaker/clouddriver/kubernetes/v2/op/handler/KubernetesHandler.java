@@ -194,7 +194,6 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
         return sizeComparator();
       default:
         throw new IllegalArgumentException("No comparator for " + sort + " found");
-
     }
   }
 
