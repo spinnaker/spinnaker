@@ -17,6 +17,7 @@ import {
 } from 'kayenta/domain';
 import { IUpdateKeyValueListPayload } from '../layout/keyValueList';
 import { IStackdriverCanaryMetricSetQueryConfig } from '../metricStore/stackdriver/domain/IStackdriverCanaryMetricSetQueryConfig';
+import { IPrometheusCanaryMetricSetQueryConfig } from '../metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
 
 export interface IKayentaAction<T> extends Action {
   payload: T;
@@ -91,6 +92,10 @@ export const editTemplateName = createAction<{ name: string }>(Actions.EDIT_TEMP
 export const editTemplateValue = createAction<{ value: string }>(Actions.EDIT_TEMPLATE_VALUE);
 export const updatePrometheusLabelBindings = createAction<IUpdateListPayload>(Actions.UPDATE_PROMETHEUS_LABEL_BINDINGS);
 export const updatePrometheusGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_PROMETHEUS_GROUP_BY_FIELDS);
+export const updatePrometheusMetricQueryField = createAction<{
+  field: keyof IPrometheusCanaryMetricSetQueryConfig;
+  value: IPrometheusCanaryMetricSetQueryConfig[keyof IPrometheusCanaryMetricSetQueryConfig];
+}>(Actions.UPDATE_PROMETHEUS_METRIC_QUERY_FIELD);
 export const updateStackdriverGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS);
 export const deleteTemplate = createAction<{ name: string }>(Actions.DELETE_TEMPLATE);
 export const selectTemplate = createAction<{ name: string }>(Actions.SELECT_TEMPLATE);
@@ -108,7 +113,6 @@ export const loadMetricsServiceMetadataFailure = createAction<{ error: Error }>(
 export const updatePrometheusMetricDescriptorFilter = createAction<{ filter: string }>(
   Actions.UPDATE_PROMETHEUS_METRIC_DESCRIPTOR_FILTER,
 );
-export const updatePrometheusMetricType = createAction<{ metricName: string }>(Actions.UPDATE_PROMETHEUS_METRIC_TYPE);
 export const updateStackdriverMetricDescriptorFilter = createAction<{ filter: string }>(
   Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER,
 );

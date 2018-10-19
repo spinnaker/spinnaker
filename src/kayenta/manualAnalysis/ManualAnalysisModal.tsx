@@ -139,15 +139,15 @@ export class ManualAnalysisModal extends React.Component<IManualAnalysisModalPro
     dismissModal: noop,
   };
 
-  public static show(props: IManualAnalysisModalProps): Promise<any> {
-    const modalProps = { dialogClassName: 'modal-lg' };
-    return ReactModal.show(ManualAnalysisModal, props, modalProps);
-  }
-
   public state: IManualAnalysisModalState = {
     showAllControlLocations: false,
     showAllExperimentLocations: false,
   };
+
+  public static show(props: IManualAnalysisModalProps): Promise<any> {
+    const modalProps = { dialogClassName: 'modal-lg' };
+    return ReactModal.show(ManualAnalysisModal, props, modalProps);
+  }
 
   constructor(props: IManualAnalysisModalProps) {
     super(props);

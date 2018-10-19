@@ -342,22 +342,6 @@
       </stage-config-field>
     </for-analysis-type>
 
-    <stage-config-field label="Resource Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'prometheus'">
-      <select
-        class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams.resourceType"
-        ng-options="option for option in ['', 'gce_instance', 'aws_ec2_instance']">
-      </select>
-    </stage-config-field>
-
-    <stage-config-field label="Resource Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'stackdriver'">
-      <select
-        class="form-control input-sm"
-        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams.resourceType"
-        ng-options="option for option in ['gce_instance', 'aws_ec2_instance', 'gae_app', 'k8s_container', 'k8s_pod', 'k8s_node', 'gke_container', 'https_lb_rule', 'global']">
-      </select>
-    </stage-config-field>
-
     <stage-config-field label="Extended Params"
                         help-key="pipeline.config.canary.extendedScopeParams">
       <map-editor
