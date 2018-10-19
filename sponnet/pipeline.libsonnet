@@ -129,6 +129,7 @@
     },
 
     // jenkins stages
+
     jenkins(name):: stage(name, 'jenkins') {
       withJob(job):: self + { job: job },
       withMaster(master):: self + { master: master },

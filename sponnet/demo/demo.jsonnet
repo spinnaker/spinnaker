@@ -19,7 +19,7 @@ local notificationConditions = ['pipeline.starting', 'pipeline.failed', 'pipelin
 local myManifestArtifactName = 'app/manifest.yaml';
 local myManifestArtifactVersion = 'master';
 local myManifestArtifactReference = 'https://gitlab.com/api/v4/projects/your-org%2Fyour-project/repository/files/app%2Fmanifest%2Eyaml/raw';
-local myManifestArtifactLocation = 'notsurewhat';
+local myManifestArtifactLocation = 'someLocation';
 // Must be specified in pipeline, but not in artifact creation
 local myManifestArtifactAccount = 'gitlab-account';
 
@@ -57,7 +57,8 @@ local expected_manifest = sponnet.expectedArtifact(myManifestArtifactName)
 
 local docker_trigger = sponnet.triggers
                        .docker('myDockerTrigger')
-                       // .withExpectedArtifacts([manifestArtifact, manifestArtifact2])
+                       // TODO verify expected artifact is inserted correctly in configuration.
+                       // .withExpectedArtifacts([expected_image])
                        .withAccount(myDockerAccount)
                        .withOrganization(myDockerOrganization)
                        .withRegistry(myDockerRegistry)
@@ -66,7 +67,8 @@ local docker_trigger = sponnet.triggers
 
 local git_trigger = sponnet.triggers
                     .git('myGitTrigger')
-                    // .withExpectedArtifacts([manifestArtifact, manifestArtifact2])
+                    // TODO verify expected artifact is inserted correctly in configuration.
+                    // .withExpectedArtifacts([expected_manifest])
                     .withBranch(myBranch)
                     .withProject(myProject)
                     .withSlug(mySlug)
