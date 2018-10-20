@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DelegatingExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository
 import rx.Observable
 import java.util.concurrent.TimeUnit
@@ -164,6 +165,14 @@ class RedisInstrumentedExecutionRepository(
                                                     criteria: ExecutionRepository.ExecutionCriteria): Observable<Execution> {
     return withMetrics("retrieveOrchestrationsForApplication") {
       executionRepository.retrieveOrchestrationsForApplication(application, criteria)
+    }
+  }
+
+  override fun retrieveOrchestrationsForApplication(application: String,
+                                                    criteria: ExecutionRepository.ExecutionCriteria,
+                                                    sorter: ExecutionComparator?): MutableList<Execution> {
+    return withMetrics("retrieveOrchestrationsForApplication3") {
+      executionRepository.retrieveOrchestrationsForApplication(application, criteria, sorter)
     }
   }
 

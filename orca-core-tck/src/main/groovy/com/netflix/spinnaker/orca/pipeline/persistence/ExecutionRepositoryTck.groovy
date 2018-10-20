@@ -26,11 +26,21 @@ import rx.schedulers.Schedulers
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
+import static java.time.ZoneOffset.UTC
+import static java.time.temporal.ChronoUnit.DAYS
+import static java.time.temporal.ChronoUnit.HOURS
 
 @Subject(ExecutionRepository)
 @Unroll
@@ -41,6 +51,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   @Subject
   ExecutionRepository previousRepository
+
+  def clock = Clock.fixed(Instant.now(), UTC)
 
   void setup() {
     repository = createExecutionRepository()
@@ -89,6 +101,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     pipelines.isEmpty()
   }
 
+  @Deprecated // Testing deprecated API
   def "can retrieve orchestrations by status"() {
     given:
     def runningExecution = orchestration {
@@ -127,6 +140,94 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     then:
     orchestrations.isEmpty()
+  }
+
+  def "can retrieve orchestrations by status without rx"() {
+    given:
+    def runningExecution = orchestration {
+      status = RUNNING
+      buildTime = 0
+      trigger = new DefaultTrigger("manual")
+    }
+    def succeededExecution = orchestration {
+      status = SUCCEEDED
+      buildTime = 0
+      trigger = new DefaultTrigger("manual")
+    }
+
+    when:
+    repository.store(runningExecution)
+    repository.store(succeededExecution)
+    def orchestrations = repository.retrieveOrchestrationsForApplication(
+      runningExecution.application,
+      new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"]),
+      NATURAL
+    )
+
+    then:
+    // NOTE: Different sort order to that of the Rx-based test, as the Rx test doesn't actually use a sort
+    // that would be used in the actual application and this method has sorting built-in.
+    orchestrations*.id == [succeededExecution.id, runningExecution.id]
+
+    when:
+    orchestrations = repository.retrieveOrchestrationsForApplication(
+      runningExecution.application,
+      new ExecutionCriteria(limit: 5, statuses: ["RUNNING"]),
+      NATURAL
+    )
+
+    then:
+    orchestrations*.id == [runningExecution.id]
+
+    when:
+    orchestrations = repository.retrieveOrchestrationsForApplication(
+      runningExecution.application,
+      new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"]),
+      NATURAL
+    )
+
+    then:
+    orchestrations.isEmpty()
+
+  }
+
+  def "tasks retrieved are filtered by status and from the past two weeks, sorted newest to oldest"() {
+    given:
+    [
+      [id: "too-old", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli()],
+      [id: "not-too-old", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli()],
+      [id: "pretty-new", application: "covfefe", startTime: clock.instant().minus(1, DAYS).toEpochMilli()],
+      [id: 'not-started-1', application: "covfefe"],
+      [id: 'not-started-2', application: "covfefe"]
+    ].collect { config ->
+      orchestration {
+        id = config.id
+        application = config.application
+        startTime = config.startTime
+      }
+    }.forEach {
+      repository.store(it)
+    }
+
+    when:
+    def orchestrations = repository.retrieveOrchestrationsForApplication(
+      "covfefe",
+      new ExecutionCriteria().with {
+        startTimeCutoff = clock
+          .instant()
+          .atZone(ZoneOffset.UTC)
+          .minusDays(daysOfExecutionHistory)
+          .toInstant()
+        it
+      },
+      START_TIME_OR_ID
+    )
+
+    then:
+    orchestrations*.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
+
+    where:
+    daysOfExecutionHistory = 14
   }
 
   def "a pipeline can be retrieved after being stored"() {

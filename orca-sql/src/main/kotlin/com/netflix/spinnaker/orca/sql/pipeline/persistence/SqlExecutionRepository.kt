@@ -32,6 +32,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.REVERSE_BUILD_TIME
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
@@ -265,20 +269,40 @@ class SqlExecutionRepository(
     application: String,
     criteria: ExecutionCriteria
   ): Observable<Execution> {
-    val select = jooq.selectExecutions(
+    return Observable.from(retrieveOrchestrationsForApplication(application, criteria, NATURAL))
+  }
+
+  override fun retrieveOrchestrationsForApplication(
+    application: String,
+    criteria: ExecutionCriteria,
+    sorter: ExecutionComparator?
+  ): MutableList<Execution> {
+    return jooq.selectExecutions(
       ORCHESTRATION,
       conditions = {
-        it.where(field("application").eq(application))
-          .statusIn(criteria.statuses)
+        val where = it.where(field("application").eq(application))
+
+        val startTime = criteria.startTimeCutoff
+        if (startTime != null) {
+          // This may look like a bug, but it isn't. Start time isn't always set (NOT_STARTED status). We
+          // don't want to exclude Executions that haven't started, but we also want to still reduce the result set.
+          where
+            .and(field("build_time").greaterThan(startTime.toEpochMilli()))
+            .statusIn(criteria.statuses)
+        } else {
+          where.statusIn(criteria.statuses)
+        }
       },
       seek = {
-        it.orderBy(field("id").desc())
-          .offset((criteria.page - 1) * criteria.limit)
-          .limit(criteria.limit)
-      }
-    )
+        val ordered = when (sorter) {
+          START_TIME_OR_ID -> it.orderBy(field("start_time").desc(), field("id").desc())
+          REVERSE_BUILD_TIME -> it.orderBy(field("build_time").asc(), field("id").asc())
+          else -> it.orderBy(field("id").desc())
+        }
 
-    return Observable.from(select.fetchExecutions())
+        ordered.offset((criteria.page - 1) * criteria.limit).limit(criteria.limit)
+      }
+    ).fetchExecutions().toMutableList()
   }
 
   // TODO rz - Refactor to not use exceptions
@@ -452,6 +476,7 @@ class SqlExecutionRepository(
         field("status") to status,
         field("application") to execution.application,
         field("build_time") to (execution.buildTime ?: currentTimeMillis()),
+        field("start_time") to execution.startTime,
         field("canceled") to execution.isCanceled,
         field("updated_at") to currentTimeMillis(),
         field("body") to body
@@ -460,6 +485,8 @@ class SqlExecutionRepository(
       val updatePairs = mapOf(
         field("status") to status,
         field("body") to body,
+        // won't have started on insert
+        field("start_time") to execution.startTime,
         field("canceled") to execution.isCanceled,
         field("updated_at") to currentTimeMillis()
       )

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DelegatingExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ActiveExecutionsReport
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
@@ -168,6 +169,14 @@ class SqlInstrumentedExecutionRepository(
                                                     criteria: ExecutionCriteria): Observable<Execution> {
     return withMetrics("retrieveOrchestrationsForApplication") {
       executionRepository.retrieveOrchestrationsForApplication(application, criteria)
+    }
+  }
+
+  override fun retrieveOrchestrationsForApplication(application: String,
+                                                    criteria: ExecutionCriteria,
+                                                    sorter: ExecutionComparator?): MutableList<Execution> {
+    return withMetrics("retrieveOrchestrationsForApplication3") {
+      executionRepository.retrieveOrchestrationsForApplication(application, criteria, sorter)
     }
   }
 

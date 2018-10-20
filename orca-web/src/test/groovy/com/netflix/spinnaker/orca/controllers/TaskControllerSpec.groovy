@@ -35,6 +35,7 @@ import java.time.Clock
 import java.time.Instant
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
 import static java.time.ZoneOffset.UTC
 import static java.time.temporal.ChronoUnit.DAYS
@@ -150,36 +151,10 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get("/applications/$app/tasks")).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.empty()
+    1 * executionRepository.retrieveOrchestrationsForApplication(app, _, START_TIME_OR_ID) >> []
 
     where:
     app = "test"
-  }
-
-  void '/applications/{application}/tasks only returns un-started and tasks from the past two weeks, sorted newest first'() {
-    given:
-    def tasks = [
-      [id: "too-old", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli()],
-      [id: "not-too-old", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli()],
-      [id: "pretty-new", application: "covfefe", startTime: clock.instant().minus(1, DAYS).toEpochMilli()],
-      [id: 'not-started-1', application: "covfefe"],
-      [id: 'not-started-2', application: "covfefe"]
-    ].collect { config ->
-      orchestration {
-        id = config.id
-        application = config.application
-        startTime = config.startTime
-      }
-    }
-    def app = 'test'
-    executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.from(tasks)
-
-    when:
-    def response = new ObjectMapper().readValue(
-      mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
-
-    then:
-    response.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
   }
 
   void '/applications/{application}/pipelines should only return pipelines from the past two weeks, newest first'() {

@@ -41,17 +41,24 @@ import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import rx.schedulers.Schedulers
 
 import java.nio.charset.Charset
 import java.time.Clock
+import java.time.ZoneOffset
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import static java.time.ZoneOffset.UTC
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 
 @Slf4j
 @RestController
@@ -101,25 +108,19 @@ class TaskController {
       .setPage(page)
       .setLimit(limit)
       .setStatuses(statuses.split(",") as Collection)
+      .setStartTimeCutoff(
+        clock
+          .instant()
+          .atZone(ZoneOffset.UTC)
+          .minusDays(daysOfExecutionHistory)
+          .toInstant()
+      )
 
-    def startTimeCutoff = clock
-      .instant()
-      .atZone(UTC)
-      .minusDays(daysOfExecutionHistory)
-      .toInstant()
-      .toEpochMilli()
-
-    def orchestrations = executionRepository
-      .retrieveOrchestrationsForApplication(application, executionCriteria)
-      .filter({ Execution orchestration -> !orchestration.startTime || (orchestration.startTime > startTimeCutoff) })
-      .map({ Execution orchestration -> convert(orchestration) })
-      .subscribeOn(Schedulers.io())
-      .toList()
-      .toBlocking()
-      .single()
-      .sort(startTimeOrId)
-
-    orchestrations.subList(0, Math.min(orchestrations.size(), limit))
+    executionRepository.retrieveOrchestrationsForApplication(
+      application,
+      executionCriteria,
+      START_TIME_OR_ID
+    ).collect { convert(it) }
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
