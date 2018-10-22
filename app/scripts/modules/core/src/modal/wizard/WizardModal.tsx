@@ -2,8 +2,9 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import { Formik, Form, FormikValues } from 'formik';
 import { Modal } from 'react-bootstrap';
+import { merge, isArray, isObject, isString } from 'lodash';
 
-import { TaskMonitor } from 'core';
+import { TaskMonitor } from 'core/task';
 import { IModalComponentProps, Tooltip } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
 import { Spinner } from 'core/widgets';
@@ -45,6 +46,7 @@ export interface IWizardModalState<T> {
 export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, IWizardModalState<T>> {
   private pages: { [label: string]: IWizardPageData<T> } = {};
   private stepsElement: HTMLDivElement;
+  private formikRef = React.createRef<Formik<{}, any>>();
 
   constructor(props: IWizardModalProps<T>) {
     super(props);
@@ -75,6 +77,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
         validate: element.validate,
         props: element.props,
       };
+      this.revalidate();
     }
   };
 
@@ -91,6 +94,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
   public componentDidMount(): void {
     const pages = this.getVisiblePageNames();
     this.setState({ pages: this.getVisiblePageNames(), currentPage: this.pages[pages[0]] });
+    this.revalidate();
   }
 
   public componentWillReceiveProps(): void {
@@ -136,7 +140,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
     const errors: Array<{ [key: string]: string }> = [];
     const newPageErrors: { [pageName: string]: { [key: string]: string } } = {};
 
-    this.state.pages.forEach(pageName => {
+    this.state.pages.filter(pageName => this.pages[pageName]).forEach(pageName => {
       const pageErrors = this.pages[pageName].validate ? this.pages[pageName].validate(values) : {};
       if (Object.keys(pageErrors).length > 0) {
         newPageErrors[pageName] = pageErrors;
@@ -146,14 +150,12 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
       errors.push(pageErrors);
     });
     errors.push(this.props.validate(values));
-    const flattenedErrors = Object.assign({}, ...errors);
-    this.setState({ pageErrors: newPageErrors, formInvalid: Object.keys(flattenedErrors).length > 0 });
-    return flattenedErrors;
+    const mergedErrors = errors.reduce((mergeTarget, errorObj) => merge(mergeTarget, errorObj), {});
+    this.setState({ pageErrors: newPageErrors, formInvalid: Object.keys(mergedErrors).length > 0 });
+    return mergedErrors;
   };
 
-  private revalidate(values: FormikValues, setErrors: (errors: any) => void) {
-    setErrors(this.validate(values));
-  }
+  private revalidate = () => this.formikRef.current && this.formikRef.current.getFormikBag().validateForm();
 
   private setWaiting = (section: string, isWaiting: boolean): void => {
     const waiting = new Set(this.state.waiting);
@@ -174,6 +176,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
       <>
         {taskMonitor && <TaskMonitorWrapper monitor={taskMonitor} />}
         <Formik<{}, T>
+          ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={this.props.closeModal}
           validate={this.validate}
@@ -211,7 +214,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
                             formik: formik,
                             dirtyCallback: this.dirtyCallback,
                             onMount: this.onMount,
-                            revalidate: () => this.revalidate(formik.values, formik.setErrors),
+                            revalidate: this.revalidate,
                             setWaiting: this.setWaiting,
                           });
                         })}
@@ -254,6 +257,21 @@ interface IWizardStepLabelProps<T> {
 }
 
 class WizardStepLabel<T> extends React.Component<IWizardStepLabelProps<T>> {
+  private flattenErrors(errors: any) {
+    const traverse = (obj: any, path: string, flattenedErrors: { [key: string]: any }): any => {
+      if (isArray(obj)) {
+        obj.forEach((elem, idx) => traverse(elem, `${path}[${idx}]`, flattenedErrors));
+      } else if (isString(obj)) {
+        flattenedErrors[path] = obj;
+      } else if (isObject(obj)) {
+        Object.keys(obj).forEach(key => traverse(obj[key], `${path}.${key}`, flattenedErrors));
+      }
+
+      return flattenedErrors;
+    };
+
+    return traverse(errors, 'errors', {});
+  }
   public render() {
     const { current, dirty, errors, onClick, pageState, waiting } = this.props;
 
@@ -273,13 +291,14 @@ class WizardStepLabel<T> extends React.Component<IWizardStepLabelProps<T>> {
       </li>
     );
 
-    if (errors) {
+    const flattenedErrors = this.flattenErrors(errors);
+    const errorKeys = Object.keys(flattenedErrors);
+    if (errorKeys.length) {
       const Errors = (
         <span>
-          {Object.keys(errors).map(key => (
+          {errorKeys.map(key => (
             <span key={key}>
-              {errors[key]}
-              <br />
+              {flattenedErrors[key]} <br />
             </span>
           ))}
         </span>
