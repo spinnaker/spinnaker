@@ -20,5 +20,5 @@ dependencies {
   compile "com.squareup.okhttp:okhttp-apache:+"
   compile "com.squareup.retrofit:converter-jackson:(,2.0["
 
-  compile "com.netflix.spinnaker.kork:kork-web:+"
+  compile "com.netflix.spinnaker.kork:kork-web:2.+"
 }

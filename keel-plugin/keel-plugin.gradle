@@ -8,7 +8,7 @@ dependencies {
   api project(":keel-api")
   api "org.lognet:grpc-spring-boot-starter:+"
   implementation project(":keel-common")
-  implementation "com.netflix.spinnaker.kork:kork-core:+"
+  implementation "com.netflix.spinnaker.kork:kork-core:2.+"
 
   testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
   testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"

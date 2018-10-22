@@ -26,7 +26,7 @@ com.netflix.spectator:spectator-ext-aws:0.75.0
 com.netflix.spectator:spectator-ext-gc:0.75.0
 com.netflix.spectator:spectator-ext-jvm:0.75.0
 com.netflix.spectator:spectator-web-spring:0.75.0
-com.netflix.spinnaker.kork:kork-core:3.0.0
+com.netflix.spinnaker.kork:kork-core:2.6.0
 com.sun.jersey.contribs:jersey-apache-client4:1.19.1
 com.sun.jersey:jersey-client:1.19.1
 com.sun.jersey:jersey-core:1.19.1

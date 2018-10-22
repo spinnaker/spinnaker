@@ -26,6 +26,6 @@ buildscript {
 }
 
 dependencies {
-  api "com.netflix.spinnaker.kork:kork-core:+"
+  api "com.netflix.spinnaker.kork:kork-core:2.+"
   compile project(":keel-api")
 }
