@@ -149,18 +149,12 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
   def timeout_delta(self, val):
     self.__timeout_delta = val
 
-  def __check_executions(self):
-    resp = self.__trigger_response
-    executions = len(json.JSONDecoder().decode(self.__trigger_response.output)) # len of Executions
-    return len(executions)
-
   def refresh(self):
     if self.__finished_ok:
       return
 
-    self.__trigger_response = self.__gate_agent.get(self.__status_path)
-    self.__executions = json.JSONDecoder().decode(self.__trigger_response.output)
-    self.__finished_ok = self.__trigger_response.ok() and self.__executions
+    self.__trigger_status.refresh()
+    self.__finished_ok = self.__trigger_status.finished_ok
     if self.__finished_ok:
       return
 
@@ -179,6 +173,9 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
     self.__status_class = status_class
     self.__status_path = status_path
     super(GcsPubsubTriggerOperationStatus, self).__init__(operation)
+    self.__trigger_status = status_class(operation)
+    self.__trigger_status._bind_id("n/a")
+    self.__trigger_status._bind_detail_path(status_path)
     self.__trigger_response = self.__gate_agent.get(self.__status_path)
     self.__start = datetime.datetime.utcnow()
     self.__timeout_delta = datetime.timedelta(minutes=5)

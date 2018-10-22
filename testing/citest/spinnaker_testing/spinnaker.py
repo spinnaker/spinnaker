@@ -167,8 +167,9 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
           indicate an error making the original request.
     """
     super(SpinnakerStatus, self).__init__(operation, original_response)
-    # The request ID is typically the response payload.
-    self.__request_id = original_response.output
+    if original_response is not None:
+      # The request ID is typically the response payload.
+      self.__request_id = original_response
     self.__current_state = None  # Last known state (after last refresh()).
     self.__detail_path = None    # The URL path on spinnaker for this status.
     self.__exception_details = None
