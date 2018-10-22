@@ -19,6 +19,8 @@ package com.netflix.kayenta.prometheus.controllers;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.metrics.PrometheusCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
 import com.netflix.kayenta.prometheus.config.PrometheusConfigurationTestControllerDefaultProperties;
@@ -48,14 +50,17 @@ import static com.netflix.kayenta.canary.util.FetchControllerUtils.determineDefa
 public class PrometheusFetchController {
 
   private final AccountCredentialsRepository accountCredentialsRepository;
+  private final MetricsServiceRepository metricsServiceRepository;
   private final SynchronousQueryProcessor synchronousQueryProcessor;
   private final PrometheusConfigurationTestControllerDefaultProperties prometheusConfigurationTestControllerDefaultProperties;
 
   @Autowired
   public PrometheusFetchController(AccountCredentialsRepository accountCredentialsRepository,
+                                   MetricsServiceRepository metricsServiceRepository,
                                    SynchronousQueryProcessor synchronousQueryProcessor,
                                    PrometheusConfigurationTestControllerDefaultProperties prometheusConfigurationTestControllerDefaultProperties) {
     this.accountCredentialsRepository = accountCredentialsRepository;
+    this.metricsServiceRepository = metricsServiceRepository;
     this.synchronousQueryProcessor = synchronousQueryProcessor;
     this.prometheusConfigurationTestControllerDefaultProperties = prometheusConfigurationTestControllerDefaultProperties;
   }
@@ -83,7 +88,9 @@ public class PrometheusFetchController {
                           @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-08T01:12:22Z")
                             @RequestParam(required = false) String end,
                           @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step,
-                          @RequestParam(required = false) final String customFilter) throws IOException {
+                          @RequestParam(required = false) final String customFilter,
+                          @ApiParam(defaultValue = "false")
+                            @RequestParam(required = false) final boolean dryRun) throws IOException {
     // Apply defaults.
     project = determineDefaultProperty(project, "project", prometheusConfigurationTestControllerDefaultProperties);
     resourceType = determineDefaultProperty(resourceType, "resourceType", prometheusConfigurationTestControllerDefaultProperties);
@@ -140,12 +147,25 @@ public class PrometheusFetchController {
       prometheusCanaryScope.setProject(project);
     }
 
-    String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                                    resolvedStorageAccountName,
-                                                                    CanaryConfig.builder().metric(canaryMetricConfig).build(),
-                                                                    0,
-                                                                    prometheusCanaryScope);
+    if (dryRun) {
+      MetricsService prometheusMetricsService =
+        metricsServiceRepository
+          .getOne(resolvedMetricsAccountName)
+          .orElseThrow(() -> new IllegalArgumentException("No metrics service was configured; unable to read from metrics store."));
 
-    return Collections.singletonMap("metricSetListId", metricSetListId);
+      String query = prometheusMetricsService.buildQuery(CanaryConfig.builder().metric(canaryMetricConfig).build(),
+                                                         canaryMetricConfig,
+                                                         prometheusCanaryScope);
+
+      return Collections.singletonMap("query", query);
+    } else {
+      String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                                      resolvedStorageAccountName,
+                                                                      CanaryConfig.builder().metric(canaryMetricConfig).build(),
+                                                                      0,
+                                                                      prometheusCanaryScope);
+
+      return Collections.singletonMap("metricSetListId", metricSetListId);
+    }
   }
 }

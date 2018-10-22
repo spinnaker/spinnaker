@@ -40,10 +40,6 @@ class PrometheusMetricsServiceSpec extends Specification {
   @Unroll
   void "Can dry-run query generation"() {
     given:
-    CanaryConfig canaryConfig =
-      CanaryConfig.builder()
-        .templates(templates)
-        .build()
     PrometheusCanaryMetricSetQueryConfig queryConfig =
       PrometheusCanaryMetricSetQueryConfig.builder()
         .resourceType(resourceType)
@@ -55,6 +51,11 @@ class PrometheusMetricsServiceSpec extends Specification {
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig.builder()
         .query(queryConfig)
+        .build()
+    CanaryConfig canaryConfig =
+      CanaryConfig.builder()
+        .templates(templates)
+        .metric(canaryMetricConfig)
         .build()
     PrometheusCanaryScope prometheusCanaryScope =
       new PrometheusCanaryScope()
