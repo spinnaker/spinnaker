@@ -46,7 +46,8 @@ public class JedisConfig {
                          timeout,
                          connectionInfo.getPassword(),
                          connectionInfo.getDatabase(),
-                         null /* clientName */);
+                         null /* clientName */,
+                         connectionInfo.isSsl());
   }
 
   @Bean

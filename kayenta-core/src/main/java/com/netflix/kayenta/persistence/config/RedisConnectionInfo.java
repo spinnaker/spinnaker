@@ -27,10 +27,12 @@ import java.net.URI;
 @Data
 public class RedisConnectionInfo {
 
+  private static final String REDIS_SSL_SCHEME = "rediss://";
   private String host;
   private int port;
   private int database;
   private String password;
+  private boolean ssl;
 
   static RedisConnectionInfo parseConnectionUri(String connection) {
     URI redisConnection = URI.create(connection);
@@ -38,7 +40,8 @@ public class RedisConnectionInfo {
     int port = redisConnection.getPort() == -1 ? Protocol.DEFAULT_PORT : redisConnection.getPort();
     int database = JedisURIHelper.getDBIndex(redisConnection);
     String password = JedisURIHelper.getPassword(redisConnection);
+    boolean ssl = connection.startsWith(REDIS_SSL_SCHEME);
 
-    return RedisConnectionInfo.builder().host(host).port(port).database(database).password(password).build();
+    return RedisConnectionInfo.builder().host(host).port(port).database(database).password(password).ssl(ssl).build();
   }
 }
