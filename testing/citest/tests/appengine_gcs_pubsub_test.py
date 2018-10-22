@@ -322,7 +322,7 @@ class AppengineGcsPubsubTestScenario(sk.SpinnakerTestScenario):
          [jp.DICT_MATCHES({'name': jp.STR_EQ(group_name)})]
        )))
 
-    executions_path = 'executions?pipelineConfigIds={}&limit=1&statuses=SUCCEEDED'.format(self.__pipeline_id)
+    executions_path = 'executions?pipelineConfigIds={}'.format(self.__pipeline_id)
     return st.OperationContract(
       self.__gcs_pubsub_agent.new_gcs_pubsub_trigger_operation(
         gate_agent=self.agent,
@@ -330,7 +330,7 @@ class AppengineGcsPubsubTestScenario(sk.SpinnakerTestScenario):
         bucket_name=self.bucket,
         upload_path='{}'.format(name),
         local_filename=os.path.abspath(name),
-        status_class=None,
+        status_class=gate.GatePipelineStatus,
         status_path=executions_path
       ),
       contract=builder.build())
