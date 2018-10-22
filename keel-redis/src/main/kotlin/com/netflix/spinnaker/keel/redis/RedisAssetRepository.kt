@@ -126,12 +126,12 @@ class RedisAssetRepository(
   }
 
   companion object {
-    private const val INDEX_SET = "keel:assets"
-    private const val ASSET_HASH = "keel:asset:%s"
-    private const val DEPENDENCIES_SET = "keel:asset:%s:dependencies"
-    private const val DEPENDS_ON_SET = "keel:asset:%s:dependsOn"
-    private const val PARTIALS_SET = "keel:asset:%s:partials"
-    private const val STATE_SORTED_SET = "keel:asset:%s:state"
+    private const val INDEX_SET = "keel.assets"
+    private const val ASSET_HASH = "{keel.asset.%s}"
+    private const val DEPENDENCIES_SET = "$ASSET_HASH.dependencies"
+    private const val DEPENDS_ON_SET = "$ASSET_HASH.dependsOn"
+    private const val PARTIALS_SET = "$ASSET_HASH.partials"
+    private const val STATE_SORTED_SET = "$ASSET_HASH.state"
   }
 
   private fun readAsset(redis: JedisCommands, id: AssetId): AssetBase? {
