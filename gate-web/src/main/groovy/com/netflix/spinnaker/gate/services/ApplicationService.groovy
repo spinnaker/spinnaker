@@ -312,7 +312,7 @@ class ApplicationService {
       HystrixFactory.newListCommand(GROUP, "getApplicationsFromCloudDriver", {
         AuthenticatedRequest.propagate({
           try {
-            clouddriver.getApplications(expandClusterNames)
+            clouddriver.getAllApplicationsUnrestricted(expandClusterNames)
           } catch (RetrofitError e) {
             if (e.response?.status == 404) {
               return []

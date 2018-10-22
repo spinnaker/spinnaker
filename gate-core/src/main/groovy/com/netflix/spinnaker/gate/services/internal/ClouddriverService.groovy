@@ -83,6 +83,10 @@ interface ClouddriverService {
   List getApplications(@Query("expand") boolean expand)
 
   @Headers("Accept: application/json")
+  @GET("/applications?restricted=false")
+  List getAllApplicationsUnrestricted(@Query("expand") boolean expand)
+
+  @Headers("Accept: application/json")
   @GET("/applications/{name}")
   Map getApplication(@Path("name") String name)
 
