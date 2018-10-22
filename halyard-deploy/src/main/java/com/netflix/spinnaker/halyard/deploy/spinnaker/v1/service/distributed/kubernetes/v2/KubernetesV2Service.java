@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SidecarConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -132,6 +133,19 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     String namespace = getNamespace(settings);
 
     List<ConfigSource> configSources = stageConfig(details, resolvedConfiguration);
+
+    List<SidecarConfig> sidecarConfigs = details.getDeploymentConfiguration()
+        .getDeploymentEnvironment()
+        .getSidecars()
+        .getOrDefault(getService().getServiceName(), new ArrayList<>());
+
+    configSources.addAll(sidecarConfigs.stream()
+        .filter(c -> StringUtils.isNotEmpty(c.getMountPath()))
+        .map(c -> new ConfigSource().setMountPath(c.getMountPath())
+          .setId(c.getName())
+          .setEmpty(true)
+        ).collect(Collectors.toList()));
+
     Map<String, String> env = configSources.stream()
         .map(ConfigSource::getEnv)
         .map(Map::entrySet)
@@ -142,12 +156,14 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         ));
 
     List<String> volumes = configSources.stream()
-        .map(ConfigSource::getId)
-        .collect(Collectors.toSet())
+        .collect(Collectors.toMap(ConfigSource::getId, (i) -> i, (a, b) -> a))
+        .values()
         .stream()
-        .map(id -> {
-          TemplatedResource volume = new JinjaJarResource("/kubernetes/manifests/secretVolume.yml");
-          volume.addBinding("name", id);
+        .map(c -> {
+          TemplatedResource volume = c.isEmpty() ?
+              new JinjaJarResource("/kubernetes/manifests/emptyDirVolume.yml") :
+              new JinjaJarResource("/kubernetes/manifests/secretVolume.yml");
+          volume.addBinding("name", c.getId());
           return volume.toString();
         }).collect(Collectors.toList());
 
@@ -165,6 +181,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .map(SidecarService::getService)
         .map(s -> buildContainer(s.getCanonicalName(), details, runtimeSettings.getServiceSettings(s), configSources, env))
         .collect(Collectors.toList());
+
+    sidecarContainers.addAll(sidecarConfigs.stream()
+        .map(this::buildCustomSidecar)
+        .collect(Collectors.toList()));
 
     List<String> containers = new ArrayList<>();
     containers.add(primaryContainer);
@@ -205,6 +225,30 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     }
 
     return value;
+  }
+
+  default String buildCustomSidecar(SidecarConfig config) {
+    List<String> volumeMounts = new ArrayList<>();
+    if (StringUtils.isNotEmpty(config.getMountPath())) {
+      TemplatedResource volume = new JinjaJarResource("/kubernetes/manifests/volumeMount.yml");
+      volume.addBinding("name", config.getName());
+      volume.addBinding("mountPath", config.getMountPath());
+      volumeMounts.add(volume.toString());
+    }
+
+    TemplatedResource container = new JinjaJarResource("/kubernetes/manifests/container.yml");
+    container.addBinding("name", config.getName());
+    container.addBinding("imageId", config.getDockerImage());
+    container.addBinding("port", null);
+    container.addBinding("command", config.getCommand());
+    container.addBinding("args", config.getArgs());
+    container.addBinding("volumeMounts", volumeMounts);
+    container.addBinding("probe", null);
+    container.addBinding("lifecycle", null);
+    container.addBinding("env", config.getEnv());
+    container.addBinding("resources", null);
+
+    return container.toString();
   }
 
   default String buildContainer(String name, AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings, List<ConfigSource> configSources, Map<String, String> env) {

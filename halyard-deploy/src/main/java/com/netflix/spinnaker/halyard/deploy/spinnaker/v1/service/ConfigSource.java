@@ -26,6 +26,7 @@ import java.util.Map;
 public class ConfigSource {
   String id;
   String mountPath;
+  boolean empty = false;
   Map<String, String> env = new HashMap<>();
 }
 

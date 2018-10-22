@@ -27,6 +27,7 @@ import java.util.Map;
 
 @Data
 public class SidecarConfig {
+  String name = "custom-sidecar";
   String dockerImage;
   Map<String, String> env = new HashMap<>();
   List<String> args = new ArrayList<>();

@@ -24,6 +24,7 @@ import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -101,7 +102,7 @@ public class DeploymentEnvironment extends Node {
   private Vault vault = new Vault();
   private String location;
   private CustomSizing customSizing = new CustomSizing();
-  private Map<String, SidecarConfig> sidecars = new HashMap<>();
+  private Map<String, List<SidecarConfig>> sidecars = new HashMap<>();
   private GitConfig gitConfig = new GitConfig();
   @ValidForSpinnakerVersion(lowerBound = "1.10.0", message = "High availability services are not available prior to this release.")
   private HaServices haServices = new HaServices();

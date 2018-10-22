@@ -5,6 +5,22 @@
 
   "ports": [{{ port }}],
 
+  {% if command != null %}
+  "command": [
+    {% for c in command %}
+    {{ c }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
+  {% if args != null %}
+  "args": [
+    {% for arg in args %}
+    {{ arg }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
   "readinessProbe": {{ probe }},
 
   "volumeMounts": [
