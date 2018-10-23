@@ -83,11 +83,11 @@ public class DefaultVariableAssignmentTransform implements PipelineTemplateVisit
 
         Class<?> actualType = actualVar.getClass();
         return !(
-          (expectedType.equalsIgnoreCase("int") && (actualVar instanceof Integer)) ||
+          (isInteger(templateVar, actualVar)) ||
           (expectedType.equalsIgnoreCase("bool") && actualVar instanceof Boolean) ||
           (expectedType.equalsIgnoreCase("list") && actualVar instanceof Collection) ||
           (expectedType.equalsIgnoreCase("string") && actualVar instanceof CharSequence) ||
-          (expectedType.equalsIgnoreCase("float") && actualVar instanceof Float) ||
+          (expectedType.equalsIgnoreCase("float") && (actualVar instanceof Double || actualVar instanceof Float)) ||
           (expectedType.equalsIgnoreCase(actualType.getSimpleName()))
         );
       })
@@ -97,5 +97,26 @@ public class DefaultVariableAssignmentTransform implements PipelineTemplateVisit
     if (!wrongTypeErrorMessages.isEmpty()) {
       throw new IllegalTemplateConfigurationException("Incorrectly defined variable(s): " + StringUtils.join(wrongTypeErrorMessages, ", "));
     }
+  }
+
+  /*
+  Note: Echo and Orca have separate views of the pipeline store. Since templated pipeline configs do not
+  contain enough information for Echo to intuit the type of the template variables, we have to be lenient
+  here during validation and interpret the variable types.
+   */
+  private boolean isInteger(Variable templateVar, Object actualVar) {
+    boolean instanceOfDouble = actualVar instanceof Double;
+    boolean instanceOfFloat = actualVar instanceof Float;
+    boolean noDecimal = true;
+    if (instanceOfDouble) {
+      Double actualDouble = (double) actualVar;
+      noDecimal = actualDouble % 1 == 0;
+    } else if (instanceOfFloat) {
+      Float actualFloat = (float) actualVar;
+      noDecimal = actualFloat % 1 == 0;
+    }
+    String expectedtype = templateVar.getType();
+    return expectedtype.equalsIgnoreCase("int") &&
+      (actualVar instanceof Integer || (noDecimal && instanceOfDouble) || (noDecimal && instanceOfFloat));
   }
 }
