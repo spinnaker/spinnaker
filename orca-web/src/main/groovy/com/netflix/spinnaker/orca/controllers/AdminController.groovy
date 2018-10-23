@@ -19,14 +19,21 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.config.validation.ValidationException
 import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes
+import com.netflix.spinnaker.orca.commands.ForceExecutionCancellationCommand
 import com.netflix.spinnaker.orca.eureka.NoDiscoveryApplicationStatusPublisher
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/admin")
@@ -35,6 +42,9 @@ class AdminController {
   @Autowired(required = false)
   @Qualifier("discoveryStatusPoller")
   ApplicationListener<ContextRefreshedEvent> discoveryStatusPoller
+
+  @Autowired
+  ForceExecutionCancellationCommand forceExecutionCancellationCommand
 
   @RequestMapping(value = "/instance/enabled", method = RequestMethod.POST)
   void setInstanceStatus(@RequestBody Map<String, Boolean> enabledWrapper) {
@@ -55,6 +65,13 @@ class AdminController {
     }
 
     noDiscoveryApplicationStatusPublisher.setInstanceEnabled(enabled)
+  }
+
+  @RequestMapping(value = "/forceCancelExecution", method = RequestMethod.PUT)
+  void forceExecutionStatus(@RequestParam(value = "executionId", required = true) String executionId,
+                            @RequestParam(value = "executionType", required = false, defaultValue = "PIPELINE") Execution.ExecutionType executionType,
+                            @RequestParam(value = "canceledBy", required = false, defaultValue = "admin") String canceledBy)  {
+    forceExecutionCancellationCommand.forceCancel(executionType, executionId, canceledBy)
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
