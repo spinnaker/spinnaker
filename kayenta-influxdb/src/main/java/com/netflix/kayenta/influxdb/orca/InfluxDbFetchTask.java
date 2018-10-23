@@ -86,7 +86,7 @@ public class InfluxDbFetchTask implements RetryableTask {
       accountCredentialsRepository
     );
 
-    return synchronousQueryProcessor.processQueryAndProduceTaskResult(
+    return synchronousQueryProcessor.executeQueryAndProduceTaskResult(
       resolvedMetricsAccountName,
       resolvedStorageAccountName,
       kayentaObjectMapper.convertValue(context.get("canaryConfig"), CanaryConfig.class),

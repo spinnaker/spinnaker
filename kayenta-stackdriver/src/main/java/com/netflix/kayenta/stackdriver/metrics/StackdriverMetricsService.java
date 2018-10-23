@@ -93,64 +93,26 @@ public class StackdriverMetricsService implements MetricsService {
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String metricsAccountName,
-                                      CanaryConfig canaryConfig,
-                                      CanaryMetricConfig canaryMetricConfig,
-                                      CanaryScope canaryScope) throws IOException {
-    if (!(canaryScope instanceof StackdriverCanaryScope)) {
-      throw new IllegalArgumentException("Canary scope not instance of StackdriverCanaryScope: " + canaryScope +
-                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
-                                         "neglecting to explicitly specify which account to use for a given request.");
-    }
-
+  public String buildQuery(String metricsAccountName,
+                           CanaryConfig canaryConfig,
+                           CanaryMetricConfig canaryMetricConfig,
+                           CanaryScope canaryScope) throws IOException {
+    StackdriverCanaryMetricSetQueryConfig queryConfig = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope)canaryScope;
-    GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(metricsAccountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
-    Monitoring monitoring = stackdriverCredentials.getMonitoring();
-    StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
-    String projectId = stackdriverCanaryScope.getProject();
+    String projectId = determineProjectId(metricsAccountName, stackdriverCanaryScope);
     String location = stackdriverCanaryScope.getLocation();
     String scope = stackdriverCanaryScope.getScope();
     String resourceType =
-      StringUtils.hasText(stackdriverMetricSetQuery.getResourceType())
-      ? stackdriverMetricSetQuery.getResourceType()
+      StringUtils.hasText(queryConfig.getResourceType())
+      ? queryConfig.getResourceType()
       : stackdriverCanaryScope.getResourceType();
-    String crossSeriesReducer =
-      StringUtils.hasText(stackdriverMetricSetQuery.getCrossSeriesReducer())
-      ? stackdriverMetricSetQuery.getCrossSeriesReducer()
-      : StringUtils.hasText(stackdriverCanaryScope.getCrossSeriesReducer())
-        ? stackdriverCanaryScope.getCrossSeriesReducer()
-        : "REDUCE_MEAN";
-    String perSeriesAligner =
-      StringUtils.hasText(stackdriverMetricSetQuery.getPerSeriesAligner())
-      ? stackdriverMetricSetQuery.getPerSeriesAligner()
-      : StringUtils.hasText(stackdriverCanaryScope.getPerSeriesAligner())
-        ? stackdriverCanaryScope.getPerSeriesAligner()
-        : "ALIGN_MEAN";
-
-    if (StringUtils.isEmpty(projectId)) {
-      projectId = stackdriverCredentials.getProject();
-    }
-
-    if (StringUtils.isEmpty(resourceType)) {
-      throw new IllegalArgumentException("Resource type is required.");
-    }
-
-    if (StringUtils.isEmpty(stackdriverCanaryScope.getStart())) {
-      throw new IllegalArgumentException("Start time is required.");
-    }
-
-    if (StringUtils.isEmpty(stackdriverCanaryScope.getEnd())) {
-      throw new IllegalArgumentException("End time is required.");
-    }
 
     String customFilter = QueryConfigUtils.expandCustomFilter(
       canaryConfig,
-      stackdriverMetricSetQuery,
+            queryConfig,
       stackdriverCanaryScope,
       new String[]{"project", "resourceType", "scope", "location"});
-    String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
+    String filter = "metric.type=\"" + queryConfig.getMetricType() + "\"" +
                     " AND resource.type=" + resourceType;
 
     // TODO(duftler): Replace direct string-manipulating with helper functions.
@@ -247,6 +209,63 @@ public class StackdriverMetricsService implements MetricsService {
     }
 
     log.debug("filter={}", filter);
+
+    return filter;
+  }
+
+  @Override
+  public List<MetricSet> queryMetrics(String metricsAccountName,
+                                      CanaryConfig canaryConfig,
+                                      CanaryMetricConfig canaryMetricConfig,
+                                      CanaryScope canaryScope) throws IOException {
+    if (!(canaryScope instanceof StackdriverCanaryScope)) {
+      throw new IllegalArgumentException("Canary scope not instance of StackdriverCanaryScope: " + canaryScope +
+                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
+                                         "neglecting to explicitly specify which account to use for a given request.");
+    }
+
+    StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope)canaryScope;
+    GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+      .getOne(metricsAccountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
+    Monitoring monitoring = stackdriverCredentials.getMonitoring();
+    StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
+    String projectId = determineProjectId(metricsAccountName, stackdriverCanaryScope);
+    String location = stackdriverCanaryScope.getLocation();
+    String resourceType =
+      StringUtils.hasText(stackdriverMetricSetQuery.getResourceType())
+      ? stackdriverMetricSetQuery.getResourceType()
+      : stackdriverCanaryScope.getResourceType();
+    String crossSeriesReducer =
+      StringUtils.hasText(stackdriverMetricSetQuery.getCrossSeriesReducer())
+      ? stackdriverMetricSetQuery.getCrossSeriesReducer()
+      : StringUtils.hasText(stackdriverCanaryScope.getCrossSeriesReducer())
+        ? stackdriverCanaryScope.getCrossSeriesReducer()
+        : "REDUCE_MEAN";
+    String perSeriesAligner =
+      StringUtils.hasText(stackdriverMetricSetQuery.getPerSeriesAligner())
+      ? stackdriverMetricSetQuery.getPerSeriesAligner()
+      : StringUtils.hasText(stackdriverCanaryScope.getPerSeriesAligner())
+        ? stackdriverCanaryScope.getPerSeriesAligner()
+        : "ALIGN_MEAN";
+
+    if (StringUtils.isEmpty(projectId)) {
+      projectId = stackdriverCredentials.getProject();
+    }
+
+    if (StringUtils.isEmpty(resourceType)) {
+      throw new IllegalArgumentException("Resource type is required.");
+    }
+
+    if (StringUtils.isEmpty(stackdriverCanaryScope.getStart())) {
+      throw new IllegalArgumentException("Start time is required.");
+    }
+
+    if (StringUtils.isEmpty(stackdriverCanaryScope.getEnd())) {
+      throw new IllegalArgumentException("End time is required.");
+    }
+
+    String filter = buildQuery(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
 
     long alignmentPeriodSec = stackdriverCanaryScope.getStep();
     Monitoring.Projects.TimeSeries.List list = monitoring
@@ -363,6 +382,20 @@ public class StackdriverMetricsService implements MetricsService {
     return metricSetList;
   }
 
+  private String determineProjectId(String metricsAccountName,
+                                    StackdriverCanaryScope stackdriverCanaryScope) {
+    String projectId = stackdriverCanaryScope.getProject();
+
+    if (StringUtils.isEmpty(projectId)) {
+      GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+              .getOne(metricsAccountName)
+              .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
+
+      projectId = stackdriverCredentials.getProject();
+    }
+
+    return projectId;
+  }
 
   @Override
   public List<Map> getMetadata(String metricsAccountName, String filter) {

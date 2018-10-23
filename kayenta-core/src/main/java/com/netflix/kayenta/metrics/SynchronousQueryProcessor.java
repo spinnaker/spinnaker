@@ -54,7 +54,7 @@ public class SynchronousQueryProcessor {
     this.registry = registry;
   }
 
-  public String processQuery(String metricsAccountName,
+  public String executeQuery(String metricsAccountName,
                              String storageAccountName,
                              CanaryConfig canaryConfig,
                              int metricIndex,
@@ -92,17 +92,57 @@ public class SynchronousQueryProcessor {
     String metricSetListId = UUID.randomUUID() + "";
 
     storageService.storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
+
     return metricSetListId;
   }
 
-  public TaskResult processQueryAndProduceTaskResult(String metricsAccountName,
+  public Map processQueryAndReturnMap(String metricsAccountName,
+                                      String storageAccountName,
+                                      CanaryConfig canaryConfig,
+                                      CanaryMetricConfig canaryMetricConfig,
+                                      int metricIndex,
+                                      CanaryScope canaryScope,
+                                      boolean dryRun) throws IOException {
+    if (canaryConfig == null) {
+      canaryConfig = CanaryConfig.builder().metric(canaryMetricConfig).build();
+    }
+
+    if (dryRun) {
+      MetricsService metricsService =
+        metricsServiceRepository
+          .getOne(metricsAccountName)
+          .orElseThrow(() -> new IllegalArgumentException("No metrics service was configured; unable to read from metrics store."));
+
+      String query = metricsService.buildQuery(metricsAccountName,
+                                               canaryConfig,
+                                               canaryMetricConfig,
+                                               canaryScope);
+
+      return Collections.singletonMap("query", query);
+    } else {
+      String metricSetListId = executeQuery(metricsAccountName,
+                                            storageAccountName,
+                                            canaryConfig,
+                                            metricIndex,
+                                            canaryScope);
+
+      return Collections.singletonMap("metricSetListId", metricSetListId);
+    }
+  }
+
+  public TaskResult executeQueryAndProduceTaskResult(String metricsAccountName,
                                                      String storageAccountName,
                                                      CanaryConfig canaryConfig,
                                                      int metricIndex,
                                                      CanaryScope canaryScope) {
     try {
-      String metricSetListId = processQuery(metricsAccountName, storageAccountName, canaryConfig, metricIndex, canaryScope);
-      Map outputs = Collections.singletonMap("metricSetId", metricSetListId);
+      Map outputs = processQueryAndReturnMap(metricsAccountName,
+                                             storageAccountName,
+                                             canaryConfig,
+                                             null /* canaryMetricConfig */,
+                                             metricIndex,
+                                             canaryScope,
+                                             false /* dryRun */);
 
       return new TaskResult(ExecutionStatus.SUCCEEDED, Collections.emptyMap(), outputs);
     } catch (IOException e) {

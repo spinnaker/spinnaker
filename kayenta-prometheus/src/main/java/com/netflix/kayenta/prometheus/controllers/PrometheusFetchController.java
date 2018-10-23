@@ -16,11 +16,8 @@
 
 package com.netflix.kayenta.prometheus.controllers;
 
-import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.metrics.PrometheusCanaryMetricSetQueryConfig;
-import com.netflix.kayenta.metrics.MetricsService;
-import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
 import com.netflix.kayenta.prometheus.config.PrometheusConfigurationTestControllerDefaultProperties;
@@ -38,7 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -50,17 +46,14 @@ import static com.netflix.kayenta.canary.util.FetchControllerUtils.determineDefa
 public class PrometheusFetchController {
 
   private final AccountCredentialsRepository accountCredentialsRepository;
-  private final MetricsServiceRepository metricsServiceRepository;
   private final SynchronousQueryProcessor synchronousQueryProcessor;
   private final PrometheusConfigurationTestControllerDefaultProperties prometheusConfigurationTestControllerDefaultProperties;
 
   @Autowired
   public PrometheusFetchController(AccountCredentialsRepository accountCredentialsRepository,
-                                   MetricsServiceRepository metricsServiceRepository,
                                    SynchronousQueryProcessor synchronousQueryProcessor,
                                    PrometheusConfigurationTestControllerDefaultProperties prometheusConfigurationTestControllerDefaultProperties) {
     this.accountCredentialsRepository = accountCredentialsRepository;
-    this.metricsServiceRepository = metricsServiceRepository;
     this.synchronousQueryProcessor = synchronousQueryProcessor;
     this.prometheusConfigurationTestControllerDefaultProperties = prometheusConfigurationTestControllerDefaultProperties;
   }
@@ -99,14 +92,6 @@ public class PrometheusFetchController {
     start = determineDefaultProperty(start, "start", prometheusConfigurationTestControllerDefaultProperties);
     end = determineDefaultProperty(end, "end", prometheusConfigurationTestControllerDefaultProperties);
 
-    if (StringUtils.isEmpty(start)) {
-      throw new IllegalArgumentException("Start time is required.");
-    }
-
-    if (StringUtils.isEmpty(end)) {
-      throw new IllegalArgumentException("End time is required.");
-    }
-
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -139,33 +124,20 @@ public class PrometheusFetchController {
     PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
     prometheusCanaryScope.setScope(scope);
     prometheusCanaryScope.setLocation(location);
-    prometheusCanaryScope.setStart(Instant.parse(start));
-    prometheusCanaryScope.setEnd(Instant.parse(end));
+    prometheusCanaryScope.setStart(start != null ? Instant.parse(start) : null);
+    prometheusCanaryScope.setEnd(end != null ? Instant.parse(end) : null);
     prometheusCanaryScope.setStep(step);
 
     if (!StringUtils.isEmpty(project)) {
       prometheusCanaryScope.setProject(project);
     }
 
-    if (dryRun) {
-      MetricsService prometheusMetricsService =
-        metricsServiceRepository
-          .getOne(resolvedMetricsAccountName)
-          .orElseThrow(() -> new IllegalArgumentException("No metrics service was configured; unable to read from metrics store."));
-
-      String query = prometheusMetricsService.buildQuery(CanaryConfig.builder().metric(canaryMetricConfig).build(),
-                                                         canaryMetricConfig,
-                                                         prometheusCanaryScope);
-
-      return Collections.singletonMap("query", query);
-    } else {
-      String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                                      resolvedStorageAccountName,
-                                                                      CanaryConfig.builder().metric(canaryMetricConfig).build(),
-                                                                      0,
-                                                                      prometheusCanaryScope);
-
-      return Collections.singletonMap("metricSetListId", metricSetListId);
-    }
+    return synchronousQueryProcessor.processQueryAndReturnMap(resolvedMetricsAccountName,
+                                                              resolvedStorageAccountName,
+                                                              null,
+                                                              canaryMetricConfig,
+                                                              0,
+                                                              prometheusCanaryScope,
+                                                              dryRun);
   }
 }

@@ -64,7 +64,7 @@ class PrometheusMetricsServiceSpec extends Specification {
         .setExtendedScopeParams(extendedScopeParams)
 
     when:
-    String query = prometheusMetricsService.buildQuery(canaryConfig, canaryMetricConfig, prometheusCanaryScope)
+    String query = prometheusMetricsService.buildQuery(null, canaryConfig, canaryMetricConfig, prometheusCanaryScope)
 
     then:
     query == expectedQuery

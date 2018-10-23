@@ -30,7 +30,8 @@ public interface MetricsService {
 
   boolean servicesAccount(String accountName);
 
-  default String buildQuery(CanaryConfig canaryConfig,
+  default String buildQuery(String metricsAccountName,
+                            CanaryConfig canaryConfig,
                             CanaryMetricConfig canaryMetricConfig,
                             CanaryScope canaryScope) throws IOException {
     return "buildQuery() is not implemented for " + this.getClass().getSimpleName() + ".";

@@ -87,7 +87,7 @@ public class StackdriverFetchTask implements RetryableTask {
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
 
-    return synchronousQueryProcessor.processQueryAndProduceTaskResult(resolvedMetricsAccountName,
+    return synchronousQueryProcessor.executeQueryAndProduceTaskResult(resolvedMetricsAccountName,
                                                                       resolvedStorageAccountName,
                                                                       canaryConfig,
                                                                       metricIndex,

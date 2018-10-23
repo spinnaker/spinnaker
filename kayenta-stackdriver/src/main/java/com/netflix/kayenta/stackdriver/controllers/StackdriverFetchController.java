@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.stackdriver.controllers;
 
-import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.StackdriverCanaryMetricSetQueryConfig;
@@ -40,7 +39,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -87,7 +85,9 @@ public class StackdriverFetchController {
                             @RequestParam(required = false) String endTimeIso,
                           @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step,
                           @RequestParam(required = false) final String customFilter,
-                          @ApiParam @RequestBody final Map<String, String> extendedScopeParams) throws IOException {
+                          @ApiParam @RequestBody final Map<String, String> extendedScopeParams,
+                          @ApiParam(defaultValue = "false")
+                            @RequestParam(required = false) final boolean dryRun) throws IOException {
     // Apply defaults.
     project = determineDefaultProperty(project, "project", stackdriverConfigurationTestControllerDefaultProperties);
     resourceType = determineDefaultProperty(resourceType, "resourceType", stackdriverConfigurationTestControllerDefaultProperties);
@@ -95,14 +95,6 @@ public class StackdriverFetchController {
     scope = determineDefaultProperty(scope, "scope", stackdriverConfigurationTestControllerDefaultProperties);
     startTimeIso = determineDefaultProperty(startTimeIso, "start", stackdriverConfigurationTestControllerDefaultProperties);
     endTimeIso = determineDefaultProperty(endTimeIso, "end", stackdriverConfigurationTestControllerDefaultProperties);
-
-    if (StringUtils.isEmpty(startTimeIso)) {
-      throw new IllegalArgumentException("Start time is required.");
-    }
-
-    if (StringUtils.isEmpty(endTimeIso)) {
-      throw new IllegalArgumentException("End time is required.");
-    }
 
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
@@ -138,8 +130,8 @@ public class StackdriverFetchController {
     CanaryScope canaryScope = new CanaryScope();
     canaryScope.setScope(scope);
     canaryScope.setLocation(location);
-    canaryScope.setStart(Instant.parse(startTimeIso));
-    canaryScope.setEnd(Instant.parse(endTimeIso));
+    canaryScope.setStart(startTimeIso != null ? Instant.parse(startTimeIso) : null);
+    canaryScope.setEnd(endTimeIso != null ? Instant.parse(endTimeIso) : null);
     canaryScope.setStep(step);
 
     if (!StringUtils.isEmpty(project)) {
@@ -149,12 +141,13 @@ public class StackdriverFetchController {
     canaryScope.setExtendedScopeParams(extendedScopeParams);
 
     CanaryScope stackdriverCanaryScope = new StackdriverCanaryScopeFactory().buildCanaryScope(canaryScope);
-    String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                                    resolvedStorageAccountName,
-                                                                    CanaryConfig.builder().metric(canaryMetricConfig).build(),
-                                                                    0,
-                                                                    stackdriverCanaryScope);
 
-    return Collections.singletonMap("metricSetListId", metricSetListId);
+    return synchronousQueryProcessor.processQueryAndReturnMap(resolvedMetricsAccountName,
+                                                              resolvedStorageAccountName,
+                                                              null,
+                                                              canaryMetricConfig,
+                                                              0,
+                                                              stackdriverCanaryScope,
+                                                              dryRun);
   }
 }

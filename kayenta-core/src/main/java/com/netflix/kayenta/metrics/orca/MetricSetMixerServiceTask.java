@@ -118,7 +118,7 @@ public class MetricSetMixerServiceTask implements RetryableTask {
         String refId = stage.getRefId();
         return refId != null && refId.startsWith(stagePrefix);
       })
-      .map(stage -> (String)stage.getOutputs().get("metricSetId"))
+      .map(stage -> (String)stage.getOutputs().get("metricSetListId"))
       .collect(Collectors.toList());
   }
 }

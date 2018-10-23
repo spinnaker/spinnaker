@@ -89,7 +89,7 @@ public class AtlasFetchController {
     atlasCanaryScope.setEnd(end);
     atlasCanaryScope.setStep(step);
 
-    String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+    String metricSetListId = synchronousQueryProcessor.executeQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,
                                                                     CanaryConfig.builder().metric(canaryMetricConfig).build(),
                                                                     0,

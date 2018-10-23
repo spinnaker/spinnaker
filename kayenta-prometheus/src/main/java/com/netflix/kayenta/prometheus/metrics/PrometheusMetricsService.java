@@ -186,7 +186,8 @@ public class PrometheusMetricsService implements MetricsService {
   }
 
   @Override
-  public String buildQuery(CanaryConfig canaryConfig,
+  public String buildQuery(String metricsAccountName,
+                           CanaryConfig canaryConfig,
                            CanaryMetricConfig canaryMetricConfig,
                            CanaryScope canaryScope) throws IOException {
     PrometheusCanaryMetricSetQueryConfig queryConfig = (PrometheusCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
@@ -246,7 +247,7 @@ public class PrometheusMetricsService implements MetricsService {
       throw new IllegalArgumentException("End time is required.");
     }
 
-    String query = buildQuery(canaryConfig, canaryMetricConfig, canaryScope).toString();
+    String query = buildQuery(accountName, canaryConfig, canaryMetricConfig, canaryScope).toString();
 
     long startTime = registry.clock().monotonicTime();
     List<PrometheusResults> prometheusResultsList;
