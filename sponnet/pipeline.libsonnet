@@ -2,52 +2,114 @@
   pipeline():: {
     limitConcurrent: true,
     keepWaitingPipelines: false,
+    notifications: [],
     stages: [],
     triggers: [],
-    withApplication(application):: self + {application: application},
-    withName(name):: self + {name: name},
-    withStages(stages):: self + if std.type(stages) == "array" then {stages: stages} else {stages: [stages]},
-    withTriggers(triggers):: self + if std.type(triggers) == "array" then {triggers: triggers} else {triggers: [triggers]},
+    withApplication(application):: self + { application: application },
+    withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifacts: expectedArtifacts } else { expectedArtifacts: [expectedArtifacts] },
+    withName(name):: self + { name: name },
+    withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
+    withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
+    withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
   },
 
   moniker(app, cluster):: {
     app: app,
     cluster: cluster,
-    withStack(stack):: self + {stack: stack},
-    withDetail(detail):: self + {detail: detail},
+    withStack(stack):: self + { stack: stack },
+    withDetail(detail):: self + { detail: detail },
   },
 
   // artifacts
 
   artifact(type):: {
     type: type,
-    withName(name):: self + {name: name},
-    withVersion(version):: self + {version: version},
-    withReference(reference):: self + {reference: reference},
-    withLocation(location):: self + {location: location},
+    withName(name):: self + { name: name },
+    withVersion(version):: self + { version: version },
+    withReference(reference):: self + { reference: reference },
+    withLocation(location):: self + { location: location },
   },
 
   local artifact = self.artifact,
   artifacts:: {
-    dockerImage():: artifact("docker/image"),
-    githubFile():: artifact("github/file"),
-    gcsObject():: artifact("gcs/object"),
+    dockerImage():: artifact('docker/image'),
+    githubFile():: artifact('github/file'),
+    gitlabFile():: artifact('gitlab/file'),
+    gcsObject():: artifact('gcs/object'),
   },
+
+  // expected artifacts
+  // TODO: This section may need splitting out by artifact type due to differing field requirements.
 
   expectedArtifact(id):: {
     id: id,
-    withMatchArtifact(matchArtifact):: self + {matchArtifact: matchArtifact},
-    withDefaultArtifact(defaultArtifact):: self + {defaultArtifact: defaultArtifact},
-    withUsePriorArtifact(usePriorArtifact):: self + {usePriorArtifact: usePriorArtifact},
-    withUseDefaultArtifact(useDefaultArtifact):: self + {useDefaultArtifact: useDefaultArtifact},
+    withMatchArtifact(matchArtifact):: self + {
+      matchArtifact+: {
+        // TODO: For Docker, the name field should be registry and repository.
+        name: matchArtifact.name,
+        type: matchArtifact.type,
+      },
+    },
+    withDefaultArtifact(defaultArtifact):: self + {
+      defaultArtifact: {
+        reference: defaultArtifact.reference,
+        type: defaultArtifact.type,
+        // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
+        [if std.objectHas(defaultArtifact, 'version') then 'version']: defaultArtifact.version,
+      },
+    },
+    withUsePriorArtifact(usePriorArtifact):: self + { usePriorArtifact: usePriorArtifact },
+    withUseDefaultArtifact(useDefaultArtifact):: self + { useDefaultArtifact: useDefaultArtifact },
   },
+
+  // notifications
+  // TODO: refactor level to include stage level.
+
+  notification(address, type, conditions, when, message):: {
+    withAddress(address):: self + { address: address },
+    level: 'pipeline',
+    withWhen(when, message=false):: self + {
+      when+: [when],
+      // Notification messages are optional
+      [if std.isString(message) then 'message']+: {
+        ['pipeline.' + when]: {
+          // Doesn't look like need to escape function here, eg: // text: std.escapeStringJson(message),
+          text: message,
+        },
+      },
+    },
+    withType(type):: self + { type: type },
+  },
+
+  local notification = self.notification,
+  notifications:: notification('', '', '', '', ''),
 
   // triggers
 
-  trigger():: {
+  trigger(name, type):: {
     enabled: true,
-    withType(type):: self + {type: type},
-    withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == "array" then {expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts)} else {expectedArtifactIds: [expectedArtifacts.id]},
+    name: name,
+    type: type,
+    withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
+  },
+
+  local trigger = self.trigger,
+  triggers:: {
+    docker(name):: trigger(name, 'docker') {
+      withAccount(account):: self + { account: account },
+      withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
+      withOrganization(organization):: self + { organization: organization },
+      withRegistry(registry):: self + { registry: registry },
+      withRepository(repository):: self + { repository: repository },
+      withTag(tag):: self + { tag: tag },
+    },
+    git(name):: trigger(name, 'git') {
+      withBranch(branch):: self + { branch: branch },
+      withProject(project):: self + { project: project },
+      withSlug(slug):: self + { slug: slug },
+      withSource(source):: self + { source: source },
+    },
+
   },
 
   // stages
@@ -57,61 +119,72 @@
     name: name,
     type: type,
     requisiteStageRefIds: [],
-    withRequisiteStages(stages):: self + if std.type(stages) == "array" then {requisiteStageRefIds: std.map(function(stage) stage.refId, stages)} else {requisiteStageRefIds: [stages.refId]}
+    withRequisiteStages(stages):: self + if std.type(stages) == 'array' then { requisiteStageRefIds: std.map(function(stage) stage.refId, stages) } else { requisiteStageRefIds: [stages.refId] },
+    // execution options
+    withOverrideTimeout(timeoutMs):: self + { overrideTimeout: true, stageTimeoutMs: timeoutMs },
   },
 
   local stage = self.stage,
   stages:: {
-    wait(name):: stage(name, "wait") {
-      withWaitTime(waitTime):: self + {waitTime: waitTime},
+    wait(name):: stage(name, 'wait') {
+      withWaitTime(waitTime):: self + { waitTime: waitTime },
+    },
+
+    // jenkins stages
+    jenkins(name):: stage(name, 'jenkins') {
+      withJob(job):: self + { job: job },
+      withMaster(master):: self + { master: master },
     },
 
     // kubernetes stages
 
-    deploy_manifest(name):: stage(name, "deployManifest") {
-      cloudProvider: "kubernetes",
-      source: "text",
-      withAccount(account):: self + {account: account},
-      withManifests(manifests):: self + if std.type(manifests) == "array" then {manifests: manifests} else {manifests: [manifests]},
-      withMoniker(moniker):: self + {moniker: moniker},
+    deploy_manifest(name):: stage(name, 'deployManifest') {
+      cloudProvider: 'kubernetes',
+      source: 'text',
+      withAccount(account):: self + { account: account, source: 'artifact' },
+      withManifestArtifactAccount(account):: self + { manifestArtifactAccount: account },
+      // Add/Default to embedded-artifact? If so add:  /* , manifestArtifactAccount: 'embedded-artifact' */
+      withManifestArtifact(artifact):: self + { manifestArtifactId: artifact.id },
+      withManifests(manifests):: self + if std.type(manifests) == 'array' then { manifests: manifests } else { manifests: [manifests] },
+      withMoniker(moniker):: self + { moniker: moniker },
     },
-    delete_manifest(name):: stage(name, "deleteManifest") {
-      cloudProvider: "kubernetes",
+    delete_manifest(name):: stage(name, 'deleteManifest') {
+      cloudProvider: 'kubernetes',
       options: {
         cascading: true,
       },
-      withAccount(account):: self + {account: account},
-      withKinds(kinds):: self + if std.type(kinds) == "array" then {kinds: kinds} else {kinds: [kinds]},
-      withNamespace(namespace):: self + {location: namespace},
-      withLabelSelectors(selectors):: self + if std.type(selectors) == "array" then {labelSelectors: {selectors: selectors}} else {labelSelectors: {selectors: [selectors]}},
-      withGracePeriodSeconds(seconds):: self.options + {gracePeriodSeconds: seconds},
-      withManifestName(kind, name):: self.options + {manifestName: kind + " " + name},
+      withAccount(account):: self + { account: account },
+      withKinds(kinds):: self + if std.type(kinds) == 'array' then { kinds: kinds } else { kinds: [kinds] },
+      withNamespace(namespace):: self + { location: namespace },
+      withLabelSelectors(selectors):: self + if std.type(selectors) == 'array' then { labelSelectors: { selectors: selectors } } else { labelSelectors: { selectors: [selectors] } },
+      withGracePeriodSeconds(seconds):: self.options { gracePeriodSeconds: seconds },
+      withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
     },
-    patch_manifest(name):: stage(name, "patchManifest") {
-      cloudProvider: "kubernetes",
-      source: "text",
+    patch_manifest(name):: stage(name, 'patchManifest') {
+      cloudProvider: 'kubernetes',
+      source: 'text',
       options: {
-        mergeStrategy: "strategic",
+        mergeStrategy: 'strategic',
         record: true,
       },
-      withAccount(account):: self + {account: account},
-      withNamespace(namespace):: self + {location: namespace},
-      withPatchBody(patchBody): self + {patchBody: patchBody},
-      withManifestName(kind, name):: self.options + {manifestName: kind + " " + name},
+      withAccount(account):: self + { account: account },
+      withNamespace(namespace):: self + { location: namespace },
+      withPatchBody(patchBody): self + { patchBody: patchBody },
+      withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
     },
-    scale_manifest(name): stage(name, "scaleManifest") {
-      cloudProvider: "kubernetes",
-      withAccount(account):: self + {account: account},
-      withNamespace(namespace):: self + {location: namespace},
-      withReplicas(replicas): self + {replicas: replicas},
-      withManifestName(kind, name):: self.options + {manifestName: kind + " " + name},
+    scale_manifest(name): stage(name, 'scaleManifest') {
+      cloudProvider: 'kubernetes',
+      withAccount(account):: self + { account: account },
+      withNamespace(namespace):: self + { location: namespace },
+      withReplicas(replicas): self + { replicas: replicas },
+      withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
     },
-    undo_rollout_manifest(name): stage(name, "undoRolloutManifest") {
-      cloudProvider: "kubernetes",
-      withAccount(account):: self + {account: account},
-      withNamespace(namespace):: self + {location: namespace},
-      withRevisionsBack(revisionsBack): self + {numRevisionsBack: revisionsBack},
-      withManifestName(kind, name):: self.options + {manifestName: kind + " " + name},
+    undo_rollout_manifest(name): stage(name, 'undoRolloutManifest') {
+      cloudProvider: 'kubernetes',
+      withAccount(account):: self + { account: account },
+      withNamespace(namespace):: self + { location: namespace },
+      withRevisionsBack(revisionsBack): self + { numRevisionsBack: revisionsBack },
+      withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
     },
   },
 
@@ -122,28 +195,28 @@
       kind: kind,
     },
     local selector = self.selector,
-    anySelector(key, value):: selector("ANY"),
-    equalsSelector(key, value):: selector("EQUALS") {
+    anySelector(key, value):: selector('ANY'),
+    equalsSelector(key, value):: selector('EQUALS') {
       key: key,
       values: [value],
     },
-    notEqualsSelector(key, value):: selector("NOT_EQUALS") {
+    notEqualsSelector(key, value):: selector('NOT_EQUALS') {
       key: key,
       values: [value],
     },
-    containsSelector(key, values):: selector("CONTAINS") {
+    containsSelector(key, values):: selector('CONTAINS') {
       key: key,
       values: values,
     },
-    notContainsSelector(key, values):: selector("NOT_CONTAINS") {
+    notContainsSelector(key, values):: selector('NOT_CONTAINS') {
       key: key,
       values: values,
     },
-    existsSelector(key):: selector("EXISTS") {
+    existsSelector(key):: selector('EXISTS') {
       key: key,
     },
-    notExistsSelector(key):: selector("NOT_EXISTS") {
+    notExistsSelector(key):: selector('NOT_EXISTS') {
       key: key,
     },
-  }
+  },
 }
