@@ -20,7 +20,9 @@ import com.netflix.spinnaker.gate.services.commands.HystrixFactory;
 import com.netflix.spinnaker.gate.services.internal.SwabbieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
+import java.util.Collections;
 import java.util.Map;
 
 @Component
@@ -32,7 +34,41 @@ public class CleanupService {
 
   public Map optOut(String namespace, String resourceId) {
     return (Map) HystrixFactory.newMapCommand(GROUP, "optOut", () -> {
-      return swabbieService.optOut(namespace, resourceId, "");
+      try {
+        return swabbieService.optOut(namespace, resourceId, "");
+      } catch (RetrofitError e) {
+        if (e.getResponse().getStatus() == 404) {
+          return Collections.emptyMap();
+        } else {
+          throw e;
+        }
+      }
     }).execute();
+  }
+
+  public Map get(String namespace, String resourceId) {
+    return (Map) HystrixFactory.newMapCommand(GROUP, "get", () -> {
+      try {
+        return swabbieService.get(namespace, resourceId);
+      } catch (RetrofitError e) {
+        if (e.getResponse().getStatus() == 404) {
+          return Collections.emptyMap();
+        } else {
+          throw e;
+        }
+      }
+    }).execute();
+  }
+
+  public String restore(String namespace, String resourceId) {
+    HystrixFactory.newStringCommand(GROUP, "restore", () -> {
+      try {
+        swabbieService.restore(namespace, resourceId, "");
+      } catch (RetrofitError e) {
+        return Integer.toString(e.getResponse().getStatus());
+      }
+      return "200";
+     }).execute();
+    return "200";
   }
 }
