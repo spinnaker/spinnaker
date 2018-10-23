@@ -33,8 +33,10 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +67,16 @@ public class DatadogMetricsService implements MetricsService {
   }
 
   @Override
+  public String buildQuery(String metricsAccountName,
+                           CanaryConfig canaryConfig,
+                           CanaryMetricConfig canaryMetricConfig,
+                           CanaryScope canaryScope) {
+    DatadogCanaryMetricSetQueryConfig queryConfig = (DatadogCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
+
+    return queryConfig.getMetricName() + "{" + canaryScope.getScope() + "}";
+  }
+
+  @Override
   public List<MetricSet> queryMetrics(String accountName, CanaryConfig canaryConfig, CanaryMetricConfig canaryMetricConfig, CanaryScope canaryScope) {
     DatadogNamedAccountCredentials accountCredentials = (DatadogNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
@@ -72,14 +84,25 @@ public class DatadogMetricsService implements MetricsService {
 
     DatadogCredentials credentials = accountCredentials.getCredentials();
     DatadogRemoteService remoteService = accountCredentials.getDatadogRemoteService();
-    DatadogCanaryMetricSetQueryConfig queryConfig = (DatadogCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
 
+    if (StringUtils.isEmpty(canaryScope.getStart())) {
+      throw new IllegalArgumentException("Start time is required.");
+    }
+
+    if (StringUtils.isEmpty(canaryScope.getEnd())) {
+      throw new IllegalArgumentException("End time is required.");
+    }
+
+    String query = buildQuery(accountName,
+                              canaryConfig,
+                              canaryMetricConfig,
+                              canaryScope);
     DatadogTimeSeries timeSeries = remoteService.getTimeSeries(
       credentials.getApiKey(),
       credentials.getApplicationKey(),
       (int)canaryScope.getStart().getEpochSecond(),
       (int)canaryScope.getEnd().getEpochSecond(),
-      queryConfig.getMetricName() + "{" + canaryScope.getScope() + "}"
+      query
     );
 
     List<MetricSet> ret = new ArrayList<MetricSet>();
@@ -94,6 +117,7 @@ public class DatadogMetricsService implements MetricsService {
           .endTimeIso(Instant.ofEpochMilli(series.getEnd()).toString())
           .stepMillis(series.getInterval() * 1000)
           .values(series.getDataPoints().collect(Collectors.toList()))
+          .attribute("query", query)
           .build()
       );
     }
