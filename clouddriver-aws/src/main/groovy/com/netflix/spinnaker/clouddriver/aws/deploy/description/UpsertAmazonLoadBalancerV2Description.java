@@ -29,7 +29,7 @@ import java.util.Set;
 public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalancerDescription {
   public List<Listener> listeners = new ArrayList<>();
   public List<TargetGroup> targetGroups = new ArrayList<>();
-  public Boolean deletionProtection;
+  public Boolean deletionProtection = false;
 
   public static class TargetGroup {
     private String name;
