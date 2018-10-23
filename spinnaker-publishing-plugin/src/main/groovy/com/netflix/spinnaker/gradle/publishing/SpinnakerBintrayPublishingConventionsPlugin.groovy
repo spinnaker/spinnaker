@@ -31,8 +31,8 @@ class SpinnakerBintrayPublishingConventionsPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.plugins.apply(SpinnakerBaseProjectConventionsPlugin)
         project.plugins.apply(NetflixOssProjectPlugin)
+        project.plugins.apply(SpinnakerBaseProjectConventionsPlugin)
 
         Closure<String> propOrDefault = { String propertyName, String defaultValue ->
             project.hasProperty(propertyName) ? project.property(propertyName) : defaultValue

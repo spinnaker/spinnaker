@@ -12,7 +12,9 @@ class SpinnakerPackagePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.plugins.withType(SpinnakerApplicationPlugin) {
+        // This packaging plugin should only be applied to the project that contains the main class.
+        // This is the "-web" project by convention (e.g. clouddriver-web, orca-web, etc.).
+        if (project.name.endsWith("-web") && !project.name.equals("kork-web")) {
             project.plugins.apply(OspackageApplicationPlugin)
             ProjectPackagingExtension extension = project.extensions.getByType(ProjectPackagingExtension)
             extension.setOs(Os.LINUX)
@@ -24,6 +26,7 @@ class SpinnakerPackagePlugin implements Plugin<Project> {
                 extension.setVersion(projVer)
             }
 
+            String appName = project.rootProject.name
             extension.setPackageName('spinnaker-' + appName)
             def postInstall = project.file('pkg_scripts/postInstall.sh')
             if (postInstall.exists()) {
