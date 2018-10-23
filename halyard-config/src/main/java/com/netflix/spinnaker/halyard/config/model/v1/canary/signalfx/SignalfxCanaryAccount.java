@@ -31,12 +31,6 @@ import java.util.Set;
 @ToString(callSuper = true)
 @Slf4j
 public class SignalfxCanaryAccount extends AbstractCanaryAccount implements Cloneable {
-  private Endpoint endpoint;
   private String accessToken;
   private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes = Collections.singleton(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
-
-  @Data
-  public static class Endpoint {
-    private String baseUrl;
-  }
 }

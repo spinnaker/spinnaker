@@ -32,13 +32,6 @@ public class SignalfxAddCanaryAccountCommand extends AbstractAddCanaryAccountCom
   }
 
   @Parameter(
-      names = "--base-url",
-      required = true,
-      description = "The base URL to the SignalFx server."
-  )
-  private String baseUrl;
-
-  @Parameter(
       names = "--access-token",
       required = true,
       password = true,
@@ -51,8 +44,7 @@ public class SignalfxAddCanaryAccountCommand extends AbstractAddCanaryAccountCom
   protected AbstractCanaryAccount buildAccount(Canary canary, String accountName) {
     SignalfxCanaryAccount account = (SignalfxCanaryAccount)new SignalfxCanaryAccount().setName(accountName);
 
-    account.setEndpoint(new SignalfxCanaryAccount.Endpoint().setBaseUrl(baseUrl))
-        .setAccessToken(accessToken);
+    account.setAccessToken(accessToken);
 
     return account;
   }

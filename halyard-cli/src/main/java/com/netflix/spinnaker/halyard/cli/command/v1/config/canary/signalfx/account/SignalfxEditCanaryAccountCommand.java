@@ -31,12 +31,6 @@ public class SignalfxEditCanaryAccountCommand extends AbstractEditCanaryAccountC
   }
 
   @Parameter(
-      names = "--base-url",
-      description = "The base URL to the SignalFx server."
-  )
-  private String baseUrl;
-
-  @Parameter(
       names = "--access-token",
       password = true,
       description = "The SignalFx access token."
@@ -45,7 +39,6 @@ public class SignalfxEditCanaryAccountCommand extends AbstractEditCanaryAccountC
 
   @Override
   protected AbstractCanaryAccount editAccount(SignalfxCanaryAccount account) {
-    account.setEndpoint(isSet(baseUrl) ? new SignalfxCanaryAccount.Endpoint().setBaseUrl(baseUrl) : account.getEndpoint());
     account.setAccessToken(isSet(accessToken) ? accessToken : account.getAccessToken());
 
     return account;

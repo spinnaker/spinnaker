@@ -2599,7 +2599,6 @@ hal config canary signalfx account add ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
  * `--access-token`: (*Required*) (*Sensitive data* - user will be prompted on standard input) The SignalFx access token.
- * `--base-url`: (*Required*) The base URL to the SignalFx server.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
@@ -2633,7 +2632,6 @@ hal config canary signalfx account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
  * `--access-token`: (*Sensitive data* - user will be prompted on standard input) The SignalFx access token.
- * `--base-url`: The base URL to the SignalFx server.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
