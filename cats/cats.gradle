@@ -1,4 +1,4 @@
-tasks.bintrayUpload.enabled = false
+tasks.findByName('bintrayUpload')?.enabled = false
 
 subprojects {
   apply plugin: 'findbugs'
