@@ -22,12 +22,10 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreat
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
-@Slf4j
 @Component
 class AppEngineServerGroupCreator implements ServerGroupCreator {
   boolean katoResultExpected = false
@@ -63,14 +61,29 @@ class AppEngineServerGroupCreator implements ServerGroupCreator {
 
   void appendArtifactData(Stage stage, Map operation) {
     Execution execution = stage.getExecution()
-    String expectedId = operation.expectedArtifactId?.trim()
-    if (execution.type == PIPELINE && expectedId) {
-      Artifact boundArtifact = artifactResolver.getBoundArtifactForId(stage, expectedId)
-      if (boundArtifact) {
-        operation.artifact = boundArtifact
-      } else {
-        throw new RuntimeException("Missing bound artifact for ID $expectedId")
+    if (execution.type == PIPELINE) {
+      String expectedId = operation.expectedArtifactId?.trim()
+      if (expectedId) {
+        Artifact boundArtifact = artifactResolver.getBoundArtifactForId(stage, expectedId)
+        if (boundArtifact) {
+          operation.artifact = boundArtifact
+        } else {
+          throw new RuntimeException("Missing bound artifact for ID $expectedId")
+        }
+      }
+      List<ArtifactAccountPair> configArtifacts = operation.configArtifacts
+      if (configArtifacts != null && configArtifacts.size() > 0) {
+        operation.configArtifacts = configArtifacts.collect { artifactAccountPair ->
+          def artifact = artifactResolver.getBoundArtifactForId(stage, artifactAccountPair.id)
+          artifact.artifactAccount = artifactAccountPair.account
+          return artifact
+        }
       }
     }
   }
+}
+
+class ArtifactAccountPair {
+  String id;
+  String account;
 }
