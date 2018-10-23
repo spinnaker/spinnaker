@@ -41,6 +41,16 @@
               Scale
             </a>
           </li>
+          <li ng-if="ctrl.canEnable()">
+            <a href ng-click="ctrl.enableServerGroup()">
+              Enable
+            </a>
+          </li>
+          <li ng-if="ctrl.canDisable()">
+            <a href ng-click="ctrl.disableServerGroup()">
+              Disable
+            </a>
+          </li>
           <li>
             <a href ng-click="ctrl.deleteServerGroup()">
               Delete
@@ -52,7 +62,8 @@
   </div>
   <div class="content" ng-if="!ctrl.state.loading">
     <kubernetes-manifest-status status="ctrl.manifest.status"></kubernetes-manifest-status>
-    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.serverGroup.moniker.app"></server-group-running-tasks-details>
+    <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
+    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.app"></server-group-running-tasks-details>
     <collapsible-section heading="Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
