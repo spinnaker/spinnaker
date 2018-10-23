@@ -29,8 +29,8 @@ class SpinnakerProjectPlugin implements Plugin<Gradle> {
   @Override
   void apply(Gradle gradle) {
     gradle.allprojects { project ->
-      project.plugins.apply(SpinnakerPackagePlugin)
       project.plugins.apply(SpinnakerBintrayPublishingPlugin)
+      project.plugins.apply(SpinnakerPackagePlugin)
 
       //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
       project.plugins.withType(JavaBasePlugin) {
