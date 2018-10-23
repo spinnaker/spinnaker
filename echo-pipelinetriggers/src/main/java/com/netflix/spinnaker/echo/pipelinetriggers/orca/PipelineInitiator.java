@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,10 +15,9 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 import retrofit.RetrofitError.Kind;
 import rx.Observable;
-import rx.functions.Action1;
 import rx.functions.Func1;
 
-import javax.annotation.PostConstruct;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,6 +30,7 @@ public class PipelineInitiator {
   private final Registry registry;
   private final OrcaService orca;
   private final FiatStatus fiatStatus;
+  private final ObjectMapper objectMapper;
   private final boolean enabled;
   private final int retryCount;
   private final long retryDelayMillis;
@@ -37,12 +39,14 @@ public class PipelineInitiator {
   public PipelineInitiator(Registry registry,
                            OrcaService orca,
                            FiatStatus fiatStatus,
+                           ObjectMapper objectMapper,
                            @Value("${orca.enabled:true}") boolean enabled,
                            @Value("${orca.pipelineInitiatorRetryCount:5}") int retryCount,
                            @Value("${orca.pipelineInitiatorRetryDelayMillis:5000}") long retryDelayMillis) {
     this.registry = registry;
     this.orca = orca;
     this.fiatStatus = fiatStatus;
+    this.objectMapper = objectMapper;
     this.enabled = enabled;
     this.retryCount = retryCount;
     this.retryDelayMillis = retryDelayMillis;
@@ -58,31 +62,42 @@ public class PipelineInitiator {
   public void startPipeline(Pipeline pipeline) {
     if (enabled) {
       log.info("Triggering {} due to {}", pipeline, pipeline.getTrigger());
+
+      if (pipeline.getType().equals("templatedPipeline")) { // TODO(jacobkiefer): Constantize.
+        log.debug("Planning templated pipeline {} before triggering", pipeline.getId());
+        pipeline = pipeline.withPlan(true);
+        Map resolvedPipelineMap = orca.plan(objectMapper.convertValue(pipeline, Map.class));
+        pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
+      }
+      triggerPipeline(pipeline);
       registry.counter("orca.requests").increment();
 
-      Observable<OrcaService.TriggerResponse> orcaResponse = createTriggerObservable(pipeline)
-        .retryWhen(new RetryWithDelay(retryCount, retryDelayMillis))
-        .doOnNext(this::onOrcaResponse)
-        .doOnError(throwable -> onOrcaError(pipeline, throwable));
-
-      if (pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth()) {
-        // If the trigger is one that should propagate authentication, just directly call Orca as the request interceptor
-        // will pass along the current headers.
-        orcaResponse.subscribe();
-      } else {
-        // If we should not propagate authentication, create an empty User object for the request
-        User korkUser = new User();
-        if (fiatStatus.isEnabled() && pipeline.getTrigger() != null) {
-          korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
-        }
-        try {
-          AuthenticatedRequest.propagate(() -> orcaResponse.subscribe(), korkUser).call();
-        } catch (Exception e) {
-          log.error("Unable to trigger pipeline {}: {}", pipeline, e);
-        }
-      }
     } else {
       log.info("Would trigger {} due to {} but triggering is disabled", pipeline, pipeline.getTrigger());
+    }
+  }
+
+  private void triggerPipeline(Pipeline pipeline) {
+    Observable<OrcaService.TriggerResponse> orcaResponse = createTriggerObservable(pipeline)
+      .retryWhen(new RetryWithDelay(retryCount, retryDelayMillis))
+      .doOnNext(this::onOrcaResponse)
+      .doOnError(throwable -> onOrcaError(pipeline, throwable));
+
+    if (pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth()) {
+      // If the trigger is one that should propagate authentication, just directly call Orca as the request interceptor
+      // will pass along the current headers.
+      orcaResponse.subscribe();
+    } else {
+      // If we should not propagate authentication, create an empty User object for the request
+      User korkUser = new User();
+      if (fiatStatus.isEnabled() && pipeline.getTrigger() != null) {
+        korkUser.setEmail(pipeline.getTrigger().getRunAsUser());
+      }
+      try {
+        AuthenticatedRequest.propagate(() -> orcaResponse.subscribe(), korkUser).call();
+      } catch (Exception e) {
+        log.error("Unable to trigger pipeline {}: {}", pipeline, e);
+      }
     }
   }
 

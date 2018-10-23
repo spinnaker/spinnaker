@@ -19,6 +19,8 @@ package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.util.Collection;
+import java.util.Map;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Header;
@@ -26,11 +28,12 @@ import retrofit.http.POST;
 import retrofit.http.Query;
 import rx.Observable;
 
-import java.util.Collection;
-
 public interface OrcaService {
   @POST("/orchestrate")
   Observable<TriggerResponse> trigger(@Body Pipeline pipeline);
+
+  @POST("/orchestrate")
+  Map plan(@Body Map pipelineConfig);
 
   @POST("/orchestrate")
   Observable<TriggerResponse> trigger(@Body Pipeline pipeline, @Header(AuthenticatedRequest.SPINNAKER_USER) String runAsUser);

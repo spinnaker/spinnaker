@@ -58,6 +58,9 @@ public class Pipeline {
   boolean limitConcurrent;
 
   @JsonProperty
+  boolean plan;
+
+  @JsonProperty
   List<Trigger> triggers;
 
   @JsonProperty
