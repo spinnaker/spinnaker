@@ -24,6 +24,7 @@
 
   artifact(type):: {
     type: type,
+    withArtifactAccount(artifactAccount):: self + { artifactAccount: artifactAccount },
     withName(name):: self + { name: name },
     withVersion(version):: self + { version: version },
     withReference(reference):: self + { reference: reference },
@@ -32,10 +33,15 @@
 
   local artifact = self.artifact,
   artifacts:: {
+    bitbucketFile():: artifact('bitbucket/file'),
     dockerImage():: artifact('docker/image'),
+    embeddedBase64():: artifact('embedded/base64'),
+    gcsObject():: artifact('gcs/object'),
     githubFile():: artifact('github/file'),
     gitlabFile():: artifact('gitlab/file'),
-    gcsObject():: artifact('gcs/object'),
+    httpFile():: artifact('http/file'),
+    // kubernetesObject to be tested. Where kind is Deployment/Configmap/Service/etc
+    kubernetesObject(kind):: artifact('kubernetes/' + kind),
   },
 
   // expected artifacts
@@ -109,7 +115,6 @@
       withSlug(slug):: self + { slug: slug },
       withSource(source):: self + { source: source },
     },
-
   },
 
   // stages
@@ -128,27 +133,32 @@
   stages:: {
     wait(name):: stage(name, 'wait') {
       withWaitTime(waitTime):: self + { waitTime: waitTime },
+      withSkipWaitText(skipWaitText):: self + { skipWaitText: skipWaitText },
     },
 
     // jenkins stages
+
     jenkins(name):: stage(name, 'jenkins') {
       withJob(job):: self + { job: job },
       withMaster(master):: self + { master: master },
+      withPropertyFile(propertyFile):: self + { propertyFile: propertyFile },
+      withMarkUnstableAsSuccessful(markUnstableAsSuccessful):: self + { markUnstableAsSuccessful: markUnstableAsSuccessful },
+      withWaitForCompletion(waitForCompletion):: self + { waitForCompletion: waitForCompletion },
     },
 
     // kubernetes stages
 
-    deploy_manifest(name):: stage(name, 'deployManifest') {
+    deployManifest(name):: stage(name, 'deployManifest') {
       cloudProvider: 'kubernetes',
       source: 'text',
-      withAccount(account):: self + { account: account, source: 'artifact' },
+      withAccount(account):: self + { account: account },
       withManifestArtifactAccount(account):: self + { manifestArtifactAccount: account },
       // Add/Default to embedded-artifact? If so add:  /* , manifestArtifactAccount: 'embedded-artifact' */
-      withManifestArtifact(artifact):: self + { manifestArtifactId: artifact.id },
+      withManifestArtifact(artifact):: self + { manifestArtifactId: artifact.id, source: 'artifact' },
       withManifests(manifests):: self + if std.type(manifests) == 'array' then { manifests: manifests } else { manifests: [manifests] },
       withMoniker(moniker):: self + { moniker: moniker },
     },
-    delete_manifest(name):: stage(name, 'deleteManifest') {
+    deleteManifest(name):: stage(name, 'deleteManifest') {
       cloudProvider: 'kubernetes',
       options: {
         cascading: true,
@@ -160,7 +170,13 @@
       withGracePeriodSeconds(seconds):: self.options { gracePeriodSeconds: seconds },
       withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
     },
-    patch_manifest(name):: stage(name, 'patchManifest') {
+    findArtifactsFromResource(name):: stage(name, 'findArtifactsFromResource') {
+      cloudProvider: 'kubernetes',
+      withAccount(account):: self + { account: account },
+      withLocation(location):: self + { location: location },
+      withManifestName(manifestName):: self + { manifestName: manifestName },
+    },
+    patchManifest(name):: stage(name, 'patchManifest') {
       cloudProvider: 'kubernetes',
       source: 'text',
       options: {
@@ -172,19 +188,35 @@
       withPatchBody(patchBody): self + { patchBody: patchBody },
       withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
     },
-    scale_manifest(name): stage(name, 'scaleManifest') {
+    scaleManifest(name): stage(name, 'scaleManifest') {
       cloudProvider: 'kubernetes',
       withAccount(account):: self + { account: account },
       withNamespace(namespace):: self + { location: namespace },
       withReplicas(replicas): self + { replicas: replicas },
       withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
     },
-    undo_rollout_manifest(name): stage(name, 'undoRolloutManifest') {
+    undoRolloutManifest(name): stage(name, 'undoRolloutManifest') {
       cloudProvider: 'kubernetes',
       withAccount(account):: self + { account: account },
       withNamespace(namespace):: self + { location: namespace },
       withRevisionsBack(revisionsBack): self + { numRevisionsBack: revisionsBack },
       withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
+    },
+
+    // pipeline stages
+
+    pipeline(name):: stage(name, 'pipeline') {
+      withApplication(application):: self + { application: application },
+      withPipeline(pipeline):: self + { pipeline: pipeline },
+      withWaitForCompletion(waitForCompletion):: self + { waitForCompletion: waitForCompletion },
+    },
+
+    // wercker stages
+
+    // This stage has only been written from spec and not tested
+    wercker(name):: stage(name, 'wercker') {
+      withJob(job):: self + { job: job },
+      withMaster(master):: self + { master: master },
     },
   },
 
