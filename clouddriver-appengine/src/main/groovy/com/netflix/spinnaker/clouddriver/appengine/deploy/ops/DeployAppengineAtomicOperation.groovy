@@ -24,10 +24,15 @@ import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineServerGroupNa
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineOperationException
 import com.netflix.spinnaker.clouddriver.appengine.gcsClient.AppengineGcsRepositoryClient
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import groovy.util.logging.Slf4j
+
+import java.nio.file.Path
 import java.nio.file.Paths
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack
@@ -47,6 +52,9 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
 
   @Autowired(required=false)
   GcsStorageService.Factory storageServiceFactory
+
+  @Autowired
+  ArtifactDownloader artifactDownloader
 
   DeployAppengineDescription description
   boolean usesGcs
@@ -85,6 +93,7 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["app.yaml"], "promote": true, "stopPreviousVersion": true } } ]' "http://localhost:7002/appengine/ops"
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["runtime: python27\napi_version: 1\nthreadsafe: true\nmanual_scaling:\n  instances: 5\ninbound_services:\n - warmup\nhandlers:\n - url: /.*\n   script: main.app"],} } ]' "http://localhost:7002/appengine/ops"
    * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "credentials": "my-appengine-account", "containerImageUrl": "gcr.io/my-project/my-image:my-tag", "configFiles": ["env: flex\nruntime: custom\nmanual_scaling:\n  instances: 1\nresources:\n  cpu: 1\n  memory_gb: 0.5\n  disk_size_gb: 10"] } } ]' "http://localhost:7002/appengine/ops"
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "credentials": "my-appengine-credential-name", "containerImageUrl": "gcr.io/my-gcr-repo/image:tag", "configArtifacts": [{ "type": "gcs/object", "name": "gs://path/to/app.yaml", "reference": "gs://path/to/app.yaml", "artifactAccount": "my-gcs-artifact-account-name" }] } } ]' "http://localhost:7002/appengine/ops"
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -196,11 +205,13 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     def writtenFullConfigFilePaths = writeConfigFiles(configFiles, repositoryPath, applicationDirectoryRoot)
     def repositoryFullConfigFilePaths =
       (description.configFilepaths?.collect { Paths.get(repositoryPath, applicationDirectoryRoot ?: '.', it).toString() } ?: []) as List<String>
+    def configArtifactPaths = fetchConfigArtifacts(description.configArtifacts, repositoryPath, applicationDirectoryRoot)
+
     def deployCommand = ["gcloud"]
     if (gcloudReleaseTrack != null && gcloudReleaseTrack != GcloudReleaseTrack.STABLE) {
       deployCommand << gcloudReleaseTrack.toString().toLowerCase()
     }
-    deployCommand += ["app", "deploy", *(repositoryFullConfigFilePaths + writtenFullConfigFilePaths)]
+    deployCommand += ["app", "deploy", *(repositoryFullConfigFilePaths + writtenFullConfigFilePaths + configArtifactPaths)]
     deployCommand << "--version=$versionName"
     deployCommand << (description.promote ? "--promote" : "--no-promote")
     deployCommand << (description.stopPreviousVersion ? "--stop-previous-version": "--no-stop-previous-version")
@@ -222,13 +233,28 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     return versionName
   }
 
+  List<String> fetchConfigArtifacts(List<Artifact> configArtifacts, String repositoryPath, String applicationDirectoryRoot) {
+    if (!configArtifacts) {
+      return [];
+    } else {
+      return configArtifacts.collect { artifact ->
+        def path = generateRandomRepositoryFilePath(repositoryPath, applicationDirectoryRoot)
+        try {
+          path.toFile() << artifactDownloader.download(artifact)
+        } catch(e) {
+          throw new AppengineOperationException("Could not download artifact as config file: ${e.getMessage()}")
+        }
+        return path.toString()
+      }
+    }
+  }
+
   static List<String> writeConfigFiles(List<String> configFiles, String repositoryPath, String applicationDirectoryRoot) {
     if (!configFiles) {
       return []
     } else {
       return configFiles.collect { configFile ->
-        def name = UUID.randomUUID().toString()
-        def path = Paths.get(repositoryPath, applicationDirectoryRoot ?: ".", "${name}.yaml")
+        def path = generateRandomRepositoryFilePath(repositoryPath, applicationDirectoryRoot)
         try {
           path.toFile() << configFile
         } catch(e) {
@@ -251,5 +277,10 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
 
   static String getFullDirectoryPath(String localRepositoryDirectory, String repositoryUrl) {
     return Paths.get(localRepositoryDirectory, repositoryUrl.replace('/', '-')).toString()
+  }
+
+  static Path generateRandomRepositoryFilePath(String repositoryPath, String applicationDirectoryRoot) {
+    def name = UUID.randomUUID().toString()
+    return Paths.get(repositoryPath, applicationDirectoryRoot ?: ".", "${name}.yaml")
   }
 }

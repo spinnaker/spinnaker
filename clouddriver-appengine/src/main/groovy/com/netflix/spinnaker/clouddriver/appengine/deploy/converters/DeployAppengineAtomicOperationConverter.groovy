@@ -63,6 +63,10 @@ class DeployAppengineAtomicOperationConverter extends AbstractAtomicOperationsCr
           throw new AppengineDescriptionConversionException("Invalid artifact type for Appengine deploy: ${description.artifact.type}")
       }
     }
+    if (input.configArtifacts) {
+      def configArtifacts = input.configArtifacts
+      description.configArtifacts = configArtifacts.collect({ objectMapper.convertValue(it, Artifact) })
+    }
 
     return description
   }
