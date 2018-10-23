@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.commands
 
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
@@ -24,10 +23,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
@@ -45,7 +41,7 @@ class ForceExecutionCancellationCommandSpec extends Specification {
       status = RUNNING
       stage {
         id = "s1"
-        status = ExecutionStatus.SUCCEEDED
+        status = SUCCEEDED
       }
       stage {
         id = "s2"
@@ -54,7 +50,7 @@ class ForceExecutionCancellationCommandSpec extends Specification {
       }
       stage {
         id = "s3"
-        status = ExecutionStatus.NOT_STARTED
+        status = NOT_STARTED
       }
     }
 

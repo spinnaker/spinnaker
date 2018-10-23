@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import java.time.Clock
 
 /**
@@ -29,7 +28,6 @@ import java.time.Clock
  *
  * TODO(rz): Fix zombies.
  */
-@Component
 class ForceExecutionCancellationCommand(
   private val executionRepository: ExecutionRepository,
   private val clock: Clock

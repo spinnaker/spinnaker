@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.orca.commands.ForceExecutionCancellationCommand;
 import com.netflix.spinnaker.orca.events.ExecutionEvent;
 import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
@@ -176,5 +177,11 @@ public class OrcaConfiguration {
   @Bean(name = EVENT_LISTENER_FACTORY_BEAN_NAME)
   public EventListenerFactory eventListenerFactory() {
     return new InspectableEventListenerFactory();
+  }
+
+  @Bean
+  public ForceExecutionCancellationCommand forceExecutionCancellationCommand(ExecutionRepository executionRepository,
+                                                                             Clock clock) {
+    return new ForceExecutionCancellationCommand(executionRepository, clock);
   }
 }
