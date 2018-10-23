@@ -25,6 +25,7 @@ import java.util.Map;
 @Data
 public class ApplicationEnv {
   private SystemEnv systemEnvJson;
+  private Map<String, String> environmentJson;
 
   @Data
   public static class SystemEnv {

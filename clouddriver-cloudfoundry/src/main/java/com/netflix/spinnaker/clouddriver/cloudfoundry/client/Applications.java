@@ -204,6 +204,8 @@ public class Applications {
             .build()))
         .collect(toList());
 
+    Map<String, String> environmentVars = applicationEnv == null || applicationEnv.getEnvironmentJson() == null ? emptyMap() : applicationEnv.getEnvironmentJson();
+
     return CloudFoundryServerGroup.builder()
       .account(account)
       .name(application.getName())
@@ -217,6 +219,7 @@ public class Applications {
       .serviceInstances(cloudFoundryServices)
       .instances(instances)
       .state(state)
+      .env(environmentVars)
       .build();
   }
 
