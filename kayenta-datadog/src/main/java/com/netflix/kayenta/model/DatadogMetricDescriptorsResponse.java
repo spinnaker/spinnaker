@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Armory, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.datadog.config;
+package com.netflix.kayenta.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.time.Duration;
-import java.util.ArrayList;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
-public class DatadogConfigurationProperties {
+@Builder
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class DatadogMetricDescriptorsResponse {
 
+  @NotNull
   @Getter
-  @Setter
-  private long metadataCachingIntervalMS = Duration.ofSeconds(60).toMillis();
-
-  @Getter
-  private List<DatadogManagedAccount> accounts = new ArrayList<>();
+  private List<String> metrics;
 }

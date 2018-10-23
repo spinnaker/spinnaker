@@ -26,20 +26,28 @@ import com.netflix.kayenta.datadog.service.DatadogRemoteService;
 import com.netflix.kayenta.datadog.service.DatadogTimeSeries;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.model.DatadogMetricDescriptor;
+import com.netflix.kayenta.model.DatadogMetricDescriptorsResponse;
+import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.spectator.api.Registry;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Builder
@@ -55,6 +63,9 @@ public class DatadogMetricsService implements MetricsService {
 
   @Autowired
   private final Registry registry;
+
+  @Builder.Default
+  private List<DatadogMetricDescriptor> metricDescriptorsCache = Collections.emptyList();
 
   @Override
   public String getType() {
@@ -123,5 +134,62 @@ public class DatadogMetricsService implements MetricsService {
     }
 
     return ret;
+  }
+
+  @Override
+  public List<Map> getMetadata(String metricsAccountName, String filter) {
+    if (!StringUtils.isEmpty(filter)) {
+      String lowerCaseFilter = filter.toLowerCase();
+
+      return metricDescriptorsCache
+        .stream()
+        .filter(metricDescriptor -> metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
+        .map(metricDescriptor -> metricDescriptor.getMap())
+        .collect(Collectors.toList());
+    } else {
+      return metricDescriptorsCache
+        .stream()
+        .map(metricDescriptor -> metricDescriptor.getMap())
+        .collect(Collectors.toList());
+    }
+  }
+
+  @Scheduled(fixedDelayString = "#{@datadogConfigurationProperties.metadataCachingIntervalMS}")
+  public void updateMetricDescriptorsCache() {
+    Set<AccountCredentials> accountCredentialsSet =
+      CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+
+    for (AccountCredentials credentials : accountCredentialsSet) {
+      if (credentials instanceof DatadogNamedAccountCredentials) {
+        DatadogNamedAccountCredentials datadogCredentials = (DatadogNamedAccountCredentials)credentials;
+        DatadogRemoteService datadogRemoteService = datadogCredentials.getDatadogRemoteService();
+        DatadogCredentials ddCredentials = datadogCredentials.getCredentials();
+        // Retrieve all metrics actively reporting in the last hour.
+        long from = Instant.now().getEpochSecond() - 60 * 60;
+        DatadogMetricDescriptorsResponse datadogMetricDescriptorsResponse =
+          datadogRemoteService.getMetrics(ddCredentials.getApiKey(),
+                                          ddCredentials.getApplicationKey(),
+                                          from);
+
+        if (datadogMetricDescriptorsResponse != null) {
+          List<String> metrics = datadogMetricDescriptorsResponse.getMetrics();
+
+          if (!CollectionUtils.isEmpty(metrics)) {
+            // TODO(duftler): Should we instead be building the union across all accounts? This doesn't seem quite right yet.
+            metricDescriptorsCache =
+              metrics
+                .stream()
+                .map(metricName -> new DatadogMetricDescriptor(metricName))
+                .collect(Collectors.toList());
+
+            log.debug("Updated cache with {} metric descriptors via account {}.", metricDescriptorsCache.size(), datadogCredentials.getName());
+          } else {
+            log.debug("While updating cache, found no metric descriptors via account {}.", datadogCredentials.getName());
+          }
+        } else {
+          log.debug("While updating cache, found no metric descriptors via account {}.", datadogCredentials.getName());
+        }
+      }
+    }
   }
 }
