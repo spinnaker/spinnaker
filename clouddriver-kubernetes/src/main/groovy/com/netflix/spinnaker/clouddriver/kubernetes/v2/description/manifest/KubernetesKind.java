@@ -42,7 +42,7 @@ public class KubernetesKind {
   public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy", true, true);
   public static KubernetesKind EVENT = new KubernetesKind("event");
   public static KubernetesKind HORIZONTAL_POD_AUTOSCALER = new KubernetesKind("horizontalpodautoscaler", "hpa");
-  public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing");
+  public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing", true, true);
   public static KubernetesKind JOB = new KubernetesKind("job");
   public static KubernetesKind MUTATING_WEBHOOK_CONFIGURATION = new KubernetesKind("mutatingWebhookConfiguration", null, false, false);
   public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns", false, false);
