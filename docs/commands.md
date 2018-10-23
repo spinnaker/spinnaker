@@ -1519,9 +1519,9 @@ hal config artifact oracle account add ACCOUNT [parameters]
  * `--fingerprint`: Fingerprint of the public key
  * `--namespace`: The namespace the bucket and objects should be created in
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase used for the private key, if it is encrypted
  * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
- * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 
@@ -1558,9 +1558,9 @@ hal config artifact oracle account edit ACCOUNT [parameters]
  * `--fingerprint`: Fingerprint of the public key
  * `--namespace`: The namespace the bucket and objects should be created in
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase used for the private key, if it is encrypted
  * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
- * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 
@@ -5661,12 +5661,14 @@ When no namespaces are configured, this defaults to 'all namespaces'.
 This can only be set when --kinds is empty or not set.
  * `--omit-namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account cannot deploy to or cache.
 This can only be set when --namespaces is empty or not set.
+ * `--only-spinnaker-managed`: (*Default*: `false`) (V2 Only) When true, Spinnaker will only cache/display applications that have been
+created by Spinnaker; as opposed to attempting to configure applications for resources already present in Kubernetes.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-account`: When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/.
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
- * `--only-spinnaker-managed`: Spinnaker only caches resources it has created.
+
 
 ---
 ## hal config provider kubernetes account delete
@@ -5723,6 +5725,8 @@ When no namespaces are configured, this defaults to 'all namespaces'.
 This can only be set when --kinds is empty or not set.
  * `--omit-namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account cannot deploy to or cache.
 This can only be set when --namespaces is empty or not set.
+ * `--only-spinnaker-managed`: (V2 Only) When true, Spinnaker will only cache/display applications that have been
+created by Spinnaker; as opposed to attempting to configure applications for resources already present in Kubernetes.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
@@ -5736,7 +5740,7 @@ This can only be set when --namespaces is empty or not set.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-account`: When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/.
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
- * `--only-spinnaker-managed`: Spinnaker only caches resources it has created.
+
 
 ---
 ## hal config provider kubernetes account get
@@ -6228,12 +6232,12 @@ hal config provider oracle account add ACCOUNT [parameters]
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--fingerprint`: (*Required*) Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase used for the private key, if it is encrypted
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--region`: (*Required*) An Oracle region (e.g., us-phoenix-1)
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
- * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancyId`: (*Required*) Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: (*Required*) Provide the OCID of the Oracle User you're authenticating as
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
@@ -6275,6 +6279,7 @@ hal config provider oracle account edit ACCOUNT [parameters]
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--fingerprint`: Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase used for the private key, if it is encrypted
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--region`: An Oracle region (e.g., us-phoenix-1)
@@ -6283,7 +6288,6 @@ hal config provider oracle account edit ACCOUNT [parameters]
  * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
- * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancyId`: Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
@@ -7635,9 +7639,9 @@ hal config storage oracle edit [parameters]
  * `--fingerprint`: Fingerprint of the public key
  * `--namespace`: The namespace the bucket and objects should be created in
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase used for the private key, if it is encrypted
  * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--ssh-private-key-file-path`: Path to the private key in PEM format
- * `--private-key-passphrase`: Passphrase used for the private key, if it is encrypted.
  * `--tenancy-id`: Provide the OCID of the Oracle Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle User you're authenticating as
 
