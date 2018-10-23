@@ -88,4 +88,21 @@ export class ExpectedArtifactService {
       .forEach(s => sources.push(s));
     return sources;
   }
+
+  public static getKind(artifact: IArtifact): string {
+    if (artifact != null) {
+      if (artifact.kind) {
+        return artifact.kind;
+      } else {
+        const artifactType = artifact.type;
+        const inferredKindConfig = Registry.pipeline.getArtifactKinds().find(k => {
+          return k.type === artifactType;
+        });
+        if (inferredKindConfig != null) {
+          return inferredKindConfig.key;
+        }
+      }
+    }
+    return null;
+  }
 }

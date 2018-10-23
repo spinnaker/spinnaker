@@ -11,7 +11,7 @@ import {
 } from 'angular';
 import { IArtifact, IArtifactKindConfig } from 'core/domain';
 import { Registry } from 'core/registry';
-import { AccountService, ArtifactIconService, IArtifactAccount } from 'core';
+import { AccountService, ArtifactIconService, ExpectedArtifactService, IArtifactAccount } from 'core';
 
 class ArtifactCtrl implements IController {
   public artifact: IArtifact;
@@ -81,7 +81,7 @@ class ArtifactCtrl implements IController {
   }
 
   public loadArtifactKind(): void {
-    const { kind } = this.artifact;
+    const kind = ExpectedArtifactService.getKind(this.artifact) || 'custom';
     if (!kind) {
       return;
     }
