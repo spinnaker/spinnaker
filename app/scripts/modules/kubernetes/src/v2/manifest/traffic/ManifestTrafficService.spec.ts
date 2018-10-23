@@ -8,7 +8,7 @@ describe('Service: ManifestTrafficService', () => {
       serverGroupManagers: [],
       manifest: load(`
         kind: ReplicaSet
-        metadata: 
+        metadata:
           annotations:
             traffic.spinnaker.io/load-balancers: '[\"service my-service\"]'
         `),
@@ -23,7 +23,7 @@ describe('Service: ManifestTrafficService', () => {
         serverGroupManagers: [],
         manifest: load(`
         kind: ReplicaSet
-        metadata: 
+        metadata:
           annotations:
             ${annotation}
         `),
@@ -38,7 +38,7 @@ describe('Service: ManifestTrafficService', () => {
       serverGroupManagers: ['deployment my-deployment'],
       manifest: load(`
         kind: ReplicaSet
-        metadata: 
+        metadata:
           annotations:
             traffic.spinnaker.io/load-balancers: '[\"service my-service\"]'
         `),
