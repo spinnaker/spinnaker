@@ -67,11 +67,12 @@ class BranchSourceCodeManager(SpinnakerSourceCodeManager):
     options = self.options
     if github_owner in ('upstream', 'default'):
       github_owner = 'spinnaker'
-    origin_hostname = options.github_hostname
 
-    if self.options.github_filesystem_root:
-      return os.path.join(self.options.github_filesystem_root,
-                          origin_hostname, github_owner, name)
+    if self.options.github_repository_root:
+      return '/'.join([self.options.github_repository_root,
+                       github_owner, name])
+
+    origin_hostname = options.github_hostname
     if self.options.github_pull_ssh:
       return self.git.make_ssh_url(origin_hostname, github_owner, name)
     return self.git.make_https_url(origin_hostname, github_owner, name)

@@ -56,6 +56,7 @@ def load_default_bom_dependencies():
 
 def make_default_options(options):
   options.git_branch = 'OptionBranch'
+  options.github_hostname = 'test-hostname'
   options.github_owner = 'test-user'
   options.bom_dependencies_path = None
   options.build_number = 'OptionBuildNumber'
@@ -115,7 +116,7 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
                      'bintray_debian_repository': 'TestDebianRepo',
                      'docker_registry': 'TestDockerRegistry',
                      'publish_gce_image_project': 'TestGceProject'})
-    del defaults['github_filesystem_root']
+    del defaults['github_repository_root']
     parser = argparse.ArgumentParser()
     registry = bomtool_main.make_registry([buildtool.bom_commands],
                                           parser, defaults)

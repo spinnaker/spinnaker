@@ -633,10 +633,11 @@ class GitRunner(object):
         help='If True, github pull origin uses ssh rather than https.'
              ' Pulls are https by default since the standard repos are public.')
     add_parser_argument(
-        parser, 'github_filesystem_root', defaults, None,
-        help='If set, then use this file path as the base origin root where'
-             ' all the git repositories are assumed off that. This is only'
-             ' intended to support testing.')
+        parser, 'github_repository_root', defaults, None,
+        help='If set, then use this as the base repository for github.'
+             ' This is intended for urls other than https and ssh,'
+             ' such as filesystems for testing.'
+             ' Otherwise, use github_hostname, github_(push|pull)_ssh.')
     add_parser_argument(
         parser, 'github_push_ssh', defaults, True, type=bool,
         help='If False, github push origin uses https rather than ssh.'

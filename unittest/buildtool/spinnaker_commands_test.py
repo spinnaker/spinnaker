@@ -48,8 +48,7 @@ class TestSpinnakerCommandFixture(BaseGitRepoTestFixture):
         'git_branch': EXTRA_REPO + '-branch',
 
         'spinnaker_version': 'NewSpinnakerVersion',
-        'github_filesystem_root': self.options.github_filesystem_root,
-        'github_hostname': self.options.github_hostname
+        'github_repository_root': self.options.github_repository_root,
     }
 
     registry = {}

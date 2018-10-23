@@ -85,6 +85,7 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
   def make_test_options(self):
     options = super(RepositoryCommandProcessorTest, self).make_test_options()
     options.git_branch = 'test_branch'
+    options.github_hostname = 'test-hostname'
     options.github_owner = 'test_github_owner'
     options.github_pull_ssh = False
     options.one_at_a_time = False
