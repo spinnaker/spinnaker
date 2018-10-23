@@ -9,7 +9,7 @@ dependencies {
 
   implementation project(":keel-common")
   implementation "org.lognet:grpc-spring-boot-starter:+"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.+"
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
   implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:+"
 

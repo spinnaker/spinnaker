@@ -99,8 +99,8 @@ org.jetbrains.kotlin:kotlin-stdlib-common:1.2.71
 org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.2.71
 org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.71
 org.jetbrains.kotlin:kotlin-stdlib:1.2.71
-org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.0.0-RC1
-org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0-RC1
+org.jetbrains.kotlinx:kotlinx-coroutines-core-common:0.30.2
+org.jetbrains.kotlinx:kotlinx-coroutines-core:0.30.2
 org.jetbrains.spek:spek-api:1.2.1
 org.jetbrains:annotations:13.0
 org.junit.jupiter:junit-jupiter-api:5.3.1
