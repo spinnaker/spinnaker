@@ -70,7 +70,8 @@ class SqlExecutionRepository(
   private val partitionName: String?,
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
-  private val transactionRetryProperties: TransactionRetryProperties
+  private val transactionRetryProperties: TransactionRetryProperties,
+  private val batchReadSize: Int = 10
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -700,11 +701,10 @@ class SqlExecutionRepository(
   private fun SelectForUpdateStep<out Record>.fetchExecution() =
     fetchExecutions().firstOrNull()
 
-  // TODO rz - Need to make pageSize configurable; doubtful that 10 is the right size.
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<Execution>) =
     object : Iterable<Execution> {
       override fun iterator(): Iterator<Execution> =
-        PagedIterator(10, Execution::getId, nextPage)
+        PagedIterator(batchReadSize, Execution::getId, nextPage)
     }
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")

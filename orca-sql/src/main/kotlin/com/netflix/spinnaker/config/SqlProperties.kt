@@ -20,12 +20,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import java.util.concurrent.TimeUnit.MINUTES
 import java.util.concurrent.TimeUnit.SECONDS
 
+/**
+ * @param migration Defines the connection info for the migration user
+ * @param connectionPool The connection pool information for runtime SQL functionality
+ * @param transactionRetry Defines internal retry policies when connectivity to SQL is dodgy
+ * @param partitionName Multi-region partitioning; unused presently
+ * @param batchReadSize Defines the internal page size for large select scans
+ */
 @ConfigurationProperties("sql")
 data class SqlProperties(
   var migration: MigrationProperties = MigrationProperties(),
   var connectionPool: ConnectionPoolProperties = ConnectionPoolProperties(),
   var transactionRetry: TransactionRetryProperties = TransactionRetryProperties(),
-  var partitionName: String? = null
+  var partitionName: String? = null,
+  var batchReadSize: Int = 10
 )
 
 data class MigrationProperties(

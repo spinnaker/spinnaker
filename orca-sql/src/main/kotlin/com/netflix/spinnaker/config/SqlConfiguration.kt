@@ -99,7 +99,13 @@ class SqlConfiguration {
                                    registry: Registry,
                                    properties: SqlProperties) =
     SqlInstrumentedExecutionRepository(
-      SqlExecutionRepository(properties.partitionName, dsl, mapper, properties.transactionRetry),
+      SqlExecutionRepository(
+        properties.partitionName,
+        dsl,
+        mapper,
+        properties.transactionRetry,
+        properties.batchReadSize
+      ),
       registry
     )
 
