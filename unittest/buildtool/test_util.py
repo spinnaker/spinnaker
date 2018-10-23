@@ -132,16 +132,13 @@ def make_all_standard_git_repos(base_dir):
 
   result = {}
 
-  path = os.path.join(base_dir, STANDARD_GIT_HOST, STANDARD_GIT_OWNER,
-                      NORMAL_REPO)
+  path = os.path.join(base_dir, STANDARD_GIT_OWNER, NORMAL_REPO)
   result[NORMAL_REPO] = make_standard_git_repo(path)
 
-  path = os.path.join(base_dir, STANDARD_GIT_HOST, STANDARD_GIT_OWNER,
-                      EXTRA_REPO)
+  path = os.path.join(base_dir, STANDARD_GIT_OWNER, EXTRA_REPO)
   result[EXTRA_REPO] = make_standard_git_repo(path)
 
-  path = os.path.join(base_dir, OUTLIER_GIT_HOST, OUTLIER_GIT_OWNER,
-                      OUTLIER_REPO)
+  path = os.path.join(base_dir, OUTLIER_GIT_OWNER, OUTLIER_REPO)
   result[OUTLIER_REPO] = make_standard_git_repo(path)
 
   return result
@@ -204,10 +201,9 @@ class BaseGitRepoTestFixture(unittest.TestCase):
     options.command = self._testMethodName
     options.input_dir = os.path.join(self.test_root, 'input_dir')
     options.output_dir = os.path.join(self.test_root, 'output_dir')
-    options.github_hostname = STANDARD_GIT_HOST
     return options
 
   def setUp(self):
     self.test_root = os.path.join(self.base_temp_dir, self._testMethodName)
     self.options = self.make_test_options()
-    self.options.github_filesystem_root = self.base_temp_dir
+    self.options.github_repository_root = self.base_temp_dir
