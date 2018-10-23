@@ -60,5 +60,6 @@ class PipelineInitiatorSpec extends Specification {
     type                || orcaCalls
     "pipeline"          || 0
     "templatedPipeline" || 1
+    null                || 0
   }
 }
