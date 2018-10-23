@@ -29,6 +29,9 @@ class LoadBalancerV2UpsertHandler {
 
   private static final String BASE_PHASE = "UPSERT_ELB_V2"
 
+  private static final String ATTRIBUTE_IDLE_TIMEOUT = "idle_timeout.timeout_seconds"
+  private static final String ATTRIBUTE_DELETION_PROTECTION = "deletion_protection.enabled"
+
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
@@ -312,7 +315,10 @@ class LoadBalancerV2UpsertHandler {
                                  Collection<String> securityGroups,
                                  List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
                                  List<UpsertAmazonLoadBalancerV2Description.Listener> listeners,
-                                 DeployDefaults deployDefaults) {
+                                 DeployDefaults deployDefaults,
+                                 Integer idleTimeout,
+                                 Boolean deletionProtection
+  ) {
     def amazonErrors = []
     def loadBalancerName = loadBalancer.loadBalancerName
     def loadBalancerArn = loadBalancer.loadBalancerArn
@@ -329,6 +335,39 @@ class LoadBalancerV2UpsertHandler {
         ))
         task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
       }
+    }
+
+    // Update load balancer attributes
+    def currentAttributes = loadBalancing.describeLoadBalancerAttributes(
+      new DescribeLoadBalancerAttributesRequest()
+        .withLoadBalancerArn(loadBalancerArn)
+    ).attributes
+
+    List<LoadBalancerAttribute> attributes = []
+
+    // idle timeout is only supported in application load balancers
+    if (loadBalancer.type == 'application') {
+      String currentIdleTimeout = currentAttributes.find { it.key == ATTRIBUTE_IDLE_TIMEOUT }?.getValue()
+      String newIdleTimeout = [idleTimeout, deployDefaults.loadBalancing.idleTimeout].findResult(Closure.IDENTITY).toString()
+      if (currentIdleTimeout != newIdleTimeout) {
+        task.updateStatus BASE_PHASE, "Setting idle timeout on ${loadBalancerName} to ${newIdleTimeout}."
+        attributes.add(new LoadBalancerAttribute().withKey(ATTRIBUTE_IDLE_TIMEOUT).withValue(newIdleTimeout))
+      }
+    }
+
+    String currentDeletionProtections = currentAttributes.find { it.key == ATTRIBUTE_DELETION_PROTECTION }?.getValue()
+    String newDeletionProtection = [deletionProtection, deployDefaults.loadBalancing.deletionProtection].findResult(Boolean.FALSE, Closure.IDENTITY).toString()
+    if (currentDeletionProtections != newDeletionProtection) {
+      task.updateStatus BASE_PHASE, "Setting deletion protection on ${loadBalancerName} to ${newDeletionProtection}."
+      attributes.add(new LoadBalancerAttribute().withKey(ATTRIBUTE_DELETION_PROTECTION).withValue(newDeletionProtection))
+    }
+
+    if (!attributes.isEmpty()) {
+      loadBalancing.modifyLoadBalancerAttributes(
+        new ModifyLoadBalancerAttributesRequest()
+          .withLoadBalancerArn(loadBalancerArn)
+          .withAttributes(attributes)
+      )
     }
 
     // Get the state of this load balancer from aws
@@ -438,7 +477,9 @@ class LoadBalancerV2UpsertHandler {
                                          List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
                                          List<UpsertAmazonLoadBalancerV2Description.Listener> listeners,
                                          DeployDefaults deployDefaults,
-                                         String type) {
+                                         String type,
+                                         Integer idleTimeout,
+                                         boolean deletionProtection) {
     def request = new CreateLoadBalancerRequest().withName(loadBalancerName)
 
     // Networking Related
@@ -473,8 +514,9 @@ class LoadBalancerV2UpsertHandler {
     List<LoadBalancer> loadBalancers = result.getLoadBalancers()
     if (loadBalancers != null && loadBalancers.size() > 0) {
       createdLoadBalancer = loadBalancers.get(0)
-      updateLoadBalancer(loadBalancing, createdLoadBalancer, securityGroups, targetGroups, listeners, deployDefaults)
+      updateLoadBalancer(loadBalancing, createdLoadBalancer, securityGroups, targetGroups, listeners, deployDefaults, idleTimeout, deletionProtection)
     }
+
     createdLoadBalancer
   }
 }

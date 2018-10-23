@@ -102,7 +102,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
                   description.subnetType, SubnetTarget.ELB, 1)
         }
-        loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners, deployDefaults, description.loadBalancerType.toString())
+        loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners, deployDefaults, description.loadBalancerType.toString(), description.idleTimeout, description.deletionProtection)
         dnsName = loadBalancer.DNSName
 
         // Enable AWS shield. We only do this on creation. The ELB must be external, the account must be enabled with
@@ -125,7 +125,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
       } else {
         task.updateStatus BASE_PHASE, "Found existing load balancer named ${loadBalancerName} in ${region}... Using that."
         dnsName = loadBalancer.DNSName
-        LoadBalancerV2UpsertHandler.updateLoadBalancer(loadBalancing, loadBalancer, securityGroups, description.targetGroups, description.listeners, deployDefaults)
+        LoadBalancerV2UpsertHandler.updateLoadBalancer(loadBalancing, loadBalancer, securityGroups, description.targetGroups, description.listeners, deployDefaults, description.idleTimeout, description.deletionProtection)
       }
 
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.name} in ${region}."

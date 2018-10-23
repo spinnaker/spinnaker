@@ -20,21 +20,11 @@ import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
-import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
-import com.amazonaws.services.elasticloadbalancing.model.ConnectionDraining
-import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesRequest
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
-import com.amazonaws.services.elasticloadbalancing.model.Listener
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
-import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.amazonaws.services.elasticloadbalancing.model.*
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
@@ -49,12 +39,14 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupLookup
 import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
+
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerClassicDescription}.
  *
@@ -207,6 +199,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
       CrossZoneLoadBalancing crossZoneLoadBalancing = null
       ConnectionDraining connectionDraining = null
+      ConnectionSettings connectionSettings = null
 
       if (loadBalancer) {
         def currentAttributes = loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(loadBalancerName)).loadBalancerAttributes
@@ -225,20 +218,31 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
             enabled: connectionDrainingEnabled,
             timeout: deregistrationDelay)
         }
+
+        Integer idleTimeout = [description.idleTimeout, currentAttributes?.connectionSettings?.idleTimeout, deployDefaults.loadBalancing.idleTimeout].findResult(Closure.IDENTITY)
+        if (idleTimeout != currentAttributes?.connectionSettings?.idleTimeout) {
+          connectionSettings = new ConnectionSettings( idleTimeout: idleTimeout )
+        }
+
       } else {
         crossZoneLoadBalancing = new CrossZoneLoadBalancing(enabled: [description.crossZoneBalancing, deployDefaults.loadBalancing.crossZoneBalancingDefault].findResult(Boolean.TRUE, Closure.IDENTITY))
         connectionDraining = new ConnectionDraining(
           enabled: [description.connectionDraining, deployDefaults.loadBalancing.connectionDrainingDefault].findResult(Boolean.FALSE, Closure.IDENTITY),
           timeout: [description.deregistrationDelay, deployDefaults.loadBalancing.deregistrationDelayDefault].findResult(Closure.IDENTITY))
+        connectionSettings = new ConnectionSettings(
+          idleTimeout: [description.idleTimeout, deployDefaults.loadBalancing.idleTimeout].findResult(Closure.IDENTITY))
       }
 
-      if (crossZoneLoadBalancing != null || connectionDraining != null) {
+      if (crossZoneLoadBalancing != null || connectionDraining != null || connectionSettings != null) {
         LoadBalancerAttributes attributes = new LoadBalancerAttributes()
         if (crossZoneLoadBalancing) {
           attributes.setCrossZoneLoadBalancing(crossZoneLoadBalancing)
         }
         if (connectionDraining) {
           attributes.setConnectionDraining(connectionDraining)
+        }
+        if (connectionSettings) {
+          attributes.setConnectionSettings(connectionSettings)
         }
         // Apply balancing opinions...
         loadBalancing.modifyLoadBalancerAttributes(

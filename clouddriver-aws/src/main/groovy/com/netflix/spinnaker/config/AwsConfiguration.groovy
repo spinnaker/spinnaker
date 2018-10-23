@@ -197,6 +197,8 @@ class AwsConfiguration {
       Boolean crossZoneBalancingDefault = true
       Boolean connectionDrainingDefault = false
       Integer deregistrationDelayDefault = null
+      Integer idleTimeout = 60
+      Boolean deletionProtection = false
     }
     String iamRole
     String classicLinkSecurityGroupName

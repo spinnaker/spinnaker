@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.aws.edda
 
 import com.amazonaws.services.elasticloadbalancingv2.model.Listener
+import com.netflix.spinnaker.clouddriver.aws.model.edda.ApplicationLoadBalancerAttributes
+import com.netflix.spinnaker.clouddriver.aws.model.edda.ClassicLoadBalancerAttributes
 import com.netflix.spinnaker.clouddriver.aws.model.edda.EddaRule
 import com.netflix.spinnaker.clouddriver.aws.model.edda.LoadBalancerInstanceState
 import com.netflix.spinnaker.clouddriver.aws.model.edda.TargetGroupAttributes
@@ -45,4 +47,10 @@ interface EddaApi {
 
   @GET('/REST/v2/view/appLoadBalancerRules;_expand')
   List<List<EddaRule>> allRules()
+
+  @GET('/REST/v2/view/appLoadBalancerAttributes;_expand')
+  List<ApplicationLoadBalancerAttributes> applicationLoadBalancerAttributes()
+
+  @GET('/REST/v2/view/loadBalancerAttributes;_expand')
+  List<ClassicLoadBalancerAttributes> classicLoadBalancerAttributes()
 }

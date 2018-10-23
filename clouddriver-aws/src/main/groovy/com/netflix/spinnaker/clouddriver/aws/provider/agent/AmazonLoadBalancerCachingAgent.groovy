@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
-import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancing.model.*
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
@@ -29,22 +28,27 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAgent {
+
+  private EddaApi eddaApi
+
   AmazonLoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
                                  AmazonClientProvider amazonClientProvider,
                                  NetflixAmazonCredentials account,
                                  String region,
+                                 EddaApi eddaApi,
                                  ObjectMapper objectMapper,
                                  Registry registry) {
     super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry)
+    this.eddaApi = eddaApi
   }
 
   @Override
@@ -74,8 +78,9 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
       return null
     }
 
+    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, false)
+
     List<LoadBalancerDescription> loadBalancers = metricsSupport.readData {
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
       try {
         return loadBalancing.describeLoadBalancers(
           new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)
@@ -85,7 +90,15 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
       }
     }
 
-    def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, [:], System.currentTimeMillis(), []) }
+    Map<String, LoadBalancerAttributes> loadBalancerAttributes = metricsSupport.readData() {
+      Map<String, LoadBalancerAttributes> lbA = [:]
+      for (LoadBalancerDescription lb : loadBalancers) {
+        lbA.put( lb.loadBalancerName, loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(lb.loadBalancerName)))
+      }
+      return lbA
+    }
+
+    def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, loadBalancerAttributes, [:], System.currentTimeMillis(), []) }
     if (cacheResult.cacheResults.values().flatten().isEmpty()) {
       // avoid writing an empty onDemand cache record (instead delete any that may have previously existed)
       providerCache.evictDeletedItems(ON_DEMAND.ns, [Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String, null)])
@@ -138,6 +151,8 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
       }
     }
 
+    Map<String, LoadBalancerAttributes> loadBalancerAttributes = buildLoadBalancerAttributes(loadBalancing, allLoadBalancers, account.eddaEnabled)
+
     if (!start) {
       if (account.eddaEnabled && allLoadBalancers) {
         log.warn("${agentType} did not receive lastModified value in response metadata")
@@ -164,10 +179,29 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
       }
     }
 
-    buildCacheResult(allLoadBalancers, usableOnDemandCacheDatas.collectEntries { [it.id, it] }, start, evictableOnDemandCacheDatas)
+    buildCacheResult(allLoadBalancers, loadBalancerAttributes, usableOnDemandCacheDatas.collectEntries { [it.id, it] }, start, evictableOnDemandCacheDatas)
   }
 
-  private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
+  Map<String, LoadBalancerAttributes> buildLoadBalancerAttributes(AmazonElasticLoadBalancing loadBalancing,
+                                                                  List<LoadBalancer> allLoadBalancers,
+                                                                  boolean useEdda) {
+    Map<String, LoadBalancerAttributes> loadBalancerNameToAttributes
+    if (useEdda) {
+      loadBalancerNameToAttributes = eddaApi.classicLoadBalancerAttributes().collectEntries {
+        [(it.name): it.attributes]
+      }
+    } else {
+      loadBalancerNameToAttributes = new HashMap<String, LoadBalancerAttributes>()
+      for (LoadBalancer loadBalancer : allLoadBalancers) {
+        loadBalancing.describeLoadBalancerAttributes(
+          new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(loadBalancer.name)
+        )
+      }
+    }
+    return loadBalancerNameToAttributes
+  }
+
+  private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers, Map<String, LoadBalancerAttributes> loadBalancerAttributes, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
     Map<String, CacheData> instances = CacheHelpers.cache()
     Map<String, CacheData> loadBalancers = CacheHelpers.cache()
 
@@ -183,6 +217,12 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
         Collection<String> instanceIds = lb.instances.collect { Keys.getInstanceKey(it.instanceId, account.name, region) }
         Map<String, Object> lbAttributes = objectMapper.convertValue(lb, ATTRIBUTES)
         String loadBalancerId = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.getVPCId(), null)
+        if (loadBalancerAttributes.containsKey(lb.loadBalancerName)) {
+          lbAttributes.put('attributes', loadBalancerAttributes.get(lb.loadBalancerName))
+          if (loadBalancerAttributes.get(lb.loadBalancerName).connectionSettings != null) {
+            lbAttributes.put('idleTimeout', loadBalancerAttributes.get(lb.loadBalancerName).connectionSettings.idleTimeout)
+          }
+        }
         loadBalancers[loadBalancerId].with {
           attributes.putAll(lbAttributes)
           relationships[INSTANCES.ns].addAll(instanceIds)

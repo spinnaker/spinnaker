@@ -29,6 +29,7 @@ import java.util.Set;
 public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalancerDescription {
   public List<Listener> listeners = new ArrayList<>();
   public List<TargetGroup> targetGroups = new ArrayList<>();
+  public Boolean deletionProtection;
 
   public static class TargetGroup {
     private String name;
@@ -45,7 +46,6 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     private Integer unhealthyThreshold = 2;
     private Integer healthyThreshold = 10;
     private String healthCheckMatcher = "200-299"; // string of ranges or individual http status codes, separated by commas
-
 
     public String getName() {
       return name;

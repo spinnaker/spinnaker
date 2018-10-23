@@ -29,6 +29,7 @@ public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentia
   private String vpcId;
   private Boolean isInternal;
   private String subnetType;
+  private Integer idleTimeout;
 
   private List<String> securityGroups;
   private Map<String, List<String>> availabilityZones;
@@ -106,4 +107,9 @@ public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentia
   public void setShieldProtectionEnabled(boolean shieldProtectionEnabled) {
     this.shieldProtectionEnabled = shieldProtectionEnabled;
   }
+
+  public Integer getIdleTimeout() { return idleTimeout; }
+
+  public void setIdleTimeout(Integer idleTimeout) { this.idleTimeout = idleTimeout; }
+
 }
