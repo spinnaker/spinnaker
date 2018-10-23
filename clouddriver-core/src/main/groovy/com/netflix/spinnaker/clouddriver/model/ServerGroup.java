@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -169,6 +170,10 @@ public interface ServerGroup {
 
   default List<ServerGroupManager.ServerGroupManagerSummary> getServerGroupManagers() {
     return new ArrayList<>();
+  }
+
+  default Map<String, String> getLabels() {
+    return new HashMap<>();
   }
 
   @Builder

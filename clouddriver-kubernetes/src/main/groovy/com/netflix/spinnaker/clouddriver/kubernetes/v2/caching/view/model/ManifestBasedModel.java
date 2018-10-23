@@ -71,6 +71,10 @@ abstract public class ManifestBasedModel {
         .deriveMoniker(getManifest());
   }
 
+  public Map<String, String> getLabels() {
+    return getManifest().getLabels();
+  }
+
   public String getAccountName() {
     return getKey().getAccount();
   }

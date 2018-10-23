@@ -20,6 +20,8 @@ import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -70,4 +72,8 @@ public interface LoadBalancer {
    */
   @Empty
   Set<LoadBalancerServerGroup> getServerGroups();
+
+  default Map<String, String> getLabels() {
+    return new HashMap<>();
+  }
 }

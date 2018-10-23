@@ -23,6 +23,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public interface ServerGroupManager {
@@ -31,6 +33,10 @@ public interface ServerGroupManager {
   Moniker getMoniker();
   Set<ServerGroupSummary> getServerGroups();
   String getRegion();
+
+  default Map<String, String> getLabels() {
+    return new HashMap<>();
+  }
 
   @Data
   @Builder

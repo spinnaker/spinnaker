@@ -251,6 +251,7 @@ class ServerGroupController {
     Set<String> securityGroups
     ServerGroup.InstanceCounts instanceCounts
     Map<String, Object> tags
+    Map<String, String> labels
     Map providerMetadata
     List<ServerGroupManager.ServerGroupManagerSummary> serverGroupManagers
 
@@ -277,6 +278,10 @@ class ServerGroupController {
       }
       if (serverGroup.tags) {
         tags = serverGroup.tags
+      }
+
+      if (serverGroup.labels) {
+        labels = serverGroup.labels
       }
 
       if (serverGroup.hasProperty("buildInfo")) {

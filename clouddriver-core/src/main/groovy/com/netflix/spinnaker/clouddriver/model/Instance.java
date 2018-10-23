@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,4 +81,8 @@ public interface Instance {
    * @return
    */
   String getCloudProvider();
+
+  default Map<String, String> getLabels() {
+    return new HashMap<>();
+  }
 }
