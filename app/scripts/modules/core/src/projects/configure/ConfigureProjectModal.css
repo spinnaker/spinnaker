@@ -1,0 +1,19 @@
+.ConfigureProject-Applications i,
+.ConfigureProject-Pipelines i,
+.ConfigureProject-Clusters i {
+  color: var(--color-accent);
+}
+
+.ConfigureProject-Pipelines table thead td,
+.ConfigureProject-Clusters table thead td {
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.ConfigureProject-Pipelines .button.zombie,
+.ConfigureProject-Clusters .button.zombie {
+  width: 80%;
+}
+
+.ConfigureProject-Clusters table td {
+  vertical-align: top;
+}

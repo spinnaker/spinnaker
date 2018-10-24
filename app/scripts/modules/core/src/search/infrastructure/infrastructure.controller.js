@@ -17,6 +17,7 @@ import { RECENTLY_VIEWED_ITEMS_COMPONENT } from '../infrastructure/recentlyViewe
 import { ClusterState } from 'core/state';
 
 import { SearchService } from '../search.service';
+import { ConfigureProjectModal } from 'core/projects';
 
 module.exports = angular
   .module('spinnaker.search.infrastructure.controller', [
@@ -106,29 +107,7 @@ module.exports = angular
       });
     });
 
-    this.createProject = () => {
-      $uibModal
-        .open({
-          scope: $scope,
-          templateUrl: require('../../projects/configure/configureProject.modal.html'),
-          controller: 'ConfigureProjectModalCtrl',
-          controllerAs: 'ctrl',
-          size: 'lg',
-          resolve: {
-            projectConfig: () => {
-              return {};
-            },
-          },
-        })
-        .result.then(routeToProject)
-        .catch(() => {});
-    };
-
-    function routeToProject(project) {
-      $state.go('home.project.dashboard', {
-        project: project.name,
-      });
-    }
+    this.createProject = () => ConfigureProjectModal.show().catch(() => {});
 
     this.createApplicationForTests = () => {
       $uibModal

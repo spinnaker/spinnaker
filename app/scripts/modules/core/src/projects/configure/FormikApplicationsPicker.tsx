@@ -5,21 +5,26 @@ import { ArrayHelpers, FieldArray, getIn } from 'formik';
 
 import { FormikFormField, IFormInputProps, StandardFieldLayout, StringsAsOptions, TextInput } from 'core/presentation';
 
-import './Applications.css';
+import './FormikApplicationsPicker.css';
 
-export interface IApplicationsPickerProps {
+export interface IFormikApplicationsPickerProps {
   label?: React.ReactNode;
   name: string; // path to formik array
   applications: string[];
+  className?: string;
 }
 
 /**
  * This component supports multiple selection of applications.
  * The dropdown application list filters out already-selected apps.
  */
-export class FormikApplicationsPicker extends React.Component<IApplicationsPickerProps> {
+export class FormikApplicationsPicker extends React.Component<IFormikApplicationsPickerProps> {
+  public static defaultProps: Partial<IFormikApplicationsPickerProps> = {
+    className: '',
+  };
+
   public render() {
-    const { label, applications, name } = this.props;
+    const { label, applications, name, className } = this.props;
 
     const TrashButton = ({ arrayHelpers, index }: { arrayHelpers: ArrayHelpers; index: number }) => (
       <button type="button" onClick={() => arrayHelpers.remove(index)} className="nostyle">
@@ -43,7 +48,7 @@ export class FormikApplicationsPicker extends React.Component<IApplicationsPicke
           const apps = applications.filter(isAppSelected);
 
           return (
-            <div className="Applications">
+            <div className={`${className} FormikApplicationsPicker`}>
               {selectedApplications.map((app, index) => (
                 <FormikFormField
                   key={app}
@@ -61,14 +66,15 @@ export class FormikApplicationsPicker extends React.Component<IApplicationsPicke
                   <StringsAsOptions strings={apps}>
                     {options => (
                       <VirtualizedSelect
+                        style={{ flex: '1 1 auto', marginRigh: '1em' }}
                         ignoreAccents={false} /* for typeahead performance with long lists */
                         options={options}
                         onChange={(item: Option<string>) => arrayHelpers.push(item.value)}
-                        className="body-small"
                       />
                     )}
                   </StringsAsOptions>
                 }
+                actions={<i className="fa" />}
               />
             </div>
           );

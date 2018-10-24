@@ -13,6 +13,7 @@ export interface IProjectPipeline {
 export interface IProjectConfig {
   applications: string[];
   clusters: IProjectCluster[];
+  pipelineConfigs: IProjectPipeline[];
 }
 
 export interface IProject {

@@ -5,6 +5,7 @@ export * from './LabelComponent';
 export * from './Markdown';
 export * from './ReactModal';
 export * from './Placement';
+export * from './SpanDropdownTrigger';
 export * from './TetheredSelect';
 export * from './Tooltip';
 export * from './collapsibleSection/CollapsibleSection';
