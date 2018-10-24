@@ -66,14 +66,25 @@ class RetrofitExceptionHandler implements ExceptionHandler {
       responseDetails.kind = e.kind
       responseDetails.status = properties.status ?: null
       responseDetails.url = properties.url ?: null
-      boolean shouldRetry = !isMalformedRequest(e) &&
-        (isNetworkError(e) || isGatewayTimeout(e) || isThrottle(e)) &&
-        isIdempotentRequest(e)
-      return new ExceptionHandler.Response(e.class.simpleName, stepName, responseDetails, shouldRetry)
+
+      return new ExceptionHandler.Response(e.class.simpleName, stepName, responseDetails, shouldRetry(e))
     }
   }
 
-  boolean isGatewayTimeout(RetrofitError e) {
+  boolean shouldRetry(RetrofitError e) {
+    if (isMalformedRequest(e)) {
+      return false
+    }
+
+    // retry on 503 even for non-idempotent requests
+    if (e.kind == HTTP && e.response.status == HTTP_UNAVAILABLE) {
+      return true
+    }
+
+    return isIdempotentRequest(e) && (isNetworkError(e) || isGatewayErrorCode(e) || isThrottle(e))
+  }
+
+  boolean isGatewayErrorCode(RetrofitError e) {
     e.kind == HTTP && e.response.status in [HTTP_BAD_GATEWAY, HTTP_UNAVAILABLE, HTTP_GATEWAY_TIMEOUT]
   }
 

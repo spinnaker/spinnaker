@@ -114,5 +114,4 @@ class MonitorBakeTaskSpec extends Specification {
     where:
     id = randomUUID().toString()
   }
-
 }

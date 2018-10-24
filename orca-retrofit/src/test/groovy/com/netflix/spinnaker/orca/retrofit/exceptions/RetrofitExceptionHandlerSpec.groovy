@@ -29,6 +29,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static java.net.HttpURLConnection.HTTP_BAD_GATEWAY
+import static java.net.HttpURLConnection.HTTP_UNAVAILABLE
 import static retrofit.RetrofitError.Kind.HTTP
 import static retrofit.RetrofitError.Kind.NETWORK
 import static retrofit.RetrofitError.Kind.UNEXPECTED
@@ -221,10 +222,10 @@ class RetrofitExceptionHandlerSpec extends Specification {
   }
 
   @Unroll
-  def "should not retry an HTTP gateway error on a #httpMethod request"() {
+  def "shouldRetry=#expectedShouldRetry an HTTP #statusCode on a #httpMethod request"() {
     given:
     def client = Stub(Client) {
-      execute(_) >> new Response("http://localhost:1337", HTTP_BAD_GATEWAY, "bad gateway", [], new TypedString(""))
+      execute(_) >> new Response("http://localhost:1337", statusCode, "bad gateway", [], new TypedString(""))
     }
 
     and:
@@ -236,47 +237,31 @@ class RetrofitExceptionHandlerSpec extends Specification {
 
     and:
     def ex = expectingException {
-      api."$methodName"("whatever")
+      if (httpMethod in ["POST", "PATCH"]) {
+        api."$methodName"("body")
+      } else {
+        api."$methodName"()
+      }
     }
 
     expect:
     with(handler.handle("whatever", ex)) {
       details.kind == HTTP
-      !shouldRetry
+      shouldRetry == expectedShouldRetry
     }
 
     where:
-    httpMethod << ["POST", "PATCH"]
-    methodName = httpMethod.toLowerCase()
-  }
+    httpMethod | statusCode       || expectedShouldRetry
+    "POST"     | HTTP_BAD_GATEWAY || false
+    "PATCH"    | HTTP_BAD_GATEWAY || false
+    "POST"     | HTTP_UNAVAILABLE || true
 
-  @Unroll
-  def "should retry an HTTP gateway error on a #httpMethod request"() {
-    given:
-    def client = Stub(Client) {
-      execute(_) >> new Response("http://localhost:1337", HTTP_BAD_GATEWAY, "bad gateway", [], new TypedString(""))
-    }
+    "GET"      | HTTP_BAD_GATEWAY || true
+    "HEAD"     | HTTP_BAD_GATEWAY || true
+    "DELETE"   | HTTP_BAD_GATEWAY || true
+    "PUT"      | HTTP_BAD_GATEWAY || true
 
-    and:
-    def api = new RestAdapter.Builder()
-      .setEndpoint("http://localhost:1337")
-      .setClient(client)
-      .build()
-      .create(DummyRetrofitApi)
 
-    and:
-    def ex = expectingException {
-      api."$methodName"()
-    }
-
-    expect:
-    with(handler.handle("whatever", ex)) {
-      details.kind == HTTP
-      shouldRetry
-    }
-
-    where:
-    httpMethod << ["GET", "HEAD", "DELETE", "PUT"]
     methodName = httpMethod.toLowerCase()
   }
 
@@ -288,5 +273,4 @@ class RetrofitExceptionHandlerSpec extends Specification {
       return e
     }
   }
-
 }
