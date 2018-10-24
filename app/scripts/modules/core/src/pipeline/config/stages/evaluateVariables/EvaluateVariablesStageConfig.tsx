@@ -31,6 +31,7 @@ export class EvaluateVariablesStageConfig extends React.Component<IStageConfigPr
 
     // Flattens an array of objects {key, value} into a single object with the respective keys/values
     const variablesObject = variables.reduce(
+      // tslint:disable-next-line:prefer-object-spread
       (acc: any, { key, value }: IEvaluatedVariable) => Object.assign(acc, { [key]: value }),
       {},
     );
