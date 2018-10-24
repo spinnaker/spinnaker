@@ -15,21 +15,17 @@
  */
 
 apply from: "$rootDir/gradle/groovy.gradle"
-apply plugin: 'org.springframework.boot'
-apply plugin: 'spinnaker.package'
+apply plugin: 'spinnaker.application'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
-  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
-tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+run {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
 
-springBoot {
-    mainClass = 'com.netflix.spinnaker.orca.Main'
-}
+mainClassName = 'com.netflix.spinnaker.orca.Main'
 
 dependencies {
   spinnaker.group("bootWeb")
@@ -67,8 +63,6 @@ dependencies {
   //this brings in the jetty GzipFilter which boot will autoconfigure
   runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
 }
-
-tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
 
 // SHOULDN'T HAVE TO SPECIFY THIS HERE BUT SOMETHING FORCES IT LOWER
 configurations.all {

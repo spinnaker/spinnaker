@@ -21,15 +21,14 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.3.0"
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.10.RELEASE"
+    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.1.4"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
     classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
   }
 }
 
 allprojects {
-  apply plugin: "spinnaker.project"
+  apply plugin: "spinnaker.base-project"
   apply plugin: "java"
   group = "com.netflix.spinnaker.orca"
 
@@ -102,15 +101,23 @@ allprojects {
   }
 }
 subprojects {
-  license {
-    exclude "**/*.json"
-    exclude "**/*.md"
-    exclude "**/*.yml"
-    mapping {
+  def licenseExtension = project.extensions.findByName('license')
+  if (licenseExtension != null) {
+    licenseExtension.exclude "**/*.json"
+    licenseExtension.exclude "**/*.md"
+    licenseExtension.exclude "**/*.yml"
+    licenseExtension.mapping {
       java = "SLASHSTAR_STYLE"
       kt = "SLASHSTAR_STYLE"
     }
   }
+
+  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
+  project.plugins.withType(JavaBasePlugin) {
+    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+    convention.sourceCompatibility = JavaVersion.VERSION_1_8
+    convention.targetCompatibility = JavaVersion.VERSION_1_8
+  }
 }
 
-defaultTasks ":orca-web:bootRun"
+defaultTasks ":orca-web:run"
