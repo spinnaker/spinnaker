@@ -137,6 +137,7 @@ public class BackupService {
       tarOutput = new FileOutputStream(new File(halconfigTar));
       bufferedTarOutput = new BufferedOutputStream(tarOutput);
       tarArchiveOutputStream = new TarArchiveOutputStream(bufferedTarOutput);
+      tarArchiveOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
       TarArchiveOutputStream finalTarArchiveOutputStream = tarArchiveOutputStream;
       Arrays.stream(new File(halconfigDir).listFiles())
           .filter(Objects::nonNull)
