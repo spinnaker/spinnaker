@@ -1,6 +1,6 @@
 import { IComponentController, ILogService, IScope } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { cloneDeep, first, get, has, isEmpty, isFinite, isString, isNil, map, set, unset, uniq } from 'lodash';
+import { cloneDeep, first, get, has, isEmpty, isFinite, isString, map, set, unset, uniq } from 'lodash';
 import {
   AccountService,
   AppListExtractor,
@@ -19,10 +19,10 @@ import {
   IKayentaServerGroupPair,
   IKayentaStage,
   IKayentaStageCanaryConfigScope,
-  IKayentaStageLifetime,
   KayentaAccountType,
   KayentaAnalysisType,
 } from 'kayenta/domain';
+import { getDurationString, parseDurationString } from 'kayenta/utils/duration';
 
 export class KayentaStageController implements IComponentController {
   public state = {
@@ -30,13 +30,14 @@ export class KayentaStageController implements IComponentController {
     backingDataLoading: false,
     detailsLoading: false,
     lifetimeHoursUpdatedToDuration: false,
-    lifetime: { hours: '', minutes: '' },
+    lifetime: { hours: 0, minutes: 0 },
     showAdvancedSettings: false,
     useAtlasGlobalDataset: false,
     showAllLocations: {
       control: false,
       experiment: false,
     },
+    delayBeforeCleanup: { hours: 0, minutes: 0 },
   };
   public canaryConfigSummaries: ICanaryConfigSummary[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
@@ -83,12 +84,12 @@ export class KayentaStageController implements IComponentController {
       this.stage.canaryConfig.scopes = [{ scopeName: 'default' } as IKayentaStageCanaryConfigScope];
     }
 
-    const stageLifetime = this.getLifetimeFromStageLifetimeDuration();
-    if (!isNil(stageLifetime.hours)) {
-      this.state.lifetime.hours = String(stageLifetime.hours);
-    }
-    if (!isNil(stageLifetime.minutes)) {
-      this.state.lifetime.minutes = String(stageLifetime.minutes);
+    if (!this.stage.isNew) {
+      const stageLifetimeDuration: string = get(this.stage, 'canaryConfig.lifetimeDuration');
+      this.state.lifetime = parseDurationString(stageLifetimeDuration);
+
+      const stageDelayBeforeCleanupDuration: string = get(this.stage, 'deployments.delayBeforeCleanup');
+      this.state.delayBeforeCleanup = parseDurationString(stageDelayBeforeCleanupDuration);
     }
 
     if (this.stage.canaryConfig.lookbackMins) {
@@ -211,7 +212,6 @@ export class KayentaStageController implements IComponentController {
         account: null,
       },
       serverGroupPairs: [],
-      delayBeforeCleanup: 0,
     };
     this.accounts = await this.loadAccounts();
     this.setClusterList();
@@ -414,8 +414,7 @@ export class KayentaStageController implements IComponentController {
   };
 
   public onLifetimeChange = (): void => {
-    const { hours, minutes } = this.getStateLifetime();
-    this.stage.canaryConfig.lifetimeDuration = `PT${hours}H${minutes}M`;
+    this.stage.canaryConfig.lifetimeDuration = getDurationString(this.state.lifetime);
   };
 
   private updateLifetimeFromHoursToDuration = (): void => {
@@ -434,46 +433,17 @@ export class KayentaStageController implements IComponentController {
     }
   };
 
-  private getStateLifetime = (): IKayentaStageLifetime => {
-    let hours = parseInt(this.state.lifetime.hours, 10);
-    let minutes = parseInt(this.state.lifetime.minutes, 10);
-    if (!isFinite(hours) || hours < 0) {
-      hours = 0;
-    }
-    if (!isFinite(minutes) || minutes < 0) {
-      minutes = 0;
-    }
-    return { hours, minutes };
-  };
-
-  private getLifetimeFromStageLifetimeDuration = (): IKayentaStageLifetime => {
-    const duration = get(this.stage, ['canaryConfig', 'lifetimeDuration']);
-    if (!isString(duration)) {
-      return {};
-    }
-    const lifetimeComponents = duration.match(/PT(\d+)H(?:(\d+)M)?/i);
-    if (lifetimeComponents == null) {
-      return {};
-    }
-    const hours = parseInt(lifetimeComponents[1], 10);
-    if (!isFinite(hours) || hours < 0) {
-      return {};
-    }
-    let minutes = parseInt(lifetimeComponents[2], 10);
-    if (!isFinite(minutes) || minutes < 0) {
-      minutes = 0;
-    }
-    return { hours, minutes };
-  };
-
-  public isLifetimeRequired = (): boolean => {
-    const lifetime = this.getStateLifetime();
-    return lifetime.hours === 0 && lifetime.minutes === 0;
-  };
-
   public getLifetimeClassnames = (): string => {
     if (this.state.lifetimeHoursUpdatedToDuration) {
       return 'alert alert-warning';
+    }
+    return '';
+  };
+
+  public getLifetimeInputClassnames = (): string => {
+    const { hours, minutes } = this.state.lifetime;
+    if (hours === 0 && minutes === 0) {
+      return 'ng-invalid ng-invalid-required';
     }
     return '';
   };
@@ -733,5 +703,9 @@ export class KayentaStageController implements IComponentController {
       this.setAtlasEnvironment();
     }
     this.$scope.$applyAsync();
+  };
+
+  public onDelayBeforeCleanupChange = (): void => {
+    this.stage.deployments.delayBeforeCleanup = getDurationString(this.state.delayBeforeCleanup);
   };
 }

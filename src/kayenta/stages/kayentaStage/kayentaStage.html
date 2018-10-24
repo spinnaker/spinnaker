@@ -44,18 +44,21 @@
                           help-key="pipeline.config.canary.lifetime"
                           ng-class="kayentaCanaryStageCtrl.getLifetimeClassnames()"
                           style="padding-left: 0; padding-right: 0;">
-        <input type="text"
+        <input type="number"
+               min="0"
+               ng-class="kayentaCanaryStageCtrl.getLifetimeInputClassnames()"
                ng-model="kayentaCanaryStageCtrl.state.lifetime.hours"
-               ng-required="kayentaCanaryStageCtrl.isLifetimeRequired()"
                class="form-control input-sm"
                style="display: inline-block; width: 11%"
                ng-change="kayentaCanaryStageCtrl.onLifetimeChange()" />
         <span class="form-control-static">
         hours
         </span>
-          <input type="text"
+          <input type="number"
+                 min="0"
+                 max="59"
+                 ng-class="kayentaCanaryStageCtrl.getLifetimeInputClassnames()"
                  ng-model="kayentaCanaryStageCtrl.state.lifetime.minutes"
-                 ng-required="kayentaCanaryStageCtrl.isLifetimeRequired()"
                  class="form-control input-sm"
                  style="display: inline-block; width: 11%; margin-left: 12px;"
                  ng-change="kayentaCanaryStageCtrl.onLifetimeChange()" />
@@ -114,6 +117,7 @@
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].step"
         type="number"
+        min="0"
         style="width: 33%; display: inline-block"/>
       <span class="form-control-static"> seconds</span>
     </stage-config-field>
@@ -153,6 +157,33 @@
       </div>
     </stage-config-field>
   </kayenta-stage-config-section>
+
+  <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTimeAutomatic">
+    <stage-config-field label="Delay Before Cleanup"
+                        field-columns="8"
+                        help-key="pipeline.config.canary.delayBeforeCleanup"
+                        style="padding-left: 0; padding-right: 0;">
+      <input type="number"
+             min="0"
+             ng-model="kayentaCanaryStageCtrl.state.delayBeforeCleanup.hours"
+             class="form-control input-sm"
+             style="display: inline-block; width: 11%;"
+             ng-change="kayentaCanaryStageCtrl.onDelayBeforeCleanupChange()" />
+      <span class="form-control-static">
+          hours
+      </span>
+      <input type="number"
+             min="0"
+             max="59"
+             ng-model="kayentaCanaryStageCtrl.state.delayBeforeCleanup.minutes"
+             class="form-control input-sm"
+             style="display: inline-block; width: 11%; margin-left: 12px"
+             ng-change="kayentaCanaryStageCtrl.onDelayBeforeCleanupChange()" />
+      <span class="form-control-static">
+          minutes
+      </span>
+    </stage-config-field>
+  </for-analysis-type>
 
   <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTimeAutomatic">
     <kayenta-stage-config-section title="Baseline Version">

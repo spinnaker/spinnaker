@@ -46,6 +46,8 @@ const helpContents: { [key: string]: string } = {
         <p>Also used to provide variable bindings for use in the expansion of custom filter templates within the canary config.</p>`,
   'pipeline.config.canary.lookback':
     '<p>With an analysis type of <strong>Growing</strong>, the entire duration of the canary will be considered during the analysis.</p><p>When choosing <strong>Sliding</strong>, the canary will use the most recent number of specified minutes for its analysis report (<b>useful for long running canaries that span multiple days</b>).</p>',
+  'pipeline.config.canary.delayBeforeCleanup':
+    '<p>The total time after canary analysis ends before canary cluster cleanup begins. Allows for manual inspection of instances.</p>',
   'pipeline.config.canary.marginalScore': `
     <p>A canary stage can include multiple canary runs.</p>
     <p>If a given canary run score is less than or equal to the marginal threshold, the canary stage will fail immediately.</p>

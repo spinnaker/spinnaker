@@ -12,7 +12,7 @@ export interface IKayentaStageCanaryConfig {
   scopes: IKayentaStageCanaryConfigScope[];
   combinedCanaryResultStrategy: string;
   lifetimeHours?: string;
-  lifetimeDuration?: string;
+  lifetimeDuration?: string; // String to be converted to Java.time.Duration in Orca (https://github.com/spinnaker/orca/blob/master/orca-kayenta/src/main/kotlin/com/netflix/spinnaker/orca/kayenta/model/KayentaCanaryContext.kt#L32)
   lookbackMins?: string;
   metricsAccountName: string;
   scoreThresholds: {
@@ -42,17 +42,12 @@ export interface IKayentaStageDeployments {
     cluster: string;
   };
   serverGroupPairs: IKayentaServerGroupPair[];
-  delayBeforeCleanup: number;
+  delayBeforeCleanup: string; // String to be converted to Java.time.Duration in Orca (https://github.com/spinnaker/orca/blob/master/orca-kayenta/src/main/kotlin/com/netflix/spinnaker/orca/kayenta/model/Deployments.kt#L33)
 }
 
 export interface IKayentaServerGroupPair {
   control: any;
   experiment: any;
-}
-
-export interface IKayentaStageLifetime {
-  hours?: number;
-  minutes?: number;
 }
 
 export enum KayentaAnalysisType {
