@@ -55,10 +55,9 @@ public class V2PipelineTemplateController {
   ObjectMapper objectMapper;
 
   // TODO(jacobkiefer): Add fiat authz
-  // TODO(jacobkiefer): Un-stub
   @RequestMapping(value = "", method = RequestMethod.GET)
   List<PipelineTemplate> list(@RequestParam(required = false, value = "scopes") List<String> scopes) {
-    return null;
+    return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
