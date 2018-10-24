@@ -23,9 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -42,18 +39,51 @@ public class PipelinesDataFetcher implements DataFetcher<Collection<Pipeline>> {
   public Collection<Pipeline> get(DataFetchingEnvironment environment) {
     Collection<Pipeline> pipelines = pipelineDAO.all();
 
-    Object havingTriggerType = environment.getArgument("havingTriggerType");
-    if (havingTriggerType != null) {
-      return pipelines.stream()
-        .filter(pipeline -> {
-          List<Map<String, Object>> triggers = (List<Map<String, Object>>) pipeline.getOrDefault("triggers", Collections.EMPTY_LIST);
-          return triggers.stream().anyMatch(trigger -> havingTriggerType.equals(trigger.get("type")));
-        })
-        .collect(Collectors.toList());
-    }
-
     // TODO rz - mapping stuff like `extra` and other nested subtypes correctly.
 
-    return pipelines;
+    return pipelines.stream()
+      .filter(p ->
+        new HavingTriggerTypePredicate(environment)
+          .and(new DisabledPredicate(environment))
+          .test(p)
+      )
+      .collect(Collectors.toList());
+  }
+
+  static class HavingTriggerTypePredicate extends DataFetchingEnvironmentPredicate<Pipeline> {
+    HavingTriggerTypePredicate(DataFetchingEnvironment environment) {
+      super(environment);
+    }
+
+    @Override
+    public boolean test(Pipeline pipeline) {
+      String havingTriggerType = environment.getArgument("havingTriggerType");
+      if (havingTriggerType == null) {
+        return true;
+      }
+      return pipeline.getTriggers().stream().anyMatch(t -> havingTriggerType.equals(t.getType()));
+    }
+  }
+
+  static class DisabledPredicate extends DataFetchingEnvironmentPredicate<Pipeline> {
+    DisabledPredicate(DataFetchingEnvironment environment) {
+      super(environment);
+    }
+
+    @Override
+    public boolean test(Pipeline pipeline) {
+      if (!environment.containsArgument("disabled")) {
+        return true;
+      }
+
+      boolean desired = environment.getArgument("disabled");
+
+      Boolean disabled = (Boolean) pipeline.get("disabled");
+      if (disabled == null) {
+        return desired;
+      }
+
+      return disabled == desired;
+    }
   }
 }

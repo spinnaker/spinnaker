@@ -6,7 +6,7 @@ schema {
 
 type Query {
   version: String!
-  pipelines(havingTriggerType: String): [Pipeline]!
+  pipelines(havingTriggerType: String, disabled: Boolean): [Pipeline]!
 }
 
 type Pipeline {
@@ -24,7 +24,7 @@ type Pipeline {
   spelEvaluator: String!
   stageCounter: Int
   stages: [Stage]!
-  triggers: [Trigger]!
+  triggers(types: [String!]): [Trigger]!
   updateTs: String!
   extra: JSON
 }
@@ -69,16 +69,15 @@ type Stage {
 }
 
 interface Trigger {
-  id: ID!
   type: String!
-  enabled: Boolean!
+  enabled: Boolean
   extra: JSON
 }
 
 type CronTrigger implements Trigger {
-  id: ID!
+  id: ID
   type: String!
-  enabled: Boolean!
-  cronExpression: String!
+  enabled: Boolean
   extra: JSON
+  cronExpression: String!
 }

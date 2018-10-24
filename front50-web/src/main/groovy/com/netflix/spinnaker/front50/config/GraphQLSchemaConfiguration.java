@@ -17,6 +17,7 @@ package com.netflix.spinnaker.front50.config;
 
 import com.netflix.spinnaker.front50.graphql.JsonScalarType;
 import com.netflix.spinnaker.front50.graphql.datafetcher.PipelinesDataFetcher;
+import com.netflix.spinnaker.front50.graphql.datafetcher.TriggersDataFetcher;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.StaticDataFetcher;
@@ -27,7 +28,6 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -44,6 +44,9 @@ public class GraphQLSchemaConfiguration {
         .dataFetcher("version", new StaticDataFetcher("0.1"))
         .dataFetcher("pipelines", pipelinesDataFetcher)
         .defaultDataFetcher(new StaticDataFetcher("TODO"))
+      )
+      .type("Pipeline", builder -> builder
+        .dataFetcher("triggers", new TriggersDataFetcher())
       )
       .type(newTypeWiring("Trigger").typeResolver(env -> (GraphQLObjectType) env.getSchema().getType("CronTrigger")))
       .build();

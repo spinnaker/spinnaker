@@ -18,9 +18,12 @@
 package com.netflix.spinnaker.front50.model.pipeline
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.model.Timestamped
 
 class Pipeline extends HashMap<String, Object> implements Timestamped {
+
+  private static ObjectMapper mapper = new ObjectMapper()
 
   public static final String TYPE_TEMPLATED = "templatedPipeline"
 
@@ -88,5 +91,14 @@ class Pipeline extends HashMap<String, Object> implements Timestamped {
   @JsonIgnore
   void setType(String type) {
     super.put("type", type)
+  }
+
+  @JsonIgnore
+  Collection<Trigger> getTriggers() {
+    return mapper.convertValue(super.getOrDefault("triggers", new ArrayList<>()), Trigger.COLLECTION_TYPE)
+  }
+
+  void setTriggers(Collection<Trigger> triggers) {
+    this.put("triggers", triggers);
   }
 }
