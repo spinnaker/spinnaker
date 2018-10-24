@@ -174,7 +174,7 @@ public class V2PipelineTemplatesController {
   @ApiOperation(value = "List all pipelines that implement a pipeline template", response = List.class)
   @RequestMapping(value = "/{id}/dependents", method = RequestMethod.GET)
   public List<PipelineTemplateDependent> listPipelineTemplateDependents(@PathVariable String id) {
-    return null;
+    return v2PipelineTemplateService.getTemplateDependents(id);
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)

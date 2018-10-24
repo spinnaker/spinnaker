@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,17 @@ public class V2PipelineTemplateService {
     return front50Service.getV2PipelineTemplates(scopes == null ? null : (String[]) scopes.toArray());
   }
 
-  public List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId, boolean recursive) {
-    return null;
+  public List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId) {
+    return front50Service.getV2PipelineTemplateDependents(templateId)
+      .stream()
+      .map(t -> newDependent(t))
+      .collect(Collectors.toList());
+  }
+
+  private static PipelineTemplateDependent newDependent(Map<String, Object> template) {
+    return new PipelineTemplateDependent(
+      template.containsKey("application") ? (String) template.get("application") : "UNKNOWN",
+      template.containsKey("id") ? (String) template.get("id") : "UNKNOWN",
+      template.containsKey("name") ? (String) template.get("name") : "UNKNOWN");
   }
 }

@@ -16,12 +16,12 @@
 package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import lombok.Data
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -67,6 +67,14 @@ class PipelineTemplateService {
   }
 
   static class PipelineTemplateDependent {
+    PipelineTemplateDependent() {}
+
+    PipelineTemplateDependent(String application, String pipelineConfigId, String pipelineName) {
+      this.application = application
+      this.pipelineConfigId = pipelineConfigId
+      this.pipelineName = pipelineName
+    }
+
     @JsonProperty
     String application
 
