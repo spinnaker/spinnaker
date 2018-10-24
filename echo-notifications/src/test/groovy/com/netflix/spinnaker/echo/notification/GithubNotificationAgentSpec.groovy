@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.echo.github.GithubCommitMessage
+import com.netflix.spinnaker.echo.github.GithubCommitDetail
+import com.netflix.spinnaker.echo.github.GithubCommit
 import com.netflix.spinnaker.echo.github.GithubService
 import com.netflix.spinnaker.echo.github.GithubStatus
 import com.netflix.spinnaker.echo.model.Event
@@ -148,7 +149,7 @@ class GithubNotificationAgentSpec extends Specification {
 
   def "if commit is a merge commit of the head branch and the default branch then return the head commit"() {
     given:
-    GithubCommitMessage commit = new GithubCommitMessage(commitMessage)
+    GithubCommit commit = new GithubCommit(new GithubCommitDetail(commitMessage))
     ObjectMapper mapper = new ObjectMapper()
     String response = mapper.writeValueAsString(commit)
     github.getCommit(*_) >> { token, repo, sha ->

@@ -16,20 +16,17 @@
 
 package com.netflix.spinnaker.echo.github;
 
-import retrofit.client.Response;
-import retrofit.http.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface GithubService {
-  @POST("/repos/{repo}/statuses/{sha}")
-  Response updateCheck(
-    @Header("Authorization") String token,
-    @Path(value = "repo", encode = false) String repo,
-    @Path("sha") String sha,
-    @Body GithubStatus status);
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+@NoArgsConstructor
+public class GithubCommitDetail {
+  private String message;
 
-  @GET("/repos/{repo}/commits/{sha}")
-  Response getCommit(
-    @Header("Authorization") String token,
-    @Path(value = "repo", encode = false) String repo,
-    @Path("sha") String sha);
+  public GithubCommitDetail(String message) {
+    this.message = message;
+  }
 }

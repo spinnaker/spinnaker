@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.notification;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.echo.exceptions.FieldNotFoundException;
-import com.netflix.spinnaker.echo.github.GithubCommitMessage;
+import com.netflix.spinnaker.echo.github.GithubCommit;
 import com.netflix.spinnaker.echo.github.GithubService;
 import com.netflix.spinnaker.echo.github.GithubStatus;
 import com.netflix.spinnaker.echo.model.Event;
@@ -111,15 +111,15 @@ public class GithubNotificationAgent extends AbstractEventNotificationAgent {
   private String getBranchCommit(String repo, String sha) {
     Response response = githubService.getCommit("token " + token, repo, sha);
     ObjectMapper objectMapper = new ObjectMapper();
-    GithubCommitMessage message = null;
+    GithubCommit message = null;
     try {
-      message = objectMapper.readValue(response.getBody().in(), GithubCommitMessage.class);
+      message = objectMapper.readValue(response.getBody().in(), GithubCommit.class);
     } catch (IOException e) {
       return sha;
     }
 
     Pattern pattern = Pattern.compile("Merge (?<branchCommit>[0-9a-f]{5,40}) into (?<masterCommit>[0-9a-f]{5,40})");
-    Matcher matcher = pattern.matcher(message.getMessage());
+    Matcher matcher = pattern.matcher(message.getCommit().getMessage());
     if (matcher.matches()) {
       return matcher.group("branchCommit");
     }
