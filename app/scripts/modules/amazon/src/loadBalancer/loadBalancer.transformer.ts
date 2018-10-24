@@ -203,6 +203,7 @@ export class AwsLoadBalancerTransformer {
       healthCheckProtocol: loadBalancer.healthCheckProtocol,
       healthCheckPort: loadBalancer.healthCheckPort,
       healthCheckPath: loadBalancer.healthCheckPath,
+      idleTimeout: loadBalancer.idleTimeout || 60,
       subnetType: loadBalancer.subnetType,
     };
 
@@ -280,6 +281,8 @@ export class AwsLoadBalancerTransformer {
       securityGroups: [],
       subnetType: loadBalancer.subnetType,
       vpcId: undefined,
+      idleTimeout: loadBalancer.idleTimeout || 60,
+      deletionProtection: loadBalancer.deletionProtection || false,
     };
 
     if (loadBalancer.elb) {
@@ -382,6 +385,7 @@ export class AwsLoadBalancerTransformer {
       securityGroups: [],
       subnetType: loadBalancer.subnetType,
       vpcId: undefined,
+      deletionProtection: loadBalancer.deletionProtection,
     };
 
     if (loadBalancer.elb) {
@@ -485,6 +489,7 @@ export class AwsLoadBalancerTransformer {
       healthInterval: 10,
       healthyThreshold: 10,
       unhealthyThreshold: 2,
+      idleTimeout: 60,
       regionZones: [],
       securityGroups: [],
       listeners: [
@@ -517,6 +522,8 @@ export class AwsLoadBalancerTransformer {
       region: defaultRegion,
       vpcId: null,
       subnetType: defaultSubnetType,
+      idleTimeout: 60,
+      deletionProtection: false,
       targetGroups: [
         {
           name: defaultTargetGroupName,
@@ -574,6 +581,7 @@ export class AwsLoadBalancerTransformer {
       region: defaultRegion,
       vpcId: null,
       subnetType: defaultSubnetType,
+      deletionProtection: false,
       securityGroups: [],
       targetGroups: [
         {

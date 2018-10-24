@@ -19,6 +19,7 @@ import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCom
 import { AwsReactInjector } from 'amazon/reactShims';
 
 import { ALBListeners } from './ALBListeners';
+import { ALBAdvancedSettings } from './ALBAdvancedSettings';
 import { TargetGroups } from './TargetGroups';
 import { SecurityGroups } from '../common/SecurityGroups';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
@@ -285,6 +286,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
         <SecurityGroups done={true} isNew={isNew} />
         <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
         <ALBListeners app={app} done={true} />
+        <ALBAdvancedSettings done={true} />
       </WizardModal>
     );
   }

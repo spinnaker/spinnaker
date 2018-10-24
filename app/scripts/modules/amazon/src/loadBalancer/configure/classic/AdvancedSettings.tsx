@@ -79,11 +79,22 @@ class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
               <Field className="form-control input-sm" type="number" min="0" name="unhealthyThreshold" />
             </div>
           </div>
+
+          <div className="form-group">
+            <div className="col-md-6 sm-label-right">
+              <span>
+                <b>Idle Timeout</b> <HelpField id="loadBalancer.advancedSettings.idleTimeout" />
+              </span>
+            </div>
+            <div className="col-md-4">
+              <Field className="form-control input-sm" type="number" min="0" name="idleTimeout" />
+            </div>
+          </div>
         </div>
         <div className="col-md-12">
           <p>
-            Additional configuration options (idle timeout, cross-zone load balancing, session stickiness, access logs)
-            are available via the AWS console.
+            Additional configuration options (cross-zone load balancing, session stickiness, access logs) are available
+            via the AWS console.
           </p>
         </div>
       </div>

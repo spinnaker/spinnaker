@@ -47,18 +47,23 @@ export interface IAmazonClassicLoadBalancer extends IAmazonLoadBalancer {
   healthyThreshold: number;
   listeners: IClassicListener[];
   unhealthyThreshold: number;
+  idleTimeout?: number;
 }
 
 export interface IAmazonApplicationLoadBalancer extends IAmazonLoadBalancer {
   listeners: IALBListener[];
   targetGroups: ITargetGroup[];
   ipAddressType?: string; // returned from clouddriver
+  deletionProtection: boolean;
+  idleTimeout: number;
 }
 
 export interface IAmazonNetworkLoadBalancer extends IAmazonLoadBalancer {
   listeners: INLBListener[];
   targetGroups: ITargetGroup[];
   ipAddressType?: string; // returned from clouddriver
+  deletionProtection: boolean;
+  idleTimeout: number;
 }
 
 export interface IListenerAction {
@@ -234,14 +239,18 @@ export interface IAmazonClassicLoadBalancerUpsertCommand extends IAmazonLoadBala
   healthyThreshold?: number;
   listeners: IClassicListenerDescription[];
   unhealthyThreshold?: number;
+  idleTimeout?: number;
 }
 
 export interface IAmazonApplicationLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
+  deletionProtection: boolean;
+  idleTimeout: number;
   listeners: IListenerDescription[];
   targetGroups: IALBTargetGroupDescription[];
 }
 
 export interface IAmazonNetworkLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
+  deletionProtection: boolean;
   listeners: IListenerDescription[];
   targetGroups: INLBTargetGroupDescription[];
 }

@@ -20,6 +20,7 @@ import { AwsReactInjector } from 'amazon/reactShims';
 
 import { NLBListeners } from './NLBListeners';
 import { TargetGroups } from './TargetGroups';
+import { NLBAdvancedSettings } from './NLBAdvancedSettings';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
 
 import '../common/configure.less';
@@ -258,6 +259,7 @@ export class CreateNetworkLoadBalancer extends React.Component<
         />
         <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
         <NLBListeners done={true} />
+        <NLBAdvancedSettings done={true} />
       </WizardModal>
     );
   }
