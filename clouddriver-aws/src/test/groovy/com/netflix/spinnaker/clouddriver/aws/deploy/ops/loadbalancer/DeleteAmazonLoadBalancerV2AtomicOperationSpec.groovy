@@ -28,6 +28,7 @@ import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsR
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
 import com.amazonaws.services.elasticloadbalancingv2.model.Listener
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
+import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerAttribute
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -66,14 +67,34 @@ class DeleteAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: [description.loadBalancerName])) >> new DescribeLoadBalancersResult(loadBalancers: [ new LoadBalancer(loadBalancerArn: loadBalancerArn) ])
-    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: [ new Listener(listenerArn: listenerArn) ])
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: [description.loadBalancerName])) >> new DescribeLoadBalancersResult(loadBalancers: [new LoadBalancer(loadBalancerArn: loadBalancerArn)])
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: [new LoadBalancerAttribute().withKey("deletion_protection.enabled").withValue("false")]]
+    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: [new Listener(listenerArn: listenerArn)])
     1 * loadBalancing.deleteListener(new DeleteListenerRequest(listenerArn: listenerArn))
-    1 * loadBalancing.describeTargetGroups((new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn))) >> new DescribeTargetGroupsResult(targetGroups: [ new TargetGroup(targetGroupArn: targetGroupArn) ])
+    1 * loadBalancing.describeTargetGroups((new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn))) >> new DescribeTargetGroupsResult(targetGroups: [new TargetGroup(targetGroupArn: targetGroupArn)])
     1 * loadBalancing.deleteTargetGroup(new DeleteTargetGroupRequest(targetGroupArn: targetGroupArn))
     1 * loadBalancing.deleteLoadBalancer(_) >> { DeleteLoadBalancerRequest req ->
       assert req.loadBalancerArn == loadBalancerArn
     }
     0 * _
+  }
+
+  void "should abort if deletion protection is enabled"() {
+    setup:
+    def loadBalancerArn = "foo:test"
+    def loadBalancing = Mock(AmazonElasticLoadBalancing)
+    def amazonClientProvider = Stub(AmazonClientProvider)
+    amazonClientProvider.getAmazonElasticLoadBalancingV2(credz, _, true) >> loadBalancing
+    op.amazonClientProvider = amazonClientProvider
+
+    when:
+    op.operate([])
+
+    then:
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: [description.loadBalancerName])) >> new DescribeLoadBalancersResult(loadBalancers: [new LoadBalancer(loadBalancerArn: loadBalancerArn, loadBalancerName: 'test')])
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> [attributes: [new LoadBalancerAttribute().withKey("deletion_protection.enabled").withValue("true")]]
+    0 * _
+    DeleteAmazonLoadBalancerV2AtomicOperation.DeletionProtectionEnabledException ex = thrown()
+    ex.message == "Load Balancer test has deletion protection enabled. Aborting delete operation."
   }
 }

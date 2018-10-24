@@ -17,23 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
-import com.amazonaws.services.elasticloadbalancingv2.model.DeleteListenerRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DeleteLoadBalancerRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DeleteTargetGroupRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersResult
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
-import com.amazonaws.services.elasticloadbalancingv2.model.Listener
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
+import com.amazonaws.services.elasticloadbalancingv2.model.*
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Void> {
@@ -62,13 +52,20 @@ class DeleteAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Void>
       // Make sure load balancer exists
       LoadBalancer loadBalancer
       try {
-        DescribeLoadBalancersResult result = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: [description.loadBalancerName] ))
+        DescribeLoadBalancersResult result = loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: [description.loadBalancerName]))
         loadBalancer = result.loadBalancers.size() > 0 ? result.loadBalancers.get(0) : null
       } catch (AmazonServiceException ignore) {
       }
 
       if (loadBalancer) {
         task.updateStatus BASE_PHASE, "Deleting ${description.loadBalancerName} in ${region} for ${description.credentials.name}."
+
+        // fail if deletion protection is enabled for the load balancer
+        def attributes = loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest().withLoadBalancerArn(loadBalancer.loadBalancerArn))?.attributes ?: []
+        LoadBalancerAttribute deleteProtectionAttribute = attributes.find { it.key == "deletion_protection.enabled" }
+        if (deleteProtectionAttribute != null && deleteProtectionAttribute.getValue().toString().equals("true")) {
+          throw new DeletionProtectionEnabledException("Load Balancer ${loadBalancer.loadBalancerName} has deletion protection enabled. Aborting delete operation.")
+        }
 
         // Describe target groups and listeners for the load balancer.
         // We have to describe them both both first because you cant delete a target group that has a listener associated with it
@@ -79,7 +76,7 @@ class DeleteAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Void>
         List<Listener> listeners = listenersResult.listeners
 
         // Delete listeners
-        for(Listener listener : listeners) {
+        for (Listener listener : listeners) {
           DeleteListenerRequest deleteListenerRequest = new DeleteListenerRequest(listenerArn: listener.listenerArn)
           try {
             loadBalancing.deleteListener(deleteListenerRequest)
@@ -90,7 +87,7 @@ class DeleteAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Void>
         }
 
         // Delete target groups
-        for(TargetGroup targetGroup: targetGroups) {
+        for (TargetGroup targetGroup : targetGroups) {
           DeleteTargetGroupRequest deleteTargetGroupRequest = new DeleteTargetGroupRequest(targetGroupArn: targetGroup.targetGroupArn)
           try {
             loadBalancing.deleteTargetGroup(deleteTargetGroupRequest)
@@ -110,4 +107,8 @@ class DeleteAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Void>
     task.updateStatus BASE_PHASE, "Done deleting ${description.loadBalancerName} in ${description.regions} for ${description.credentials.name}."
     null
   }
+
+  @InheritConstructors
+  static class DeletionProtectionEnabledException extends Exception {}
+
 }
