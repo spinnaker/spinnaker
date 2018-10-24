@@ -2,10 +2,8 @@ package com.netflix.spinnaker.echo.pipelinetriggers.monitor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Pipeline
-import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BuildEventHandler
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import spock.lang.Specification
 import spock.lang.Subject
@@ -13,68 +11,62 @@ import spock.lang.Unroll
 
 import static com.netflix.spinnaker.echo.model.trigger.BuildEvent.Result.*
 
-class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
-  def objectMapper = new ObjectMapper()
-  def pipelineCache = Mock(PipelineCache)
-  def pipelineInitiator = Mock(PipelineInitiator)
+class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
+  def objectMapper = new ObjectMapper()
 
   @Subject
-  def monitor = new BuildEventMonitor(pipelineCache, pipelineInitiator, registry)
+  def eventHandler = new BuildEventHandler(registry, objectMapper)
 
   @Unroll
   def "triggers pipelines for successful builds for #triggerType"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({
-      it.application == pipeline.application && it.name == pipeline.name
-    })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].application == pipeline.application
+    matchingPipelines[0].name == pipeline.name
 
     where:
     event                         | trigger               | triggerType
     createBuildEventWith(SUCCESS) | enabledJenkinsTrigger | 'jenkins'
-    createBuildEventWith(SUCCESS) | enabledTravisTrigger | 'travis'
+    createBuildEventWith(SUCCESS) | enabledTravisTrigger  | 'travis'
     createBuildEventWith(SUCCESS) | enabledWerckerTrigger | 'wercker'
   }
 
   @Unroll
   def "attaches #triggerType trigger to the pipeline"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def result = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({
-      it.trigger.type == enabledJenkinsTrigger.type
-      it.trigger.master == enabledJenkinsTrigger.master
-      it.trigger.job == enabledJenkinsTrigger.job
-      it.trigger.buildNumber == event.content.project.lastBuild.number
-    })
+    result.size() == 1
+    result[0].trigger.type == expectedTrigger.type
+    result[0].trigger.master == expectedTrigger.master
+    result[0].trigger.job == expectedTrigger.job
+    result[0].trigger.buildNumber == event.content.project.lastBuild.number
 
     where:
-    event                         | pipeline                                                     | triggerType
-    createBuildEventWith(SUCCESS) | createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger) | 'jenkins'
-    createBuildEventWith(SUCCESS) | createPipelineWith(enabledTravisTrigger, nonJenkinsTrigger)  | 'travis'
-    createBuildEventWith(SUCCESS) | createPipelineWith(enabledWerckerTrigger, nonJenkinsTrigger)  | 'wercker'
+    event                         | pipeline                                                     | triggerType | expectedTrigger
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger) | 'jenkins'   | enabledJenkinsTrigger
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledTravisTrigger, nonJenkinsTrigger)  | 'travis'    | enabledTravisTrigger
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledWerckerTrigger, nonJenkinsTrigger) | 'wercker'   | enabledWerckerTrigger
   }
 
   def "an event can trigger multiple pipelines"() {
-    given:
-    pipelineCache.getPipelinesSync() >> pipelines
-
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    pipelines.size() * pipelineInitiator.startPipeline(_ as Pipeline)
+    matchingPipelines.size() == pipelines.size()
 
     where:
     event = createBuildEventWith(SUCCESS)
@@ -90,14 +82,11 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
 
   @Unroll
   def "does not trigger pipelines for #description builds"() {
-    given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
-
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, [pipeline])
 
     then:
-    0 * pipelineInitiator._
+    matchingPipelines.size() == 0
 
     where:
     result   | _
@@ -114,13 +103,13 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    0 * pipelineInitiator._
+    matchingPipelines.size() == 0
 
     where:
     trigger                                 | description
@@ -140,14 +129,14 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled #triggerType trigger with missing #field"() {
     given:
-    pipelineCache.getPipelinesSync() >> [badPipeline, goodPipeline]
-    println objectMapper.writeValueAsString(createBuildEventWith(SUCCESS))
+    def pipelines = [badPipeline, goodPipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({ it.id == goodPipeline.id })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].id == goodPipeline.id
 
     where:
     trigger                                | field    | triggerType

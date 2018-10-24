@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
-import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
+import com.netflix.spinnaker.echo.pipelinetriggers.monitor.TriggerEventListener
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
@@ -47,11 +47,11 @@ class PubsubMessageHandlerSpec extends Specification {
 
   MessageDigest messageDigest = MessageDigest.getInstance("SHA-256")
 
-  PubsubEventMonitor pubsubEventMonitor = Mock(PubsubEventMonitor)
+  TriggerEventListener triggerEventListener = Mock(TriggerEventListener)
 
   @Subject
   PubsubMessageHandler pubsubMessageHandler = new PubsubMessageHandler(
-    pubsubEventMonitor,
+    triggerEventListener,
     new ObjectMapper(),
     redisClientSelector,
     new NoopRegistry()
@@ -142,7 +142,7 @@ class PubsubMessageHandlerSpec extends Specification {
     pubsubMessageHandler.handleMessage(description, acker, id, messageId)
 
     then:
-    1 * pubsubEventMonitor.processEvent(_)
+    1 * triggerEventListener.processEvent(_)
     1 * acker.ack()
     0 * acker.nack() // Lock acquisition failed.
   }
@@ -166,7 +166,7 @@ class PubsubMessageHandlerSpec extends Specification {
     pubsubMessageHandler.handleMessage(description, acker, id, messageId)
 
     then:
-    1 * pubsubEventMonitor.processEvent(_)
+    1 * triggerEventListener.processEvent(_)
     2 * acker.ack() // duplicate is dismissed
   }
 }

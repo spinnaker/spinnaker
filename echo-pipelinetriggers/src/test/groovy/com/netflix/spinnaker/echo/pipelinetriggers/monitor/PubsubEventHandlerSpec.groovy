@@ -18,13 +18,11 @@ package com.netflix.spinnaker.echo.pipelinetriggers.monitor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Metadata
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent
-import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
@@ -34,11 +32,9 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
-  def objectMapper = new ObjectMapper()
-  def pipelineCache = Mock(PipelineCache)
-  def pipelineInitiator = Mock(PipelineInitiator)
+class PubsubEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
+  def objectMapper = new ObjectMapper()
 
   @Shared
   def goodArtifacts = [new Artifact(name: 'myArtifact', type: 'artifactType')]
@@ -76,21 +72,20 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   ]
 
   @Subject
-  def monitor = new PubsubEventMonitor(pipelineCache, pipelineInitiator, registry)
+  def eventHandler = new PubsubEventHandler(registry, objectMapper)
 
   @Unroll
   def "triggers pipelines for successful builds for Google pubsub"() {
     given:
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({
-      it.application == pipeline.application && it.name == pipeline.name
-    })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].application == pipeline.application && matchingPipelines[0].name == pipeline.name
 
     where:
     event                                                                                                     | trigger
@@ -104,17 +99,16 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "attaches Google pubsub trigger to the pipeline"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({
-      it.trigger.type == enabledGooglePubsubTrigger.type
-      it.trigger.pubsubSystem == enabledGooglePubsubTrigger.pubsubSystem
-      it.trigger.subscriptionName == enabledGooglePubsubTrigger.subscriptionName
-    })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].trigger.type == enabledGooglePubsubTrigger.type
+    matchingPipelines[0].trigger.pubsubSystem == enabledGooglePubsubTrigger.pubsubSystem
+    matchingPipelines[0].trigger.subscriptionName == enabledGooglePubsubTrigger.subscriptionName
 
     where:
     event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [], [:])
@@ -124,13 +118,13 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for Google pubsub"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    0 * pipelineInitiator._
+    matchingPipelines.size() == 0
 
     where:
     trigger                                                      | description
@@ -145,13 +139,13 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines containing artifacts for Google pubsub"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    0 * pipelineInitiator._
+    matchingPipelines.size() == 0
 
     where:
     trigger                                                                      | description
@@ -164,13 +158,14 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled pubsub trigger with missing #field"() {
     given:
-    pipelineCache.getPipelinesSync() >> [badPipeline, goodPipeline]
+    def pipelines = [badPipeline, goodPipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({ it.id == goodPipeline.id })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].id == goodPipeline.id
 
     where:
     trigger                                               | field
@@ -195,21 +190,21 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
       .build()
 
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
     def content = new PubsubEvent.Content()
     content.setMessageDescription(description)
     event.payload = [key: 'value']
     event.content = content
-    event.details = new Metadata([type: PubsubEventMonitor.PUBSUB_TRIGGER_TYPE])
-    monitor.processEvent(objectMapper.convertValue(event, Event))
-
+    event.details = new Metadata([type: PubsubEventHandler.PUBSUB_TRIGGER_TYPE])
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    callCount * pipelineInitiator.startPipeline({
-      it.application == pipeline.application && it.name == pipeline.name
-    })
+    matchingPipelines.size() == callCount
+    if (callCount > 0) {
+      matchingPipelines[0].application == pipeline.application && matchingPipelines[0].name == pipeline.name
+    }
 
     where:
     trigger                                                                | callCount
@@ -232,21 +227,22 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
       .build()
 
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
     def content = new PubsubEvent.Content()
     content.setMessageDescription(description)
     event.payload = [key: 'value']
     event.content = content
-    event.details = new Metadata([type: PubsubEventMonitor.PUBSUB_TRIGGER_TYPE, attributes: [key: 'value']])
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    event.details = new Metadata([type: PubsubEventHandler.PUBSUB_TRIGGER_TYPE, attributes: [key: 'value']])
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
 
     then:
-    callCount * pipelineInitiator.startPipeline({
-      it.application == pipeline.application && it.name == pipeline.name
-    })
+    matchingPipelines.size() == callCount
+    if (callCount > 0) {
+      matchingPipelines[0].application == pipeline.application && matchingPipelines[0].name == pipeline.name
+    }
 
     where:
     trigger                                                                  | callCount

@@ -18,37 +18,33 @@ package com.netflix.spinnaker.echo.pipelinetriggers.monitor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Pipeline
-import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.GitEventHandler
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class GitEventMonitorSpec extends Specification implements RetrofitStubs {
-  def objectMapper = new ObjectMapper()
-  def pipelineCache = Mock(PipelineCache)
-  def pipelineInitiator = Mock(PipelineInitiator)
+class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
+  def objectMapper = new ObjectMapper()
 
   @Subject
-  def monitor = new GitEventMonitor(pipelineCache, pipelineInitiator, registry)
+  def eventHandler = new GitEventHandler(registry, objectMapper)
 
   @Unroll
   def "triggers pipelines for successful builds for #triggerType"() {
     given:
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({
-      it.application == pipeline.application && it.name == pipeline.name
-    })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].application == pipeline.application
+    matchingPipelines[0].name == pipeline.name
 
     where:
     event                       | trigger
@@ -58,18 +54,17 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "attaches stash trigger to the pipeline"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({
-      it.trigger.type == enabledStashTrigger.type
-      it.trigger.project == enabledStashTrigger.project
-      it.trigger.slug == enabledStashTrigger.slug
-      it.trigger.hash == event.content.hash
-    })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].trigger.type == enabledStashTrigger.type
+    matchingPipelines[0].trigger.project == enabledStashTrigger.project
+    matchingPipelines[0].trigger.slug == enabledStashTrigger.slug
+    matchingPipelines[0].trigger.hash == event.content.hash
 
     where:
     event = createGitEvent("stash")
@@ -78,18 +73,17 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "attaches bitbucket trigger to the pipeline"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({
-      it.trigger.type == enabledBitBucketTrigger.type
-      it.trigger.project == enabledBitBucketTrigger.project
-      it.trigger.slug == enabledBitBucketTrigger.slug
-      it.trigger.hash == event.content.hash
-    })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].trigger.type == enabledBitBucketTrigger.type
+    matchingPipelines[0].trigger.project == enabledBitBucketTrigger.project
+    matchingPipelines[0].trigger.slug == enabledBitBucketTrigger.slug
+    matchingPipelines[0].trigger.hash == event.content.hash
 
     where:
     event = createGitEvent("bitbucket")
@@ -97,14 +91,11 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   }
 
   def "an event can trigger multiple pipelines"() {
-    given:
-    pipelineCache.getPipelinesSync() >> pipelines
-
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    pipelines.size() * pipelineInitiator.startPipeline(_ as Pipeline)
+    matchingPipelines.size() == pipelines.size()
 
     where:
     event = createGitEvent("stash")
@@ -121,13 +112,13 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    0 * pipelineInitiator._
+    matchingPipelines.size() == 0
 
     where:
     trigger              | description
@@ -141,13 +132,13 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for stash"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    0 * pipelineInitiator._
+    matchingPipelines.size() == 0
 
     where:
     trigger                                       | description
@@ -164,13 +155,13 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines for bitbucket"() {
     given:
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    0 * pipelineInitiator._
+    matchingPipelines.size() == 0
 
     where:
     trigger                                           | description
@@ -187,13 +178,14 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled stash trigger with missing #field"() {
     given:
-    pipelineCache.getPipelinesSync() >> [badPipeline, goodPipeline]
+    def pipelines = [badPipeline, goodPipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({ it.id == goodPipeline.id })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].id == goodPipeline.id
 
     where:
     trigger                               | field
@@ -209,13 +201,14 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled bitbucket trigger with missing #field"() {
     given:
-    pipelineCache.getPipelinesSync() >> [badPipeline, goodPipeline]
+    def pipelines = [badPipeline, goodPipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({ it.id == goodPipeline.id })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].id == goodPipeline.id
 
     where:
     trigger                                   | field
@@ -235,15 +228,15 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     gitEvent.content.branch = eventBranch
     def trigger = enabledStashTrigger.atBranch(triggerBranch)
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(gitEvent, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(gitEvent, pipelines)
 
     then:
-    1 * pipelineInitiator.startPipeline({
-      it.application == pipeline.application && it.name == pipeline.name
-    })
+    matchingPipelines.size() == 1
+    matchingPipelines[0].application == pipeline.application
+    matchingPipelines[0].name == pipeline.name
 
     where:
     eventBranch         | triggerBranch       | description
@@ -261,13 +254,13 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     gitEvent.content.branch = eventBranch
     def trigger = enabledStashTrigger.atBranch(triggerBranch)
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(gitEvent, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(gitEvent, pipelines)
 
     then:
-    0 * pipelineInitiator._
+    matchingPipelines.size() == 0
 
     where:
     eventBranch  | triggerBranch
@@ -287,13 +280,13 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     def trigger = enabledGithubTrigger.atSecret(secret).atBranch("master")
 
     def pipeline = createPipelineWith(trigger)
-    pipelineCache.getPipelinesSync() >> [pipeline]
+    def pipelines = [pipeline]
 
     when:
-    monitor.processEvent(objectMapper.convertValue(gitEvent, Event))
+    def matchingPipelines = eventHandler.getMatchingPipelines(gitEvent, pipelines)
 
     then:
-    callCount * pipelineInitiator._
+    matchingPipelines.size() == callCount
 
     where:
     secret | signature                                  | callCount

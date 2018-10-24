@@ -22,7 +22,8 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Metadata;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
-import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor;
+import com.netflix.spinnaker.echo.pipelinetriggers.monitor.TriggerEventListener;
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
@@ -45,7 +46,7 @@ import java.util.zip.CRC32;
 @Slf4j
 public class PubsubMessageHandler {
 
-  private final PubsubEventMonitor pubsubEventMonitor;
+  private final TriggerEventListener pubsubEventMonitor;
   private final ObjectMapper objectMapper;
   private RedisClientDelegate redisClientDelegate;
   private final Registry registry;
@@ -54,11 +55,11 @@ public class PubsubMessageHandler {
   private static final String SET_EXPIRE_TIME_SECONDS = "EX";
   private static final String SUCCESS = "OK";
   @Autowired
-  public PubsubMessageHandler(PubsubEventMonitor pubsubEventMonitor,
+  public PubsubMessageHandler(TriggerEventListener triggerEventListener,
                               ObjectMapper objectMapper,
                               Optional<RedisClientSelector> redisClientSelector,
                               Registry registry) {
-    this.pubsubEventMonitor = pubsubEventMonitor;
+    this.pubsubEventMonitor = triggerEventListener;
     this.objectMapper = objectMapper;
     redisClientSelector.ifPresent(selector -> this.redisClientDelegate = selector.primary("default"));
     this.registry = registry;
@@ -158,7 +159,7 @@ public class PubsubMessageHandler {
     }
 
     content.put("messageDescription", description);
-    details.setType(PubsubEventMonitor.PUBSUB_TRIGGER_TYPE);
+    details.setType(PubsubEventHandler.PUBSUB_TRIGGER_TYPE);
 
     if (description.getMessageAttributes() != null) {
       details.setAttributes(description.getMessageAttributes());

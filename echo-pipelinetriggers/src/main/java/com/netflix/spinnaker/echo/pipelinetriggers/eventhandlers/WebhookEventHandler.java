@@ -12,66 +12,61 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
+package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
 import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
-import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
-import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component @Slf4j
-public class WebhookEventMonitor extends TriggerMonitor {
-
-  public static final String TRIGGER_TYPE = "webhook";
+/**
+ * Implementation of TriggerEventHandler for events of type {@link WebhookEvent}, which occur when
+ * a webhook is received.
+ */
+@Component
+public class WebhookEventHandler extends BaseTriggerEventHandler<WebhookEvent> {
+  private static final String TRIGGER_TYPE = "webhook";
 
   private static final TypeReference<List<Artifact>> ARTIFACT_LIST =
       new TypeReference<List<Artifact>>() {};
 
   @Autowired
-  public WebhookEventMonitor(@NonNull PipelineCache pipelineCache,
-                             @NonNull PipelineInitiator pipelineInitiator,
-                             @NonNull Registry registry) {
-    super(pipelineCache, pipelineInitiator, registry);
+  public WebhookEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override
-  protected boolean handleEventType(String eventType) {
+  public boolean handleEventType(String eventType) {
     return eventType != null && !eventType.equals("manual");
   }
 
-
   @Override
-  protected WebhookEvent convertEvent(Event event) {
-    return objectMapper.convertValue(event, WebhookEvent.class);
+  public Class<WebhookEvent> getEventType() {
+    return WebhookEvent.class;
   }
 
   @Override
-  protected boolean isSuccessfulTriggerEvent(final TriggerEvent event) {
+  public boolean isSuccessfulTriggerEvent(WebhookEvent webhookEvent) {
     return true;
   }
 
   @Override
-  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
-    WebhookEvent webhookEvent = objectMapper.convertValue(event, WebhookEvent.class);
+  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, WebhookEvent webhookEvent) {
     Map content = webhookEvent.getContent();
     Map payload = webhookEvent.getPayload();
     Map parameters = content.containsKey("parameters") ? (Map) content.get("parameters") : new HashMap();
@@ -81,17 +76,16 @@ public class WebhookEventMonitor extends TriggerMonitor {
         .withReceivedArtifacts(artifacts)
         .withTrigger(trigger.atParameters(parameters)
           .atPayload(payload)
-          .atEventId(event.getEventId()));
+          .atEventId(webhookEvent.getEventId()));
   }
 
   @Override
-  protected boolean isValidTrigger(final Trigger trigger) {
+  protected boolean isValidTrigger(Trigger trigger) {
     return trigger.isEnabled() && TRIGGER_TYPE.equals(trigger.getType());
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
-    WebhookEvent webhookEvent = objectMapper.convertValue(event, WebhookEvent.class);
+  protected Predicate<Trigger> matchTriggerFor(WebhookEvent webhookEvent, Pipeline pipeline) {
     final String type = webhookEvent.getDetails().getType();
     final String source = webhookEvent.getDetails().getSource();
     final Map content = webhookEvent.getContent();
@@ -106,7 +100,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
             // If the Constraints are present, check that there are equivalents in the webhook payload.
             (  trigger.getPayloadConstraints() != null &&
-               isConstraintInPayload(trigger.getPayloadConstraints(), event.getPayload())
+               isConstraintInPayload(trigger.getPayloadConstraints(), webhookEvent.getPayload())
             )
 
         ) &&
@@ -115,7 +109,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected Map<String, String> getAdditionalTags(Pipeline pipeline) {
+  public Map<String, String> getAdditionalTags(Pipeline pipeline) {
     Map<String, String> tags = new HashMap<>();
     tags.put("type", pipeline.getTrigger().getType());
     return tags;

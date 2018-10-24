@@ -2,10 +2,8 @@ package com.netflix.spinnaker.echo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
-import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -74,9 +72,9 @@ public class PipelineTriggerConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean(PubsubEventMonitor.class)
-  PubsubEventMonitor pubsubEventMonitor(PipelineCache pipelineCache, PipelineInitiator pipelineInitiator, Registry registry) {
-    return new PubsubEventMonitor(pipelineCache, pipelineInitiator, registry);
+  @ConditionalOnMissingBean(PubsubEventHandler.class)
+  PubsubEventHandler pubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
+    return new PubsubEventHandler(registry, objectMapper);
   }
 
   private <T> T bindRetrofitService(final Class<T> type, final String endpoint) {

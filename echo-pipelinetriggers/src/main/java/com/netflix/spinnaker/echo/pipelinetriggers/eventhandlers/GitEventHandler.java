@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
+package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
-import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
-import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import lombok.NonNull;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang.StringUtils;
@@ -39,36 +37,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
+ * Implementation of TriggerEventHandler for events of type {@link GitEvent}, which occur when
+ * a commit is pushed to a tracked git repository.
  */
 @Component
 @Slf4j
-public class GitEventMonitor extends TriggerMonitor {
-
-  public static final String GIT_TRIGGER_TYPE = "git";
-
+public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
+  private static final String GIT_TRIGGER_TYPE = "git";
   private static final String GITHUB_SECURE_SIGNATURE_HEADER = "X-Hub-Signature";
 
   @Autowired
-  public GitEventMonitor(@NonNull PipelineCache pipelineCache,
-                         @NonNull PipelineInitiator pipelineInitiator,
-                         @NonNull Registry registry) {
-    super(pipelineCache, pipelineInitiator, registry);
+  public GitEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override
-  protected boolean handleEventType(String eventType) {
+  public boolean handleEventType(String eventType) {
     return eventType.equalsIgnoreCase(GitEvent.TYPE);
   }
 
-
   @Override
-  protected GitEvent convertEvent(Event event) {
-    return objectMapper.convertValue(event, GitEvent.class);
+  public Class<GitEvent> getEventType() {
+    return GitEvent.class;
   }
 
   @Override
-  protected boolean isValidTrigger(final Trigger trigger) {
+  protected boolean isValidTrigger(Trigger trigger) {
     return trigger.isEnabled() &&
       (
         (GIT_TRIGGER_TYPE.equals(trigger.getType()) &&
@@ -79,13 +73,12 @@ public class GitEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected boolean isSuccessfulTriggerEvent(TriggerEvent event) {
+  public boolean isSuccessfulTriggerEvent(GitEvent event) {
     return true;
   }
 
   @Override
-  protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
-    GitEvent gitEvent = (GitEvent) event;
+  protected Predicate<Trigger> matchTriggerFor(GitEvent gitEvent, Pipeline pipeline) {
     String source = gitEvent.getDetails().getSource();
     String project = gitEvent.getContent().getRepoProject();
     String slug = gitEvent.getContent().getSlug();
@@ -98,13 +91,12 @@ public class GitEventMonitor extends TriggerMonitor {
         && trigger.getProject().equalsIgnoreCase(project)
         && trigger.getSlug().equalsIgnoreCase(slug)
         && (trigger.getBranch() == null || trigger.getBranch().equals("") || matchesPattern(branch, trigger.getBranch()))
-        && passesGithubAuthenticationCheck(event, trigger)
+        && passesGithubAuthenticationCheck(gitEvent, trigger)
         && anyArtifactsMatchExpected(artifacts, trigger, pipeline);
   }
 
   @Override
-  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
-    GitEvent gitEvent = (GitEvent) event;
+  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, GitEvent gitEvent) {
     return trigger -> pipeline
       .withReceivedArtifacts(gitEvent.getContent().getArtifacts())
       .withTrigger(trigger.atHash(gitEvent.getHash())
@@ -112,9 +104,15 @@ public class GitEventMonitor extends TriggerMonitor {
         .atEventId(gitEvent.getEventId()));
   }
 
-  private boolean passesGithubAuthenticationCheck(TriggerEvent event, Trigger trigger) {
+  private boolean matchesPattern(String s, String pattern) {
+    Pattern p = Pattern.compile(pattern);
+    Matcher m = p.matcher(s);
+    return m.matches();
+  }
+
+  private boolean passesGithubAuthenticationCheck(GitEvent gitEvent, Trigger trigger) {
     boolean triggerHasSecret = StringUtils.isNotEmpty(trigger.getSecret());
-    boolean eventHasSignature = event.getDetails().getRequestHeaders().containsKey(GITHUB_SECURE_SIGNATURE_HEADER);
+    boolean eventHasSignature = gitEvent.getDetails().getRequestHeaders().containsKey(GITHUB_SECURE_SIGNATURE_HEADER);
 
     if (triggerHasSecret && !eventHasSignature) {
       log.warn("Received GitEvent from Github without secure signature for trigger configured with a secret");
@@ -133,15 +131,15 @@ public class GitEventMonitor extends TriggerMonitor {
     }
 
     // Trigger has a secret, and event sent a signature
-    return hasValidGitHubSecureSignature(event, trigger);
+    return hasValidGitHubSecureSignature(gitEvent, trigger);
   }
 
-  private boolean hasValidGitHubSecureSignature(TriggerEvent event, Trigger trigger) {
-    String header = event.getDetails().getRequestHeaders().getFirst(GITHUB_SECURE_SIGNATURE_HEADER);
+  private boolean hasValidGitHubSecureSignature(GitEvent gitEvent, Trigger trigger) {
+    String header = gitEvent.getDetails().getRequestHeaders().getFirst(GITHUB_SECURE_SIGNATURE_HEADER);
     log.debug("GitHub Signature detected. " + GITHUB_SECURE_SIGNATURE_HEADER + ": " + header);
     String signature = StringUtils.removeStart(header, "sha1=");
 
-    String computedDigest = HmacUtils.hmacSha1Hex(trigger.getSecret(), event.getRawContent());
+    String computedDigest = HmacUtils.hmacSha1Hex(trigger.getSecret(), gitEvent.getRawContent());
 
     // TODO: Find constant time comparison algo?
     boolean digestsMatch = signature.equalsIgnoreCase(computedDigest);

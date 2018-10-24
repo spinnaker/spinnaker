@@ -6,7 +6,7 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.*
-import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
+import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import retrofit.RetrofitError
@@ -107,7 +107,7 @@ trait RetrofitStubs {
     def content = new PubsubEvent.Content()
     content.setMessageDescription(description)
 
-    res.details = new Metadata([type: PubsubEventMonitor.PUBSUB_TRIGGER_TYPE])
+    res.details = new Metadata([type: PubsubEventHandler.PUBSUB_TRIGGER_TYPE])
     res.content = content
     res.payload = payload
     return res
