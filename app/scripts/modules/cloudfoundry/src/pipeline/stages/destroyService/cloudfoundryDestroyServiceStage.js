@@ -25,6 +25,9 @@ module.exports = angular
   .controller('CloudfoundryDestroyServiceStageCtrl', function($scope) {
     let stage = $scope.stage;
     stage.action = 'destroyService';
+
+    $scope.regions = $scope.regions || [];
+
     $scope.state = {
       accounts: false,
       regionsLoaded: false,

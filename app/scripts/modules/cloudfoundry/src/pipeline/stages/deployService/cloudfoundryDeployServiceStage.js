@@ -34,6 +34,8 @@ module.exports = angular
     stage.action = 'deployService';
     stage.tags = stage.tags || [];
 
+    $scope.regions = $scope.regions || [];
+
     $scope.state = {
       accounts: false,
       regionsLoaded: false,
