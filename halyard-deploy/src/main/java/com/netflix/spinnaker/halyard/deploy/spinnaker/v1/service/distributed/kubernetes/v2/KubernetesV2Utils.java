@@ -141,6 +141,42 @@ public class KubernetesV2Utils {
     }
   }
 
+  static public void delete(KubernetesAccount account, String namespace, String service) {
+    List<String> command = kubectlPrefix(account);
+    if (StringUtils.isNotEmpty(namespace)) {
+      command.add("-n=" + namespace);
+    }
+
+    command.add("delete");
+    command.add("deploy,svc,secret");
+    command.add("-l=cluster=" + service);
+
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+
+    String jobId = DaemonTaskHandler.getJobExecutor().startJob(request);
+
+    JobStatus status;
+    try {
+      status = DaemonTaskHandler.getJobExecutor().backoffWait(jobId);
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
+
+    if (status.getState() != JobStatus.State.COMPLETED) {
+      throw new HalException(Problem.Severity.FATAL, String.join("\n",
+          "Deleting service " + service + " never completed",
+          status.getStdErr(),
+          status.getStdOut()));
+    }
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new HalException(Problem.Severity.FATAL, String.join("\n",
+          "Deleting service " + service + " failed",
+          status.getStdErr(),
+          status.getStdOut()));
+    }
+  }
+
   static public void apply(KubernetesAccount account, String manifest) {
     manifest = prettify(manifest);
     List<String> command = kubectlPrefix(account);
@@ -183,7 +219,7 @@ public class KubernetesV2Utils {
     }
   }
 
-  static public String createSecret(KubernetesAccount account, String namespace, String name, List<SecretMountPair> files) {
+  static public String createSecret(KubernetesAccount account, String namespace, String clusterName, String name, List<SecretMountPair> files) {
     Map<String, String> contentMap = new HashMap<>();
     for (SecretMountPair pair: files) {
       String contents;
@@ -204,6 +240,7 @@ public class KubernetesV2Utils {
     bindings.put("files", contentMap);
     bindings.put("name", name);
     bindings.put("namespace", namespace);
+    bindings.put("clusterName", clusterName);
 
     secret.extendBindings(bindings);
 

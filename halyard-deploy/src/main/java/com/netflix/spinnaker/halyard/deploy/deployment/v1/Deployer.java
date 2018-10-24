@@ -75,4 +75,11 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
     result.setScript("");
     return result;
   }
+
+  default void deleteDisabledServices(
+      S serviceProvider,
+      D deploymentDetails,
+      ResolvedConfiguration resolvedConfiguration,
+      List<SpinnakerService.Type> serviceTypes
+  ) {}
 }

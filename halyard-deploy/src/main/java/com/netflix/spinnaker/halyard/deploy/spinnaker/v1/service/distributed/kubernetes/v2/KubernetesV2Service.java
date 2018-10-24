@@ -363,7 +363,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
               Entry::getValue
           ));
 
-      String name = KubernetesV2Utils.createSecret(account, namespace, secretNamePrefix, files);
+      String name = KubernetesV2Utils.createSecret(account, namespace, getService().getCanonicalName(), secretNamePrefix, files);
       configSources.add(new ConfigSource()
           .setId(name)
           .setMountPath(mountPath)
@@ -377,7 +377,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
           .map(SecretMountPair::new)
           .collect(Collectors.toList());
 
-      String name = KubernetesV2Utils.createSecret(account, namespace, secretNamePrefix, files);
+      String name = KubernetesV2Utils.createSecret(account, namespace, getService().getCanonicalName(), secretNamePrefix, files);
       configSources.add(new ConfigSource()
           .setId(name)
           .setMountPath(files.get(0).getContents().getParent())

@@ -239,6 +239,13 @@ public class DeployService {
 
   public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String>
       serviceNames, List<String> excludeServiceNames) {
+    if (deployOptions.contains(DeployOption.DELETE_ORPHANED_SERVICES) && !serviceNames.isEmpty()) {
+      throw new IllegalArgumentException("Cannot delete orphaned services when services to include are explicitly supplied.");
+    }
+    if (deployOptions.contains(DeployOption.DELETE_ORPHANED_SERVICES) && !excludeServiceNames.isEmpty()) {
+      throw new IllegalArgumentException("Cannot delete orphaned services when services to exclude are explicitly supplied.");
+    }
+
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
@@ -282,6 +289,9 @@ public class DeployService {
 
     if (deployOptions.contains(DeployOption.FLUSH_INFRASTRUCTURE_CACHES)) {
       deployer.flushInfrastructureCaches(serviceProvider, deploymentDetails, resolvedConfiguration.getRuntimeSettings());
+    }
+    if (deployOptions.contains(DeployOption.DELETE_ORPHANED_SERVICES)) {
+      deployer.deleteDisabledServices(serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes);
     }
 
     if (!action.getScript().isEmpty()) {

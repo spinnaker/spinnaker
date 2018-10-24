@@ -7749,6 +7749,7 @@ hal deploy apply [parameters]
 
 #### Parameters
  * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.
+ * `--delete-orphaned-services`: (*Default*: `false`) Deletes unused Spinnaker services after the deploy succeeds. This flag is not allowed when using the --service-names or --exclude-service-names arg.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--exclude-service-names`: (*Default*: `[]`) When supplied, do not install or update the specified Spinnaker services.
  * `--flush-infrastructure-caches`: (*Default*: `false`) WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.

@@ -122,4 +122,36 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
       SpinnakerRuntimeSettings runtimeSettings) {
     throw new UnsupportedOperationException("todo(lwander)");
   }
+
+  @Override
+  public void deleteDisabledServices(KubectlServiceProvider serviceProvider,
+      AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
+      GenerateService.ResolvedConfiguration resolvedConfiguration,
+      List<SpinnakerService.Type> serviceTypes) {
+
+    List<KubernetesV2Service> services = serviceProvider.getServicesByPriority(serviceTypes);
+    services.stream().forEach((service) -> {
+      if (service instanceof SidecarService) {
+        return;
+      }
+
+      ServiceSettings settings = resolvedConfiguration.getServiceSettings((SpinnakerService) service);
+      if (settings == null) {
+        return;
+      }
+
+      if (settings.getEnabled() == null || settings.getEnabled()) {
+        return;
+      }
+
+      if (settings.getSkipLifeCycleManagement() != null && settings.getSkipLifeCycleManagement()) {
+        return;
+      }
+      KubernetesAccount account = deploymentDetails.getAccount();
+
+      DaemonTaskHandler.newStage("Deleting disabled service " + service.getServiceName() + " with kubectl");
+      DaemonTaskHandler.message("Running kubectl delete on the resource, service, and secret definitions...");
+      KubernetesV2Utils.delete(account, service.getNamespace(settings), service.getServiceName());
+    });
+  }
 }
