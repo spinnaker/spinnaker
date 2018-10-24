@@ -49,7 +49,7 @@ public class V2PipelineTemplateService {
   }
 
   public List<Map> findByScope(List<String> scopes) {
-    return null;
+    return front50Service.getV2PipelineTemplates(scopes == null ? null : (String[]) scopes.toArray());
   }
 
   public List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId, boolean recursive) {

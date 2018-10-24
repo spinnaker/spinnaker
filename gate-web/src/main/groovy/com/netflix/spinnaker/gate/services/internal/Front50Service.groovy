@@ -102,6 +102,9 @@ interface Front50Service {
   @GET('/v2/pipelineTemplates/{pipelineTemplateId}')
   Map getV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
 
+  @GET('/v2/pipelineTemplates')
+  List<Map> getV2PipelineTemplates(@Query("scopes") String... scopes)
+
   //
   // Notification-related
   //

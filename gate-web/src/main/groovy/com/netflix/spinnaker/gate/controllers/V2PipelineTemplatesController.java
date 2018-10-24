@@ -73,7 +73,7 @@ public class V2PipelineTemplatesController {
   @ApiOperation(value = "List pipeline templates.", response = HashMap.class, responseContainer = "List")
   @RequestMapping(method = RequestMethod.GET)
   public Collection<Map> list(@RequestParam(required = false) List<String> scopes) {
-    return null;
+    return v2PipelineTemplateService.findByScope(scopes);
   }
 
   @ApiOperation(value = "Create a pipeline template.", response = HashMap.class)
@@ -173,10 +173,7 @@ public class V2PipelineTemplatesController {
 
   @ApiOperation(value = "List all pipelines that implement a pipeline template", response = List.class)
   @RequestMapping(value = "/{id}/dependents", method = RequestMethod.GET)
-  public List<PipelineTemplateDependent> listPipelineTemplateDependents(
-    @PathVariable String id,
-    @RequestParam(value = "recursive", required = false) boolean recursive
-  ) {
+  public List<PipelineTemplateDependent> listPipelineTemplateDependents(@PathVariable String id) {
     return null;
   }
 
