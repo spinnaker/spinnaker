@@ -16,6 +16,7 @@ class ALBAdvancedSettingsImpl extends React.Component<IALBAdvancedSettingsProps>
   }
 
   public render() {
+    const { values } = this.props.formik;
     return (
       <div>
         <div className="form-group">
@@ -34,7 +35,7 @@ class ALBAdvancedSettingsImpl extends React.Component<IALBAdvancedSettingsProps>
           </div>
           <div className="col-md-7 checkbox">
             <label>
-              <Field type="checkbox" name="deletionProtection" />
+              <Field type="checkbox" name="deletionProtection" checked={values.deletionProtection} />
               Enable deletion protection
             </label>
           </div>
