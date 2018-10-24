@@ -191,7 +191,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
         # to retry this, but not the above, so this way if the
         # above is broken (wrong), we wont retry thinking it isnt there yet.
         (builder.new_clause_builder('Instance %d Is Running' % i,
-                             retryable_for_secs=120)
+                             retryable_for_secs=360)
             .inspect_resource('instances', self.use_instance_names[i],
                               zone=self.use_instance_zones[i])
             .EXPECT(ov_factory.value_list_path_contains(
