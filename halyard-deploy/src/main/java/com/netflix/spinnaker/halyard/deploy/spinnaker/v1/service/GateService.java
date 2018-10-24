@@ -91,7 +91,7 @@ abstract public class GateService extends SpringService<GateService.Gate> {
       if (Versions.lessThan(version, BOOT_UPGRADED_VERSION)) {
         return boot128ProfileFactory;
       }
-    } catch (NumberFormatException nfe) {
+    } catch (IllegalArgumentException iae) {
       log.warn("Could not resolve Gate version, using `boot154ProfileFactory`.");
     }
     return boot154ProfileFactory;
