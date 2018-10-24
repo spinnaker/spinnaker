@@ -1,8 +1,8 @@
 import * as React from 'react';
 import Select, { Option, ReactSelectProps } from 'react-select';
 
-import { noop } from 'core/utils';
 import { IControlledInputProps, TetheredSelect } from 'core/presentation';
+import { noop } from 'core/utils';
 
 import { IFormInputProps } from '../interface';
 
@@ -18,31 +18,41 @@ export const reactSelectValidationErrorStyle = {
   boxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
 };
 
+export const createFakeReactSyntheticEvent = (target: { name: string; value?: any }) => ({
+  persist: noop,
+  stopPropagation: noop,
+  preventDefault: noop,
+  target,
+});
+
 /**
  * Given a IControlledInputProps "field" (i.e., from Formik), returns an onChange handler
  * somewhat compatible with the controlled input pattern
  */
 export const reactSelectOnChangeAdapter = (field: IControlledInputProps) => {
   return (selectedOption: Option) => {
-    const fakeEvent = {
-      target: {
-        value: selectedOption.value,
-        name: field.name,
-      },
-      persist: noop,
-      stopPropagation: noop,
-      preventDefault: noop,
-    };
-    return (field.onChange || noop)(fakeEvent);
+    const target = { name: field.name, value: selectedOption.value };
+    const event = createFakeReactSyntheticEvent(target);
+    return (field.onChange || noop)(event);
+  };
+};
+
+/**
+ * Given a IControlledInputProps "field" (i.e., from Formik), returns an onBlur handler
+ * somewhat compatible with the controlled input pattern
+ */
+export const reactSelectOnBlurAdapter = (field: IControlledInputProps) => {
+  return () => {
+    const target = { name: field.name, value: field.value };
+    const event = createFakeReactSyntheticEvent(target);
+    return (field.onBlur || noop)(event);
   };
 };
 
 /**
  * A react-select Input
  *
- * This input supports error validation state rendering
- * It also has a simplified stringOptions prop for when Option interface is overkill.
- * It adapts the onChange event to a controlled input event
+ * This input supports error validation state rendering. It adapts the onChange event to a controlled input event.
  *
  * This component does not attempt to support async loading
  */
@@ -54,9 +64,9 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
   public render() {
     const { tethered, field, validation, inputClassName, ...otherProps } = this.props;
 
-    // TODO: see if implementing onBlur makes sense
     const onChange = reactSelectOnChangeAdapter(field);
-    const fieldProps = { name: field.name, value: field.value || '', onBlur: noop, onChange };
+    const onBlur = reactSelectOnBlurAdapter(field);
+    const fieldProps = { name: field.name, value: field.value || '', onBlur, onChange };
     const style = validation.validationStatus === 'error' ? reactSelectValidationErrorStyle : {};
 
     return tethered ? (
