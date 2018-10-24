@@ -1,15 +1,15 @@
 language: java
 jdk:
-- oraclejdk8
+  - oraclejdk8
 sudo: required
 dist: trusty
 before_install:
-- export CHROME_BIN=chromium-browser
-- export DISPLAY=:99.0
-- export PATH=$HOME/.yarn/bin:$PATH
-#- rm -rf node_modules
-- curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.5.1
-- sh -e /etc/init.d/xvfb start
+  - export CHROME_BIN=chromium-browser
+  - export DISPLAY=:99.0
+  - export PATH=$HOME/.yarn/bin:$PATH
+  #- rm -rf node_modules
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.10.1
+  - sh -e /etc/init.d/xvfb start
 install: gradle/installViaTravis.sh
 
 jobs:
@@ -23,8 +23,8 @@ jobs:
 before_cache: gradle/prepCaches.sh
 cache:
   directories:
-  - $HOME/.gradle
-  - node_modules
+    - $HOME/.gradle
+    - node_modules
 notifications:
   slack:
     rooms:
@@ -32,5 +32,5 @@ notifications:
       - secure: k8v5fOqIji7YPphG/8j/qbbn9BPIJUE6wHBbFhOVrdcdw1TmcleXGRzxXHl7V8yoLbPcvAD1Ff+ao6hrOGT14pzKj3kgUWV8ILMV9FPTLRBff9AysHBFkoUsHj8QgswXbEZv8rDIbtzwwE4LLUJi/9RZUTT2me+v4bfAqAbCATwIXzoxWNl2E8ls6/AdAgKwVjgpm93CCEdPWG/71dAXyYgHCjaUtfZvOiSNAIcYukCUI7x3qd8x/kDfE69yPaebW7kGrflf8XUaZYRbKNkPfAcCNgJTmXFgz36znoFd7LxwjzsX2D4VyMLPwKJz0kOZS5zYv25CtuQ75m5j3I6HtciozxZzjiJwUSiSJ2Nn5khdcC16dQxQUypYxOxfWBjSRT+of8qzVT2eueRDnrerSu2c4AxpTSalWXYfBlxJJiuFdg2fVJv1PbgYR/oMPG1ePDZuvmw2scb82WXiAICpMYBlS4diYYmSQ37xXvTaXGejSu6yn1lz+ULYggGFyUuz8qILaM01TpyUMO/66qof7ppdKtJq6rrKzeKKS87JiNcTzJ604e74KC5MdFerPaHbcihgElFho6n7mOhhPTOVdwGORzzMJScJrNO7Nz7FIHwZfL7jh5y+gGeoz9nUJWRQRAq3YhbsLSxZo2QIBDoju2xzKFTFxl1Q4z80WsEp0gE=
 env:
   global:
-  - secure: B3KkWCFv2I+fqAIL6NcfK6is+CrTTsrhTOxRjD1DwnqduxfGOjrS+3qVD8NfIGx7O3MsCk0CCnz1xqiOFrLERf8elhCuEuVjumSpt9VZwpsd+hKmNQeuVoFABB1hlZrHdr2rDH17KVT+TgWNTDSt9Mk3cvRAq+j2BxOHxZXDi59PiVaRGiiM4/aEBtF0/zWfusGIHRGsouGENJU1Zi6xyt0MChx3SCDL2p5qMduGWYsnnUy4BnHMPBi+pF30mjKTI+9JVrecFRuSFezh+MEE67ZiJNw/6bAsZ35sPrd/ECEiELwiEUekpNyXu9/1AxlzaKzrHDnijuZJoEvIaKV8WYwjGjhljF0QNuWGkaKQUcIs4bOKxAY2E62/ZjDbb5J8P3V7k5FD/RHdbVva0A0g7twUNR1vJIk8DFFdY4zqgCRxCyKlQKTdTjk/tV/PjxX5MAQT5J6/OgNLohA8tLRN72xvnDd9XFaKV9RJW23a4xGNUBH24wn1Od11lqR2ZU6/oejXqSojee8IgsjcCXypwW0ZS6OAOjybjxlt/n0av4MKnLFaEmUvxRP26gGJ1H8nfgNCnsLAH9UD1y1XT3VmU7g32cv8AUKyxhh/IgBG2qiqjVNaWvqK8YrepnR0Rbti5AnUiLz8QwipWW3g9DUffUWR98Ubjzs3kMzorbRB7rM=
-  - secure: Sy0YuNrTfgkLKvCDWDKKKrc/C1pIRz4+iD9sIA67VrhkLhyWr/+tXd5Rn49PfyY0DrbyFygQ5rrtuCQOCmKluZwkvroqTJ9n1Nu2RcoapsFoHMW5hiUaBUHVjiL1CbbOdE05uvKGxn27y/HUMdfX9w9sGQ5wlT4yRjMtt/ajtWJwy696UJwJnZRONJerJb+w4tWwafIqKdiHLpp/1P8ziilVD3lwgSLmCY8ljmvmz+2GPY/NkC4Mkk7BUgSPcWu0uKXJxGYkSnsg9jCeopzmHRT8fzEGzBYw52rf92XRMr9ghbVVGeyUXEpTW8JOQTnKmnQM0oq2/yh46pWMOdShyXp+Ys794Oo1UiLhJQUkJXc60S7ByvjA1FZH2d2m07Z9la+RzUBzM0QIJ/2Q4ZS+5YUH3hXpiAUg129/EB4+M7GzsjIthkdLpkwRMhAPJns4E2yarf3l0frN7vecC9qhB7ShdBcBAwg3rc5Mx6lAtoOis5iqMENV4HnOPVxveitZLeiMcAjU664P7D/xCx7AOxiHbiifRbAqXaYVBYjQae0pmnPHulkFqw6NPZSUdZ0PaqmAxM8DRqHsCzTgRjrBt4bgcOWt0S5skJ+Thul6dtl96dwURXQlxBEsuz6dzZ3voZGPZTqzhyQVT0yWJreyQ3oKDEn3Ip/0AwubzjnslHk=
+    - secure: B3KkWCFv2I+fqAIL6NcfK6is+CrTTsrhTOxRjD1DwnqduxfGOjrS+3qVD8NfIGx7O3MsCk0CCnz1xqiOFrLERf8elhCuEuVjumSpt9VZwpsd+hKmNQeuVoFABB1hlZrHdr2rDH17KVT+TgWNTDSt9Mk3cvRAq+j2BxOHxZXDi59PiVaRGiiM4/aEBtF0/zWfusGIHRGsouGENJU1Zi6xyt0MChx3SCDL2p5qMduGWYsnnUy4BnHMPBi+pF30mjKTI+9JVrecFRuSFezh+MEE67ZiJNw/6bAsZ35sPrd/ECEiELwiEUekpNyXu9/1AxlzaKzrHDnijuZJoEvIaKV8WYwjGjhljF0QNuWGkaKQUcIs4bOKxAY2E62/ZjDbb5J8P3V7k5FD/RHdbVva0A0g7twUNR1vJIk8DFFdY4zqgCRxCyKlQKTdTjk/tV/PjxX5MAQT5J6/OgNLohA8tLRN72xvnDd9XFaKV9RJW23a4xGNUBH24wn1Od11lqR2ZU6/oejXqSojee8IgsjcCXypwW0ZS6OAOjybjxlt/n0av4MKnLFaEmUvxRP26gGJ1H8nfgNCnsLAH9UD1y1XT3VmU7g32cv8AUKyxhh/IgBG2qiqjVNaWvqK8YrepnR0Rbti5AnUiLz8QwipWW3g9DUffUWR98Ubjzs3kMzorbRB7rM=
+    - secure: Sy0YuNrTfgkLKvCDWDKKKrc/C1pIRz4+iD9sIA67VrhkLhyWr/+tXd5Rn49PfyY0DrbyFygQ5rrtuCQOCmKluZwkvroqTJ9n1Nu2RcoapsFoHMW5hiUaBUHVjiL1CbbOdE05uvKGxn27y/HUMdfX9w9sGQ5wlT4yRjMtt/ajtWJwy696UJwJnZRONJerJb+w4tWwafIqKdiHLpp/1P8ziilVD3lwgSLmCY8ljmvmz+2GPY/NkC4Mkk7BUgSPcWu0uKXJxGYkSnsg9jCeopzmHRT8fzEGzBYw52rf92XRMr9ghbVVGeyUXEpTW8JOQTnKmnQM0oq2/yh46pWMOdShyXp+Ys794Oo1UiLhJQUkJXc60S7ByvjA1FZH2d2m07Z9la+RzUBzM0QIJ/2Q4ZS+5YUH3hXpiAUg129/EB4+M7GzsjIthkdLpkwRMhAPJns4E2yarf3l0frN7vecC9qhB7ShdBcBAwg3rc5Mx6lAtoOis5iqMENV4HnOPVxveitZLeiMcAjU664P7D/xCx7AOxiHbiifRbAqXaYVBYjQae0pmnPHulkFqw6NPZSUdZ0PaqmAxM8DRqHsCzTgRjrBt4bgcOWt0S5skJ+Thul6dtl96dwURXQlxBEsuz6dzZ3voZGPZTqzhyQVT0yWJreyQ3oKDEn3Ip/0AwubzjnslHk=
