@@ -15,25 +15,26 @@
  */
 
 dependencies {
-  spinnaker.group("test")
-  spinnaker.group("lombok")
-  spinnaker.group("retrofitDefault")
-  spinnaker.group("fiat")
+  spinnaker.group('fiat')
+  spinnaker.group('lombok')
+  spinnaker.group('retrofitDefault')
 
   compile project(':echo-core')
+  compile project(':echo-model')
+  compile spinnaker.dependency('kork')
+  compile spinnaker.dependency('korkArtifacts')
+  compile spinnaker.dependency('korkSecurity')
   compile spinnaker.dependency('korkWeb')
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("rxJava")
-  compile spinnaker.dependency("guava")
-  compile spinnaker.dependency("okHttp")
-  compile spinnaker.dependency("eurekaClient")
-  compile spinnaker.dependency("kork")
-  compile spinnaker.dependency("korkSecurity")
-  compile spinnaker.dependency("spectatorApi")
 
-  compile group: 'org.codehaus.groovy', name: 'groovy', version: "2.4.5"
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('jacksonDatabind')
+  compile spinnaker.dependency('rxJava')
+  compile spinnaker.dependency('springContext')
+  compile spinnaker.dependency('spectatorApi')
   compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
-  testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+  compile group: 'org.apache.commons', name:'commons-lang3', version: '3.4'
+
+  spinnaker.group('test')
   testCompile project(':echo-test')
 }

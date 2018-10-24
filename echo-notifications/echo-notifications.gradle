@@ -21,6 +21,7 @@ dependencies {
     spinnaker.group("bootWeb")
     spinnaker.group("retrofitDefault")
     compile spinnaker.dependency("groovy")
+    compile spinnaker.dependency("logstashEncoder")
     compile spinnaker.dependency("kork")
     compile spinnaker.dependency('korkWeb')
     compile spinnaker.dependency("rxJava")

@@ -22,6 +22,7 @@ dependencies {
   compile spinnaker.dependency('groovy')
   compile spinnaker.dependency('slf4jApi')
   compile spinnaker.dependency('eurekaClient')
+  compile spinnaker.dependency('logstashEncoder')
   compile spinnaker.dependency('spectatorApi')
 
   testRuntime spinnaker.dependency('slf4jSimple')

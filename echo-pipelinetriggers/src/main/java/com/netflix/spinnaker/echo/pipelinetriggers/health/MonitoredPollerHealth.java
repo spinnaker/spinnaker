@@ -31,7 +31,7 @@ import java.time.ZoneId;
 import static java.time.Instant.now;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.apache.commons.lang.time.DurationFormatUtils.formatDurationWords;
+import static org.apache.commons.lang3.time.DurationFormatUtils.formatDurationWords;
 
 /**
  * A {@link HealthIndicator} implementation that monitors an instance of {@link MonitoredPoller}.
