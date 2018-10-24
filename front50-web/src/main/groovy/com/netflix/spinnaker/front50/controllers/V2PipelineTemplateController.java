@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED;
+import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -104,6 +105,7 @@ public class V2PipelineTemplateController {
   List<String> getDependentConfigs(String templateId) {
     List<String> dependentConfigIds = new ArrayList<>();
 
+    String prefixedId = SPINNAKER_PREFIX + templateId;
     pipelineDAO.all()
       .stream()
       .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals(TYPE_TEMPLATED))
@@ -118,7 +120,7 @@ public class V2PipelineTemplateController {
           return;
         }
 
-        if (source != null && source.equalsIgnoreCase(templateId)) {
+        if (source != null && source.equalsIgnoreCase(prefixedId)) {
           dependentConfigIds.add(templatedPipeline.getId());
         }
       });
