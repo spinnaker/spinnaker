@@ -9,6 +9,7 @@ import {
   IGitTrigger,
   IPipeline,
   IStage,
+  IArtifactAccountPair,
 } from '@spinnaker/core';
 
 import {
@@ -28,6 +29,7 @@ export interface IAppengineServerGroupCommand {
   freeFormDetails?: string;
   configFilepaths?: string[];
   configFiles?: string[];
+  configArtifacts?: IArtifactAccountPair[];
   applicationDirectoryRoot: string;
   branch?: string;
   repositoryUrl?: string;

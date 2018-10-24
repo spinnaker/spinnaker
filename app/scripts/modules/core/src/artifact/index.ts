@@ -12,3 +12,5 @@ export * from './NgManifestArtifactDelegate';
 export * from './NgGCEImageArtifactDelegate';
 export * from './NgAppEngineDeployArtifactDelegate';
 export * from './NgBakeManifestArtifactDelegate';
+export * from './IArtifactAccountPair';
+export * from './NgAppengineConfigArtifactDelegate';

@@ -5,13 +5,9 @@ import {
   ExpectedArtifactSelectorViewController,
   NgBakeManifestArtifactDelegate,
   IArtifactAccount,
+  IArtifactAccountPair,
 } from 'core';
 import { UUIDGenerator } from 'core/utils';
-
-export interface IInputArtifact {
-  id: string;
-  account: string;
-}
 
 export class BakeManifestConfigCtrl implements IController {
   public artifactControllers: any[];
@@ -49,7 +45,7 @@ export class BakeManifestConfigCtrl implements IController {
       Object.assign(stage, defaultSelection);
     }
     this.ensureTemplateArtifact();
-    stage.inputArtifacts = stage.inputArtifacts.map((a: IInputArtifact) => this.defaultInputArtifact(a));
+    stage.inputArtifacts = stage.inputArtifacts.map((a: IArtifactAccountPair) => this.defaultInputArtifact(a));
     AccountService.getArtifactAccounts().then(accounts => {
       this.artifactAccounts = accounts;
       stage.inputArtifacts.forEach((a: InputArtifact) => {
@@ -111,21 +107,21 @@ export class BakeManifestConfigCtrl implements IController {
   }
 }
 
-class InputArtifact {
+class InputArtifact implements IArtifactAccountPair {
+  public $scope: IScope;
   public controller: ExpectedArtifactSelectorViewController;
   public delegate: NgBakeManifestArtifactDelegate;
   public id: string;
   public account: string;
 
-  constructor(public $scope: IScope, artifact = { id: '', account: '' }) {
-    setUnserializable(this, '$scope', $scope);
-    setUnserializable(this, 'delegate', new NgBakeManifestArtifactDelegate(this));
-    setUnserializable(this, 'controller', new ExpectedArtifactSelectorViewController(this.delegate));
+  constructor($scope: IScope, artifact = { id: '', account: '' }) {
+    const unserializable = { configurable: false, enumerable: false, writable: false };
+    const delegate = new NgBakeManifestArtifactDelegate(this);
+    const controller = new ExpectedArtifactSelectorViewController(delegate);
+    Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
+    Object.defineProperty(this, 'delegate', { ...unserializable, value: delegate });
+    Object.defineProperty(this, 'controller', { ...unserializable, value: controller });
     this.id = artifact.id;
     this.account = artifact.account;
   }
 }
-
-const setUnserializable = (obj: any, key: string, value: any) => {
-  return Object.defineProperty(obj, key, { configurable: false, enumerable: false, writable: false, value });
-};

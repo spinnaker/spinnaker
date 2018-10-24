@@ -25,6 +25,7 @@ export interface IExpectedArtifactEditorProps {
   showIcons?: boolean;
   showAccounts?: boolean;
   className?: string;
+  fieldGroupClassName?: string;
   fieldColumns: number;
   singleColumn: boolean;
 }
@@ -114,7 +115,7 @@ export class ExpectedArtifactEditor extends React.Component<
   };
 
   public render() {
-    const { sources, showIcons, showAccounts, fieldColumns, singleColumn } = this.props;
+    const { sources, showIcons, showAccounts, fieldColumns, singleColumn, fieldGroupClassName } = this.props;
     const { expectedArtifact, source, account } = this.state;
     const accounts = this.accountsForExpectedArtifact(expectedArtifact);
     const artifact = ExpectedArtifactService.artifactFromExpected(expectedArtifact);
@@ -123,10 +124,10 @@ export class ExpectedArtifactEditor extends React.Component<
     const EditCmp = kind && kind.editCmp;
     return (
       <>
-        <StageConfigField label="Artifact Source" fieldColumns={fieldColumns}>
+        <StageConfigField label="Artifact Source" fieldColumns={fieldColumns} groupClassName={fieldGroupClassName}>
           <ExpectedArtifactSourceSelector sources={sources} selected={source} onChange={this.onSourceChange} />
         </StageConfigField>
-        <StageConfigField label="Artifact Kind" fieldColumns={fieldColumns}>
+        <StageConfigField label="Artifact Kind" fieldColumns={fieldColumns} groupClassName={fieldGroupClassName}>
           <ExpectedArtifactKindSelector
             kinds={kinds}
             selected={kind}
@@ -135,7 +136,7 @@ export class ExpectedArtifactEditor extends React.Component<
           />
         </StageConfigField>
         {showAccounts && (
-          <StageConfigField label="Artifact Account" fieldColumns={fieldColumns}>
+          <StageConfigField label="Artifact Account" fieldColumns={fieldColumns} groupClassName={fieldGroupClassName}>
             <ArtifactAccountSelector accounts={accounts} selected={account} onChange={this.onAccountChange} />
           </StageConfigField>
         )}
@@ -146,9 +147,10 @@ export class ExpectedArtifactEditor extends React.Component<
             labelColumns={3}
             fieldColumns={fieldColumns}
             singleColumn={singleColumn}
+            groupClassName={fieldGroupClassName}
           />
         )}
-        <StageConfigField label="" fieldColumns={fieldColumns}>
+        <StageConfigField label="" fieldColumns={fieldColumns} groupClassName={fieldGroupClassName}>
           <button onClick={this.onSave} className="btn btn-block btn-primary btn-sm">
             Confirm
           </button>
@@ -175,5 +177,6 @@ module(EXPECTED_ARTIFACT_EDITOR_COMPONENT_REACT, [
     'className',
     'fieldColumns',
     'singleColumn',
+    'fieldGroupClassName',
   ]),
 );
