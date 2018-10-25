@@ -35,7 +35,10 @@ allprojects {
   apply plugin: "java"
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : 'XXX'
+    spinnakerDependenciesVersion = '1.0.26'
+    if (project.hasProperty('spinnakerDependenciesVersion')) {
+      spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
+    }
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
