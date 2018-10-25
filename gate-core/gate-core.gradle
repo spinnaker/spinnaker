@@ -18,6 +18,7 @@ dependencies {
   spinnaker.group("bootWeb")
   spinnaker.group('retrofitDefault')
   spinnaker.group('test')
+  spinnaker.group('fiat')
 
   compile spinnaker.dependency("kork")
   compile spinnaker.dependency("korkSecurity")

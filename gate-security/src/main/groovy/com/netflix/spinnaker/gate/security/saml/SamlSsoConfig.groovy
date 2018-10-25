@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.gate.security.saml
 
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
-import com.netflix.spinnaker.gate.security.AuthConfig
+import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
-import com.netflix.spinnaker.gate.security.saml.SamlSsoConfig.UserAttributeMapping
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.security.User

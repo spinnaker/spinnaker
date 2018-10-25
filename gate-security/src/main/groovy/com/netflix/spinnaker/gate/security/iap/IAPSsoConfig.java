@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.security.iap;
 
 import com.google.common.base.Preconditions;
-import com.netflix.spinnaker.gate.security.AuthConfig;
+import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.security.iap.IAPSsoConfig.IAPSecurityConfigProperties;
 import com.netflix.spinnaker.gate.services.PermissionService;

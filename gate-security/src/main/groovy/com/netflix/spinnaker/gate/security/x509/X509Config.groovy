@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.x509
 
-import com.netflix.spinnaker.gate.security.AuthConfig
+import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.security.iap.IAPSsoConfig
 import com.netflix.spinnaker.gate.security.iap.IAPSsoConfigurer

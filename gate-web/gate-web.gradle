@@ -21,6 +21,7 @@ repositories {
 dependencies {
   compile project(":gate-core")
   compile project(":gate-proxy")
+  compile project(":gate-security")
 
   spinnaker.group('retrofitDefault')
   spinnaker.group("test")
@@ -38,24 +39,6 @@ dependencies {
   compile('org.springframework.session:spring-session-data-redis:1.1.1.RELEASE')
   compile "org.springframework.data:spring-data-redis:1.8.10.RELEASE"
   compile "org.springframework.session:spring-session:1.3.1.RELEASE"
-
-  // OAuth2
-  compile 'org.springframework.security.oauth:spring-security-oauth2:2.1.1.RELEASE'
-  compile 'com.squareup.retrofit:converter-simplexml:1.9.0' // Github OAuth
-
-  // LDAP
-  compile("org.springframework.security:spring-security-ldap:${spinnaker.version('springSecurity')}")
-
-  // SAML
-  compile('org.opensaml:opensaml:2.6.4')
-  compile("org.springframework.security.extensions:spring-security-saml2-core:1.0.2.RELEASE")
-  compile("org.springframework.security.extensions:spring-security-saml-dsl:1.0.0.M3") {
-    exclude group: 'org.springframework.boot'
-    exclude group: 'org.springframework.security'
-  }
-
-  // IAP
-  compile('com.nimbusds:nimbus-jose-jwt:5.2')
 
   compileOnly spinnaker.dependency("lombok")
 

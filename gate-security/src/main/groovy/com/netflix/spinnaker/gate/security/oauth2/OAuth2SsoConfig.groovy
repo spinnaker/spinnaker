@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.oauth2
 
-import com.netflix.spinnaker.gate.security.AuthConfig
+import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
