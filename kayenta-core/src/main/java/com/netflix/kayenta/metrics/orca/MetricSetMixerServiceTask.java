@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -118,7 +119,20 @@ public class MetricSetMixerServiceTask implements RetryableTask {
         String refId = stage.getRefId();
         return refId != null && refId.startsWith(stagePrefix);
       })
-      .map(stage -> (String)stage.getOutputs().get("metricSetListId"))
+      .map(stage -> resolveMetricSetListId(stage))
       .collect(Collectors.toList());
+  }
+
+  private static String resolveMetricSetListId(Stage stage) {
+    Map<String, Object> outputs = stage.getOutputs();
+    String metricSetListId = (String)outputs.get("metricSetListId");
+
+    // TODO(duftler): Remove this once the risk of operating on out-of-date pipelines is low.
+    if (StringUtils.isEmpty(metricSetListId)) {
+      // Fallback to the older key name.
+      metricSetListId = (String)outputs.get("metricSetId");
+    }
+
+    return metricSetListId;
   }
 }
