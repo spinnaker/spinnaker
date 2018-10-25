@@ -503,7 +503,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
     # near this, but care more about eventual correctness than timeliness
     # here. We can capture timing information and look at it after the fact
     # to make performance related conclusions.
-    self.default_max_wait_secs = 600
+    self.default_max_wait_secs = 360
 
   def _new_messaging_status(self, operation, http_response):
     """Implements HttpAgent interface."""

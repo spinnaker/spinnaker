@@ -503,7 +503,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline', retryable_for_secs=5)
+    (builder.new_clause_builder('Has Pipeline')
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_path_value(None, pipeline_spec))
@@ -615,7 +615,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             token=self.bindings['JENKINS_TOKEN'],
             status_class=gate.GatePipelineStatus,
             status_path=path,
-            max_wait_secs=1080), # Allow 18 mins to bake and deploy.
+            max_wait_secs=780), # Allow 13 mins to bake and deploy.
         contract=builder.build(),
         cleanup=self.delete_baked_image)
 
@@ -636,7 +636,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             title='run_destroy_pipeline',
             data='',
             path=path,
-            max_wait_secs=1080), # Allow 18 mins to disable and destroy.
+            max_wait_secs=780), # Allow 13 mins to disable and destroy.
         contract=jc.Contract())
 
   def new_jenkins_build_operation(self):
