@@ -3,7 +3,6 @@ import { StateService } from '@uirouter/angularjs';
 import { set } from 'lodash';
 
 import {
-  SETTINGS,
   ArtifactTypePatterns,
   ExpectedArtifactSelectorViewController,
   NgAppEngineDeployArtifactDelegate,
@@ -17,8 +16,6 @@ interface IAppengineBasicSettingsScope extends IScope {
 }
 
 class AppengineServerGroupBasicSettingsCtrl implements IController {
-  public containerImageUrlEnabled = SETTINGS.providers.appengine.defaults.containerImageUrlDeployments;
-
   constructor(
     public $scope: IAppengineBasicSettingsScope,
     $state: StateService,

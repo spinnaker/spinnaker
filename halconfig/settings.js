@@ -29,7 +29,6 @@ var timezone = '{%timezone%}';
 var version = '{%version%}';
 var changelogGistId = '{%changelog.gist.id%}';
 var changelogGistName = '{%changelog.gist.name%}';
-var appengineContainerImageUrlDeploymentsEnabled = '{%features.appengineContainerImageUrlDeployments%}' === 'true';
 var gce = {
   defaults: {
     account: '{%google.default.account%}',
@@ -51,7 +50,6 @@ var appengine = {
   defaults: {
     account: '{%appengine.default.account%}',
     editLoadBalancerStageEnabled: '{%appengine.enabled%}' === 'true',
-    containerImageUrlDeployments: appengineContainerImageUrlDeploymentsEnabled,
   },
 };
 var openstack = {
