@@ -1,15 +1,12 @@
+apply plugin: 'spinnaker.application'
+
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
-  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
-tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+run {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
-
-apply plugin: 'org.springframework.boot'
-apply plugin: 'spinnaker.package'
-
 mainClassName = 'com.netflix.spinnaker.rosco.Main'
 
 configurations.all {
@@ -28,30 +25,30 @@ dependencies {
   spinnaker.group("bootWeb")
 }
 
-ospackage {
-  from('config/packer') {
-    into '/opt/rosco/config/packer'
+if (project.plugins.hasPlugin('spinnaker.package')) {
+  ospackage {
+    from('config/packer') {
+      into '/opt/rosco/config/packer'
+    }
+
+    configurationFile('/opt/rosco/config/rosco.yml')
+    configurationFile('/opt/rosco/config/packer/aws-chroot.json')
+    configurationFile('/opt/rosco/config/packer/aws-ebs.json')
+    configurationFile('/opt/rosco/config/packer/azure-linux.json')
+    configurationFile('/opt/rosco/config/packer/gce.json')
+    configurationFile('/opt/rosco/config/packer/oci.json')
+    configurationFile('/opt/rosco/config/packer/install_packages.sh')
+
+    from('../docker') {
+      into "/opt/${project.applicationName}/docker"
+    }
   }
 
-  configurationFile('/opt/rosco/config/rosco.yml')
-  configurationFile('/opt/rosco/config/packer/aws-chroot.json')
-  configurationFile('/opt/rosco/config/packer/aws-ebs.json')
-  configurationFile('/opt/rosco/config/packer/azure-linux.json')
-  configurationFile('/opt/rosco/config/packer/gce.json')
-  configurationFile('/opt/rosco/config/packer/oci.json')
-  configurationFile('/opt/rosco/config/packer/install_packages.sh')
+  buildDeb {
+    requires('unzip')
+  }
 
-  from('../docker') {
-    into "/opt/${project.applicationName}/docker"
+  buildRpm {
+    requires('unzip')
   }
 }
-
-buildDeb {
-  requires('unzip')
-}
-
-buildRpm {
-  requires('unzip')
-}
-
-tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
