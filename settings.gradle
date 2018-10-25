@@ -36,3 +36,6 @@ rootProject.children.each {
   setBuildFile(it)
 }
 
+
+// Set as an ext variable so that build scripts can access it
+gradle.ext.includedProviderProjects = includeProviders.split(',').collect{ ':fiat-' + it.toLowerCase() }

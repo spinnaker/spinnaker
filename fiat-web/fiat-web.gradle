@@ -28,10 +28,14 @@ dependencies {
   compile spinnaker.dependency("korkStackdriver")
   compile spinnaker.dependency("korkSwagger")
 
-  compile project(':fiat-file')
-  compile project(':fiat-github')
-  compile project(':fiat-google-groups')
-  compile project(':fiat-ldap')
+  compile project(':fiat-core')
+  compile project(':fiat-api')
+  compile project(':fiat-roles')
+
+  // Add each included authz provider as a runtime dependency
+  gradle.includedProviderProjects.each {
+    runtime project(it)
+  }
 
   testCompile spinnaker.dependency('korkJedisTest')
   testCompile "org.skyscreamer:jsonassert:1.3.0"
