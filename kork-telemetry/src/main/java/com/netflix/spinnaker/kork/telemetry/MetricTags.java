@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kork.telemetry;
 
-include 'kork-core',
-  'kork-jedis-test',
-  'kork-swagger',
-  'kork-security',
-  'kork-web',
-  'kork-hystrix',
-  'kork-stackdriver',
-  'kork-exceptions',
-  'kork-artifacts',
-  'kork-jedis',
-  'kork-dynomite',
-  'kork-aws',
-  'kork-sql',
-  'kork-sql-test',
-  'kork-test',
-  'kork-telemetry'
+/**
+ * A collection of standard metric tags.
+ */
+public class MetricTags {
 
-rootProject.name='kork'
+  public static final String RESULT_KEY = "result";
 
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
+  public enum ResultValue {
+    SUCCESS("success"),
+    FAILURE("failure");
+
+    private final String value;
+
+    ResultValue(String value) {
+      this.value = value;
     }
+  }
 }
-
-rootProject.children.each {
-    setBuildFile it
-}
-

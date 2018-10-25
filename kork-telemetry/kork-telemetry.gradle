@@ -1,0 +1,7 @@
+dependencies {
+  compile spinnaker.dependency("spectatorApi")
+  compile spinnaker.dependency("guava")
+
+  testCompile spinnaker.dependency('groovy')
+  spinnaker.group('spockBase')
+}

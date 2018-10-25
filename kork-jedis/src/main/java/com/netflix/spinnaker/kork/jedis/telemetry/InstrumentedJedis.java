@@ -35,11 +35,9 @@ import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
 
 /**
  * Instruments:
- * <p>
  * - Timer for each command
  * - Distribution summary for all payload sizes
  * - Error rates
- * <p>
  */
 public class InstrumentedJedis extends Jedis {
 
