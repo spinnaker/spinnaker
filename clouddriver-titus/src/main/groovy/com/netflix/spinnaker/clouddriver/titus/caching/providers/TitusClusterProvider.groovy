@@ -184,10 +184,13 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
     serverGroup.placement.account = account
     serverGroup.placement.region = region
     serverGroup.scalingPolicies = serverGroupData.attributes.scalingPolicies
+    serverGroup.targetGroups = serverGroupData.attributes.targetGroups
     if (includeDetails) {
       serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns), Collections.singletonList(serverGroupData)).values()
+      if (serverGroup.targetGroups) {
+        awsLookupUtil.lookupTargetGroupHealth(job, serverGroup.instances)
+      }
     }
-    serverGroup.targetGroups = serverGroupData.attributes.targetGroups
     serverGroup.accountId = awsLookupUtil.awsAccountId(account, region)
     serverGroup.awsAccount = awsLookupUtil.lookupAccount(account, region)?.awsAccount
     serverGroup
