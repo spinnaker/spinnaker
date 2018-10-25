@@ -13,10 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RestAdapter.LogLevel;
@@ -28,7 +27,7 @@ import rx.schedulers.Schedulers;
 
 @Slf4j
 @Configuration
-@ComponentScan("com.netflix.spinnaker.echo.pipelinetriggers")
+@ComponentScan(value = "com.netflix.spinnaker.echo.pipelinetriggers")
 @EnableConfigurationProperties(FiatClientConfigurationProperties.class)
 public class PipelineTriggerConfiguration {
   private Client retrofitClient;
@@ -75,6 +74,12 @@ public class PipelineTriggerConfiguration {
   @ConditionalOnMissingBean(PubsubEventHandler.class)
   PubsubEventHandler pubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
     return new PubsubEventHandler(registry, objectMapper);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "quietPeriod")
+  public QuietPeriodIndicatorConfigurationProperties quietPeriodIndicatorConfigurationProperties() {
+    return new QuietPeriodIndicatorConfigurationProperties();
   }
 
   private <T> T bindRetrofitService(final Class<T> type, final String endpoint) {

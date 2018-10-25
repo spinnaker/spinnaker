@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
+import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.PipelineResponse
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
@@ -47,6 +48,7 @@ import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.echo.model.Trigger.Type.CRON
 import static net.logstash.logback.argument.StructuredArguments.kv
+
 /**
  * Finds and executes all pipeline triggers that should have run in the last configured time window during startup.
  * This job will wait until the {@link com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache} has run prior to
@@ -68,6 +70,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   final OrcaService orcaService
   final PipelineInitiator pipelineInitiator
   final Registry registry
+  final QuietPeriodIndicator quietPeriodIndicator
   final boolean enableRecurring
   final Duration recurringPollInterval
   final int pipelineFetchSize
@@ -82,6 +85,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
                                        Registry registry,
+                                       QuietPeriodIndicator quietPeriodIndicator,
                                        @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
                                        @Value('${scheduler.compensationJob.toleranceMs:30000}') long compensationWindowToleranceMs, // 30 seconds
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
@@ -89,7 +93,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
                                        @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize) {
 
-    this(scheduler, pipelineCache, orcaService, pipelineInitiator, registry, compensationWindowMs, compensationWindowToleranceMs, timeZoneId,
+    this(scheduler, pipelineCache, orcaService, pipelineInitiator, registry, quietPeriodIndicator, compensationWindowMs, compensationWindowToleranceMs, timeZoneId,
       enableRecurring, recurringPollIntervalMs, pipelineFetchSize, null)
   }
 
@@ -98,6 +102,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
                                        Registry registry,
+                                       QuietPeriodIndicator quietPeriodIndicator,
                                        @Value('${scheduler.compensationJob.windowMs:600000}') long compensationWindowMs, // 10 min
                                        @Value('${scheduler.compensationJob.toleranceMs:30000}') long compensationWindowToleranceMs, // 30 seconds
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
@@ -110,6 +115,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     this.orcaService = orcaService
     this.pipelineInitiator = pipelineInitiator
     this.registry = registry
+    this.quietPeriodIndicator = quietPeriodIndicator
     this.enableRecurring = enableRecurring
     this.recurringPollInterval = Duration.ofMillis(recurringPollIntervalMs)
     this.pipelineFetchSize = pipelineFetchSize
@@ -162,7 +168,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
   void triggerMissedExecutions(List<Pipeline> pipelines) {
     pipelines = pipelines.findAll { !it.disabled }
-    List<Trigger> allEnabledCronTriggers = getEnabledCronTriggers(pipelines)
+    List<Trigger> allEnabledCronTriggers = getEnabledCronTriggers(pipelines, false)
     List<Trigger> triggers = getWithValidTimeInWindow(allEnabledCronTriggers)
     List<String> ids = getPipelineConfigIds(pipelines, triggers)
 
@@ -226,8 +232,9 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     registry.counter('orca.errors', "exception", error.getClass().getName()).increment()
   }
 
-  static List<Trigger> getEnabledCronTriggers(List<Pipeline> pipelines) {
+  static List<Trigger> getEnabledCronTriggers(List<Pipeline> pipelines, boolean inQuietPeriod) {
     (List<Trigger>) pipelines
+      .findAll { Pipeline it -> !inQuietPeriod || !it.respectQuietPeriod}
       .collect { it.triggers }
       .flatten()
       .findAll { Trigger it -> it && it.enabled && it.type == CRON.toString() }

@@ -61,6 +61,9 @@ public class Pipeline {
   boolean plan;
 
   @JsonProperty
+  boolean respectQuietPeriod;
+
+  @JsonProperty
   List<Trigger> triggers;
 
   @JsonProperty

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.orca
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
+import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -14,12 +15,12 @@ class PipelineInitiatorSpec extends Specification {
   def orca = Mock(OrcaService)
   def fiatStatus = Mock(FiatStatus)
   def objectMapper = Mock(ObjectMapper)
-
+  def quietPeriodIndicator = Mock(QuietPeriodIndicator)
 
   @Unroll
   def "calls orca #orcaCalls times when enabled=#enabled flag"() {
     given:
-    def pipelineInitiator = new PipelineInitiator(registry, orca, fiatStatus, objectMapper, enabled, 5, 5000)
+    def pipelineInitiator = new PipelineInitiator(registry, orca, fiatStatus, objectMapper, quietPeriodIndicator, enabled, 5, 5000)
     def pipeline = Pipeline.builder().application("application").name("name").id("id").type("pipeline").build()
 
     when:
@@ -38,7 +39,7 @@ class PipelineInitiatorSpec extends Specification {
   @Unroll
   def "calls orca #orcaCalls to plan pipeline if templated"() {
     given:
-    def pipelineInitiator = new PipelineInitiator(registry, orca, fiatStatus, objectMapper, true, 5, 5000)
+    def pipelineInitiator = new PipelineInitiator(registry, orca, fiatStatus, objectMapper, quietPeriodIndicator, true, 5, 5000)
     def pipeline = Pipeline.builder()
       .application("application")
       .name("name")
