@@ -3,6 +3,7 @@
 const angular = require('angular');
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { defaultsDeep } from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
@@ -179,7 +180,7 @@ module.exports = angular
           $scope.extendedDescription = config.extendedDescription;
           $scope.label = config.label;
           if (config.defaults) {
-            Object.assign($scope.stage, config.defaults);
+            defaultsDeep($scope.stage, config.defaults);
           }
           if (config.useBaseProvider || config.provides) {
             config.templateUrl = require('./baseProviderStage/baseProviderStage.html');
