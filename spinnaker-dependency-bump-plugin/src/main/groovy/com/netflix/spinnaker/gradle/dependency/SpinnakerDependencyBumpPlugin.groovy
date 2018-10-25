@@ -29,7 +29,7 @@ class SpinnakerDependencyBumpPlugin implements Plugin<Project> {
       "gate",
       "halyard",
       "igor",
-      // "kayenta", // https://github.com/spinnaker/kayenta/pull/389
+      "kayenta",
       "orca",
       "rosco",
   ]
