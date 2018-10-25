@@ -212,7 +212,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
       application=self.TEST_APP)
 
     builder = gcp.GcpContractBuilder(self.appengine_observer)
-    (builder.new_clause_builder('Version Added', retryable_for_secs=30)
+    (builder.new_clause_builder('Version Added', retryable_for_secs=60)
       .inspect_resource('apps.services.versions',
                         group_name,
                         appsId=self.__gcp_project,
@@ -339,7 +339,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         user='[anonymous]')
 
     builder = gcp.GcpContractBuilder(self.appengine_observer)
-    (builder.new_clause_builder('Service Modified', retryable_for_secs=30)
+    (builder.new_clause_builder('Service Modified', retryable_for_secs=60)
      .inspect_resource('apps.services',
                        self.__lb_name,
                        appsId=self.__gcp_project)
@@ -372,7 +372,7 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         application=self.TEST_APP)
 
     builder = gcp.GcpContractBuilder(self.appengine_observer)
-    (builder.new_clause_builder('Service Deleted', retryable_for_secs=30)
+    (builder.new_clause_builder('Service Deleted', retryable_for_secs=60)
      .inspect_resource('apps.services',
                        self.__lb_name,
                        appsId=self.__gcp_project)
