@@ -1681,6 +1681,8 @@ hal config artifact s3 account add ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--api-endpoint`: S3 api endpoint
  * `--api-region`: S3 api region
+ * `--aws-access-key-id`: Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
+ * `--aws-secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: S3 region
@@ -1716,6 +1718,8 @@ hal config artifact s3 account edit ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--api-endpoint`: S3 api endpoint
  * `--api-region`: S3 api region
+ * `--aws-access-key-id`: Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
+ * `--aws-secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: S3 region

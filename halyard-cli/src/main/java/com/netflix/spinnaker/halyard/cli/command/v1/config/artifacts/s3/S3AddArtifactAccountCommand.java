@@ -21,6 +21,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.s3;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.account.AbstractAddArtifactAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws.AwsCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3.S3ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
@@ -42,13 +43,26 @@ public class S3AddArtifactAccountCommand extends AbstractAddArtifactAccountComma
       description = "S3 region"
   )
   private String region;
+  @Parameter(
+      names = "--aws-access-key-id",
+      description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
+  )
+  private String awsAccessKeyId;
+  @Parameter(
+      names = "--aws-secret-access-key",
+      description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
+      password = true
+  )
+  private String awsSecretAccessKey;
 
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {
     S3ArtifactAccount artifactAccount = new S3ArtifactAccount().setName(accountName);
     artifactAccount.setApiEndpoint(apiEndpoint)
         .setApiRegion(apiRegion)
-        .setRegion(region);
+        .setRegion(region)
+        .setAwsAccessKeyId(awsAccessKeyId)
+        .setAwsSecretAccessKey(awsSecretAccessKey);
     return artifactAccount;
   }
 
