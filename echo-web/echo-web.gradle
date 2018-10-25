@@ -17,11 +17,9 @@
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
   springProfiles = System.getProperty('spring.profiles.active', "test,local")
-  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'spinnaker.package'
+apply plugin: 'spinnaker.application'
 
 mainClassName = 'com.netflix.spinnaker.echo.Application'
 
@@ -47,7 +45,7 @@ dependencies {
     testCompile spinnaker.dependency('springTest')
 }
 
-tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+run {
     def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
     if (jamm) {
         jvmArgs applicationDefaultJvmArgs.join(" ") + " -javaagent:${jamm}"
@@ -63,5 +61,3 @@ test {
         jvmArgs applicationDefaultJvmArgs.join(" ") + " -javaagent:${jamm}"
     }
 }
-
-tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
