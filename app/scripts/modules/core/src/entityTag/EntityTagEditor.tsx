@@ -1,23 +1,26 @@
 import * as React from 'react';
-import { Field, FieldProps, Form, Formik, FormikErrors } from 'formik';
+import { Form, Formik } from 'formik';
 import { Modal } from 'react-bootstrap';
 
+import { Application } from 'core/application';
+import { HelpField } from 'core/help';
+import { IEntityRef, IEntityTag } from 'core/domain';
+import { TaskMonitor } from 'core/task';
+import { SubmitButton } from 'core/modal';
+import { NgReact } from 'core/reactShims';
+import { UUIDGenerator, noop } from 'core/utils';
 import {
-  UUIDGenerator,
-  Application,
-  EntityTagWriter,
-  HelpField,
-  IEntityRef,
-  IEntityTag,
-  TaskMonitor,
-  SubmitButton,
   Markdown,
-} from 'core';
+  RadioButtonInput,
+  TextAreaInput,
+  ReactModal,
+  FormikFormField,
+  FormField,
+  StringsAsOptions,
+} from 'core/presentation';
 
-import { ReactModal } from 'core/presentation';
-import { NgReact } from 'core/reactShims/ngReact';
+import { EntityTagWriter } from './entityTags.write.service';
 import { EntityRefBuilder } from './entityRef.builder';
-import { noop } from 'core/utils';
 
 import './EntityTagEditor.less';
 
@@ -57,12 +60,13 @@ export interface IEntityTagEditorState {
 
 export interface IEntityTagEditorValues {
   message: string;
-  ownerIndex: number | string;
+  ownerOption?: IOwnerOption;
 }
 
 export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEntityTagEditorState> {
   public static defaultProps: Partial<IEntityTagEditorProps> = {
     onUpdate: noop,
+    ownerOptions: [],
   };
 
   /** Shows the Entity Tag Editor modal */
@@ -74,38 +78,29 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     super(props);
 
     const { tag } = this.props;
-    const ownerIndex = this.props.ownerOptions ? 0 : -1; // Assuming that the first option is the provided option
+    const ownerOptions = this.props.ownerOptions || [];
+    const defaultOwnerOption = ownerOptions.find(opt => opt.isDefault) || ownerOptions[0];
     tag.name = tag.name || `spinnaker_ui_${tag.value.type}:${UUIDGenerator.generateUuid()}`;
 
     this.state = {
       taskMonitor: null,
       initialValues: {
         message: (tag.value && tag.value.message) || '',
-        ownerIndex,
+        ownerOption: defaultOwnerOption,
       },
       isSubmitting: false,
     };
   }
-
-  private validate = (values: IEntityTagEditorValues): Partial<FormikErrors<IEntityTagEditorValues>> => {
-    const errors: Partial<FormikErrors<IEntityTagEditorValues>> = {};
-    if (!values.message) {
-      errors.message = 'Please enter a message';
-    }
-    return errors;
-  };
 
   private close = (args?: any): void => {
     this.props.dismissModal.apply(null, args);
   };
 
   private upsertTag = (values: IEntityTagEditorValues): void => {
-    const { application, isNew, tag, onUpdate, ownerOptions } = this.props;
-    const ownerIndex = Number(values.ownerIndex);
+    const { application, isNew, tag, onUpdate } = this.props;
 
-    const ownerOption = ownerIndex !== -1 && (ownerOptions || [])[ownerIndex];
-    const owner = ownerOption ? ownerOption.owner : this.props.owner;
-    const entityType = ownerOption ? ownerOption.type : this.props.entityType;
+    const owner: IOwner = values.ownerOption ? values.ownerOption.owner : this.props.owner;
+    const entityType: string = values.ownerOption ? values.ownerOption.type : this.props.entityType;
 
     const entityRef: IEntityRef = this.props.entityRef || EntityRefBuilder.getBuilder(entityType)(owner);
 
@@ -134,8 +129,9 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
   };
 
   public render() {
-    const { isNew, tag, ownerOptions } = this.props;
+    const { isNew, tag, ownerOptions: opts } = this.props;
     const { initialValues, isSubmitting } = this.state;
+    const ownerOptions = opts || [];
 
     const closeButton = (
       <div className="modal-close close-button pull-right">
@@ -156,8 +152,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
         <Formik<IEntityTagEditorValues>
           initialValues={initialValues}
           onSubmit={this.upsertTag}
-          validate={this.validate}
-          render={({ isValid, values }) => (
+          render={({ isValid, values, setFieldValue }) => (
             <Form className="form-horizontal">
               <Modal.Header>
                 <h3>
@@ -165,69 +160,50 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                 </h3>
                 {closeButton}
               </Modal.Header>
-              <Modal.Body className="entity-tag-editor-modal">
-                <div className="row">
-                  <div className="col-md-10 col-md-offset-1">
-                    <div className="form-group">
-                      <div className="col-md-3 sm-label-right">Message</div>
-                      <div className="col-md-9">
-                        <Field
-                          name="message"
-                          render={({ field }: FieldProps<IEntityTagEditorValues>) => (
-                            <textarea className="form-control input-sm" {...field} rows={5} required={true} />
-                          )}
-                        />
-                        <div className="small text-right">
-                          {' '}
-                          <div>
-                            Markdown is okay <HelpField id="markdown.examples" />
-                          </div>{' '}
-                        </div>
-                      </div>
-                    </div>
-                    {values.message && (
-                      <div className="form-group preview">
-                        <div className="col-md-3 sm-label-right">
-                          <strong>Preview</strong>
-                        </div>
-                        <div className="col-md-9">
-                          <Markdown message={values.message} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
 
-                {ownerOptions &&
-                  ownerOptions.length && (
-                    <div className="row">
-                      <div className="col-md-10 col-md-offset-1">
-                        <div className="form-group">
-                          <div className="col-md-3 sm-label-right">
-                            <b>Applies to</b>
-                          </div>
-                          <div className="col-md-9">
-                            {ownerOptions.map((option, index) => (
-                              <div key={option.label} className="radio">
-                                <label>
-                                  <Field
-                                    name="ownerIndex"
-                                    type="radio"
-                                    value={index}
-                                    checked={index === Number(values.ownerIndex)}
-                                  />
-                                  <span className="marked">
-                                    <Markdown message={option.label} />
-                                  </span>
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+              <Modal.Body className="entity-tag-editor-modal">
+                <div className="">
+                  <FormikFormField
+                    label="Message"
+                    name="message"
+                    required={true}
+                    input={props => <TextAreaInput {...props} rows={5} required={true} />}
+                  />
+                  <div className="small text-right">
+                    Markdown is okay <HelpField id="markdown.examples" />
+                  </div>
+
+                  {values.message && (
+                    <div className="form-group preview">
+                      <div className="col-md-3 sm-label-right">
+                        <strong>Preview</strong>
+                      </div>
+                      <div className="col-md-9">
+                        <Markdown message={values.message} />
                       </div>
                     </div>
                   )}
+                </div>
+
+                {!!ownerOptions.length && (
+                  <StringsAsOptions strings={ownerOptions.map(opt => opt.label)}>
+                    {options => (
+                      <FormField
+                        name="ownerOption"
+                        label="Applies To"
+                        required={true}
+                        value={values.ownerOption.label}
+                        onChange={evt => {
+                          const option = ownerOptions.find(opt => opt.label === evt.target.value);
+                          setFieldValue('ownerOption', option);
+                        }}
+                        input={props => <RadioButtonInput {...props} options={options} />}
+                      />
+                    )}
+                  </StringsAsOptions>
+                )}
               </Modal.Body>
+
               <Modal.Footer>
                 <button className="btn btn-default" disabled={isSubmitting} onClick={this.close} type="button">
                   Cancel
