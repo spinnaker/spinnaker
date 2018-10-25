@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
+apply plugin: 'spinnaker.application'
+
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
-  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
-tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+run {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
-
-apply plugin: 'org.springframework.boot'
-apply plugin: 'spinnaker.package'
+mainClassName = 'com.netflix.spinnaker.front50.Main'
 
 configurations.all {
   exclude group: 'org.slf4j', module: 'slf4j-log4j12'
@@ -55,5 +54,3 @@ test {
   environment "AWS_ACCESS_KEY_ID", "null"
   environment "AWS_SECRET_KEY", "null"
 }
-
-tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
