@@ -1,14 +1,14 @@
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
-  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
-tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+apply plugin: 'spinnaker.application'
+
+run {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'spinnaker.package'
+mainClassName = 'com.netflix.spinnaker.igor.Main'
 
 dependencies {
     spinnaker.group "test"
@@ -32,6 +32,7 @@ dependencies {
 
     compile 'org.yaml:snakeyaml:1.15'
     compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
+    compile 'com.google.code.gson:gson:2.8.2'
     testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'
 
     testCompile spinnaker.dependency("korkJedisTest")
@@ -46,6 +47,3 @@ configurations.all {
     exclude group: "org.slf4j", module: "slf4j-log4j12"
     exclude group: "org.mortbay.jetty", module: "servlet-api"
 }
-
-
-tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
