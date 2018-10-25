@@ -17,7 +17,7 @@ allprojects {
 
 
   ext {
-    spinnakerDependenciesVersion = '1.2.9'
+    spinnakerDependenciesVersion = '1.4.0'
     if (project.hasProperty('spinnakerDependenciesVersion')) {
       spinnakerDependenciesVersion = project.property('spinnakerDependenciesVersion')
     }
