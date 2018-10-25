@@ -15,17 +15,13 @@
  */
 
 buildscript {
-  ext {
-    springBootVersion = "1.5.4.RELEASE"
-  }
   repositories {
     jcenter()
     maven { url "http://spinnaker.bintray.com/gradle" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.2.0'
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.1.4'
     classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
 
   }
@@ -33,7 +29,7 @@ buildscript {
 
 allprojects {
   group = "com.netflix.spinnaker.halyard"
-  apply plugin: 'spinnaker.project'
+  apply plugin: 'spinnaker.base-project'
   apply plugin: 'groovy'
 
   ext {
@@ -46,7 +42,7 @@ allprojects {
   spinnaker {
     dependenciesVersion = spinnakerDependenciesVersion
   }
-  
+
   test {
     testLogging {
       showStandardStreams = false
@@ -64,9 +60,16 @@ subprojects { project ->
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'org.spockframework:spock-spring:1.0-groovy-2.4'
   }
+
+  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
+  project.plugins.withType(JavaBasePlugin) {
+    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+    convention.sourceCompatibility = JavaVersion.VERSION_1_8
+    convention.targetCompatibility = JavaVersion.VERSION_1_8
+  }
 }
 
-defaultTasks ':halyard-web:bootRun'
+defaultTasks ':halyard-web:run'
 
 // Creates scripts for entry points
 // Subproject must apply application plugin to be able to call this method.

@@ -1,15 +1,14 @@
-apply plugin: 'org.springframework.boot'
 apply plugin: 'com.google.protobuf'
-apply plugin: 'spinnaker.package'
+apply plugin: 'spinnaker.application'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.node', "${System.getProperty('user.home')}/.spinnaker/")
-  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
-tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+run {
   systemProperty('spring.config.node', project.springConfigLocation)
 }
+mainClassName = 'com.netflix.spinnaker.halyard.Main'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
@@ -37,10 +36,6 @@ dependencies {
   compile('org.lognet:grpc-spring-boot-starter:2.3.2')
   compile 'com.google.guava:guava:23.5-jre'
 }
-
-tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
-
-mainClassName = 'com.netflix.spinnaker.halyard.Main'
 
 def cliScript = project.tasks.create('createCliStartScripts', CreateStartScripts) {
   dependsOn(project.tasks.startScripts)
