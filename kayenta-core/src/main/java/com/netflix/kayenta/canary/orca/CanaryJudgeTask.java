@@ -31,7 +31,6 @@ import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -39,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -104,7 +102,8 @@ public class CanaryJudgeTask implements RetryableTask {
     CanaryJudge canaryJudge = null;
 
     if (canaryJudgeConfig != null) {
-      String judgeName = canaryJudgeConfig.getName();
+      String overrideJudgeName = (String)context.get("overrideJudgeName");
+      String judgeName = StringUtils.isNotEmpty(overrideJudgeName) ? overrideJudgeName : canaryJudgeConfig.getName();
 
       if (!StringUtils.isEmpty(judgeName)) {
         canaryJudge =
@@ -127,7 +126,7 @@ public class CanaryJudgeTask implements RetryableTask {
 
     CanaryResult canaryResult = CanaryResult.builder()
       .judgeResult(result)
-      .canaryDuration(canaryExecutionRequest.calculateDuration())
+      .canaryDuration(canaryExecutionRequest != null ? canaryExecutionRequest.calculateDuration() : null)
       .build();
 
     storageService.storeObject(resolvedStorageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId, canaryResult);

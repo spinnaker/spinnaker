@@ -205,7 +205,7 @@ public class ExecutionMapper {
   }
 
   // Some older (stored) results have the execution request only in the judge context.
-  public String getCanaryExectutionRequestFromJudgeContext(Execution pipeline) {
+  public String getCanaryExecutionRequestFromJudgeContext(Execution pipeline) {
     Stage contextStage = pipeline.getStages().stream()
       .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_JUDGE))
       .findFirst()
@@ -225,7 +225,7 @@ public class ExecutionMapper {
 
     String canaryExecutionRequestJSON = (String)context.get("canaryExecutionRequest");
     if (canaryExecutionRequestJSON == null) {
-      canaryExecutionRequestJSON = getCanaryExectutionRequestFromJudgeContext(pipeline);
+      canaryExecutionRequestJSON = getCanaryExecutionRequestFromJudgeContext(pipeline);
     }
     if (canaryExecutionRequestJSON == null) {
       return null;
@@ -423,6 +423,109 @@ public class ExecutionMapper {
                                       pipelineBuilder.withStage((String)context.get("stageType"),
                                                                 (String)context.get("refId"),
                                                                 context));
+
+    Execution pipeline = pipelineBuilder
+      .withLimitConcurrent(false)
+      .build();
+
+    executionRepository.store(pipeline);
+
+    try {
+      executionLauncher.start(pipeline);
+    } catch (Throwable t) {
+      handleStartupFailure(pipeline, t);
+    }
+
+    return CanaryExecutionResponse.builder().canaryExecutionId(pipeline.getId()).build();
+  }
+
+  public CanaryExecutionResponse buildJudgeComparisonExecution(String application,
+                                                               String parentPipelineExecutionId,
+                                                               @NotNull String canaryConfigId,
+                                                               @NotNull CanaryConfig canaryConfig,
+                                                               String overrideCanaryJudge1,
+                                                               String overrideCanaryJudge2,
+                                                               String metricSetPairListId,
+                                                               Double passThreshold,
+                                                               Double marginalThreshold,
+                                                               String resolvedConfigurationAccountName,
+                                                               @NotNull String resolvedStorageAccountName) throws JsonProcessingException {
+    if (StringUtils.isEmpty(application)) {
+      application = "kayenta-" + currentInstanceId;
+    }
+
+    if (StringUtils.isEmpty(parentPipelineExecutionId)) {
+      parentPipelineExecutionId = "no-parent-pipeline-execution";
+    }
+
+    canaryConfig = QueryConfigUtils.escapeTemplates(canaryConfig);
+
+    HashMap<String, Object> setupCanaryContext =
+      Maps.newHashMap(
+        new ImmutableMap.Builder<String, Object>()
+          .put("refId", CanaryStageNames.REFID_SET_CONTEXT)
+          .put("user", "[anonymous]")
+          .put("application", application)
+          .put("parentPipelineExecutionId", parentPipelineExecutionId)
+          .put("storageAccountName", resolvedStorageAccountName)
+          .put("canaryConfig", canaryConfig)
+          .build());
+    if (resolvedConfigurationAccountName != null) {
+      setupCanaryContext.put("configurationAccountName", resolvedConfigurationAccountName);
+    }
+    if (canaryConfigId != null) {
+      setupCanaryContext.put("canaryConfigId", canaryConfigId);
+    }
+
+    Map<String, Object> canaryJudgeContext1 =
+      Maps.newHashMap(
+        new ImmutableMap.Builder<String, Object>()
+          .put("refId", CanaryStageNames.REFID_JUDGE)
+          .put("requisiteStageRefIds", Collections.singletonList(CanaryStageNames.REFID_SET_CONTEXT))
+          .put("user", "[anonymous]")
+          .put("storageAccountName", resolvedStorageAccountName)
+          .put("metricSetPairListId", metricSetPairListId)
+          .put("orchestratorScoreThresholds", CanaryClassifierThresholdsConfig.builder().pass(passThreshold).marginal(marginalThreshold).build())
+          .build());
+    if (StringUtils.isNotEmpty(overrideCanaryJudge1)) {
+      canaryJudgeContext1.put("overrideJudgeName", overrideCanaryJudge1);
+    }
+
+    Map<String, Object> canaryJudgeContext2 =
+      Maps.newHashMap(
+        new ImmutableMap.Builder<String, Object>()
+          .put("refId", CanaryStageNames.REFID_JUDGE + "-2")
+          .put("requisiteStageRefIds", Collections.singletonList(CanaryStageNames.REFID_SET_CONTEXT))
+          .put("user", "[anonymous]")
+          .put("storageAccountName", resolvedStorageAccountName)
+          .put("metricSetPairListId", metricSetPairListId)
+          .put("orchestratorScoreThresholds", CanaryClassifierThresholdsConfig.builder().pass(passThreshold).marginal(marginalThreshold).build())
+          .build());
+    if (StringUtils.isNotEmpty(overrideCanaryJudge2)) {
+      canaryJudgeContext2.put("overrideJudgeName", overrideCanaryJudge2);
+    }
+
+    Map<String, Object> compareJudgeResultsContext =
+      Maps.newHashMap(
+        new ImmutableMap.Builder<String, Object>()
+          .put("refId", "compareJudgeResults")
+          .put("requisiteStageRefIds", Arrays.asList(new String[]{CanaryStageNames.REFID_JUDGE,
+                                                                  CanaryStageNames.REFID_JUDGE + "-2"}))
+          .put("user", "[anonymous]")
+          .put("storageAccountName", resolvedStorageAccountName)
+          .put("judge1Result", "${ #stage('Perform Analysis with Judge 1')['context']['result']}")
+          .put("judge2Result", "${ #stage('Perform Analysis with Judge 2')['context']['result']}")
+          .build());
+
+    String canaryPipelineConfigId = application + "-standard-canary-pipeline";
+    PipelineBuilder pipelineBuilder =
+      new PipelineBuilder(application)
+        .withName("Standard Canary Pipeline")
+        .withPipelineConfigId(canaryPipelineConfigId)
+        .withStage("setupCanary", "Setup Canary", setupCanaryContext)
+        .withStage("canaryJudge", "Perform Analysis with Judge 1", canaryJudgeContext1)
+        .withStage("canaryJudge", "Perform Analysis with Judge 2", canaryJudgeContext2)
+        .withStage("compareJudgeResults", "Compare Judge Results", compareJudgeResultsContext);
 
     Execution pipeline = pipelineBuilder
       .withLimitConcurrent(false)

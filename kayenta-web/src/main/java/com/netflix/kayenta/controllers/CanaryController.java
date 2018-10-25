@@ -147,7 +147,7 @@ public class CanaryController {
 
     Execution pipeline = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryExecutionId);
 
-    return executionMapper.fromExecution(storageAccountName, pipeline);
+    return executionMapper.fromExecution(resolvedStorageAccountName, pipeline);
   }
 
   @ApiOperation(value = "Retrieve a list of an application's canary results")
