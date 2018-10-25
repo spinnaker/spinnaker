@@ -32,9 +32,12 @@ dependencies {
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency("logstashEncoder")
   compile spinnaker.dependency('cglib')
-  compile('org.apache.commons:commons-io:1.3.2')
+  compile spinnaker.dependency('jedis')
 
+  compile('org.apache.commons:commons-io:1.3.2')
   compile('org.springframework.session:spring-session-data-redis:1.1.1.RELEASE')
+  compile "org.springframework.data:spring-data-redis:1.8.10.RELEASE"
+  compile "org.springframework.session:spring-session:1.3.1.RELEASE"
 
   // OAuth2
   compile 'org.springframework.security.oauth:spring-security-oauth2:2.1.1.RELEASE'
@@ -59,8 +62,6 @@ dependencies {
   testCompile "com.squareup.okhttp:mockwebserver:${spinnaker.version('okHttp')}"
   testCompile apachedsDependencies
   testCompile spinnaker.dependency("korkJedisTest")
-  testCompile "org.springframework.data:spring-data-redis:1.8.10.RELEASE"
-  testCompile "org.springframework.session:spring-session:1.3.1.RELEASE"
 
   //this brings in the jetty GzipFilter which boot will autoconfigure
   runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
