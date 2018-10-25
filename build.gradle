@@ -1,6 +1,5 @@
 buildscript {
   ext {
-    springBootVersion = "1.5.10.RELEASE"
     kotlinVersion = "1.2.41"
   }
   repositories {
@@ -9,14 +8,13 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.3.0'
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.1.4'
     classpath "com.netflix.nebula:nebula-kotlin-plugin:${kotlinVersion}"
   }
 }
 
 allprojects {
-  apply plugin: 'spinnaker.project'
+  apply plugin: 'spinnaker.base-project'
   apply plugin: 'groovy'
 
   ext {
@@ -64,6 +62,13 @@ allprojects {
       exceptionFormat = 'full'
     }
   }
+
+  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
+  project.plugins.withType(JavaBasePlugin) {
+    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+    convention.sourceCompatibility = JavaVersion.VERSION_1_8
+    convention.targetCompatibility = JavaVersion.VERSION_1_8
+  }
 }
 
-defaultTasks ':gate-web:bootRun'
+defaultTasks ':gate-web:run'
