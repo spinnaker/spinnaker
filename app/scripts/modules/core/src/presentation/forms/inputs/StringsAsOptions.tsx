@@ -5,15 +5,15 @@ import memoizeOne from 'memoize-one';
 
 interface IStringOptionsProps {
   strings?: string[];
-  render?: (options: Option[]) => React.ReactNode;
-  children?: (options: Option[]) => React.ReactNode;
+  render?: (options: Array<Option<string>>) => React.ReactNode;
+  children?: (options: Array<Option<string>>) => React.ReactNode;
 }
 
 interface IStringOptionsState {
-  options: Option[];
+  options: Array<Option<string>>;
 }
 
-const makeOptions = (options: string[]): Option[] => {
+const makeOptions = (options: string[]): Array<Option<string>> => {
   options = options || [];
   return options.map(str => ({ label: str, value: str }));
 };
