@@ -15,23 +15,19 @@
  */
 
 buildscript {
-  ext {
-    springBootVersion = "1.5.10.RELEASE"
-  }
   repositories {
     jcenter()
     maven { url "http://spinnaker.bintray.com/gradle" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.0.0'
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.1.4'
   }
 }
 
 allprojects {
   group = "com.netflix.spinnaker.fiat"
-  apply plugin: 'spinnaker.project'
+  apply plugin: 'spinnaker.base-project'
   apply plugin: 'java'
   apply plugin: 'groovy'
 
@@ -86,6 +82,13 @@ subprojects { project ->
 
     testCompile spinnaker.dependency('groovy')
   }
+
+  //c&p this because NetflixOss reverts it to 1.7 and ends up getting applied last..
+  project.plugins.withType(JavaBasePlugin) {
+    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+    convention.sourceCompatibility = JavaVersion.VERSION_1_8
+    convention.targetCompatibility = JavaVersion.VERSION_1_8
+  }
 }
 
-defaultTasks ':fiat-web:bootRun'
+defaultTasks ':fiat-web:run'
