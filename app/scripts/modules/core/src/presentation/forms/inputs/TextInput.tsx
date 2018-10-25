@@ -1,6 +1,6 @@
-import * as classNames from 'classnames';
 import * as React from 'react';
 
+import { orEmptyString, validationClassName } from './utils';
 import { IFormInputProps } from '../interface';
 
 interface ITextInputProps extends IFormInputProps, React.InputHTMLAttributes<any> {
@@ -10,23 +10,9 @@ interface ITextInputProps extends IFormInputProps, React.InputHTMLAttributes<any
 export class TextInput extends React.Component<ITextInputProps> {
   public render() {
     const { field, validation, inputClassName, ...otherProps } = this.props;
-    const fieldProps = { ...field, value: field.value || '' };
+    const fieldProps = { ...field, value: orEmptyString(field.value) };
+    const className = `TextInput form-control ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
 
-    const validationClassName = classNames({
-      'form-control': true,
-      'ng-dirty': !!validation.touched,
-      'ng-invalid': validation.validationStatus === 'error',
-      'ng-warning': validation.validationStatus === 'warning',
-    });
-
-    return (
-      <input
-        className={`${inputClassName} ${validationClassName}`}
-        type="text"
-        autoComplete="off"
-        {...fieldProps}
-        {...otherProps}
-      />
-    );
+    return <input className={className} type="text" autoComplete="off" {...fieldProps} {...otherProps} />;
   }
 }

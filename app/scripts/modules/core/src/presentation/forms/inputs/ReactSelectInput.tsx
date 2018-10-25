@@ -4,6 +4,7 @@ import Select, { Option, ReactSelectProps } from 'react-select';
 import { IControlledInputProps, TetheredSelect } from 'core/presentation';
 import { noop } from 'core/utils';
 
+import { orEmptyString } from './utils';
 import { IFormInputProps } from '../interface';
 
 interface IReactSelectInputProps extends IFormInputProps, ReactSelectProps {
@@ -66,13 +67,13 @@ export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
 
     const onChange = reactSelectOnChangeAdapter(field);
     const onBlur = reactSelectOnBlurAdapter(field);
-    const fieldProps = { name: field.name, value: field.value || '', onBlur, onChange };
+    const fieldProps = { name: field.name, value: orEmptyString(field.value), onBlur, onChange };
     const style = validation.validationStatus === 'error' ? reactSelectValidationErrorStyle : {};
 
     return tethered ? (
-      <TetheredSelect className={inputClassName} style={style} {...fieldProps} {...otherProps} />
+      <TetheredSelect className={orEmptyString(inputClassName)} style={style} {...fieldProps} {...otherProps} />
     ) : (
-      <Select className={inputClassName} style={style} {...fieldProps} {...otherProps} />
+      <Select className={orEmptyString(inputClassName)} style={style} {...fieldProps} {...otherProps} />
     );
   }
 }
