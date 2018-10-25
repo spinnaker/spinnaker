@@ -7,7 +7,12 @@ before_install:
   - export CHROME_BIN=chromium-browser
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
+# Uncomment out below lines to enable integration with Codecov
+# See PR #375 for details: https://github.com/spinnaker/deck-kayenta/pull/375
+#  - pip install --user codecov
 install: travis/installViaTravis.sh
+#after_success:
+#  - codecov --file coverage/lcov.info --disable search
 script: travis/buildViaTravis.sh
 cache:
   directories:

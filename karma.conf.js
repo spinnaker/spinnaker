@@ -2,10 +2,10 @@
 
 const path = require('path');
 const webpackCommon = require('./webpack.common');
-const webpackConfig = webpackCommon(true);
 
 module.exports = function(config) {
-  config.set({
+  const reportCoverage = config.coverage === true;
+  const options = {
     autoWatch: true,
 
     // base path, that will be used to resolve files and exclude
@@ -21,7 +21,7 @@ module.exports = function(config) {
       './karma-shim.js': ['webpack'],
     },
 
-    webpack: webpackConfig,
+    webpack: webpackCommon(true, reportCoverage),
 
     webpackMiddleware: {
       noInfo: true,
@@ -73,9 +73,30 @@ module.exports = function(config) {
     },
 
     client: {
+      args: reportCoverage ? ['--coverage'] : [],
       captureConsole: true,
     },
 
     browserNoActivityTimeout: 200000,
-  });
+  };
+
+  if (reportCoverage) {
+    options.devtool = 'inline-source-map';
+
+    options.plugins.push(require('karma-coverage'), require('karma-remap-coverage'));
+
+    options.coverageReporter = {
+      type: 'in-memory',
+    };
+
+    options.reporters.push('coverage', 'remap-coverage');
+
+    options.remapCoverageReporter = {
+      html: './coverage/html',
+      lcovonly: './coverage/lcov.info', // for codecov
+      'text-summary': null, // prints to console
+    };
+  }
+
+  config.set(options);
 };

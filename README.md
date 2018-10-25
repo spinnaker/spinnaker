@@ -1,5 +1,7 @@
 # Spinnaker Canary UI
 
+[![Build Status](https://travis-ci.org/spinnaker/deck-kayenta.png?branch=master)](https://travis-ci.org/spinnaker/deck-kayenta)
+
 ## Development
 
 Make sure that [node](http://nodejs.org/download/) and [yarn](https://yarnpkg.com/en/docs/install)
@@ -54,3 +56,6 @@ in the main Deck repository, then open a pull request.
 ## Testing
 
 To run `deck-kayenta`'s tests, run `yarn test`.
+
+To run `deck-kayenta`'s tests and generate a code coverage report, run `yarn test-coverage`.
+Open `/coverage/html/index.html` in a browser to view the HTML version of the report.

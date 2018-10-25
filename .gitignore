@@ -30,6 +30,9 @@ transpiled/
 # Test Results
 test-results.xml
 
+# Test Coverage
+coverage/
+
 #gradle wrapper symlinks
 /gradle
 /gradlew

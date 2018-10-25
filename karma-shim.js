@@ -22,5 +22,10 @@ require('./settings.js');
 require('ngimport');
 beforeEach(angular.mock.module('bcherny/ngimport'));
 
-const testContext = require.context('./src/', true, /\.spec\.(js|ts|tsx)$/);
+const reportCoverage = __karma__.config.args.includes('--coverage');
+
+const testContext = reportCoverage
+  ? require.context('./src/', true, /\.(js|ts|tsx)$/)
+  : require.context('./src/', true, /\.spec\.(js|ts|tsx)$/);
+
 testContext.keys().forEach(testContext);

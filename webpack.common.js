@@ -6,7 +6,7 @@ const path = require('path');
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const inclusionPattern = [path.resolve(__dirname, 'src'), path.resolve(NODE_MODULE_PATH, '@spinnaker/styleguide')];
 
-function configure(IS_TEST) {
+function configure(IS_TEST, IS_INSTRUMENTED) {
   const config = {
     plugins: [],
     output: IS_TEST
@@ -45,11 +45,6 @@ function configure(IS_TEST) {
         { test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader' },
         { test: /\.json$/, loader: 'json-loader', include: inclusionPattern },
         { test: require.resolve('jquery'), use: ['expose-loader?$', 'expose-loader?jQuery'] },
-        {
-          test: /\.tsx?$/,
-          use: ['cache-loader', 'ng-annotate-loader', 'awesome-typescript-loader'],
-          include: inclusionPattern.concat(path.join(__dirname, 'test')),
-        },
         {
           test: /\.js$/,
           use: ['cache-loader', 'ng-annotate-loader', 'babel-loader', 'eslint-loader'],
@@ -157,6 +152,45 @@ function configure(IS_TEST) {
         }),
       ],
     );
+  }
+
+  if (IS_INSTRUMENTED) {
+    config.module.rules.push(
+      {
+        enforce: 'pre',
+        test: /\.js$/,
+        loader: 'source-map-loader',
+        include: path.resolve(__dirname, 'src'),
+        exclude: /\.spec\.(js|ts|tsx)$/,
+      },
+      {
+        test: /\.tsx?$/,
+        loader: 'awesome-typescript-loader',
+        options: {
+          sourceMap: false,
+          inlineSourceMap: true,
+          compilerOptions: {
+            removeComments: true,
+          },
+        },
+      },
+      {
+        enforce: 'post',
+        test: /\.(js|ts|tsx)$/,
+        loader: 'istanbul-instrumenter-loader',
+        query: {
+          esModules: true,
+        },
+        include: path.resolve(__dirname, 'src'),
+        exclude: /\.spec\.(js|ts|tsx)$/,
+      },
+    );
+  } else {
+    config.module.rules.push({
+      test: /\.tsx?$/,
+      use: ['cache-loader', 'ng-annotate-loader', 'awesome-typescript-loader'],
+      include: inclusionPattern.concat(path.join(__dirname, 'test')),
+    });
   }
 
   // this is temporary and will be deprecated in WP3.  moving forward,
