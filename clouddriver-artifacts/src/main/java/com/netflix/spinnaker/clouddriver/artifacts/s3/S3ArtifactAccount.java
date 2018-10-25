@@ -28,4 +28,6 @@ public class S3ArtifactAccount extends ArtifactAccount
   private String apiEndpoint;
   private String apiRegion;
   private String region;
+  private String awsAccessKeyId;
+  private String awsSecretAccessKey;
 }

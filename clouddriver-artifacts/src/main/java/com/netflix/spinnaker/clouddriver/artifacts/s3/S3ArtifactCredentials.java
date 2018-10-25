@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
@@ -38,6 +41,8 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String apiEndpoint;
   private final String apiRegion;
   private final String region;
+  private final String awsAccessKeyId;
+  private final String awsSecretAccessKey;
   private final List<String> types = Arrays.asList("s3/object");
 
   public S3ArtifactCredentials(S3ArtifactAccount account) throws IllegalArgumentException {
@@ -45,6 +50,8 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     apiEndpoint = account.getApiEndpoint();
     apiRegion = account.getApiRegion();
     region = account.getRegion();
+    awsAccessKeyId = account.getAwsAccessKeyId();
+    awsSecretAccessKey = account.getAwsSecretAccessKey();
   }
 
   protected AmazonS3 getS3Client() {
@@ -56,6 +63,11 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
       builder.setPathStyleAccessEnabled(true);
     } else if (!StringUtils.isEmpty(region)) {
       builder.setRegion(region);
+    }
+
+    if (!StringUtils.isEmpty(awsAccessKeyId) && !StringUtils.isEmpty(awsSecretAccessKey)) {
+      BasicAWSCredentials awsStaticCreds = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
+      builder.withCredentials(new AWSStaticCredentialsProvider(awsStaticCreds));
     }
 
     return builder.build();
