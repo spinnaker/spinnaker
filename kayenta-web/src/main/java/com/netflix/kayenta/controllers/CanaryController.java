@@ -106,7 +106,9 @@ public class CanaryController {
   // TODO(duftler): Allow for user to be passed in.
   @ApiOperation(value = "Initiate a canary pipeline with CanaryConfig provided")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public CanaryExecutionResponse initiateCanaryWithConfig(@RequestParam(required = false) final String metricsAccountName,
+  public CanaryExecutionResponse initiateCanaryWithConfig(@RequestParam(required = false) final String application,
+                                                          @RequestParam(required = false) final String parentPipelineExecutionId,
+                                                          @RequestParam(required = false) final String metricsAccountName,
                                                           @RequestParam(required = false) final String storageAccountName,
                                                           @ApiParam @RequestBody final CanaryAdhocExecutionRequest canaryAdhocExecutionRequest) throws JsonProcessingException {
 
@@ -124,8 +126,8 @@ public class CanaryController {
       throw new IllegalArgumentException("executionRequest must be provided for ad-hoc requests");
     }
 
-    return executionMapper.buildExecution(AD_HOC,
-                                          AD_HOC,
+    return executionMapper.buildExecution(Optional.ofNullable(application).orElse(AD_HOC),
+                                          Optional.ofNullable(parentPipelineExecutionId).orElse(AD_HOC),
                                           AD_HOC,
                                           canaryAdhocExecutionRequest.getCanaryConfig(),
                                           null,
