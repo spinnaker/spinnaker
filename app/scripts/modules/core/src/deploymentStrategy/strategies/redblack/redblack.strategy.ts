@@ -1,4 +1,19 @@
+import { defaultsDeep } from 'lodash';
+
 import { DeploymentStrategyRegistry } from 'core/deploymentStrategy/deploymentStrategy.registry';
+import { IServerGroupCommand } from 'core/serverGroup';
+
+import { AdditionalFields } from './AdditionalFields';
+
+export interface IRedBlackCommand extends IServerGroupCommand {
+  maxRemainingAsgs: number;
+  delayBeforeDisableSec: number;
+  delayBeforeScaleDownSec: number;
+  rollback: {
+    onFailure: boolean;
+  };
+  scaleDown: boolean;
+}
 
 DeploymentStrategyRegistry.registerStrategy({
   label: 'Red/Black',
@@ -7,5 +22,16 @@ DeploymentStrategyRegistry.registerStrategy({
   key: 'redblack',
   providerRestricted: true,
   additionalFields: ['scaleDown', 'maxRemainingAsgs'],
-  additionalFieldsTemplateUrl: require('./additionalFields.html'),
+  AdditionalFieldsComponent: AdditionalFields,
+  initializationMethod: (command: IRedBlackCommand) => {
+    defaultsDeep(command, {
+      rollback: {
+        onFailure: false,
+      },
+      maxRemainingAsgs: 2,
+      delayBeforeDisableSec: 0,
+      delayBeforeScaleDownSec: 0,
+      scaleDown: false,
+    });
+  },
 });
