@@ -85,6 +85,14 @@ class TargetServerGroup {
     return serverGroup?.moniker ? objectMapper.convertValue(serverGroup?.moniker, Moniker) : null
   }
 
+  /**
+   * Used in UpsertGceAutoscalingPolicy, which is Java, which doesn't play nice with @Delegate
+   * @return
+   */
+  Map<String, Object> getAutoscalingPolicy() {
+    return (Map<String, Object>) serverGroup.autoscalingPolicy
+  }
+
   Map toClouddriverOperationPayload(String account) {
     //TODO(cfieber) - add an endpoint on Clouddriver to do provider appropriate conversion of a TargetServerGroup
     def op = [
