@@ -21,11 +21,7 @@ import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
-import com.google.api.client.http.GenericUrl
-import com.google.api.client.http.HttpHeaders
-import com.google.api.client.http.HttpRequest
-import com.google.api.client.http.HttpRequestInitializer
-import com.google.api.client.http.HttpResponse
+import com.google.api.client.http.*
 import com.google.api.client.json.JsonObjectParser
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
@@ -35,7 +31,6 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
 import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
 import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
@@ -54,11 +49,12 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.util.logging.Slf4j
 
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP_HEALTH_CHECKS
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HEALTH_CHECKS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP_HEALTH_CHECKS
 
 @Slf4j
 class GCEUtil {
@@ -628,7 +624,7 @@ class GCEUtil {
       }
 
       if (mode) {
-        autoscalingPolicyDescription.mode = AutoscalingMode.valueOf(mode)
+        autoscalingPolicyDescription.mode = GoogleAutoscalingPolicy.AutoscalingMode.valueOf(mode)
       }
 
       return autoscalingPolicyDescription
