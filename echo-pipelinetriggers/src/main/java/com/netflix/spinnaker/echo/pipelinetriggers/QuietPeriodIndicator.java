@@ -34,10 +34,14 @@ import java.util.List;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
+/**
+ * Handles quiet periods, where a configurable set of triggers will be
+ * suppressed for a configured time interval.  Without any configuration,
+ * it will default to disabled, and invalid configuration will cause
+ * log messages to be generated, and disable this feature.
+ */
 @Slf4j
 @Component
-@ConditionalOnExpression("${quietPeriod.enabled:false}")
-@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class QuietPeriodIndicator {
   private final Registry registry;
 
