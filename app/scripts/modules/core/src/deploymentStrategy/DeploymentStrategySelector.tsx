@@ -11,7 +11,6 @@ import {
   IDeploymentStrategyAdditionalFieldsProps,
 } from './deploymentStrategy.registry';
 import { HelpField } from 'core/help/HelpField';
-import { AngularJSAdapter } from 'core/reactShims';
 
 export interface IDeploymentStrategySelectorProps {
   command: IServerGroupCommand;
@@ -25,7 +24,6 @@ export interface IDeploymentStrategySelectorState {
   strategies: IDeploymentStrategy[];
   currentStrategy: string;
   AdditionalFieldsComponent: React.ComponentType<IDeploymentStrategyAdditionalFieldsProps>;
-  additionalFieldsTemplateUrl: string;
 }
 
 export class DeploymentStrategySelector extends React.Component<
@@ -43,7 +41,6 @@ export class DeploymentStrategySelector extends React.Component<
     ),
     currentStrategy: null,
     AdditionalFieldsComponent: undefined,
-    additionalFieldsTemplateUrl: undefined,
   };
 
   public selectStrategy(strategy: string): void {
@@ -61,9 +58,7 @@ export class DeploymentStrategySelector extends React.Component<
     }
 
     let AdditionalFieldsComponent;
-    let additionalFieldsTemplateUrl;
     if (newStrategy) {
-      additionalFieldsTemplateUrl = newStrategy.additionalFieldsTemplateUrl;
       AdditionalFieldsComponent = newStrategy.AdditionalFieldsComponent;
       if (newStrategy.initializationMethod) {
         newStrategy.initializationMethod(command);
@@ -74,7 +69,7 @@ export class DeploymentStrategySelector extends React.Component<
       onStrategyChange(command, newStrategy);
     }
 
-    this.setState({ currentStrategy: strategy, AdditionalFieldsComponent, additionalFieldsTemplateUrl });
+    this.setState({ currentStrategy: strategy, AdditionalFieldsComponent });
   }
 
   public strategyChanged = (option: Option<IDeploymentStrategy>) => {
@@ -87,8 +82,8 @@ export class DeploymentStrategySelector extends React.Component<
 
   public render() {
     const { command, fieldColumns, labelColumns, onFieldChange } = this.props;
-    const { AdditionalFieldsComponent, additionalFieldsTemplateUrl, currentStrategy, strategies } = this.state;
-    const hasAdditionalFields = !!(additionalFieldsTemplateUrl || AdditionalFieldsComponent);
+    const { AdditionalFieldsComponent, currentStrategy, strategies } = this.state;
+    const hasAdditionalFields = Boolean(AdditionalFieldsComponent);
     if (strategies && strategies.length) {
       return (
         <div className="form-group">
@@ -111,16 +106,7 @@ export class DeploymentStrategySelector extends React.Component<
           </div>
           {hasAdditionalFields && (
             <div className="col-md-9 col-md-offset-3" style={{ marginTop: '5px' }}>
-              {AdditionalFieldsComponent ? (
-                <AdditionalFieldsComponent command={command} onChange={onFieldChange} />
-              ) : (
-                <AngularJSAdapter
-                  templateUrl={additionalFieldsTemplateUrl}
-                  controller="deploymentStrategyFieldsController"
-                  controllerAs="$ctrl"
-                  locals={{ command }}
-                />
-              )}
+              <AdditionalFieldsComponent command={command} onChange={onFieldChange} />
             </div>
           )}
         </div>
