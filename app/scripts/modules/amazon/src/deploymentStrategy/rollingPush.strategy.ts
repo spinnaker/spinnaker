@@ -1,4 +1,19 @@
-import { DeploymentStrategyRegistry } from '@spinnaker/core';
+import { DeploymentStrategyRegistry, IServerGroupCommand } from '@spinnaker/core';
+import { get } from 'lodash';
+
+import { AdditionalFields } from './AdditionalFields';
+
+export interface IRollingPushTermination {
+  concurrentRelaunches: number;
+  relaunchAllInstances: boolean;
+  totalRelaunches: number;
+
+  [key: string]: any;
+}
+
+export interface IRollingPushCommand extends IServerGroupCommand {
+  termination: IRollingPushTermination;
+}
 
 DeploymentStrategyRegistry.registerStrategy({
   label: 'Rolling Push (not recommended)',
@@ -13,13 +28,13 @@ DeploymentStrategyRegistry.registerStrategy({
     'termination.order',
     'termination.relaunchAllInstances',
   ],
-  additionalFieldsTemplateUrl: require('./additionalFields.html'),
-  initializationMethod: command => {
+  AdditionalFieldsComponent: AdditionalFields,
+  initializationMethod: (command: IRollingPushCommand) => {
     command.termination = command.termination || {
       order: 'oldest',
       relaunchAllInstances: true,
       concurrentRelaunches: 1,
-      totalRelaunches: command.capacity.max,
+      totalRelaunches: get(command, 'capacity.max', 1),
     };
   },
 });
