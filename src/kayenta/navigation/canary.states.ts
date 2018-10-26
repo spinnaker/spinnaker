@@ -19,7 +19,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
     'ngInject';
     const configDetail: INestedState = {
       name: 'configDetail',
-      url: '/config/:id?copy&new',
+      url: '/:id?copy&new',
       views: {
         detail: {
           component: ConfigDetailLoader,

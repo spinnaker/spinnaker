@@ -6,7 +6,7 @@ import { noop } from '@spinnaker/core';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
-import { ITableColumn, Table } from 'kayenta/layout/table';
+import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import ChangeMetricGroupModal from './changeMetricGroupModal';
 import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
 
@@ -50,19 +50,16 @@ function MetricList({
   const columns: ITableColumn<ICanaryMetricConfig>[] = [
     {
       label: 'Metric Name',
-      width: 4,
       getContent: metric => <span>{metric.name || '(new)'}</span>,
     },
     {
       label: 'Groups',
-      width: 3,
       getContent: metric => <span>{metric.groups.join(', ')}</span>,
-      hide: !showGroups,
+      hide: () => !showGroups,
     },
     {
-      width: 3,
       getContent: metric => (
-        <div className="horizontal center metrics-action-buttons">
+        <div className="horizontal pull-right metrics-action-buttons">
           <button className="link" data-id={metric.id} onClick={editMetric}>
             Edit
           </button>
@@ -86,13 +83,8 @@ function MetricList({
   ];
 
   return (
-    <section>
-      <Table
-        columns={columns}
-        rows={metrics}
-        rowKey={metric => metric.id}
-        headerClassName="background-white metric-list"
-      />
+    <>
+      <NativeTable columns={columns} rows={metrics} rowKey={metric => metric.id} className="header-transparent" />
       {!metrics.length && selectedGroup ? (
         <p>
           This group is empty! The group will be not be present the next time the config is loaded unless it is saved
@@ -101,7 +93,7 @@ function MetricList({
       ) : null}
       {changingGroupMetric && <ChangeMetricGroupModal metric={changingGroupMetric} />}
       <DisableableButton
-        className="passive"
+        className="passive self-left"
         data-group={selectedGroup}
         data-default={groupList[0]}
         data-metric-store={metricStore}
@@ -110,7 +102,7 @@ function MetricList({
       >
         Add Metric
       </DisableableButton>
-    </section>
+    </>
   );
 }
 

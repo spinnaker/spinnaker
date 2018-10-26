@@ -4,6 +4,7 @@ import { get, has } from 'lodash';
 import { HoverablePopover, IStage, timestamp, NgReact, ReactInjector } from '@spinnaker/core';
 import { CanaryScore } from 'kayenta/components/canaryScore';
 import Styleguide from 'kayenta/layout/styleguide';
+import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 
 const { CopyToClipboard } = NgReact;
 
@@ -20,87 +21,59 @@ export interface ICanaryRunColumn {
   getContent: (run: IStage, firstScopeName?: string) => JSX.Element;
 }
 
-const canaryRunColumns: ICanaryRunColumn[] = [
-  {
-    label: 'Canary Result',
-    width: 2,
-    getContent: run => {
-      return (
-        <span>
-          <CanaryScore score={run.context.canaryScore} health={run.health} result={run.result} inverse={false} />
-          {get(run, ['context', 'warnings'], []).length > 0 && (
-            <HoverablePopover template={<CanaryRunWarningMessages messages={run.context.warnings} />}>
-              <i className="fa fa-exclamation-triangle" style={{ paddingLeft: '8px' }} />
-            </HoverablePopover>
-          )}
-        </span>
-      );
-    },
-  },
-  {
-    label: 'Duration',
-    width: 1,
-    getContent: run => <span>{run.context.durationString || ' - '}</span>,
-  },
-  {
-    label: 'Last Updated',
-    width: 2,
-    getContent: run => <span>{timestamp(run.context.lastUpdated)}</span>,
-  },
-  {
-    width: 1,
-    getContent: (run, firstScopeName) => {
-      const popoverTemplate = <CanaryRunTimestamps canaryRun={run} firstScopeName={firstScopeName} />;
-      return (
-        <section className="horizontal text-center">
-          <div className="flex-1">
-            <ReportLink canaryRun={run} />
-          </div>
-          <div className="flex-1">
-            <HoverablePopover template={popoverTemplate}>
-              <i className="far fa-clock" />
-            </HoverablePopover>
-          </div>
-        </section>
-      );
-    },
-  },
-];
-
 export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICanarySummariesProps) {
+  const canaryRunColumns: ITableColumn<IStage>[] = [
+    {
+      label: 'Canary Result',
+      getContent: run => {
+        return (
+          <>
+            <CanaryScore score={run.context.canaryScore} health={run.health} result={run.result} inverse={false} />
+            {get(run, ['context', 'warnings'], []).length > 0 && (
+              <HoverablePopover template={<CanaryRunWarningMessages messages={run.context.warnings} />}>
+                <i className="fa fa-exclamation-triangle" style={{ paddingLeft: '8px' }} />
+              </HoverablePopover>
+            )}
+          </>
+        );
+      },
+    },
+    {
+      label: 'Duration',
+      getContent: run => <span>{run.context.durationString || ' - '}</span>,
+    },
+    {
+      label: 'Last Updated',
+      getContent: run => <span>{timestamp(run.context.lastUpdated)}</span>,
+    },
+    {
+      getContent: run => {
+        const popoverTemplate = <CanaryRunTimestamps canaryRun={run} firstScopeName={firstScopeName} />;
+        return (
+          <section className="horizontal text-center">
+            <div className="flex-1">
+              <ReportLink canaryRun={run} />
+            </div>
+            <div className="flex-1">
+              <HoverablePopover template={popoverTemplate}>
+                <i className="far fa-clock" />
+              </HoverablePopover>
+            </div>
+          </section>
+        );
+      },
+    },
+  ];
+
   return (
-    <Styleguide>
-      <section className="canary-run-summaries">
-        <CanaryRunHeader />
-        {canaryRuns.map(run => (
-          <CanaryRunRow canaryRun={run} key={run.id} firstScopeName={firstScopeName} />
-        ))}
-      </section>
+    <Styleguide className="horizontal flex-1">
+      <NativeTable
+        rows={canaryRuns}
+        className="header-transparent flex-1"
+        columns={canaryRunColumns}
+        rowKey={run => run.id}
+      />
     </Styleguide>
-  );
-}
-
-function CanaryRunHeader() {
-  return (
-    <section className="horizontal small grey-border-bottom" style={{ paddingLeft: 0 }}>
-      {canaryRunColumns.map((column, i) => (
-        <div className={`flex-${column.width}`} key={i}>
-          <strong>{column.label}</strong>
-        </div>
-      ))}
-    </section>
-  );
-}
-
-function CanaryRunRow({ canaryRun, firstScopeName }: { canaryRun: IStage; firstScopeName: string }) {
-  return (
-    <section className="horizontal small grey-border-bottom">
-      {canaryRunColumns.map((column, i) => (
-        <div className={`flex-${column.width}`} key={i}>
-          {column.getContent(canaryRun, firstScopeName)}
-        </div>
-      ))}
-    </section>
   );
 }
 
@@ -110,8 +83,7 @@ function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage;
     <section className="small">
       <ul className="list-unstyled">
         <li>
-          <b>Start:</b>
-          {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.start))}
+          <b>Start:</b> {timestamp(Date.parse(canaryRun.context.scopes[firstScopeName].controlScope.start))}
           <CopyToClipboard text={canaryRun.context.scopes[firstScopeName].controlScope.start} toolTip={toolTipText} />
         </li>
         <li>

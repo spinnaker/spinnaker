@@ -118,6 +118,9 @@
     &.background-white {
       background-color: var(--color-white);
     }
+    &.selected {
+      background-color: var(--color-accent-g2);
+    }
   }
 
   // As of 9/31/2018 this must be applied to a <th> for sticky table headers to work (not a <tr>/<thead>)
@@ -132,5 +135,11 @@
 
   .metric-list {
     top: -10px;
+  }
+
+  .header-transparent {
+    .native-table-header {
+      background-color: transparent;
+    }
   }
 }

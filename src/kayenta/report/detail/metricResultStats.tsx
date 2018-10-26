@@ -11,6 +11,7 @@ import { runSelector, selectedMetricConfigSelector } from 'kayenta/selectors';
 import { ICanaryState } from 'kayenta/reducers';
 import metricStoreConfigStore from 'kayenta/metricStore/metricStoreConfig.service';
 import FormattedDate from 'kayenta/layout/formattedDate';
+import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 
 import './metricResultStats.less';
 
@@ -48,37 +49,6 @@ const buildAtlasGraphUrl = (metricSetPair: IMetricSetPair) => {
   return `${atlasGraphBaseUrl}?backend=${backend}&g.q=${query}&g.s=${startTime}&g.e=${endTime}&g.w=651&mode=png&axis=0`;
 };
 
-interface IResultMetadataTableColumn {
-  label: string;
-  getValue: (target: string) => JSX.Element;
-  hide?: () => boolean;
-}
-
-const ResultMetadataTable = ({ tableColumns }: { tableColumns: IResultMetadataTableColumn[] }) => {
-  return (
-    <section className="horizontal">
-      <ul className="list-unstyled flex-1">
-        <li>&nbsp;</li>
-        <li>Baseline</li>
-        <li>Canary</li>
-      </ul>
-      {tableColumns.map(column => {
-        if (column.hide && column.hide()) {
-          return null;
-        }
-
-        return (
-          <ul className="list-unstyled flex-1" key={column.label}>
-            <li className="uppercase label color-text-primary">{column.label}</li>
-            <li>{column.getValue('control')}</li>
-            <li>{column.getValue('experiment')}</li>
-          </ul>
-        );
-      })}
-    </section>
-  );
-};
-
 interface IResultMetadataRow {
   label: string;
   getContent: () => JSX.Element;
@@ -98,10 +68,13 @@ const ResultMetadataRow = ({ row }: { row: IResultMetadataRow }) => {
 };
 
 const MetricResultStats = ({ metricConfig, metricSetPair, run, service }: IMetricResultStatsStateProps) => {
-  const tableColumns: IResultMetadataTableColumn[] = [
+  const tableColumns: ITableColumn<string>[] = [
+    {
+      getContent: target => <span>{target === 'control' ? 'Baseline' : 'Canary'}</span>,
+    },
     {
       label: 'start',
-      getValue: target => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso} />,
+      getContent: target => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso} />,
       hide: () => {
         const request = run.canaryExecutionRequest || run.result.canaryExecutionRequest;
         const configuredControlStart = request.scopes[metricConfig.scopeName].controlScope.start;
@@ -115,19 +88,19 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run, service }: IMetri
     },
     {
       label: 'count',
-      getValue: target => <span>{getStats(run, metricSetPair.id, target).count}</span>,
+      getContent: target => <span>{getStats(run, metricSetPair.id, target).count}</span>,
     },
     {
       label: 'avg',
-      getValue: target => <span>{round(getStats(run, metricSetPair.id, target).mean, 2)}</span>,
+      getContent: target => <span>{round(getStats(run, metricSetPair.id, target).mean, 2)}</span>,
     },
     {
       label: 'max',
-      getValue: target => <span>{round(getStats(run, metricSetPair.id, target).max, 2)}</span>,
+      getContent: target => <span>{round(getStats(run, metricSetPair.id, target).max, 2)}</span>,
     },
     {
       label: 'min',
-      getValue: target => <span>{round(getStats(run, metricSetPair.id, target).min, 2)}</span>,
+      getContent: target => <span>{round(getStats(run, metricSetPair.id, target).min, 2)}</span>,
     },
   ];
 
@@ -171,12 +144,12 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run, service }: IMetri
   ];
 
   return (
-    <section className="metric-stats">
+    <div className="metric-stats vertical">
       {metadataRows.map(row => (
         <ResultMetadataRow row={row} key={row.label} />
       ))}
-      <ResultMetadataTable tableColumns={tableColumns} />
-    </section>
+      <NativeTable columns={tableColumns} rows={['control', 'experiment']} rowKey={row => row} />
+    </div>
   );
 };
 

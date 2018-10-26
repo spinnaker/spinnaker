@@ -6,12 +6,12 @@ import { IMetricResultsTableRow } from './metricResultsList';
 export const metricResultsColumns: ITableColumn<IMetricResultsTableRow>[] = [
   {
     label: 'metric name',
-    getContent: ({ metricName }) => <section>{metricName}</section>,
+    getContent: ({ metricName }) => <span>{metricName}</span>,
     width: 5,
   },
   {
     label: 'result',
-    labelClassName: 'text-center',
+    labelClassName: 'pull-right',
     getContent: ({ results }) => (
       <MetricResultClassification className="pull-right" classification={results[0].classification} />
     ),

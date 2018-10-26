@@ -33,14 +33,14 @@ export function NativeTable<T>({
       className={classNames({ 'table-row': !rowClassName }, rowClassName && rowClassName(row))}
     >
       {columns.map(({ label, hide, getContent }, i) => (
-        <td key={label || i}>{!hide && getContent(row)}</td>
+        <td key={label || i}>{(!hide || !hide(row)) && getContent(row)}</td>
       ))}
     </tr>
   );
 
   return (
     <table className={className}>
-      <NativeTableHeader columns={columns} className={classNames('table-header', headerClassName)} />
+      <NativeTableHeader rows={rows} columns={columns} className={classNames('table-header', headerClassName)} />
       <tbody className={tableBodyClassName}>
         {rows.map(
           r =>

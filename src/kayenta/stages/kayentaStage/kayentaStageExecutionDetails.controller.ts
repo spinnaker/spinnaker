@@ -63,10 +63,11 @@ class KayentaStageExecutionDetailsController {
         (stage: IExecutionStage) =>
           stage.type === DEPLOY_CANARY_SERVER_GROUPS && stage.parentStageId === this.$scope.stage.id,
       );
-
-      const [deployedServerGroups] = deploy.outputs.deployedServerGroups;
-      this.resolvedControl = deployedServerGroups.controlScope;
-      this.resolvedExperiment = deployedServerGroups.experimentScope;
+      if ((deploy.outputs.deployedServerGroups || []).length) {
+        const [deployedServerGroups] = deploy.outputs.deployedServerGroups;
+        this.resolvedControl = deployedServerGroups.controlScope;
+        this.resolvedExperiment = deployedServerGroups.experimentScope;
+      }
     } else {
       this.resolvedControl = this.canaryRuns.length
         ? this.canaryRuns[0].context.scopes[this.firstScopeName].controlScope.scope

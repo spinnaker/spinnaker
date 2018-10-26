@@ -14,7 +14,7 @@ export default function TitledSection({ title, children }: ISectionProps) {
       <div className="header horizontal middle">
         <div className="flex-1 heading-2 uppercase">{title}</div>
       </div>
-      <div className="contents">{children}</div>
+      <div className="contents vertical">{children}</div>
     </section>
   );
 }

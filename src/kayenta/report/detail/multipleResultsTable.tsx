@@ -4,7 +4,7 @@ import { connect, Dispatch } from 'react-redux';
 import * as classNames from 'classnames';
 
 import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
-import { Table, ITableColumn } from 'kayenta/layout/table';
+import { ITableColumn, Table } from 'kayenta/layout/table';
 import MetricResultClassification from './metricResultClassification';
 import { ICanaryState } from 'kayenta/reducers';
 import { selectedMetricResultIdSelector } from 'kayenta/selectors';

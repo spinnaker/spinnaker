@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
 import { ICanaryState } from 'kayenta/reducers';
-import { Table, ITableColumn } from 'kayenta/layout/table';
+import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import { configTemplatesSelector } from 'kayenta/selectors';
 import * as Creators from 'kayenta/actions/creators';
 import EditTemplateModal from './editModal';
@@ -30,13 +30,11 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
   const columns: ITableColumn<ITemplate>[] = [
     {
       label: 'Template Name',
-      width: 9,
       getContent: t => <span>{t.name}</span>,
     },
     {
-      width: 1,
       getContent: t => (
-        <div className="horizontal center templates-action-buttons">
+        <div className="horizontal pull-right templates-action-buttons">
           <button className="link" data-name={t.name} data-value={t.value} onClick={edit} style={{ marginTop: '1px' }}>
             Edit
           </button>
@@ -49,13 +47,13 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
   ];
 
   return (
-    <section>
+    <>
       <EditTemplateModal />
-      <Table rows={templates} columns={columns} rowKey={t => t.name} headerClassName="background-white" />
-      <DisableableButton className="passive" onClick={add} disabledStateKeys={[DISABLE_EDIT_CONFIG]}>
+      <NativeTable rows={templates} columns={columns} rowKey={t => t.name} className="header-transparent" />
+      <DisableableButton className="passive self-left" onClick={add} disabledStateKeys={[DISABLE_EDIT_CONFIG]}>
         Add Template
       </DisableableButton>
-    </section>
+    </>
   );
 };
 

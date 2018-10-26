@@ -106,19 +106,19 @@ function StackdriverMetricConfigurer({
       <FormRow label="Group By" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.groupBy`}>
         <List list={editingMetric.query.groupByFields || []} actionCreator={updateGroupBy} />
       </FormRow>
-      <FormRow label="Aggregation" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.crossSeriesReducer`}>
-        <DisableableReactSelect
-          value={get(editingMetric, 'query.crossSeriesReducer')}
-          options={toReactSelectOptions(CROSS_SERIES_REDUCERS)}
-          onChange={(option: Option<string>) => updateStackdriverQueryField('crossSeriesReducer', option)}
-          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-        />
-      </FormRow>
       <FormRow label="Aligner" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.perSeriesAligner`}>
         <DisableableReactSelect
           value={get(editingMetric, 'query.perSeriesAligner')}
           options={toReactSelectOptions(PER_SERIES_ALIGNERS)}
           onChange={(option: Option<string>) => updateStackdriverQueryField('perSeriesAligner', option)}
+          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+        />
+      </FormRow>
+      <FormRow label="Reducer" helpId={`${STACKDRIVER_HELP_ID_PREFIX}.crossSeriesReducer`}>
+        <DisableableReactSelect
+          value={get(editingMetric, 'query.crossSeriesReducer')}
+          options={toReactSelectOptions(CROSS_SERIES_REDUCERS)}
+          onChange={(option: Option<string>) => updateStackdriverQueryField('crossSeriesReducer', option)}
           disabledStateKeys={[DISABLE_EDIT_CONFIG]}
         />
       </FormRow>
