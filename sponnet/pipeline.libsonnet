@@ -8,7 +8,14 @@
     withApplication(application):: self + { application: application },
     withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifacts: expectedArtifacts } else { expectedArtifacts: [expectedArtifacts] },
     withName(name):: self + { name: name },
-    withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
+    withNotifications(notifications):: self + if std.type(notifications) == 'array' then {
+      notifications: [
+        notification.withLevel('pipeline')
+        for notification in notifications
+      ],
+    } else {
+      notifications: [notifications.withLevel('pipeline')],
+    },
     withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
     withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
   },
@@ -25,10 +32,10 @@
   artifact(type):: {
     type: type,
     withArtifactAccount(artifactAccount):: self + { artifactAccount: artifactAccount },
-    withName(name):: self + { name: name },
-    withVersion(version):: self + { version: version },
-    withReference(reference):: self + { reference: reference },
     withLocation(location):: self + { location: location },
+    withName(name):: self + { name: name },
+    withReference(reference):: self + { reference: reference },
+    withVersion(version):: self + { version: version },
   },
 
   local artifact = self.artifact,
@@ -49,8 +56,11 @@
 
   expectedArtifact(id):: {
     id: id,
+    // Defaults to kind: custom
+    defaultArtifact: { kind: 'custom' },
     withMatchArtifact(matchArtifact):: self + {
       matchArtifact+: {
+        kind: std.splitLimit(matchArtifact.type, '/', 1)[0],
         // TODO: For Docker, the name field should be registry and repository.
         name: matchArtifact.name,
         type: matchArtifact.type,
@@ -58,6 +68,7 @@
     },
     withDefaultArtifact(defaultArtifact):: self + {
       defaultArtifact: {
+        kind: 'default.' + std.splitLimit(defaultArtifact.type, '/', 1)[0],
         reference: defaultArtifact.reference,
         type: defaultArtifact.type,
         // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
@@ -69,26 +80,23 @@
   },
 
   // notifications
-  // TODO: refactor level to include stage level.
 
-  notification(address, type, conditions, when, message):: {
+  notification:: {
     withAddress(address):: self + { address: address },
-    level: 'pipeline',
+    withCC(address):: self + { address: address },
+    withLevel(level):: self + { level: level },
+    // Custom notification messages are optional
     withWhen(when, message=false):: self + {
-      when+: [when],
-      // Notification messages are optional
+      when+: [self.level + '.' + when],
       [if std.isString(message) then 'message']+: {
-        ['pipeline.' + when]: {
-          // Doesn't look like need to escape function here, eg: // text: std.escapeStringJson(message),
+        [self.level + '.' + when]: {
           text: message,
         },
       },
     },
     withType(type):: self + { type: type },
   },
-
   local notification = self.notification,
-  notifications:: notification('', '', '', '', ''),
 
   // triggers
 
@@ -115,6 +123,7 @@
       withSlug(slug):: self + { slug: slug },
       withSource(source):: self + { source: source },
     },
+
   },
 
   // stages
@@ -124,6 +133,12 @@
     name: name,
     type: type,
     requisiteStageRefIds: [],
+    withNotifications(notifications):: self + { sendNotifications: true } +
+                                       if std.type(notifications) == 'array' then {
+                                         notifications: [notification.withLevel('stage') for notification in notifications],
+                                       } else {
+                                         notifications: [notifications.withLevel('stage')],
+                                       },
     withRequisiteStages(stages):: self + if std.type(stages) == 'array' then { requisiteStageRefIds: std.map(function(stage) stage.refId, stages) } else { requisiteStageRefIds: [stages.refId] },
     // execution options
     withOverrideTimeout(timeoutMs):: self + { overrideTimeout: true, stageTimeoutMs: timeoutMs },
@@ -134,6 +149,26 @@
     wait(name):: stage(name, 'wait') {
       withWaitTime(waitTime):: self + { waitTime: waitTime },
       withSkipWaitText(skipWaitText):: self + { skipWaitText: skipWaitText },
+    },
+
+    // agnostic stages
+
+    findArtifactFromExecution(name):: stage(name, 'findArtifactFromExecution') {
+      withApplication(application):: self + { application: application },
+      withExecutionOptions(executionOptions):: self + if std.type(executionOptions) == 'array' then { executionOptions: executionOptions } else { executionOptions: [executionOptions] },
+      withExpectedArtifact(expectedArtifact):: self + {
+        expectedArtifact: {
+          id: expectedArtifact.id,
+          matchArtifact: expectedArtifact.matchArtifact,
+        },
+      },
+      withPipeline(pipeline):: self + { pipeline: pipeline },
+    },
+    manualJudgement(name):: stage(name, 'manualJudgement') {
+      withInstructions(instructions):: self + { instructions: instructions },
+      withJudgementInputs(judgementInputs):: self + if std.type(judgementInputs) == 'array' then { judgementInputs: judgementInputs } else { judgementInputs: [judgementInputs] },
+      withPropagateAuthenticationContext(propagateAuthenticationContext):: self + { propagateAuthenticationContext: propagateAuthenticationContext },
+      withSendNotifications(sendNotifications):: self + { sendNotifications: sendNotifications },
     },
 
     // jenkins stages
@@ -212,12 +247,12 @@
     },
 
     // wercker stages
-
     // This stage has only been written from spec and not tested
     wercker(name):: stage(name, 'wercker') {
       withJob(job):: self + { job: job },
       withMaster(master):: self + { master: master },
     },
+
   },
 
   // kubernetes-provider help
