@@ -1,4 +1,3 @@
-package org.openstack4j.openstack.image.v2.domain;
 /**
  * This file is licensed under the Apache 2 license, quoted below.
  *
@@ -16,6 +15,8 @@ package org.openstack4j.openstack.image.v2.domain;
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
+package org.openstack4j.openstack.image.v2.domain;
 
 import java.util.Arrays;
 import java.util.Date;

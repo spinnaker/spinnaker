@@ -1,4 +1,3 @@
-package org.openstack4j.model.image.v2;
 /**
  * This file is licensed under the Apache 2 license, quoted below.
  *
@@ -16,6 +15,8 @@ package org.openstack4j.model.image.v2;
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
+package org.openstack4j.model.image.v2;
 
 import java.util.Date;
 import java.util.List;
@@ -43,7 +44,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * A Glance v2.0-2.3 Image
  * @author emjburns
- * @see http://developer.openstack.org/api-ref-image-v2.html#showImage-v2
+ * See http://developer.openstack.org/api-ref-image-v2.html#showImage-v2
  */
 public interface Image extends BasicResource, Buildable<ImageBuilder> {
 
@@ -282,6 +283,7 @@ public interface Image extends BasicResource, Buildable<ImageBuilder> {
   Long getVirtualSize();
 
   /**
+   * @param key the key to lookup
    * @return Additional property's value from key
    * https://developer.openstack.org/api-ref/image/v2/index.html#create-an-image
    */
