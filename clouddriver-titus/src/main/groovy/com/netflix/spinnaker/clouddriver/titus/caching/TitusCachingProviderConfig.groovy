@@ -24,7 +24,6 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
-import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusClusterCachingAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusInstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusStreamingUpdateAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusV2ClusterCachingAgent
@@ -62,19 +61,7 @@ class TitusCachingProviderConfig {
     } as Collection<NetflixTitusCredentials>
     allAccounts.each { NetflixTitusCredentials account ->
       account.regions.each { region ->
-        if (!account.splitCachingEnabled) { //default case
-          agents << new TitusClusterCachingAgent(
-            titusCloudProvider,
-            titusClientProvider,
-            account,
-            region,
-            objectMapper,
-            registry,
-            awsLookupUtilProvider,
-            pollIntervalMillis,
-            timeoutMillis
-          )
-        } else if (region.featureFlags.contains("streaming")) {
+        if (region.featureFlags.contains("streaming")) {
           agents << new TitusStreamingUpdateAgent(
             titusClientProvider,
             account,
