@@ -1,7 +1,10 @@
-import { IValidationMessageProps, ValidationMessage } from 'core/validation';
 import * as React from 'react';
 
+import { IValidationMessageProps, ValidationMessage } from 'core/validation';
+
 import { IFieldLayoutProps } from '../interface';
+
+import './StandardFieldLayout.css';
 
 export class StandardFieldLayout extends React.Component<IFieldLayoutProps> {
   public render() {
@@ -16,9 +19,9 @@ export class StandardFieldLayout extends React.Component<IFieldLayoutProps> {
     const validation = isErrorOrWarning && !touched ? null : renderMessage(validationMessage, validationStatus);
 
     return (
-      <div className="flex-container-h baseline margin-between-lg">
+      <div className="StandardFieldLayout flex-container-h baseline margin-between-lg">
         {showLabel && (
-          <div className="sm-label-right" style={{ minWidth: '120px' }}>
+          <div className="sm-label-right">
             {label} {help}
           </div>
         )}
