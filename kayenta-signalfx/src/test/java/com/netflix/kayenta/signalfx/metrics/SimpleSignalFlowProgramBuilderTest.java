@@ -35,7 +35,9 @@ public class SimpleSignalFlowProgramBuilderTest {
     SignalFxCanaryScope scope = new SignalFxCanaryScope();
     scope.setScope("1.0.0");
     scope.setScopeKey("version");
-    scope.setExtendedScopeParams(ImmutableMap.of("env", "production"));
+    scope.setExtendedScopeParams(ImmutableMap.of(
+        "env", "production",
+        "_scope_key", "version"));
 
     SimpleSignalFlowProgramBuilder builder = SimpleSignalFlowProgramBuilder
         .create(metricName, aggregationMethod);
@@ -57,6 +59,40 @@ public class SimpleSignalFlowProgramBuilderTest {
   }
 
   @Test
+  public void test_that_the_program_builder_builds_the_expected_program_with_extra_scope_qp_pairs() {
+
+    String metricName = "request.count";
+    String aggregationMethod = "mean";
+
+    SignalFxCanaryScope scope = new SignalFxCanaryScope();
+    scope.setScope("1.0.0");
+    scope.setScopeKey("version");
+    scope.setExtendedScopeParams(ImmutableMap.of(
+        "env", "production",
+        "region", "us-west-2",
+        "_scope_key", "version"));
+
+    SimpleSignalFlowProgramBuilder builder = SimpleSignalFlowProgramBuilder
+        .create(metricName, aggregationMethod);
+
+    builder.withQueryPair(new QueryPair("app", "cms"));
+    builder.withQueryPair(new QueryPair("response_code", "400"));
+    builder.withQueryPair(new QueryPair("uri", "/v2/auth/iam-principal"));
+    builder.withScope(scope);
+
+    String expected = "data('request.count', filter=" +
+        "filter('app', 'cms') " +
+        "and filter('response_code', '400') " +
+        "and filter('uri', '/v2/auth/iam-principal') " +
+        "and filter('version', '1.0.0') " +
+        "and filter('env', 'production') " +
+        "and filter('region', 'us-west-2'))" +
+        ".mean(by=['env', 'region', 'version']).publish()";
+
+    assertEquals(expected, builder.build());
+  }
+
+  @Test
   public void test_that_the_program_builder_builds_the_expected_program_1_qp() {
 
     String metricName = "request.count";
@@ -65,7 +101,9 @@ public class SimpleSignalFlowProgramBuilderTest {
     SignalFxCanaryScope scope = new SignalFxCanaryScope();
     scope.setScope("1.0.0");
     scope.setScopeKey("version");
-    scope.setExtendedScopeParams(ImmutableMap.of("env", "production"));
+    scope.setExtendedScopeParams(ImmutableMap.of(
+        "env", "production",
+        "_scope_key", "version"));
 
     SimpleSignalFlowProgramBuilder builder = SimpleSignalFlowProgramBuilder
         .create(metricName, aggregationMethod);
@@ -91,7 +129,9 @@ public class SimpleSignalFlowProgramBuilderTest {
     SignalFxCanaryScope scope = new SignalFxCanaryScope();
     scope.setScope("1.0.0");
     scope.setScopeKey("version");
-    scope.setExtendedScopeParams(ImmutableMap.of("env", "production"));
+    scope.setExtendedScopeParams(ImmutableMap.of(
+        "env", "production",
+        "_scope_key", "version"));
 
     SimpleSignalFlowProgramBuilder builder = SimpleSignalFlowProgramBuilder
         .create(metricName, aggregationMethod);
@@ -102,6 +142,28 @@ public class SimpleSignalFlowProgramBuilderTest {
         "filter('version', '1.0.0') " +
         "and filter('env', 'production'))" +
         ".mean(by=['env', 'version']).publish()";
+
+    assertEquals(expected, builder.build());
+  }
+
+  @Test
+  public void test_that_when_there_are_extra_scope_query_pairs_that_the_program_builds_as_expected() {
+    String metricName = "request.count";
+    String aggregationMethod = "mean";
+
+    SignalFxCanaryScope scope = new SignalFxCanaryScope();
+    scope.setScope("1.0.0");
+    scope.setScopeKey("version");
+    scope.setExtendedScopeParams(ImmutableMap.of("_scope_key", "version"));
+
+    SimpleSignalFlowProgramBuilder builder = SimpleSignalFlowProgramBuilder
+        .create(metricName, aggregationMethod);
+
+    builder.withScope(scope);
+
+    String expected = "data('request.count', filter=" +
+        "filter('version', '1.0.0'))" +
+        ".mean(by=['version']).publish()";
 
     assertEquals(expected, builder.build());
   }

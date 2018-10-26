@@ -77,10 +77,10 @@ public class SimpleSignalFlowProgramBuilder {
     filters.add(String.format(FILTER_TEMPLATE, canaryScope.getScopeKey(), canaryScope.getScope()));
 
     if (canaryScope.getExtendedScopeParams().size() > 0) {
-      filters.add(canaryScope.getExtendedScopeParams().entrySet().stream()
+      filters.addAll(canaryScope.getExtendedScopeParams().entrySet().stream()
           .filter(entry -> !entry.getKey().startsWith("_")) // filter out keys that start with _
           .map(entry -> String.format(FILTER_TEMPLATE, entry.getKey(), entry.getValue()))
-          .collect(Collectors.joining(" and ")));
+          .collect(Collectors.toList()));
     }
 
     return String.join(" and ", filters);
@@ -98,7 +98,11 @@ public class SimpleSignalFlowProgramBuilder {
     }
     filters.addAll(filterSegments);
 
-    program.append(String.join(" and ", filters)).append(")");
+    if (!filters.isEmpty()) {
+      program.append(String.join(" and ", filters));
+    }
+
+    program.append(")");
 
     program.append('.').append(aggregationMethod)
         .append("(by=['")
