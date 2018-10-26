@@ -16,14 +16,18 @@
 package com.netflix.kayenta.canary;
 
 import com.netflix.kayenta.canary.results.CanaryResult;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CanaryExecutionStatusResponse {
   protected String application;
 
