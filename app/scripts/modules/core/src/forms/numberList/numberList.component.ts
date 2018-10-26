@@ -12,7 +12,7 @@ export class NumberListController implements IController {
   public label: string;
   public backingModel: number[];
   public parameterized = false;
-  public onChange: () => any;
+  public onChange: (model: number[] | string) => void;
 
   public synchronize(): void {
     const model: number[] | string = this.model; // typescript union type woes
@@ -26,7 +26,7 @@ export class NumberListController implements IController {
       model.sort((a, b) => a - b);
     }
     if (this.onChange) {
-      this.onChange();
+      this.onChange(model);
     }
   }
 
@@ -141,5 +141,24 @@ class NumberListComponent implements IComponentOptions {
 `;
 }
 
+export class NumberListWrapperComponent implements IComponentOptions {
+  public bindings: any = {
+    model: '<',
+    constraints: '<?',
+    label: '<',
+    onChange: '<',
+  };
+  public template = `
+    <number-list
+      model="$ctrl.model"
+      constraints="$ctrl.constraints"
+      label={{$ctrl.label}}
+      on-change="$ctrl.onChange($ctrl.model)">
+    </number-list>
+  `;
+}
+
 export const NUMBER_LIST_COMPONENT = 'spinnaker.core.forms.numberList';
-module(NUMBER_LIST_COMPONENT, []).component('numberList', new NumberListComponent());
+module(NUMBER_LIST_COMPONENT, [])
+  .component('numberList', new NumberListComponent())
+  .component('numberListWrapper', new NumberListWrapperComponent());

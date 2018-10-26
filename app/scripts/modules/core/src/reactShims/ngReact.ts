@@ -33,6 +33,8 @@ import { IInstanceArchetypeSelectorProps } from 'core/serverGroup/configure/comm
 import { IInstanceTypeSelectorProps } from 'core/serverGroup/configure/common/InstanceTypeSelector';
 import { V2InstanceArchetypeSelector } from 'core/serverGroup/configure/common/v2instanceArchetypeSelector.component';
 import { V2InstanceTypeSelector } from 'core/serverGroup/configure/common/v2InstanceTypeSelector.component';
+import { INumberListProps } from 'core/forms/numberList/NumberList';
+import { NumberListWrapperComponent } from 'core/forms/numberList/numberList.component';
 
 // prettier-ignore
 export class NgReactInjector extends ReactInject {
@@ -49,6 +51,7 @@ export class NgReactInjector extends ReactInject {
   public InstanceArchetypeSelector: React.ComponentClass<IInstanceArchetypeSelectorProps>     = angular2react('v2InstanceArchetypeSelector', new V2InstanceArchetypeSelector(), this.$injectorProxy) as any;
   public InstanceTypeSelector: React.ComponentClass<IInstanceTypeSelectorProps>               = angular2react('v2InstanceTypeSelector', new V2InstanceTypeSelector(), this.$injectorProxy);
   public LegacySpinner: React.ComponentClass<ILegacySpinnerProps>                             = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
+  public NumberList: React.ComponentClass<INumberListProps>                                   = angular2react('numberListWrapper', new NumberListWrapperComponent(), this.$injectorProxy) as any;
   public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps>                         = angular2react('runningTasksTag', { bindings: runningTasksTagBindings }, this.$injectorProxy) as any;
   public StageSummaryWrapper: React.ComponentClass<IStageSummaryWrapperProps>                 = angular2react('stageSummary', new StageSummaryComponent(), this.$injectorProxy) as any;
   public StepExecutionDetailsWrapper: React.ComponentClass<IStepExecutionDetailsWrapperProps> = angular2react('stepExecutionDetails', new StepExecutionDetailsComponent(), this.$injectorProxy) as any;
