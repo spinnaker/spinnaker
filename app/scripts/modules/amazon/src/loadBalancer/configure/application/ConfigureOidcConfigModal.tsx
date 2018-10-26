@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import { Formik, Field, Form, FormikErrors } from 'formik';
+import { Formik, Form, FormikErrors } from 'formik';
 
-import { ModalClose, ReactModal, SubmitButton, noop } from '@spinnaker/core';
+import { TextInput, FormikFormField, ModalClose, ReactModal, SubmitButton, noop } from '@spinnaker/core';
 
 import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
+
+import './ConfigureOidcConfigModal.css';
 
 export interface IConfigureOidcConfigModalProps {
   config: IAuthenticateOidcActionConfig;
@@ -56,30 +58,8 @@ export class ConfigureOidcConfigModal extends React.Component<
     this.props.closeModal(data);
   };
 
-  private validate = (values: IAuthenticateOidcActionConfig): Partial<FormikErrors<IAuthenticateOidcActionConfig>> => {
-    const errors: Partial<FormikErrors<IAuthenticateOidcActionConfig>> = {};
-    if (!values.authorizationEndpoint) {
-      errors.authorizationEndpoint = 'You must provide an authorization endpoint.';
-    }
-    if (!values.clientId) {
-      errors.clientId = 'You must provide a client id.';
-    }
-    if (!values.issuer) {
-      errors.issuer = 'You must provide an issuer.';
-    }
-    if (!values.scope) {
-      errors.scope = 'You must provide a scope.';
-    }
-    if (!values.sessionCookieName) {
-      errors.sessionCookieName = 'You must provide a sessionCookieName.';
-    }
-    if (!values.tokenEndpoint) {
-      errors.tokenEndpoint = 'You must provide a token endpoint.';
-    }
-    if (!values.userInfoEndpoint) {
-      errors.userInfoEndpoint = 'You must provide a user info endpoint.';
-    }
-    return errors;
+  private validate = (): FormikErrors<IAuthenticateOidcActionConfig> => {
+    return {};
   };
 
   public render() {
@@ -88,7 +68,7 @@ export class ConfigureOidcConfigModal extends React.Component<
     const submitLabel = 'Save Client';
 
     return (
-      <div>
+      <div className="ConfigureOidcConfigModal">
         <Formik<IAuthenticateOidcActionConfig>
           initialValues={initialValues}
           onSubmit={this.submit}
@@ -99,74 +79,51 @@ export class ConfigureOidcConfigModal extends React.Component<
               <Modal.Header>
                 <h3>Configure OIDC Client</h3>
               </Modal.Header>
+
               <Modal.Body>
-                <div className="form-group row">
-                  <div className="col-sm-3 sm-label-right">Issuer</div>
-                  <div className="col-sm-9">
-                    <Field
-                      className="form-control input-sm"
-                      name="issuer"
-                      placeholder="Enter the OpenID Provider"
-                      required={true}
-                    />
-                  </div>
-                </div>
-                <div className="form-group row">
-                  <div className="col-sm-3 sm-label-right">Authorization Endpoint</div>
-                  <div className="col-sm-9">
-                    <Field
-                      className="form-control input-sm"
-                      name="authorizationEndpoint"
-                      placeholder="Enter OpenID provider server endpoint"
-                      required={true}
-                    />
-                  </div>
-                </div>
-                <div className="form-group row">
-                  <div className="col-sm-3 sm-label-right">Token Endpoint</div>
-                  <div className="col-sm-9">
-                    <Field
-                      className="form-control input-sm"
-                      name="tokenEndpoint"
-                      placeholder="Enter a URI for your token endpoint"
-                      required={true}
-                    />
-                  </div>
-                </div>
-                <div className="form-group row">
-                  <div className="col-sm-3 sm-label-right">User info Endpoint</div>
-                  <div className="col-sm-9">
-                    <Field
-                      className="form-control input-sm"
-                      name="userInfoEndpoint"
-                      placeholder="Enter a URI for your user info endpoint"
-                      required={true}
-                    />
-                  </div>
-                </div>
-                <div className="form-group row">
-                  <div className="col-sm-3 sm-label-right">Client ID</div>
-                  <div className="col-sm-9">
-                    <Field
-                      className="form-control input-sm"
-                      name="clientId"
-                      placeholder="Enter the client ID"
-                      required={true}
-                    />
-                  </div>
-                </div>
-                <div className="form-group row">
-                  <div className="col-sm-3 sm-label-right">Client secret</div>
-                  <div className="col-sm-9">
-                    <Field
-                      className="form-control input-sm"
-                      name="clientSecret"
-                      placeholder="Enter the client secret"
-                      required={true}
-                    />
-                  </div>
-                </div>
+                <FormikFormField
+                  name="issuer"
+                  label="Issuer"
+                  required={true}
+                  input={props => <TextInput {...props} placeholder="Enter the OpenId Provider" />}
+                />
+
+                <FormikFormField
+                  name="authorizationEndpoint"
+                  label="Authorization Endpoint"
+                  required={true}
+                  input={props => <TextInput {...props} placeholder="Enter OpenID provider server endpoint" />}
+                />
+
+                <FormikFormField
+                  name="tokenEndpoint"
+                  label="Token Endpoint"
+                  required={true}
+                  input={props => <TextInput {...props} placeholder="Enter a URI for your token endpoint" />}
+                />
+
+                <FormikFormField
+                  name="userInfoEndpoint"
+                  label="User info Endpoint"
+                  required={true}
+                  input={props => <TextInput {...props} placeholder="Enter a URI for your user info endpoint" />}
+                />
+
+                <FormikFormField
+                  name="clientId"
+                  label="Client ID"
+                  required={true}
+                  input={props => <TextInput {...props} placeholder="Enter the client ID" />}
+                />
+
+                <FormikFormField
+                  name="clientSecret"
+                  label="Client secret"
+                  required={true}
+                  input={props => <TextInput {...props} placeholder="Enter the client secret" />}
+                />
               </Modal.Body>
+
               <Modal.Footer>
                 <button className="btn btn-default" onClick={this.close} type="button">
                   Cancel
