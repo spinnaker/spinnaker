@@ -52,7 +52,7 @@ class GoogleAutoscalingPolicy {
     enum UtilizationTargetType {
       GAUGE,
       DELTA_PER_SECOND,
-      DELTA_PER_MINUTE;
+      DELTA_PER_MINUTE
     }
   }
 

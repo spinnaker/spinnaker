@@ -59,6 +59,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   private static final String DEFAULT_NETWORK_NAME = "default"
   private static final String ACCESS_CONFIG_NAME = "External NAT"
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"
+  private static final Integer MAX_NAME_SIZE = 64 // NOTE: Experimentally determined, subject to change. See https://github.com/spinnaker/spinnaker/issues/3449.
+  private static final Integer TEMPLATE_UUID_SIZE = 8
 
   @Autowired
   private GoogleConfigurationProperties googleConfigurationProperties
@@ -299,7 +301,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         regionBackendServicesToUpdate << backendService
       }
     }
-    String instanceTemplateName = "$serverGroupName-${System.currentTimeMillis()}"
+
+    String now = System.currentTimeMillis()
+    String slice = now.substring(now.size()-TEMPLATE_UUID_SIZE)
+    String instanceTemplateName = "$serverGroupName-$slice"
+    if (instanceTemplateName.size() > MAX_NAME_SIZE) {
+      throw new IllegalArgumentException("Max name length ${MAX_NAME_SIZE} exceeded in resolved instance template name ${instanceTemplateName}.")
+    }
+
     Map userDataMap = getUserData(description, serverGroupName, instanceTemplateName, credentials)
 
     if (instanceMetadata) {
