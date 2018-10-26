@@ -144,8 +144,8 @@ def check_subprocess(cmd, stream=None, **kwargs):
     logging.error('Command failed. See embedded output above.')
   else:
     lines = stdout.split('\n')
-    if lines > 10:
-      lines = lines[-10:]
+    if lines > 30:
+      lines = lines[-30:]
     log_embedded_output(logging.ERROR,
                         'Command failed with last %d lines' % len(lines),
                         '\n'.join(lines))

@@ -24,6 +24,7 @@ import logging
 import os
 import shutil
 import stat
+import sys
 import tempfile
 import time
 import traceback
@@ -817,7 +818,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
       self.__wait_for_ssh_helper()
     except Exception as ex:
       raise_and_log_error(
-          ExecutionError('Caught %s provisioning vm' % ex.message,
+          ExecutionError('Caught "%s" provisioning vm' % ex.message,
                          program='provisionVm'))
     finally:
       shutil.copyfile(script_path,
@@ -991,7 +992,9 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
               '"{0}" is not running'.format(options.deploy_aws_name),
               server='ec2'))
 
-    return found[0]['Instances'][0]['PublicIpAddress']
+    ip = found[0]['Instances'][0]['PublicIpAddress']
+    logging.debug('Using public IP=%s', ip)
+    return ip
 
   def do_create_vm(self, options):
     """Implements GenericVmValidateBomDeployer interface."""
@@ -1013,7 +1016,8 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
                 ami=options.deploy_aws_ami,
                 type='t2.xlarge',  # 4 core x 16G
                 key_pair_name=key_pair_name,
-                sg=options.deploy_aws_security_group))
+                sg=options.deploy_aws_security_group),
+        stream=sys.stdout)
     doc = json.JSONDecoder().decode(response)
     self.__instance_id = doc["Instances"][0]["InstanceId"]
     logging.info('Created instance id=%s to tag as "%s"',
@@ -1034,7 +1038,8 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
             ' --tags "Key=Name,Value={name}"'
             .format(region=options.deploy_aws_region,
                     instance_id=self.__instance_id,
-                    name=options.deploy_aws_name))
+                    name=options.deploy_aws_name),
+            stream=sys.stdout)
         did_tag = tag_retcode == 0
       if self.__is_ready():
         return
@@ -1260,6 +1265,8 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
 
     # Note: this used to dup_stderr_to_stdout=False with an older API
     # presumably this wont return stderr anymore or it will corrupt the json.
+    logging.debug('Looking up IP address for "%s"...',
+                  options.deploy_google_instance)
     response = check_subprocess(
         'gcloud compute instances describe'
         ' --format json'
@@ -1273,8 +1280,12 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
 
     use_internal_ip = options.deploy_google_use_internal_ip
     if use_internal_ip:
+      logging.debug('Using internal IP=%s', nic['networkIP'])
       return nic['networkIP']
-    return nic['accessConfigs'][0]['natIP']
+
+    ip = nic['accessConfigs'][0]['natIP']
+    logging.debug('Using public IP=%s', ip)
+    return ip
 
   def __init__(self, options, metrics, **kwargs):
     super(GoogleValidateBomDeployer, self).__init__(options, metrics, **kwargs)
@@ -1344,6 +1355,8 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
           ConfigError('--deploy_hal_google_service_account not specified.'))
 
     if options.deploy_deploy:
+      logging.debug('Checking if "%s" already exists...',
+                    options.deploy_google_instance)
       retcode, _ = run_subprocess(
           'gcloud compute instances describe'
           ' --account {gcloud_account}'
@@ -1393,7 +1406,8 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
                 network=options.deploy_google_network,
                 network_tags=options.deploy_google_tags,
                 ssh_key=ssh_key,
-                instance=options.deploy_google_instance))
+                instance=options.deploy_google_instance),
+      stream=sys.stdout)
 
   def do_undeploy(self):
     """Implements the BaseBomValidateDeployer interface."""

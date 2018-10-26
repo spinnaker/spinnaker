@@ -489,8 +489,8 @@ class ValidateBomTestController(object):
     logging.debug('Logging "%s" port forwarding to %s', service_name, logfile)
     child = subprocess.Popen(
         command,
-        stderr=stream,
-        stdout=None)
+        stderr=subprocess.STDOUT,
+        stdout=stream)
     return ForwardedPort(child, local_port)
 
   def build_summary(self):
