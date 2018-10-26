@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Field, FormikErrors } from 'formik';
 
 import {
-  NgReact,
+  DeploymentStrategySelector,
   HelpField,
   IWizardPageProps,
   wizardPage,
@@ -181,10 +181,13 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     });
   };
 
+  private onStrategyFieldChange = (key: string, value: any) => {
+    this.props.formik.setFieldValue(key, value);
+  };
+
   public render() {
     const { errors, setFieldValue, values } = this.props.formik;
     const { createsNewCluster, latestServerGroup, namePreview, showImageIdField, showPreviewAsWarning } = this.state;
-    const { DeploymentStrategySelector } = NgReact;
 
     const accounts = values.backingData.accounts;
     const readOnlyFields = values.viewState.readOnlyFields || {};
@@ -315,7 +318,11 @@ class ServerGroupBasicSettingsImpl extends React.Component<
         </div>
         {!values.viewState.disableStrategySelection &&
           values.selectedProvider && (
-            <DeploymentStrategySelector command={values} onStrategyChange={this.strategyChanged} />
+            <DeploymentStrategySelector
+              command={values}
+              onFieldChange={this.onStrategyFieldChange}
+              onStrategyChange={this.strategyChanged}
+            />
           )}
         {!values.viewState.hideClusterNamePreview && (
           <div className="form-group">

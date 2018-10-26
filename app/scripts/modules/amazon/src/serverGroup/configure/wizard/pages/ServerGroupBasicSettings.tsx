@@ -5,7 +5,7 @@ import * as DOMPurify from 'dompurify';
 
 import {
   AccountSelectField,
-  NgReact,
+  DeploymentStrategySelector,
   HelpField,
   IWizardPageProps,
   wizardPage,
@@ -275,6 +275,10 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     this.props.formik.setFieldValue('strategy', strategy.key);
   };
 
+  private onStrategyFieldChange = (key: string, value: any) => {
+    this.props.formik.setFieldValue(key, value);
+  };
+
   public render() {
     const { app } = this.props;
     const { errors, values } = this.props.formik;
@@ -286,7 +290,6 @@ class ServerGroupBasicSettingsImpl extends React.Component<
       namePreview,
       showPreviewAsWarning,
     } = this.state;
-    const { DeploymentStrategySelector } = NgReact;
     const { SubnetSelectField } = AwsNgReact;
 
     const accounts = values.backingData.accounts;
@@ -458,7 +461,11 @@ class ServerGroupBasicSettingsImpl extends React.Component<
         </div>
         {!values.viewState.disableStrategySelection &&
           values.selectedProvider && (
-            <DeploymentStrategySelector command={values} onStrategyChange={this.strategyChanged} />
+            <DeploymentStrategySelector
+              command={values}
+              onFieldChange={this.onStrategyFieldChange}
+              onStrategyChange={this.strategyChanged}
+            />
           )}
         {!values.viewState.hideClusterNamePreview && (
           <div className="form-group">

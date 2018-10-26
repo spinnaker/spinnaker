@@ -1,4 +1,12 @@
+import * as React from 'react';
 import { cloneDeep } from 'lodash';
+
+import { IServerGroupCommand } from 'core/serverGroup';
+
+export interface IDeploymentStrategyAdditionalFieldsProps {
+  command: IServerGroupCommand;
+  onChange: (key: string, value: any) => void;
+}
 
 export interface IDeploymentStrategy {
   key: string;
@@ -7,6 +15,7 @@ export interface IDeploymentStrategy {
   providerRestricted?: boolean;
   additionalFields?: string[];
   additionalFieldsTemplateUrl?: string;
+  AdditionalFieldsComponent?: React.ComponentType<IDeploymentStrategyAdditionalFieldsProps>;
   initializationMethod?: (command: any) => void;
 }
 
