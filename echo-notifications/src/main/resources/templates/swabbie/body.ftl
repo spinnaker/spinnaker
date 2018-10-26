@@ -32,30 +32,20 @@
             - (${resource.name})
           </#if>
         </a>
+          <#if resource.lastSeenInfo??>
+            . Last seen in ${resource.lastSeenInfo.usedByResourceIdentifier} on ${resource.lastSeenInfo.timeSeen?number_to_date?string("EEE, d MMM yyyy")}
+          </#if>
+        . Opt this resource out of deletion <a href="${notification.additionalContext.optOutLink}/${resource.namespace}/${resource.resourceId}/optOut" style="Margin: 0; color: #2199e8; font-family: Helvetica, Arial, sans-serif; font-weight: normal; line-height: 1.3; margin: 0; padding: 0; text-align: left; text-decoration: none;"> here </a>
+        or view detailed resource information <a href="${notification.additionalContext.optOutLink}/${resource.namespace}/${resource.resourceId}" style="Margin: 0; color: #2199e8; font-family: Helvetica, Arial, sans-serif; font-weight: normal; line-height: 1.3; margin: 0; padding: 0; text-align: left; text-decoration: none;"> here</a>.
+        Cleanup scheduled for <em>${resource.projectedDeletionStamp?number_to_date?string("EEE, d MMM yyyy")}</em>
         &nbsp;&nbsp;
-      </div>
-      <div class="date" style="margin: 8px 0;">
-        <b>${resource.projectedDeletionStamp?number_to_date?string("EEE, d MMM yyyy")}</b> <em class="caption" style="color: #555; font-size: 13px; margin-bottom: 8px;">Cleanup Scheduled</em>
-      </div>
-      <div class="caption small message" style="color: #555; font-size: 12px; margin: 4px 0; margin-bottom: 8px; margin-top: 14px;">
-        Reasons:
-          <ul>
-            <#foreach summary in resource.summaries>
-              <li style="font-size: small">${summary.description}</li>
-            </#foreach>
-          </ul>
-      </div>
-      <div class="small" style="font-size: 12px; margin: 4px 0;">
-        <a href="${notification.additionalContext.optOutLink}${resource.resourceId}" style="Margin: 0; color: #2199e8; font-family: Helvetica, Arial, sans-serif; font-weight: normal; line-height: 1.3; margin: 0; padding: 0; text-align: left; text-decoration: none;">
-          OPT OUT
-        </a>
       </div>
     </td>
   </tr>
   </#foreach>
   <tr style="padding: 0; text-align: left; vertical-align: top;">
     <td colspan="2" class="footer" style="-moz-hyphens: auto; -webkit-hyphens: auto; Margin: 0; background-color: #F2f2f2; border-collapse: collapse !important; color: #3A5469; font-family: Helvetica, Arial, sans-serif; font-size: 14px; font-weight: normal; hyphens: auto; line-height: 1.3; margin: 0; padding: 30px; text-align: left; vertical-align: top; word-wrap: break-word;">
-      #spinnaker<br>
+      For questions, reach out to #spinnaker in Slack.<br>
     </td>
   </tr>
 </table>
