@@ -79,11 +79,12 @@ local gitTrigger = sponnet.triggers
                    .withSlug(mySlug)
                    .withSource(mySource);
 
-local emailNotification = sponnet.notification
-                          .withAddress('someone@example.com')
-                          .withCC('test@example.com')
-                          .withType('email')
-                          .withWhen('starting');
+local emailPipelineNotification = sponnet.notification
+                                  .withAddress('someone@example.com')
+                                  .withCC('test@example.com')
+                                  .withLevel('pipeline')
+                                  .withType('email')
+                                  .withWhen('starting');
 
 local slackNotification = sponnet.notification
                           .withAddress(notificationAddress)
@@ -132,7 +133,7 @@ local jenkinsJob = sponnet.stages
                    .withJob(myJenkinsJob)
                    .withMarkUnstableAsSuccessful('false')
                    .withMaster(myJenkinsMaster)
-                   .withNotifications(slackNotification)
+                   .withNotifications(slackNotification.withLevel('stage'))
                    .withOverrideTimeout('300000')
                    .withRequisiteStages(findArtifactsFromResource)
                    .withWaitForCompletion('true');
@@ -141,6 +142,6 @@ sponnet.pipeline()
 .withApplication(app)
 .withExpectedArtifacts([expectedDocker, expectedManifest])
 .withName('Demo pipeline')
-.withNotifications([emailNotification, slackNotification])
+.withNotifications([emailPipelineNotification, slackNotification.withLevel('pipeline')])
 .withTriggers([dockerTrigger, gitTrigger])
 .withStages([wait, deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact, findArtifactsFromResource, jenkinsJob])

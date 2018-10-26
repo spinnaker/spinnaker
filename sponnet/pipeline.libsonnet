@@ -8,14 +8,7 @@
     withApplication(application):: self + { application: application },
     withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifacts: expectedArtifacts } else { expectedArtifacts: [expectedArtifacts] },
     withName(name):: self + { name: name },
-    withNotifications(notifications):: self + if std.type(notifications) == 'array' then {
-      notifications: [
-        notification.withLevel('pipeline')
-        for notification in notifications
-      ],
-    } else {
-      notifications: [notifications.withLevel('pipeline')],
-    },
+    withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
     withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
     withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
   },
@@ -133,12 +126,7 @@
     name: name,
     type: type,
     requisiteStageRefIds: [],
-    withNotifications(notifications):: self + { sendNotifications: true } +
-                                       if std.type(notifications) == 'array' then {
-                                         notifications: [notification.withLevel('stage') for notification in notifications],
-                                       } else {
-                                         notifications: [notifications.withLevel('stage')],
-                                       },
+    withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
     withRequisiteStages(stages):: self + if std.type(stages) == 'array' then { requisiteStageRefIds: std.map(function(stage) stage.refId, stages) } else { requisiteStageRefIds: [stages.refId] },
     // execution options
     withOverrideTimeout(timeoutMs):: self + { overrideTimeout: true, stageTimeoutMs: timeoutMs },
