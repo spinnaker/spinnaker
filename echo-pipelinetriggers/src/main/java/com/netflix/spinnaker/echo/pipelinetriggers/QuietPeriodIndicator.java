@@ -23,9 +23,6 @@ import com.netflix.spinnaker.echo.config.QuietPeriodIndicatorConfigurationProper
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -88,8 +85,17 @@ public class QuietPeriodIndicator {
     return result;
   }
 
+  private boolean shouldSuppressType(String triggerType) {
+    for (String trigger: suppressedTriggerTypes) {
+      if (trigger.equalsIgnoreCase(triggerType)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean inQuietPeriod(long now, String triggerType) {
-    return inQuietPeriod(now) && suppressedTriggerTypes.contains(triggerType);
+    return inQuietPeriod(now) && shouldSuppressType(triggerType);
   }
 
   private long parseIso(String iso) {

@@ -86,4 +86,15 @@ class QuietPeriodIndicatorSpec extends Specification {
     !quietPeriodIndicator.inQuietPeriod(parseIso(inRangeDate), "notInTheList")
     quietPeriodIndicator.inQuietPeriod(parseIso(inRangeDate), "inTheList")
   }
+
+  def "trigger type list is case insensitive"() {
+    given:
+    ArrayList<String> triggerTypes = new ArrayList<>();
+    triggerTypes.add("inTheList")
+    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(true, goodStartDate, goodEndDate, triggerTypes);
+    QuietPeriodIndicator quietPeriodIndicator = new QuietPeriodIndicator(registry, config)
+
+    expect:
+    quietPeriodIndicator.inQuietPeriod(parseIso(inRangeDate), "inthelist")
+  }
 }
