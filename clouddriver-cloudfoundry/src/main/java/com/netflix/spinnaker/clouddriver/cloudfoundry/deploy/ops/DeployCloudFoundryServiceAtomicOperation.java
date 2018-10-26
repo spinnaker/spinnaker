@@ -44,7 +44,7 @@ public class DeployCloudFoundryServiceAtomicOperation implements AtomicOperation
         description.getService(),
         description.getServicePlan(),
         description.getTags(),
-        description.getParameters(),
+        description.getParameterMap(),
         description.getSpace());
     task.updateStatus(PHASE, "Created service instance '" + description.getServiceName() + "'");
     return null;

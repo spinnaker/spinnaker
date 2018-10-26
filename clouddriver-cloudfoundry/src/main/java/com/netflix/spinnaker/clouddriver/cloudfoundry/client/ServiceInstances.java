@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -121,7 +122,7 @@ public class ServiceInstances {
   }
 
   public void createServiceInstance(String newServiceInstanceName, String serviceName, String servicePlanName,
-                                    Set<String> tags, String parameters, CloudFoundrySpace space)
+                                    Set<String> tags, Map<String, Object> parameters, CloudFoundrySpace space)
     throws CloudFoundryApiException, ResourceNotFoundException {
 
     List<CloudFoundryServicePlan> cloudFoundryServicePlans = findAllServicePlansByServiceName(serviceName);

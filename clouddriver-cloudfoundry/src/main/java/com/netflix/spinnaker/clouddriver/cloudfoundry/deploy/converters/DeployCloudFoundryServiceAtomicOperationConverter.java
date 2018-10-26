@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.servicebroker.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Map;
 
 @CloudFoundryOperation(AtomicOperations.DEPLOY_SERVICE)
@@ -40,6 +43,18 @@ public class DeployCloudFoundryServiceAtomicOperationConverter extends AbstractC
     converted.setClient(getClient(input));
     converted.setSpace(findSpace(converted.getRegion(), converted.getClient())
       .orElseThrow(() -> new IllegalArgumentException("Unable to find space '" + converted.getRegion() + "'.")));
+
+    String parameterString = (String) input.get("parameters");
+    if (!StringUtils.isBlank(parameterString)) {
+      try {
+        converted.setParameterMap(getObjectMapper()
+          .readValue(parameterString, new TypeReference<Map<String, Object>>() {
+          }));
+      } catch (IOException e) {
+        throw new IllegalArgumentException("Unable to convert parameters to map: '" + e.getMessage() + "'.");
+      }
+    }
+
     return converted;
   }
 }

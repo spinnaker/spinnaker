@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -33,5 +34,5 @@ public class CreateServiceInstance {
   private Set<String> tags;
 
   @Nullable
-  private String parameters;
+  private Map<String, Object> parameters;
 }

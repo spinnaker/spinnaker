@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -27,5 +28,5 @@ public class DeployCloudFoundryServiceDescription extends DestroyCloudFoundrySer
   String service;
   String servicePlan;
   Set<String> tags;
-  String parameters;
+  Map<String, Object> parameterMap;
 }
