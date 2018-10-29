@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
@@ -92,8 +93,18 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     // Determine which listeners to delete.
     List<String> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
-      if (GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
-        listenersToDelete << rule.getName()
+      try {
+        if (GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
+          listenersToDelete << rule.getName()
+        }
+      } catch (GoogleJsonResponseException e) {
+        // 404 is thrown if the target proxy does not exist.
+        // We can ignore 404's here because we are iterating over all forwarding rules and some other process may have
+        // deleted the target proxy between the time we queried for the list of forwarding rules and now.
+        // Any other exception needs to be propagated.
+        if (e.getStatusCode() != 404) {
+          throw e
+        }
       }
     }
 

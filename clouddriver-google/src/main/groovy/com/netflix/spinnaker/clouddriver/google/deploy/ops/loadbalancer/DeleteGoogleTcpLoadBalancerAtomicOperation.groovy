@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -63,7 +64,7 @@ class DeleteGoogleTcpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
     def forwardingRuleName = description.loadBalancerName
 
     // First we look everything up. Then, we call delete on all of it. Finally, we wait (with timeout) for all to complete.
-    // Start with the forwaring rule.
+    // Start with the forwarding rule.
     task.updateStatus BASE_PHASE, "Retrieving global forwarding rule $forwardingRuleName..."
 
     List<ForwardingRule> projectForwardingRules = timeExecute(
@@ -91,9 +92,19 @@ class DeleteGoogleTcpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
 
     List<String> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
-      def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, BASE_PHASE, safeRetry, this)
-      if (GCEUtil.getLocalName(proxy?.service) == backendServiceName) {
-        listenersToDelete << rule.getName()
+      try {
+        def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, BASE_PHASE, safeRetry, this)
+        if (GCEUtil.getLocalName(proxy?.service) == backendServiceName) {
+          listenersToDelete << rule.getName()
+        }
+      } catch (GoogleJsonResponseException e) {
+        // 404 is thrown if the target proxy does not exist.
+        // We can ignore 404's here because we are iterating over all forwarding rules and some other process may have
+        // deleted the target proxy between the time we queried for the list of forwarding rules and now.
+        // Any other exception needs to be propagated.
+        if (e.getStatusCode() != 404) {
+          throw e
+        }
       }
     }
 

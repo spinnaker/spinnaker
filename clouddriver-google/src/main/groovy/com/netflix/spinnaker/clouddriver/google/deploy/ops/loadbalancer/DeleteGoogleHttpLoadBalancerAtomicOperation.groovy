@@ -83,7 +83,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     def forwardingRuleName = description.loadBalancerName
 
     // First we look everything up. Then, we call delete on all of it. Finally, we wait (with timeout) for all to complete.
-    // Start with the forwaring rule.
+    // Start with the forwarding rule.
     task.updateStatus BASE_PHASE, "Retrieving global forwarding rule $forwardingRuleName..."
 
     List<ForwardingRule> projectForwardingRules = timeExecute(
