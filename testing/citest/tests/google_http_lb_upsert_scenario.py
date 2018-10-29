@@ -97,8 +97,6 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
       'cloudProvider': 'gce',
       'loadBalancerType': 'HTTP',
       'loadBalancerName': self.__lb_name,
-      'region': bindings['TEST_GCE_REGION'],
-      'regions': [bindings['TEST_GCE_REGION']],
       'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       'user': '[anonymous]'
     }
@@ -338,10 +336,9 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
 
     payload = self.agent.make_json_payload_from_kwargs(
       job=[delete],
-      description='Delete L7 Load Balancer: {0} in {1}:{2}'.format(
+      description='Delete L7 Load Balancer: {0} in {1}'.format(
         self.__lb_name,
         bindings['SPINNAKER_GOOGLE_ACCOUNT'],
-        bindings['TEST_GCE_REGION'],
       ),
       application=self.TEST_APP
     )
