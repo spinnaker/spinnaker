@@ -35,7 +35,7 @@ public class AppengineAccount extends CommonGoogleAccount {
   private boolean sshTrustUnknownHosts;
   @ValidForSpinnakerVersion(
       lowerBound = "1.6.0",
-      message = "The gcloud release track that Spinnaker will use when deploying to App Engine"
+      tooLowMessage = "The gcloud release track that Spinnaker will use when deploying to App Engine"
                 + " is not configurable prior to this release."
   )
   private GcloudReleaseTrack gcloudReleaseTrack;

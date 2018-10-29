@@ -160,4 +160,8 @@ public class Versions {
   public static boolean lessThan(String v1, String v2) {
     return orderBySemVer().compare(v1, v2) < 0;
   }
+
+  public static boolean greaterThanEqual(String v1, String v2) {
+    return orderBySemVer().compare(v1, v2) >= 0;
+  }
 }

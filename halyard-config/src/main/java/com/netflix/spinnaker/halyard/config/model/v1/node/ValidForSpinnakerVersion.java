@@ -28,5 +28,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface ValidForSpinnakerVersion {
   String lowerBound();
-  String message();
+  String upperBound() default "";
+  String tooLowMessage();
+  String tooHighMessage() default "";
 }

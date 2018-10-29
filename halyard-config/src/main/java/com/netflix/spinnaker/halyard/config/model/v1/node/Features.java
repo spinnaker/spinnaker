@@ -43,19 +43,24 @@ public class Features extends Node {
   private boolean chaos;
   private boolean entityTags;
   private boolean jobs;
-  @ValidForSpinnakerVersion(lowerBound = "1.2.0", message = "Pipeline templates are not stable prior to this release.")
+  @ValidForSpinnakerVersion(lowerBound = "1.2.0", tooLowMessage = "Pipeline templates are not stable prior to this release.")
   private Boolean pipelineTemplates;
-  @ValidForSpinnakerVersion(lowerBound = "1.5.0", message = "Artifacts are not configurable prior to this release. Will be stable at a later release.")
+  @ValidForSpinnakerVersion(lowerBound = "1.5.0", tooLowMessage = "Artifacts are not configurable prior to this release. Will be stable at a later release.")
   private Boolean artifacts;
-  @ValidForSpinnakerVersion(lowerBound = "1.5.0", message = "Canary is not configurable prior to this release. Will be stable at a later release.")
+  @ValidForSpinnakerVersion(lowerBound = "1.5.0", tooLowMessage = "Canary is not configurable prior to this release. Will be stable at a later release.")
   private Boolean mineCanary;
-  @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Appengine container URL deployments were not supported prior to this release.")
+  @ValidForSpinnakerVersion(
+          lowerBound = "1.7.0",
+          upperBound = "1.11.0",
+          tooLowMessage = "Appengine container URL deployments were not supported prior to this version.",
+          tooHighMessage = "Appengine container URL deployments are stable; the feature flag will be removed in a future version of Halyard."
+  )
   private Boolean appengineContainerImageUrlDeployments;
-  @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Infrastructure Stages is not configurable prior to this release. Will be stable at a later release.")
+  @ValidForSpinnakerVersion(lowerBound = "1.7.0", tooLowMessage = "Infrastructure Stages is not configurable prior to this release. Will be stable at a later release.")
   private Boolean infrastructureStages;
-  @ValidForSpinnakerVersion(lowerBound = "1.9.0", message = "Travis stage is not available prior to this release.")
+  @ValidForSpinnakerVersion(lowerBound = "1.9.0", tooLowMessage = "Travis stage is not available prior to this release.")
   private Boolean travis;
-  @ValidForSpinnakerVersion(lowerBound = "1.9.0", message = "Wercker stage is not available prior to this release.")
+  @ValidForSpinnakerVersion(lowerBound = "1.9.0", tooLowMessage = "Wercker stage is not available prior to this release.")
   private Boolean wercker;
 
   public boolean isAuth(DeploymentConfiguration deploymentConfiguration) {

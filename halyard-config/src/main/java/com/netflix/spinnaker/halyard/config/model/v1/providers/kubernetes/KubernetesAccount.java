@@ -47,19 +47,19 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   String context;
   String cluster;
   String user;
-  @ValidForSpinnakerVersion(lowerBound = "1.5.0", message = "Spinnaker does not support configuring this behavior before that version.")
+  @ValidForSpinnakerVersion(lowerBound = "1.5.0", tooLowMessage = "Spinnaker does not support configuring this behavior before that version.")
   Boolean configureImagePullSecrets;
   Boolean serviceAccount;
   int cacheThreads = 1;
   List<String> namespaces = new ArrayList<>();
   List<String> omitNamespaces = new ArrayList<>();
-  @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Configuring kind caching behavior is not supported yet.")
+  @ValidForSpinnakerVersion(lowerBound = "1.7.0", tooLowMessage = "Configuring kind caching behavior is not supported yet.")
   List<String> kinds = new ArrayList<>();
-  @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Configuring kind caching behavior is not supported yet.")
+  @ValidForSpinnakerVersion(lowerBound = "1.7.0", tooLowMessage = "Configuring kind caching behavior is not supported yet.")
   List<String> omitKinds = new ArrayList<>();
-  @ValidForSpinnakerVersion(lowerBound = "1.6.0", message = "Custom kinds and resources are not supported yet.")
+  @ValidForSpinnakerVersion(lowerBound = "1.6.0", tooLowMessage = "Custom kinds and resources are not supported yet.")
   List<CustomKubernetesResource> customResources = new ArrayList<>();
-  @ValidForSpinnakerVersion(lowerBound = "1.8.0", message = "Caching policies are not supported yet.")
+  @ValidForSpinnakerVersion(lowerBound = "1.8.0", tooLowMessage = "Caching policies are not supported yet.")
   List<KubernetesCachingPolicy> cachingPolicies = new ArrayList<>();
 
   @LocalFile String kubeconfigFile;

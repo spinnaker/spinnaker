@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -53,9 +54,20 @@ public class FieldValidator extends Validator<Node> {
             try {
               field.setAccessible(true);
               Object v = field.get(n);
-              boolean fieldNotValid = v != null &&
-                  annotation != null &&
-                  Versions.lessThan(spinnakerVersion, annotation.lowerBound());
+              boolean fieldNotValid = false;
+              String invalidFieldMessage = "";
+              String remediation = "";
+              if (v != null && annotation != null) {
+                if (Versions.lessThan(spinnakerVersion, annotation.lowerBound())) {
+                  fieldNotValid = true;
+                  invalidFieldMessage = annotation.tooLowMessage();
+                  remediation = "Use at least " + annotation.lowerBound() + " (It may not have been released yet).";
+                } else if (!StringUtils.equals(annotation.upperBound(), "") && Versions.greaterThanEqual(spinnakerVersion, annotation.upperBound())) {
+                  fieldNotValid = true;
+                  invalidFieldMessage = annotation.tooHighMessage();
+                  remediation = "You no longer need this.";
+                }
+              }
 
               // If the field was set to false, it's assumed it's not enabling a restricted feature
               if (fieldNotValid && (v instanceof Boolean) && !((Boolean) v)) {
@@ -70,8 +82,8 @@ public class FieldValidator extends Validator<Node> {
               if (fieldNotValid) {
                 p.addProblem(
                     Problem.Severity.WARNING,
-                    "Field " + finalClazz.getSimpleName() + "." + field.getName() + " not supported for Spinnaker version " + spinnakerVersion + ": " + annotation.message()
-                ).setRemediation("Use at least " + annotation.lowerBound() + " (It may not have been released yet).");
+                    "Field " + finalClazz.getSimpleName() + "." + field.getName() + " not supported for Spinnaker version " + spinnakerVersion + ": " + invalidFieldMessage
+                ).setRemediation(remediation);
               }
             } catch (NumberFormatException /* Probably using nightly build */ e) {
               log.info("Nightly builds do not contain version information.");
