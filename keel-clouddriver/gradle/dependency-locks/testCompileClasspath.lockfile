@@ -29,7 +29,7 @@ com.squareup.retrofit:converter-jackson:1.9.0
 com.squareup.retrofit:retrofit-mock:1.9.0
 com.squareup.retrofit:retrofit:1.9.0
 commons-logging:commons-logging:1.2
-io.strikt:strikt-core:0.16.2
+io.strikt:strikt-core:0.16.3
 javax.validation:validation-api:1.1.0.Final
 junit:junit:4.12
 net.bytebuddy:byte-buddy-agent:1.6.14
@@ -43,11 +43,11 @@ org.codehaus.groovy:groovy-all:2.4.13
 org.hamcrest:hamcrest-core:1.3
 org.hibernate:hibernate-validator:5.3.6.Final
 org.jboss.logging:jboss-logging:3.3.0.Final
-org.jetbrains.kotlin:kotlin-reflect:1.2.71
-org.jetbrains.kotlin:kotlin-stdlib-common:1.2.71
-org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.2.71
-org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.71
-org.jetbrains.kotlin:kotlin-stdlib:1.2.71
+org.jetbrains.kotlin:kotlin-reflect:1.3.0
+org.jetbrains.kotlin:kotlin-stdlib-common:1.3.0
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.0
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.0
+org.jetbrains.kotlin:kotlin-stdlib:1.3.0
 org.jetbrains:annotations:13.0
 org.junit.jupiter:junit-jupiter-api:5.3.1
 org.junit.platform:junit-platform-commons:1.3.1

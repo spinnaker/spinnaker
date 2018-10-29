@@ -3,13 +3,14 @@ apply plugin: "kotlin-spring"
 apply from: "$rootDir/gradle/grpc.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
+apply plugin: "application"
 
 dependencies {
   protobuf project(":keel-api")
 
   implementation project(":keel-common")
   implementation "org.lognet:grpc-spring-boot-starter:+"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.+"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
   implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:+"
 
@@ -30,3 +31,4 @@ test {
     includeEngines "spek", "junit-jupiter"
   }
 }
+mainClassName = "com.netflix.spinnaker.keel.MainKt"

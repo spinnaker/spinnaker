@@ -26,8 +26,6 @@ import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import kotlin.coroutines.experimental.SequenceBuilder
-import kotlin.coroutines.experimental.buildSequence
 
 @Component
 class ValidateAssetTreeHandler(
@@ -39,7 +37,7 @@ class ValidateAssetTreeHandler(
   override val messageType = ValidateAssetTree::class.java
 
   override fun handle(message: ValidateAssetTree) {
-    val invalidAssetIds = buildSequence {
+    val invalidAssetIds = sequence<AssetId> {
       validateSubTree(message.rootId)
     }
     invalidAssetIds.forEach { id ->
@@ -50,7 +48,7 @@ class ValidateAssetTreeHandler(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private suspend fun SequenceBuilder<AssetId>.validateSubTree(id: AssetId) {
+  private suspend fun SequenceScope<AssetId>.validateSubTree(id: AssetId) {
     val desired = repository.getContainer(id)
     if (desired == null) {
       log.error("{} : Not found", id)

@@ -32,10 +32,10 @@ io.netty:netty-transport:4.1.27.Final
 io.opencensus:opencensus-api:0.12.3
 io.opencensus:opencensus-contrib-grpc-metrics:0.12.3
 org.codehaus.mojo:animal-sniffer-annotations:1.17
-org.jetbrains.kotlin:kotlin-stdlib-common:1.2.71
-org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.2.71
-org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.71
-org.jetbrains.kotlin:kotlin-stdlib:1.2.71
+org.jetbrains.kotlin:kotlin-stdlib-common:1.3.0
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.0
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.0
+org.jetbrains.kotlin:kotlin-stdlib:1.3.0
 org.jetbrains:annotations:13.0
 org.lognet:grpc-spring-boot-starter:2.4.3
 org.slf4j:jcl-over-slf4j:1.7.25
