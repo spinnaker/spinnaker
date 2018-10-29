@@ -259,6 +259,19 @@ module.exports = angular
       return this.command.pipeline.stages.filter(stage => stage.type === stageType);
     };
 
+    this.dateOptions = {
+      dateDisabled: false,
+      showWeeks: false,
+      minDate: new Date(),
+      startingDay: 1,
+    };
+
+    this.dateOpened = {};
+
+    this.openDate = parameterName => {
+      this.dateOpened[parameterName] = true;
+    };
+
     /**
      * Initialization
      */

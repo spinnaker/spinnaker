@@ -80,7 +80,25 @@
             <span ng-if="parameter.required">*</span>
             <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
           </div>
-          <div class="col-md-6" ng-if="!parameter.hasOptions">
+          <div class="col-md-6" ng-if="!parameter.hasOptions && parameter.constraint === 'date'">
+            <p class="input-group">
+              <input type="text"
+                class="form-control input-sm"
+                uib-datepicker-popup
+                datepicker-append-to-body="true"
+                ng-model="parameter.model"
+                ng-change="vm.parameters[parameter.name] = parameter.model.toISOString().slice(0,10); vm.updateParameters();"
+                is-open="vm.dateOpened[parameter.name]"
+                datepicker-options="vm.dateOptions"
+                ng-required="true"
+                close-text="Close"
+              />
+              <span class="input-group-btn">
+                <button type="button" style="padding: 4px 8px;" class="btn btn-default" ng-click="vm.openDate(parameter.name)"><i class="glyphicon glyphicon-calendar"></i></button>
+              </span>
+            </p>
+          </div>
+          <div class="col-md-6" ng-if="!parameter.hasOptions && !parameter.constraint">
             <input class="form-control input-sm"
                    ng-model="vm.parameters[parameter.name]"
                    ng-change="vm.updateParameters()"
