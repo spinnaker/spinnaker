@@ -18,7 +18,9 @@ package com.netflix.spinnaker.gate.security.iap;
 
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.gate.config.AuthConfig;
+import com.netflix.spinnaker.gate.security.MultiAuthConfigurer;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
+import com.netflix.spinnaker.gate.security.SuppportsMultiAuth;
 import com.netflix.spinnaker.gate.security.iap.IAPSsoConfig.IAPSecurityConfigProperties;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
@@ -49,6 +51,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @SpinnakerAuthConfig
 @EnableWebSecurity
 @ConditionalOnExpression("${google.iap.enabled:false}")
+@SuppportsMultiAuth
 @EnableConfigurationProperties(IAPSecurityConfigProperties.class)
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
@@ -79,7 +82,7 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Autowired(required = false)
-  List<IAPSsoConfigurer> configurers;
+  List<MultiAuthConfigurer> additionalAuthProviders;
 
   @ConfigurationProperties("google.iap")
   @Data
@@ -104,9 +107,9 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
     authConfig.configure(http);
     http.addFilterBefore(iapAuthenticationFilter(), BasicAuthenticationFilter.class);
 
-    if (configurers != null) {
-      for (IAPSsoConfigurer configurer : configurers) {
-        configurer.configure(http);
+    if (additionalAuthProviders != null) {
+      for (MultiAuthConfigurer provider : additionalAuthProviders) {
+        provider.configure(http);
       }
     }
   }

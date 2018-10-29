@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.gate.security.oauth2
 
 import com.netflix.spinnaker.gate.config.AuthConfig
+import com.netflix.spinnaker.gate.security.MultiAuthConfigurer
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
+import com.netflix.spinnaker.gate.security.SuppportsMultiAuth
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
@@ -51,6 +53,7 @@ import javax.servlet.http.HttpServletResponse
 @Import(SecurityAutoConfiguration)
 @EnableOAuth2Sso
 @EnableConfigurationProperties
+@SuppportsMultiAuth
 @Order(Ordered.LOWEST_PRECEDENCE)
 // Note the 4 single-quotes below - this is a raw groovy string, because SpEL and groovy
 // string syntax overlap!
@@ -67,7 +70,7 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
   ExternalSslAwareEntryPoint entryPoint
 
   @Autowired(required = false)
-  List<OAuthSsoConfigurer> configurers
+  List<MultiAuthConfigurer> additionalAuthProviders
 
   @Primary
   @Bean
@@ -92,7 +95,7 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
     http.exceptionHandling().authenticationEntryPoint(entryPoint)
     http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class)
 
-    configurers?.each {
+    additionalAuthProviders?.each {
       it.configure(http)
     }
   }

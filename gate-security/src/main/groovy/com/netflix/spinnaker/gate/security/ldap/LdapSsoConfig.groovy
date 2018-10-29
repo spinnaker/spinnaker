@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.gate.security.ldap
 
+import com.netflix.spinnaker.gate.security.MultiAuthConfigurer
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
+import com.netflix.spinnaker.gate.security.SuppportsMultiAuth
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import org.apache.commons.lang3.StringUtils
@@ -44,6 +46,7 @@ import org.springframework.stereotype.Component
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
+@SuppportsMultiAuth
 @Order(Ordered.LOWEST_PRECEDENCE)
 class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
@@ -57,7 +60,7 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
   LdapUserContextMapper ldapUserContextMapper
 
   @Autowired(required = false)
-  List<LdapSsoConfigurer> configurers
+  List<MultiAuthConfigurer> additionalAuthProviders
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -89,9 +92,9 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http.formLogin()
     authConfig.configure(http)
-      configurers?.each {
-          it.configure(http)
-      }
+    additionalAuthProviders?.each {
+      it.configure(http)
+    }
   }
 
   @Override

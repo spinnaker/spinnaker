@@ -17,15 +17,9 @@
 package com.netflix.spinnaker.gate.security.x509
 
 import com.netflix.spinnaker.gate.config.AuthConfig
+import com.netflix.spinnaker.gate.security.MultiAuthConfigurer
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
-import com.netflix.spinnaker.gate.security.iap.IAPSsoConfig
-import com.netflix.spinnaker.gate.security.iap.IAPSsoConfigurer
-import com.netflix.spinnaker.gate.security.ldap.LdapSsoConfig
-import com.netflix.spinnaker.gate.security.ldap.LdapSsoConfigurer
-import com.netflix.spinnaker.gate.security.oauth2.OAuth2SsoConfig
-import com.netflix.spinnaker.gate.security.oauth2.OAuthSsoConfigurer
-import com.netflix.spinnaker.gate.security.saml.SamlSsoConfig
-import com.netflix.spinnaker.gate.security.saml.SamlSsoConfigurer
+import com.netflix.spinnaker.gate.security.SuppportsMultiAuth
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -55,7 +49,7 @@ import javax.servlet.http.HttpServletResponse
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
-class X509Config {
+class X509Config implements MultiAuthConfigurer {
 
   @Value('${x509.subjectPrincipalRegex:}')
   String subjectPrincipalRegex
@@ -77,47 +71,24 @@ class X509Config {
     }
   }
 
-  /**
-   * A SecurityContextRepository for use with dual authentication mechanisms (X509 + SAML|OAUTH).
-   *
-   * Inspectes the request for the X509Certificate attribute and delegates X509 requests to a
-   * NullSecurityContextRepository while delegating any other requests to an HttpSessionSecurityContextRepository.
-   */
-  static class X509SecurityContextRepository implements SecurityContextRepository {
-    private final SecurityContextRepository certAuthRepository = new NullSecurityContextRepository()
-    private final SecurityContextRepository defaultAuthRepository = new HttpSessionSecurityContextRepository()
-
-    private SecurityContextRepository getDelegate(HttpServletRequest req) {
-      if (req.getAttribute("javax.servlet.request.X509Certificate")) {
-        return certAuthRepository
-      }
-
-      return defaultAuthRepository
-    }
-
-    @Override
-    SecurityContext loadContext(HttpRequestResponseHolder requestResponseHolder) {
-      return getDelegate(requestResponseHolder.request).loadContext(requestResponseHolder)
-    }
-
-    @Override
-    void saveContext(SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
-      getDelegate(request).saveContext(context, request, response)
-    }
-
-    @Override
-    boolean containsContext(HttpServletRequest request) {
-      return getDelegate(request).containsContext(request)
-    }
-  }
-
-  /**
-   * See {@link OAuth2SsoConfig} for why these classes and conditionals exist!
-   */
-  @ConditionalOnMissingBean([OAuth2SsoConfig, SamlSsoConfig, LdapSsoConfig, IAPSsoConfig])
+  @ConditionalOnMissingBean(annotation = SuppportsMultiAuth)
   @Bean
   X509StandaloneAuthConfig standaloneConfig() {
     new X509StandaloneAuthConfig()
+  }
+
+  @ConditionalOnBean(annotation = SuppportsMultiAuth)
+  @Bean
+  X509MultiAuthConfig x509MultiAuthConfig() {
+    new X509MultiAuthConfig()
+  }
+
+  class X509MultiAuthConfig implements MultiAuthConfigurer {
+    @Override
+    void configure(HttpSecurity http) throws Exception {
+      X509Config.this.configure(http)
+      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
+    }
   }
 
   @Order(Ordered.LOWEST_PRECEDENCE)
@@ -144,59 +115,38 @@ class X509Config {
     }
   }
 
-  @ConditionalOnBean(OAuth2SsoConfig)
-  @Bean
-  X509OAuthConfig withOAuthConfig() {
-    new X509OAuthConfig()
-  }
+  /**
+   * A SecurityContextRepository for use with dual authentication mechanisms (X509 + SAML|OAUTH).
+   *
+   * Inspectes the request for the X509Certificate attribute and delegates X509 requests to a
+   * NullSecurityContextRepository while delegating any other requests to an HttpSessionSecurityContextRepository.
+   */
+  static class X509SecurityContextRepository implements SecurityContextRepository {
+    private final SecurityContextRepository certAuthRepository = new NullSecurityContextRepository();
+    private final SecurityContextRepository defaultAuthRepository = new HttpSessionSecurityContextRepository();
 
-  class X509OAuthConfig implements OAuthSsoConfigurer {
-    @Override
-    void configure(HttpSecurity http) throws Exception {
-      X509Config.this.configure(http)
-      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
+    private SecurityContextRepository getDelegate(HttpServletRequest req) {
+      if (req.getAttribute("javax.servlet.request.X509Certificate") != null) {
+        return certAuthRepository;
+      }
+
+      return defaultAuthRepository;
     }
-  }
 
-  @ConditionalOnBean(SamlSsoConfig)
-  @Bean
-  X509SamlConfig withSamlConfig() {
-    new X509SamlConfig()
-  }
-
-  class X509SamlConfig implements SamlSsoConfigurer {
     @Override
-    void configure(HttpSecurity http) throws Exception {
-      X509Config.this.configure(http)
-      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
+    public SecurityContext loadContext(HttpRequestResponseHolder requestResponseHolder) {
+      return getDelegate(requestResponseHolder.getRequest()).loadContext(requestResponseHolder);
     }
-  }
 
-  @ConditionalOnBean(LdapSsoConfig)
-  @Bean
-  X509LDAPConfig withLDAPConfig() {
-    new X509LDAPConfig()
-  }
-
-  class X509LDAPConfig implements LdapSsoConfigurer {
     @Override
-    void configure(HttpSecurity http) throws Exception {
-      X509Config.this.configure(http)
-      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
+    public void saveContext(SecurityContext context, HttpServletRequest request,
+      HttpServletResponse response) {
+      getDelegate(request).saveContext(context, request, response);
     }
-  }
 
-  @ConditionalOnBean(IAPSsoConfig)
-  @Bean
-  X509IAPConfig withIAPConfig() {
-    new X509IAPConfig()
-  }
-
-  class X509IAPConfig implements IAPSsoConfigurer {
     @Override
-    void configure(HttpSecurity http) throws Exception {
-      X509Config.this.configure(http)
-      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
+    public boolean containsContext(HttpServletRequest request) {
+      return getDelegate(request).containsContext(request);
     }
   }
 }

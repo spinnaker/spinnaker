@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.gate.security.saml
 
+import com.netflix.spinnaker.gate.security.MultiAuthConfigurer
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.config.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
+import com.netflix.spinnaker.gate.security.SuppportsMultiAuth
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.security.User
@@ -60,6 +62,7 @@ import static org.springframework.security.extensions.saml2.config.SAMLConfigure
 @SpinnakerAuthConfig
 @EnableWebSecurity
 @Import(SecurityAutoConfiguration)
+@SuppportsMultiAuth
 @Slf4j
 @Order(Ordered.LOWEST_PRECEDENCE)
 class SamlSsoConfig extends WebSecurityConfigurerAdapter {
@@ -130,7 +133,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
   SAMLUserDetailsService samlUserDetailsService
 
   @Autowired(required = false)
-  List<SamlSsoConfigurer> configurers
+  List<MultiAuthConfigurer> additionalAuthProviders
 
   @Override
   void configure(HttpSecurity http) {
@@ -165,7 +168,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
     // (if enabled) auth window might appear in the browser before the SAML filter is hit.
     authConfig.configure(http)
 
-    configurers?.each {
+    additionalAuthProviders?.each {
       it.configure(http)
     }
   }

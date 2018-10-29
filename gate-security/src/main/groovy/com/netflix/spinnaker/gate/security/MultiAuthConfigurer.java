@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.security.iap;
+package com.netflix.spinnaker.gate.security;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-public interface IAPSsoConfigurer {
+/**
+ * Allows configuring multiple authentication mechanisms e.g. X509 + SAML
+ *
+ */
+public interface MultiAuthConfigurer {
   void configure(HttpSecurity http) throws Exception;
 }

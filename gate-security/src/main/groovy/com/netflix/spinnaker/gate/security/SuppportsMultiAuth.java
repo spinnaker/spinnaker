@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.security.saml
+package com.netflix.spinnaker.gate.security;
 
-import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Allows the use of additional authentication mechanisms to be tried before the SAML login.
- */
-interface SamlSsoConfigurer {
-
-  void configure(HttpSecurity http) throws Exception
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface SuppportsMultiAuth {
 }
