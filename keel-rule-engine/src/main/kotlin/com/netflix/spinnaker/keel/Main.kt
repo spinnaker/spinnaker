@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
 import com.netflix.spinnaker.keel.processing.ConvergeAsset
 import com.netflix.spinnaker.keel.processing.ValidateAssetTree
+import com.netflix.spinnaker.keel.registry.InMemoryPluginRepository
 import com.netflix.spinnaker.keel.registry.PluginRepository
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
@@ -58,6 +59,10 @@ class RuleEngineApp {
   @Bean
   @ConditionalOnMissingBean(AssetRepository::class)
   fun assetRepository(clock: Clock) = InMemoryAssetRepository(clock)
+
+  @Bean
+  @ConditionalOnMissingBean(PluginRepository::class)
+  fun pluginRepository() = InMemoryPluginRepository()
 
   @Autowired
   lateinit var pluginRepository: PluginRepository

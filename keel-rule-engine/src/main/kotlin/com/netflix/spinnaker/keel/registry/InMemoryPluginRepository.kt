@@ -15,11 +15,6 @@
  */
 package com.netflix.spinnaker.keel.registry
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.stereotype.Component
-
-@Component
-@ConditionalOnMissingBean(PluginRepository::class)
 class InMemoryPluginRepository : PluginRepository {
 
   private val assetPlugins: MutableMap<AssetType, PluginAddress> = mutableMapOf()
