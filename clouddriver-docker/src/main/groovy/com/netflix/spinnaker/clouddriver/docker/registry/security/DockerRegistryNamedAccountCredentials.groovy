@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
 import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
@@ -48,6 +49,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     List<String> repositories
     List<String> skip
     String catalogFile
+    DockerOkClientProvider dockerOkClientProvider
 
     Builder() {}
 
@@ -161,6 +163,10 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
       return this
     }
 
+    Builder dockerOkClientProvider(DockerOkClientProvider dockerOkClientProvider) {
+      this.dockerOkClientProvider = dockerOkClientProvider
+    }
+
     DockerRegistryNamedAccountCredentials build() {
       return new DockerRegistryNamedAccountCredentials(accountName,
                                                        environment,
@@ -181,51 +187,9 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                                        trackDigests,
                                                        sortTagsByDate,
                                                        catalogFile,
-                                                       insecureRegistry)
+                                                       insecureRegistry,
+                                                       dockerOkClientProvider)
     }
-  }
-
-  DockerRegistryNamedAccountCredentials(String accountName,
-                                        String environment,
-                                        String accountType,
-                                        String address,
-                                        String username,
-                                        String password,
-                                        String passwordCommand,
-                                        File passwordFile,
-                                        File dockerconfigFile,
-                                        String email,
-                                        List<String> repositories,
-                                        List<String> skip,
-                                        int cacheThreads,
-                                        long cacheIntervalSeconds,
-                                        long clientTimeoutMillis,
-                                        int paginateSize,
-                                        boolean trackDigests,
-                                        boolean sortTagsByDate,
-                                        String catalogFile,
-                                        boolean insecureRegistry) {
-    this(accountName,
-         environment,
-         accountType,
-         address,
-         username,
-         password,
-         passwordCommand,
-         passwordFile,
-         dockerconfigFile,
-         email,
-         repositories,
-         skip,
-         cacheThreads,
-         cacheIntervalSeconds,
-         clientTimeoutMillis,
-         paginateSize,
-         trackDigests,
-         sortTagsByDate,
-         catalogFile,
-         insecureRegistry,
-         null)
   }
 
   DockerRegistryNamedAccountCredentials(String accountName,
@@ -248,7 +212,53 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         boolean sortTagsByDate,
                                         String catalogFile,
                                         boolean insecureRegistry,
-                                        List<String> requiredGroupMembership) {
+                                        DockerOkClientProvider dockerOkClientProvider) {
+    this(accountName,
+         environment,
+         accountType,
+         address,
+         username,
+         password,
+         passwordCommand,
+         passwordFile,
+         dockerconfigFile,
+         email,
+         repositories,
+         skip,
+         cacheThreads,
+         cacheIntervalSeconds,
+         clientTimeoutMillis,
+         paginateSize,
+         trackDigests,
+         sortTagsByDate,
+         catalogFile,
+         insecureRegistry,
+         null,
+         dockerOkClientProvider)
+  }
+
+  DockerRegistryNamedAccountCredentials(String accountName,
+                                        String environment,
+                                        String accountType,
+                                        String address,
+                                        String username,
+                                        String password,
+                                        String passwordCommand,
+                                        File passwordFile,
+                                        File dockerconfigFile,
+                                        String email,
+                                        List<String> repositories,
+                                        List<String> skip,
+                                        int cacheThreads,
+                                        long cacheIntervalSeconds,
+                                        long clientTimeoutMillis,
+                                        int paginateSize,
+                                        boolean trackDigests,
+                                        boolean sortTagsByDate,
+                                        String catalogFile,
+                                        boolean insecureRegistry,
+                                        List<String> requiredGroupMembership,
+                                        DockerOkClientProvider dockerOkClientProvider) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
     }
@@ -266,6 +276,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     this.cacheIntervalSeconds = cacheIntervalSeconds ?: 30
     this.paginateSize = paginateSize ?: 100
     this.clientTimeoutMillis = clientTimeoutMillis ?: TimeUnit.MINUTES.toMillis(1)
+    this.dockerOkClientProvider = dockerOkClientProvider
 
     if (!address) {
       throw new IllegalArgumentException("Docker Registry account $accountName must provide an endpoint address.");
@@ -355,6 +366,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
         .paginateSize(paginateSize)
         .catalogFile(catalogFile)
         .insecureRegistry(insecureRegistry)
+        .okClientProvider(dockerOkClientProvider)
         .build()
 
       return new DockerRegistryCredentials(client, repositories, trackDigests, skip, sortTagsByDate)
@@ -392,4 +404,5 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   final List<String> requiredGroupMembership
   final List<String> skip
   final String catalogFile
+  final DockerOkClientProvider dockerOkClientProvider
 }
