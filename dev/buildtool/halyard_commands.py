@@ -207,6 +207,10 @@ class BuildHalyardCommand(GradleCommandProcessor):
     if not self.options.run_unit_tests:
       args.append('-x test')
 
+    if (os.path.isfile(os.path.join(repository.git_dir,
+                                    "gradle", "init-publish.gradle"))):
+      args.append('-I gradle/init-publish.gradle')
+
     args.extend(self.gradle.get_debian_args(
         'trusty-nightly,xenial-nightly,bionic-nightly'))
     build_number = source_info.build_number
