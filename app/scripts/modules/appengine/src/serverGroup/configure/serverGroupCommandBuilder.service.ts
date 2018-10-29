@@ -99,9 +99,12 @@ export class AppengineServerGroupCommandBuilder {
 
   public buildNewServerGroupCommand(
     app: Application,
-    selectedProvider = 'appengine',
+    selectedProvider: string,
     mode = 'create',
   ): IPromise<IAppengineServerGroupCommand> {
+    if (selectedProvider == null) {
+      selectedProvider = 'appengine';
+    }
     const dataToFetch = {
       accounts: AccountService.getAllAccountDetailsForProvider('appengine'),
       storageAccounts: StorageAccountReader.getStorageAccounts(),
