@@ -42,8 +42,9 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
   List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials(DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties,
                                                                                               AccountCredentialsRepository accountCredentialsRepository,
                                                                                               ApplicationContext applicationContext,
-                                                                                              List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
-    synchronizeDockerRegistryAccounts(dockerRegistryConfigurationProperties, accountCredentialsRepository, null, applicationContext, providerSynchronizerTypeWrappers)
+                                                                                              List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers,
+                                                                                              DockerOkClientProvider dockerOkClientProvider) {
+    synchronizeDockerRegistryAccounts(dockerRegistryConfigurationProperties, accountCredentialsRepository, null, applicationContext, providerSynchronizerTypeWrappers, dockerOkClientProvider)
   }
 
   @Override
@@ -91,6 +92,7 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
           .sortTagsByDate(managedAccount.sortTagsByDate)
           .repositories(managedAccount.repositories)
           .skip(managedAccount.skip)
+          .dockerOkClientProvider(dockerOkClientProvider)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, dockerRegistryAccount)
