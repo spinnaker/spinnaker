@@ -1,0 +1,18 @@
+repositories {
+  maven {
+    url 'https://repo.spring.io/libs-snapshot'
+  }
+}
+
+dependencies {
+  spinnaker.group('fiat')
+
+  compileOnly spinnaker.dependency("lombok")
+
+  compile project(":gate-security")
+  compile project(":gate-core")
+  compile spinnaker.dependency("kork")
+  compile('com.nimbusds:nimbus-jose-jwt:5.2')
+
+  spinnaker.group('test')
+}
