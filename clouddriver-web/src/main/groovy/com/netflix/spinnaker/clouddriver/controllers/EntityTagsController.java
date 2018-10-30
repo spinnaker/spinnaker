@@ -58,7 +58,7 @@ public class EntityTagsController {
                                      @RequestParam(value = "account", required = false) String account,
                                      @RequestParam(value = "region", required = false) String region,
                                      @RequestParam(value = "namespace", required = false) String namespace,
-                                     @RequestParam(value = "maxResults", required = false, defaultValue = "2000") int maxResults,
+                                     @RequestParam(value = "maxResults", required = false, defaultValue = "5000") int maxResults,
                                      @RequestParam Map<String, Object> allParameters) {
 
     Map<String, Object> tags = allParameters.entrySet().stream()
