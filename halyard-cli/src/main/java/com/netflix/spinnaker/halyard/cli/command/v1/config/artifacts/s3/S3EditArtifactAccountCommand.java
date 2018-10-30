@@ -31,17 +31,17 @@ import org.springframework.data.repository.query.Param;
 public class S3EditArtifactAccountCommand extends AbstractArtifactEditAccountCommand<S3ArtifactAccount> {
   @Parameter(
       names = "--api-endpoint",
-      description = "S3 api endpoint"
+      description = S3ArtifactCommandProperties.API_ENDPOINT_DESCRIPTION
   )
   private String apiEndpoint;
   @Parameter(
       names = "--api-region",
-      description = "S3 api region"
+      description = S3ArtifactCommandProperties.API_REGION_DESCRIPTION
   )
   private String apiRegion;
   @Parameter(
       names = "--region",
-      description = "S3 region"
+      description = S3ArtifactCommandProperties.REGION_DESCRIPTION
   )
   private String region;
   @Parameter(

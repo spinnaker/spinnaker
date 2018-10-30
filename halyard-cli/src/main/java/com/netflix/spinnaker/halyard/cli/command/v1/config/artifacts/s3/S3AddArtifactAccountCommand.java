@@ -30,17 +30,17 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 public class S3AddArtifactAccountCommand extends AbstractAddArtifactAccountCommand {
   @Parameter(
       names = "--api-endpoint",
-      description = "S3 api endpoint"
+      description = S3ArtifactCommandProperties.API_ENDPOINT_DESCRIPTION
   )
   private String apiEndpoint;
   @Parameter(
       names = "--api-region",
-      description = "S3 api region"
+      description = S3ArtifactCommandProperties.API_REGION_DESCRIPTION
   )
   private String apiRegion;
   @Parameter(
       names = "--region",
-      description = "S3 region"
+      description = S3ArtifactCommandProperties.REGION_DESCRIPTION
   )
   private String region;
   @Parameter(
