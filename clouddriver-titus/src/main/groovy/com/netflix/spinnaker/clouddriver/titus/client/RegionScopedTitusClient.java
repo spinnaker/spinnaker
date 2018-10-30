@@ -328,8 +328,8 @@ public class RegionScopedTitusClient implements TitusClient {
   }
 
   @Override
-  public Iterator<JobChangeNotification> observeJobs() {
-    return grpcBlockingStub.observeJobs(Empty.newBuilder().build());
+  public Iterator<JobChangeNotification> observeJobs(ObserveJobsQuery observeJobsQuery) {
+    return grpcBlockingStub.observeJobs(observeJobsQuery);
   }
 
   private Map<String, List<com.netflix.titus.grpc.protogen.Task>> getTasks(List<String> jobIds, boolean includeDoneJobs) {

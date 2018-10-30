@@ -186,7 +186,12 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
     public void executeAgent(Agent agent) {
       ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
       final Future handler = executor.submit(() -> {
-        Iterator<JobChangeNotification> notificationIt = titusClient.observeJobs();
+        Iterator<JobChangeNotification> notificationIt = titusClient.observeJobs(
+          ObserveJobsQuery.newBuilder()
+            .putFilteringCriteria("jobType", "SERVICE")
+            .putFilteringCriteria("attributes", "source:spinnaker")
+            .build()
+        );
         boolean reconstructingSnapshot = true;
         Map<String, Job> jobs = new HashMap();
         Map<String, Set<Task>> tasks = new HashMap();
@@ -196,14 +201,10 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
           switch (notification.getNotificationCase()) {
             case JOBUPDATE:
               Job job = notification.getJobUpdate().getJob();
-              if (job.getJobDescriptor().getJobSpecCase() == JobDescriptor.JobSpecCase.SERVICE
-                  && job.getJobDescriptor().containsAttributes("source")
-                  && job.getJobDescriptor().getAttributesMap().get("source").equals("spinnaker")) {
-                if (reconstructingSnapshot) {
-                  jobs.put(job.getId(), job);
-                } else {
-                  updateJob(jobs, job);
-                }
+              if (reconstructingSnapshot) {
+                jobs.put(job.getId(), job);
+              } else {
+                updateJob(jobs, job);
               }
               break;
             case TASKUPDATE:
@@ -286,7 +287,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
           cache.evictDeletedItems(SERVER_GROUPS.ns,
             Stream.of(Keys.getServerGroupV2Key(asgName, account.getName(), region.getName()))
               .collect(Collectors.toList()));
-          log.debug("Evicting job: {}", asgName);
+          log.debug("Evicting job: {}, {}", asgName, job.getId());
         }
       } else {
         jobs.putIfAbsent(job.getId(), job);

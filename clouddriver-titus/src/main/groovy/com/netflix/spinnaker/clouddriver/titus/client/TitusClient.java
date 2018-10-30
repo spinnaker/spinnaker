@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
 import com.netflix.titus.grpc.protogen.JobChangeNotification;
+import com.netflix.titus.grpc.protogen.ObserveJobsQuery;
 
 import java.util.Iterator;
 import java.util.List;
@@ -119,6 +120,6 @@ public interface TitusClient {
 
   public Map<String, List<String>> getTaskIdsForJobIds();
 
-  public Iterator<JobChangeNotification> observeJobs();
+  public Iterator<JobChangeNotification> observeJobs(ObserveJobsQuery observeJobsQuery);
 
 }
