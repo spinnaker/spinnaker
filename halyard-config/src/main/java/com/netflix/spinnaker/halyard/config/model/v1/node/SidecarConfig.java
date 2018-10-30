@@ -32,11 +32,18 @@ public class SidecarConfig {
   Map<String, String> env = new HashMap<>();
   List<String> args = new ArrayList<>();
   List<String> command = new ArrayList<>();
+  List<ConfigMapVolumeMount> configMapVolumeMounts = new ArrayList<>();
   String mountPath;
   SecurityContext securityContext;
 
   @Data
   public static class SecurityContext {
     boolean privileged = false;
+  }
+
+  @Data
+  public static class ConfigMapVolumeMount {
+    String configMapName;
+    String mountPath;
   }
 }

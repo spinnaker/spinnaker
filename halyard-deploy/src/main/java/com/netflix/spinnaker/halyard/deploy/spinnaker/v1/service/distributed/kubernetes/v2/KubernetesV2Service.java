@@ -127,6 +127,26 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     return service.toString();
   }
 
+  default String getVolumeYaml(ConfigSource configSource) {
+    TemplatedResource volume;
+    switch (configSource.getType()) {
+      case secret:
+        volume = new JinjaJarResource("/kubernetes/manifests/secretVolume.yml");
+        break;
+      case emptyDir:
+        volume = new JinjaJarResource("/kubernetes/manifests/emptyDirVolume.yml");
+        break;
+      case configMap:
+        volume = new JinjaJarResource("/kubernetes/manifests/configMapVolume.yml");
+        break;
+      default:
+        throw new IllegalStateException("Unknown volume type: " + configSource.getType());
+    }
+
+    volume.addBinding("name", configSource.getId());
+    return volume.toString();
+  }
+
   default String getResourceYaml(AccountDeploymentDetails<KubernetesAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
@@ -178,7 +198,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .filter(c -> StringUtils.isNotEmpty(c.getMountPath()))
         .map(c -> new ConfigSource().setMountPath(c.getMountPath())
           .setId(c.getName())
-          .setEmpty(true)
+          .setType(ConfigSource.Type.emptyDir)
         ).collect(Collectors.toList()));
 
     Map<String, String> env = configSources.stream()
@@ -194,13 +214,19 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .collect(Collectors.toMap(ConfigSource::getId, (i) -> i, (a, b) -> a))
         .values()
         .stream()
-        .map(c -> {
-          TemplatedResource volume = c.isEmpty() ?
-              new JinjaJarResource("/kubernetes/manifests/emptyDirVolume.yml") :
-              new JinjaJarResource("/kubernetes/manifests/secretVolume.yml");
-          volume.addBinding("name", c.getId());
-          return volume.toString();
-        }).collect(Collectors.toList());
+        .map(this::getVolumeYaml)
+        .collect(Collectors.toList());
+
+    volumes.addAll(sidecarConfigs.stream()
+        .map(SidecarConfig::getConfigMapVolumeMounts)
+        .flatMap(Collection::stream)
+        .map(c -> new ConfigSource()
+            .setMountPath(c.getMountPath())
+            .setId(c.getConfigMapName())
+            .setType(ConfigSource.Type.configMap)
+        )
+        .map(this::getVolumeYaml)
+        .collect(Collectors.toList()));
 
     env.putAll(settings.getEnv());
 
@@ -272,6 +298,16 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       volume.addBinding("mountPath", config.getMountPath());
       volumeMounts.add(volume.toString());
     }
+
+    volumeMounts.addAll(config.getConfigMapVolumeMounts()
+        .stream()
+        .map(c -> {
+          TemplatedResource volume = new JinjaJarResource("/kubernetes/manifests/volumeMount.yml");
+          volume.addBinding("name", c.getConfigMapName());
+          volume.addBinding("mountPath", c.getMountPath());
+          return volume.toString();
+        })
+        .collect(Collectors.toList()));
 
     TemplatedResource container = new JinjaJarResource("/kubernetes/manifests/container.yml");
     if (config.getSecurityContext() != null) {
