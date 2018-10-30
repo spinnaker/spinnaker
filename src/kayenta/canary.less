@@ -40,7 +40,7 @@
 
   .config-detail {
     padding: 1rem;
-    padding-bottom: 40px;
+    margin-bottom: 40px;
     overflow-y: auto;
     .config-detail-header {
       padding-right: 15px;
@@ -141,5 +141,10 @@
     .native-table-header {
       background-color: transparent;
     }
+  }
+
+  // Allow children of flex-1 with overflow of scroll or auto to scroll correctly in firefox
+  .flex-1 {
+    min-height: 0;
   }
 }
