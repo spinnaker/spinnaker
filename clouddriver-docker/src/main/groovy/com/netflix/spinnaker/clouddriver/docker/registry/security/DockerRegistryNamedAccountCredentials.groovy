@@ -165,6 +165,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
 
     Builder dockerOkClientProvider(DockerOkClientProvider dockerOkClientProvider) {
       this.dockerOkClientProvider = dockerOkClientProvider
+      return this
     }
 
     DockerRegistryNamedAccountCredentials build() {
