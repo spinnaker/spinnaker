@@ -41,7 +41,7 @@ Currently supported user role providers are:
 ---
 
 ### Modular builds
- By default, Fiat is built with authorization included. To build only a subset of 
+By default, Fiat is built with all authorization providers included. To build only a subset of 
 providers, use the `includeProviders` flag:
  ```
 ./gradlew -PincludeProviders=google-groups,ldap clean build
