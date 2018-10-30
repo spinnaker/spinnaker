@@ -25,6 +25,7 @@ dependencies {
     because("want access to real protos to test conversion between model & proto")
   }
   testImplementation "io.grpc:grpc-netty:+"
+  testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
 }
 
 test {

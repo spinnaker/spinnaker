@@ -26,6 +26,7 @@ com.google.inject:guice:4.1.0
 com.google.protobuf:protobuf-java-util:3.5.1
 com.google.protobuf:protobuf-java:3.6.1
 com.google.re2j:re2j:1.2
+com.jayway.jsonpath:json-path:2.2.0
 com.netflix.archaius:archaius-core:0.7.6
 com.netflix.eureka:eureka-client:1.9.2
 com.netflix.frigga:frigga:0.18.0
@@ -60,6 +61,7 @@ com.sun.jersey:jersey-client:1.19.1
 com.sun.jersey:jersey-core:1.19.1
 com.thoughtworks.xstream:xstream:1.4.10
 com.typesafe:config:1.3.3
+com.vaadin.external.google:android-json:0.0.20131108.vaadin1
 commons-codec:commons-codec:1.10
 commons-configuration:commons-configuration:1.8
 commons-jxpath:commons-jxpath:1.3
@@ -93,6 +95,8 @@ joda-time:joda-time:2.8.1
 junit:junit:4.12
 net.bytebuddy:byte-buddy-agent:1.6.14
 net.bytebuddy:byte-buddy:1.6.14
+net.minidev:accessors-smart:1.1
+net.minidev:json-smart:2.2.1
 org.antlr:antlr-runtime:3.4
 org.antlr:stringtemplate:3.2.1
 org.apache.commons:commons-math:2.2
@@ -104,11 +108,13 @@ org.apache.tomcat.embed:tomcat-embed-el:8.5.31
 org.apache.tomcat.embed:tomcat-embed-websocket:8.5.31
 org.apache.tomcat:tomcat-annotations-api:8.5.31
 org.apiguardian:apiguardian-api:1.0.0
+org.assertj:assertj-core:2.6.0
 org.codehaus.groovy:groovy-all:2.4.13
 org.codehaus.jettison:jettison:1.3.7
 org.codehaus.mojo:animal-sniffer-annotations:1.17
 org.funktionale:funktionale-partials:1.1
 org.hamcrest:hamcrest-core:1.3
+org.hamcrest:hamcrest-library:1.3
 org.hibernate:hibernate-validator:5.3.6.Final
 org.jboss.logging:jboss-logging:3.3.0.Final
 org.jetbrains.kotlin:kotlin-reflect:1.3.0
@@ -131,6 +137,8 @@ org.lognet:grpc-spring-boot-starter:2.4.3
 org.mockito:mockito-core:2.8.9
 org.objenesis:objenesis:2.5
 org.opentest4j:opentest4j:1.1.1
+org.ow2.asm:asm:5.0.3
+org.skyscreamer:jsonassert:1.4.0
 org.slf4j:jcl-over-slf4j:1.7.25
 org.slf4j:jul-to-slf4j:1.7.25
 org.slf4j:log4j-over-slf4j:1.7.25
@@ -139,9 +147,12 @@ org.springframework.boot:spring-boot-actuator:1.5.14.RELEASE
 org.springframework.boot:spring-boot-autoconfigure:1.5.14.RELEASE
 org.springframework.boot:spring-boot-starter-actuator:1.5.14.RELEASE
 org.springframework.boot:spring-boot-starter-logging:1.5.14.RELEASE
+org.springframework.boot:spring-boot-starter-test:1.5.14.RELEASE
 org.springframework.boot:spring-boot-starter-tomcat:1.5.14.RELEASE
 org.springframework.boot:spring-boot-starter-web:1.5.14.RELEASE
 org.springframework.boot:spring-boot-starter:1.5.14.RELEASE
+org.springframework.boot:spring-boot-test-autoconfigure:1.5.14.RELEASE
+org.springframework.boot:spring-boot-test:1.5.14.RELEASE
 org.springframework.boot:spring-boot:1.5.14.RELEASE
 org.springframework.security:spring-security-core:4.2.4.RELEASE
 org.springframework:spring-aop:4.3.18.RELEASE
@@ -149,6 +160,7 @@ org.springframework:spring-beans:4.3.18.RELEASE
 org.springframework:spring-context:4.3.18.RELEASE
 org.springframework:spring-core:4.3.18.RELEASE
 org.springframework:spring-expression:4.3.18.RELEASE
+org.springframework:spring-test:4.3.18.RELEASE
 org.springframework:spring-web:4.3.18.RELEASE
 org.springframework:spring-webmvc:4.3.18.RELEASE
 org.yaml:snakeyaml:1.18
