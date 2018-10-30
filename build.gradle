@@ -44,6 +44,11 @@ allprojects {
     dependenciesVersion = spinnakerDependenciesVersion
   }
 
+  dependencies {
+    compileOnly spinnaker.dependency("lombok")
+    spinnaker.group('test')
+  }
+
   configurations.all {
     exclude group: 'javax.servlet', module: 'servlet-api'
     exclude group: 'javax.servlet', module: 'javax.servlet-api'

@@ -1,0 +1,4 @@
+dependencies {
+  compile project(":gate-core")
+  compile('com.nimbusds:nimbus-jose-jwt:5.2')
+}

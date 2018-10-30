@@ -21,7 +21,6 @@ repositories {
 dependencies {
   compile project(":gate-core")
   compile project(":gate-proxy")
-  compile project(":gate-security")
 
   spinnaker.group('retrofitDefault')
   spinnaker.group("test")
@@ -43,13 +42,18 @@ dependencies {
 
   compileOnly spinnaker.dependency("lombok")
 
+  testCompile project(":gate-ldap") // TODO: Move system tests to own module
   testCompile "com.squareup.okhttp:mockwebserver:${spinnaker.version('okHttp')}"
   testCompile apachedsDependencies
   testCompile spinnaker.dependency("korkJedisTest")
 
   //this brings in the jetty GzipFilter which boot will autoconfigure
   runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
-  runtime project(":gate-auth-iap")
+  runtime project(":gate-iap")
+  runtime project(":gate-ldap")
+  runtime project(":gate-oauth2")
+  runtime project(":gate-saml")
+  runtime project(":gate-x509")
 }
 
 configurations.all {

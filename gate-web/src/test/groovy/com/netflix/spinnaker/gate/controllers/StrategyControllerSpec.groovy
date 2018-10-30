@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.services.StrategyService
-import org.codehaus.jackson.map.ObjectMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
