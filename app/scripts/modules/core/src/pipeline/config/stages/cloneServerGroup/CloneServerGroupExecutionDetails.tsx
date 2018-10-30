@@ -4,7 +4,7 @@ import { find, get } from 'lodash';
 import { AccountTag } from 'core/account';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
-import { StageFailureMessage } from 'core/pipeline/details';
+import { StageFailureMessage } from 'core/pipeline';
 import { ClusterState } from 'core/state';
 
 export interface IDeployResult {

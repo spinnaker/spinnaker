@@ -1,9 +1,9 @@
-import { IStageConfigProps } from 'core/pipeline/config/stages/core/IStageConfigProps';
 import * as React from 'react';
 
-import { StageConfigField } from '../core/stageConfigField/StageConfigField';
+import { IStageConfigProps } from 'core/pipeline';
 import { SpelNumberInput } from 'core/widgets/spelText/SpelNumberInput';
 import { IStage } from 'core/domain';
+import { StageConfigField } from '../core/stageConfigField/StageConfigField';
 
 export interface IWaitStageConfigState {
   enableCustomSkipWaitText: boolean;

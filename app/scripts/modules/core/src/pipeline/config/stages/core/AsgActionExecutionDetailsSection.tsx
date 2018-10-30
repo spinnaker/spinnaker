@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
+import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
 import { AccountTag } from 'core/account';
 

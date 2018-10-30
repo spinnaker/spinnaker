@@ -1,8 +1,7 @@
 import * as React from 'react';
 
-import { IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
+import { IExecutionDetailsSectionProps, StageFailureMessage } from 'core/pipeline';
 import { IStage } from 'core/domain';
-import { StageFailureMessage } from 'core/pipeline/details';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 import { timestamp } from 'core/utils/timeFormatters';
 import { ExecutionDetailsSection } from '../core';

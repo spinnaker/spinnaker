@@ -1,7 +1,11 @@
 import * as React from 'react';
 
-import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
+import {
+  ExecutionDetailsSection,
+  IExecutionDetailsSectionProps,
+  StageExecutionLogs,
+  StageFailureMessage,
+} from 'core/pipeline';
 import { SkipWait } from './SkipWait';
 
 export function WaitExecutionDetails(props: IExecutionDetailsSectionProps) {

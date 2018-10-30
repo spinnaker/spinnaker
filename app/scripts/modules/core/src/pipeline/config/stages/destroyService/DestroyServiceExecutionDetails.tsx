@@ -1,8 +1,7 @@
 import * as React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from 'core/pipeline';
 import { AccountTag } from 'core/account';
-import { StageFailureMessage } from 'core/pipeline/details';
 
 export function DestroyServiceExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
