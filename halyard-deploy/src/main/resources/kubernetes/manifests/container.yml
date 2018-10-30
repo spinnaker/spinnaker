@@ -23,6 +23,8 @@
 
   "readinessProbe": {{ probe }},
 
+  "securityContext": {{ securityContext }},
+
   "volumeMounts": [
     {% for volumeMount in volumeMounts %}
     {{ volumeMount }} {% if not loop.last %} , {% endif %}

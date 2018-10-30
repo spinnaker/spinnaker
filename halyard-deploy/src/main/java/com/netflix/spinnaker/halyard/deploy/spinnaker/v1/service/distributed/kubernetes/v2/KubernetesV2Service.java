@@ -237,6 +237,12 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     }
 
     TemplatedResource container = new JinjaJarResource("/kubernetes/manifests/container.yml");
+    if (config.getSecurityContext() != null) {
+      TemplatedResource securityContext = new JinjaJarResource("/kubernetes/manifests/securityContext.yml");
+      securityContext.addBinding("privileged", config.getSecurityContext().isPrivileged());
+      container.addBinding("securityContext", securityContext.toString());
+    }
+
     container.addBinding("name", config.getName());
     container.addBinding("imageId", config.getDockerImage());
     container.addBinding("port", null);

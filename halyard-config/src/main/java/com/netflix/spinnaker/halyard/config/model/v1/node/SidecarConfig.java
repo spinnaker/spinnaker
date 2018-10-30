@@ -33,4 +33,10 @@ public class SidecarConfig {
   List<String> args = new ArrayList<>();
   List<String> command = new ArrayList<>();
   String mountPath;
+  SecurityContext securityContext;
+
+  @Data
+  public static class SecurityContext {
+    boolean privileged = false;
+  }
 }
