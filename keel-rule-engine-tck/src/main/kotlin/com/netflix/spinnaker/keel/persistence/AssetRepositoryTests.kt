@@ -25,6 +25,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -178,6 +179,22 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
               .first
               .isEqualTo(Diff)
           }
+        }
+      }
+
+      context("deleting the asset") {
+        before {
+          subject.delete(asset.id)
+        }
+
+        test("the asset is no longer returned by all assets") {
+          subject.allAssets(callback)
+
+          verifyZeroInteractions(callback)
+        }
+
+        test("the asset can no longer be retrieved by id") {
+          expectThat(subject.get(asset.id)).isNull()
         }
       }
     }

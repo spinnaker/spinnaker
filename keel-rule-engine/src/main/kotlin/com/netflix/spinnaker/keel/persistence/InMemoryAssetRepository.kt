@@ -63,6 +63,10 @@ class InMemoryAssetRepository(
     states[asset.id] = Unknown to clock.instant()
   }
 
+  override fun delete(id: AssetId) {
+    assets.remove(id)
+  }
+
   override fun dependents(id: AssetId): Iterable<AssetId> =
     assets
       .filter { it.value.dependsOn.contains(id) }

@@ -95,6 +95,18 @@ class RedisAssetRepository(
     }
   }
 
+  override fun delete(id: AssetId) {
+    withRedis { redis ->
+      redis.del(id.key)
+      redis.smembers(id.dependsOnKey).forEach {
+        redis.srem(AssetId(it).dependenciesKey, id.value)
+      }
+      redis.del(id.dependsOnKey)
+      redis.srem(INDEX_SET, id.value)
+        // TODO: partials key
+    }
+  }
+
   override fun dependents(id: AssetId): Iterable<AssetId> =
     withRedis { redis ->
       redis.smembers(id.dependenciesKey).map(::AssetId)
@@ -134,33 +146,36 @@ class RedisAssetRepository(
     private const val STATE_SORTED_SET = "$ASSET_HASH.state"
   }
 
-  private fun readAsset(redis: JedisCommands, id: AssetId): AssetBase? {
-    return redis.hgetAll(id.key)?.let {
-      if (it.getValue("@class") == Asset::class.qualifiedName) {
-        Asset(
-          id,
-          it.getValue("apiVersion"),
-          it.getValue("kind"),
-          redis.smembers(id.dependsOnKey).asSequence().map(::AssetId).toSet(),
-          TypedByteArray(
-            it.getValue("spec.type"),
-            it.getValue("spec.data").decodeBase64()
+  private fun readAsset(redis: JedisCommands, id: AssetId): AssetBase? =
+    if (redis.sismember(INDEX_SET, id.value)) {
+      redis.hgetAll(id.key)?.let {
+        if (it.getValue("@class") == Asset::class.qualifiedName) {
+          Asset(
+            id,
+            it.getValue("apiVersion"),
+            it.getValue("kind"),
+            redis.smembers(id.dependsOnKey).asSequence().map(::AssetId).toSet(),
+            TypedByteArray(
+              it.getValue("spec.type"),
+              it.getValue("spec.data").decodeBase64()
+            )
           )
-        )
-      } else {
-        PartialAsset(
-          id,
-          it.getValue("root").let(::AssetId),
-          it.getValue("apiVersion"),
-          it.getValue("kind"),
-          TypedByteArray(
-            it.getValue("spec.type"),
-            it.getValue("spec.data").decodeBase64()
+        } else {
+          PartialAsset(
+            id,
+            it.getValue("root").let(::AssetId),
+            it.getValue("apiVersion"),
+            it.getValue("kind"),
+            TypedByteArray(
+              it.getValue("spec.type"),
+              it.getValue("spec.data").decodeBase64()
+            )
           )
-        )
+        }
       }
+    } else {
+      null
     }
-  }
 
   private fun onInvalidIndex(id: AssetId) {
     log.error("Invalid index entry {}", id)

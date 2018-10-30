@@ -74,4 +74,9 @@ interface AssetRepository {
    * Updates the last known state of the asset represented by [id].
    */
   fun updateState(id: AssetId, state: AssetState)
+
+  /**
+   * Deletes the asset represented by [id].
+   */
+  fun delete(id: AssetId)
 }
