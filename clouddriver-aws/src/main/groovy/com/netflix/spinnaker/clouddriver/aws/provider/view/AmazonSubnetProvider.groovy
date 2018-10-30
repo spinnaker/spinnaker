@@ -105,6 +105,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
       cidrBlock: subnet.cidrBlock,
       availableIpAddressCount: subnet.availableIpAddressCount,
       account: parts.account,
+      accountId: cacheData.attributes.accountId,
       region: parts.region,
       availabilityZone: subnet.availabilityZone,
       purpose: purpose,

@@ -99,6 +99,7 @@ public class AmazonPrimitiveConverter {
       subnet.getCidrBlock(),
       subnet.getAvailableIpAddressCount(),
       ecsAccount.getName(),
+      ecsAccount.getAccountId(),
       subnet.getRegion(),
       subnet.getAvailabilityZone(),
       subnet.getPurpose(),

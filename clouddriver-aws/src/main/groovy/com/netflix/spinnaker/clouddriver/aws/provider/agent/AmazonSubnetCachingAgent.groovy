@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.netflix.spinnaker.cats.agent.AccountAware
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonSubnet
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 
@@ -86,6 +87,7 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
 
     List<CacheData> data = subnets.collect { Subnet subnet ->
       Map<String, Object> attributes = objectMapper.convertValue(subnet, AwsInfrastructureProvider.ATTRIBUTES)
+      attributes.putIfAbsent("accountId", account.accountId)
       new DefaultCacheData(Keys.getSubnetKey(subnet.subnetId, region, account.name),
         attributes,
         [:])

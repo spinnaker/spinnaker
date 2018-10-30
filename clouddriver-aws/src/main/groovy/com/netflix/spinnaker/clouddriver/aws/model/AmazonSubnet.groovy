@@ -26,6 +26,7 @@ class AmazonSubnet implements Subnet {
     String cidrBlock
     Integer availableIpAddressCount
     String account
+    String accountId
     String region
     String availabilityZone
     String purpose

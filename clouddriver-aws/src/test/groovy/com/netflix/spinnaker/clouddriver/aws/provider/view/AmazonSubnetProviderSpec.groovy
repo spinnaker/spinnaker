@@ -52,6 +52,7 @@ class AmazonSubnetProviderSpec extends Specification {
         cidrBlock: '10',
         availableIpAddressCount: 1,
         account: 'test',
+        accountId: '1',
         region: 'us-east-1',
         availabilityZone: 'us-east-1a',
         purpose: 'internal',
@@ -66,6 +67,7 @@ class AmazonSubnetProviderSpec extends Specification {
         cidrBlock: '11',
         availableIpAddressCount: 2,
         account: 'prod',
+        accountId: '2',
         region: 'us-west-1',
         availabilityZone: 'us-west-1a',
         purpose: 'external',
@@ -77,7 +79,7 @@ class AmazonSubnetProviderSpec extends Specification {
     and:
     1 * cache.filterIdentifiers(Keys.Namespace.SUBNETS.ns, "aws:$Keys.Namespace.SUBNETS.ns:*:*:*")
     1 * cache.getAll(Keys.Namespace.SUBNETS.ns, _, _ as CacheFilter) >> [
-      snData('test', 'us-east-1',
+      snData('test', '1', 'us-east-1',
         new Subnet(
           subnetId: 'subnet-00000001',
           state: 'available',
@@ -87,7 +89,7 @@ class AmazonSubnetProviderSpec extends Specification {
           availabilityZone: 'us-east-1a',
           tags: [new Tag(key: 'immutable_metadata', value: '{"purpose": "internal", "target": "EC2"}')]
         )),
-      snData('prod', 'us-west-1', new Subnet(
+      snData('prod', '2','us-west-1', new Subnet(
         subnetId: 'subnet-00000002',
         state: 'available',
         vpcId: 'vpc-1',
@@ -112,6 +114,7 @@ class AmazonSubnetProviderSpec extends Specification {
         cidrBlock: '10',
         availableIpAddressCount: 1,
         account: 'test',
+        accountId: '1',
         region: 'us-east-1',
         availabilityZone: 'us-east-1a',
         purpose: 'external (vpc0)',
@@ -121,7 +124,7 @@ class AmazonSubnetProviderSpec extends Specification {
 
     and:
     1 * cache.filterIdentifiers(Keys.Namespace.SUBNETS.ns, "aws:$Keys.Namespace.SUBNETS.ns:*:*:*")
-    1 * cache.getAll(Keys.Namespace.SUBNETS.ns, _, _ as CacheFilter) >> [snData('test', 'us-east-1', new Subnet(
+    1 * cache.getAll(Keys.Namespace.SUBNETS.ns, _, _ as CacheFilter) >> [snData('test', '1','us-east-1', new Subnet(
       subnetId: 'subnet-00000001',
       state: 'available',
       vpcId: 'vpc-1',
@@ -149,6 +152,7 @@ class AmazonSubnetProviderSpec extends Specification {
             cidrBlock: '10',
             availableIpAddressCount: 1,
             account: 'test',
+            accountId: 1,
             region: 'us-east-1',
             availabilityZone: 'us-east-1a',
             purpose: 'external (vpc0)',
@@ -159,7 +163,7 @@ class AmazonSubnetProviderSpec extends Specification {
 
     and:
     1 * cache.filterIdentifiers(Keys.Namespace.SUBNETS.ns, "aws:$Keys.Namespace.SUBNETS.ns:*:*:*")
-    1 * cache.getAll(Keys.Namespace.SUBNETS.ns, _, _ as CacheFilter) >> [snData('test', 'us-east-1', new Subnet(
+    1 * cache.getAll(Keys.Namespace.SUBNETS.ns, _, _ as CacheFilter) >> [snData('test', '1','us-east-1', new Subnet(
         subnetId: 'subnet-00000001',
         state: 'available',
         vpcId: 'vpc-1',
@@ -174,8 +178,9 @@ class AmazonSubnetProviderSpec extends Specification {
     ))]
   }
 
-  CacheData snData(String account, String region, Subnet subnet) {
+  CacheData snData(String account, String accountId, String region, Subnet subnet) {
     Map<String, Object> attributes = mapper.convertValue(subnet, AwsInfrastructureProvider.ATTRIBUTES)
+    attributes.putIfAbsent("accountId", accountId)
     new DefaultCacheData(Keys.getSubnetKey(subnet.subnetId, region, account),
       attributes,
       [:]
@@ -196,6 +201,7 @@ class AmazonSubnetProviderSpec extends Specification {
         cidrBlock: '10',
         availableIpAddressCount: 1,
         account: 'test',
+        accountId: '1',
         region: 'us-east-1',
         availabilityZone: 'us-east-1a',
         purpose: 'external (vpc0)',
@@ -204,7 +210,7 @@ class AmazonSubnetProviderSpec extends Specification {
 
     and:
     1 * cache.filterIdentifiers(Keys.Namespace.SUBNETS.ns, "aws:$Keys.Namespace.SUBNETS.ns:*:*:*")
-    1 * cache.getAll(Keys.Namespace.SUBNETS.ns, _, _ as CacheFilter) >> [snData('test', 'us-east-1', new Subnet(
+    1 * cache.getAll(Keys.Namespace.SUBNETS.ns, _, _ as CacheFilter) >> [snData('test', '1', 'us-east-1', new Subnet(
       subnetId: 'subnet-00000001',
       state: 'available',
       vpcId: 'vpc-1',
