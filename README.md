@@ -8,6 +8,14 @@ The REST API fronts the following services:
 * [Front50](https://github.com/spinnaker/front50)
 * [Igor](https://github.com/spinnaker/igor)
 * [Orca](https://github.com/spinnaker/orca)
+
+### Modular builds
+By default, Gate is built with all authentication providers included. To build only a subset of 
+providers, use the `includeProviders` flag:
+ ```
+./gradlew -PincludeProviders=oauth2,x509 clean build
+```
+ You can view the list of all providers in `gradle.properties`.
  
 ### Debugging
 
