@@ -23,6 +23,7 @@ import java.time.Instant
 
 data class KayentaCanaryContext(
   val metricsAccountName: String? = null,
+  val configurationAccountName: String? = null,
   val storageAccountName: String? = null,
   val canaryConfigId: String,
   val scopes: List<CanaryConfigScope> = emptyList(),

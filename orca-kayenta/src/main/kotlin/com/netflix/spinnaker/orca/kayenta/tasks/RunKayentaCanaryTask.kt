@@ -52,7 +52,7 @@ class RunKayentaCanaryTask(
       stage.execution.application,
       stage.execution.id,
       context.metricsAccountName,
-      context.storageAccountName /* configurationAccountName */, // TODO(duftler): Propagate configurationAccountName properly.
+      context.configurationAccountName,
       context.storageAccountName,
       CanaryExecutionRequest(scopes, context.scoreThresholds)
     )["canaryExecutionId"] as String

@@ -22,6 +22,7 @@ import java.util.Collections.emptyMap
 
 internal data class RunCanaryContext(
   val metricsAccountName: String?,
+  val configurationAccountName: String?,
   val storageAccountName: String?,
   val canaryConfigId: String,
   val scopes: Map<String, CanaryScopes> = emptyMap(),

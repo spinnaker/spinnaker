@@ -102,6 +102,7 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
 
       val runCanaryContext = RunCanaryContext(
         canaryConfig.metricsAccountName,
+        canaryConfig.configurationAccountName,
         canaryConfig.storageAccountName,
         canaryConfig.canaryConfigId,
         buildRequestScopes(canaryConfig, i, canaryAnalysisInterval),
