@@ -49,7 +49,7 @@
         >
       </artifact-account-selector-react>
     </stage-config-field>
-    <expected-artifact-editor-react ng-if="ctrl.$scope.showCreateArtifactForm"
+    <expected-artifact-editor-react ng-if="stage.source === ctrl.artifactSource && ctrl.$scope.showCreateArtifactForm"
                                     kinds="ctrl.manifestArtifactDelegate.getSupportedArtifactKinds()"
                                     sources="ctrl.manifestArtifactDelegate.getExpectedArtifactSources()"
                                     accounts="ctrl.manifestArtifactDelegate.getExpectedArtifactAccounts()"
