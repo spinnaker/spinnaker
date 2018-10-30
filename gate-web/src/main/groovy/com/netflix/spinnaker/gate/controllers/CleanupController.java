@@ -4,7 +4,6 @@ import com.netflix.spinnaker.gate.services.CleanupService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import retrofit.http.Query;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,10 +19,10 @@ public class CleanupController {
     this.cleanupService = cleanupService;
   }
 
-  @ApiOperation(value = "Opt out of clean up for a marked resource.", response = HashMap.class)
-  @RequestMapping(method = RequestMethod.PUT,
+  @ApiOperation(value = "Opt out of clean up for a marked resource.", response = String.class)
+  @RequestMapping(method = RequestMethod.GET,
                   value = "/resources/{namespace}/{resourceId}/optOut",
-                  produces= "text/html")
+                  produces = "text/html")
   String optOut(@PathVariable String namespace,
                 @PathVariable String resourceId) {
     Map markedResource = cleanupService.optOut(namespace, resourceId);
@@ -35,12 +34,16 @@ public class CleanupController {
   }
 
   @ApiOperation(value = "Get information about a marked resource.", response = String.class)
-  @RequestMapping(method = RequestMethod.PUT,
-    value = "/resources/{namespace}/{resourceId}")
-  Map getMarkedResource(@PathVariable String namespace,
+  @RequestMapping(method = RequestMethod.GET,
+                  value = "/resources/{namespace}/{resourceId}",
+                  produces = "text/html")
+  String getMarkedResource(@PathVariable String namespace,
                         @PathVariable String resourceId) {
     Map markedResource = cleanupService.get(namespace, resourceId);
-    return markedResource;
+    if (markedResource.isEmpty()) {
+      return getHtmlWithMessage(namespace, resourceId, "Resource does not exist. Please try a valid resource.");
+    }
+    return markedResource.toString();
   }
 
   // todo eb: expose once AWS gives us soft delete
