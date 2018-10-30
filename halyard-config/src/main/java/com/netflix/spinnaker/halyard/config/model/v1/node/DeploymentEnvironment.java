@@ -104,6 +104,7 @@ public class DeploymentEnvironment extends Node {
   private CustomSizing customSizing = new CustomSizing();
   private Map<String, List<SidecarConfig>> sidecars = new HashMap<>();
   private Map<String, List<Map>> initContainers = new HashMap<>();
+  private Map<String, List<Map>> hostAliases = new HashMap<>();
   private GitConfig gitConfig = new GitConfig();
   @ValidForSpinnakerVersion(lowerBound = "1.10.0", tooLowMessage = "High availability services are not available prior to this release.")
   private HaServices haServices = new HaServices();

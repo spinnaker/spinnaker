@@ -157,6 +157,23 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       initContainers = null;
     }
 
+    List<String> hostAliases = details.getDeploymentConfiguration()
+        .getDeploymentEnvironment()
+        .getHostAliases()
+        .getOrDefault(getService().getServiceName(), new ArrayList<>())
+        .stream()
+        .map(o -> {
+          try {
+            return getObjectMapper().writeValueAsString(o);
+          } catch (JsonProcessingException e) {
+            throw new HalException(Problem.Severity.FATAL, "Invalid host alias format: " + e.getMessage(), e);
+          }
+        }).collect(Collectors.toList());
+
+    if (hostAliases.isEmpty()) {
+      hostAliases = null;
+    }
+
     configSources.addAll(sidecarConfigs.stream()
         .filter(c -> StringUtils.isNotEmpty(c.getMountPath()))
         .map(c -> new ConfigSource().setMountPath(c.getMountPath())
@@ -211,6 +228,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     TemplatedResource podSpec = new JinjaJarResource("/kubernetes/manifests/podSpec.yml")
         .addBinding("containers", containers)
         .addBinding("initContainers", initContainers)
+        .addBinding("hostAliases", hostAliases)
         .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
         .addBinding("volumes", volumes);
 

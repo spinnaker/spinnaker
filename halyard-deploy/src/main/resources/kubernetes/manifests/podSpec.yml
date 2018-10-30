@@ -13,6 +13,14 @@
   ],
   {% endif %}
 
+  {% if hostAliases != null %}
+  "hostAliases": [
+    {% for h in hostAliases %}
+    {{ h }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
   "terminationGracePeriodSeconds": {{ terminationGracePeriodSeconds }},
 
   "volumes": [
