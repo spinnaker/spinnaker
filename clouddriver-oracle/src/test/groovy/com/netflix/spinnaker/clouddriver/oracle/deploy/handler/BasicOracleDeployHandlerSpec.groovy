@@ -47,6 +47,7 @@ class BasicOracleDeployHandlerSpec extends Specification {
 
   def "Create server group"() {
     setup:
+    def SSHKeys = "ssh-rsa ABC a@b"
     def creds = Mock(OracleNamedAccountCredentials)
     creds.compartmentId >> "ocid.compartment.123"
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -57,6 +58,7 @@ class BasicOracleDeployHandlerSpec extends Specification {
     desc.stack = "dev"
     desc.region = "us-phoenix-1"
     desc.loadBalancerId = "ocid.lb.oc1..1918273"
+    desc.sshAuthorizedKeys = SSHKeys
     def loadBalancerClient = Mock(LoadBalancerClient)
     creds.loadBalancerClient >> loadBalancerClient
     def computeClient = Mock(ComputeClient)
@@ -81,7 +83,10 @@ class BasicOracleDeployHandlerSpec extends Specification {
     then:
     1 * sgService.listServerGroupNamesByClusterName(_, "foo-dev") >> ["foo-dev-v001"]
     1 * sgService.getServerGroup(creds, "foo", "foo-dev-v001") >> sg
-    1 * sgService.createServerGroup(_)
+    1 * sgService.createServerGroup(_) >> { args ->
+      OracleServerGroup sgArgument = (OracleServerGroup) args[0]
+      assert sgArgument.launchConfig.get("sshAuthorizedKeys") == SSHKeys
+    }
     res != null
     res.serverGroupNames == ["us-phoenix-1:foo-dev-v002"]
     1 * loadBalancerClient.getLoadBalancer(_) >> GetLoadBalancerResponse.builder()

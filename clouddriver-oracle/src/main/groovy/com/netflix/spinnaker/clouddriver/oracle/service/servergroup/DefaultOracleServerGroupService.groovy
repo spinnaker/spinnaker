@@ -171,12 +171,21 @@ class DefaultOracleServerGroupService implements OracleServerGroupService {
   }
 
   private OracleInstance createInstance(OracleServerGroup sg, int i) {
+    Map<String, String> metadata = new HashMap<>()
+    if (sg.launchConfig["sshAuthorizedKeys"]?.trim()) {
+      // "ssh_authorized_keys"* - Provide one or more public SSH keys to be included in the ~/.ssh/authorized_keys file
+      // for the default user on the instance.
+      // Use a newline character to separate multiple keys.
+      metadata.put("ssh_authorized_keys", sg.launchConfig["sshAuthorizedKeys"] as String)
+    }
+
     LaunchInstanceRequest rq = LaunchInstanceRequest.builder().launchInstanceDetails(LaunchInstanceDetails.builder()
       .availabilityDomain(sg.launchConfig["availabilityDomain"] as String)
       .compartmentId(sg.launchConfig["compartmentId"] as String)
       .imageId(sg.launchConfig["imageId"] as String)
       .shape(sg.launchConfig["shape"] as String)
       .subnetId(sg.launchConfig["subnetId"] as String)
+      .metadata(metadata)
       .displayName(sg.name + "-$i")
       .build()).build()
 

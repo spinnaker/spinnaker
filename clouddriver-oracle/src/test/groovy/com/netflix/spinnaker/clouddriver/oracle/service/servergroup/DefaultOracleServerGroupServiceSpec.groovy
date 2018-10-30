@@ -15,6 +15,7 @@ import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCrede
 import com.oracle.bmc.Region
 import com.oracle.bmc.core.ComputeClient
 import com.oracle.bmc.core.model.Instance
+import com.oracle.bmc.core.requests.LaunchInstanceRequest
 import com.oracle.bmc.core.responses.LaunchInstanceResponse
 import spock.lang.Specification
 
@@ -22,6 +23,7 @@ class DefaultOracleServerGroupServiceSpec extends Specification {
 
   def "create server group"() {
     setup:
+    def SSHKeys = "ssh-rsa ABC a@b"
     def creds = Mock(OracleNamedAccountCredentials)
     creds.getName() >> "foo"
     creds.getRegion() >> Region.US_PHOENIX_1.regionId
@@ -41,6 +43,7 @@ class DefaultOracleServerGroupServiceSpec extends Specification {
         "shape"             : "small",
         "vpcId"             : "ocid.vcn.123",
         "subnetId"          : "ocid.subnet.123",
+        "sshAuthorizedKeys" : SSHKeys,
         "createdTime"       : System.currentTimeMillis()
       ],
       targetSize: 4,
@@ -49,14 +52,17 @@ class DefaultOracleServerGroupServiceSpec extends Specification {
     sgService.createServerGroup(sg)
 
     then:
-    4 * creds.computeClient.launchInstance(_) >> LaunchInstanceResponse.builder().instance(
-      Instance.builder().timeCreated(new Date()).build()
-    ).build()
+    4 * creds.computeClient.launchInstance(_) >> { args ->
+      LaunchInstanceRequest argumentRequest = (LaunchInstanceRequest) args[0]
+      assert argumentRequest.getLaunchInstanceDetails().getMetadata().get("ssh_authorized_keys") == SSHKeys
+      return LaunchInstanceResponse.builder().instance(Instance.builder().timeCreated(new Date()).build()).build()
+    }
     1 * persistence.upsertServerGroup(_)
   }
 
   def "resize (increase) server group"() {
     setup:
+    def SSHKeys = null
     def creds = Mock(OracleNamedAccountCredentials)
     creds.getName() >> "foo"
     creds.getRegion() >> Region.US_PHOENIX_1.regionId
@@ -75,6 +81,7 @@ class DefaultOracleServerGroupServiceSpec extends Specification {
         "shape"             : "small",
         "vpcId"             : "ocid.vcn.123",
         "subnetId"          : "ocid.subnet.123",
+        "sshAuthorizedKeys" : SSHKeys,
         "createdTime"       : System.currentTimeMillis()
       ],
       targetSize: 1,
@@ -85,9 +92,11 @@ class DefaultOracleServerGroupServiceSpec extends Specification {
     def resized = sgService.resizeServerGroup(task, creds, "sg1", 5)
 
     then:
-    4 * creds.computeClient.launchInstance(_) >> LaunchInstanceResponse.builder().instance(
-      Instance.builder().timeCreated(new Date()).build()
-    ).build()
+    4 * creds.computeClient.launchInstance(_)  >> { args ->
+      LaunchInstanceRequest argumentRequest = (LaunchInstanceRequest) args[0]
+      assert argumentRequest.getLaunchInstanceDetails().getMetadata().get("ssh_authorized_keys") == SSHKeys
+      return LaunchInstanceResponse.builder().instance(Instance.builder().timeCreated(new Date()).build()).build()
+    }
     1 * persistence.getServerGroupByName(_, "sg1") >> sg
     1 * persistence.upsertServerGroup(_)
     resized == true

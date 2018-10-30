@@ -78,6 +78,7 @@ class BasicOracleDeployHandler implements DeployHandler<BasicOracleDeployDescrip
       "shape"             : description.shape,
       "vpcId"             : description.vpcId,
       "subnetId"          : description.subnetId,
+      "sshAuthorizedKeys" : description.sshAuthorizedKeys,
       "createdTime"       : System.currentTimeMillis()
     ]
     int targetSize = description.targetSize?: (description.capacity?.desired?:0)

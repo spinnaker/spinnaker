@@ -24,5 +24,6 @@ class BaseOracleInstanceDescription extends AbstractOracleCredentialsDescription
   String vpcId
   String subnetId
   String accountName
+  String sshAuthorizedKeys
 
 }
