@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription;
@@ -139,6 +140,23 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .getSidecars()
         .getOrDefault(getService().getServiceName(), new ArrayList<>());
 
+    List<String> initContainers = details.getDeploymentConfiguration()
+        .getDeploymentEnvironment()
+        .getInitContainers()
+        .getOrDefault(getService().getServiceName(), new ArrayList<>())
+        .stream()
+        .map(o -> {
+          try {
+            return getObjectMapper().writeValueAsString(o);
+          } catch (JsonProcessingException e) {
+            throw new HalException(Problem.Severity.FATAL, "Invalid init container format: " + e.getMessage(), e);
+          }
+        }).collect(Collectors.toList());
+
+    if (initContainers.isEmpty()) {
+      initContainers = null;
+    }
+
     configSources.addAll(sidecarConfigs.stream()
         .filter(c -> StringUtils.isNotEmpty(c.getMountPath()))
         .map(c -> new ConfigSource().setMountPath(c.getMountPath())
@@ -192,6 +210,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
     TemplatedResource podSpec = new JinjaJarResource("/kubernetes/manifests/podSpec.yml")
         .addBinding("containers", containers)
+        .addBinding("initContainers", initContainers)
         .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
         .addBinding("volumes", volumes);
 

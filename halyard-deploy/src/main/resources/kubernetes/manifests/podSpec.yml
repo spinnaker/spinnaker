@@ -5,6 +5,14 @@
     {% endfor %}
   ],
 
+  {% if initContainers != null %}
+  "initContainers": [
+    {% for c in initContainers %}
+    {{ c }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
   "terminationGracePeriodSeconds": {{ terminationGracePeriodSeconds }},
 
   "volumes": [
