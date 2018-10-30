@@ -13,6 +13,7 @@ dependencies {
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
   implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:+"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:+"
 
   implementation "org.springframework.boot:spring-boot-starter-actuator:$bootVersion"
   implementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"

@@ -16,12 +16,6 @@
 
 apply plugin: "nebula.kotlin"
 
-kotlin {
-  experimental {
-//    coroutines "enable"
-  }
-}
-
 compileKotlin {
   kotlinOptions {
     languageVersion = "1.3"
