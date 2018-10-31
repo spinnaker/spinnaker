@@ -438,6 +438,10 @@ class PublishHalyardCommand(CommandProcessor):
     summary = self.__scm.git.collect_repository_summary(git_dir)
 
     args = self.__gradle.get_common_args()
+    if (os.path.isfile(os.path.join(repository.git_dir,
+                                    "gradle", "init-publish.gradle"))):
+      args.append('-I gradle/init-publish.gradle')
+
     args.extend(self.__gradle.get_debian_args(
         'trusty-stable,xenial-stable,bionic-stable'))
     build_number = self.options.build_number
