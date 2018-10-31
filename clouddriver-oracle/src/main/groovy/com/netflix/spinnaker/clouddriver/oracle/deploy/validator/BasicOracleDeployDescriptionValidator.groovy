@@ -25,6 +25,13 @@ class BasicOracleDeployDescriptionValidator extends StandardOracleAttributeValid
   void validate(List priorDescriptions, BasicOracleDeployDescription description, Errors errors) {
     context = "basicOracleDeployDescriptionValidator"
     validateNotEmptyString(errors, description.application, "application")
+    if (description.loadBalancerId) {
+      // If a serverGroup is created with LoadBalancer, then a backendSet is created from the serverGroup with the same name.
+      // The backendSet name is limited to 32 chars
+      // This combineAppStackDetail (appName-stack-detail) is limited to 32-5 = 27 chars
+      validateLimit(errors, combineAppStackDetail(description.application, description.stack, description.freeFormDetails), 27, "combineAppStackDetail")
+      validateNotEmptyString(errors, description.backendSetName, "backendSetName")
+    }
     validateNotEmptyString(errors, description.region, "region")
     validateNotEmptyString(errors, description.accountName, "accountName")
     validateNotEmptyString(errors, description.imageId, "imageId")
@@ -35,5 +42,20 @@ class BasicOracleDeployDescriptionValidator extends StandardOracleAttributeValid
     if (description.capacity) {
       validateCapacity(errors, description.capacity.min, description.capacity.max, description.capacity.desired)
     }
+  }
+
+  /*
+   * See NameBuilder.combineAppStackDetail. BasicOracleDeployHandler uses this to create "clusterName" and serverGroupName.
+   * serverGroupName = appName-stack-detail-v001 or String.format("%s-v%03d", groupName, sequence)
+   */
+  static String combineAppStackDetail(String appName, String stack, String detail) {
+    stack = stack != null ? stack : "";
+    if (detail != null && !detail.isEmpty()) {
+      return appName + "-" + stack + "-" + detail;
+    }
+    if (!stack.isEmpty()) {
+      return appName + "-" + stack;
+    }
+    return appName;
   }
 }

@@ -6,7 +6,6 @@
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
-
 package com.netflix.spinnaker.clouddriver.oracle.deploy.op
 
 import com.netflix.frigga.Names
@@ -16,16 +15,20 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.oracle.deploy.OracleWorkRequestPoller
 import com.netflix.spinnaker.clouddriver.oracle.deploy.description.ResizeOracleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.oracle.model.OracleInstance
+import com.netflix.spinnaker.clouddriver.oracle.model.Details
 import com.netflix.spinnaker.clouddriver.oracle.provider.view.OracleClusterProvider
 import com.netflix.spinnaker.clouddriver.oracle.service.servergroup.OracleServerGroupService
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.oracle.bmc.core.requests.GetVnicRequest
 import com.oracle.bmc.core.requests.ListVnicAttachmentsRequest
-import com.oracle.bmc.loadbalancer.model.BackendDetails
+import com.oracle.bmc.loadbalancer.model.BackendDetails 
+import com.oracle.bmc.loadbalancer.model.BackendSet
 import com.oracle.bmc.loadbalancer.model.HealthCheckerDetails
+import com.oracle.bmc.loadbalancer.model.LoadBalancer
 import com.oracle.bmc.loadbalancer.model.UpdateBackendSetDetails
 import com.oracle.bmc.loadbalancer.requests.GetLoadBalancerRequest
 import com.oracle.bmc.loadbalancer.requests.UpdateBackendSetRequest
+import com.oracle.bmc.model.BmcException
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.util.concurrent.TimeUnit
@@ -52,15 +55,21 @@ class ResizeOracleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
+    def app = Names.parseName(description.serverGroupName).app
     task.updateStatus BASE_PHASE, "Resizing server group: " + description.serverGroupName
+    def serverGroup = oracleServerGroupService.getServerGroup(description.credentials, app, description.serverGroupName)
     int targetSize = description.targetSize?: (description.capacity?.desired?:0)
+    if (targetSize == serverGroup.instances.size()) {
+      task.updateStatus BASE_PHASE, description.serverGroupName + " is already running the desired number of instances"
+      return
+    }
+    Set<String> oldGroup = serverGroup.instances.collect{it.privateIp} as Set<String>
+
     oracleServerGroupService.resizeServerGroup(task, description.credentials, description.serverGroupName, targetSize)
 
-    // SL: sync server group instances to backendset if there is one
-    def app = Names.parseName(description.serverGroupName).app
-    def sg = oracleServerGroupService.getServerGroup(description.credentials, app, description.serverGroupName)
+    serverGroup = oracleServerGroupService.getServerGroup(description.credentials, app, description.serverGroupName)
 
-    if (sg.loadBalancerId) {
+    if (serverGroup.loadBalancerId) {
 
       // wait for instances to go into running state
       ServerGroup sgView
@@ -68,7 +77,7 @@ class ResizeOracleServerGroupAtomicOperation implements AtomicOperation<Void> {
       long finishBy = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30)
       boolean allUp = false
       while (!allUp && System.currentTimeMillis() < finishBy) {
-        sgView = clusterProvider.getServerGroup(sg.credentials.name, sg.region, sg.name)
+        sgView = clusterProvider.getServerGroup(serverGroup.credentials.name, serverGroup.region, serverGroup.name)
         if (sgView && (sgView.instanceCounts.up == sgView.instanceCounts.total) && (sgView.instanceCounts.total == description.capacity.desired)) {
           task.updateStatus BASE_PHASE, "All instances are Up"
           allUp = true
@@ -85,52 +94,66 @@ class ResizeOracleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
       // get their ip addresses
       task.updateStatus BASE_PHASE, "Looking up instance IP addresses"
-      List<String> ips = []
-      sgView.instances.each { instance ->
-        def vnicAttachRs = description.credentials.computeClient.listVnicAttachments(ListVnicAttachmentsRequest.builder()
-          .compartmentId(description.credentials.compartmentId)
-          .instanceId(((OracleInstance) instance).id)
-          .build())
-        vnicAttachRs.items.each { vnicAttach ->
-          def vnic = description.credentials.networkClient.getVnic(GetVnicRequest.builder()
-            .vnicId(vnicAttach.vnicId).build()).vnic
-          ips << vnic.privateIp
+      List<String> newGroup = []
+      serverGroup.instances.each { instance ->
+        if (!instance.privateIp) {
+          def vnicAttachRs = description.credentials.computeClient.listVnicAttachments(ListVnicAttachmentsRequest.builder()
+            .compartmentId(description.credentials.compartmentId)
+            .instanceId(((OracleInstance) instance).id)
+            .build())
+          vnicAttachRs.items.each { vnicAttach ->
+            def vnic = description.credentials.networkClient.getVnic(GetVnicRequest.builder()
+              .vnicId(vnicAttach.vnicId).build()).vnic
+            instance.privateIp = vnic.privateIp
+          }
+        }
+        newGroup << instance.privateIp
+      }
+      //update serverGroup with IPs
+      oracleServerGroupService.updateServerGroup(serverGroup)
+
+      task.updateStatus BASE_PHASE, "Getting loadbalancer details " + serverGroup?.loadBalancerId
+      LoadBalancer loadBalancer = serverGroup?.loadBalancerId? description.credentials.loadBalancerClient.getLoadBalancer(
+        GetLoadBalancerRequest.builder().loadBalancerId(serverGroup.loadBalancerId).build())?.getLoadBalancer() : null
+      if (loadBalancer) {
+        try {
+          BackendSet backendSet = serverGroup.backendSetName? loadBalancer.backendSets.get(serverGroup.backendSetName) : null
+          if (backendSet == null && loadBalancer.backendSets.size() == 1) {
+            backendSet = loadBalancer.backendSets.values().first();
+          }
+          if (backendSet) {
+            List<BackendDetails> backends = backendSet.backends.findAll { !oldGroup.contains(it.ipAddress) } .collect { Details.of(it) }
+            newGroup.each {
+              backends << BackendDetails.builder().ipAddress(it).port(backendSet.healthChecker.port).build()
+            }
+            UpdateBackendSetDetails.Builder details = UpdateBackendSetDetails.builder().backends(backends)
+            if (backendSet.sslConfiguration) {
+              details.sslConfiguration(Details.of(backendSet.sslConfiguration))
+            }
+            if (backendSet.sessionPersistenceConfiguration) {
+              details.sessionPersistenceConfiguration(backendSet.sessionPersistenceConfiguration)
+            }
+            if (backendSet.healthChecker) {
+              details.healthChecker(Details.of(backendSet.healthChecker))
+            }
+            if (backendSet.policy) {
+              details.policy(backendSet.policy)
+            }
+            UpdateBackendSetRequest updateBackendSet = UpdateBackendSetRequest.builder()
+              .loadBalancerId(serverGroup.loadBalancerId).backendSetName(backendSet.name)
+              .updateBackendSetDetails(details.build()).build() 
+            task.updateStatus BASE_PHASE, "Updating backendSet ${backendSet.name}"
+            def updateRes = description.credentials.loadBalancerClient.updateBackendSet(updateBackendSet)
+            OracleWorkRequestPoller.poll(updateRes.opcWorkRequestId, BASE_PHASE, task, description.credentials.loadBalancerClient)
+          }
+        } catch (BmcException e) {
+          if (e.statusCode == 404) {
+            task.updateStatus BASE_PHASE, "Backend set did not exist...continuing"
+          } else {
+            throw e
+          }
         }
       }
-
-      // get LB
-      task.updateStatus BASE_PHASE, "Getting loadbalancer details"
-      def lb = description.credentials.loadBalancerClient.getLoadBalancer(GetLoadBalancerRequest.builder().loadBalancerId(sg.loadBalancerId).build()).loadBalancer
-
-      // use backend-template to replace/sync backend set
-      def names = Names.parseName(description.serverGroupName)
-      def backendTemplate = lb.backendSets.get("${names.cluster}-template".toString())
-      def backend = UpdateBackendSetRequest.builder()
-        .loadBalancerId(sg.loadBalancerId)
-        .backendSetName(sg.name)
-        .updateBackendSetDetails(UpdateBackendSetDetails.builder()
-        .backends(ips.collect { ip ->
-        BackendDetails.builder().ipAddress(ip).port(backendTemplate.healthChecker.port).build()
-      } as List<BackendDetails>)
-        .healthChecker(HealthCheckerDetails.builder()
-        .protocol(backendTemplate.healthChecker.protocol)
-        .port(backendTemplate.healthChecker.port)
-        .intervalInMillis(backendTemplate.healthChecker.intervalInMillis)
-        .retries(backendTemplate.healthChecker.retries)
-        .timeoutInMillis(backendTemplate.healthChecker.timeoutInMillis)
-        .urlPath(backendTemplate.healthChecker.urlPath)
-        .returnCode(backendTemplate.healthChecker.returnCode)
-        .responseBodyRegex(backendTemplate.healthChecker.responseBodyRegex)
-        .build())
-        .policy(backendTemplate.policy)
-        .build()
-      ).build()
-
-      task.updateStatus BASE_PHASE, "Updating backend set ${sg.name}"
-      def rs = description.credentials.loadBalancerClient.updateBackendSet(backend)
-
-      // wait for backend set to be updated
-      OracleWorkRequestPoller.poll(rs.getOpcWorkRequestId(), BASE_PHASE, task, description.credentials.loadBalancerClient)
     }
     task.updateStatus BASE_PHASE, "Completed server group resize"
     return null

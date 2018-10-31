@@ -6,7 +6,6 @@
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
-
 package com.netflix.spinnaker.clouddriver.oracle.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -34,6 +33,7 @@ class OracleServerGroup {
   Boolean disabled = false
   Integer targetSize
   String loadBalancerId
+  String backendSetName
   OracleNamedAccountCredentials credentials
 
   @JsonIgnore

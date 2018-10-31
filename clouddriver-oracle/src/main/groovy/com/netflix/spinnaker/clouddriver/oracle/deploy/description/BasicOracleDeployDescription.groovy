@@ -25,6 +25,7 @@ class BasicOracleDeployDescription extends BaseOracleInstanceDescription impleme
   String stack
   String freeFormDetails
   String loadBalancerId
+  String backendSetName
   ServerGroup.Capacity capacity
   //targetSize takes precedence if targetSize and capacity.desired are both specified.
   Integer targetSize

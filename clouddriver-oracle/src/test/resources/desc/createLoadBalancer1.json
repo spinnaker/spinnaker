@@ -1,0 +1,46 @@
+[
+    {
+        "upsertLoadBalancer": {
+      "name": "deva18app-deck-sep134",
+      "cloudProvider": "oracle",
+      "credentials": "myacct",
+      "region": "us-ashburn-1",
+      "shape": "400Mbps",
+      "isPrivate": true,
+      "subnetIds": [
+        "ocid1.subnet.oc1.iad.aaaaaaaath476v3iumd45dyvvzxf6gelwphro2h6ss4mt7lzw3xjqq74hgca"
+      ],
+      "listeners": {
+        "HTTP_80": {
+          "name": "HTTP_80",
+          "port": 80,
+          "protocol": "HTTP",
+          "defaultBackendSetName": "backendSet1",
+          "isSsl": false
+        }
+      },
+      "hostnames": [],
+      "backendSets": {
+        "backendSet1": {
+          "name": "backendSet1",
+          "policy": "ROUND_ROBIN",
+          "healthChecker": {
+            "protocol": "HTTP",
+            "port": 80,
+            "urlPath": "/healthZ"
+          }
+        }
+      },
+      "freeformTags": {},
+      "vpcId": "ocid1.vcn.oc1.iad.aaaaaaaabkdqmjdle6xcqlbnx7gdw3u4d4ra7cvhiddtsjebqllfdmv5arfq",
+      "stack": "deck",
+      "detail": "sep134",
+      "type": "upsertLoadBalancer",
+      "application": "deva18app",
+      "loadBalancerName": "deva18app-deck-sep134",
+      "user": "anonymous",
+      "refId": "0",
+      "requisiteStageRefIds": []
+    }
+  }
+]

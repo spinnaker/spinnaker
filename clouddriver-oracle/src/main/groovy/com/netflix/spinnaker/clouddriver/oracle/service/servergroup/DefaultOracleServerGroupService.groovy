@@ -6,7 +6,6 @@
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
-
 package com.netflix.spinnaker.clouddriver.oracle.service.servergroup
 
 import com.netflix.frigga.Names
@@ -26,6 +25,7 @@ import org.springframework.stereotype.Component
 @Component
 class DefaultOracleServerGroupService implements OracleServerGroupService {
 
+  private static final String DEPLOY = "DEPLOY_SERVER_GROUP"
   private static final String DESTROY = "DESTROY_SERVER_GROUP"
   private static final String RESIZE = "RESIZE_SERVER_GROUP"
   private static final String DISABLE = "DISABLE_SERVER_GROUP"
@@ -67,12 +67,33 @@ class DefaultOracleServerGroupService implements OracleServerGroupService {
   }
 
   @Override
-  void createServerGroup(OracleServerGroup sg) {  
+  void createServerGroup(Task task, OracleServerGroup sg) {  
     def instances = [] as Set
-    for (int i = 0; i < sg.targetSize; i++) {
-      instances << createInstance(sg, i)
+    //if overList createInstance throws com.oracle.bmc.model.BmcException: (400, LimitExceeded, false) 
+    def errors = []
+    try {
+      for (int i = 0; i < sg.targetSize; i++) {
+        instances << createInstance(sg, i)
+      }
+    } catch (BmcException e) {
+      task.updateStatus DEPLOY, "Creating instance failed: $e"
+      errors << e
     }
-    sg.instances = instances
+    if (errors) {    
+      if (instances.size() > 0) {
+        task.updateStatus DEPLOY, "ServerGroup created with errors: $errors"
+      } else {
+        task.updateStatus DEPLOY, "ServerGroup creation failed: $errors"
+      }
+    }
+    if (instances.size() > 0) {
+      sg.instances = instances
+      persistence.upsertServerGroup(sg)
+    }
+  }
+
+  @Override
+  void updateServerGroup(OracleServerGroup sg) {  
     persistence.upsertServerGroup(sg)
   }
 
@@ -82,11 +103,14 @@ class DefaultOracleServerGroupService implements OracleServerGroupService {
     def serverGroup = persistence.getServerGroupByName(persistenceCtx, serverGroupName)
     if (serverGroup != null) {
       task.updateStatus DESTROY, "Found server group: $serverGroup.name"
-
-      for (int i = 0; i < serverGroup.targetSize; i++) {
-        def instance = serverGroup.instances[i]
-        task.updateStatus DESTROY, "Terminating instance: $instance.name"
-        terminateInstance(serverGroup, instance)
+      if (serverGroup.instances && serverGroup.instances.size() > 0) {   
+        for (int i = 0; i < serverGroup.targetSize; i++) {
+          def instance = serverGroup.instances[i]
+          if (instance) {
+            task.updateStatus DESTROY, "Terminating instance: $instance.name"
+            terminateInstance(serverGroup, instance)
+          }
+        }
       }
       task.updateStatus DESTROY, "Removing persistent data for $serverGroup.name"
       persistence.deleteServerGroup(serverGroup)
@@ -102,36 +126,18 @@ class DefaultOracleServerGroupService implements OracleServerGroupService {
     def persistenceCtx = new OraclePersistenceContext(creds)
     def serverGroup = persistence.getServerGroupByName(persistenceCtx, serverGroupName)
     if (serverGroup != null) {
-      task.updateStatus DESTROY, "Found server group: $serverGroup.name resizing to $targetSize"
-
+      task.updateStatus RESIZE, "Found server group: $serverGroup.name resizing to $targetSize"
       if (targetSize > serverGroup.targetSize) {
         int numInstancesToCreate = targetSize - serverGroup.targetSize
         task.updateStatus RESIZE, "Creating $numInstancesToCreate instances"
-
-        resize(serverGroup, targetSize, serverGroup.targetSize, targetSize,
-          { int i ->
-            task.updateStatus RESIZE, "Creating instance: $i"
-            return createInstance(serverGroup, i)
-          },
-          { OracleInstance instance ->
-            serverGroup.instances.add(instance)
-          })
-
+        increase(task, serverGroup, targetSize)
       } else if (serverGroup.targetSize > targetSize) {
         int numInstancesToTerminate = serverGroup.targetSize - targetSize
         task.updateStatus RESIZE, "Terminating $numInstancesToTerminate instances"
-
-        resize(serverGroup, targetSize, targetSize, serverGroup.targetSize,
-          { int i ->
-            task.updateStatus RESIZE, "Terminating instance: " + serverGroup.instances[i].name
-            return terminateInstance(serverGroup, serverGroup.instances[i])
-          },
-          { OracleInstance instance ->
-            serverGroup.instances.remove(instance)
-          })
-
+        decrease(task, serverGroup, targetSize)
       } else {
         task.updateStatus RESIZE, "Already running the desired number of instances"
+        return true
       }
       task.updateStatus RESIZE, "Updating persistent data for $serverGroup.name"
       persistence.upsertServerGroup(serverGroup)
@@ -214,14 +220,42 @@ class DefaultOracleServerGroupService implements OracleServerGroupService {
     return instance
   }
 
-  private void resize(OracleServerGroup sg, Integer targetSize, int from, int to, Closure operate, Closure update) {
+  private void increase(Task task, OracleServerGroup serverGroup, int targetSize) {    
+    int currentSize = serverGroup.targetSize; 
     def instances = [] as Set
-    for (int i = from; i < to; i++) {
-      instances << operate(i)
+    def errors = []
+    for (int i = currentSize; i < targetSize; i++) {
+      task.updateStatus RESIZE, "Creating instance: $i"
+      try {
+        instances << createInstance(serverGroup, i)
+      } catch (BmcException e) {
+        task.updateStatus RESIZE, "Creating instance failed: $e"
+        errors << e
+      }
+    }
+    if (errors) {    
+      if (instances.size() > 0) {
+        task.updateStatus RESIZE, "ServerGroup resize with errors: $errors"
+      } else {
+        task.updateStatus RESIZE, "ServerGroup resize failed: $errors"
+      }
     }
     for (OracleInstance instance : instances) {
-      update(instance)
+      serverGroup.instances.add(instance)
     }
-    sg.targetSize = targetSize
+    serverGroup.targetSize = currentSize + instances.size()
+  }
+
+  private void decrease(Task task, OracleServerGroup serverGroup, int targetSize) {   
+    def instances = [] as Set
+    int currentSize = serverGroup.targetSize;
+    for (int i = targetSize; i < currentSize; i++) {
+      task.updateStatus RESIZE, "Terminating instance: " + serverGroup.instances[i].name
+      instances << terminateInstance(serverGroup, serverGroup.instances[i])
+    }
+    for (OracleInstance instance : instances) {
+        serverGroup.instances.remove(instance)
+    }
+    serverGroup.targetSize = targetSize
   }
 }

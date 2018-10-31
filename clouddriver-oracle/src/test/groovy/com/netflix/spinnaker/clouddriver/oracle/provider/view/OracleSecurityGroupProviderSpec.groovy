@@ -22,7 +22,6 @@ import com.oracle.bmc.core.model.SecurityList
 import com.oracle.bmc.core.model.TcpOptions
 import spock.lang.Specification
 
-@spock.lang.Ignore("pass on local runs, failed on travisCI.")
 class OracleSecurityGroupProviderSpec extends Specification {
 
   ObjectMapper objectMapper = new ObjectMapper().setFilterProvider(new SimpleFilterProvider().setFailOnUnknownId(false))

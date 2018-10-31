@@ -15,7 +15,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.VersionedCloudProviderOpe
 
 abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<T> {
 
-  String context
+  protected String context
 
   def validateNotEmptyString(Errors errors, String value, String attribute) {
     if (!value) {
@@ -60,5 +60,23 @@ abstract class StandardOracleAttributeValidator<T> extends DescriptionValidator<
           "desired capacity (${desired}) is not within min/max (${min}/${max}) range"
       }
     }
+  }
+  
+  def validateLimit(Errors errors, String value, int limit, String attribute) {
+    if (!value) {
+      errors.rejectValue(attribute, "${context}.${attribute}.empty")
+      return false
+    } else if (value.length() >= limit) {
+      errors.rejectValue(attribute, "${context}.${attribute}.exceedsLimit")
+    }
+    return true
+  }
+
+  def validateNotNull(Errors errors, Object value, String attribute) {
+    if (!value) {
+      errors.rejectValue(attribute, "${context}.${attribute}.null")
+      return false
+    }
+    return true
   }
 }

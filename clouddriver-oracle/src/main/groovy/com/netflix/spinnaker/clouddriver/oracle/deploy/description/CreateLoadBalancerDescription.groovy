@@ -9,32 +9,39 @@
 package com.netflix.spinnaker.clouddriver.oracle.deploy.description
 
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
+import com.oracle.bmc.loadbalancer.model.CertificateDetails
+import com.oracle.bmc.loadbalancer.model.BackendSetDetails
+import com.oracle.bmc.loadbalancer.model.ListenerDetails
+import groovy.transform.ToString
 
+@ToString
 class CreateLoadBalancerDescription extends AbstractOracleCredentialsDescription implements ApplicationNameable {
 
   String application
   String stack
+  String detail
   String shape
   String policy
+  Boolean isPrivate
   List<String> subnetIds
-  Listener listener
-  HealthCheck healthCheck
-
-  static class Listener {
-
-    Integer port
-    String protocol
+  Map<String, ListenerDetails> listeners
+  Map<String, CertificateDetails> certificates
+  Map<String, BackendSetDetails> backendSets
+  String loadBalancerId //TODO UpdateRequest comes with id
+  
+  String clusterName() {
+    application + (stack? '-' + stack : '')
   }
 
-  static class HealthCheck {
-
-    String protocol
-    Integer port
-    Integer interval
-    Integer retries
-    Integer timeout
-    String url
-    Integer statusCode
-    String responseBodyRegex
+  //see NameBuilder.combineAppStackDetail
+  String qualifiedName() {
+    def stack = this.stack?: ""
+    def detail = this.detail
+    if (detail) {
+      return this.application + "-" + stack + "-" + detail
+    }
+    if (!stack.isEmpty()) {
+      return this.application + "-" + stack
+    }
   }
 }

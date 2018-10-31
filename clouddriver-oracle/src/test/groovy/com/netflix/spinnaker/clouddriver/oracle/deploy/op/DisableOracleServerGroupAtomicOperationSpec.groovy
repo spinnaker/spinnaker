@@ -48,8 +48,5 @@ class DisableOracleServerGroupAtomicOperationSpec extends Specification {
     then:
     1 * sgService.disableServerGroup(_, _, "sg1")
     1 * sgService.getServerGroup(_, _, "sg1") >> new OracleServerGroup(loadBalancerId: "ocid.lb.oc1..12345")
-    1 * loadBalancerClient.getLoadBalancer(_) >> GetLoadBalancerResponse.builder().loadBalancer(LoadBalancer.builder().listeners(["sg1": Listener.builder().name("sg1").build()]).build()).build()
-    1 * loadBalancerClient.updateListener(_) >> UpdateListenerResponse.builder().opcWorkRequestId("wr1").build()
-    1 * OracleWorkRequestPoller.poll("wr1", _, _, loadBalancerClient) >> null
   }
 }

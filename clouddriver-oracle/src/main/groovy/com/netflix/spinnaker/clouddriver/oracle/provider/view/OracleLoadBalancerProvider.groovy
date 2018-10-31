@@ -14,8 +14,10 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.oracle.OracleCloudProvider
 import com.netflix.spinnaker.clouddriver.oracle.cache.Keys
+import com.netflix.spinnaker.clouddriver.oracle.model.OracleSubnet
 import com.oracle.bmc.loadbalancer.model.LoadBalancer
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +30,9 @@ class OracleLoadBalancerProvider implements LoadBalancerProvider<OracleLoadBalan
   final Cache cacheView
   final ObjectMapper objectMapper
   final String cloudProvider = OracleCloudProvider.ID
+
+  @Autowired
+  OracleSubnetProvider oracleSubnetProvider;
 
   @Autowired
   OracleLoadBalancerProvider(Cache cacheView, ObjectMapper objectMapper) {
@@ -58,7 +63,7 @@ class OracleLoadBalancerProvider implements LoadBalancerProvider<OracleLoadBalan
 
   @Override
   List<LoadBalancerProvider.Details> byAccountAndRegionAndName(String account, String region, String name) {
-    return getAllMatchingKeyPattern(Keys.getLoadBalancerKey(name, '*', region, account))
+    return getAllMatchingKeyPattern(Keys.getLoadBalancerKey(name, '*', region, account))?.toList()
   }
 
   @Override
@@ -84,14 +89,20 @@ class OracleLoadBalancerProvider implements LoadBalancerProvider<OracleLoadBalan
   OracleLoadBalancerDetail fromCacheData(CacheData cacheData) {
     LoadBalancer loadBalancer = objectMapper.convertValue(cacheData.attributes, LoadBalancer)
     Map<String, String> parts = Keys.parse(cacheData.id)
-
+    Set<OracleSubnet> subnets = loadBalancer.subnetIds?.collect {
+      oracleSubnetProvider.getAllMatchingKeyPattern(Keys.getSubnetKey(it, parts.region, parts.account))
+    }.flatten();
     return new OracleLoadBalancerDetail(
       id: loadBalancer.id,
       name: loadBalancer.displayName,
       account: parts.account,
       region: parts.region,
-      serverGroups: [loadBalancer.listeners.values().first().defaultBackendSetName] as Set<String>
-    )
+      ipAddresses: loadBalancer.ipAddresses,
+      listeners: loadBalancer.listeners,
+      backendSets: loadBalancer.backendSets,
+      subnets: subnets,
+      timeCreated: loadBalancer.timeCreated.toInstant().toString(),
+      serverGroups: [] as Set<LoadBalancerServerGroup>)
   }
 
   static class OracleLoadBalancerSummary implements LoadBalancerProvider.Item {
@@ -142,9 +153,15 @@ class OracleLoadBalancerProvider implements LoadBalancerProvider<OracleLoadBalan
     String region
     String name
     String type = 'oracle'
+    String loadBalancerType = 'oci'
     String cloudProvider = 'oracle'
     String id
-    Set<String> serverGroups
+    String timeCreated
+    Set<LoadBalancerServerGroup> serverGroups = []
+    List ipAddresses = []
+    Map listeners
+    Map backendSets
+    Set<OracleSubnet> subnets
   }
 
 }

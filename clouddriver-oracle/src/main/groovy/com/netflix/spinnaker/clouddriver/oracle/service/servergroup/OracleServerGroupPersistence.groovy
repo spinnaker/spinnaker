@@ -6,13 +6,13 @@
  * If a copy of the Apache License Version 2.0 was not distributed with this file,
  * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
  */
-
 package com.netflix.spinnaker.clouddriver.oracle.service.servergroup
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.oracle.model.OracleServerGroup
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
+import com.oracle.bmc.model.BmcException
 import com.oracle.bmc.objectstorage.model.CreateBucketDetails
 import com.oracle.bmc.objectstorage.requests.*
 import groovy.transform.Synchronized
@@ -211,9 +211,16 @@ class OracleServerGroupPersistence {
           String json
           inputStream.withStream { json = inputStream.getText("UTF-8") }
           sg = jsonToServerGroup(json, ctx.creds)
-          return sg
+          return sg 
+        } catch (BmcException e) {
+          if (e.getStatusCode() == 404) {
+            log.warn(e.getLocalizedMessage())
+          } else {
+            log.error(e.getLocalizedMessage())
+          }
+          return null
         } catch (Exception e) {
-          log.error("OSS Read exception", e)
+          log.error(e.getLocalizedMessage())
           return null
         }
         break;

@@ -24,4 +24,5 @@ class OracleInstance implements Instance, Serializable {
   String account
   String region
   String id
+  String privateIp
 }

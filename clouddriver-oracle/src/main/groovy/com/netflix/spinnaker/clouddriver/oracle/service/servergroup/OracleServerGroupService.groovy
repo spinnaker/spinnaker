@@ -20,7 +20,7 @@ interface OracleServerGroupService {
 
   public OracleServerGroup getServerGroup(OracleNamedAccountCredentials creds, String application, String name)
 
-  public void createServerGroup(OracleServerGroup serverGroup)
+  public void createServerGroup(Task task, OracleServerGroup serverGroup)
 
   public boolean destroyServerGroup(Task task, OracleNamedAccountCredentials creds, String serverGroupName)
 
@@ -30,4 +30,5 @@ interface OracleServerGroupService {
 
   public void enableServerGroup(Task task, OracleNamedAccountCredentials creds, String serverGroupName)
 
+  public void updateServerGroup(OracleServerGroup sg)
 }
