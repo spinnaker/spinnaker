@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
@@ -63,9 +65,22 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
     reloadNamespaces();
 
     List<CacheData> cacheData = namespaces.stream()
-        .map(n -> credentials.topPod(n).stream()
-            .map(m -> KubernetesCacheDataConverter.convertPodMetric(accountName, n, m))
-        ).flatMap(x -> x)
+        .map(n -> {
+              try {
+                return credentials.topPod(n)
+                    .stream()
+                    .map(m -> KubernetesCacheDataConverter.convertPodMetric(accountName, n, m));
+              } catch (KubectlJobExecutor.KubectlException e) {
+                if (e.getMessage().contains("not available")) {
+                  log.warn("Metrics for namespace '" + n + "' in account '" + accountName + "' have not been recorded yet.");
+                  return null;
+                } else {
+                  throw e;
+                }
+              }
+            }
+        ).filter(Objects::nonNull)
+        .flatMap(x -> x)
         .collect(Collectors.toList());
 
     List<CacheData> invertedRelationships = cacheData.stream()
