@@ -1,0 +1,45 @@
+<!-- Load Balancer selection -->
+<div class="form-group">
+  <div class="col-md-3 sm-label-right">
+    Load Balancer
+  </div>
+  <div class="col-md-9">
+    <ui-select class="form-control input-sm"
+               ng-model="command.loadBalancerId"
+               ng-change="command.backingData.loadBalancerOnChange()">
+      <ui-select-match allow-clear="true" placeholder="Select Load Balancer">{{$select.selected.name}}</ui-select-match>
+      <ui-select-choices repeat="loadBalancer.id as loadBalancer in command.backingData.filtered.loadBalancers">
+        <span ng-bind-html="loadBalancer.name | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+
+<!-- Backend set selection -->
+<div class="form-group" ng-if="command.loadBalancerId">
+  <div class="col-md-3 sm-label-right">
+    Backend Set
+  </div>
+  <div class="col-md-9">
+    <ui-select class="form-control input-sm" ng-required="command.loadBalancerId"
+               ng-model="command.backendSetName"
+               ng-change="command.backingData.backendSetOnChange()">
+      <ui-select-match placeholder="Select Backend Set">{{$select.selected.name}}</ui-select-match>
+      <ui-select-choices repeat="backendSet.name as backendSet in command.backingData.filtered.backendSets">
+        <span ng-bind-html="backendSet.name"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+
+<!-- Show listeners associated with selected backend set -->
+<div class="form-group" ng-if="command.loadBalancerId && command.backendSetName">
+  <div class="col-md-3 sm-label-right">
+    Listeners for {{command.backendSetName}}
+  </div>
+  <div class="col-md-9">
+    <ul ng-repeat="(lisName, listener) in command.backingData.filtered.listeners">
+      <li>{{listener.protocol}}:{{listener.port}}</li>
+    </ul>
+  </div>
+</div>

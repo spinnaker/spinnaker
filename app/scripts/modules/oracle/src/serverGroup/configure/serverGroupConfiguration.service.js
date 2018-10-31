@@ -52,6 +52,14 @@ module.exports = angular
       }
     };
 
+    let loadLoadBalancers = command => {
+      if (command.account && command.region) {
+        command.backingData.filtered.loadBalancers = command.backingData.loadBalancers.filter(function(lb) {
+          return lb.region === command.region && lb.account === command.account;
+        });
+      }
+    };
+
     function configureCommand(application, command) {
       let defaults = command || {};
       let defaultCredentials =
@@ -90,13 +98,17 @@ module.exports = angular
             return backingData.subnets;
           };
 
+          backingData.loadBalancers = application.loadBalancers.data;
+
           backingData.accountOnChange = function() {
             loadAndSelectRegions(command, command.backingData);
             loadAvailabilityDomains(command);
+            loadLoadBalancers(command);
           };
 
           backingData.regionOnChange = function() {
             loadAvailabilityDomains(command);
+            loadLoadBalancers(command);
           };
 
           backingData.availabilityDomainOnChange = function() {
@@ -129,6 +141,52 @@ module.exports = angular
                   backingData.seclists = secLists;
                 });
             });
+          };
+
+          backingData.findBackendSetsByLoadBalancerId = loadBalancerId => {
+            const lb = backingData.filtered.loadBalancers.find(lb => lb.id === loadBalancerId);
+            if (lb && lb.backendSets) {
+              //reduce the backendSets object to an array. The object is keyed by the backendSet name
+              const bsetArray = [];
+              Object.keys(lb.backendSets).reduce((arr, bsetName) => {
+                const bset = lb.backendSets[bsetName];
+                bset['name'] = bsetName;
+                arr.push(bset);
+                return arr;
+              }, bsetArray);
+              return bsetArray;
+            } else {
+              return [];
+            }
+          };
+
+          backingData.findLoadBalListenersByBackendSetName = (loadBalancerId, backendSetName) => {
+            const lb = backingData.filtered.loadBalancers.find(lb => lb.id === loadBalancerId);
+            if (lb && lb.listeners) {
+              return Object.keys(lb.listeners)
+                .filter(lisName => lb.listeners[lisName].defaultBackendSetName === backendSetName)
+                .map(lisName => lb.listeners[lisName]);
+            } else {
+              return [];
+            }
+          };
+
+          backingData.loadBalancerOnChange = () => {
+            if (command.loadBalancerId) {
+              backingData.filtered.backendSets = backingData.findBackendSetsByLoadBalancerId(command.loadBalancerId);
+            } else {
+              //no backend set name should be set if no load balancer id is set
+              command.backendSetName = undefined;
+              backingData.backendSetOnChange();
+              backingData.filtered.backendSets = [];
+            }
+          };
+
+          backingData.backendSetOnChange = () => {
+            backingData.filtered.listeners =
+              command.loadBalancerId && command.backendSetName
+                ? backingData.findLoadBalListenersByBackendSetName(command.loadBalancerId, command.backendSetName)
+                : [];
           };
 
           backingData.filtered.images = backingData.images;

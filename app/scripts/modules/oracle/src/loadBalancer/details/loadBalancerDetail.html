@@ -1,0 +1,94 @@
+<div class="details-panel">
+
+  <div ng-if="state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
+  </div>
+
+  <div ng-if="!state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <i class="fa icon-sitemap"/>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{loadBalancer.name}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Load Balancer Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
+            <li ng-if="!loadBalancer.serverGroups.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
+            <li ng-if="loadBalancer.serverGroups.length" class="disabled" tooltip="You must detach all server groups before you can delete this load balancer.">
+              <a href ng-click="return">Delete Load Balancer</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div ng-if="!state.loading" class="content">
+    <collapsible-section heading="Load Balancer Details" expanded="true">
+      <dl class="dl-horizontal dl-flex">
+        <dt>Created</dt>
+        <dd>{{loadBalancer.timeCreated}}</dd>
+        <dt>In</dt>
+        <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
+        <dt>Subnets</dt>
+        <dd ng-repeat="subnet in loadBalancer.subnets">{{subnet.name}}</dd>
+        <dt>Public IP</dt>
+        <dd ng-repeat="ip in loadBalancer.ipAddresses">{{ip.ipAddress}}</dd>
+      </dl>
+      <dl class="horizontal-when-filters-collapsed">
+        <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
+        <dd ng-if="loadBalancer.serverGroups">
+          <ul class="collapse-margin-on-filter-collapse">
+            <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a ui-sref="^.serverGroup({region: serverGroup.region,
+                                          accountId: serverGroup.account,
+                                          serverGroup: serverGroup.name,
+                                          provider: 'oracle'})">
+              {{serverGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <!-- <collapsible-section heading="Status" expanded="true">
+      <health-counts class="pull-left" container="loadBalancer.instanceCounts"></health-counts>
+    </collapsible-section> -->
+    <collapsible-section heading="Backend Sets">
+      <dd ng-repeat="backendSet in loadBalancer.backendSets">
+        <dl>
+          <dt>{{backendSet.name}}</dt>
+          <dd>{{backendSet.policy}}</dd>
+          <dd>Health Check: {{backendSet.healthChecker.urlPath}}</dd>
+        </dl>
+      </dd>
+    </collapsible-section>
+    <collapsible-section heading="Listeners">
+      <dl>
+        <dt>Listener &rarr; Backend Set</dt>
+        <dd ng-repeat="listener in loadBalancer.listeners">
+          {{listener.protocol}}:{{listener.port}} &rarr; {{listener.defaultBackendSetName}}
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

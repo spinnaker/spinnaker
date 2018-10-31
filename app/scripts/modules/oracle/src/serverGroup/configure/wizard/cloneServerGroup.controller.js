@@ -29,6 +29,7 @@ module.exports = angular
       basicSettings: require('./basicSettings/basicSettings.html'),
       instanceType: require('./instanceType/instanceType.html'),
       capacity: require('./capacity/capacity.html'),
+      loadBalancers: require('./loadBalancers/loadBalancers.html'),
       templateSelection: require('./templateSelection/templateSelection.html'),
     };
 

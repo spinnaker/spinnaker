@@ -16,6 +16,9 @@
       <v2-wizard-page key="capacity" label="Capacity" done="true">
         <ng-include src="pages.capacity"></ng-include>
       </v2-wizard-page>
+      <v2-wizard-page key="loadBalancers" label="Load Balancers" done="true">
+        <ng-include src="pages.loadBalancers"></ng-include>
+      </v2-wizard-page>
     </v2-modal-wizard>
     <div class="modal-footer" ng-if="state.loaded">
       <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
