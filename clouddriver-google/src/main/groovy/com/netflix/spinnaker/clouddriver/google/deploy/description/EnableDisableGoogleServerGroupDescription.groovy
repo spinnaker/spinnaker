@@ -30,4 +30,9 @@ class EnableDisableGoogleServerGroupDescription extends AbstractGoogleCredential
 
   @Deprecated
   String zone
+
+  @Override
+  Collection<String> getServerGroupNames() {
+    return [getServerGroupName()]
+  }
 }

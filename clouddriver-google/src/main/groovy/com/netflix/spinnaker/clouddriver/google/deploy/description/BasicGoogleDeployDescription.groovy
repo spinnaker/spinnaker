@@ -83,12 +83,12 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
     Integer desired
   }
 
-  String getApplication() {
+  Collection<String> getApplications() {
     if (application) {
-      return application
+      return Collections.singletonList(application)
     }
     if (source && source.serverGroupName) {
-      return Names.parseName(source.serverGroupName).app
+      return Collections.singletonList(Names.parseName(source.serverGroupName).app)
     }
   }
 
@@ -98,5 +98,10 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
     String region
     String serverGroupName
     Boolean useSourceCapacity
+
+    @Override
+    Collection<String> getServerGroupNames() {
+      return Collections.singletonList(serverGroupName)
+    }
   }
 }

@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public interface ResourcesNameable {
   Collection<String> getNames();
 
-  default List<String> getApplications() {
+  default Collection<String> getResourceApplications() {
     return getNames().stream()
                      .map(name -> Names.parseName(name).getApp())
                      .collect(Collectors.toList());

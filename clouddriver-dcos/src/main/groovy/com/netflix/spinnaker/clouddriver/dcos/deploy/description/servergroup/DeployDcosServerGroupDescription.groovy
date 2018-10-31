@@ -65,6 +65,11 @@ class DeployDcosServerGroupDescription extends AbstractDcosCredentialsDescriptio
 
   boolean forceDeployment
 
+  @Override
+  Collection<String> getApplications() {
+    return [application]
+  }
+
   @Canonical
   static class Container {
     String type

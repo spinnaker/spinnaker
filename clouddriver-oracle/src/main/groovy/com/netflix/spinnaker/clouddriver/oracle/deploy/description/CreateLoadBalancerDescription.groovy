@@ -44,4 +44,9 @@ class CreateLoadBalancerDescription extends AbstractOracleCredentialsDescription
       return this.application + "-" + stack
     }
   }
+
+  @Override
+  Collection<String> getApplications() {
+    return [application]
+  }
 }

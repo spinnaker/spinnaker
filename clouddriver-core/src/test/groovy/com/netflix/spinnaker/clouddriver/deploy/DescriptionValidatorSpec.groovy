@@ -43,7 +43,7 @@ class DescriptionValidatorSpec extends Specification {
     TestValidator validator = new TestValidator(permissionEvaluator: evaluator)
 
     TestDescription description = new TestDescription(account: "testAccount",
-                                                      application: "testApplication",
+                                                      applications: ["testApplication"],
                                                       names: ["thing1", "thing2"])
     Errors errors = new DescriptionValidationErrors(description)
 
@@ -65,7 +65,7 @@ class DescriptionValidatorSpec extends Specification {
 
   class TestDescription implements AccountNameable, ApplicationNameable, ResourcesNameable {
     String account
-    String application
+    Collection<String> applications
     List<String> names
   }
 }

@@ -20,4 +20,9 @@ class EnableDisableOracleServerGroupDescription extends AbstractOracleCredential
 
   String region
   String accountName
+
+  @Override
+  Collection<String> getServerGroupNames() {
+    return [getServerGroupName()]
+  }
 }

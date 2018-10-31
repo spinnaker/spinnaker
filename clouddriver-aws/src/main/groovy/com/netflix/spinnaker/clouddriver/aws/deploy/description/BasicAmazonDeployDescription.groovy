@@ -20,12 +20,13 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription implements DeployDescription {
+class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription implements DeployDescription, ApplicationNameable {
   String application
   String amiName
   String stack
@@ -95,6 +96,11 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Capacity capacity = new Capacity()
   Source source = new Source()
   Map<String, String> tags
+
+  @Override
+  Collection<String> getApplications() {
+    return [application]
+  }
 
   @Canonical
   static class Capacity {

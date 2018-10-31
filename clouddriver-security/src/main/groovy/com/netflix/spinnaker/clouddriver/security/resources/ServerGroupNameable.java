@@ -18,15 +18,17 @@ package com.netflix.spinnaker.clouddriver.security.resources;
 
 import com.netflix.frigga.Names;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 /**
- * Convenience trait for parsing the application name out of a description with a "serverGroupName"
- * property.
+ * Convenience trait for parsing application names out of a description with one or more server group names.
  */
 public interface ServerGroupNameable extends ApplicationNameable {
-  String getServerGroupName();
+  Collection<String> getServerGroupNames();
 
   @Override
-  default String getApplication() {
-    return Names.parseName(getServerGroupName()).getApp();
+  default Collection<String> getApplications() {
+    return getServerGroupNames().stream().map(n -> Names.parseName(n).getApp()).collect(Collectors.toList());
   }
 }

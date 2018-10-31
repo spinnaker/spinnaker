@@ -47,6 +47,5 @@ class DisableOracleServerGroupAtomicOperationSpec extends Specification {
 
     then:
     1 * sgService.disableServerGroup(_, _, "sg1")
-    1 * sgService.getServerGroup(_, _, "sg1") >> new OracleServerGroup(loadBalancerId: "ocid.lb.oc1..12345")
   }
 }

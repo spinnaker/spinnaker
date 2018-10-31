@@ -45,9 +45,10 @@ public abstract class DescriptionValidator<T> implements VersionedCloudProviderO
     Authentication auth = SecurityContextHolder.context.authentication
 
     if (description instanceof ApplicationNameable) {
-      ApplicationNameable asApp = description as ApplicationNameable
-      if (!permissionEvaluator.hasPermission(auth, asApp.application, 'APPLICATION', 'WRITE')) {
-        errors.reject("authorization", "Access denied to application ${asApp.application}")
+      (description as ApplicationNameable).applications.each { application ->
+        if (!permissionEvaluator.hasPermission(auth, application, 'APPLICATION', 'WRITE')) {
+          errors.reject("authorization", "Access denied to application ${application}")
+        }
       }
     }
 
@@ -61,7 +62,7 @@ public abstract class DescriptionValidator<T> implements VersionedCloudProviderO
     if (description instanceof ResourcesNameable) {
       ResourcesNameable asResources = description as ResourcesNameable
       permissionEvaluator.storeWholePermission()
-      asResources.applications.each { String app ->
+      asResources.resourceApplications.each { String app ->
         if (!permissionEvaluator.hasPermission(auth, app, 'APPLICATION', 'WRITE')) {
           errors.reject("authorization", "Access denied to application ${app}")
         }

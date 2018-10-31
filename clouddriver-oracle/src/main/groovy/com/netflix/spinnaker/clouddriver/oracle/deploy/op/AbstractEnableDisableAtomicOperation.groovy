@@ -41,7 +41,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
     task.updateStatus phaseName, "Initializing $verb server group operation for $description.serverGroupName in " +
       "$description.region..."
-    def serverGroup = oracleServerGroupService.getServerGroup(description.credentials, description.application, description.serverGroupName)
+
     //TODO stop all instances in sg
     if (disable) {
       task.updateStatus phaseName, "$presentParticipling server group from Http(s) load balancers..."

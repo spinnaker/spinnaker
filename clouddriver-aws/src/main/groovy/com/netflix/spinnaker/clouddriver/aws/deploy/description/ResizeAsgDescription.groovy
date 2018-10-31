@@ -17,18 +17,16 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 
-class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
-  String serverGroupName
-  String region
+class ResizeAsgDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
   ServerGroup.Capacity capacity
   List<AsgTargetDescription> asgs = []
 
-  @Deprecated
-  String asgName
-
-  @Deprecated
-  List<String> regions = []
+  @Override
+  Collection<String> getServerGroupNames() {
+    return asgs.collect { it.serverGroupName }
+  }
 
   static class Constraints {
     ServerGroup.Capacity capacity

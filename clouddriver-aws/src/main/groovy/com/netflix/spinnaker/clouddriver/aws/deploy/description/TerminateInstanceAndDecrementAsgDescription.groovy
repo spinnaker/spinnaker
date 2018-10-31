@@ -16,10 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-class TerminateInstanceAndDecrementAsgDescription extends AbstractAmazonCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+
+class TerminateInstanceAndDecrementAsgDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
   String asgName
   String instance
   String region
   Boolean adjustMinIfNecessary
   Boolean setMaxToNewDesired
+
+  @Override
+  Collection<String> getServerGroupNames() {
+    return [asgName]
+  }
 }
