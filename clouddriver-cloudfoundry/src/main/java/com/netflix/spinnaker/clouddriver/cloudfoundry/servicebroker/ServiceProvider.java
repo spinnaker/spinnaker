@@ -22,5 +22,5 @@ import java.util.Collection;
 public interface ServiceProvider {
   String getCloudProvider();
 
-  Collection<? extends Service> getServices(String account);
+  Collection<? extends Service> getServices(String account, String region);
 }

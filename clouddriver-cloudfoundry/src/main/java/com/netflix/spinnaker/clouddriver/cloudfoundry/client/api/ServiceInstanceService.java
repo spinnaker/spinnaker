@@ -35,6 +35,9 @@ public interface ServiceInstanceService {
   @GET("/v2/services")
   Page<Service> findService(@Query("page") Integer page, @Query("q") List<String> queryParams);
 
+  @GET("/v2/spaces/{guid}/services")
+  Page<Service> findServiceBySpaceId(@Path("guid") String spaceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
+
   @GET("/v2/service_plans")
   Page<ServicePlan> findServicePlans(@Query("page") Integer page, @Query("q") List<String> queryParams);
 

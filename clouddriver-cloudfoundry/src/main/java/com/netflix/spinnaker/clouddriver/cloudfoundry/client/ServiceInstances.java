@@ -19,13 +19,11 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServicePlan;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +38,8 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class ServiceInstances {
   private final ServiceInstanceService api;
+  private final Organizations orgs;
+  private final Spaces spaces;
 
   public void createServiceBindingsByName(CloudFoundryServerGroup cloudFoundryServerGroup, @Nullable List<String> serviceNames) throws CloudFoundryApiException {
     if (serviceNames != null && !serviceNames.isEmpty()) {
@@ -80,8 +80,13 @@ public class ServiceInstances {
       .collect(toList());
   }
 
-  public List<CloudFoundryService> findAllServices() {
-    List<Resource<Service>> services = collectPageResources("all service", pg -> api.findService(pg, null));
+  public List<CloudFoundryService> findAllServicesByRegion(String region) {
+    CloudFoundrySpace space = getSpaceByRegionName(region);
+    if (space == null) {
+      return Collections.emptyList();
+    }
+
+    List<Resource<Service>> services = collectPageResources("all service", pg -> api.findServiceBySpaceId(space.getId(), pg, null));
     return services.stream()
       .map(serviceResource ->
         CloudFoundryService.builder()
@@ -89,6 +94,13 @@ public class ServiceInstances {
           .servicePlans(findAllServicePlansByServiceName(serviceResource.getEntity().getLabel()))
           .build())
       .collect(toList());
+  }
+
+  private CloudFoundrySpace getSpaceByRegionName(String region) {
+    CloudFoundrySpace space = CloudFoundrySpace.fromRegion(region);
+    Optional<CloudFoundryOrganization> org = orgs.findByName(space.getOrganization().getName());
+
+    return org.map(cfOrg -> spaces.findByName(cfOrg.getId(), space.getName())).orElse(null);
   }
 
   private Resource<ServiceInstance> getServiceInstances(CloudFoundrySpace space, @Nullable String serviceInstanceName) throws CloudFoundryApiException {

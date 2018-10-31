@@ -36,12 +36,12 @@ public class CloudFoundryServiceProvider implements ServiceProvider {
   }
 
   @Override
-  public Collection<CloudFoundryService> getServices(String account) {
+  public Collection<CloudFoundryService> getServices(String account, String region) {
     CloudFoundryCredentials credentials = (CloudFoundryCredentials) accountCredentialsProvider.getCredentials(account);
     return credentials
       .getCredentials()
       .getServiceInstances()
-      .findAllServices();
+      .findAllServicesByRegion(region);
   }
 
   @Override

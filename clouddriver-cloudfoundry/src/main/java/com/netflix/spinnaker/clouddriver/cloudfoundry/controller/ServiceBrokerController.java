@@ -36,10 +36,11 @@ public class ServiceBrokerController {
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @GetMapping("/{account}/services")
   public Collection<Service> listServices(@RequestParam(value = "cloudProvider") String cloudProvider,
+                                          @RequestParam(value = "region") String region,
                                           @PathVariable String account) {
     return serviceProviders.stream()
       .filter(serviceProvider -> serviceProvider.getCloudProvider().equals(cloudProvider))
-      .flatMap(serviceProvider -> serviceProvider.getServices(account).stream())
+      .flatMap(serviceProvider -> serviceProvider.getServices(account, region).stream())
       .sorted(comparing(Service::getName))
       .collect(toList());
   }
