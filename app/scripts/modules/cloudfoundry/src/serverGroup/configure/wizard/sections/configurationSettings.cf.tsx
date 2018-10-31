@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import Select, { Option } from 'react-select';
-import { FormikErrors } from 'formik';
 
 import { IArtifactAccount, IWizardPageProps, wizardPage, ValidationMessage, HelpField } from '@spinnaker/core';
 
@@ -233,7 +232,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
       addServicesVariable,
       removeServicesVariable,
     } = this;
-    const { errors } = this.props.formik;
+    const { errors } = this.props.formik as any;
     if (isManifestDirectSource(manifest)) {
       return (
         <div>
@@ -442,7 +441,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
 
   private triggerConfiguration = (manifest: ICloudFoundryManifestSource): JSX.Element => {
     const { artifactAccounts } = this.props;
-    const { errors } = this.props.formik;
+    const { errors } = this.props.formik as any;
 
     return (
       <div>
@@ -493,7 +492,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
 
   private artifactConfiguration = (manifest: ICloudFoundryManifestSource): JSX.Element => {
     const { artifactAccounts } = this.props;
-    const { errors } = this.props.formik;
+    const { errors } = this.props.formik as any;
 
     if (isManifestArtifactSource(manifest)) {
       return (
@@ -609,10 +608,8 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
     );
   }
 
-  public validate(
-    values: ICloudFoundryServerGroupConfigurationSettingsProps,
-  ): FormikErrors<ICloudFoundryCreateServerGroupCommand> {
-    const errors = {} as FormikErrors<ICloudFoundryCreateServerGroupCommand>;
+  public validate(values: ICloudFoundryServerGroupConfigurationSettingsProps) {
+    const errors = {} as any;
     const isStorageSize = (value: string) => /\d+[MG]/.test(value);
     if (isManifestDirectSource(values.manifest)) {
       if (!isStorageSize(values.manifest.memory)) {

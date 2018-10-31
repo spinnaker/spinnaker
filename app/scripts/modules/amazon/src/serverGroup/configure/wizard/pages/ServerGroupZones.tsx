@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage } from '@spinnaker/core';
 
@@ -12,7 +11,7 @@ class ServerGroupZonesImpl extends React.Component<IServerGroupZonesProps> {
   public static LABEL = 'Availability Zones';
 
   public validate(values: IAmazonServerGroupCommand) {
-    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
+    const errors = {} as any;
 
     if (!values.availabilityZones || values.availabilityZones.length === 0) {
       errors.availabilityZones = 'You must select at least one availability zone.';

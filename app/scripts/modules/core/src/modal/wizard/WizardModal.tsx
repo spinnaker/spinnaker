@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { Formik, Form, FormikValues } from 'formik';
+import { Formik, Form } from 'formik';
 import { Modal } from 'react-bootstrap';
 import { merge, isArray, isObject, isString } from 'lodash';
 
@@ -18,7 +18,7 @@ export interface IWizardPageData<T> {
   element: HTMLElement;
   label: string;
   props: IWizardPageProps<T>;
-  validate: IWizardPageValidate;
+  validate: IWizardPageValidate<T>;
 }
 
 export interface IWizardModalProps<T> extends IModalComponentProps {
@@ -29,7 +29,7 @@ export interface IWizardModalProps<T> extends IModalComponentProps {
   loading?: boolean;
   submitButtonLabel: string;
   taskMonitor: TaskMonitor;
-  validate: IWizardPageValidate;
+  validate: IWizardPageValidate<T>;
   closeModal?(result?: any): void; // provided by ReactModal
   dismissModal?(rejection?: any): void; // provided by ReactModal
 }
@@ -46,7 +46,7 @@ export interface IWizardModalState<T> {
 export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, IWizardModalState<T>> {
   private pages: { [label: string]: IWizardPageData<T> } = {};
   private stepsElement: HTMLDivElement;
-  private formikRef = React.createRef<Formik<{}, any>>();
+  private formikRef = React.createRef<Formik<any>>();
 
   constructor(props: IWizardModalProps<T>) {
     super(props);
@@ -136,7 +136,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
     return this.getFilteredChildren().map((child: any) => child.type.label);
   }
 
-  private validate = (values: FormikValues): any => {
+  private validate = (values: T): any => {
     const errors: Array<{ [key: string]: string }> = [];
     const newPageErrors: { [pageName: string]: { [key: string]: string } } = {};
 
@@ -175,7 +175,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
     return (
       <>
         {taskMonitor && <TaskMonitorWrapper monitor={taskMonitor} />}
-        <Formik<{}, T>
+        <Formik<T>
           ref={this.formikRef}
           initialValues={initialValues}
           onSubmit={this.props.closeModal}

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { FormikErrors, getIn } from 'formik';
-import { Effect } from 'formik-effect';
 import { isEqual } from 'lodash';
 
 import { IProject } from 'core/domain';
@@ -29,31 +28,32 @@ class ApplicationsImpl extends React.Component<IApplicationsProps> {
       config: {
         applications: applicationErrors,
       },
-    };
+    } as any;
+  }
+
+  public componentDidMount() {
+    const apps = getIn(this.props.formik.values, 'config.applications', []);
+    this.props.onApplicationsChanged && this.props.onApplicationsChanged(apps);
+  }
+
+  public componentDidUpdate(prevProps: IApplicationsProps) {
+    const prevApps = getIn(prevProps.formik.values, 'config.applications', []);
+    const nextApps = getIn(this.props.formik.values, 'config.applications', []);
+
+    if (!isEqual(prevApps, nextApps)) {
+      this.props.onApplicationsChanged && this.props.onApplicationsChanged(nextApps);
+    }
   }
 
   public render() {
     const { allApplications } = this.props;
 
     return (
-      <>
-        <Effect<IProject>
-          onChange={(prev, next) => {
-            const prevApps = getIn(prev.values, 'config.applications', []);
-            const nextApps = getIn(next.values, 'config.applications', []);
-
-            if (!isEqual(prevApps, nextApps)) {
-              this.props.onApplicationsChanged && this.props.onApplicationsChanged(nextApps);
-            }
-          }}
-        />
-
-        <FormikApplicationsPicker
-          className="ConfigureProject-Applications"
-          applications={allApplications}
-          name="config.applications"
-        />
-      </>
+      <FormikApplicationsPicker
+        className="ConfigureProject-Applications"
+        name="config.applications"
+        applications={allApplications}
+      />
     );
   }
 }

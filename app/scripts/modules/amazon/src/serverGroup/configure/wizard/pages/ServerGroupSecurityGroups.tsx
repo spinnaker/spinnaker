@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage, FirewallLabels } from '@spinnaker/core';
 
@@ -15,7 +14,7 @@ class ServerGroupSecurityGroupsImpl extends React.Component<IServerGroupSecurity
   }
 
   public validate(values: IAmazonServerGroupCommand) {
-    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
+    const errors = {} as any;
 
     if (values.viewState.dirty.securityGroups) {
       errors.securityGroups = 'You must acknowledge removed security groups.';

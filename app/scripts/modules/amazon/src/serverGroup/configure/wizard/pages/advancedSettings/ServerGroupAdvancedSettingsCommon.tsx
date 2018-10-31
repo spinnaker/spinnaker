@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Field, FormikErrors } from 'formik';
+import { Field } from 'formik';
 import Select, { Option } from 'react-select';
 
 import { HelpField, MapEditor, PlatformHealthOverride } from '@spinnaker/core';
@@ -13,7 +13,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
   private duplicateKeys = false;
 
   public validate = (values: IAmazonServerGroupCommand) => {
-    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
+    const errors = {} as any;
 
     if (!values.keyPair) {
       errors.keyPair = 'Key Name is required';

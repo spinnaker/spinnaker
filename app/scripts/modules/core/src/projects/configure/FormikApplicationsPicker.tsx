@@ -66,7 +66,7 @@ export class FormikApplicationsPicker extends React.Component<IFormikApplication
                   <StringsAsOptions strings={apps}>
                     {options => (
                       <VirtualizedSelect
-                        style={{ flex: '1 1 auto', marginRigh: '1em' }}
+                        style={{ flex: '1 1 auto', marginRight: '1em' }}
                         ignoreAccents={false} /* for typeahead performance with long lists */
                         options={options}
                         onChange={(item: Option<string>) => arrayHelpers.push(item.value)}

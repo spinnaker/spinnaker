@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Field, FormikErrors } from 'formik';
+import { Field } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
@@ -46,7 +46,7 @@ class ServerGroupParametersImpl extends React.Component<IServerGroupParametersPr
   }
 
   public validate(_values: ITitusServerGroupCommand) {
-    const errors: FormikErrors<ITitusServerGroupCommand> = {};
+    const errors = {} as any;
 
     if (this.duplicateKeys.labels) {
       errors.labels = 'Job Attributes have duplicate keys.';

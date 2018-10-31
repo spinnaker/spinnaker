@@ -47,7 +47,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps, ITargetGroups
   public validate(
     values: IAmazonNetworkLoadBalancerUpsertCommand,
   ): FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand> {
-    const errors = {} as FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand>;
+    const errors = {} as any;
 
     let hasErrors = false;
     const duplicateTargetGroups = uniq(

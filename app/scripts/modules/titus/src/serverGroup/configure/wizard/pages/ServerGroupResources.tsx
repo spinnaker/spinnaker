@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import { IWizardPageProps, wizardPage, HelpField } from '@spinnaker/core';
@@ -18,7 +17,7 @@ class ServerGroupResourcesImpl extends React.Component<IServerGroupResourcesProp
   public static LABEL = 'Resources';
 
   public validate(values: ITitusServerGroupCommand) {
-    const errors: FormikErrors<ITitusServerGroupCommand> = {};
+    const errors = {} as any;
 
     if (!values.resources || typeof values.resources.cpu === 'string') {
       errors.resources = 'CPU is required.';

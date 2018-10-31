@@ -108,7 +108,7 @@ class ALBListenersImpl extends React.Component<IALBListenersProps, IALBListeners
   public validate(
     values: IAmazonApplicationLoadBalancerUpsertCommand,
   ): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> {
-    const errors = {} as FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand>;
+    const errors = {} as any;
 
     // Check to make sure all target groups have an associated listener
     const targetGroupNames = values.targetGroups.map(tg => tg.name);

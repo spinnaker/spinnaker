@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-import { FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
@@ -200,8 +199,9 @@ class ArtifactSettingsImpl extends React.Component<
 
   private getArtifactInput = (): JSX.Element => {
     const { artifactAccounts } = this.props;
-    const { values, errors } = this.props.formik;
+    const { values, errors: _errors } = this.props.formik;
     const { artifact } = values;
+    const errors = _errors as any;
 
     return (
       <div>
@@ -251,9 +251,10 @@ class ArtifactSettingsImpl extends React.Component<
   };
 
   private getPackageInput = (): JSX.Element => {
-    const { values, errors } = this.props.formik;
+    const { values, errors: _errors } = this.props.formik;
     const { artifact } = values;
     const { regions, filteredClusters, serverGroups, allCloudFoundryCredentials } = this.state;
+    const errors = _errors as any;
 
     return (
       <div>
@@ -333,8 +334,9 @@ class ArtifactSettingsImpl extends React.Component<
 
   private getTriggerInput = (): JSX.Element => {
     const { artifactAccounts } = this.props;
-    const { errors, values } = this.props.formik;
+    const { errors: _errors, values } = this.props.formik;
     const { artifact } = values;
+    const errors = _errors as any;
 
     return (
       <div>
@@ -445,7 +447,7 @@ class ArtifactSettingsImpl extends React.Component<
   }
 
   public validate(values: ICloudFoundryCreateServerGroupArtifactSettingsProps) {
-    const errors = {} as FormikErrors<ICloudFoundryCreateServerGroupCommand>;
+    const errors = {} as any;
     if (values.artifact.type === 'trigger') {
       if (!values.artifact.account) {
         errors.artifact = errors.artifact || {};

@@ -32,7 +32,7 @@ export interface IWizardPageWrapper<P> extends React.ComponentClass<P> {
   label: string;
 }
 
-export type IWizardPageValidate = (values: { [key: string]: any }) => { [key: string]: string };
+export type IWizardPageValidate<T> = (values: T) => any;
 
 export function wizardPage<P extends IWizardPageProps<T>, T>(WrappedComponent: IWizardPage<P>): IWizardPageWrapper<P> {
   class WizardPage extends React.Component<P, IWizardPageState> {
@@ -42,7 +42,7 @@ export function wizardPage<P extends IWizardPageProps<T>, T>(WrappedComponent: I
     public static label = WrappedComponent.LABEL;
 
     public element: any;
-    public validate: IWizardPageValidate;
+    public validate: IWizardPageValidate<T>;
 
     constructor(props: P) {
       super(props);

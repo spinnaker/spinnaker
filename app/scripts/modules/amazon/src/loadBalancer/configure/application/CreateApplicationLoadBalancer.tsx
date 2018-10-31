@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cloneDeep, get } from 'lodash';
-import { FormikErrors, FormikValues } from 'formik';
+import { FormikErrors } from 'formik';
 import { IPromise } from 'angular';
 
 import {
@@ -241,10 +241,11 @@ export class CreateApplicationLoadBalancer extends React.Component<
     }
   };
 
-  private validate = (values: FormikValues): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> => {
+  private validate = (
+    values: IAmazonApplicationLoadBalancerUpsertCommand,
+  ): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> => {
     this.setState({ includeSecurityGroups: !!values.vpcId });
-    const errors = {} as FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand>;
-    return errors;
+    return {};
   };
 
   public render() {

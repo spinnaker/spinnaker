@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Option } from 'react-select';
-import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage, HelpField, TetheredSelect, ReactInjector } from '@spinnaker/core';
 
@@ -34,7 +33,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
   };
 
   public validate(_values: IAmazonServerGroupCommand) {
-    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
+    const errors = {} as any;
     // TODO: check if this is correct, or if we should use the 'values' argument
     const { values } = this.props.formik;
 

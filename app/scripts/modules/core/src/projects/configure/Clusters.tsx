@@ -40,7 +40,7 @@ class ClustersImpl extends React.Component<IClustersProps> {
           config: {
             clusters: clusterErrors,
           },
-        };
+        } as any;
       }
     }
 

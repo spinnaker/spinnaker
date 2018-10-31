@@ -39,7 +39,7 @@ class PipelinesImpl extends React.Component<IPipelinesProps> {
       if (pipelineConfigErrors.some(val => !!val)) {
         return {
           config: {
-            pipelineConfigs: pipelineConfigErrors,
+            pipelineConfigs: pipelineConfigErrors as any,
           },
         };
       }
