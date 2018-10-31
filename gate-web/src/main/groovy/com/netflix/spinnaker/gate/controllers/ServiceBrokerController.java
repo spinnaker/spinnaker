@@ -35,7 +35,8 @@ public class ServiceBrokerController {
 
   @RequestMapping(value = "{account}/services", method = RequestMethod.GET)
   public List<Map> listServices(@RequestParam(value = "cloudProvider", required = false) String cloudProvider,
+                                @RequestParam(value = "region") String region,
                                 @PathVariable String account) {
-    return serviceBrokerService.listServices(cloudProvider, account);
+    return serviceBrokerService.listServices(cloudProvider, region, account);
   }
 }

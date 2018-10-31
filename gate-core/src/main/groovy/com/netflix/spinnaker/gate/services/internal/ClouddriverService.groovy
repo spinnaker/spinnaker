@@ -361,6 +361,7 @@ interface ClouddriverService {
 
   @GET("/servicebroker/{account}/services")
   List<Map> listServices(@Query(value = "cloudProvider") String cloudProvider,
+                         @Query(value = "region") String region,
                          @Path(value = "account") String account)
 
 }
