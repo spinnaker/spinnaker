@@ -67,6 +67,7 @@ dependencies {
   compile spinnaker.dependency("googleStorage")
   compile spinnaker.dependency("awsS3")
   compile "org.apache.commons:commons-compress:1.14"
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.6"
 
   compile fileTree(sdkLocation)
 }

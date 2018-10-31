@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository
 import com.netflix.spinnaker.clouddriver.artifacts.embedded.EmbeddedArtifactConfiguration;
 import com.netflix.spinnaker.clouddriver.artifacts.gcs.GcsArtifactConfiguration;
 import com.netflix.spinnaker.clouddriver.artifacts.github.GitHubArtifactConfiguration;
+import com.netflix.spinnaker.clouddriver.artifacts.helm.HelmArtifactConfiguration;
 import com.netflix.spinnaker.clouddriver.artifacts.http.HttpArtifactConfiguration;
 import com.netflix.spinnaker.clouddriver.artifacts.oracle.OracleArtifactConfiguration;
 import com.netflix.spinnaker.clouddriver.artifacts.s3.S3ArtifactConfiguration;
@@ -44,6 +45,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
   OracleArtifactConfiguration.class,
   GitHubArtifactConfiguration.class,
   HttpArtifactConfiguration.class,
+  HelmArtifactConfiguration.class,
   S3ArtifactConfiguration.class
 })
 public class ArtifactConfiguration {
