@@ -24,7 +24,7 @@ if [ "$CURRENTBRANCH" == "master" ] ; then
     while git show-ref --verify --quiet refs/heads/package-bump$COUNT ; do
       let COUNT=COUNT+1;
     done
-    git co -b package-bump$COUNT;
+    git checkout -b package-bump$COUNT;
   fi
 fi
 CURRENTBRANCH=`git branch | grep \* | cut -d ' ' -f2`;
