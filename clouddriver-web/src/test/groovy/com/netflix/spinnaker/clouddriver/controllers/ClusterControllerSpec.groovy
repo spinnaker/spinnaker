@@ -16,13 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
-import com.netflix.spinnaker.clouddriver.model.Application
-import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
-import com.netflix.spinnaker.clouddriver.model.Cluster
-import com.netflix.spinnaker.clouddriver.model.ClusterProvider
-import com.netflix.spinnaker.clouddriver.model.Instance
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.model.*
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import spock.lang.Shared
@@ -85,7 +79,7 @@ class ClusterControllerSpec extends Specification {
       clusterController.clusterProviders = [clusterProvider1]
       clusterController.serverGroupController = serverGroupController
 
-      def serverGroup = new AmazonServerGroup(name: "clusterName-v001", region: "us-west-2")
+      def serverGroup = [getName: { "clusterName-v001" }, getRegion: { "us-west-2" }] as ServerGroup
 
     when: "region is not supplied"
       def result = clusterController.getServerGroup("app", "account", "clusterName", "type", "clusterName-v001", null)

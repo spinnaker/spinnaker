@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.netflix.spinnaker.clouddriver.aws.deploy.converters.BasicAmazonDeployAtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AnnotationsBasedAtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
@@ -69,32 +68,49 @@ class OperationsControllerSpec extends Specification {
     }
   }
 
+  private static class Provider1DeployDescription implements DeployDescription {
+  }
+
+  private static class Provider2DeployDescription implements DeployDescription {
+  }
+
   @Shared
-  def googlePreProcessor = new AtomicOperationDescriptionPreProcessor() {
+  def provider1PreProcessor = new AtomicOperationDescriptionPreProcessor() {
     @Override
     boolean supports(Class descriptionClass) {
-      return descriptionClass == BasicGoogleDeployDescription
+      return descriptionClass == Provider1DeployDescription
     }
 
     @Override
     Map process(Map description) {
-      return ["google": "true"]
+      return ["provider1": "true"]
     }
   }
 
   @Shared
-  def amazonPreProcessor = new AtomicOperationDescriptionPreProcessor() {
+  def provider2PreProcessor = new AtomicOperationDescriptionPreProcessor() {
     @Override
     boolean supports(Class descriptionClass) {
-      return descriptionClass == BasicAmazonDeployDescription
+      return descriptionClass == Provider2DeployDescription
     }
 
     @Override
     Map process(Map description) {
       return new HashMap(description) + [
         "additionalKey": "additionalVal",
-        "amazon"       : "true"
+        "provider2"       : "true"
       ]
+    }
+  }
+
+  private static class Provider2DeployAtomicOperationConverter implements AtomicOperationConverter {
+    @Override
+    AtomicOperation convertOperation(Map input) {
+      throw new UnsupportedOperationException()
+    }
+
+    Provider2DeployDescription convertDescription(Map input) {
+      return new ObjectMapper().convertValue(input, Provider2DeployDescription)
     }
   }
 
@@ -111,10 +127,10 @@ class OperationsControllerSpec extends Specification {
     output == expectedOutput
 
     where:
-    descriptionPreProcessors                 | converter                                       | descriptionInput    || expectedOutput
-    []                                       | new BasicAmazonDeployAtomicOperationConverter() | ["a": "b"]          || ["a": "b"]
-    [googlePreProcessor]                     | new BasicAmazonDeployAtomicOperationConverter() | ["a": "b"]          || ["a": "b"]
-    [googlePreProcessor, amazonPreProcessor] | new BasicAmazonDeployAtomicOperationConverter() | ["amazon": "false"] || ["additionalKey": "additionalVal", "amazon": "true"]
+    descriptionPreProcessors                 | converter                                           | descriptionInput       || expectedOutput
+    []                                       | new Provider2DeployAtomicOperationConverter()       | ["a": "b"]             || ["a": "b"]
+    [provider1PreProcessor]                     | new Provider2DeployAtomicOperationConverter()    | ["a": "b"]             || ["a": "b"]
+    [provider1PreProcessor, provider2PreProcessor] | new Provider2DeployAtomicOperationConverter() | ["provider2": "false"] || ["additionalKey": "additionalVal", "provider2": "true"]
   }
 
   @Configuration

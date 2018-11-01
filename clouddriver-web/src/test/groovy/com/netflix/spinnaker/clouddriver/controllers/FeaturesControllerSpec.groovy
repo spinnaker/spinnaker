@@ -17,9 +17,17 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.aws.deploy.converters.UpsertAmazonLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.elasticsearch.converters.UpsertEntityTagsAtomicOperationConverter
-import spock.lang.Specification;
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import org.springframework.stereotype.Component
+import spock.lang.Specification
+
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
 class FeaturesControllerSpec extends Specification {
   def objectMapper = new ObjectMapper();
@@ -29,7 +37,7 @@ class FeaturesControllerSpec extends Specification {
     def controller = new FeaturesController(
       atomicOperationConverters: [
         new UpsertEntityTagsAtomicOperationConverter(objectMapper, null, null, null, null), // @Component
-        new UpsertAmazonLoadBalancerAtomicOperationConverter() // @AmazonOperation and @Component
+        new UpsertMyCloudLoadBalancerAtomicOperationConverter() // @MyCloudOperation and @Component
       ]
     )
 
@@ -42,4 +50,24 @@ class FeaturesControllerSpec extends Specification {
       [name: "upsertLoadBalancer", enabled: true]
     ]
   }
+
+  @MyCloudOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
+  @Component("upsertMyCloudLoadBalancerDescription")
+  class UpsertMyCloudLoadBalancerAtomicOperationConverter implements AtomicOperationConverter {
+    @Override
+    AtomicOperation convertOperation(Map input) {
+      throw new UnsupportedOperationException()
+    }
+
+    @Override
+    Object convertDescription(Map input) {
+      throw new UnsupportedOperationException()
+    }
+  }
+}
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@interface MyCloudOperation {
+  String value()
 }

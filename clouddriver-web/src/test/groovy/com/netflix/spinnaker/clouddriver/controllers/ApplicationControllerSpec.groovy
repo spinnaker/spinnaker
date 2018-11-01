@@ -16,11 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
-import com.netflix.spinnaker.clouddriver.model.Cluster
-import com.netflix.spinnaker.clouddriver.model.ClusterProvider
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonApplication
+import com.netflix.spinnaker.clouddriver.model.*
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import spock.lang.Shared
@@ -57,8 +53,8 @@ class ApplicationControllerSpec extends Specification {
     def cluProvider1 = Mock(ClusterProvider)
     applicationsController.applicationProviders = [appProvider1, appProvider2]
     applicationsController.clusterProviders = [cluProvider1]
-    def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar"] as Set], attributes: [tag: "val"])
-    def app2 = new AmazonApplication(name: "foo", clusterNames: [test: ["baz"] as Set], attributes: [:])
+    def app1 = [getName: { "foo" }, getClusterNames: { [test: ["bar"] as Set] }, getAttributes: { [tag: "val"] }] as Application
+    def app2 = [getName: { "foo" }, getClusterNames: { [test: ["baz"] as Set] }, getAttributes: { [:] }] as Application
     def cluster = Mock(Cluster)
     cluster.getAccountName() >> "test"
     cluster.getName() >> "foo"
@@ -89,7 +85,7 @@ class ApplicationControllerSpec extends Specification {
     def cluProvider1 = Mock(ClusterProvider)
     applicationsController.applicationProviders = [appProvider1, appProvider2]
     applicationsController.clusterProviders = [cluProvider1]
-    def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar"] as Set], attributes: [tag: "val"])
+    def app1 = [getName: { "foo" }, getClusterNames: { [test: ["bar"] as Set] }, getAttributes: { [tag: "val"] }] as Application
     def cluster = Mock(Cluster)
     cluster.getAccountName() >> "test"
     cluster.getName() >> "foo"
@@ -134,7 +130,7 @@ class ApplicationControllerSpec extends Specification {
     def cluProvider = Mock(ClusterProvider)
     applicationsController.applicationProviders = [appProvider]
     applicationsController.clusterProviders = [cluProvider]
-    def app1 = new AmazonApplication(name: "foo", clusterNames: [test: ["bar", "baz"] as Set], attributes: [tag: "val"])
+    def app1 = [getName: { "foo" }, getClusterNames: { [test: ["bar", "baz"] as Set] }, getAttributes: { [tag: "val"] }] as Application
     def cluster = Mock(Cluster)
     cluster.getAccountName() >> "test"
     cluster.getName() >> "bar"

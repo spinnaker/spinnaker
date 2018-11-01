@@ -16,34 +16,6 @@
 
 rootProject.name = "clouddriver"
 
-// We can include only the included cloud providers once we detangle clouddriver-web tests
-include 'cats:cats-core',
-  'cats:cats-dynomite',
-  'cats:cats-redis',
-  'cats:cats-test',
-  'clouddriver-appengine',
-  'clouddriver-artifacts',
-  'clouddriver-aws',
-  'clouddriver-azure',
-  'clouddriver-cloudfoundry',
-  'clouddriver-consul',
-  'clouddriver-core',
-  'clouddriver-dcos',
-  'clouddriver-docker',
-  'clouddriver-ecs',
-  'clouddriver-elasticsearch',
-  'clouddriver-elasticsearch-aws',
-  'clouddriver-eureka',
-  'clouddriver-google',
-  'clouddriver-google-common',
-  'clouddriver-kubernetes',
-  'clouddriver-openstack',
-  'clouddriver-oracle',
-  'clouddriver-security',
-  'clouddriver-titus',
-  'clouddriver-web',
-  'clouddriver-core-tck'
-
 def cloudProviderProjects = [
   'appengine':  [':clouddriver-appengine', ':clouddriver-google-common'],
   'aws': [':clouddriver-aws', ':clouddriver-ecs', ':clouddriver-eureka', ':clouddriver-elasticsearch-aws'], // Pull cd-eureka separate "Discover" platform, along with cd-consul?
@@ -62,6 +34,18 @@ cloudProviderProjects.put('all', cloudProviderProjects.collectMany {_, proj -> p
 // Set as an ext variable so that build scripts can access it
 gradle.ext.includedCloudProviderProjects = includeCloudProviders.split(',')
   .collectMany { cloudProviderProjects[it.toLowerCase()] }
+
+include 'cats:cats-core',
+  'cats:cats-dynomite',
+  'cats:cats-redis',
+  'cats:cats-test',
+  'clouddriver-artifacts',
+  'clouddriver-core',
+  'clouddriver-core-tck',
+  'clouddriver-elasticsearch',
+  'clouddriver-security',
+  'clouddriver-web'
+include(*gradle.ext.includedCloudProviderProjects)
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
