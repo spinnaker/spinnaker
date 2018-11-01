@@ -75,7 +75,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
   }
 
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
-    Map<KubernetesKind, List<KubernetesManifest>> result = namespaces.stream()
+    Map<KubernetesKind, List<KubernetesManifest>> result = namespaces.parallelStream()
         .map(n -> {
           try {
             return credentials.list(primaryKinds(), n);
