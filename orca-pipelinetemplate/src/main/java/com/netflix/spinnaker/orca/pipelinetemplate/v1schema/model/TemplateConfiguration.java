@@ -15,11 +15,16 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
-import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public class TemplateConfiguration implements VersionedSchema {
 
   private String schema;
@@ -31,6 +36,7 @@ public class TemplateConfiguration implements VersionedSchema {
 
   private final String runtimeId = UUID.randomUUID().toString();
 
+  @Data
   public static class PipelineDefinition {
 
     private String application;
@@ -80,6 +86,8 @@ public class TemplateConfiguration implements VersionedSchema {
     }
   }
 
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class TemplateSource {
 
     private String source;

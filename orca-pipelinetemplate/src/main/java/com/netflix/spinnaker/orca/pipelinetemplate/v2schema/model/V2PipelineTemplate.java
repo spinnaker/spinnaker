@@ -20,7 +20,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedContent;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.*;
 
@@ -52,6 +55,9 @@ public class V2PipelineTemplate implements VersionedSchema {
   }
 
   @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class Variable implements NamedContent<Variable>, Cloneable {
     public static final String TEMPLATE_VALID_VARIABLE_NAME_REGEX = "^[a-zA-Z0-9-_]+$";
     private String name;
