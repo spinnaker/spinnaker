@@ -3,6 +3,7 @@
 import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
 import { ExpectedArtifactService } from 'core/artifact/expectedArtifact.service';
 import { Registry } from 'core/registry';
+import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
@@ -22,6 +23,7 @@ module.exports = angular
     };
   })
   .controller('triggersCtrl', function($scope) {
+    this.showProperties = SETTINGS.feature.quietPeriod || SETTINGS.feature.managedServiceAccounts;
     this.addTrigger = function() {
       var triggerTypes = Registry.pipeline.getTriggerTypes(),
         newTrigger = { enabled: true };

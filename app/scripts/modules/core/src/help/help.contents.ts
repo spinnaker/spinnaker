@@ -53,6 +53,8 @@ const helpContents: { [key: string]: string } = {
         <li>Trigger</li>
         <li>Context - server groups, bakery results, etc.</li>
       </ul>`,
+  'pipeline.config.triggers.respectQuietPeriod': `
+      <p>The quiet period is a system operator designated period of time when automated pipelines and deploys should not run.</p>`,
   'pipeline.config.expectedArtifact':
     'Artifacts required for trigger to execute.  Only one of the artifacts needs to be present for the trigger to execute.',
   'pipeline.config.artifact.help': `

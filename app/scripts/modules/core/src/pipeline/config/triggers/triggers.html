@@ -19,13 +19,31 @@
     </div>
   </page-section>
   <page-section key="triggers" label="Automated Triggers" badge="pipeline.triggers.length" no-wrapper="true">
-    <render-if-feature feature="managedServiceAccounts">
-      <div class="row" ng-if="pipeline.triggers.length">
+    <div class="form-horizontal panel-pipeline-phase" ng-if="pipeline.triggers.length && triggersCtrl.showProperties">
+      <div class="form-group row">
         <div class="col-md-12">
-          <pipeline-roles pipeline="pipeline"></pipeline-roles>
+          <div class="trigger-config">
+            <render-if-feature feature="managedServiceAccounts">
+              <pipeline-roles pipeline="pipeline"></pipeline-roles>
+            </render-if-feature>
+            <render-if-feature feature="quietPeriod">
+              <div class="row">
+                <div class="col-md-10">
+                  <div class="col-md-9 col-md-offset-3">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" ng-model="pipeline.respectQuietPeriod">
+                        Disable triggers during quiet period. <help-field key="pipeline.config.triggers.respectQuietPeriod"></help-field>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </render-if-feature>
+          </div>
         </div>
       </div>
-    </render-if-feature>
+    </div>
     <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application" field-updated="fieldUpdated"></trigger>
     <div class="row" ng-if="!pipeline.triggers.length">
       <p class="col-md-12">

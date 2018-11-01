@@ -203,5 +203,6 @@ window.spinnakerSettings = {
     vpcMigrator: true,
     wercker: false,
     managedServiceAccounts: managedServiceAccountsEnabled,
+    quietPeriod: false,
   },
 };
