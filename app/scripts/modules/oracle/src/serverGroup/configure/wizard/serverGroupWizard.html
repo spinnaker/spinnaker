@@ -19,6 +19,9 @@
       <v2-wizard-page key="loadBalancers" label="Load Balancers" done="true">
         <ng-include src="pages.loadBalancers"></ng-include>
       </v2-wizard-page>
+      <v2-wizard-page key="network" label="Network Settings" done="true">
+        <ng-include src="pages.networkSettings"></ng-include>
+      </v2-wizard-page>
     </v2-modal-wizard>
     <div class="modal-footer" ng-if="state.loaded">
       <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>

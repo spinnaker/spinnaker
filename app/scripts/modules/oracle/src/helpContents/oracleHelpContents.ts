@@ -43,6 +43,10 @@ const helpContents = [
     key: 'oracle.pipeline.config.bake.account_name',
     value: '<p>The name of Oracle <i>account</i> that will be used during the baking process.</p>',
   },
+  {
+    key: 'oracle.serverGroup.sshAuthorizedKeys',
+    value: '<p>The public SSH key for the default user on the instance.</p>',
+  },
 ];
 
 helpContents.forEach(entry => HelpContentsRegistry.register(entry.key, entry.value));

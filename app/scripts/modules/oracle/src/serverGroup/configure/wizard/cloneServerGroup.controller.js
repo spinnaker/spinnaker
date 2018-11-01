@@ -30,6 +30,7 @@ module.exports = angular
       instanceType: require('./instanceType/instanceType.html'),
       capacity: require('./capacity/capacity.html'),
       loadBalancers: require('./loadBalancers/loadBalancers.html'),
+      networkSettings: require('./network/networkSettings.html'),
       templateSelection: require('./templateSelection/templateSelection.html'),
     };
 
