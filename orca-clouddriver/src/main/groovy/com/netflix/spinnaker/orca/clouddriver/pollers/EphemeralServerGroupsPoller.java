@@ -166,6 +166,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
           ephemeralServerGroupTag.location = e.entityRef.region;
           ephemeralServerGroupTag.application = e.entityRef.application;
           ephemeralServerGroupTag.serverGroup = e.entityRef.entityId;
+          ephemeralServerGroupTag.cloudProvider = e.entityRef.cloudProvider;
 
           return ephemeralServerGroupTag;
         })
