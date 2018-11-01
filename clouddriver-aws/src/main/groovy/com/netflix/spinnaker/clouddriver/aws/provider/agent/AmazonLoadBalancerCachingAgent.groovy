@@ -183,7 +183,7 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
   }
 
   Map<String, LoadBalancerAttributes> buildLoadBalancerAttributes(AmazonElasticLoadBalancing loadBalancing,
-                                                                  List<LoadBalancer> allLoadBalancers,
+                                                                  List<LoadBalancerDescription> allLoadBalancers,
                                                                   boolean useEdda) {
     Map<String, LoadBalancerAttributes> loadBalancerNameToAttributes
     if (useEdda) {
@@ -191,11 +191,10 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
         [(it.name): it.attributes]
       }
     } else {
-      loadBalancerNameToAttributes = new HashMap<String, LoadBalancerAttributes>()
-      for (LoadBalancer loadBalancer : allLoadBalancers) {
-        loadBalancing.describeLoadBalancerAttributes(
-          new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(loadBalancer.name)
-        )
+      loadBalancerNameToAttributes = allLoadBalancers.collectEntries {
+        [(it.loadBalancerName): loadBalancing.describeLoadBalancerAttributes(
+          new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(it.loadBalancerName)
+        ).loadBalancerAttributes]
       }
     }
     return loadBalancerNameToAttributes
