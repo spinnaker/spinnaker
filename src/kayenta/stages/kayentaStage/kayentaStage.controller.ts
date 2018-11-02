@@ -175,6 +175,7 @@ export class KayentaStageController implements IComponentController {
             unset(scope, 'extendedScopeParams.dataset');
             unset(scope, 'extendedScopeParams.environment');
           });
+          this.setAtlasScopeParams();
         }
         break;
       case KayentaAnalysisType.RealTimeAutomatic:
@@ -194,6 +195,7 @@ export class KayentaStageController implements IComponentController {
             unset(scope, 'extendedScopeParams.dataset');
             unset(scope, 'extendedScopeParams.environment');
           });
+          this.setAtlasScopeParams();
         }
         break;
     }
@@ -239,20 +241,28 @@ export class KayentaStageController implements IComponentController {
     this.metricStore = get(this.selectedCanaryConfigDetails, 'metrics[0].query.type');
 
     if (this.metricStore === 'atlas') {
-      this.stage.canaryConfig.scopes.forEach(scope => {
-        // TODO: support query types
-        set(scope, 'extendedScopeParams.type', 'cluster');
-      });
-
-      if (this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic) {
-        this.state.useAtlasGlobalDataset =
-          get(this.stage.canaryConfig.scopes[0], 'extendedScopeParams.dataset') === 'global';
-        this.stage.canaryConfig.scopes.forEach(scope => {
-          set(scope, 'extendedScopeParams.dataset', this.state.useAtlasGlobalDataset ? 'global' : 'regional');
-        });
-      }
-
+      this.setAtlasScopeParams();
       this.$scope.$applyAsync();
+    } else {
+      this.stage.canaryConfig.scopes.forEach(scope => {
+        unset(scope, 'extendedScopeParams.type');
+      });
+    }
+  };
+
+  private setAtlasScopeParams = (): void => {
+    const isRealTimeAutomatic = this.stage.analysisType === KayentaAnalysisType.RealTimeAutomatic;
+    this.stage.canaryConfig.scopes.forEach(scope => {
+      // TODO: support query types
+      set(scope, 'extendedScopeParams.type', isRealTimeAutomatic ? 'asg' : 'cluster');
+    });
+
+    if (isRealTimeAutomatic) {
+      this.state.useAtlasGlobalDataset =
+        get(this.stage.canaryConfig.scopes[0], 'extendedScopeParams.dataset') === 'global';
+      this.stage.canaryConfig.scopes.forEach(scope => {
+        set(scope, 'extendedScopeParams.dataset', this.state.useAtlasGlobalDataset ? 'global' : 'regional');
+      });
     }
   };
 
