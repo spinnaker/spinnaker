@@ -65,7 +65,7 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
   };
 
   public render() {
-    const { application, sortFilter, grouping, serverGroups } = this.props;
+    const { application, sortFilter, grouping, serverGroups, manager } = this.props;
     const classes = {
       active: this.isSelected(),
       clickable: true,
@@ -79,6 +79,7 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
           onClick={this.handleClick}
           health={this.buildHealthCounts()}
           provider={serverGroups[0].type}
+          heading={manager}
         />
 
         {serverGroups.map((sg: IServerGroup) => (
