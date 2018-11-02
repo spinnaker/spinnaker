@@ -142,6 +142,28 @@ const updateStackdriverMetricDescriptionFilterEpic = (
       });
     });
 
+const updateDatadogMetricDescriptionFilterEpic = (
+  action$: Observable<Action & any>,
+  store: MiddlewareAPI<ICanaryState>,
+) =>
+  action$
+    .filter(typeMatches(Actions.UPDATE_DATADOG_METRIC_DESCRIPTOR_FILTER))
+    .filter(action => action.payload.filter && action.payload.filter.length > 2)
+    .debounceTime(200 /* milliseconds */)
+    .map(action => {
+      const [metricsAccountName] = store
+        .getState()
+        .data.kayentaAccounts.data.filter(
+          account => account.supportedTypes.includes(KayentaAccountType.MetricsStore) && account.type === 'datadog',
+        )
+        .map(account => account.name);
+
+      return Creators.loadMetricsServiceMetadataRequest({
+        filter: action.payload.filter,
+        metricsAccountName,
+      });
+    });
+
 const loadMetricsServiceMetadataEpic = (action$: Observable<Action & any>) =>
   action$.filter(typeMatches(Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST)).concatMap(action => {
     return Observable.fromPromise(listMetricsServiceMetadata(action.payload.filter, action.payload.metricsAccountName))
@@ -166,6 +188,7 @@ const rootEpic = combineEpics(
   loadMetricSetPairEpic,
   updatePrometheusMetricDescriptionFilterEpic,
   updateStackdriverMetricDescriptionFilterEpic,
+  updateDatadogMetricDescriptionFilterEpic,
   loadMetricsServiceMetadataEpic,
   loadKayentaAccountsEpic,
 );

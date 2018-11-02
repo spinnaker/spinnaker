@@ -116,6 +116,9 @@ export const updatePrometheusMetricDescriptorFilter = createAction<{ filter: str
 export const updateStackdriverMetricDescriptorFilter = createAction<{ filter: string }>(
   Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER,
 );
+export const updateDatadogMetricDescriptorFilter = createAction<{ filter: string }>(
+  Actions.UPDATE_DATADOG_METRIC_DESCRIPTOR_FILTER,
+);
 export const updateStackdriverMetricResourceField = createAction<{
   field: keyof IStackdriverCanaryMetricSetQueryConfig;
   value: IStackdriverCanaryMetricSetQueryConfig[keyof IStackdriverCanaryMetricSetQueryConfig];

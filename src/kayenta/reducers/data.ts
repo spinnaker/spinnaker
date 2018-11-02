@@ -122,6 +122,12 @@ const metricsServiceMetadata = combineReducers<IMetricsServiceMetadataState>({
         // no longer apply to the filter.
         return action.payload.metricType ? state : [];
       },
+      [Actions.UPDATE_DATADOG_METRIC_TYPE]: (state: IMetricsServiceMetadata, action: Action & any) => {
+        // When the user clears the Datadog metric type dropdown,
+        // clear the backing set of metric descriptors, since they
+        // no longer apply to the filter.
+        return action.payload.metricType ? state : [];
+      },
       [Actions.EDIT_METRIC_BEGIN]: () => [],
     },
     [],

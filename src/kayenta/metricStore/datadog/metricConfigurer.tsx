@@ -2,12 +2,12 @@ import * as React from 'react';
 import { get } from 'lodash';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
+import { Option } from 'react-select';
 import FormRow from 'kayenta/layout/formRow';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
-import { DisableableInput, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 import { ICanaryMetricConfig } from 'kayenta/domain';
-import autoBindMethods from 'class-autobind-decorator';
+import DatadogMetricTypeSelector from './metricTypeSelector';
 
 interface IDatadogMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;
@@ -24,27 +24,15 @@ export const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.m
 /*
 * Component for configuring a Datadog metric.
 * */
-@autoBindMethods
-class DatadogMetricConfigurer extends React.Component<DatadogMetricConfigurerProps> {
-  public onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    this.props.changeMetricName(e.target.value);
-  }
-
-  public render() {
-    const { editingMetric } = this.props;
-    return (
-      <section>
-        <FormRow label="Datadog Metric">
-          <DisableableInput
-            type="text"
-            value={queryFinder(editingMetric)}
-            onChange={this.onChange}
-            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-          />
-        </FormRow>
-      </section>
-    );
-  }
+function DatadogMetricConfigurer({ changeMetricName, editingMetric }: DatadogMetricConfigurerProps) {
+  return (
+    <FormRow label="Datadog Metric">
+      <DatadogMetricTypeSelector
+        value={queryFinder(editingMetric)}
+        onChange={(option: Option<string>) => changeMetricName(get(option, 'value'))}
+      />
+    </FormRow>
+  );
 }
 
 function mapStateToProps(state: ICanaryState): IDatadogMetricConfigurerStateProps {
