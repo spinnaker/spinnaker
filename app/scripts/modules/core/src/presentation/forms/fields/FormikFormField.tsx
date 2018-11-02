@@ -1,31 +1,33 @@
-import * as React from 'react';
 import { Field, FieldProps, getIn } from 'formik';
 import { isUndefined } from 'lodash';
+import * as React from 'react';
 
 import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput, IValidationProps } from '../interface';
 import { StandardFieldLayout } from '../layouts';
-import { renderContent } from './renderContent';
 import { Validation, ValidationFunction } from '../Validation';
+import { renderContent } from './renderContent';
+import { WatchValue } from '../../WatchValue';
 
-export interface IFormikFieldProps {
+export interface IFormikFieldProps<T> {
   name: string;
   validate?: ValidationFunction | ValidationFunction[];
+  onChange?: (value: T, prevValue: T) => void;
 }
 
-export type IFormikFormFieldProps = IFormikFieldProps & ICommonFormFieldProps & IFieldLayoutPropsWithoutInput;
+export type IFormikFormFieldProps<T> = IFormikFieldProps<T> & ICommonFormFieldProps & IFieldLayoutPropsWithoutInput;
 
-export class FormikFormField extends React.Component<IFormikFormFieldProps> {
-  public static defaultProps: Partial<IFormikFormFieldProps> = {
+export class FormikFormField<T = any> extends React.Component<IFormikFormFieldProps<T>> {
+  public static defaultProps: Partial<IFormikFormFieldProps<any>> = {
     layout: StandardFieldLayout,
   };
 
   /** Returns validation function composed of all the `validate` functions (and `isRequired` if `required` is truthy) */
   private composedValidation(
-    label: IFormikFormFieldProps['label'],
+    label: IFormikFormFieldProps<T>['label'],
     required: boolean,
-    validate: IFormikFieldProps['validate'],
+    validate: IFormikFieldProps<T>['validate'],
   ): ValidationFunction {
-    const labelStr = typeof label === 'string' ? label : 'This Field';
+    const labelStr = typeof label === 'string' ? label : 'This field';
     const requiredFn = !!required && Validation.isRequired(`${labelStr} is required`);
     const validationFns = [requiredFn].concat(validate).filter(x => !!x);
 
@@ -33,10 +35,12 @@ export class FormikFormField extends React.Component<IFormikFormFieldProps> {
   }
 
   public render() {
-    const { input, layout, name, validate } = this.props; // ICommonFieldProps & name & validate
+    const { name, validate, onChange } = this.props; // IFormikFieldProps
+    const { input, layout } = this.props; // ICommonFieldProps
     const { label, help, required, actions } = this.props; // IFieldLayoutPropsWithoutInput
-    const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
     const { touched, validationMessage, validationStatus } = this.props; // IValidationProps
+
+    const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
 
     return (
       <Field
@@ -57,7 +61,12 @@ export class FormikFormField extends React.Component<IFormikFormFieldProps> {
           };
 
           const inputElement = renderContent(input, { field, validation: validationProps });
-          return renderContent(layout, { ...fieldLayoutPropsWithoutInput, ...validationProps, input: inputElement });
+
+          return (
+            <WatchValue onChange={onChange} value={field.value}>
+              {renderContent(layout, { ...fieldLayoutPropsWithoutInput, ...validationProps, input: inputElement })}
+            </WatchValue>
+          );
         }}
       />
     );

@@ -13,7 +13,9 @@ export interface IExpressionFieldProps {
   layout?: ICommonFormFieldProps['layout'];
 }
 
-export type IFormikExpressionFieldProps = IExpressionFieldProps & IFormikFieldProps & IFieldLayoutPropsWithoutInput;
+export type IFormikExpressionFieldProps = IExpressionFieldProps &
+  IFormikFieldProps<string> &
+  IFieldLayoutPropsWithoutInput;
 
 export interface IFormikExpressionFieldState {
   spelPreview: string;
