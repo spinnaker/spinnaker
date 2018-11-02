@@ -33,40 +33,4 @@ public abstract class DescriptionValidator<T> implements VersionedCloudProviderO
   }
 
   abstract void validate(List priorDescriptions, T description, Errors errors)
-
-  @Autowired(required = false)
-  FiatPermissionEvaluator permissionEvaluator
-
-  void authorize(T description, Errors errors) {
-    if (!permissionEvaluator) {
-      return
-    }
-
-    Authentication auth = SecurityContextHolder.context.authentication
-
-    if (description instanceof ApplicationNameable) {
-      (description as ApplicationNameable).applications.each { application ->
-        if (!permissionEvaluator.hasPermission(auth, application, 'APPLICATION', 'WRITE')) {
-          errors.reject("authorization", "Access denied to application ${application}")
-        }
-      }
-    }
-
-    if (description instanceof AccountNameable) {
-      AccountNameable asAcct = description as AccountNameable
-      if (!permissionEvaluator.hasPermission(auth, asAcct.account, 'ACCOUNT', 'WRITE')) {
-        errors.reject("authorization", "Access denied to account ${asAcct.account}")
-      }
-    }
-
-    if (description instanceof ResourcesNameable) {
-      ResourcesNameable asResources = description as ResourcesNameable
-      permissionEvaluator.storeWholePermission()
-      asResources.resourceApplications.each { String app ->
-        if (!permissionEvaluator.hasPermission(auth, app, 'APPLICATION', 'WRITE')) {
-          errors.reject("authorization", "Access denied to application ${app}")
-        }
-      }
-    }
-  }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.security.resources;
 import com.netflix.frigga.Names;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +30,10 @@ public interface ServerGroupNameable extends ApplicationNameable {
 
   @Override
   default Collection<String> getApplications() {
-    return getServerGroupNames().stream().map(n -> Names.parseName(n).getApp()).collect(Collectors.toList());
+    return getServerGroupNames()
+      .stream()
+      .filter(Objects::nonNull)
+      .map(n -> Names.parseName(n).getApp())
+      .collect(Collectors.toList());
   }
 }

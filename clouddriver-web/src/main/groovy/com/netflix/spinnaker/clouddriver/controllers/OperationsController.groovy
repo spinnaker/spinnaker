@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationException
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
@@ -56,6 +57,8 @@ class OperationsController {
   @Autowired AtomicOperationsRegistry atomicOperationsRegistry
   @Autowired SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps
   @Autowired AccountCredentialsRepository accountCredentialsRepository
+
+  @Autowired DescriptionAuthorizer descriptionAuthorizer
 
   /*
    * APIs
@@ -161,23 +164,17 @@ class OperationsController {
         )
         if (validator) {
           validator.validate(descriptions, description, errors)
-          validator.authorize(description, errors)
         } else {
-          def msg = "No validator found for operation `${description?.class?.simpleName}` and cloud provider $cloudProvider"
-
-          switch(opsSecurityConfigProps.onMissingValidator) {
-            case SecurityConfig.SecurityAction.WARN:
-              log.warn(msg)
-              break
-            case SecurityConfig.SecurityAction.FAIL:
-              errors.reject(msg)
-              break
-          }
+          log.warn(
+            "No validator found for operation `${description?.class?.simpleName}` and cloud provider $cloudProvider"
+          );
         }
 
         allowedAccountValidators.each {
           it.validate(username, allowedAccounts, description, errors)
         }
+
+        descriptionAuthorizer.authorize(description, errors)
 
         AtomicOperation atomicOperation = converter.convertOperation(v)
         if (!atomicOperation) {

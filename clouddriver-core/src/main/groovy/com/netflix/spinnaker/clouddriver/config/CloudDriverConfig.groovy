@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.model.*
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy
@@ -43,6 +45,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -55,6 +58,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
+import org.springframework.security.access.PermissionEvaluator
 import org.springframework.web.client.RestTemplate
 
 import javax.inject.Provider
@@ -272,5 +276,16 @@ class CloudDriverConfig {
   @Bean
   NamerRegistry namerRegistry(Optional<List<NamingStrategy>> namingStrategies) {
     new NamerRegistry(namingStrategies.orElse([]))
+  }
+
+  @Bean
+  DescriptionAuthorizer descriptionAuthorizer(Registry registry,
+                                              ObjectMapper objectMapper,
+                                              Optional<FiatPermissionEvaluator> fiatPermissionEvaluator) {
+    return new DescriptionAuthorizer(
+      registry,
+      objectMapper,
+      fiatPermissionEvaluator
+    )
   }
 }

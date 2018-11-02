@@ -20,6 +20,7 @@ import com.netflix.frigga.Names;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -30,8 +31,10 @@ public interface ResourcesNameable {
   Collection<String> getNames();
 
   default Collection<String> getResourceApplications() {
-    return getNames().stream()
-                     .map(name -> Names.parseName(name).getApp())
-                     .collect(Collectors.toList());
+    return getNames()
+      .stream()
+      .filter(Objects::nonNull)
+      .map(name -> Names.parseName(name).getApp())
+      .collect(Collectors.toList());
   }
 }

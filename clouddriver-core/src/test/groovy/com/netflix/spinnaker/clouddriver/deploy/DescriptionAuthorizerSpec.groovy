@@ -16,39 +16,40 @@
 
 package com.netflix.spinnaker.clouddriver.deploy
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import org.springframework.security.authentication.TestingAuthenticationToken
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DescriptionValidatorSpec extends Specification {
+class DescriptionAuthorizerSpec extends Specification {
+  def registry = new NoopRegistry();
+  def evaluator = Mock(FiatPermissionEvaluator)
+
+  @Subject
+  DescriptionAuthorizer authorizer = new DescriptionAuthorizer(registry, new ObjectMapper(), Optional.of(evaluator))
 
   def "should authorize passed description"() {
-    setup:
-    FiatPermissionEvaluator evaluator = Mock(FiatPermissionEvaluator)
+    given:
+    def auth = new TestingAuthenticationToken(null, null)
 
-    Authentication auth = new TestingAuthenticationToken(null, null)
-    SecurityContext ctx = SecurityContextHolder.createEmptyContext()
+    def ctx = SecurityContextHolder.createEmptyContext()
     ctx.setAuthentication(auth)
     SecurityContextHolder.setContext(ctx)
 
-    @Subject
-    TestValidator validator = new TestValidator(permissionEvaluator: evaluator)
+    def description = new TestDescription(
+      "testAccount", ["testApplication", null], ["testResource1", "testResource2", null]
+    )
 
-    TestDescription description = new TestDescription(account: "testAccount",
-                                                      applications: ["testApplication"],
-                                                      names: ["thing1", "thing2"])
-    Errors errors = new DescriptionValidationErrors(description)
+    def errors = new DescriptionValidationErrors(description)
 
     when:
-    validator.authorize(description, errors)
+    authorizer.authorize(description, errors)
 
     then:
     4 * evaluator.hasPermission(*_) >> false
@@ -56,16 +57,15 @@ class DescriptionValidatorSpec extends Specification {
     errors.allErrors.size() == 4
   }
 
-  class TestValidator extends DescriptionValidator<TestDescription> {
-
-    @Override
-    void validate(List priorDescriptions, TestDescription description, Errors errors) {
-    }
-  }
-
   class TestDescription implements AccountNameable, ApplicationNameable, ResourcesNameable {
     String account
     Collection<String> applications
     List<String> names
+
+    TestDescription(String account, Collection<String> applications, List<String> names) {
+      this.account = account
+      this.applications = applications
+      this.names = names
+    }
   }
 }

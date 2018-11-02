@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.orchestration.AnnotationsBasedAtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
@@ -36,6 +38,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class OperationsControllerSpec extends Specification {
+  def descriptionAuthorizer = Mock(DescriptionAuthorizer)
 
   void "controller takes many operation descriptions, resolves them from the spring context, and executes them in order"() {
     setup:
@@ -49,6 +52,7 @@ class OperationsControllerSpec extends Specification {
     def mvc = MockMvcBuilders.standaloneSetup(
       new OperationsController(
         orchestrationProcessor: orchestrationProcessor,
+        descriptionAuthorizer: descriptionAuthorizer,
         atomicOperationsRegistry: new AnnotationsBasedAtomicOperationsRegistry(
           applicationContext: new AnnotationConfigApplicationContext(TestConfig),
           cloudProviders: []
@@ -66,6 +70,8 @@ class OperationsControllerSpec extends Specification {
       assert it?.flatten()*.getClass() == [Op1, Op2, String]
       Mock(Task)
     }
+
+    2 * descriptionAuthorizer.authorize(_, _)
   }
 
   private static class Provider1DeployDescription implements DeployDescription {
@@ -127,9 +133,9 @@ class OperationsControllerSpec extends Specification {
     output == expectedOutput
 
     where:
-    descriptionPreProcessors                 | converter                                           | descriptionInput       || expectedOutput
-    []                                       | new Provider2DeployAtomicOperationConverter()       | ["a": "b"]             || ["a": "b"]
-    [provider1PreProcessor]                     | new Provider2DeployAtomicOperationConverter()    | ["a": "b"]             || ["a": "b"]
+    descriptionPreProcessors                       | converter                                     | descriptionInput       || expectedOutput
+    []                                             | new Provider2DeployAtomicOperationConverter() | ["a": "b"]             || ["a": "b"]
+    [provider1PreProcessor]                        | new Provider2DeployAtomicOperationConverter() | ["a": "b"]             || ["a": "b"]
     [provider1PreProcessor, provider2PreProcessor] | new Provider2DeployAtomicOperationConverter() | ["provider2": "false"] || ["additionalKey": "additionalVal", "provider2": "true"]
   }
 
