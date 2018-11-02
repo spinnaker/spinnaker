@@ -1,11 +1,27 @@
+/*
+ * Copyright 2018 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.netflix.spinnaker.keel.redis
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetBase
-import com.netflix.spinnaker.keel.model.AssetContainer
-import com.netflix.spinnaker.keel.model.AssetId
-import com.netflix.spinnaker.keel.model.PartialAsset
-import com.netflix.spinnaker.keel.model.TypedByteArray
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetMetadata
+import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
@@ -13,116 +29,59 @@ import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisCommands
 import java.time.Clock
 import java.time.Instant
-import java.util.*
 import javax.annotation.PostConstruct
 
 class RedisAssetRepository(
   private val redisClient: RedisClientDelegate,
+  private val objectMapper: ObjectMapper,
   private val clock: Clock
 ) : AssetRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun rootAssets(callback: (Asset) -> Unit) {
+  override fun allAssets(callback: (Asset) -> Unit) {
     withRedis { redis ->
       redis.smembers(INDEX_SET)
-        .asSequence()
-        .map(::AssetId)
-        .filter { redis.scard(it.dependsOnKey) == 0L }
-        .forEach { id ->
-          readAsset(redis, id)
-            ?.also { (it as? Asset)?.also(callback) }
-            ?: onInvalidIndex(id)
-        }
-    }
-  }
-
-  override fun allAssets(callback: (AssetBase) -> Unit) {
-    withRedis { redis ->
-      redis.smembers(INDEX_SET)
-        .map(::AssetId)
-        .forEach { id ->
-          readAsset(redis, id)
+        .map(::AssetName)
+        .forEach { name ->
+          readAsset(redis, name)
             ?.also(callback)
-            ?: onInvalidIndex(id)
+            ?: onInvalidIndex(name)
         }
     }
   }
 
-  override fun get(id: AssetId): Asset? =
+  override fun get(name: AssetName): Asset? =
     withRedis { redis ->
-      readAsset(redis, id) as? Asset
+      readAsset(redis, name)
     }
 
-  override fun getPartial(id: AssetId): PartialAsset? =
-    withRedis { redis ->
-      readAsset(redis, id) as? PartialAsset
-    }
-
-  override fun getContainer(id: AssetId): AssetContainer? =
-    withRedis { redis ->
-      val root = readAsset(redis, id) as? Asset
-      if (root != null) {
-        val partials = redis
-          .smembers(id.partialsKey)
-          .asSequence()
-          // TODO: optimally this should be done with a single read operation
-          .map { readAsset(redis, it.let(::AssetId)) as? PartialAsset }
-          .filterNotNull()
-          .toSet()
-        AssetContainer(root, partials)
-      } else {
-        null
-      }
-    }
-
-  override fun store(asset: AssetBase) {
+  override fun store(asset: Asset) {
     withRedis { redis ->
       redis.hmset(asset.id.key, asset.toHash())
-      if (asset is Asset && asset.dependsOn.isNotEmpty()) {
-        redis.sadd(asset.id.dependsOnKey, *asset.dependsOn.map { it.value }.toTypedArray())
-        asset.dependsOn.forEach {
-          redis.sadd(it.dependenciesKey, asset.id.value)
-        }
-      } else if (asset is PartialAsset) {
-        redis.sadd(
-          asset.root.partialsKey,
-          asset.id.value
-        )
-      }
       redis.sadd(INDEX_SET, asset.id.value)
       redis.zadd(asset.id.stateKey, timestamp(), AssetState.Unknown.name)
     }
   }
 
-  override fun delete(id: AssetId) {
+  override fun delete(name: AssetName) {
     withRedis { redis ->
-      redis.del(id.key)
-      redis.smembers(id.dependsOnKey).forEach {
-        redis.srem(AssetId(it).dependenciesKey, id.value)
-      }
-      redis.del(id.dependsOnKey)
-      redis.srem(INDEX_SET, id.value)
-        // TODO: partials key
+      redis.del(name.key)
+      redis.srem(INDEX_SET, name.value)
     }
   }
 
-  override fun dependents(id: AssetId): Iterable<AssetId> =
+  override fun lastKnownState(name: AssetName): Pair<AssetState, Instant>? =
     withRedis { redis ->
-      redis.smembers(id.dependenciesKey).map(::AssetId)
-    }
-
-  override fun lastKnownState(id: AssetId): Pair<AssetState, Instant>? =
-    withRedis { redis ->
-      redis.zrangeByScoreWithScores(id.stateKey, Double.MIN_VALUE, Double.MAX_VALUE, 0, 1)
+      redis.zrangeByScoreWithScores(name.stateKey, Double.MIN_VALUE, Double.MAX_VALUE, 0, 1)
         .asSequence()
         .map { AssetState.valueOf(it.element) to Instant.ofEpochMilli(it.score.toLong()) }
         .firstOrNull()
     }
 
-  override fun updateState(id: AssetId, state: AssetState) {
+  override fun updateState(name: AssetName, state: AssetState) {
     withRedis { redis ->
-      redis.zadd(id.stateKey, timestamp(), state.name)
+      redis.zadd(name.stateKey, timestamp(), state.name)
     }
   }
 
@@ -140,83 +99,49 @@ class RedisAssetRepository(
   companion object {
     private const val INDEX_SET = "keel.assets"
     private const val ASSET_HASH = "{keel.asset.%s}"
-    private const val DEPENDENCIES_SET = "$ASSET_HASH.dependencies"
-    private const val DEPENDS_ON_SET = "$ASSET_HASH.dependsOn"
-    private const val PARTIALS_SET = "$ASSET_HASH.partials"
     private const val STATE_SORTED_SET = "$ASSET_HASH.state"
   }
 
-  private fun readAsset(redis: JedisCommands, id: AssetId): AssetBase? =
-    if (redis.sismember(INDEX_SET, id.value)) {
-      redis.hgetAll(id.key)?.let {
-        if (it.getValue("@class") == Asset::class.qualifiedName) {
-          Asset(
-            id,
-            it.getValue("apiVersion"),
-            it.getValue("kind"),
-            redis.smembers(id.dependsOnKey).asSequence().map(::AssetId).toSet(),
-            TypedByteArray(
-              it.getValue("spec.type"),
-              it.getValue("spec.data").decodeBase64()
-            )
-          )
-        } else {
-          PartialAsset(
-            id,
-            it.getValue("root").let(::AssetId),
-            it.getValue("apiVersion"),
-            it.getValue("kind"),
-            TypedByteArray(
-              it.getValue("spec.type"),
-              it.getValue("spec.data").decodeBase64()
-            )
-          )
-        }
+  private fun readAsset(redis: JedisCommands, name: AssetName): Asset? =
+    if (redis.sismember(INDEX_SET, name.value)) {
+      redis.hgetAll(name.key)?.let {
+        Asset(
+          apiVersion = ApiVersion(it.getValue("apiVersion")),
+          metadata = AssetMetadata(
+            name = name,
+            data = objectMapper.readValue(it.getValue("metadata"))
+          ),
+          kind = it.getValue("kind"),
+          spec = objectMapper.readValue(it.getValue("spec"))
+        )
       }
     } else {
       null
     }
 
-  private fun onInvalidIndex(id: AssetId) {
-    log.error("Invalid index entry {}", id)
-    withRedis { redis -> redis.srem(INDEX_SET, id.value) }
+  private fun onInvalidIndex(name: AssetName) {
+    log.error("Invalid index entry {}", name)
+    withRedis { redis ->
+      redis.srem(INDEX_SET, name.value)
+    }
   }
 
   private fun <T> withRedis(operation: (JedisCommands) -> T): T =
     redisClient.withCommandsClient(operation)
 
-  private val AssetId.key: String
+  private val AssetName.key: String
     get() = ASSET_HASH.format(value)
 
-  private val AssetId.dependenciesKey: String
-    get() = DEPENDENCIES_SET.format(value)
-
-  private val AssetId.dependsOnKey: String
-    get() = DEPENDS_ON_SET.format(value)
-
-  private val AssetId.partialsKey: String
-    get() = PARTIALS_SET.format(value)
-
-  private val AssetId.stateKey: String
+  private val AssetName.stateKey: String
     get() = STATE_SORTED_SET.format(value)
 
-  private fun AssetBase.toHash(): Map<String, String> = mutableMapOf(
-    "@class" to javaClass.name,
-    "apiVersion" to apiVersion,
+  private fun Asset.toHash(): Map<String, String> = mapOf(
+    "apiVersion" to apiVersion.toString(),
+    "name" to metadata.name.value,
+    "metadata" to objectMapper.writeValueAsString(metadata.data),
     "kind" to kind,
-    "spec.type" to spec.type,
-    "spec.data" to spec.data.encodeBase64()
-  ).also {
-    if (this is PartialAsset) {
-      it["root"] = root.value
-    }
-  }
+    "spec" to objectMapper.writeValueAsString(spec)
+  )
 
   private fun timestamp() = clock.millis().toDouble()
-
-  private fun ByteArray.encodeBase64() =
-    String(Base64.getEncoder().encode(this))
-
-  private fun String.decodeBase64() =
-    Base64.getDecoder().decode(this)
 }

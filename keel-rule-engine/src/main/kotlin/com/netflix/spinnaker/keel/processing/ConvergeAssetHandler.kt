@@ -15,13 +15,9 @@
  */
 package com.netflix.spinnaker.keel.processing
 
-import com.netflix.spinnaker.keel.grpc.PluginRequestFailed
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetRepository
-import com.netflix.spinnaker.keel.persistence.AssetState
-import com.netflix.spinnaker.keel.persistence.AssetState.Ok
-import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
+import com.netflix.spinnaker.keel.plugin.PluginRequestFailed
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
@@ -39,41 +35,17 @@ class ConvergeAssetHandler(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun handle(message: ConvergeAsset) {
-    repository.getContainer(message.id)?.also { assetContainer ->
-      val asset = assetContainer.asset
-
-      val outdatedDependencies = asset.outdatedDependencies
-      if (outdatedDependencies.isEmpty()) {
-        try {
-          if (vetoService.allow(assetContainer)) {
-            log.info("{} : requesting convergence", asset.id)
-            assetService.converge(assetContainer)
-          } else {
-            log.info("{} : convergence was vetoed", asset.id)
-          }
-        } catch (e: PluginRequestFailed) {
-          log.error(e.message)
+    repository.get(message.name)?.also { asset ->
+      try {
+        if (vetoService.allow(asset)) {
+          log.info("{} : requesting convergence", asset.id)
+          assetService.converge(asset)
+        } else {
+          log.info("{} : convergence was vetoed", asset.id)
         }
-      } else {
-        if (log.isInfoEnabled) {
-          log.info("{} : not converging as outdated dependencies were found:", asset.id)
-          outdatedDependencies.forEach { (id, state) ->
-            log.info(" • {} : {}", state, id)
-          }
-        }
+      } catch (e: PluginRequestFailed) {
+        log.error(e.message)
       }
     }
   }
-
-  private val Asset.outdatedDependencies: Collection<Pair<AssetId, AssetState>>
-    get() =
-      dependsOn.flatMap { dependencyId ->
-        val state = repository.lastKnownState(dependencyId)?.first ?: Unknown
-        return if (state == Ok) {
-          repository.get(dependencyId)?.outdatedDependencies
-            ?: listOf(dependencyId to Unknown)
-        } else {
-          listOf(dependencyId to state)
-        }
-      }
 }

@@ -1,18 +1,20 @@
 package com.netflix.spinnaker.keel.processing
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetId
-import com.netflix.spinnaker.keel.model.TypedByteArray
+import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetMetadata
+import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetState.Diff
 import com.netflix.spinnaker.keel.persistence.AssetState.Missing
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
 import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
+import com.netflix.spinnaker.keel.persistence.randomData
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.jetbrains.spek.api.Spek
@@ -26,11 +28,9 @@ import strikt.assertions.first
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.second
-import java.lang.System.nanoTime
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
-import java.util.*
 
 internal object ValidateAssetTreeHandlerSpec : Spek({
 
@@ -40,22 +40,18 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
   val queue: Queue = mock()
   val subject = ValidateAssetTreeHandler(repository, assetService, queue)
 
-  val rootAsset = Asset(id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"), kind = "SecurityGroup", spec = randomBytes())
-  val assets = listOf(
-    Asset(id = AssetId("LoadBalancer:ec2:prod:us-west-2:keel"), kind = "LoadBalancer", spec = randomBytes()),
-    Asset(id = AssetId("Cluster:ec2:prod:us-west-2:keel"), kind = "Cluster", spec = randomBytes())
-  ).map {
-    it.copy(dependsOn = setOf(rootAsset.id))
-  }
+  val rootAsset = Asset(apiVersion = SPINNAKER_API_V1,
+    metadata = AssetMetadata(
+      name = AssetName("SecurityGroup:ec2:prod:us-west-2:keel")
+    ),
+    kind = "SecurityGroup",
+    spec = randomData()
+  )
 
-  val message = ValidateAssetTree(rootAsset.id)
+  val message = ValidateAsset(rootAsset.id)
 
-  describe("validating a sub-tree") {
+  describe("validating an asset") {
     given("no desired state is known") {
-      beforeGroup {
-        assets.forEach(repository::store)
-      }
-
       afterGroup {
         repository.dropAll()
         reset(queue)
@@ -72,7 +68,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
 
     given("assets exist in the repository") {
       beforeGroup {
-        (assets + rootAsset).forEach(repository::store)
+        repository.store(rootAsset)
       }
 
       afterGroup {
@@ -81,10 +77,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
 
       given("all states match the desired state") {
         beforeGroup {
-          whenever(assetService.current(rootAsset.wrap())) doReturn CurrentAssetPair(rootAsset, rootAsset)
-          for (asset in assets) {
-            whenever(assetService.current(asset.wrap())) doReturn CurrentAssetPair(asset, asset)
-          }
+          whenever(assetService.current(rootAsset)) doReturn CurrentAssetPair(rootAsset, rootAsset)
         }
 
         afterGroup { reset(assetService, queue) }
@@ -97,29 +90,19 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           verifyZeroInteractions(queue)
         }
 
-        it("marks all assets as $Ok") {
-          (assets + rootAsset).forEach {
-            repository.lastKnownState(it.id) expect {
-              isNotNull().and {
-                first.isEqualTo(Ok)
-                second.isEqualTo(clock.instant())
-              }
+        it("marks the asset as $Ok") {
+          repository.lastKnownState(rootAsset.id) expect {
+            isNotNull().and {
+              first.isEqualTo(Ok)
+              second.isEqualTo(clock.instant())
             }
           }
         }
       }
 
-      given("the current state of some assets differ from the desired state") {
-        val invalidAssets = (assets.head() + rootAsset)
-        val validAssets = assets.tail()
-
+      given("the current state of the asset differs from the desired state") {
         beforeGroup {
-          invalidAssets.forEach {
-            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, it.copy(spec = randomBytes()))
-          }
-          validAssets.forEach {
-            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, it)
-          }
+          whenever(assetService.current(rootAsset)) doReturn CurrentAssetPair(rootAsset, rootAsset.copy(spec = randomData()))
         }
 
         afterGroup { reset(assetService, queue) }
@@ -128,47 +111,23 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           subject.handle(message)
         }
 
-        it("requests convergence of all invalid assets") {
-          invalidAssets.forEach {
-            verify(queue).push(ConvergeAsset(it.id))
-          }
-          verifyNoMoreInteractions(queue)
+        it("requests convergence of the invalid asset") {
+          verify(queue).push(ConvergeAsset(rootAsset.id))
         }
 
-        it("marks valid assets as $Ok") {
-          validAssets.forEach {
-            repository.lastKnownState(it.id) expect {
-              isNotNull().and {
-                first.isEqualTo(Ok)
-                second.isEqualTo(clock.instant())
-              }
-            }
-          }
-        }
-
-        it("marks invalid assets as $Diff") {
-          invalidAssets.forEach {
-            repository.lastKnownState(it.id) expect {
-              isNotNull().and {
-                first.isEqualTo(Diff)
-                second.isEqualTo(clock.instant())
-              }
+        it("marks the asset as $Diff") {
+          repository.lastKnownState(rootAsset.id) expect {
+            isNotNull().and {
+              first.isEqualTo(Diff)
+              second.isEqualTo(clock.instant())
             }
           }
         }
       }
 
-      given("some assets do not exist in the cloud") {
-        val missingAssets = assets
-        val validAssets = setOf(rootAsset)
-
+      given("the asset does not exist in the cloud") {
         beforeGroup {
-          missingAssets.forEach {
-            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, null)
-          }
-          validAssets.forEach {
-            whenever(assetService.current(it.wrap())) doReturn CurrentAssetPair(it, it)
-          }
+          whenever(assetService.current(rootAsset)) doReturn CurrentAssetPair(rootAsset, null)
         }
 
         afterGroup { reset(assetService, queue) }
@@ -178,30 +137,14 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
         }
 
         it("requests convergence of all missing assets") {
-          missingAssets.forEach {
-            verify(queue).push(ConvergeAsset(it.id))
-          }
-          verifyNoMoreInteractions(queue)
-        }
-
-        it("marks valid assets as $Ok") {
-          validAssets.forEach {
-            repository.lastKnownState(it.id) expect {
-              isNotNull().and {
-                first.isEqualTo(Ok)
-                second.isEqualTo(clock.instant())
-              }
-            }
-          }
+          verify(queue).push(ConvergeAsset(rootAsset.id))
         }
 
         it("marks missing assets as $Missing") {
-          missingAssets.forEach {
-            repository.lastKnownState(it.id) expect {
-              isNotNull().and {
-                first.isEqualTo(Missing)
-                second.isEqualTo(clock.instant())
-              }
+          repository.lastKnownState(rootAsset.id) expect {
+            isNotNull().and {
+              first.isEqualTo(Missing)
+              second.isEqualTo(clock.instant())
             }
           }
         }
@@ -210,14 +153,5 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
   }
 })
 
-fun randomBytes(length: Int = 20) =
-  TypedByteArray(
-    "whatever",
-    ByteArray(length).also(Random(nanoTime())::nextBytes)
-  )
-
 infix fun <T> T.expect(block: Assertion.Builder<T>.() -> Unit) =
   expectThat(this, block)
-
-fun <T> Iterable<T>.head(): List<T> = listOf(first())
-fun <T> Iterable<T>.tail(): List<T> = drop(1)

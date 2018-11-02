@@ -15,11 +15,9 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetBase
-import com.netflix.spinnaker.keel.model.AssetContainer
-import com.netflix.spinnaker.keel.model.AssetId
-import com.netflix.spinnaker.keel.model.PartialAsset
+import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import java.time.Clock
 import java.time.Instant
@@ -27,56 +25,30 @@ import java.time.Instant
 class InMemoryAssetRepository(
   private val clock: Clock
 ) : AssetRepository {
-  private val assets = mutableMapOf<AssetId, Asset>()
-  private val partialAssets = mutableMapOf<AssetId, PartialAsset>()
-  private val states = mutableMapOf<AssetId, Pair<AssetState, Instant>>()
+  private val assets = mutableMapOf<AssetName, Asset>()
+  private val states = mutableMapOf<AssetName, Pair<AssetState, Instant>>()
 
-  override fun allAssets(callback: (AssetBase) -> Unit) {
+  override fun allAssets(callback: (Asset) -> Unit) {
     assets.values.forEach(callback)
-    partialAssets.values.forEach(callback)
   }
 
-  override fun rootAssets(callback: (Asset) -> Unit) {
-    assets.values.filter { it.dependsOn.isEmpty() }.forEach(callback)
-  }
+  override fun get(name: AssetName): Asset? =
+    assets[name]
 
-  override fun get(id: AssetId): Asset? =
-    assets[id]
-
-  override fun getPartial(id: AssetId): PartialAsset? =
-    partialAssets[id]
-
-  override fun getContainer(id: AssetId): AssetContainer? =
-    get(id)?.let {
-      AssetContainer(
-        asset = it,
-        partialAssets = partialAssets.filterValues { it.root.value == id.value }.values.toSet()
-      )
-    }
-
-  override fun store(asset: AssetBase) {
-    when (asset) {
-      is Asset -> assets[asset.id] = asset
-      is PartialAsset -> partialAssets[asset.id] = asset
-      else -> throw IllegalArgumentException("Unknown asset type: ${asset.javaClass.simpleName}")
-    }
+  override fun store(asset: Asset) {
+    assets[asset.id] = asset
     states[asset.id] = Unknown to clock.instant()
   }
 
-  override fun delete(id: AssetId) {
-    assets.remove(id)
+  override fun delete(name: AssetName) {
+    assets.remove(name)
   }
 
-  override fun dependents(id: AssetId): Iterable<AssetId> =
-    assets
-      .filter { it.value.dependsOn.contains(id) }
-      .keys
+  override fun lastKnownState(name: AssetName): Pair<AssetState, Instant>? =
+    states[name]
 
-  override fun lastKnownState(id: AssetId): Pair<AssetState, Instant>? =
-    states[id]
-
-  override fun updateState(id: AssetId, state: AssetState) {
-    states[id] = state to clock.instant()
+  override fun updateState(name: AssetName, state: AssetState) {
+    states[name] = state to clock.instant()
   }
 
   internal fun dropAll() {

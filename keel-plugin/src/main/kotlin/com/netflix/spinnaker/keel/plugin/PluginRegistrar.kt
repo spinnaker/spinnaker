@@ -15,29 +15,14 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
-import com.netflix.appinfo.InstanceInfo
 import com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
-import com.netflix.discovery.EurekaClient
-import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc
-import com.netflix.spinnaker.keel.api.engine.PluginRegistryGrpc.PluginRegistryBlockingStub
-import com.netflix.spinnaker.keel.api.engine.RegisterAssetPluginRequest
-import com.netflix.spinnaker.keel.api.engine.RegisterVetoPluginRequest
-import com.netflix.spinnaker.keel.platform.NoSuchVip
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
-import org.lognet.springboot.grpc.context.LocalRunningGrpcPort
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationListener
-import org.springframework.stereotype.Component
 
-@Component
 class PluginRegistrar(
-  private val eurekaClient: EurekaClient,
   private val plugins: List<KeelPlugin>,
-  private val properties: PluginProperties,
-  @LocalRunningGrpcPort private val localGrpcPort: Int,
-  private val instanceInfo: InstanceInfo
+  private val pluginRegistry: PluginRegistry
 ) : ApplicationListener<RemoteStatusChangedEvent> {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -51,61 +36,11 @@ class PluginRegistrar(
 
   fun onDiscoveryUp() {
     plugins.forEach { plugin ->
-      plugin.registerWith(pluginRegistry)
-    }
-  }
-
-  private fun KeelPlugin.registerWith(registry: PluginRegistryBlockingStub) {
-    log.info("Registering {} with Keel at {} port {}", javaClass.simpleName, properties.registryVip, properties.registryPort)
-    when (this) {
-      is AssetPlugin -> {
-        val request = RegisterAssetPluginRequest
-          .newBuilder()
-          .also {
-            it.name = name
-            it.vip = instanceInfo.vipAddress
-            it.port = localGrpcPort
-            it.addAllType(supportedTypes)
-          }
-          .build()
-        registry.registerAssetPlugin(request).let { response ->
-          if (response.succeeded) {
-            log.info("Successfully registered {} with Keel", javaClass.simpleName)
-          }
-        }
-      }
-      is VetoPlugin -> {
-        val request = RegisterVetoPluginRequest
-          .newBuilder()
-          .also {
-            it.name = name
-            it.vip = instanceInfo.vipAddress
-            it.port = localGrpcPort
-          }
-          .build()
-        registry.registerVetoPlugin(request).let { response ->
-          if (response.succeeded) {
-            log.info("Successfully registered {} with Keel", javaClass.simpleName)
-          }
-        }
+      log.info("Registering {} with Keel", plugin.name)
+      when (plugin) {
+        is AssetPlugin -> pluginRegistry.register(plugin)
+        is VetoPlugin -> pluginRegistry.register(plugin)
       }
     }
   }
-
-  private val pluginRegistry: PluginRegistryBlockingStub by lazy {
-    try {
-      eurekaClient.getNextServerFromEureka(properties.registryVip, false)
-        .let { createChannelTo(it, properties.registryPort) }
-        .let(PluginRegistryGrpc::newBlockingStub)
-    } catch (e: RuntimeException) {
-      throw NoSuchVip(properties.registryVip, e)
-      // TODO: need to fail health check in this case
-    }
-  }
-
-  fun createChannelTo(instance: InstanceInfo, port: Int = instance.port): ManagedChannel =
-    ManagedChannelBuilder
-      .forAddress(instance.ipAddr, port)
-      .usePlaintext()
-      .build()
 }

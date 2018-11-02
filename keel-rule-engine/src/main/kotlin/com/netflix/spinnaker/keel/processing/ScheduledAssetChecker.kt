@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.processing
 
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
@@ -31,8 +32,8 @@ class ScheduledAssetChecker(
   @Scheduled(fixedDelayString = "\${check.cycle.frequency.ms:60000}")
   fun runCheckCycle() {
     log.info("Starting check cycle")
-    repository.rootAssets {
-      queue.push(ValidateAssetTree(it.id))
+    repository.allAssets {
+      queue.push(ValidateAsset(it.id))
     }
   }
 }

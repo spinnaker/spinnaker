@@ -1,12 +1,14 @@
 package com.netflix.spinnaker.keel.processing
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetMetadata
+import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
+import com.netflix.spinnaker.keel.persistence.randomData
 import com.netflix.spinnaker.q.Queue
-import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.verify
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -26,34 +28,25 @@ internal object ScheduledAssetCheckerSpec : Spek({
     given("the repository contains some assets") {
 
       val rootAsset1 = Asset(
-        id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"),
-        kind = "SecurityGroup",
-        spec = randomBytes()
+        apiVersion = SPINNAKER_API_V1,
+        metadata = AssetMetadata(
+          name = AssetName("SecurityGroup:ec2:prod:us-west-2:keel")
+        ),
+        kind = "ec2.SecurityGroup",
+        spec = randomData()
       )
       val rootAsset2 = Asset(
-        id = AssetId("SecurityGroup:ec2:prod:us-east-1:keel"),
-        kind = "SecurityGroup",
-        spec = randomBytes()
+        apiVersion = SPINNAKER_API_V1,
+        metadata = AssetMetadata(
+          name = AssetName("SecurityGroup:ec2:prod:us-east-1:keel")
+        ),
+        kind = "ec2.SecurityGroup",
+        spec = randomData()
       )
-      val assets = listOf(rootAsset1, rootAsset2).flatMap {
-        listOf(
-          Asset(
-            id = AssetId(it.id.value.replace("SecurityGroup", "LoadBalancer")),
-            kind = "LoadBalancer",
-            dependsOn = setOf(it.id),
-            spec = randomBytes()
-          ),
-          Asset(
-            id = AssetId(it.id.value.replace("SecurityGroup", "Cluster")),
-            kind = "Cluster",
-            dependsOn = setOf(it.id),
-            spec = randomBytes()
-          )
-        )
-      }
+      val assets = listOf(rootAsset1, rootAsset2)
 
       beforeGroup {
-        (assets + rootAsset1 + rootAsset2).forEach(repository::store)
+        assets.forEach(repository::store)
       }
 
       afterGroup { repository.dropAll() }
@@ -62,15 +55,9 @@ internal object ScheduledAssetCheckerSpec : Spek({
         subject.runCheckCycle()
       }
 
-      it("requests validation for each root asset") {
-        verify(queue).push(ValidateAssetTree(rootAsset1.id))
-        verify(queue).push(ValidateAssetTree(rootAsset2.id))
-      }
-
-      it("does not request validation for any dependent assets") {
-        verify(queue, never()).push(argThat<ValidateAssetTree> {
-          rootId in assets.map(Asset::id)
-        })
+      it("requests validation for each asset") {
+        verify(queue).push(ValidateAsset(rootAsset1.id))
+        verify(queue).push(ValidateAsset(rootAsset2.id))
       }
     }
   }

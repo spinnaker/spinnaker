@@ -15,68 +15,45 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetBase
-import com.netflix.spinnaker.keel.model.AssetContainer
-import com.netflix.spinnaker.keel.model.AssetId
-import com.netflix.spinnaker.keel.model.PartialAsset
+import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetName
 import java.time.Instant
 
 interface AssetRepository {
   /**
-   * Invokes [callback] once with each root asset (an asset with no
-   * dependencies).
-   */
-  fun rootAssets(callback: (Asset) -> Unit)
-
-  /**
    * Invokes [callback] once with each registered asset.
    */
-  fun allAssets(callback: (AssetBase) -> Unit)
+  fun allAssets(callback: (Asset) -> Unit)
 
   /**
-   * Retrieves a single asset by id.
+   * Retrieves a single asset by its unique [com.netflix.spinnaker.keel.api.AssetMetadata.name].
    *
-   * @return The asset represented by [id] or `null` if [id] is unknown.
+   * @return The asset represented by [name] or `null` if [name] is unknown.
    */
-  fun get(id: AssetId): Asset?
+  fun get(name: AssetName): Asset?
 
   /**
-   * Fetches the ids of any assets that depend (directly) on [id].
-   * Get a partial asset
+   * Persists an asset.
+   *
+   * @return the `uid` of the stored asset.
    */
-  fun getPartial(id: AssetId): PartialAsset?
-
-  /**
-   * Get an asset including all associated partial assets
-   */
-  fun getContainer(id: AssetId): AssetContainer?
-
-  /**
-   * Persists an asset or partial asset
-   */
-  fun store(asset: AssetBase)
-
-  /**
-   * Get the dependents of an asset id
-   */
-  fun dependents(id: AssetId): Iterable<AssetId>
+  fun store(asset: Asset)
 
   /**
    * Retrieves the last known state of an asset.
    *
-   * @return The last known state of the asset represented by [id] or `null` if
-   * [id] is unknown.
+   * @return The last known state of the asset represented by [name] or `null` if
+   * [name] is unknown.
    */
-  fun lastKnownState(id: AssetId): Pair<AssetState, Instant>?
+  fun lastKnownState(name: AssetName): Pair<AssetState, Instant>?
 
   /**
-   * Updates the last known state of the asset represented by [id].
+   * Updates the last known state of the asset represented by [name].
    */
-  fun updateState(id: AssetId, state: AssetState)
+  fun updateState(name: AssetName, state: AssetState)
 
   /**
-   * Deletes the asset represented by [id].
+   * Deletes the asset represented by [name].
    */
-  fun delete(id: AssetId)
+  fun delete(name: AssetName)
 }

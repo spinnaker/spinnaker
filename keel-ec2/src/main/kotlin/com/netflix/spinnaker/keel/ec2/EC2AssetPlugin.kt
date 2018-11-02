@@ -15,130 +15,76 @@
  */
 package com.netflix.spinnaker.keel.ec2
 
-import com.netflix.spinnaker.keel.api.AssetContainer
-import com.netflix.spinnaker.keel.api.TypeMetadata
-import com.netflix.spinnaker.keel.api.plugin.ConvergeResponse
-import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.ACCEPTED
-import com.netflix.spinnaker.keel.api.plugin.ConvergeStatus.ERROR
-import com.netflix.spinnaker.keel.api.plugin.CurrentResponse
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.asset.AmazonSecurityGroupHandler
-import com.netflix.spinnaker.keel.ec2.asset.canonicalize
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.AssetPlugin
-import com.netflix.spinnaker.keel.proto.isA
-import com.netflix.spinnaker.keel.proto.unpack
-import io.grpc.stub.StreamObserver
-import org.lognet.springboot.grpc.GRpcService
+import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
+import com.netflix.spinnaker.keel.plugin.ConvergeFailed
+import com.netflix.spinnaker.keel.plugin.ConvergeResponse
+import com.netflix.spinnaker.keel.plugin.CurrentError
+import com.netflix.spinnaker.keel.plugin.CurrentResponse
+import com.netflix.spinnaker.keel.plugin.CurrentSuccess
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
-@GRpcService
+@Component
 class EC2AssetPlugin(
   cloudDriverService: CloudDriverService,
   cloudDriverCache: CloudDriverCache,
-  orcaService: OrcaService
-) : AssetPlugin() {
+  orcaService: OrcaService,
+  private val objectMapper: ObjectMapper
+) : AssetPlugin {
 
-  override val supportedTypes: Iterable<TypeMetadata> = setOf(
+  override val supportedTypes: Iterable<String> = setOf(
     "ec2.SecurityGroup",
     "ec2.SecurityGroupRule",
     "ec2.ClassicLoadBalancer"
-  ).map { kind ->
-    TypeMetadata.newBuilder().setApiVersion("1.0").setKind(kind).build()
-  }
+  )
 
-  override fun current(request: AssetContainer, responseObserver: StreamObserver<CurrentResponse>) {
-    when {
-      request.asset.spec.isA<SecurityGroup>() -> {
-        val spec: SecurityGroup = request.asset.spec.unpack()
-        val assetPair = securityGroupHandler.run {
-          Pair(
-            current(spec, request)?.canonicalize(),
-            flattenAssetContainer(request).canonicalize()
-          )
-        }
-        log.info("{} requested state: {}", request.asset.id, spec)
-        log.info("{} current state: {}", request.asset.id, assetPair.first?.spec?.unpack<SecurityGroup>())
-        log.info("{} desired state: {}", request.asset.id, assetPair.second.spec?.unpack<SecurityGroup>())
-        with(responseObserver) {
-          onNext(CurrentResponse
-            .newBuilder()
-            .apply {
-              if (assetPair.first != null) {
-                successBuilder.current = assetPair.first
-              }
-              successBuilder.desired = assetPair.second
-            }
-            .build()
-          )
-          onCompleted()
-        }
+  override fun current(request: Asset): CurrentResponse =
+    when (request.kind) {
+      "ec2.SecurityGroup" -> {
+        val spec: SecurityGroup = objectMapper.convertValue(request.spec)
+        val current = securityGroupHandler.current(spec, request)
+        log.info("{} desired state: {}", request.id, spec)
+        log.info("{} current state: {}", request.id, current?.spec)
+        CurrentSuccess(request, current)
       }
       else -> {
-        val message = "Unsupported asset type ${request.asset.spec.typeUrl} with id ${request.asset.id.value}"
+        val message = "Unsupported asset type ${request.kind} with id ${request.id}"
         log.error("Current failed: {}", message)
-        with(responseObserver) {
-          onNext(CurrentResponse
-            .newBuilder()
-            .apply {
-              failureBuilder.reason = message
-            }
-            .build()
-          )
-          onCompleted()
-        }
+        CurrentError(message)
       }
     }
 
-  }
-
-  override fun converge(request: AssetContainer, responseObserver: StreamObserver<ConvergeResponse>) {
+  override fun converge(request: Asset): ConvergeResponse =
     try {
-      when {
-        request.asset.spec.isA<SecurityGroup>() -> {
-          securityGroupHandler.let {
-            val flattenedAsset = it.flattenAssetContainer(request)
-            val spec: SecurityGroup = flattenedAsset.spec.unpack()
-            it.converge(flattenedAsset.id.value, spec)
-          }
-          with(responseObserver) {
-            onNext(ConvergeResponse.newBuilder()
-              .apply { status = ACCEPTED }
-              .build())
-            onCompleted()
-          }
+      when (request.kind) {
+        "ec2.SecurityGroup" -> {
+          val spec: SecurityGroup = objectMapper.convertValue(request.spec)
+          securityGroupHandler.converge(request.id, spec)
+          ConvergeAccepted
         }
         else -> {
-          val message = "Unsupported asset type ${request.asset.spec.typeUrl} with id ${request.asset.id.value}"
+          val message = "Unsupported asset type ${request.kind} with id ${request.id}"
           log.error("Converge failed: {}", message)
-          with(responseObserver) {
-            onNext(ConvergeResponse.newBuilder()
-              .apply {
-                status = ERROR
-                failureBuilder.reason = message
-              }
-              .build())
-            onCompleted()
-          }
+          ConvergeFailed(message)
         }
       }
-
     } catch (e: Exception) {
-      with(responseObserver) {
-        onNext(ConvergeResponse.newBuilder()
-          .apply {
-            status = ERROR
-            failureBuilder.reason = e.message
-          }
-          .build())
-        onCompleted()
-      }
+      ConvergeFailed(e.message
+        ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.id}")
     }
-  }
 
   private val securityGroupHandler =
-    AmazonSecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService)
+    AmazonSecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

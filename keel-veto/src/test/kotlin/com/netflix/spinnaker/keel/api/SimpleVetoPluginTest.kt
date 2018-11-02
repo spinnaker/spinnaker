@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.api
 
-import com.netflix.spinnaker.keel.api.Decision.halt
-import com.netflix.spinnaker.keel.api.Decision.proceed
-import com.netflix.spinnaker.keel.api.VetoPluginGrpc.VetoPluginBlockingStub
+import com.netflix.spinnaker.keel.plugin.Halt
+import com.netflix.spinnaker.keel.plugin.Proceed
+import com.netflix.spinnaker.keel.plugin.VetoPlugin
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -11,28 +11,33 @@ import com.nhaarman.mockito_kotlin.whenever
 import com.oneeyedmen.minutest.junit.junitTests
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import java.util.*
 
 internal object SimpleVetoPluginSpec {
 
   data class Fixture(
-    val grpc: GrpcStubManager<VetoPluginBlockingStub>,
-    val dynamicConfigService: DynamicConfigService
-  )
+    val dynamicConfigService: DynamicConfigService,
+    val request: Asset
+  ) {
+    val subject: VetoPlugin = SimpleVetoPlugin(dynamicConfigService)
+  }
 
   @TestFactory
   fun `vetoing asset convergence`() = junitTests<Fixture> {
     fixture {
       Fixture(
-        grpc = GrpcStubManager(VetoPluginGrpc::newBlockingStub),
-        dynamicConfigService = mock()
+        dynamicConfigService = mock(),
+        request = Asset(
+          apiVersion = SPINNAKER_API_V1,
+          kind = "ec2.SecurityGroup",
+          metadata = AssetMetadata(
+            name = AssetName("ec2.SecurityGroup:keel:prod:us-east-1:keel")
+          ),
+          spec = randomData()
+        )
       )
-    }
-
-    before {
-      grpc.startServer {
-        addService(SimpleVetoPlugin(dynamicConfigService))
-      }
     }
 
     context("convergence is enabled") {
@@ -45,19 +50,7 @@ internal object SimpleVetoPluginSpec {
       }
 
       test("it approves asset convergence") {
-        val request = Asset
-          .newBuilder()
-          .apply {
-            typeMetadataBuilder.apply {
-              kind = "ec2.SecurityGroup"
-              apiVersion = "1.0"
-            }
-          }
-          .build()
-
-        grpc.withChannel { stub ->
-          expectThat(stub.allow(request).decision).isEqualTo(proceed)
-        }
+        expectThat(subject.allow(request)).isEqualTo(Proceed)
       }
     }
 
@@ -71,20 +64,23 @@ internal object SimpleVetoPluginSpec {
       }
 
       test("it denies asset convergence") {
-        val request = Asset
-          .newBuilder()
-          .apply {
-            typeMetadataBuilder.apply {
-              kind = "ec2.SecurityGroup"
-              apiVersion = "1.0"
-            }
-          }
-          .build()
-
-        grpc.withChannel { stub ->
-          expectThat(stub.allow(request).decision).isEqualTo(halt)
-        }
+        expectThat(subject.allow(request)).isA<Halt>()
       }
     }
   }
 }
+
+fun randomData(length: Int = 4): Map<String, Any> {
+  val map = mutableMapOf<String, Any>()
+  (0 until length).forEach { _ ->
+    map[randomString()] = randomString()
+  }
+  return map
+}
+
+fun randomString(length: Int = 8) =
+  UUID.randomUUID()
+    .toString()
+    .map { it.toInt().toString(16) }
+    .joinToString("")
+    .substring(0 until length)

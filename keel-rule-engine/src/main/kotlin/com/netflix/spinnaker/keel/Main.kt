@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
 import com.netflix.spinnaker.keel.processing.ConvergeAsset
-import com.netflix.spinnaker.keel.processing.ValidateAssetTree
+import com.netflix.spinnaker.keel.processing.ValidateAsset
 import com.netflix.spinnaker.keel.registry.InMemoryPluginRepository
 import com.netflix.spinnaker.keel.registry.PluginRepository
 import com.netflix.spinnaker.kork.PlatformComponents
@@ -57,12 +57,12 @@ class RuleEngineApp {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @Bean
-  @ConditionalOnMissingBean(AssetRepository::class)
-  fun assetRepository(clock: Clock) = InMemoryAssetRepository(clock)
+  @ConditionalOnMissingBean
+  fun assetRepository(clock: Clock): AssetRepository = InMemoryAssetRepository(clock)
 
   @Bean
-  @ConditionalOnMissingBean(PluginRepository::class)
-  fun pluginRepository() = InMemoryPluginRepository()
+  @ConditionalOnMissingBean
+  fun pluginRepository(): PluginRepository = InMemoryPluginRepository()
 
   @Autowired
   lateinit var pluginRepository: PluginRepository
@@ -82,7 +82,7 @@ class RuleEngineApp {
   @PostConstruct
   fun registerKeikoMessageTypes() {
     val messageTypes = arrayOf(
-      ValidateAssetTree::class.java,
+      ValidateAsset::class.java,
       ConvergeAsset::class.java
     )
     messageTypes.forEach {

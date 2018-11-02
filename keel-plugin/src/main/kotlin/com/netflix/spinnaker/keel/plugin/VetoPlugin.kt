@@ -15,6 +15,14 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
-import com.netflix.spinnaker.keel.api.VetoPluginGrpc.VetoPluginImplBase
+import com.netflix.spinnaker.keel.api.Asset
 
-abstract class VetoPlugin : KeelPlugin, VetoPluginImplBase()
+interface VetoPlugin : KeelPlugin {
+  fun allow(request: Asset) : AllowResponse
+}
+
+sealed class AllowResponse
+
+object Proceed: AllowResponse()
+
+data class Halt(val reason: String): AllowResponse()

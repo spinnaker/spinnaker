@@ -1,36 +1,30 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
-apply from: "$rootDir/gradle/grpc.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
 apply plugin: "application"
 
 dependencies {
-  protobuf project(":keel-api")
-
+  implementation project(":keel-api")
   implementation project(":keel-common")
-  implementation "org.lognet:grpc-spring-boot-starter:+"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
   implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:+"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:+"
-
   implementation "org.springframework.boot:spring-boot-starter-actuator:$bootVersion"
   implementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
 
   testImplementation "io.strikt:strikt-protobuf:+"
-  testImplementation project(":keel-api-test")
   testImplementation project(":keel-rule-engine-tck")
   testImplementation(project(":keel-ec2")) {
     because("want access to real protos to test conversion between model & proto")
   }
-  testImplementation "io.grpc:grpc-netty:+"
   testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
 }
 
 test {
   useJUnitPlatform {
-    includeEngines "spek", "junit-jupiter"
+    includeEngines "junit-jupiter", "junit-vintage", "spek"
   }
 }
 mainClassName = "com.netflix.spinnaker.keel.MainKt"

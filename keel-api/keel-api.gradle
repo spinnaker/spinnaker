@@ -15,11 +15,14 @@
  */
 
 apply plugin: "java-library"
-apply from: "$rootDir/gradle/grpc.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
-  testImplementation project(":keel-api-test")
-  testImplementation project(":keel-plugin")
+  implementation "com.google.guava:guava:+"
+  implementation "com.fasterxml.jackson.core:jackson-databind:+"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:+"
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:+"
+
   testImplementation "io.strikt:strikt-core:+"
+  testImplementation "com.oneeyedmen:minutest:+"
 }

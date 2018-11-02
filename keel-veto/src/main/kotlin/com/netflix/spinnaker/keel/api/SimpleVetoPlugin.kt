@@ -15,33 +15,25 @@
  */
 package com.netflix.spinnaker.keel.api
 
+import com.netflix.spinnaker.keel.plugin.AllowResponse
+import com.netflix.spinnaker.keel.plugin.Halt
+import com.netflix.spinnaker.keel.plugin.Proceed
 import com.netflix.spinnaker.keel.plugin.VetoPlugin
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import io.grpc.stub.StreamObserver
-import org.lognet.springboot.grpc.GRpcService
+import org.springframework.stereotype.Component
 
 /**
  * This is kind of the simplest veto plugin possible, using a configuration value to determine if convergence is
  * globally enabled.
  */
-@GRpcService
+@Component
 class SimpleVetoPlugin(
   private val dynamicConfigService: DynamicConfigService
-) : VetoPlugin() {
+) : VetoPlugin {
 
-  override fun allow(request: Asset, responseObserver: StreamObserver<AllowResponse>) {
-    with(responseObserver) {
-      onNext(AllowResponse
-        .newBuilder()
-        .apply {
-          decision = when (dynamicConfigService.isEnabled("keel.converge.enabled", false)) {
-            true -> Decision.proceed
-            false -> Decision.halt
-          }
-        }
-        .build()
-      )
-      onCompleted()
+  override fun allow(request: Asset): AllowResponse =
+    when (dynamicConfigService.isEnabled("keel.converge.enabled", false)) {
+      true -> Proceed
+      false -> Halt("Convergence is disabled via fast property")
     }
-  }
 }

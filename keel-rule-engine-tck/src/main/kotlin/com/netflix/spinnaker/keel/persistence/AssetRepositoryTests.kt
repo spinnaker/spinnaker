@@ -1,16 +1,30 @@
+/*
+ * Copyright 2018 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetBase
-import com.netflix.spinnaker.keel.model.AssetId
-import com.netflix.spinnaker.keel.model.PartialAsset
-import com.netflix.spinnaker.keel.model.TypedByteArray
+import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetMetadata
+import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetState.Diff
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
@@ -18,18 +32,16 @@ import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.oneeyedmen.minutest.junit.junitTests
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.hasSize
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
-import java.util.*
+import java.util.UUID.randomUUID
 
 abstract class AssetRepositoryTests<T : AssetRepository> {
 
@@ -39,7 +51,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
   data class Fixture<T : AssetRepository>(
     val subject: T,
-    val callback: (AssetBase) -> Unit
+    val callback: (Asset) -> Unit
   )
 
   @TestFactory
@@ -57,12 +69,6 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
     after { flush() }
 
     context("no assets exist") {
-      test("rootAssets is a no-op") {
-        subject.rootAssets(callback)
-
-        verifyZeroInteractions(callback)
-      }
-
       test("allAssets is a no-op") {
         subject.allAssets(callback)
 
@@ -70,22 +76,18 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       }
     }
 
-    context("an asset with no dependencies") {
+    context("an asset exists") {
       val asset = Asset(
-        id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-        apiVersion = "1.0",
+        apiVersion = SPINNAKER_API_V1,
+        metadata = AssetMetadata(
+          name = AssetName("SecurityGroup:ec2:test:us-west-2:fnord")
+        ),
         kind = "ec2:SecurityGroup",
-        spec = randomBytes()
+        spec = randomData()
       )
 
       before {
         subject.store(asset)
-      }
-
-      test("it is returned by rootAssets") {
-        subject.rootAssets(callback)
-
-        verify(callback).invoke(asset)
       }
 
       test("it is returned by allAssets") {
@@ -98,13 +100,8 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
         expectThat(subject.get(asset.id)).isEqualTo(asset)
       }
 
-      test("it can be retrieved in a container with no partials") {
-        expectThat(subject.getContainer(asset.id))
-          .isNotNull()
-          .and {
-            get { this.asset }.isEqualTo(asset)
-            get { partialAssets }.isEmpty()
-          }
+      test("its id can be retrieved by name") {
+
       }
 
       test("its state is unknown") {
@@ -116,10 +113,12 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
       context("storing another asset with a different id") {
         val anotherAsset = Asset(
-          id = AssetId("SecurityGroup:ec2:test:us-east-1:fnord"),
-          apiVersion = "1.0",
+          metadata = AssetMetadata(
+            name = AssetName("SecurityGroup:ec2:test:us-east-1:fnord")
+          ),
+          apiVersion = SPINNAKER_API_V1,
           kind = "ec2:SecurityGroup",
-          spec = randomBytes()
+          spec = randomData()
         )
 
         before {
@@ -127,7 +126,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
         }
 
         test("it does not overwrite the first asset") {
-          subject.rootAssets(callback)
+          subject.allAssets(callback)
 
           argumentCaptor<Asset>().apply {
             verify(callback, times(2)).invoke(capture())
@@ -141,7 +140,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
       context("storing a new version of the asset") {
         val updatedAsset = asset.copy(
-          spec = randomBytes()
+          spec = randomData()
         )
 
         before {
@@ -198,106 +197,20 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
         }
       }
     }
-
-    context("an asset with dependencies") {
-      val rootAsset = Asset(
-        id = AssetId("SecurityGroup:ec2:test:us-east-1:fnord"),
-        apiVersion = "1.0",
-        kind = "ec2:SecurityGroup",
-        spec = randomBytes()
-      )
-      val dependentAsset = Asset(
-        id = AssetId("LoadBalancer:ec2:test:us-west-2:fnord"),
-        apiVersion = "1.0",
-        kind = "ec2:LoadBalancer",
-        dependsOn = setOf(rootAsset.id),
-        spec = randomBytes()
-      )
-
-      before {
-        subject.store(rootAsset)
-        subject.store(dependentAsset)
-      }
-
-      test("it is not returned by rootAssets") {
-        subject.rootAssets(callback)
-
-        verify(callback, never()).invoke(dependentAsset)
-      }
-
-      test("it is returned by allAssets") {
-        subject.allAssets(callback)
-
-        verify(callback).invoke(dependentAsset)
-      }
-
-      test("it can be retrieved in a container with no partials") {
-        expectThat(subject.getContainer(dependentAsset.id))
-          .isNotNull()
-          .and {
-            get { this.asset }.isEqualTo(dependentAsset)
-            get { partialAssets }.isEmpty()
-          }
-      }
-
-      test("it can be retrieved by the id of the asset it depends on") {
-        expectThat(subject.dependents(rootAsset.id)).containsExactly(dependentAsset.id)
-      }
-    }
-
-    context("a partial asset") {
-      val asset = Asset(
-        id = AssetId("SecurityGroup:ec2:test:us-west-2:fnord"),
-        apiVersion = "1.0",
-        kind = "ec2:SecurityGroup",
-        spec = randomBytes()
-      )
-
-      val partial = PartialAsset(
-        id = AssetId("SecurityGroupRule:ec2:test:us-west-2:fnord:whatever"),
-        root = asset.id,
-        apiVersion = "1.0",
-        kind = "ec2:SecurityGroupRule",
-        spec = randomBytes()
-      )
-
-      before {
-        subject.store(asset)
-        subject.store(partial)
-      }
-
-      test("it is returned by allAssets") {
-        subject.allAssets(callback)
-
-        verify(callback).invoke(asset)
-        verify(callback).invoke(partial)
-      }
-
-      test("it is not returned by rootAssets") {
-        subject.rootAssets(callback)
-
-        verify(callback).invoke(asset)
-        verify(callback, never()).invoke(partial)
-      }
-
-      test("it can be retrieved by id") {
-        expectThat(subject.getPartial(partial.id)).isEqualTo(partial)
-      }
-
-      test("it can be retrieved alongside its parent asset") {
-        expectThat(subject.getContainer(asset.id))
-          .isNotNull()
-          .and {
-            get { this.asset }.isEqualTo(asset)
-            get { partialAssets }.hasSize(1).first().isEqualTo(partial)
-          }
-      }
-    }
   }
 }
 
-fun randomBytes(length: Int = 20) =
-  TypedByteArray(
-    "whatever",
-    ByteArray(length).also(Random(System.nanoTime())::nextBytes)
-  )
+fun randomData(length: Int = 4): Map<String, Any> {
+  val map = mutableMapOf<String, Any>()
+  (0 until length).forEach { _ ->
+    map[randomString()] = randomString()
+  }
+  return map
+}
+
+fun randomString(length: Int = 8) =
+  randomUUID()
+    .toString()
+    .map { it.toInt().toString(16) }
+    .joinToString("")
+    .substring(0 until length)

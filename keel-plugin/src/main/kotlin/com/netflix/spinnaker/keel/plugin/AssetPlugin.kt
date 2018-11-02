@@ -15,9 +15,23 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
-import com.netflix.spinnaker.keel.api.TypeMetadata
-import com.netflix.spinnaker.keel.api.plugin.AssetPluginGrpc.AssetPluginImplBase
+import com.netflix.spinnaker.keel.api.Asset
 
-abstract class AssetPlugin : KeelPlugin, AssetPluginImplBase() {
-  abstract val supportedTypes: Iterable<TypeMetadata>
+interface AssetPlugin : KeelPlugin {
+  val supportedTypes: Iterable<String>
+
+  fun current(request: Asset): CurrentResponse
+  fun converge(request: Asset): ConvergeResponse
 }
+
+sealed class CurrentResponse
+
+data class CurrentSuccess(val desired: Asset, val current: Asset?): CurrentResponse()
+
+data class CurrentError(val reason:String): CurrentResponse()
+
+sealed class ConvergeResponse
+
+object ConvergeAccepted : ConvergeResponse()
+
+data class ConvergeFailed(val reason: String): ConvergeResponse()

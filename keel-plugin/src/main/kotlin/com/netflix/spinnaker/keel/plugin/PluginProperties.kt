@@ -20,5 +20,4 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("keel")
 class PluginProperties {
   var registryVip: String = "keel-test.netflix.net"
-  var registryPort: Int = 6565
 }

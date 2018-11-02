@@ -15,15 +15,14 @@
  */
 package com.netflix.spinnaker.keel.processing
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetContainer
+import com.netflix.spinnaker.keel.api.Asset
 
 /**
- * Facade for gRPC asset plugins.
+ * Facade for asset plugins.
  */
 interface AssetService {
-  fun current(assetContainer: AssetContainer): CurrentAssetPair
-  fun converge(assetContainer: AssetContainer)
+  fun current(asset: Asset): CurrentAssetPair
+  fun converge(asset: Asset)
 }
 
 data class CurrentAssetPair(

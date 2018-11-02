@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.keel.processing
 
-import com.netflix.spinnaker.keel.grpc.PluginRequestFailed
-import com.netflix.spinnaker.keel.model.AssetId
-import com.netflix.spinnaker.keel.model.fingerprint
+import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.fingerprint
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState.Diff
 import com.netflix.spinnaker.keel.persistence.AssetState.Missing
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
+import com.netflix.spinnaker.keel.plugin.PluginRequestFailed
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
@@ -32,52 +32,48 @@ class ValidateAssetTreeHandler(
   private val repository: AssetRepository,
   private val assetService: AssetService,
   override val queue: Queue
-) : MessageHandler<ValidateAssetTree> {
+) : MessageHandler<ValidateAsset> {
 
-  override val messageType = ValidateAssetTree::class.java
+  override val messageType = ValidateAsset::class.java
 
-  override fun handle(message: ValidateAssetTree) {
-    val invalidAssetIds = sequence<AssetId> {
-      validateSubTree(message.rootId)
+  override fun handle(message: ValidateAsset) {
+    val invalidAssetNames = sequence<AssetName> {
+      validateSubTree(message.name)
     }
-    invalidAssetIds.forEach { id ->
-      log.debug("{} : Requesting convergence", id)
-      queue.push(ConvergeAsset(id))
+    invalidAssetNames.forEach { name ->
+      log.debug("{} : Requesting convergence", name)
+      queue.push(ConvergeAsset(name))
     }
   }
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private suspend fun SequenceScope<AssetId>.validateSubTree(id: AssetId) {
-    val desired = repository.getContainer(id)
+  private suspend fun SequenceScope<AssetName>.validateSubTree(name: AssetName) {
+    val desired = repository.get(name)
     if (desired == null) {
-      log.error("{} : Not found", id)
+      log.error("{} : Not found", name)
     } else {
-      log.debug("{} : Validating state", id)
+      log.debug("{} : Validating state", name)
       try {
         assetService
           .current(desired)
-          .also { assetContainer ->
+          .also { assetPair ->
             when {
-              assetContainer.current == null -> {
-                log.info("{}: Does not exist", id)
-                repository.updateState(id, Missing)
-                yield(id)
+              assetPair.current == null -> {
+                log.info("{}: Does not exist", name)
+                repository.updateState(name, Missing)
+                yield(name)
               }
-              assetContainer.desired.fingerprint == assetContainer.current.fingerprint -> {
-                log.info("{} : Current state valid", id)
-                repository.updateState(id, Ok)
+              assetPair.desired.fingerprint == assetPair.current.fingerprint -> {
+                log.info("{} : Current state valid", name)
+                repository.updateState(name, Ok)
               }
               else -> {
-                log.info("{} : Current state invalid", id)
-                log.info("Desired state:\n{}\n\nDoes not match:\n\n{}", assetContainer.desired, assetContainer.current)
-                repository.updateState(id, Diff)
-                yield(id)
+                log.info("{} : Current state invalid", name)
+                log.info("Desired state:\n{}\n\nDoes not match:\n\n{}", assetPair.desired, assetPair.current)
+                repository.updateState(name, Diff)
+                yield(name)
               }
-            }
-            repository.dependents(id).forEach { dependentId ->
-              log.debug("{} : Validating dependent asset {}", id, dependentId)
-              validateSubTree(dependentId)
             }
           }
       } catch (e: PluginRequestFailed) {

@@ -1,15 +1,14 @@
 package com.netflix.spinnaker.keel.processing
 
-import com.netflix.spinnaker.keel.model.Asset
-import com.netflix.spinnaker.keel.model.AssetContainer
-import com.netflix.spinnaker.keel.model.AssetId
+import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetMetadata
+import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetRepository
-import com.netflix.spinnaker.keel.persistence.AssetState.Diff
-import com.netflix.spinnaker.keel.persistence.AssetState.Missing
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
-import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
+import com.netflix.spinnaker.keel.persistence.randomData
 import com.netflix.spinnaker.q.Queue
-import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
@@ -31,29 +30,20 @@ internal object ConvergeAssetHandlerSpec : Spek({
   val queue: Queue = mock()
   val subject = ConvergeAssetHandler(repository, queue, assetService, vetoService)
 
-  val level2Dependency = Asset(
-    id = AssetId("SecurityGroup:ec2:prod:us-west-2:keel"),
-    kind = "SecurityGroup",
-    spec = randomBytes()
-  )
-  val level1Dependency = Asset(
-    id = AssetId("LoadBalancer:ec2:prod:us-west-2:keel"),
-    kind = "LoadBalancer",
-    dependsOn = setOf(level2Dependency.id),
-    spec = randomBytes()
-  )
   val asset = Asset(
-    id = AssetId("Cluster:ec2:prod:us-west-2:keel"),
-    kind = "Cluster",
-    dependsOn = setOf(level1Dependency.id),
-    spec = randomBytes()
+    apiVersion = SPINNAKER_API_V1,
+    metadata = AssetMetadata(
+      name = AssetName("Cluster:ec2:prod:us-west-2:keel")
+    ),
+    kind = "ec2.Cluster",
+    spec = randomData()
   )
 
   val message = ConvergeAsset(asset.id)
 
   describe("converging an asset") {
     given("the asset cannot be found") {
-      beforeGroup { whenever(repository.getContainer(asset.id)) doReturn null as AssetContainer? }
+      beforeGroup { whenever(repository.get(asset.id)) doReturn null as Asset? }
       afterGroup { reset(repository) }
 
       on("receiving a message") {
@@ -68,17 +58,14 @@ internal object ConvergeAssetHandlerSpec : Spek({
 
     given("dependent assets are up-to-date") {
       beforeGroup {
-        whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
-        setOf(asset, level1Dependency, level2Dependency).forEach {
-          whenever(repository.get(it.id)) doReturn it
-        }
-        whenever(repository.lastKnownState(any())) doReturn (Ok to now())
+        whenever(repository.get(asset.id)) doReturn asset
+        whenever(repository.lastKnownState(asset.id)) doReturn (Ok to now())
       }
 
       afterGroup { reset(repository) }
 
       given("nothing vetoes the convergence") {
-        beforeGroup { whenever(vetoService.allow(asset.wrap())) doReturn true }
+        beforeGroup { whenever(vetoService.allow(asset)) doReturn true }
         afterGroup { reset(vetoService) }
 
         on("receiving a message") {
@@ -86,12 +73,12 @@ internal object ConvergeAssetHandlerSpec : Spek({
         }
 
         it("requests convergence of the asset") {
-          verify(assetService).converge(asset.wrap())
+          verify(assetService).converge(asset)
         }
       }
 
       given("something vetoes the convergence") {
-        beforeGroup { whenever(vetoService.allow(asset.wrap())) doReturn false }
+        beforeGroup { whenever(vetoService.allow(asset)) doReturn false }
         afterGroup { reset(vetoService) }
 
         on("receiving a message") {
@@ -100,62 +87,6 @@ internal object ConvergeAssetHandlerSpec : Spek({
 
         it("does not request convergence of the asset") {
           verifyZeroInteractions(assetService)
-        }
-      }
-    }
-
-    sequenceOf(Diff, Missing, Unknown).forEach { state ->
-      given("a direct dependency is in $state state") {
-        beforeGroup {
-          whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
-          setOf(asset, level1Dependency, level2Dependency).forEach {
-            whenever(repository.get(it.id)) doReturn it
-          }
-          whenever(repository.lastKnownState(level2Dependency.id)) doReturn (Ok to now())
-          whenever(repository.lastKnownState(level1Dependency.id)) doReturn (state to now())
-          whenever(repository.lastKnownState(asset.id)) doReturn (Ok to now())
-        }
-
-        afterGroup { reset(repository) }
-
-        on("receiving a message") {
-          subject.handle(message)
-        }
-
-        it("does not request convergence of the asset") {
-          verifyZeroInteractions(assetService)
-        }
-
-        // TODO: only necessary because Mockito defaults return to false. Ultimately won't just use boolean so this test won't be needed
-        it("does not check to see if asset may be converged") {
-          verifyZeroInteractions(vetoService)
-        }
-      }
-
-      given("an indirect dependency is in $state state") {
-        beforeGroup {
-          whenever(repository.getContainer(asset.id)) doReturn asset.wrap()
-          setOf(asset, level1Dependency, level2Dependency).forEach {
-            whenever(repository.get(it.id)) doReturn it
-          }
-          whenever(repository.lastKnownState(level2Dependency.id)) doReturn (state to now())
-          whenever(repository.lastKnownState(level1Dependency.id)) doReturn (Ok to now())
-          whenever(repository.lastKnownState(asset.id)) doReturn (Ok to now())
-        }
-
-        afterGroup { reset(repository) }
-
-        on("receiving a message") {
-          subject.handle(message)
-        }
-
-        it("does not request convergence of the asset") {
-          verifyZeroInteractions(assetService)
-        }
-
-        // TODO: only necessary because Mockito defaults return to false. Ultimately won't just use boolean so this test won't be needed
-        it("does not check to see if asset may be converged") {
-          verifyZeroInteractions(vetoService)
         }
       }
     }

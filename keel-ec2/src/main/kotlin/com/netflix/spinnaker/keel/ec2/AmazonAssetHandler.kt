@@ -16,28 +16,18 @@
 package com.netflix.spinnaker.keel.ec2
 
 import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetContainer
+import com.netflix.spinnaker.keel.api.AssetName
 
 interface AmazonAssetHandler<S> {
   /**
-   * Converts an [assetContainer] to a single [Asset].
-   *
-   * In most cases, this will just return the [assetContainer] root asset, but if there are any partial assets
-   * included, those will need to be merged into the final asset. This is meant for convergence as well as
-   * fingerprinting by the rule engine.
-   */
-  fun flattenAssetContainer(assetContainer: AssetContainer): Asset
-
-  /**
    * Retrieve the current state for the provided asset based on the [spec].
    */
-  fun current(spec: S, request: AssetContainer): Asset?
+  fun current(spec: S, request: Asset): Asset?
 
   /**
    * Converge on the provided asset.
    *
-   * Implementors are expected to have already used [flattenAssetContainer] prior to calling this method.
-   * [assetId] is provided for use in correlation IDs.
+   * [assetName] is provided for use in correlation IDs.
    */
-  fun converge(assetId: String, spec: S)
+  fun converge(assetName: AssetName, spec: S)
 }
