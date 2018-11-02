@@ -91,7 +91,7 @@
       <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 1000px;" class="header">
         <tr>
           <td align="center" valign="top" style="padding: 16px 12px 0 12px; display: none;" class="m-logo">
-            <img alt="Spinnaker" src="spinnaker-logo-400.png" width="100" height="100" border="0">
+            <img alt="Spinnaker" src="https://www.spinnaker.io/assets/emails/spinnaker-logo-400.png" width="100" height="100" border="0">
           </td>
           <td class="title" align="left" valign="middle" style="padding: 16px 0 16px 32px; height: 100%;">
             <h1 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 28px;">Cleanup Notifications</h1>
