@@ -54,6 +54,6 @@ if [ "$CURRENTBRANCH" != "master" ] ; then
   read -p "Push current branch ${CURRENTBRANCH} to 'origin'? (y/n) " -n 1 -r
   echo "";
   if [ "$REPLY" == "y" ] ; then
-    git push origin $CURRENTBRANCH;
+    git push --set-upstream origin $CURRENTBRANCH;
   fi
 fi
