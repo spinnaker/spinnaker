@@ -116,9 +116,9 @@ class InputArtifact implements IArtifactAccountPair {
 
   constructor($scope: IScope, artifact = { id: '', account: '' }) {
     const unserializable = { configurable: false, enumerable: false, writable: false };
+    Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
     const delegate = new NgBakeManifestArtifactDelegate(this);
     const controller = new ExpectedArtifactSelectorViewController(delegate);
-    Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
     Object.defineProperty(this, 'delegate', { ...unserializable, value: delegate });
     Object.defineProperty(this, 'controller', { ...unserializable, value: controller });
     this.id = artifact.id;
