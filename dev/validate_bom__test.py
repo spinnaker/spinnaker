@@ -334,7 +334,9 @@ class ValidateBomTestController(object):
                                          ' --format yaml'
                                          ' --project %s' % project)
     project_info = yaml.safe_load(project_info_json)
-    project_quota = {'gce_global_%s' % info['metric']:
+    # Sometimes gce returns entries and leaves out the a "metric" it was for.
+    # We'll ignore those and stick them in 'UNKNOWN' for simplicity.
+    project_quota = {'gce_global_%s' % info.get('metric', 'UNKNOWN'):
                           int(max(1, math.floor(
                               project_percent * (info['limit'] - info['usage']))))
                      for info in project_info['quotas']}
@@ -344,7 +346,7 @@ class ValidateBomTestController(object):
                                         ' %s' % region)
     region_info = yaml.safe_load(region_info_json)
     region_quota = {
-        'gce_region_%s' % info['metric']: int(max(
+        'gce_region_%s' % info.get('metric', 'UNKNOWN'): int(max(
             1, math.floor(region_percent * (info['limit'] - info['usage']))))
         for info in region_info['quotas']
     }
