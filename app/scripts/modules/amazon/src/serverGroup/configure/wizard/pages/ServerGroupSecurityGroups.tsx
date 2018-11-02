@@ -28,8 +28,9 @@ class ServerGroupSecurityGroupsImpl extends React.Component<IServerGroupSecurity
   };
 
   private acknowledgeRemovedGroups = () => {
-    this.props.formik.values.viewState.dirty.securityGroups = null;
-    this.setState({});
+    const { viewState } = this.props.formik.values;
+    viewState.dirty.securityGroups = null;
+    this.props.formik.setFieldValue('viewState', viewState);
   };
 
   public render() {
