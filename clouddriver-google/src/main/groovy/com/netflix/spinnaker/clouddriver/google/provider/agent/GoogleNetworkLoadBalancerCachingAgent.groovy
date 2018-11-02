@@ -48,7 +48,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
    */
   Map<String, Object> tpNameToInstanceHealthsMap = [:]
   Set<TargetPoolHealthRequest> queuedTpHealthRequests = new HashSet<>()
-  List<LoadBalancerHealthResolution> resolutions = []
+  Set<LoadBalancerHealthResolution> resolutions = new HashSet<>()
 
   GoogleNetworkLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                         GoogleNamedAccountCredentials credentials,
@@ -70,7 +70,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
     // Reset the local getHealth caches/queues each caching agent cycle.
     tpNameToInstanceHealthsMap = [:]
     queuedTpHealthRequests = new HashSet<>()
-    resolutions = []
+    resolutions = new HashSet<>()
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
     BatchRequest targetPoolsRequest = buildBatchRequest()

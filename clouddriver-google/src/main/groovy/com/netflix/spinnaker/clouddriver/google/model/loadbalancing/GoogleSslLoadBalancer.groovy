@@ -18,9 +18,11 @@ package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
-import groovy.transform.Canonical
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 
-@Canonical
+@ToString(includeSuper=true)
+@EqualsAndHashCode(callSuper=true)
 class GoogleSslLoadBalancer extends GoogleLoadBalancer {
   GoogleLoadBalancerType type = GoogleLoadBalancerType.SSL
   GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.EXTERNAL

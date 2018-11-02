@@ -106,7 +106,7 @@ class GoogleInstance {
         healths << mapper.convertValue(h, new TypeReference<Map<String, Object>>() {})
       }
       healths << mapper.convertValue(instanceHealth?.view, new TypeReference<Map<String, Object>>() {})
-      healths.unique()
+      healths
     }
 
     @JsonIgnore
@@ -121,7 +121,7 @@ class GoogleInstance {
       consulNode?.healths?.each {
         allHealths << it
       }
-      allHealths.unique()
+      allHealths
     }
 
     @Override

@@ -1956,6 +1956,11 @@ class GCEUtil {
       def instanceName = Utils.getLocalName(status.instance)
       def googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.valueOf(status.healthState)
 
+      if (googleLoadBalancer.type == GoogleLoadBalancerType.NETWORK && googleLoadBalancer.ipAddress != status.ipAddress) {
+        log.debug("Skip adding health for ${instanceName} to ${googleLoadBalancer.name} (${googleLoadBalancer.ipAddress}): ${status.healthState} ($status.ipAddress)")
+        return
+      }
+
       googleLoadBalancer.healths << new GoogleLoadBalancerHealth(
         instanceName: instanceName,
         instanceZone: Utils.getZoneFromInstanceUrl(status.instance),

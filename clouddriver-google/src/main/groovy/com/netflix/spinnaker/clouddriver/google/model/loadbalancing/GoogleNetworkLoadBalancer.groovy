@@ -20,9 +20,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
-import groovy.transform.Canonical
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 
-@Canonical
+@ToString(includeSuper=true)
+@EqualsAndHashCode(callSuper=true)
 class GoogleNetworkLoadBalancer extends GoogleLoadBalancer {
   GoogleLoadBalancerType type = GoogleLoadBalancerType.NETWORK
   GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.EXTERNAL

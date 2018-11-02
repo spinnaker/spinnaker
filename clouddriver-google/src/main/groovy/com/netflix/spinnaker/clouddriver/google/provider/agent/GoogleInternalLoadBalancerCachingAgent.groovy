@@ -46,7 +46,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
    */
   Map<String, Object> bsNameToGroupHealthsMap = [:]
   Set<GroupHealthRequest> queuedBsGroupHealthRequests = new HashSet<>()
-  List<LoadBalancerHealthResolution> resolutions = []
+  Set<LoadBalancerHealthResolution> resolutions = new HashSet<>()
 
   GoogleInternalLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                          GoogleNamedAccountCredentials credentials,
@@ -77,7 +77,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     // Reset the local getHealth caches/queues each caching agent cycle.
     bsNameToGroupHealthsMap = [:]
     queuedBsGroupHealthRequests = new HashSet<>()
-    resolutions = []
+    resolutions = new HashSet<>()
 
     List<BackendService> projectRegionBackendServices = GCEUtil.fetchRegionBackendServices(this, compute, project, region)
     List<HttpHealthCheck> projectHttpHealthChecks = GCEUtil.fetchHttpHealthChecks(this, compute, project)

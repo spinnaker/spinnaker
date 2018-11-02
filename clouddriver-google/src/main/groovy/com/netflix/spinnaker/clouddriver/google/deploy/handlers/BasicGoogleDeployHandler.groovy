@@ -187,7 +187,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
       if (!description.disableTraffic) {
         def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK }
-        targetPools = networkLoadBalancers.collect { it.targetPool }
+        targetPools = networkLoadBalancers.collect { it.targetPool }.unique()
       }
     }
 
