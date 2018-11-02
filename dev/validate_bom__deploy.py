@@ -1007,7 +1007,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
       ip = found[0]['Instances'][0]['PublicIpAddress']
     except KeyError:
       logging.error('**** aws ec2 describe instances returned %r\n'
-                    'expected [0]['Instances'][0]['PublicIpAddress']',
+                    'expected [0]["Instances"][0]["PublicIpAddress"]',
                     found)
       raise
     logging.debug('Using public IP=%s', ip)
