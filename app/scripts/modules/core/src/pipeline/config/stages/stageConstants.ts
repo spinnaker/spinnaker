@@ -17,6 +17,10 @@ export class StageConstants {
     return ['bake', 'findImageFromTags', 'findImage', 'findAmi'];
   }
 
+  public static get MANIFEST_CRITERIA_OPTIONS(): IStageConstant[] {
+    return StageConstants.manifestCriteriaOptions;
+  }
+
   private static targetList: IStageConstant[] = [
     {
       label: 'Newest Server Group',
@@ -64,6 +68,34 @@ export class StageConstants {
       label: 'Always Disable',
       description: 'Never send client requests to new instances',
       val: 'disable',
+    },
+  ];
+
+  private static manifestCriteriaOptions: IStageConstant[] = [
+    {
+      label: 'Newest',
+      val: 'newest',
+      description: 'Selects the most recently deployed manifest in the cluster when this <b>stage</b> starts.',
+    },
+    {
+      label: 'Second Newest',
+      val: 'second_newest',
+      description: 'Selects the second-most recently deployed manifest in the cluster when this <b>stage</b> starts.',
+    },
+    {
+      label: 'Oldest',
+      val: 'oldest',
+      description: 'Selects the least recently deployed manifest in the cluster when this <b>stage</b> starts.',
+    },
+    {
+      label: 'Largest',
+      val: 'largest',
+      description: 'Selects the largest (by number of pods) manifest in the cluster when this <b>stage</b> starts.',
+    },
+    {
+      label: 'Smallest',
+      val: 'smallest',
+      description: 'Selects the smallest (by number of pods) manifest in the cluster when this <b>stage</b> starts.',
     },
   ];
 }

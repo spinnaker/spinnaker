@@ -9,7 +9,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "jsx": "react",
-    "lib": ["es2016", "dom"],
+    "lib": ["es2017", "dom"],
     "moduleResolution": "node",
     "module": "commonjs",
     "noEmitHelpers": false,

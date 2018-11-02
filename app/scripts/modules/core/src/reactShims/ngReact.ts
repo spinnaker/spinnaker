@@ -25,6 +25,7 @@ import { InsightLayoutComponent } from 'core/insight/insightLayout.component';
 import { ReactInject } from './react.injector';
 import { StageSummaryComponent } from 'core/pipeline/details/stageSummary.component';
 import { StepExecutionDetailsComponent } from 'core/pipeline/details/stepExecutionDetails.component';
+import { TargetSelectComponent, ITargetSelectProps } from 'core/pipeline/config/targetSelect.component';
 import { TaskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.directive';
 import { ViewChangesLinkWrapper } from 'core/diffs/viewChangesLink.component';
 import { ViewScalingActivitiesLink } from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
@@ -60,6 +61,7 @@ export class NgReactInjector extends ReactInject {
   public ViewChangesLink: React.ComponentClass<IViewChangesLinkProps>                         = angular2react('viewChangesLinkWrapper', new ViewChangesLinkWrapper(), this.$injectorProxy) as any;
   public ViewScalingActivitiesLink: React.ComponentClass<IViewScalingActivitiesLinkProps>     = angular2react('viewScalingActivitiesLink', new ViewScalingActivitiesLink(), this.$injectorProxy) as any;
   public WhatsNew: React.ComponentClass<{}>                                                   = angular2react('whatsNew', {}, this.$injectorProxy) as any;
+  public TargetSelect: React.ComponentClass<ITargetSelectProps>                               = angular2react('targetSelect', new TargetSelectComponent(), this.$injectorProxy) as any;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;

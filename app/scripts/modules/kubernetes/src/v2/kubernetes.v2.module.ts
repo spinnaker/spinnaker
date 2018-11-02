@@ -42,6 +42,8 @@ import { KUBERNETES_MANIFEST_IMAGE_DETAILS } from 'kubernetes/v2/manifest/manife
 import { YAML_EDITOR_COMPONENT } from './manifest/editor/yaml/yamlEditor.component';
 import { JSON_EDITOR_COMPONENT } from './manifest/editor/json/jsonEditor.component';
 import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
+import { KUBERNETES_ENABLE_MANIFEST_STAGE } from 'kubernetes/v2/pipelines/stages/traffic/enableManifest.stage';
+import { KUBERNETES_DISABLE_MANIFEST_STAGE } from 'kubernetes/v2/pipelines/stages/traffic/disableManifest.stage';
 import './pipelines/validation/manifestSelector.validator';
 
 // load all templates into the $templateCache
@@ -93,6 +95,8 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_V2_RESOURCE_STATES,
   YAML_EDITOR_COMPONENT,
   JSON_EDITOR_COMPONENT,
+  KUBERNETES_ENABLE_MANIFEST_STAGE,
+  KUBERNETES_DISABLE_MANIFEST_STAGE,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',

@@ -10,4 +10,12 @@ export interface IManifestSelector {
   kind?: string;
   location: string;
   account: string;
+  cluster?: string;
+  criteria?: string;
+  mode?: SelectorMode;
+}
+
+export enum SelectorMode {
+  Static = 'static',
+  Dynamic = 'dynamic', // TODO(dpeach): add 'Label' mode.
 }

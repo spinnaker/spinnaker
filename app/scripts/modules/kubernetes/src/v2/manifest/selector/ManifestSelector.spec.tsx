@@ -4,10 +4,11 @@ import { Creatable, Option } from 'react-select';
 import { $q } from 'ngimport';
 import Spy = jasmine.Spy;
 
-import { AccountService, noop, AccountSelectField } from 'core';
+import { AccountService, noop, AccountSelectField, ScopeClusterSelector } from 'core';
 
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
+import { SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
 
 describe('<ManifestSelector />', () => {
   let searchService: Spy;
@@ -58,6 +59,170 @@ describe('<ManifestSelector />', () => {
         .find(Creatable)
         .first();
       expect((name.props().value as Option).value).toEqual('my-config-map');
+    });
+
+    describe('cluster dropdown', () => {
+      const buildPropsWithApplicationData = (data: any[]) => ({
+        modes: [SelectorMode.Static, SelectorMode.Dynamic],
+        application: { getDataSource: () => ({ data }) },
+      });
+
+      it("includes cluster if selected kind matches the cluster's server groups' kind", () => {
+        const wrapper = component(
+          {
+            kind: 'replicaSet',
+            account: 'my-account',
+            location: 'default',
+            mode: SelectorMode.Dynamic,
+          },
+          buildPropsWithApplicationData([
+            {
+              name: 'replicaSet my-replica-set-v000',
+              account: 'my-account',
+              region: 'default',
+              cluster: 'replicaSet my-replica-set',
+            },
+          ]),
+        );
+
+        const cluster = wrapper
+          .find({ label: 'Cluster' })
+          .find(ScopeClusterSelector)
+          .first();
+        expect(cluster.props().clusters).toEqual(['replicaSet my-replica-set']);
+      });
+
+      it("does not include cluster if selected kind does not match cluster's server groups' kind", () => {
+        const wrapper = component(
+          {
+            kind: 'statefulSet',
+            account: 'my-account',
+            location: 'default',
+            mode: SelectorMode.Dynamic,
+          },
+          buildPropsWithApplicationData([
+            {
+              name: 'replicaSet my-replica-set-v000',
+              account: 'my-account',
+              region: 'default',
+              cluster: 'replicaSet my-replica-set',
+            },
+          ]),
+        );
+
+        const cluster = wrapper
+          .find({ label: 'Cluster' })
+          .find(ScopeClusterSelector)
+          .first();
+        expect(cluster.props().clusters).toEqual([]);
+      });
+
+      it('handles case in which a cluster has two different kinds of server groups', () => {
+        const wrapper = component(
+          {
+            kind: 'statefulSet',
+            account: 'my-account',
+            location: 'default',
+            mode: SelectorMode.Dynamic,
+          },
+          buildPropsWithApplicationData([
+            {
+              name: 'replicaSet my-replica-set-v000',
+              account: 'my-account',
+              region: 'default',
+              cluster: 'my-cluster',
+            },
+            {
+              name: 'statefulSet my-stateful-set-v000',
+              account: 'my-account',
+              region: 'default',
+              cluster: 'my-cluster',
+            },
+          ]),
+        );
+
+        const cluster = wrapper
+          .find({ label: 'Cluster' })
+          .find(ScopeClusterSelector)
+          .first();
+        expect(cluster.props().clusters).toEqual(['my-cluster']);
+      });
+
+      it("does not include cluster if the cluster's server groups are managed", () => {
+        const wrapper = component(
+          {
+            kind: 'replicaSet',
+            account: 'my-account',
+            location: 'default',
+            mode: SelectorMode.Dynamic,
+          },
+          buildPropsWithApplicationData([
+            {
+              name: 'replicaSet my-replica-set-v000',
+              account: 'my-account',
+              region: 'default',
+              cluster: 'my-cluster',
+              serverGroupManagers: ['deployment my-deployment'],
+            },
+          ]),
+        );
+
+        const cluster = wrapper
+          .find({ label: 'Cluster' })
+          .find(ScopeClusterSelector)
+          .first();
+        expect(cluster.props().clusters).toEqual([]);
+      });
+
+      it('filters clusters by account', () => {
+        const wrapper = component(
+          {
+            kind: 'replicaSet',
+            account: 'my-other-account',
+            location: 'default',
+            mode: SelectorMode.Dynamic,
+          },
+          buildPropsWithApplicationData([
+            {
+              name: 'replicaSet my-replica-set-v000',
+              account: 'my-account',
+              region: 'default',
+              cluster: 'my-cluster',
+            },
+          ]),
+        );
+
+        const cluster = wrapper
+          .find({ label: 'Cluster' })
+          .find(ScopeClusterSelector)
+          .first();
+        expect(cluster.props().clusters).toEqual([]);
+      });
+
+      it('filters clusters by namespace', () => {
+        const wrapper = component(
+          {
+            kind: 'replicaSet',
+            account: 'my-account',
+            location: 'my-other-namespace',
+            mode: SelectorMode.Dynamic,
+          },
+          buildPropsWithApplicationData([
+            {
+              name: 'replicaSet my-replica-set-v000',
+              account: 'my-account',
+              region: 'default',
+              cluster: 'my-cluster',
+            },
+          ]),
+        );
+
+        const cluster = wrapper
+          .find({ label: 'Cluster' })
+          .find(ScopeClusterSelector)
+          .first();
+        expect(cluster.props().clusters).toEqual([]);
+      });
     });
   });
 
@@ -128,6 +293,47 @@ describe('<ManifestSelector />', () => {
       expect(wrapper.instance().state.selector.location).toBeFalsy();
     });
   });
+
+  describe('mode change', () => {
+    it('handles kind during static -> dynamic mode transition', () => {
+      const wrapper = component(
+        {
+          manifestName: 'configMap my-config-map',
+          account: 'my-account',
+          location: 'default',
+        },
+        { modes: [SelectorMode.Dynamic, SelectorMode.Static] },
+      );
+
+      wrapper
+        .find({ id: 'dynamic' })
+        .first()
+        .props()
+        .onChange();
+      expect(wrapper.state().selector.kind).toEqual('configMap');
+    });
+
+    it('handles kind during dynamic -> static mode transition', () => {
+      const wrapper = component(
+        {
+          account: 'my-account',
+          location: 'default',
+          kind: 'configMap',
+          mode: SelectorMode.Dynamic,
+        },
+        { modes: [SelectorMode.Dynamic, SelectorMode.Static] },
+      );
+
+      wrapper
+        .find({ id: 'static' })
+        .first()
+        .props()
+        .onChange();
+      // `manifestName` is composed of `${kind} ${resourceName}`
+      expect(wrapper.state().selector.manifestName).toEqual('configMap');
+    });
+  });
 });
 
-const component = (selector: any) => mount(<ManifestSelector onChange={noop} selector={selector} /> as any);
+const component = (selector: any, props: any = {}) =>
+  mount(<ManifestSelector onChange={noop} selector={selector} {...props} /> as any);
