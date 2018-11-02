@@ -54,6 +54,15 @@ SPINNAKER_SERVICES = [
 ]
 
 
+def decode_json(data):
+  try:
+    return json.JSONDecoder().decode(data)
+  except TypeError as err:
+    logging.error('Error decoding JSON: %s\n%s\n',
+                  err.message, data)
+    raise
+
+
 def replace_ha_services(services, options):
   """Replace services with their HA services.
 
@@ -939,6 +948,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
           ConfigError('--deploy_aws_security_group not specified.'))
 
     if options.deploy_deploy:
+      logging.debug('Looking for existing EC2 instance.')
       retcode, stdout = run_subprocess(
           'aws ec2 describe-instances'
           ' --profile {region}'
@@ -950,7 +960,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
         raise_and_log_error(
             ExecutionError('Could not probe AWS: {0}'.format(stdout),
                            program='aws'))
-      reservations = json.JSONDecoder().decode(stdout).get('Reservations')
+      reservations = decode_json(stdout).get('Reservations')
       # For some reason aws is ignoring our filter, so check again just to be
       # sure the reservations returned are the ones we asked for.
       for reservation in reservations or []:
@@ -973,6 +983,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
   def do_determine_instance_ip(self):
     """Implements GenericVmValidateBomDeployer interface."""
     options = self.options
+    logging.debug('Looking up EC2 instance IP.')
     retcode, stdout = run_subprocess(
         'aws ec2 describe-instances'
         ' --profile {region}'
@@ -985,14 +996,20 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
       raise_and_log_error(
           ExecutionError('Could not determine public IP: {0}'.format(stdout),
                          program='aws'))
-    found = json.JSONDecoder().decode(stdout).get('Reservations')
+    found = decode_json(stdout).get('Reservations')
     if not found:
       raise_and_log_error(
           ResponseError(
               '"{0}" is not running'.format(options.deploy_aws_name),
               server='ec2'))
 
-    ip = found[0]['Instances'][0]['PublicIpAddress']
+    try:
+      ip = found[0]['Instances'][0]['PublicIpAddress']
+    except KeyError:
+      logging.error('**** aws ec2 describe instances returned %r\n'
+                    'expected [0]['Instances'][0]['PublicIpAddress']',
+                    found)
+      raise
     logging.debug('Using public IP=%s', ip)
     return ip
 
@@ -1003,6 +1020,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
     logging.info('Creating "%s" with key-pair "%s"',
                  options.deploy_aws_name, key_pair_name)
 
+    logging.debug('Creating new EC2 VM.')
     response = check_subprocess(
         'aws ec2 run-instances'
         ' --profile {region}'
@@ -1016,9 +1034,8 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
                 ami=options.deploy_aws_ami,
                 type='t2.xlarge',  # 4 core x 16G
                 key_pair_name=key_pair_name,
-                sg=options.deploy_aws_security_group),
-        stream=sys.stdout)
-    doc = json.JSONDecoder().decode(response)
+                sg=options.deploy_aws_security_group))
+    doc = decode_json(response)
     self.__instance_id = doc["Instances"][0]["InstanceId"]
     logging.info('Created instance id=%s to tag as "%s"',
                  self.__instance_id, options.deploy_aws_name)
@@ -1038,8 +1055,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
             ' --tags "Key=Name,Value={name}"'
             .format(region=options.deploy_aws_region,
                     instance_id=self.__instance_id,
-                    name=options.deploy_aws_name),
-            stream=sys.stdout)
+                    name=options.deploy_aws_name))
         did_tag = tag_retcode == 0
       if self.__is_ready():
         return
@@ -1062,7 +1078,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
 
     # result is an array of reservations of ararys of instances.
     # but we only expect one, so fish out the first instance info
-    info = json.JSONDecoder().decode(stdout)[0][0]
+    info = decode_json(stdout)[0][0]
     state = info.get('State', {}).get('Name')
     if state in ['pending', 'initializing']:
       logging.info('Waiting for %s to finish initializing (state=%s)',
@@ -1113,7 +1129,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
           ',Name=instance-state-name,Values=running"'
           .format(region=options.deploy_aws_region,
                   name=options.deploy_aws_name))
-      exists = json.JSONDecoder().decode(lookup_response).get('Reservations')
+      exists = decode_json(lookup_response).get('Reservations')
       if not exists:
         logging.warning('"%s" is not running', options.deploy_aws_name)
         return
@@ -1209,8 +1225,7 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
                 location=options.deploy_azure_location,
                 image=options.deploy_azure_image,
                 ssh_key_path=self.ssh_key_path))
-    self.set_instance_ip(json.JSONDecoder().decode(
-        response)['publicIpAddress'])
+    self.set_instance_ip(decode_json(response)['publicIpAddress'])
 
   def do_undeploy(self):
     """Implements the BaseBomValidateDeployer interface."""
@@ -1243,7 +1258,7 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
       raise_and_log_error(
           ExecutionError('Could not determine public IP: {0}'.format(stdout),
                          program='az'))
-    found = json.JSONDecoder().decode(stdout)[0].get('virtualMachine')
+    found = decode_json(stdout)[0].get('virtualMachine')
     if not found:
       raise_and_log_error(
           ResponseError(
@@ -1276,7 +1291,7 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
                 project=options.deploy_google_project,
                 zone=options.deploy_google_zone,
                 instance=options.deploy_google_instance))
-    nic = json.JSONDecoder().decode(response)['networkInterfaces'][0]
+    nic = decode_json(response)['networkInterfaces'][0]
 
     use_internal_ip = options.deploy_google_use_internal_ip
     if use_internal_ip:
@@ -1284,7 +1299,7 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
       return nic['networkIP']
 
     ip = nic['accessConfigs'][0]['natIP']
-    logging.debug('Using public IP=%s', ip)
+    logging.debug('Using natIP=%s', ip)
     return ip
 
   def __init__(self, options, metrics, **kwargs):
