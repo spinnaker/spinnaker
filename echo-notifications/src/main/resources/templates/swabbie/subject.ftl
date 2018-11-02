@@ -1,4 +1,4 @@
-[Cleanup Notification] ${notification.additionalContext.resourceType}s scheduled for deletion for ${notification.additionalContext.resourceOwner}
+[Cleanup Notification] ${notification.additionalContext.resources?size} ${notification.additionalContext.resourceType}s scheduled for deletion for ${notification.additionalContext.resourceOwner}
 <#if notification.additionalContext.configuration.account.name != "" && notification.additionalContext.configuration.account.name != "none">
   in ${notification.additionalContext.configuration.account.name?upper_case}
 </#if>
