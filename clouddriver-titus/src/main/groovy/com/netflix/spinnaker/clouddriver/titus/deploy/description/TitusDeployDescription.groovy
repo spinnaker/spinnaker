@@ -18,11 +18,12 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
 import groovy.transform.Canonical
 
-class TitusDeployDescription extends AbstractTitusCredentialsDescription implements DeployDescription {
+class TitusDeployDescription extends AbstractTitusCredentialsDescription implements DeployDescription, ApplicationNameable {
   String region
   String subnet
   List<String> zones
@@ -59,6 +60,11 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   Collection<OperationEvent> events = []
 
   Source source = new Source()
+
+  @Override
+  Collection<String> getApplications() {
+    return [application]
+  }
 
   @Canonical
   static class Capacity {
