@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { Option } from 'react-select';
-import { isString } from 'lodash';
 
 import { StringsAsOptions } from 'core/presentation';
 
-import { orEmptyString, validationClassName } from './utils';
+import { isStringArray, orEmptyString, validationClassName } from './utils';
 import { IFormInputProps } from '../interface';
 
 interface ISelectInputProps extends IFormInputProps, React.InputHTMLAttributes<any> {
@@ -27,8 +26,6 @@ export class SelectInput extends React.Component<ISelectInputProps> {
         ))}
       </select>
     );
-
-    const isStringArray = (opts: any[]): opts is string[] => opts && opts.length && opts.every(isString);
 
     if (isStringArray(options)) {
       return <StringsAsOptions strings={options}>{opts => <SelectElement opts={opts} />}</StringsAsOptions>;

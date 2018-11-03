@@ -4,7 +4,7 @@ import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
 import { IAccount } from 'core/account';
 import { IProject, IProjectCluster } from 'core/domain';
 import { IWizardPageProps, wizardPage } from 'core/modal';
-import { FormikFormField, ReactSelectInput, TextInput, StringsAsOptions } from 'core/presentation';
+import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
 
 import { FormikApplicationsPicker } from './FormikApplicationsPicker';
@@ -112,9 +112,7 @@ class ClustersImpl extends React.Component<IClustersProps> {
                             name={`${clusterPath}.account`}
                             layout={({ input }) => <div>{input}</div>}
                             input={props => (
-                              <StringsAsOptions strings={accountNames}>
-                                {options => <ReactSelectInput {...props} clearable={false} options={options} />}
-                              </StringsAsOptions>
+                              <ReactSelectInput {...props} clearable={false} stringOptions={accountNames} />
                             )}
                           />
                         </td>

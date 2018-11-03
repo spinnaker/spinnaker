@@ -1,5 +1,5 @@
 import * as classNames from 'classnames';
-import { isUndefined } from 'lodash';
+import { isUndefined, isString } from 'lodash';
 
 import { IValidationProps } from '../interface';
 
@@ -12,3 +12,5 @@ export const validationClassName = (validation: IValidationProps) => {
     'ng-warning': validation.validationStatus === 'warning',
   });
 };
+
+export const isStringArray = (opts: any[]): opts is string[] => opts && opts.length && opts.every(isString);

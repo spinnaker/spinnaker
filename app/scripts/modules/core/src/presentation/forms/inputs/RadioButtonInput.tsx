@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { Option } from 'react-select';
 
+import { Markdown, StringsAsOptions } from 'core/presentation';
+
+import { isStringArray, orEmptyString, validationClassName } from './utils';
+
 import { IFormInputProps } from '../interface';
 
-import { orEmptyString, validationClassName } from './utils';
-import { Markdown } from 'core/presentation';
-
 interface IRadioButtonInputProps extends IFormInputProps, React.TextareaHTMLAttributes<any> {
-  options: Array<Option<string | number>>;
+  options: Array<string | Option<string | number>>;
   inputClassName?: string;
 }
 
@@ -18,9 +19,9 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
   const fieldProps = { name, onChange, onBlur };
   const className = `RadioButtonInput radio ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
 
-  return (
+  const RadioButtonsElement = ({ opts }: { opts: Array<Option<string>> }) => (
     <div className="vertical left">
-      {options.map(option => (
+      {opts.map(option => (
         <div key={option.label} className={className}>
           <label>
             <input type="radio" {...fieldProps} value={option.value} checked={option.value === value} />
@@ -32,4 +33,10 @@ export const RadioButtonInput = (props: IRadioButtonInputProps) => {
       ))}
     </div>
   );
+
+  if (isStringArray(options)) {
+    return <StringsAsOptions strings={options}>{opts => <RadioButtonsElement opts={opts} />}</StringsAsOptions>;
+  } else {
+    return <RadioButtonsElement opts={options as Array<Option<string>>} />;
+  }
 };

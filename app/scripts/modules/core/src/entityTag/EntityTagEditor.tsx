@@ -3,24 +3,16 @@ import { Form, Formik } from 'formik';
 import { Modal } from 'react-bootstrap';
 
 import { Application } from 'core/application';
-import { HelpField } from 'core/help';
 import { IEntityRef, IEntityTag } from 'core/domain';
-import { TaskMonitor } from 'core/task';
+import { HelpField } from 'core/help';
 import { SubmitButton } from 'core/modal';
+import { FormField, FormikFormField, Markdown, RadioButtonInput, ReactModal, TextAreaInput } from 'core/presentation';
 import { NgReact } from 'core/reactShims';
-import { UUIDGenerator, noop } from 'core/utils';
-import {
-  Markdown,
-  RadioButtonInput,
-  TextAreaInput,
-  ReactModal,
-  FormikFormField,
-  FormField,
-  StringsAsOptions,
-} from 'core/presentation';
+import { TaskMonitor } from 'core/task';
+import { noop, UUIDGenerator } from 'core/utils';
 
-import { EntityTagWriter } from './entityTags.write.service';
 import { EntityRefBuilder } from './entityRef.builder';
+import { EntityTagWriter } from './entityTags.write.service';
 
 import './EntityTagEditor.less';
 
@@ -186,21 +178,17 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                 </div>
 
                 {!!ownerOptions.length && (
-                  <StringsAsOptions strings={ownerOptions.map(opt => opt.label)}>
-                    {options => (
-                      <FormField
-                        name="ownerOption"
-                        label="Applies To"
-                        required={true}
-                        value={values.ownerOption.label}
-                        onChange={evt => {
-                          const option = ownerOptions.find(opt => opt.label === evt.target.value);
-                          setFieldValue('ownerOption', option);
-                        }}
-                        input={props => <RadioButtonInput {...props} options={options} />}
-                      />
-                    )}
-                  </StringsAsOptions>
+                  <FormField
+                    name="ownerOption"
+                    label="Applies To"
+                    required={true}
+                    value={values.ownerOption.label}
+                    onChange={evt => {
+                      const option = ownerOptions.find(opt => opt.label === evt.target.value);
+                      setFieldValue('ownerOption', option);
+                    }}
+                    input={props => <RadioButtonInput {...props} options={ownerOptions.map(opt => opt.label)} />}
+                  />
                 )}
               </Modal.Body>
 
