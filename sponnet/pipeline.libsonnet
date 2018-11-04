@@ -49,11 +49,8 @@
 
   expectedArtifact(id):: {
     id: id,
-    // Defaults to kind: custom
-    defaultArtifact: { kind: 'custom' },
     withMatchArtifact(matchArtifact):: self + {
       matchArtifact+: {
-        kind: std.splitLimit(matchArtifact.type, '/', 1)[0],
         // TODO: For Docker, the name field should be registry and repository.
         name: matchArtifact.name,
         type: matchArtifact.type,
@@ -61,7 +58,6 @@
     },
     withDefaultArtifact(defaultArtifact):: self + {
       defaultArtifact: {
-        kind: 'default.' + std.splitLimit(defaultArtifact.type, '/', 1)[0],
         reference: defaultArtifact.reference,
         type: defaultArtifact.type,
         // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
@@ -152,6 +148,7 @@
       },
       withPipeline(pipeline):: self + { pipeline: pipeline },
     },
+
     manualJudgement(name):: stage(name, 'manualJudgement') {
       withInstructions(instructions):: self + { instructions: instructions },
       withJudgementInputs(judgementInputs):: self + if std.type(judgementInputs) == 'array' then { judgementInputs: judgementInputs } else { judgementInputs: [judgementInputs] },
