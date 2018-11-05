@@ -601,8 +601,8 @@ export class KayentaStageController implements IComponentController {
         serverGroup.freeFormDetails = `${serverGroup.freeFormDetails ? `${serverGroup.freeFormDetails}-` : ''}${type}`;
       };
 
-      cleanup(control, 'control');
-      cleanup(experiment, 'experiment');
+      cleanup(control, 'baseline');
+      cleanup(experiment, 'canary');
       this.stage.deployments.serverGroupPairs = [{ control, experiment }];
       this.$scope.$applyAsync();
     } catch (e) {
