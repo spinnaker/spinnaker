@@ -36,7 +36,7 @@ class SpinnakerLicenseReportPlugin implements Plugin<Project> {
         project.plugins.apply(LicenseReportPlugin)
 
         LicenseReportExtension pluginConfig = project.extensions.getByType(LicenseReportExtension)
-        pluginConfig.configurations = [ 'ALL' ]
+        pluginConfig.configurations = LicenseReportExtension.ALL
         pluginConfig.renderers = [
                 new InventoryHtmlReportRenderer(),
                 new CsvReportRenderer(),
