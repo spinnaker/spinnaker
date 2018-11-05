@@ -17,9 +17,15 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancerType
+import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
 
-class DeleteAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription {
+class DeleteAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription implements ResourcesNameable {
   AmazonLoadBalancerType loadBalancerType
   String loadBalancerName
   Set<String> regions
+
+  @Override
+  Collection<String> getNames() {
+    return [loadBalancerName]
+  }
 }

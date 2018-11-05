@@ -18,8 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.DefaultResult
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.Transition
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 
-class UpsertAsgLifecycleHookDescription extends AbstractAmazonCredentialsDescription {
+class UpsertAsgLifecycleHookDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
 
   // required
   String serverGroupName
@@ -33,5 +34,10 @@ class UpsertAsgLifecycleHookDescription extends AbstractAmazonCredentialsDescrip
   String notificationMetadata
   Integer heartbeatTimeout = 3600
   DefaultResult defaultResult = DefaultResult.ABANDON
+
+  @Override
+  Collection<String> getServerGroupNames() {
+    return [serverGroupName]
+  }
 }
 

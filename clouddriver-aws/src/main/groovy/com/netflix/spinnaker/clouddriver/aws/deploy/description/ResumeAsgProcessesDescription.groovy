@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-class ResumeAsgProcessesDescription extends AbstractAmazonCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+
+class ResumeAsgProcessesDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
 
   String serverGroupName
   String region
@@ -28,4 +30,9 @@ class ResumeAsgProcessesDescription extends AbstractAmazonCredentialsDescription
 
   @Deprecated
   List<String> regions = []
+
+  @Override
+  Collection<String> getServerGroupNames() {
+    return asgs.collect { it.serverGroupName }
+  }
 }

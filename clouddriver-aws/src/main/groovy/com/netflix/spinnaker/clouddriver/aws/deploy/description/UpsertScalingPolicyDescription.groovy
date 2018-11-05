@@ -18,8 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.amazonaws.services.autoscaling.model.StepAdjustment
 import com.amazonaws.services.autoscaling.model.TargetTrackingConfiguration
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 
-class UpsertScalingPolicyDescription extends AbstractAmazonCredentialsDescription {
+class UpsertScalingPolicyDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
 
   // required
   String region
@@ -38,6 +39,11 @@ class UpsertScalingPolicyDescription extends AbstractAmazonCredentialsDescriptio
   Integer estimatedInstanceWarmup
 
   UpsertAlarmDescription alarm
+
+  @Override
+  Collection<String> getServerGroupNames() {
+    return [serverGroupName]
+  }
 
   static class Simple {
     Integer cooldown = 600

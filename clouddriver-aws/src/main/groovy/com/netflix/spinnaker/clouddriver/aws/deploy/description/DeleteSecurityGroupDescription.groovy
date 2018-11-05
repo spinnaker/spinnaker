@@ -15,8 +15,15 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-class DeleteSecurityGroupDescription extends AbstractAmazonCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
+
+class DeleteSecurityGroupDescription extends AbstractAmazonCredentialsDescription implements ResourcesNameable {
     String securityGroupName
     String vpcId
     Set<String> regions
+
+  @Override
+  Collection<String> getNames() {
+    return [securityGroupName]
+  }
 }

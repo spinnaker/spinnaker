@@ -21,8 +21,9 @@ import com.amazonaws.services.cloudwatch.model.Dimension
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
 import com.amazonaws.services.cloudwatch.model.StandardUnit
 import com.amazonaws.services.cloudwatch.model.Statistic
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 
-class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription {
+class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
   String name
   String asgName
   String region
@@ -67,5 +68,10 @@ class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription {
         insufficientDataActions: insufficientDataActionArns,
         oKActions: okActionArns
     )
+  }
+
+  @Override
+  Collection<String> getServerGroupNames() {
+    return [asgName]
   }
 }

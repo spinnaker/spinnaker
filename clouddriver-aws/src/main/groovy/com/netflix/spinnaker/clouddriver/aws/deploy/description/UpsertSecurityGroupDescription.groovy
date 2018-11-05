@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
 import groovy.transform.Canonical
 
-class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescription {
+class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescription implements ResourcesNameable {
   String name
   String description
   String vpcId
@@ -28,6 +29,11 @@ class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
   List<IpIngress> ipIngress
 
   boolean ingressAppendOnly = false
+
+  @Override
+  Collection<String> getNames() {
+    return [name]
+  }
 
   static abstract class Ingress {
     Integer startPort

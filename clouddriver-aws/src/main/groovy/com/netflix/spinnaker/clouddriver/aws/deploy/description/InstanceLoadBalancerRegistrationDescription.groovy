@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-class InstanceLoadBalancerRegistrationDescription extends AbstractRegionAsgInstanceIdsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
+
+class InstanceLoadBalancerRegistrationDescription extends AbstractRegionAsgInstanceIdsDescription implements ResourcesNameable {
   List<String> loadBalancerNames
+
+  @Override
+  Collection<String> getNames() {
+    return loadBalancerNames
+  }
 }
