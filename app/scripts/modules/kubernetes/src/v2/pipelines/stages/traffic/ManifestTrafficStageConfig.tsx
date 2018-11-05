@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { defaults } from 'lodash';
 
 import { IStage, IStageConfigProps } from '@spinnaker/core';
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
@@ -9,7 +10,15 @@ export interface IKubernetesManifestStageConfigProps extends IStageConfigProps {
 }
 
 export class ManifestTrafficStageConfig extends React.Component<IKubernetesManifestStageConfigProps> {
-  private onChange = (stage: IManifestSelector) => {
+  public componentDidMount = (): void => {
+    defaults(this.props.stage, {
+      app: this.props.application.name,
+      cloudProvider: 'kubernetes',
+    });
+    this.props.stageFieldUpdated();
+  };
+
+  private onChange = (stage: IManifestSelector): void => {
     Object.assign(this.props.stage, stage);
     this.props.stageFieldUpdated();
   };
