@@ -1,6 +1,6 @@
 language: java
 jdk:
-- oraclejdk8
+- openjdk8
 sudo: required
 dist: trusty
 install: gradle/installViaTravis.sh
