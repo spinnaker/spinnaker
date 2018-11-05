@@ -40,6 +40,7 @@ module(BAKE_MANIFEST_STAGE, [])
           stage.expectedArtifacts = get(stage, 'expectedArtifacts', []).filter(a => !artifactMatches(a));
           stage.inputArtifacts = get(stage, 'inputArtifacts', []).filter(a => !artifactMatches(a));
         },
+        validators: [{ type: 'requiredField', fieldName: 'outputName', fieldLabel: 'Name' }],
       });
     }
   })
