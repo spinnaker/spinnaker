@@ -1,48 +1,49 @@
 import * as React from 'react';
 
+import { noop } from '@spinnaker/core';
 import { KayentaAnalysisType } from 'kayenta/domain';
 
 export interface IAnalysisTypeProps {
-  type: KayentaAnalysisType;
-  onChange(type: KayentaAnalysisType): void;
+  analysisTypes: KayentaAnalysisType[];
+  selectedType: KayentaAnalysisType;
+  onChange?: (type: KayentaAnalysisType) => void;
 }
 
-export const AnalysisType = ({ type, onChange }: IAnalysisTypeProps) => {
+export const AnalysisTypeWarning = () => (
+  <div className="alert alert-warning">
+    The analysis type you've selected isn't supported by any of this application's cloud providers. Please select a
+    different type.
+  </div>
+);
+
+export const AnalysisTypeRadioButton = ({
+  selectedType,
+  analysisTypes,
+  onChange = noop,
+  label,
+  type,
+}: IAnalysisTypeProps & { label: string; type: KayentaAnalysisType }) => {
+  if (!analysisTypes.includes(type)) {
+    return null;
+  }
+  return (
+    <div className="radio">
+      <label>
+        <input type="radio" name="analysisType" checked={selectedType === type} onChange={() => onChange(type)} />
+        {label}
+      </label>
+    </div>
+  );
+};
+
+export const AnalysisType = (props: IAnalysisTypeProps) => {
+  const { analysisTypes = [], selectedType } = props;
   return (
     <>
-      <div className="radio">
-        <label>
-          <input
-            type="radio"
-            name="analysisType"
-            checked={type === KayentaAnalysisType.RealTimeAutomatic}
-            onChange={() => onChange(KayentaAnalysisType.RealTimeAutomatic)}
-          />
-          Real Time (Automatic)
-        </label>
-      </div>
-      <div className="radio">
-        <label>
-          <input
-            type="radio"
-            name="analysisType"
-            checked={type === KayentaAnalysisType.RealTime}
-            onChange={() => onChange(KayentaAnalysisType.RealTime)}
-          />
-          Real Time (Manual)
-        </label>
-      </div>
-      <div className="radio">
-        <label>
-          <input
-            type="radio"
-            name="analysisType"
-            checked={type === KayentaAnalysisType.Retrospective}
-            onChange={() => onChange(KayentaAnalysisType.Retrospective)}
-          />
-          Retrospective
-        </label>
-      </div>
+      {!analysisTypes.includes(selectedType) && <AnalysisTypeWarning />}
+      <AnalysisTypeRadioButton {...props} label="Real Time (Automatic)" type={KayentaAnalysisType.RealTimeAutomatic} />
+      <AnalysisTypeRadioButton {...props} label="Real Time (Manual)" type={KayentaAnalysisType.RealTime} />
+      <AnalysisTypeRadioButton {...props} label="Retrospective" type={KayentaAnalysisType.Retrospective} />
     </>
   );
 };

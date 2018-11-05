@@ -5,5 +5,5 @@ import { AnalysisType } from './AnalysisType';
 export const KAYENTA_ANALYSIS_TYPE_COMPONENT = 'spinnaker.kayenta.analysisType.component';
 module(KAYENTA_ANALYSIS_TYPE_COMPONENT, []).component(
   'kayentaAnalysisType',
-  react2angular(AnalysisType, ['type', 'onChange']),
+  react2angular(AnalysisType, ['analysisTypes', 'selectedType', 'onChange']),
 );

@@ -7,7 +7,7 @@ const helpContents: { [key: string]: string } = {
       over a time interval beginning at the moment of execution.
       <ul>
         <li>
-          <strong>Automatic:</strong> Spinnaker will provision and clean up the baseline and canary server groups.
+          <strong>Automatic:</strong> Spinnaker will provision and clean up the baseline and canary server groups. Not all cloud providers support this mode.
         </li>
         <li>
           <strong>Manual:</strong> You are responsible for provisioning and cleaning up the baseline and canary server groups.

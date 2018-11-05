@@ -17,10 +17,10 @@
   <kayenta-stage-config-section title="Analysis Config">
 
     <stage-config-field label="Analysis Type"
-                        help-key="pipeline.config.canary.analysisType"
-                        field-columns="3">
+                        help-key="pipeline.config.canary.analysisType">
       <kayenta-analysis-type
-        type="kayentaCanaryStageCtrl.stage.analysisType"
+        analysis-types="kayentaCanaryStageCtrl.state.analysisTypes"
+        selected-type="kayentaCanaryStageCtrl.stage.analysisType"
         on-change="kayentaCanaryStageCtrl.handleAnalysisTypeChange"
       ></kayenta-analysis-type>
     </stage-config-field>

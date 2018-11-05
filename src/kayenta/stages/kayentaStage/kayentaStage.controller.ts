@@ -24,6 +24,11 @@ import {
 } from 'kayenta/domain';
 import { getDurationString, parseDurationString } from 'kayenta/utils/duration';
 
+import './kayentaStage.less';
+
+// TODO: Open up to all providers.
+const REAL_TIME_AUTOMATIC_PROVIDERS = ['gce', 'aws', 'titus'];
+
 export class KayentaStageController implements IComponentController {
   public state = {
     useLookback: false,
@@ -38,6 +43,11 @@ export class KayentaStageController implements IComponentController {
       experiment: false,
     },
     delayBeforeCleanup: { hours: 0, minutes: 0 },
+    analysisTypes: [
+      KayentaAnalysisType.RealTimeAutomatic,
+      KayentaAnalysisType.RealTime,
+      KayentaAnalysisType.Retrospective,
+    ],
   };
   public canaryConfigSummaries: ICanaryConfigSummary[] = [];
   public selectedCanaryConfigDetails: ICanaryConfig;
@@ -78,7 +88,7 @@ export class KayentaStageController implements IComponentController {
       },
     };
 
-    this.stage.analysisType = this.stage.analysisType || KayentaAnalysisType.RealTimeAutomatic;
+    this.stage.analysisType = this.stage.analysisType || this.state.analysisTypes[0];
 
     if (!this.stage.canaryConfig.scopes || !this.stage.canaryConfig.scopes.length) {
       this.stage.canaryConfig.scopes = [{ scopeName: 'default' } as IKayentaStageCanaryConfigScope];
@@ -459,9 +469,14 @@ export class KayentaStageController implements IComponentController {
   };
 
   private loadProviders = async (): Promise<string[]> => {
-    const providers = await AccountService.listProviders(this.$scope.application);
-    // TODO: Open up to all providers.
-    return (this.providers = providers.filter(p => ['gce', 'aws', 'titus'].includes(p)));
+    this.providers = (await AccountService.listProviders(this.$scope.application)).filter(p =>
+      REAL_TIME_AUTOMATIC_PROVIDERS.includes(p),
+    );
+    // If none of the application's providers support real time automatic mode, don't show it!
+    if (!this.providers.length) {
+      this.state.analysisTypes = [KayentaAnalysisType.RealTime, KayentaAnalysisType.Retrospective];
+    }
+    return this.providers;
   };
 
   public handleProviderChange = async (): Promise<void> => {
