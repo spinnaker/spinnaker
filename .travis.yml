@@ -1,8 +1,8 @@
 language: java
 jdk:
-- oraclejdk8
-dist: xenial
-sudo: false
+- openjdk8
+dist: trusty
+sudo: true
 install: true
 script: gradle/buildViaTravis.sh
 before_cache: gradle/prepCaches.sh
