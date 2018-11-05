@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class MonitorDeleteImageTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+public class MonitorDeleteImageTask extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
   private static final Logger log = LoggerFactory.getLogger(MonitorDeleteImageTask.class);
 
   private final OortService oortService;
