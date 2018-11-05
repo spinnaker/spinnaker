@@ -382,7 +382,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
 
     builder = aws.AwsPythonContractBuilder(self.aws_observer)
     (builder.new_clause_builder('Auto Server Group Added',
-                                retryable_for_secs=30)
+                                retryable_for_secs=600)
      .call_method(
          self.autoscaling_client.describe_auto_scaling_groups,
          AutoScalingGroupNames=[group_name])
