@@ -436,7 +436,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   }
 
   protected void copyScalingPolicies(TitusDeployDescription description, String jobUri, String serverGroupName) {
-    if (!description.copySourceScalingPolicies) {
+    if (!description.copySourceScalingPolicies || !description.copySourceScalingPoliciesAndActions) {
       return
     }
     Source source = description.source
