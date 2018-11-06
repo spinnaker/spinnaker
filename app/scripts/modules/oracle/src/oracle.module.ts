@@ -3,6 +3,9 @@ import { module } from 'angular';
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import './helpContents/oracleHelpContents';
+import { ORACLE_LOAD_BALANCER_TRANSFORMER } from 'oracle/loadBalancer/loadBalancer.transformer';
+import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
+import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from 'oracle/loadBalancer/details/loadBalancerDetail.controller';
 
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -22,6 +25,12 @@ module(ORACLE_MODULE, [
   require('./pipeline/stages/resizeAsg/resizeAsgStage.js').name,
   require('./pipeline/stages/scaleDownCluster/scaleDownClusterStage.js').name,
   require('./pipeline/stages/shrinkCluster/shrinkClusterStage.js').name,
+
+  // Load Balancers
+  ORACLE_LOAD_BALANCER_TRANSFORMER,
+  ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER,
+  ORACLE_LOAD_BALANCER_CREATE_CONTROLLER,
+
   // Server Groups
   require('./serverGroup/serverGroup.transformer.js').name,
   require('./serverGroup/configure/serverGroup.configure.module.js').name,
@@ -45,7 +54,13 @@ module(ORACLE_MODULE, [
     image: {
       reader: 'oracleImageReader',
     },
-    loadBalancer: {},
+    loadBalancer: {
+      transformer: 'oracleLoadBalancerTransformer',
+      detailsTemplateUrl: require('./loadBalancer/details/loadBalancerDetail.html'),
+      detailsController: 'oracleLoadBalancerDetailCtrl',
+      createLoadBalancerTemplateUrl: require('./loadBalancer/configure/createLoadBalancer.html'),
+      createLoadBalancerController: 'oracleCreateLoadBalancerCtrl',
+    },
     serverGroup: {
       transformer: 'oracleServerGroupTransformer',
       detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),

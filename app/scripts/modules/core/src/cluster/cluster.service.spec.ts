@@ -93,6 +93,7 @@ describe('Service: Cluster', function() {
       expect(application.serverGroups.fetchOnDemand).toBe(false);
       expect(ClusterState.filterModel.asFilterModel.sortFilter.filter).toEqual('clusters:myapp');
       expect(ClusterState.filterModel.asFilterModel.sortFilter.account.test).toBe(true);
+      expect(serverGroups).toEqual([]);
     });
   });
 

@@ -4,13 +4,13 @@ import { FormikProps } from 'formik';
 
 import { noop } from 'core/utils';
 
-export type IWizardPageProps<T = any> = Partial<{
+export type IWizardPageProps<T> = Partial<{
   formik: FormikProps<T>;
   mandatory: boolean;
   dirty: boolean;
   dontMarkCompleteOnView: boolean;
   done: boolean;
-  onMount: (self: IWrappedWizardPage) => void;
+  onMount: (self: IWizardPageWrapper<IWizardPageProps<T>>) => void;
   dirtyCallback: (name: string, dirty: boolean) => void;
   ref: () => void;
   revalidate: () => void;
@@ -24,22 +24,27 @@ export interface IWizardPageState {
   label: string;
 }
 
-export type IWizardPageValidate = (values: { [key: string]: any }) => { [key: string]: string };
-export type IWrappedWizardPage = React.ComponentClass<IWizardPageProps> & { LABEL: string };
+export interface IWizardPage<P> extends React.ComponentClass<P> {
+  LABEL: string;
+}
 
-export function wizardPage<P = {}>(
-  WrappedComponent: IWrappedWizardPage,
-): React.ComponentClass<P & IWizardPageProps> & { label: string } {
-  class WizardPage extends React.Component<P & IWizardPageProps, IWizardPageState> {
-    public static defaultProps: Partial<IWizardPageProps> = {
+export interface IWizardPageWrapper<P> extends React.ComponentClass<P> {
+  label: string;
+}
+
+export type IWizardPageValidate<T> = (values: T) => any;
+
+export function wizardPage<P extends IWizardPageProps<T>, T>(WrappedComponent: IWizardPage<P>): IWizardPageWrapper<P> {
+  class WizardPage extends React.Component<P, IWizardPageState> {
+    public static defaultProps: Partial<IWizardPageProps<T>> = {
       dirtyCallback: noop,
     };
     public static label = WrappedComponent.LABEL;
 
     public element: any;
-    public validate: IWizardPageValidate;
+    public validate: IWizardPageValidate<T>;
 
-    constructor(props: P & IWizardPageProps) {
+    constructor(props: P) {
       super(props);
       this.state = {
         hasErrors: false,

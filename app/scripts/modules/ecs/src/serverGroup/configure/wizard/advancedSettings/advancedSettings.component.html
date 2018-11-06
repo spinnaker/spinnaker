@@ -30,6 +30,22 @@
   </div>
 
   <div class="form-group">
+    <div class="col-md-5 sm-label-right"><b>Docker Image Credentials</b> <help-field key="ecs.dockerimagecredentials"></help-field></div>
+    <div class="col-md-7" ng-if="!$ctrl.command.backingData.filtered.secrets.length">
+      No account or region was selected, or no AWS Secrets Manager secrets are available in this account and region.
+    </div>
+
+    <div class="col-md-7" ng-if="$ctrl.command.backingData.filtered.secrets.length">
+      <ui-select ng-model="$ctrl.command.dockerImageCredentialsSecret" class="form-control input-sm" required on-select="$ctrl.fieldChanged()">
+        <ui-select-match>{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="secret in $ctrl.command.backingData.filtered.secrets | filter: $select.search">
+          <span ng-bind-html="secret"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+
+  <div class="form-group">
     <div class="col-md-5 sm-label-right">
       <b>Placement strategy</b> <help-field key="ecs.placementStrategy"></help-field>
     </div>

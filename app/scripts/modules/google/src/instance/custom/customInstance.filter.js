@@ -9,7 +9,7 @@ module.exports = angular
   .filter('customInstanceFilter', function(gceCustomInstanceBuilderService) {
     return function(instanceTypeString) {
       if (_.startsWith(instanceTypeString, 'custom')) {
-        let { vCpuCount, memory } = gceCustomInstanceBuilderService.parseInstanceTypeString(instanceTypeString);
+        const { vCpuCount, memory } = gceCustomInstanceBuilderService.parseInstanceTypeString(instanceTypeString);
         return `${vCpuCount} vCPU / ${memory} GB RAM`;
       }
       return instanceTypeString;

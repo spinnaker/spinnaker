@@ -49,6 +49,7 @@ module.exports = angular
         subnetId: serverGroup.launchConfig.subnetId,
         region: serverGroup.region,
         availabilityDomain: serverGroup.launchConfig.availabilityDomain,
+        sshAuthorizedKeys: serverGroup.launchConfig.sshAuthorizedKeys,
         selectedProvider: oracle,
         capacity: {
           desired: serverGroup.capacity.desired,

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cloneDeep, get } from 'lodash';
-import { FormikErrors, FormikValues } from 'formik';
+import { FormikErrors } from 'formik';
 import { IPromise } from 'angular';
 
 import {
@@ -19,6 +19,7 @@ import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCom
 import { AwsReactInjector } from 'amazon/reactShims';
 
 import { ALBListeners } from './ALBListeners';
+import { ALBAdvancedSettings } from './ALBAdvancedSettings';
 import { TargetGroups } from './TargetGroups';
 import { SecurityGroups } from '../common/SecurityGroups';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
@@ -240,10 +241,11 @@ export class CreateApplicationLoadBalancer extends React.Component<
     }
   };
 
-  private validate = (values: FormikValues): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> => {
+  private validate = (
+    values: IAmazonApplicationLoadBalancerUpsertCommand,
+  ): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> => {
     this.setState({ includeSecurityGroups: !!values.vpcId });
-    const errors = {} as FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand>;
-    return errors;
+    return {};
   };
 
   public render() {
@@ -285,6 +287,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
         <SecurityGroups done={true} isNew={isNew} />
         <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
         <ALBListeners app={app} done={true} />
+        <ALBAdvancedSettings done={true} />
       </WizardModal>
     );
   }

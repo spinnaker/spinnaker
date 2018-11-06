@@ -26,7 +26,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
   );
 
   it('requires health check path for HTTP/S', function() {
-    var loadBalancer = {
+    const loadBalancer = {
       healthCheckProtocol: 'HTTP',
     };
 
@@ -45,7 +45,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
   });
 
   it('should update name', function() {
-    var lb = this.$scope.loadBalancer;
+    const lb = this.$scope.loadBalancer;
     expect(lb).toBeDefined();
     expect(lb.name).toBeUndefined();
 

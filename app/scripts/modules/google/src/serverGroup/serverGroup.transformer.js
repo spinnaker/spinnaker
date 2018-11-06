@@ -27,10 +27,10 @@ module.exports = angular
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
-      var truncatedZones = base.backingData.filtered.truncatedZones;
+      const truncatedZones = base.backingData.filtered.truncatedZones;
 
       // use defaults to avoid copying the backingData, which is huge and expensive to copy over
-      var command = defaults({ backingData: [], viewState: [] }, base);
+      const command = defaults({ backingData: [], viewState: [] }, base);
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }

@@ -4,6 +4,7 @@ const angular = require('angular');
 import { ANY_FIELD_FILTER } from '../presentation/anyFieldFilter/anyField.filter';
 import { ViewStateCache } from 'core/cache';
 
+import { ConfigureProjectModal } from './configure';
 import { ProjectReader } from './service/ProjectReader';
 
 module.exports = angular
@@ -36,21 +37,7 @@ module.exports = angular
       {
         displayName: 'Create Project',
         action: function() {
-          $uibModal
-            .open({
-              scope: $scope,
-              templateUrl: require('./configure/configureProject.modal.html'),
-              controller: 'ConfigureProjectModalCtrl',
-              controllerAs: 'ctrl',
-              size: 'lg',
-              resolve: {
-                projectConfig: () => {
-                  return {};
-                },
-              },
-            })
-            .result.then(routeToProject)
-            .catch(() => {});
+          ConfigureProjectModal.show().catch(() => {});
         },
       },
     ];

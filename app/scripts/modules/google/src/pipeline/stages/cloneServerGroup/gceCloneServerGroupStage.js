@@ -22,7 +22,7 @@ module.exports = angular
     });
   })
   .controller('gceCloneServerGroupStageCtrl', function($scope) {
-    let stage = $scope.stage;
+    const stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
@@ -53,7 +53,7 @@ module.exports = angular
 
     this.targetClusterUpdated = () => {
       if (stage.targetCluster) {
-        let clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
+        const clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
         stage.stack = clusterName.stack;
         stage.freeFormDetails = clusterName.freeFormDetails;
       } else {

@@ -13,13 +13,13 @@ module.exports = angular
     },
     templateUrl: require('./basicSettings.component.html'),
     controller: function() {
-      let c = this.command;
+      const c = this.command;
       this.loadBalancer = c.loadBalancer;
       this.accounts = c.backingData.accounts;
-      let loadBalancerMap = c.backingData.loadBalancerMap;
+      const loadBalancerMap = c.backingData.loadBalancerMap;
 
       this.getName = (loadBalancer, applicationName) => {
-        let loadBalancerName = [applicationName, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
+        const loadBalancerName = [applicationName, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
         return _.trimEnd(loadBalancerName, '-');
       };
 

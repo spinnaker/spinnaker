@@ -20,8 +20,10 @@
           <dd>{{stage.context.baseOs}}</dd>
           <dt>Label</dt>
           <dd>{{stage.context.baseLabel}}</dd>
-          <dt ng-if="roscoMode || stage.context.rebake">Rebake</dt>
-          <dd ng-if="roscoMode || stage.context.rebake">{{stage.context.rebake || false}}</dd>
+          <dt ng-if="roscoMode || execution.trigger.rebake || stage.context.rebake">Rebake</dt>
+          <dd ng-if="roscoMode || execution.trigger.rebake || stage.context.rebake">
+            {{execution.trigger.rebake || stage.context.rebake || false}}
+          </dd>
           <dt ng-if="stage.context.templateFileName">Template</dt>
           <dd ng-if="stage.context.templateFileName">{{stage.context.templateFileName}}</dd>
           <dt ng-if="stage.context.accountName">Account Name</dt>

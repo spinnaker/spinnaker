@@ -37,7 +37,7 @@ module.exports = angular
     loadBalancerTypeToWizardMap,
     gceXpnNamingService,
   ) {
-    let application = (this.application = app);
+    const application = (this.application = app);
 
     $scope.state = {
       loading: true,
@@ -45,7 +45,7 @@ module.exports = angular
 
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.data.filter(function(test) {
-        var testVpc = test.vpcId || null;
+        const testVpc = test.vpcId || null;
         return (
           test.name === loadBalancer.name &&
           (test.region === loadBalancer.region || test.region === 'global') &&
@@ -57,7 +57,7 @@ module.exports = angular
       if ($scope.loadBalancer) {
         return createDetailsLoader().then(function(details) {
           $scope.state.loading = false;
-          var filtered = details.filter(function(test) {
+          const filtered = details.filter(function(test) {
             return test.vpcid === loadBalancer.vpcId || (!test.vpcid && !loadBalancer.vpcId);
           });
           if (filtered.length) {
@@ -112,7 +112,7 @@ module.exports = angular
 
     function createDetailsLoader() {
       if (gceHttpLoadBalancerUtils.isHttpLoadBalancer($scope.loadBalancer)) {
-        var detailsPromises = $scope.loadBalancer.listeners.map(listener => {
+        const detailsPromises = $scope.loadBalancer.listeners.map(listener => {
           return loadBalancerReader.getLoadBalancerDetails(
             $scope.loadBalancer.provider,
             loadBalancer.accountId,
@@ -123,9 +123,9 @@ module.exports = angular
 
         return $q.all(detailsPromises).then(loadBalancers => {
           loadBalancers = _.flatten(loadBalancers);
-          var representativeLb = loadBalancers[0];
+          const representativeLb = loadBalancers[0];
           representativeLb.dns = loadBalancers.map(loadBalancer => {
-            var protocol;
+            let protocol;
             if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
               protocol = 'https:';
             } else {
@@ -146,8 +146,8 @@ module.exports = angular
             $scope.loadBalancer.name,
           )
           .then(loadBalancerDetails => {
-            var loadBalancer = loadBalancerDetails[0];
-            var protocol;
+            const loadBalancer = loadBalancerDetails[0];
+            let protocol;
             if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
               protocol = 'https:';
             } else {
@@ -160,7 +160,7 @@ module.exports = angular
     }
 
     function getBackendServices(loadBalancer) {
-      var backendServices = [loadBalancer.defaultService];
+      let backendServices = [loadBalancer.defaultService];
 
       if (loadBalancer.hostRules.length) {
         backendServices = _.chain(loadBalancer.hostRules)
@@ -194,7 +194,7 @@ module.exports = angular
       });
 
     this.editLoadBalancer = function editLoadBalancer() {
-      let wizard = loadBalancerTypeToWizardMap[$scope.loadBalancer.loadBalancerType];
+      const wizard = loadBalancerTypeToWizardMap[$scope.loadBalancer.loadBalancerType];
 
       $uibModal.open({
         templateUrl: wizard.editTemplateUrl,

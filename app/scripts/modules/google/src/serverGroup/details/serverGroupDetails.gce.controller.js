@@ -51,8 +51,8 @@ module.exports = angular
 
     this.application = app;
 
-    let extractServerGroupSummary = () => {
-      var summary = _.find(app.serverGroups.data, toCheck => {
+    const extractServerGroupSummary = () => {
+      let summary = _.find(app.serverGroups.data, toCheck => {
         return (
           toCheck.name === serverGroup.name &&
           toCheck.account === serverGroup.accountId &&
@@ -74,7 +74,7 @@ module.exports = angular
       return summary;
     };
 
-    let autoClose = () => {
+    const autoClose = () => {
       if ($scope.$$destroyed) {
         return;
       }
@@ -82,12 +82,12 @@ module.exports = angular
       $state.go('^', null, { location: 'replace' });
     };
 
-    let cancelLoader = () => {
+    const cancelLoader = () => {
       this.state.loading = false;
     };
 
-    let retrieveServerGroup = () => {
-      var summary = extractServerGroupSummary();
+    const retrieveServerGroup = () => {
+      const summary = extractServerGroupSummary();
       return ServerGroupReader.getServerGroup(
         app.name,
         serverGroup.accountId,
@@ -117,7 +117,7 @@ module.exports = angular
 
           this.serverGroup.zones.sort();
 
-          var projectId = gceXpnNamingService.deriveProjectId(this.serverGroup.launchConfig.instanceTemplate);
+          const projectId = gceXpnNamingService.deriveProjectId(this.serverGroup.launchConfig.instanceTemplate);
           this.serverGroup.logsLink =
             'https://console.developers.google.com/project/' +
             projectId +
@@ -144,10 +144,10 @@ module.exports = angular
       }, autoClose);
     };
 
-    let findStartupScript = () => {
+    const findStartupScript = () => {
       if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.metadata.items')) {
-        let metadataItems = this.serverGroup.launchConfig.instanceTemplate.properties.metadata.items;
-        let startupScriptItem = _.find(metadataItems, metadataItem => {
+        const metadataItems = this.serverGroup.launchConfig.instanceTemplate.properties.metadata.items;
+        const startupScriptItem = _.find(metadataItems, metadataItem => {
           return metadataItem.key === 'startup-script';
         });
 
@@ -157,13 +157,13 @@ module.exports = angular
       }
     };
 
-    let prepareDiskDescriptions = () => {
+    const prepareDiskDescriptions = () => {
       if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.disks')) {
-        let diskDescriptions = [];
+        const diskDescriptions = [];
 
         this.serverGroup.launchConfig.instanceTemplate.properties.disks.forEach(disk => {
-          let diskLabel = disk.initializeParams.diskType + ':' + disk.initializeParams.diskSizeGb;
-          let existingDiskDescription = _.find(diskDescriptions, description => {
+          const diskLabel = disk.initializeParams.diskType + ':' + disk.initializeParams.diskSizeGb;
+          const existingDiskDescription = _.find(diskDescriptions, description => {
             return description.bareLabel === diskLabel;
           });
 
@@ -217,9 +217,9 @@ module.exports = angular
 
     const getSourceImage = disk => _.last(_.get(disk, 'initializeParams.sourceImage', '').split('/'));
 
-    let prepareAvailabilityPolicies = () => {
+    const prepareAvailabilityPolicies = () => {
       if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.scheduling')) {
-        let scheduling = this.serverGroup.launchConfig.instanceTemplate.properties.scheduling;
+        const scheduling = this.serverGroup.launchConfig.instanceTemplate.properties.scheduling;
 
         this.serverGroup.availabilityPolicies = {
           preemptibility: scheduling.preemptible ? 'On' : 'Off',
@@ -229,10 +229,10 @@ module.exports = angular
       }
     };
 
-    let prepareAutoHealingPolicy = () => {
+    const prepareAutoHealingPolicy = () => {
       if (this.serverGroup.autoHealingPolicy) {
         let autoHealingPolicy = this.serverGroup.autoHealingPolicy;
-        let healthCheckUrl = autoHealingPolicy.healthCheck;
+        const healthCheckUrl = autoHealingPolicy.healthCheck;
 
         this.serverGroup.autoHealingPolicyHealthCheck = healthCheckUrl ? _.last(healthCheckUrl.split('/')) : null;
         this.serverGroup.initialDelaySec = autoHealingPolicy.initialDelaySec;
@@ -247,11 +247,11 @@ module.exports = angular
       }
     };
 
-    let prepareAuthScopes = () => {
+    const prepareAuthScopes = () => {
       if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.serviceAccounts')) {
-        let serviceAccounts = this.serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts;
+        const serviceAccounts = this.serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts;
         if (serviceAccounts.length) {
-          let serviceAccount = this.serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts[0];
+          const serviceAccount = this.serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts[0];
 
           this.serverGroup.serviceAccountEmail = serviceAccount.email;
           this.serverGroup.authScopes = _.map(serviceAccount.scopes, authScope => {
@@ -261,7 +261,7 @@ module.exports = angular
       }
     };
 
-    let prepareCurrentActions = () => {
+    const prepareCurrentActions = () => {
       if (this.serverGroup.currentActions) {
         this.serverGroup.currentActionsSummary = [];
 
@@ -277,7 +277,7 @@ module.exports = angular
       }
     };
 
-    let translateDiskType = diskType => {
+    const translateDiskType = diskType => {
       if (diskType === 'pd-ssd') {
         return 'Persistent SSD';
       } else if (diskType === 'local-ssd') {
@@ -287,18 +287,18 @@ module.exports = angular
       }
     };
 
-    let augmentTagsWithHelp = () => {
+    const augmentTagsWithHelp = () => {
       if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.tags.items') && this.securityGroups) {
-        let helpMap = {};
+        const helpMap = {};
 
         this.serverGroup.launchConfig.instanceTemplate.properties.tags.items.forEach(tag => {
-          let securityGroupsMatches = _.filter(this.securityGroups, securityGroup =>
+          const securityGroupsMatches = _.filter(this.securityGroups, securityGroup =>
             _.includes(securityGroup.targetTags, tag),
           );
-          let securityGroupMatchNames = _.map(securityGroupsMatches, 'name');
+          const securityGroupMatchNames = _.map(securityGroupsMatches, 'name');
 
           if (!_.isEmpty(securityGroupMatchNames)) {
-            let groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
+            const groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
 
             helpMap[tag] =
               'This tag associates this server group with security ' +
@@ -313,20 +313,23 @@ module.exports = angular
       }
     };
 
-    let processLabels = () => {
+    const processLabels = () => {
       if (!_.size(this.serverGroup.instanceTemplateLabels)) {
         delete this.serverGroup.instanceTemplateLabels;
       }
     };
 
-    let getNetwork = projectId => {
-      let networkUrl = _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
+    const getNetwork = projectId => {
+      const networkUrl = _.get(
+        this.serverGroup,
+        'launchConfig.instanceTemplate.properties.networkInterfaces[0].network',
+      );
       return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, networkUrl);
     };
 
-    let retrieveSubnet = projectId => {
+    const retrieveSubnet = projectId => {
       NetworkReader.listNetworksByProvider('gce').then(networks => {
-        let autoCreateSubnets = _.chain(networks)
+        const autoCreateSubnets = _.chain(networks)
           .filter({ account: this.serverGroup.account, id: this.serverGroup.network })
           .map('autoCreateSubnets')
           .head()
@@ -335,7 +338,7 @@ module.exports = angular
         if (autoCreateSubnets) {
           this.serverGroup.subnet = '(Auto-select)';
         } else {
-          let subnetUrl = _.get(
+          const subnetUrl = _.get(
             this.serverGroup,
             'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork',
           );
@@ -344,7 +347,7 @@ module.exports = angular
       });
     };
 
-    let determineAssociatePublicIPAddress = () => {
+    const determineAssociatePublicIPAddress = () => {
       this.serverGroup.associatePublicIPAddress = _.has(
         this.serverGroup,
         'launchConfig.instanceTemplate.properties.networkInterfaces[0].accessConfigs',
@@ -360,22 +363,22 @@ module.exports = angular
     });
 
     this.destroyServerGroup = () => {
-      var serverGroup = this.serverGroup;
+      const serverGroup = this.serverGroup;
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Destroying ' + serverGroup.name,
       };
 
-      var submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      const submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
-      var stateParams = {
+      const stateParams = {
         name: serverGroup.name,
         accountId: serverGroup.account,
         region: serverGroup.region,
       };
 
-      var confirmationModalParams = {
+      const confirmationModalParams = {
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         account: serverGroup.account,
@@ -401,16 +404,16 @@ module.exports = angular
     };
 
     this.disableServerGroup = () => {
-      var serverGroup = this.serverGroup;
+      const serverGroup = this.serverGroup;
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Disabling ' + serverGroup.name,
       };
 
-      var submitMethod = params => serverGroupWriter.disableServerGroup(serverGroup, app, params);
+      const submitMethod = params => serverGroupWriter.disableServerGroup(serverGroup, app, params);
 
-      var confirmationModalParams = {
+      const confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
         account: serverGroup.account,
@@ -431,16 +434,16 @@ module.exports = angular
     };
 
     this.enableServerGroup = () => {
-      var serverGroup = this.serverGroup;
+      const serverGroup = this.serverGroup;
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = params => serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      const submitMethod = params => serverGroupWriter.enableServerGroup(serverGroup, app, params);
 
-      var confirmationModalParams = {
+      const confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
         buttonText: 'Enable ' + serverGroup.name,
         account: serverGroup.account,
@@ -465,7 +468,7 @@ module.exports = angular
         resolve: {
           serverGroup: () => this.serverGroup,
           disabledServerGroups: () => {
-            var cluster = _.find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
+            const cluster = _.find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
             return _.filter(cluster.serverGroups, { isDisabled: true, region: this.serverGroup.region });
           },
           application: () => app,
@@ -537,7 +540,7 @@ module.exports = angular
       return null;
     };
 
-    let configureEntityTagTargets = () => {
+    const configureEntityTagTargets = () => {
       this.entityTagTargets = ClusterTargetBuilder.buildClusterTargets(this.serverGroup);
     };
   });

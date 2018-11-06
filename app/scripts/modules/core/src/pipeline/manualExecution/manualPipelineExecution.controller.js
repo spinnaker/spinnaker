@@ -7,6 +7,7 @@ import { AuthenticationService } from 'core/authentication';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 import { AppNotificationsService } from 'core/notification/AppNotificationsService';
+import { PipelineTemplateReader } from 'core/pipeline/config/templates/PipelineTemplateReader';
 
 import { STAGE_MANUAL_COMPONENTS } from './stageManualComponents.component';
 import { TRIGGER_TEMPLATE } from './triggerTemplate.component';
@@ -109,6 +110,21 @@ module.exports = angular
       this.command.trigger = suppliedTriggerCanBeInvoked ? trigger : _.head(this.triggers);
     };
 
+    const updatePipelinePlan = pipeline => {
+      if (pipeline.type === 'templatedPipeline' && (pipeline.stages === undefined || pipeline.stages.length === 0)) {
+        PipelineTemplateReader.getPipelinePlan(pipeline)
+          .then(plan => (this.stageComponents = getManualExecutionComponents(plan.stages)))
+          .catch(() => getManualExecutionComponents(pipeline.stages));
+      } else {
+        this.stageComponents = getManualExecutionComponents(pipeline.stages);
+      }
+    };
+
+    const getManualExecutionComponents = stages => {
+      const additionalComponents = stages.map(stage => Registry.pipeline.getManualExecutionComponentForStage(stage));
+      return _.uniq(_.compact(additionalComponents));
+    };
+
     /**
      * Controller API
      */
@@ -141,10 +157,7 @@ module.exports = angular
       addTriggers();
       this.triggerUpdated();
 
-      const additionalComponents = pipeline.stages.map(stage =>
-        Registry.pipeline.getManualExecutionComponentForStage(stage),
-      );
-      this.stageComponents = _.uniq(_.compact(additionalComponents));
+      updatePipelinePlan(pipeline);
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         this.parameters = {};
@@ -244,6 +257,19 @@ module.exports = angular
         return [];
       }
       return this.command.pipeline.stages.filter(stage => stage.type === stageType);
+    };
+
+    this.dateOptions = {
+      dateDisabled: false,
+      showWeeks: false,
+      minDate: new Date(),
+      startingDay: 1,
+    };
+
+    this.dateOpened = {};
+
+    this.openDate = parameterName => {
+      this.dateOpened[parameterName] = true;
     };
 
     /**

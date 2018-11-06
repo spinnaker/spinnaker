@@ -16,7 +16,7 @@ module.exports = angular
     securityGroup,
     application,
   ) {
-    var vm = this;
+    const vm = this;
 
     $scope.pages = {
       location: require('../configure/createSecurityGroupProperties.html'),

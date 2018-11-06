@@ -11,7 +11,7 @@ module.exports = angular
     Registry.pipeline.registerStage({
       useBaseProvider: true,
       label: 'Bake',
-      description: 'Bakes an image in the specified region',
+      description: 'Bakes an image',
       key: 'bake',
       restartable: true,
       manualExecutionComponent: ManualExecutionBake,

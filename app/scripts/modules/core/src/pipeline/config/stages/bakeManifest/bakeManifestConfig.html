@@ -1,8 +1,4 @@
 <div class="form-horizontal clearfix" xmlns="http://www.w3.org/1999/html">
-  <div class="alert alert-warning">
-    <strong>Warning!</strong> This stage is under active development and is subject to change.
-  </div>
-
   <div class="container-fluid form-horizontal">
     <h4>Template Renderer</h4>
     <stage-config-field label="Render Engine"
@@ -18,7 +14,9 @@
     <stage-config-field label="Name" field-columns="3">
       <input type="text" class="form-control input-sm"
              ng-model="ctrl.$scope.stage.outputName"
-             ng-change="ctrl.outputNameChange()">
+             ng-change="ctrl.outputNameChange()"
+             ng-class="{'ng-invalid': !ctrl.$scope.stage.outputName}"
+             >
       </input>
     </stage-config-field>
     <stage-config-field label="Namespace" field-columns="3">

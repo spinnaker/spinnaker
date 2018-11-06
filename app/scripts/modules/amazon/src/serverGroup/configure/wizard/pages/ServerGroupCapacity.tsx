@@ -68,4 +68,4 @@ class ServerGroupCapacityImpl extends React.Component<IServerGroupCapacityProps>
   }
 }
 
-export const ServerGroupCapacity = wizardPage<IServerGroupCapacityProps>(ServerGroupCapacityImpl);
+export const ServerGroupCapacity = wizardPage(ServerGroupCapacityImpl);

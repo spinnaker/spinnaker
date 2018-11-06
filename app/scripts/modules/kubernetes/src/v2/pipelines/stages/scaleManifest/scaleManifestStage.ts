@@ -23,7 +23,7 @@ module(KUBERNETES_SCALE_MANIFEST_STAGE, [KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
           { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
-          { type: 'requiredField', fieldName: 'name', fieldLabel: 'manifestName' },
+          { type: 'manifestSelector' },
         ],
       });
     }

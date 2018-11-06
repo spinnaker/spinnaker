@@ -5,4 +5,5 @@ export * from './Keys';
 export * from './notifier/notifier.service';
 export * from './Spinner';
 export * from './spinners/Spinner';
+export * from './ScopeClusterSelector';
 export * from './tags';

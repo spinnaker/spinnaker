@@ -4,7 +4,7 @@ import { API } from 'core/api';
 import { IProject, IProjectCluster } from 'core/domain';
 
 export class ProjectReader {
-  public static listProjects(): IPromise<IProject> {
+  public static listProjects(): IPromise<IProject[]> {
     return API.all('projects').getList();
   }
 

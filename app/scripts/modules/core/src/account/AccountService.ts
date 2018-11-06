@@ -43,6 +43,7 @@ export interface IAccountDetails extends IAccount {
   environment: string;
   primaryAccount: boolean;
   regions: IRegion[];
+  registry?: string;
   namespaces?: string[];
   spinnakerKindMap?: { [k: string]: string };
 }

@@ -8,9 +8,9 @@ import { AccountService, SETTINGS } from '@spinnaker/core';
 module.exports = angular
   .module('spinnaker.gce.instanceType.service', [])
   .factory('gceInstanceTypeService', function($http, $q, $log) {
-    var cachedResult = null;
+    const cachedResult = null;
 
-    var n1standard = {
+    const n1standard = {
       type: 'n1-standard',
       description:
         'This family provides a balance of compute, memory, and network resources, and it is a good choice for general purpose applications.',
@@ -63,7 +63,7 @@ module.exports = angular
       ],
     };
 
-    var f1micro = {
+    const f1micro = {
       type: 'f1-micro bursting',
       description:
         'This family of machine types is a good choice for small, non-resource intensive workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -87,7 +87,7 @@ module.exports = angular
       ],
     };
 
-    var n1highmem = {
+    const n1highmem = {
       type: 'n1-highmem',
       description:
         'High memory machine types are ideal for tasks that require more memory relative to virtual cores. High memory machine types have 6.50GB of RAM per virtual core.',
@@ -133,7 +133,7 @@ module.exports = angular
       ],
     };
 
-    var n1highcpu = {
+    const n1highcpu = {
       type: 'n1-highcpu',
       description:
         'High CPU machine types are ideal for tasks that require more virtual cores relative to memory. High CPU machine types have one virtual core for every 0.90GB of RAM.',
@@ -179,7 +179,7 @@ module.exports = angular
       ],
     };
 
-    var customMachine = {
+    const customMachine = {
       type: 'buildCustom',
       instanceTypes: [
         {
@@ -192,7 +192,7 @@ module.exports = angular
       ],
     };
 
-    var categories = [
+    const categories = [
       {
         type: 'general',
         label: 'General Purpose',
@@ -231,16 +231,16 @@ module.exports = angular
       },
     ];
 
-    let getCategories = _.memoize(() => {
-      let initializedCategories = _.cloneDeep(categories);
+    const getCategories = _.memoize(() => {
+      const initializedCategories = _.cloneDeep(categories);
       return AccountService.getAllAccountDetailsForProvider('gce').then(accountDetails => {
         // All GCE accounts have the same instance type disk defaults, so we can pick the first one.
-        let instanceTypeDisks = _.get(accountDetails, '[0].instanceTypeDisks');
+        const instanceTypeDisks = _.get(accountDetails, '[0].instanceTypeDisks');
         if (instanceTypeDisks) {
-          let families = _.flatten(initializedCategories.map(category => category.families));
+          const families = _.flatten(initializedCategories.map(category => category.families));
           families.forEach(family => {
             family.instanceTypes.forEach(instanceType => {
-              let diskDefaults = instanceTypeDisks.find(
+              const diskDefaults = instanceTypeDisks.find(
                 instanceTypeDisk => instanceTypeDisk.instanceType === instanceType.name,
               );
               if (diskDefaults) {
@@ -323,7 +323,7 @@ module.exports = angular
       return locationToInstanceTypesMap[location].instanceTypes;
     }
 
-    let getAvailableTypesForRegions = getAvailableTypesForLocations;
+    const getAvailableTypesForRegions = getAvailableTypesForLocations;
 
     const resolveInstanceTypeDetails = instanceType => {
       return {

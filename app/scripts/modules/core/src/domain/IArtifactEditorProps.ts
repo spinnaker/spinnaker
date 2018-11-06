@@ -6,4 +6,5 @@ export interface IArtifactEditorProps {
   labelColumns: number;
   fieldColumns: number;
   singleColumn?: boolean;
+  groupClassName?: string;
 }

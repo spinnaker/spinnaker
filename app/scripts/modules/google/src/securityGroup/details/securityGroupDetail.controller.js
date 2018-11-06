@@ -62,7 +62,7 @@ module.exports = angular
             fourOhFour();
           } else {
             $scope.securityGroup = details;
-            let applicationSecurityGroup = securityGroupReader.getApplicationSecurityGroup(
+            const applicationSecurityGroup = securityGroupReader.getApplicationSecurityGroup(
               application,
               securityGroup.accountId,
               securityGroup.region,
@@ -88,7 +88,7 @@ module.exports = angular
               .uniq()
               .value();
 
-            let ipIngress = _.map($scope.securityGroup.ipRangeRules, function(ipRangeRule) {
+            const ipIngress = _.map($scope.securityGroup.ipRangeRules, function(ipRangeRule) {
               return {
                 protocol: ipRangeRule.protocol,
                 portRanges: ipRangeRule.portRanges,
@@ -189,7 +189,7 @@ module.exports = angular
         size: 'lg',
         resolve: {
           securityGroup: function() {
-            var securityGroup = angular.copy($scope.securityGroup);
+            const securityGroup = angular.copy($scope.securityGroup);
             if (securityGroup.region) {
               securityGroup.regions = [securityGroup.region];
             }
@@ -203,12 +203,12 @@ module.exports = angular
     };
 
     this.deleteSecurityGroup = function deleteSecurityGroup() {
-      var taskMonitor = {
+      const taskMonitor = {
         application: application,
         title: 'Deleting ' + securityGroup.name,
       };
 
-      var submitMethod = function() {
+      const submitMethod = function() {
         return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
           cloudProvider: $scope.securityGroup.type,
           securityGroupName: securityGroup.name,

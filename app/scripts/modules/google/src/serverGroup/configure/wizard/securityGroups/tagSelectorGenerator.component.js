@@ -8,7 +8,7 @@ module.exports = angular
     require('./tagManager.service.js').name,
   ])
   .directive('gceTagSelectorGenerator', function($compile, gceTagManager) {
-    let template = `<gce-tag-selector security-group-id="securityGroupId" command="command">
+    const template = `<gce-tag-selector security-group-id="securityGroupId" command="command">
                     </gce-tag-selector>`;
 
     return {
@@ -18,15 +18,15 @@ module.exports = angular
         securityGroupId: '=',
       },
       link: function(scope, element) {
-        let { securityGroupId } = scope;
-        let securityGroupObject = gceTagManager.securityGroupObjectsKeyedById[securityGroupId];
+        const { securityGroupId } = scope;
+        const securityGroupObject = gceTagManager.securityGroupObjectsKeyedById[securityGroupId];
 
         if (securityGroupObject && securityGroupObject.tagsArray.length < 2) {
           securityGroupObject.tagsArray.forEach(tagName => gceTagManager.addTag(tagName));
           return;
         }
 
-        let compiledTemplate = $compile(template)(scope);
+        const compiledTemplate = $compile(template)(scope);
 
         angular
           .element(element)

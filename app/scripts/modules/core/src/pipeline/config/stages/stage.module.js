@@ -3,6 +3,7 @@
 const angular = require('angular');
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { defaultsDeep } from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
@@ -178,6 +179,9 @@ module.exports = angular
           $scope.description = config.description;
           $scope.extendedDescription = config.extendedDescription;
           $scope.label = config.label;
+          if (config.defaults) {
+            defaultsDeep($scope.stage, config.defaults);
+          }
           if (config.useBaseProvider || config.provides) {
             config.templateUrl = require('./baseProviderStage/baseProviderStage.html');
             config.controller = 'BaseProviderStageCtrl as baseProviderStageCtrl';
@@ -187,7 +191,11 @@ module.exports = angular
 
           if (config.component) {
             const StageConfig = config.component;
-            const props = { stageFieldUpdated: $scope.stageFieldUpdated, stage: $scope.stage };
+            const props = {
+              application: $scope.application,
+              stageFieldUpdated: $scope.stageFieldUpdated,
+              stage: $scope.stage,
+            };
             ReactDOM.render(React.createElement(StageConfig, props), stageDetailsNode);
           } else {
             const template = $templateCache.get(config.templateUrl);

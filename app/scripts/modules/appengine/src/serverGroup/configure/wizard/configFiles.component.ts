@@ -1,21 +1,66 @@
-import { IController, module } from 'angular';
+import { module, IController, IScope } from 'angular';
 import { AppengineSourceType } from '../serverGroupCommandBuilder.service';
+import {
+  AccountService,
+  ExpectedArtifactSelectorViewController,
+  NgAppengineConfigArtifactDelegate,
+  IArtifactAccount,
+  IArtifactAccountPair,
+} from '@spinnaker/core';
+
+import './serverGroupWizard.less';
+
+export interface IAppengineConfigFileConfigurerCtrlCommand {
+  configFiles: string[];
+  configArtifacts: ConfigArtifact[];
+  sourceType: string;
+}
 
 class AppengineConfigFileConfigurerCtrl implements IController {
-  public command: { configFiles: string[]; sourceType: string };
+  private artifactAccounts: IArtifactAccount[] = [];
+  public command: IAppengineConfigFileConfigurerCtrlCommand;
+
+  constructor(public $scope: IScope) {}
 
   public $onInit(): void {
     if (!this.command.configFiles) {
       this.command.configFiles = [];
     }
+    if (!this.command.configArtifacts) {
+      this.command.configArtifacts = [];
+    }
+    if (!this.$scope.command) {
+      this.$scope.command = this.command;
+    }
+    this.command.configArtifacts = this.command.configArtifacts.map(artifactAccountPair => {
+      return new ConfigArtifact(this.$scope, artifactAccountPair);
+    });
+    AccountService.getArtifactAccounts().then((accounts: IArtifactAccount[]) => {
+      this.artifactAccounts = accounts;
+      this.command.configArtifacts.forEach((a: ConfigArtifact) => {
+        a.delegate.setAccounts(accounts);
+        a.controller.updateAccounts(a.delegate.getSelectedExpectedArtifact());
+      });
+    });
   }
 
   public addConfigFile(): void {
     this.command.configFiles.push('');
   }
 
+  public addConfigArtifact(): void {
+    const artifact = new ConfigArtifact(this.$scope, { id: '', account: '' });
+    artifact.delegate.setAccounts(this.artifactAccounts);
+    artifact.controller.updateAccounts(artifact.delegate.getSelectedExpectedArtifact());
+    this.command.configArtifacts.push(artifact);
+  }
+
   public deleteConfigFile(index: number): void {
     this.command.configFiles.splice(index, 1);
+  }
+
+  public deleteConfigArtifact(index: number): void {
+    this.command.configArtifacts.splice(index, 1);
   }
 
   public mapTabToSpaces(event: any) {
@@ -33,71 +78,29 @@ class AppengineConfigFileConfigurerCtrl implements IController {
   }
 }
 
+class ConfigArtifact implements IArtifactAccountPair {
+  public $scope: IScope;
+  public controller: ExpectedArtifactSelectorViewController;
+  public delegate: NgAppengineConfigArtifactDelegate;
+  public id: string;
+  public account: string;
+
+  constructor($scope: IScope, artifact = { id: '', account: '' }) {
+    const unserializable = { configurable: false, enumerable: false, writable: false };
+    this.id = artifact.id;
+    this.account = artifact.account;
+    Object.defineProperty(this, '$scope', { ...unserializable, value: $scope });
+    const delegate = new NgAppengineConfigArtifactDelegate(this);
+    const controller = new ExpectedArtifactSelectorViewController(delegate);
+    Object.defineProperty(this, 'delegate', { ...unserializable, value: delegate });
+    Object.defineProperty(this, 'controller', { ...unserializable, value: controller });
+  }
+}
+
 class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
   public bindings: any = { command: '=' };
   public controller: any = AppengineConfigFileConfigurerCtrl;
-  public template = `
-    <div class="form-horizontal container-fluid">
-      <div class="form-group" ng-if="!$ctrl.isContainerImageSource()">
-        <div class="col-md-3 sm-label-right">
-          Application Root
-          <help-field class="help-field-absolute" key="appengine.serverGroup.applicationDirectoryRoot"></help-field>
-        </div>
-        <div class="col-md-7">
-          <input type="text"
-                 class="form-control input-sm"
-                 name="applicationDirectoryRoot"
-                 ng-model="$ctrl.command.applicationDirectoryRoot"/></div>
-      </div>
-
-      <div class="form-group" ng-if="!$ctrl.isContainerImageSource()">
-        <div class="col-md-3 sm-label-right">
-          Config Filepaths <help-field key="appengine.serverGroup.configFilepaths"></help-field>
-        </div>
-        <div class="col-md-7">
-          <ui-select multiple tagging tagging-label="" style="width: 380px;"
-                     name="configFilepaths" ng-model="$ctrl.command.configFilepaths" class="form-control input-sm">
-            <ui-select-match>{{$item}}</ui-select-match>
-            <ui-select-choices repeat="filepath in []">
-              <span ng-bind-html="filepath"></span>
-            </ui-select-choices>
-          </ui-select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="col-md-3 sm-label-right">
-          Config Files
-          <span ng-if="!$ctrl.isContainerImageSource()">
-            <help-field key="appengine.serverGroup.configFiles"></help-field>
-          </span>
-          <span ng-if="$ctrl.isContainerImageSource()">
-            <help-field key="appengine.serverGroup.configFilesRequired"></help-field>
-          </span>
-        </div>
-        <div ng-repeat="configFile in $ctrl.command.configFiles track by $index" >
-          <div class="col-md-7" ng-class="{'col-md-offset-3': $index > 0}" style="margin-top: 5px;">
-            <textarea cols="46" rows="10"
-                      class="small"
-                      spellcheck="false"
-                      ng-keydown="$ctrl.mapTabToSpaces($event)"
-                      style="font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;"
-                      ng-model="$ctrl.command.configFiles[$index]"></textarea>
-          </div>
-          <div class="col-md-1" style="margin-top: 5px;">
-            <button type="button" class="btn btn-sm btn-default" ng-click="$ctrl.deleteConfigFile($index)">
-              <span class="glyphicon glyphicon-trash"></span> Delete
-            </button>
-          </div>
-        </div>
-        <div class="col-md-7" ng-class="{'col-md-offset-3': $ctrl.command.configFiles.length > 0}">
-          <button class="btn btn-block btn-add-trigger add-new" ng-click="$ctrl.addConfigFile()">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add Config File
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
+  public templateUrl = require('./configFiles.component.html');
 }
 
 export const APPENGINE_CONFIG_FILE_CONFIGURER = 'spinnaker.appengine.configFileConfigurer.component';

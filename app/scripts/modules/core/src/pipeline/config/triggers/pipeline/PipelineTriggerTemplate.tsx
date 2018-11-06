@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { get } from 'lodash';
+import { get, has } from 'lodash';
 import { Option } from 'react-select';
 import { IPromise } from 'angular';
 
@@ -126,7 +126,7 @@ export class PipelineTriggerTemplate extends React.Component<
 
   private optionRenderer = (option: Option<string>) => {
     const execution = this.getExecutionFromId(option.value);
-    const scm = execution.buildInfo.scm && execution.buildInfo.scm[0];
+    const scm = has(execution, 'buildInfo.scm[0]') && execution.buildInfo.scm[0];
 
     return (
       <span style={{ fontSize: '12px' }}>

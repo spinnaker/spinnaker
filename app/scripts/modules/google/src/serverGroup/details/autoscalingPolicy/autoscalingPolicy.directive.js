@@ -19,7 +19,7 @@ module.exports = angular
     },
     templateUrl: require('./autoscalingPolicy.directive.html'),
     controller: function($uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
-      let policy = this.policy;
+      const policy = this.policy;
 
       policy.bases = [];
 
@@ -88,7 +88,7 @@ module.exports = angular
       };
 
       this.deletePolicy = () => {
-        let taskMonitor = {
+        const taskMonitor = {
           application: this.application,
           title: `Deleting autoscaler for ${this.serverGroup.name}`,
         };

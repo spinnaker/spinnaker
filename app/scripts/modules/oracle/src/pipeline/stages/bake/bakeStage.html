@@ -13,12 +13,8 @@
     </stage-config-field>
 
     <stage-config-field label="Region" help-key="oracle.pipeline.config.bake.regions">
-        <region-select-field component="stage"
-                             field="region"
-                             account="stage.accountName"
-                             regions="regions"
-                             provider="'oracle'">
-        </region-select-field>
+        <input type="text" class="form-control input-sm" ng-readonly="true"
+               ng-model="stage.region"/>
     </stage-config-field>
 
     <stage-config-field label="Base Image" , help-key="oracle.pipeline.config.bake.baseOsOption">
@@ -45,8 +41,7 @@
     <stage-config-field label="Rebake" help-key="execution.forceRebake">
         <div class="checkbox" style="margin-bottom: 0">
             <label>
-                <input type="checkbox" ng-model="stage.rebake">
-                </input>
+                <input type="checkbox" ng-model="stage.rebake"/>
                 Rebake image without regard to the status of any existing bake
             </label>
         </div>
@@ -55,7 +50,7 @@
         <div class="col-md-9 col-md-offset-1">
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" ng-model="stage.showAdvancedOptions">
+                    <input type="checkbox" ng-model="stage.showAdvancedOptions"/>
                     <strong>Show Advanced Options</strong>
                 </label>
             </div>
@@ -77,5 +72,4 @@
             </label>
         </stage-config-field>
     </div>
-</div>
 </div>

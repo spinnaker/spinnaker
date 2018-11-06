@@ -1,9 +1,13 @@
 import * as React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
+import {
+  ExecutionDetailsSection,
+  IExecutionDetailsSectionProps,
+  StageExecutionLogs,
+  StageFailureMessage,
+} from 'core/pipeline';
 import { HelpField } from 'core/help/HelpField';
 import { AccountTag } from 'core/account';
-import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 
 export function RollbackClusterExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;

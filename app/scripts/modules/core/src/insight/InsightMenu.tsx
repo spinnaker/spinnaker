@@ -5,7 +5,7 @@ import { StateService } from '@uirouter/core';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import { Application } from 'core/application';
-import { IProject } from 'core/domain';
+import { ConfigureProjectModal } from 'core/projects';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
 import { OverrideRegistry } from 'core/overrideRegistry';
 import { CacheInitializerService } from 'core/cache';
@@ -39,27 +39,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     this.cacheInitializer = ReactInjector.cacheInitializer;
   }
 
-  private createProject = () => {
-    this.$uibModal
-      .open({
-        scope: this.$rootScope.$new(),
-        templateUrl: require('../projects/configure/configureProject.modal.html'),
-        controller: 'ConfigureProjectModalCtrl',
-        controllerAs: 'ctrl',
-        size: 'lg',
-        resolve: {
-          projectConfig: () => {
-            return {};
-          },
-        },
-      })
-      .result.then(this.routeToProject)
-      .catch(() => {});
-  };
-
-  private routeToProject = (project: IProject) => {
-    this.$state.go('home.project.dashboard', { project: project.name });
-  };
+  private createProject = () => ConfigureProjectModal.show().catch(() => {});
 
   private createApplication = () => {
     this.$uibModal

@@ -1,0 +1,22 @@
+<div ng-controller="CloudfoundryDestroyServiceStageCtrl as ctrl" class="form-horizontal">
+  <stage-config-field label="Account">
+    <account-select-field component="stage"
+                          field="credentials"
+                          provider="cloudfoundry"
+                          on-change="onAccountChange()"
+                          accounts="accounts">
+    </account-select-field>
+  </stage-config-field>
+  <region-select-field label-columns="3"
+                       component="stage"
+                       field="region"
+                       account="stage.credentials"
+                       provider="cloudfoundry"
+                       regions="regions">
+  </region-select-field>
+  <stage-config-field label="Service Name">
+    <input type="text"
+           required
+           ng-model="stage.serviceName"/>
+  </stage-config-field>
+</div>

@@ -32,6 +32,10 @@
         <dd class="ng-binding">{{ctrl.stage.status}}</dd>
         <dt>Info</dt>
         <dd class="ng-binding">{{ctrl.stage.context.progressMessage}}</dd>
+        <dt>Code</dt>
+        <dd class="ng-binding">{{ctrl.stage.context.webhook.statusCodeValue}}</dd>
+        <dt>Response</dt>
+        <dd class="ng-binding" style="max-height:400px;overflow-y:auto;">{{ctrl.stage.context.webhook.body}}</dd>
       </dl>
     </div>
   </div>

@@ -29,6 +29,7 @@ module.exports = angular
     };
   })
   .controller('TriggerCtrl', function($scope, $element, $compile, $controller, $templateCache) {
+    let reactComponentMounted;
     var triggerTypes = Registry.pipeline.getTriggerTypes();
     $scope.options = triggerTypes;
     this.disableAutoTriggering = SETTINGS.disableAutoTriggering || [];
@@ -48,6 +49,12 @@ module.exports = angular
 
     this.loadTrigger = () => {
       const triggerBodyNode = $element.find('.trigger-body').get(0);
+
+      // clear existing contents
+      if (reactComponentMounted) {
+        ReactDOM.unmountComponentAtNode(triggerBodyNode);
+        reactComponentMounted = false;
+      }
 
       var type = $scope.trigger.type,
         triggerScope = $scope.$new();
@@ -78,12 +85,12 @@ module.exports = angular
               if (config.controllerAs) {
                 triggerScope[config.controllerAs] = controller;
               }
+              var templateBody = $compile(template)(triggerScope);
+              $element.find('.trigger-body').html(templateBody);
             }
-
-            var templateBody = $compile(template)(triggerScope);
-            $element.find('.trigger-body').html(templateBody);
           }
           $scope.description = config.description;
+          reactComponentMounted = !!config.component;
         }
       }
     };

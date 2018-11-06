@@ -89,7 +89,7 @@ export class ConfigureOidcConfigModal extends React.Component<
 
     return (
       <div>
-        <Formik<{}, IAuthenticateOidcActionConfig>
+        <Formik<IAuthenticateOidcActionConfig>
           initialValues={initialValues}
           onSubmit={this.submit}
           validate={this.validate}

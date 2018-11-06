@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Option } from 'react-select';
-import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, wizardPage, HelpField, TetheredSelect, ReactInjector } from '@spinnaker/core';
 
@@ -21,7 +20,10 @@ const stringToOption = (value: string): Option<string> => {
   return { value, label: value };
 };
 
-class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBalancersProps, IServerGroupLoadBalancersState > {
+class ServerGroupLoadBalancersImpl extends React.Component<
+  IServerGroupLoadBalancersProps,
+  IServerGroupLoadBalancersState
+> {
   public static LABEL = 'Load Balancers';
 
   public state = {
@@ -31,7 +33,7 @@ class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBala
   };
 
   public validate(_values: IAmazonServerGroupCommand) {
-    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
+    const errors = {} as any;
     // TODO: check if this is correct, or if we should use the 'values' argument
     const { values } = this.props.formik;
 
@@ -101,7 +103,11 @@ class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBala
                   <i className="fa fa-exclamation-triangle" />
                   The following target groups could not be found in the selected account/region/VPC and were removed:
                 </p>
-                <ul>{dirty.targetGroups.map(tg => <li key={tg}>{tg}</li>)}</ul>
+                <ul>
+                  {dirty.targetGroups.map(tg => (
+                    <li key={tg}>{tg}</li>
+                  ))}
+                </ul>
                 <p className="text-right">
                   <a
                     className="btn btn-sm btn-default dirty-flag-dismiss clickable"
@@ -154,7 +160,11 @@ class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBala
                   <i className="fa fa-exclamation-triangle" />
                   The following load balancers could not be found in the selected account/region/VPC and were removed:
                 </p>
-                <ul>{dirty.loadBalancers.map(lb => <li key={lb}>{lb}</li>)}</ul>
+                <ul>
+                  {dirty.loadBalancers.map(lb => (
+                    <li key={lb}>{lb}</li>
+                  ))}
+                </ul>
                 <p className="text-right">
                   <a
                     className="btn btn-sm btn-default dirty-flag-dismiss clickable"
@@ -250,4 +260,4 @@ class ServerGroupLoadBalancersImpl extends React.Component< IServerGroupLoadBala
   }
 }
 
-export const ServerGroupLoadBalancers = wizardPage<IServerGroupLoadBalancersProps>(ServerGroupLoadBalancersImpl);
+export const ServerGroupLoadBalancers = wizardPage(ServerGroupLoadBalancersImpl);

@@ -1,6 +1,6 @@
-<ui-select ng-model="model.target" class="form-control input-sm">
+<ui-select ng-model="$ctrl.model.target" on-select="$ctrl.onChange($ctrl.model.target)" class="form-control input-sm">
   <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
-  <ui-select-choices repeat="r.val as r in options ">
+  <ui-select-choices repeat="r.val as r in $ctrl.options ">
     <strong ng-bind-html="r.label | highlight: $select.search"></strong>
     <div ng-bind-html="r.description"></div>
   </ui-select-choices>

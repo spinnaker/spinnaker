@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { $timeout } from 'ngimport';
 import { IPromise } from 'angular';
 import { Subscription } from 'rxjs';
 import { find, flatten, uniq, without } from 'lodash';
@@ -12,9 +11,8 @@ import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCom
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
 import { ExecutionState } from 'core/state';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { IRetryablePromise } from 'core/utils/retryablePromise';
 
-import { SETTINGS } from 'core';
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
 import { ModalInjector, ReactInjector } from 'core/reactShims';
@@ -34,7 +32,7 @@ export interface IExecutionGroupState {
   pipelineConfig: IPipeline;
   triggeringExecution: boolean;
   open: boolean;
-  poll: IPromise<any>;
+  poll: IRetryablePromise<any>;
   canTriggerPipelineManually: boolean;
   canConfigure: boolean;
   showAccounts: boolean;
@@ -115,28 +113,13 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   private startPipeline(command: IPipelineCommand): IPromise<void> {
     const { executionService } = ReactInjector;
     this.setState({ triggeringExecution: true });
-
-    let triggerFunction: (app: string, pipeline: string, trigger: any) => IPromise<string>;
-    let monitorFunction: (id: string) => IPromise<any>;
-    if (SETTINGS.feature.triggerViaEcho) {
-      triggerFunction = PipelineConfigService.triggerPipelineViaEcho.bind(PipelineConfigService);
-      monitorFunction = eventId => executionService.waitUntilPipelineAppearsForEventId(this.props.application, eventId);
-    } else {
-      triggerFunction = PipelineConfigService.triggerPipeline.bind(PipelineConfigService);
-      monitorFunction = newPipelineId =>
-        executionService.waitUntilNewTriggeredPipelineAppears(this.props.application, newPipelineId);
-    }
-
-    return triggerFunction(this.props.application.name, command.pipelineName, command.trigger).then(
-      triggerResult => {
-        const monitor = monitorFunction(triggerResult);
-        monitor.then(() => this.setState({ triggeringExecution: false }));
+    return executionService.startAndMonitorPipeline(this.props.application, command.pipelineName, command.trigger).then(
+      monitor => {
         this.setState({ poll: monitor });
+        monitor.promise.then(() => this.setState({ triggeringExecution: false }));
       },
       () => {
-        const monitor = this.props.application.executions.refresh();
-        monitor.then(() => this.setState({ triggeringExecution: false }));
-        this.setState({ poll: monitor });
+        this.props.application.executions.refresh().then(() => this.setState({ triggeringExecution: false }));
       },
     );
   }
@@ -174,7 +157,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
   public componentWillUnmount(): void {
     if (this.state.poll) {
-      $timeout.cancel(this.state.poll);
+      this.state.poll.cancel();
     }
     if (this.expandUpdatedSubscription) {
       this.expandUpdatedSubscription.unsubscribe();

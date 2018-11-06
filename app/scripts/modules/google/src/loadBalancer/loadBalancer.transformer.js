@@ -61,7 +61,7 @@ module.exports = angular
         });
         updateHealthCounts(serverGroup);
       });
-      var activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
+      const activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = _.chain(activeServerGroups)
         .map('instances')
@@ -80,7 +80,7 @@ module.exports = angular
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
-      var toEdit = {
+      const toEdit = {
         provider: 'gce',
         region: loadBalancer.region,
         credentials: loadBalancer.account,
@@ -96,7 +96,7 @@ module.exports = angular
 
         if (elb.listenerDescriptions) {
           toEdit.listeners = elb.listenerDescriptions.map(function(description) {
-            var listener = description.listener;
+            const listener = description.listener;
             return {
               protocol: listener.protocol,
               portRange: listener.loadBalancerPort,
@@ -112,7 +112,7 @@ module.exports = angular
           toEdit.unhealthyThreshold = elb.healthCheck.unhealthyThreshold;
 
           var healthCheck = loadBalancer.elb.healthCheck.target;
-          var protocolIndex = healthCheck.indexOf(':'),
+          const protocolIndex = healthCheck.indexOf(':'),
             pathIndex = healthCheck.indexOf('/');
 
           if (protocolIndex !== -1 && pathIndex !== -1) {

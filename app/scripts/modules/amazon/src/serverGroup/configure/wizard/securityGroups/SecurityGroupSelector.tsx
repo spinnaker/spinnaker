@@ -2,9 +2,14 @@ import * as React from 'react';
 import { Option } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 
-import { FirewallLabels, HelpField, timestamp, ISecurityGroup, InfrastructureCaches } from '@spinnaker/core';
-
-import { AwsReactInjector } from 'amazon/reactShims';
+import {
+  FirewallLabels,
+  HelpField,
+  timestamp,
+  ISecurityGroup,
+  InfrastructureCaches,
+  ReactInjector,
+} from '@spinnaker/core';
 
 import { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
@@ -37,9 +42,17 @@ export class SecurityGroupSelector extends React.Component<ISecurityGroupSelecto
     if (this.props.refresh) {
       this.props.refresh().then(() => this.setState({ refreshing: false }));
     } else {
-      AwsReactInjector.awsServerGroupConfigurationService.refreshSecurityGroups(this.props.command).then(() => {
-        this.setState({ refreshing: false, refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax });
-      });
+      (ReactInjector.providerServiceDelegate.getDelegate(
+        this.props.command.selectedProvider,
+        'serverGroup.configurationService',
+      ) as any)
+        .refreshSecurityGroups(this.props.command)
+        .then(() => {
+          this.setState({
+            refreshing: false,
+            refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
+          });
+        });
     }
   };
 

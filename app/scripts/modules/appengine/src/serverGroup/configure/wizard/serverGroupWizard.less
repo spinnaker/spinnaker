@@ -1,6 +1,6 @@
 .appengine-server-group-wizard {
-  input[type="checkbox"] {
-    margin-top: .75rem;
+  input[type='checkbox'] {
+    margin-top: 0.75rem;
   }
 
   help-field.help-field-absolute {
@@ -8,6 +8,21 @@
       position: absolute;
       top: 7px;
       right: 2px;
+    }
+  }
+
+  .artifact-configuration-section {
+    border-bottom: 1px solid #eee;
+    padding: 0 0 4px 0;
+    margin: 0 0 5px 0;
+
+    &.last-entry {
+      border-bottom: none;
+    }
+
+    .Select,
+    input {
+      margin: 0 0 1px;
     }
   }
 }

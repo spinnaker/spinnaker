@@ -41,8 +41,8 @@ module.exports = angular
 
     this.showLoadBalancingPolicy = () => {
       if (_.has(this, 'command.backingData.filtered.loadBalancerIndex')) {
-        let index = this.command.backingData.filtered.loadBalancerIndex;
-        let selected = this.command.loadBalancers;
+        const index = this.command.backingData.filtered.loadBalancerIndex;
+        const selected = this.command.loadBalancers;
 
         return (
           angular.isDefined(selected) &&

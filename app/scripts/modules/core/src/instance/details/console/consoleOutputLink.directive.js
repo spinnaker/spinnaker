@@ -4,6 +4,8 @@ const angular = require('angular');
 
 import { InstanceTemplates } from 'core/instance/templates';
 
+import './consoleOutput.modal.less';
+
 module.exports = angular
   .module('spinnaker.core.instance.details.console.link', [
     require('angular-ui-bootstrap'),
@@ -17,10 +19,12 @@ module.exports = angular
       bindToController: {
         instance: '=',
         text: '=?',
+        usesMultiOutput: '=?',
       },
       controllerAs: 'vm',
       controller: function($uibModal) {
         this.text = this.text || 'Console Output (Raw)';
+        this.usesMultiOutput = this.usesMultiOutput || false;
         this.showConsoleOutput = function() {
           $uibModal.open({
             templateUrl: InstanceTemplates.consoleOutputModal,
@@ -28,6 +32,7 @@ module.exports = angular
             size: 'lg modal-fullscreen',
             resolve: {
               instance: () => this.instance,
+              usesMultiOutput: () => this.usesMultiOutput,
             },
           });
         };

@@ -21,7 +21,7 @@ module.exports = angular
       ingress: require('./createSecurityGroupIngress.html'),
     };
 
-    var ctrl = this;
+    const ctrl = this;
 
     securityGroup.backingData = {};
     securityGroup.network = 'default';

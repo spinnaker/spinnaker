@@ -33,6 +33,8 @@ import { IMetricAlarmDescriptor } from '../../metricAlarm/MetricAlarm';
 import { PlacementStrategyService } from '../../placementStrategy/placementStrategy.service';
 import { IPlacementStrategy } from '../../placementStrategy/IPlacementStrategy';
 import { IEcsClusterDescriptor } from '../../ecsCluster/IEcsCluster';
+import { SecretReader } from '../../secrets/secret.read.service';
+import { ISecretDescriptor } from '../../secrets/ISecret';
 
 export interface IEcsServerGroupCommandDirty extends IServerGroupCommandDirty {
   targetGroup?: string;
@@ -49,6 +51,7 @@ export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupC
   metricAlarms: IMetricAlarmDescriptor[];
   subnetTypes: string[];
   securityGroupNames: string[];
+  secrets: string[];
 }
 
 export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBackingData {
@@ -60,6 +63,7 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   launchTypes: string[];
   // subnetTypes: string;
   // securityGroups: string[]
+  secrets: ISecretDescriptor[];
 }
 
 export interface IEcsServerGroupCommand extends IServerGroupCommand {
@@ -91,6 +95,7 @@ export class EcsServerGroupConfigurationService {
     private metricAlarmReader: MetricAlarmReader,
     private placementStrategyService: PlacementStrategyService,
     private securityGroupReader: SecurityGroupReader,
+    private secretReader: SecretReader,
   ) {
     'ngInject';
   }
@@ -142,6 +147,7 @@ export class EcsServerGroupConfigurationService {
         metricAlarms: this.metricAlarmReader.listMetricAlarms(),
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
         launchTypes: this.$q.when(clone(this.launchTypes)),
+        secrets: this.secretReader.listSecrets(),
       })
       .then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
         let loadBalancerReloader = this.$q.when();
@@ -154,6 +160,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableSecurityGroups(cmd);
         this.configureAvailableMetricAlarms(cmd);
         this.configureAvailableEcsClusters(cmd);
+        this.configureAvailableSecrets(cmd);
 
         if (cmd.loadBalancers && cmd.loadBalancers.length) {
           // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
@@ -262,6 +269,16 @@ export class EcsServerGroupConfigurationService {
 
   public configureAvailableEcsClusters(command: IEcsServerGroupCommand): void {
     command.backingData.filtered.ecsClusters = chain(command.backingData.ecsClusters)
+      .filter({
+        account: command.credentials,
+        region: command.region,
+      })
+      .map('name')
+      .value();
+  }
+
+  public configureAvailableSecrets(command: IEcsServerGroupCommand): void {
+    command.backingData.filtered.secrets = chain(command.backingData.secrets)
       .filter({
         account: command.credentials,
         region: command.region,
@@ -421,6 +438,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableEcsClusters(command);
         this.configureAvailableSubnetTypes(command);
         this.configureAvailableSecurityGroups(command);
+        this.configureAvailableSecrets(command);
       }
 
       return result;
@@ -441,6 +459,7 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableEcsClusters(command);
         this.configureAvailableSubnetTypes(command);
         this.configureAvailableSecurityGroups(command);
+        this.configureAvailableSecrets(command);
 
         const regionsForAccount: IAccountDetails =
           backingData.credentialsKeyedByAccount[command.credentials] || ({ regions: [] } as IAccountDetails);

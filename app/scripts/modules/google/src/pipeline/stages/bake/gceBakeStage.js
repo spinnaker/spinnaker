@@ -21,7 +21,7 @@ module.exports = angular
       provides: 'bake',
       cloudProvider: 'gce',
       label: 'Bake',
-      description: 'Bakes an image in the specified region',
+      description: 'Bakes an image',
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       executionLabelComponent: BakeExecutionLabel,
@@ -84,7 +84,7 @@ module.exports = angular
     }
 
     function showAdvanced() {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
       return !!(
         stage.templateFileName ||
         (stage.extendedAttributes && _.size(stage.extendedAttributes) > 0) ||

@@ -12,4 +12,8 @@ export class KubernetesV2UndoRolloutManifestConfigCtrl implements IController {
       });
     }
   }
+
+  public handleManifestSelectorChange = (): void => {
+    this.$scope.$applyAsync();
+  };
 }

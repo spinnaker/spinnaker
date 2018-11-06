@@ -48,7 +48,7 @@ describe('Directive: GCE Group Advanced Settings Selector', function() {
     this.scope.command.tags.push({ value: 'myTag1' }, { value: 'myTag2' });
     this.scope.$apply();
 
-    var removeLinks = this.elem.find('table.tags a');
+    const removeLinks = this.elem.find('table.tags a');
     expect(removeLinks.length).toEqual(2);
 
     $(removeLinks[0]).trigger('click');

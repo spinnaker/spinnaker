@@ -43,6 +43,18 @@
 
       <div class="row">
         <div class="col-sm-11 col-sm-offset-1">
+          Wait
+          <input placeholder="0"
+                 min="0"
+                 type="number"
+                 ng-model="command.rollbackContext.delayBeforeDisableSeconds"
+                 class="form-control input-sm inline-number">
+          seconds before disabling <em>{{ ctrl.label(serverGroup) }}</em>.
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-11 col-sm-offset-1">
           Consider rollback successful when
           <input type="number"
                  min="0"
@@ -96,7 +108,7 @@
                 instances to report as healthy
               </li>
             </li>
-            <li>Disable {{ serverGroup.name }}</li>
+            <li>Disable <em>{{ serverGroup.name }}</em></li>
             <li>Restore minimum capacity of <em>new server group</em> [
               <strong>min</strong>: {{ serverGroup.capacity.min }}
               ]</li>

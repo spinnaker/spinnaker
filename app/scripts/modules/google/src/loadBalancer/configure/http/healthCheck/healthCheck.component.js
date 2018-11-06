@@ -18,7 +18,7 @@ module.exports = angular
       this.max = Number.MAX_SAFE_INTEGER;
       this.backingData = this.command.backingData;
       this.loadBalancer = this.command.loadBalancer;
-      let healthChecksByName = this.backingData.healthChecksKeyedByName;
+      const healthChecksByName = this.backingData.healthChecksKeyedByName;
 
       this.onHealthCheckSelect = selectedHealthCheck => {
         assign(selectedHealthCheck);
@@ -39,11 +39,11 @@ module.exports = angular
         }
       };
 
-      let assign = toAssign => {
+      const assign = toAssign => {
         this.loadBalancer.healthChecks[this.index] = this.healthCheck = toAssign;
       };
 
-      let getHealthCheckName = () => {
+      const getHealthCheckName = () => {
         return _.get(this, 'healthCheck.name');
       };
 

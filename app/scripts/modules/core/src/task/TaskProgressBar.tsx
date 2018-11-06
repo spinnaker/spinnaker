@@ -58,7 +58,7 @@ export function TaskProgressBar(props: ITaskProgressBarProps) {
   });
   const progressBar = (
     <div className="progress">
-      <div className={progressBarClassName} style={{ width: `${stepsComplete.length / steps.length * 100}%` }} />
+      <div className={progressBarClassName} style={{ width: `${10 + (stepsComplete.length / steps.length) * 90}%` }} />
     </div>
   );
 

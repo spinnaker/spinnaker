@@ -3,7 +3,7 @@
 describe('Service: gceInstanceTypeService', function() {
   //NOTE: This is only testing the service dependencies. Please add more tests.
 
-  var gceInstanceTypeService;
+  let gceInstanceTypeService;
 
   beforeEach(window.module(require('./gceInstanceType.service').name));
 

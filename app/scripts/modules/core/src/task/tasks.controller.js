@@ -149,22 +149,6 @@ module.exports = angular
       });
     };
 
-    controller.deleteTask = function(taskId) {
-      var task = application.tasks.data.filter(function(task) {
-        return task.id === taskId;
-      })[0];
-      var submitMethod = function() {
-        return TaskWriter.deleteTask(taskId).then(() => application.tasks.refresh());
-      };
-
-      confirmationModalService.confirm({
-        header: 'Really delete history for ' + task.name + '?',
-        body: '<p>This will permanently delete the task history.</p>',
-        buttonText: 'Delete',
-        submitMethod: submitMethod,
-      });
-    };
-
     /**
      * Pagination - largely copied from applications.controller.js
      */

@@ -1,0 +1,54 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-12">
+      <table class="table table-condensed packed">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Certificate</th>
+            <th>CA Cert</th>
+            <th>Private Key</th>
+            <th>Passphrase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="cert in ctrl.certificates">
+            <td>
+              <input class="form-control input-sm" ng-model="cert.certificateName" required
+                     ng-focus="prevCertNames[$index] = cert.name"
+                     ng-blur="ctrl.certNameChanged($index)"/>
+            </td>
+            <td>
+              <textarea ng-model="cert.publicCertificate" required
+                        class="form-control input-sm"></textarea>
+            </td>
+            <td>
+              <textarea ng-model="cert.caCertificate"
+                        class="form-control input-sm"></textarea>
+            </td>
+            <td>
+              <textarea ng-model="cert.privateKey" required
+                        class="form-control input-sm"></textarea>
+            </td>
+            <td>
+              <textarea ng-model="cert.passphrase"
+                        class="form-control input-sm"></textarea>
+            </td>
+            <td><a href class="sm-label" ng-click="ctrl.removeCert($index)"><span
+              class="glyphicon glyphicon-trash"></span></a></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">
+              <button class="add-new col-md-12" ng-click="ctrl.addCert()"><span class="glyphicon glyphicon-plus-sign"></span>
+                Add Certificate
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+    </div>
+  </div>
+</div>

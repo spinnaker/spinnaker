@@ -8,12 +8,14 @@ import {
   IServerGroup,
   SERVER_GROUP_WRITER,
   ServerGroupReader,
+  ConfirmationModalService,
 } from '@spinnaker/core';
 
 import { IKubernetesServerGroup } from './IKubernetesServerGroup';
 import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
 import { KubernetesManifestCommandBuilder } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
+import { ManifestTrafficService } from 'kubernetes/v2/manifest/traffic/ManifestTrafficService';
 
 interface IServerGroupFromStateParams {
   accountId: string;
@@ -31,6 +33,7 @@ class KubernetesServerGroupDetailsController implements IController {
     public app: Application,
     private $uibModal: IModalService,
     private $scope: IScope,
+    private confirmationModalService: ConfirmationModalService,
   ) {
     'ngInject';
 
@@ -51,6 +54,8 @@ class KubernetesServerGroupDetailsController implements IController {
       .ready()
       .then(() => this.extractServerGroup(serverGroup))
       .catch(() => this.autoClose());
+
+    this.app.getDataSource('serverGroups').onRefresh(this.$scope, () => this.extractServerGroup(serverGroup));
   }
 
   private ownerReferences(): any[] {
@@ -136,6 +141,40 @@ class KubernetesServerGroupDetailsController implements IController {
       },
     });
   }
+
+  public canDisable = () => ManifestTrafficService.canDisableServerGroup(this.serverGroup);
+
+  public disableServerGroup = (): void => {
+    this.confirmationModalService.confirm({
+      header: `Really disable ${this.manifest.name}?`,
+      buttonText: 'Disable',
+      askForReason: true,
+      submitJustWithReason: true,
+      submitMethod: ({ reason }: { reason: string }) => ManifestTrafficService.disable(this.manifest, this.app, reason),
+      taskMonitorConfig: {
+        application: this.app,
+        title: `Disabling ${this.manifest.name}`,
+        onTaskComplete: () => this.app.getDataSource('serverGroups').refresh(),
+      },
+    });
+  };
+
+  public canEnable = () => ManifestTrafficService.canEnableServerGroup(this.serverGroup);
+
+  public enableServerGroup = (): void => {
+    this.confirmationModalService.confirm({
+      header: `Really enable ${this.manifest.name}?`,
+      buttonText: 'Enable',
+      askForReason: true,
+      submitJustWithReason: true,
+      submitMethod: ({ reason }: { reason: string }) => ManifestTrafficService.enable(this.manifest, this.app, reason),
+      taskMonitorConfig: {
+        application: this.app,
+        title: `Enabling ${this.manifest.name}`,
+        onTaskComplete: () => this.app.getDataSource('serverGroups').refresh(),
+      },
+    });
+  };
 
   private autoClose(): void {
     return;

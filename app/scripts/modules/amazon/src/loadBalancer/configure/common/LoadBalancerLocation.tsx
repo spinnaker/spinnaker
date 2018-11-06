@@ -5,6 +5,7 @@ import { chain, find, isEqual, isNil, trimEnd, uniq } from 'lodash';
 import { Field, FormikErrors } from 'formik';
 
 import {
+  AccountSelectField,
   AccountService,
   Application,
   HelpField,
@@ -14,7 +15,6 @@ import {
   ISubnet,
   IWizardPageProps,
   NameUtils,
-  NgReact,
   RegionSelectField,
   Spinner,
   SubnetReader,
@@ -271,7 +271,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
 
   private accountUpdated = (account: string): void => {
     this.props.formik.setFieldValue('credentials', account);
-    AccountService.getRegionsForAccount(this.props.formik.values.credentials).then(regions => {
+    AccountService.getRegionsForAccount(account).then(regions => {
       const availabilityZones = this.getAvailabilityZones(regions);
       this.setState({ availabilityZones, regions });
       this.updateExistingLoadBalancerNames();
@@ -311,7 +311,6 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     const { app } = this.props;
     const { errors, values } = this.props.formik;
     const { accounts, availabilityZones, hideInternalFlag, regions, subnets } = this.state;
-    const { AccountSelectField } = NgReact;
     const { SubnetSelectField } = AwsNgReact;
 
     const className = classNames({
@@ -436,4 +435,4 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
   }
 }
 
-export const LoadBalancerLocation = wizardPage<ILoadBalancerLocationProps>(LoadBalancerLocationImpl);
+export const LoadBalancerLocation = wizardPage(LoadBalancerLocationImpl);

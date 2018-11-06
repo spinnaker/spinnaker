@@ -1,8 +1,8 @@
 'use strict';
 
 describe('Controller: gceServerGroupDetailsCtrl', function() {
-  var controller;
-  var scope;
+  let controller;
+  let scope;
 
   beforeEach(window.module(require('./serverGroupDetails.gce.controller').name));
 

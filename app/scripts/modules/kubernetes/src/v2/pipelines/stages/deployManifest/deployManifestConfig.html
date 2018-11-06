@@ -1,8 +1,4 @@
 <div ng-if="ctrl.state.loaded" class="clearfix">
-  <div class="alert alert-warning">
-    <strong>Warning!</strong> This stage is under active development and is subject to change.
-  </div>
-
   <div class="container-fluid form-horizontal">
     <h4>Basic Settings</h4>
     <kubernetes-manifest-basic-settings command="ctrl.$scope.stage"
@@ -14,12 +10,15 @@
       <stage-config-field label="Manifest Source" help-key="kubernetes.manifest.source">
         <label class="sm-label-right">
           <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}">
-          {{ ctrl.textSource | robotToHuman }} -
-          <kubernetes-copy-from-template-button
-            application="application"
-            handle-copy="ctrl.handleCopy"
-          >
+          {{ ctrl.textSource | robotToHuman }}
+          <span ng-if="stage.source === ctrl.textSource">
+            -
+            <kubernetes-copy-from-template-button
+              application="application"
+              handle-copy="ctrl.handleCopy"
+            >
           </kubernetes-copy-from-template-button>
+          </span>
         </label><br/>
         <label class="sm-label-right">
           <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}">
@@ -50,7 +49,7 @@
         >
       </artifact-account-selector-react>
     </stage-config-field>
-    <expected-artifact-editor-react ng-if="ctrl.$scope.showCreateArtifactForm"
+    <expected-artifact-editor-react ng-if="stage.source === ctrl.artifactSource && ctrl.$scope.showCreateArtifactForm"
                                     kinds="ctrl.manifestArtifactDelegate.getSupportedArtifactKinds()"
                                     sources="ctrl.manifestArtifactDelegate.getExpectedArtifactSources()"
                                     accounts="ctrl.manifestArtifactDelegate.getExpectedArtifactAccounts()"

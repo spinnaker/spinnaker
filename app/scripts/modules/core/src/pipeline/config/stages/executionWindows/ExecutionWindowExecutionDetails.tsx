@@ -1,7 +1,11 @@
 import * as React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
-import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
+import {
+  ExecutionDetailsSection,
+  IExecutionDetailsSectionProps,
+  StageExecutionLogs,
+  StageFailureMessage,
+} from 'core/pipeline';
 import { ExecutionWindowActions } from './ExecutionWindowActions';
 
 export function ExecutionWindowExecutionDetails(props: IExecutionDetailsSectionProps) {

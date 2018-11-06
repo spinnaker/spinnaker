@@ -1,36 +1,56 @@
 import * as React from 'react';
 import { FormikErrors } from 'formik';
+import { dump } from 'js-yaml';
 
 import { IWizardPageProps, wizardPage, Application } from '@spinnaker/core';
 
-import { YamlEditor } from 'kubernetes/v2/manifest/yaml/YamlEditor';
+import { YamlEditor } from 'kubernetes/v2/manifest/editor/yaml/YamlEditor';
 import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 
-export interface IServerGroupBasicSettingsProps extends IWizardPageProps<IKubernetesManifestCommandData> {
+export interface IManifestBasicSettingsProps extends IWizardPageProps<IKubernetesManifestCommandData> {
   app: Application;
 }
 
-class ManifestEntryImpl extends React.Component<IServerGroupBasicSettingsProps> {
+export interface IManifestBasicSettingsState {
+  rawManifest: string;
+}
+
+class ManifestEntryImpl extends React.Component<IManifestBasicSettingsProps, IManifestBasicSettingsState> {
   public static LABEL = 'Manifest';
+
+  constructor(props: IManifestBasicSettingsProps) {
+    super(props);
+
+    const { values } = this.props.formik;
+    const [first = null, ...rest] = values.command.manifests || [];
+    const manifest = rest && rest.length ? values.command.manifests : first;
+    try {
+      this.state = {
+        rawManifest: manifest ? dump(manifest) : null,
+      };
+    } catch (e) {
+      this.state = { rawManifest: null };
+    }
+  }
 
   public validate = (_values: IKubernetesManifestCommandData) => {
     return {} as FormikErrors<IKubernetesManifestCommandData>;
   };
 
-  private handleChange = (manifests: any) => {
+  private handleChange = (rawManifest: string, manifest: any) => {
     const { values } = this.props.formik;
     if (!values.command.manifests) {
       values.command.manifests = [];
     }
-    Object.assign(values.command.manifests, Array.isArray(manifests) ? manifests : [manifests]);
+    if (manifest) {
+      values.command.manifests = Array.isArray(manifest) ? manifest : [manifest];
+    }
+    this.setState({ rawManifest });
   };
 
   public render() {
-    const { values } = this.props.formik;
-    const [first = null, ...rest] = values.command.manifests || [];
-    const manifest = rest && rest.length ? values.command.manifests : first;
-    return <YamlEditor value={manifest} onChange={this.handleChange} />;
+    return <YamlEditor value={this.state.rawManifest} onChange={this.handleChange} />;
   }
 }
 
-export const ManifestEntry = wizardPage<IServerGroupBasicSettingsProps>(ManifestEntryImpl);
+export const ManifestEntry = wizardPage(ManifestEntryImpl);

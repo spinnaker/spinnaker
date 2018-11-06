@@ -23,7 +23,7 @@ class ApplicationNameValidationMessagesComponent implements ng.IComponentOptions
   public controller: any = ApplicationNameValidationMessagesController;
   public template = `
     <div class="form-group row slide-in" ng-if="$ctrl.messages.warnings.length">
-      <div class="col-sm-9 col-sm-offset-3 warn-message" ng-repeat="warning in $ctrl.messages.warnings">
+      <div class="col-sm-9 col-sm-offset-3 warning-message" ng-repeat="warning in $ctrl.messages.warnings">
         <cloud-provider-logo provider="warning.cloudProvider" height="'16px'" width="'16px'"></cloud-provider-logo>
         {{warning.message}}
       </div>

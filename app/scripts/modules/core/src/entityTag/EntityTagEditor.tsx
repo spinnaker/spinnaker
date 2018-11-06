@@ -153,7 +153,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
       <div>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
 
-        <Formik<{}, IEntityTagEditorValues>
+        <Formik<IEntityTagEditorValues>
           initialValues={initialValues}
           onSubmit={this.upsertTag}
           validate={this.validate}

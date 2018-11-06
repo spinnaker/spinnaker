@@ -37,7 +37,7 @@ module.exports = angular
     }
 
     this.isValid = function() {
-      var command = $scope.command;
+      const command = $scope.command;
       if (!$scope.verification.verified) {
         return false;
       }
@@ -57,7 +57,7 @@ module.exports = angular
         return;
       }
 
-      var submitMethod = function() {
+      const submitMethod = function() {
         return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
       };
 

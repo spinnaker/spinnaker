@@ -1,8 +1,12 @@
 import * as React from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
+import {
+  ExecutionDetailsSection,
+  IExecutionDetailsSectionProps,
+  StageExecutionLogs,
+  StageFailureMessage,
+} from 'core/pipeline';
 import { AccountTag } from 'core/account';
-import { StageExecutionLogs, StageFailureMessage } from 'core/pipeline/details';
 import { ServerGroupStageContext } from '../core/ServerGroupStageContext';
 
 export function DisableClusterExecutionDetails(props: IExecutionDetailsSectionProps) {

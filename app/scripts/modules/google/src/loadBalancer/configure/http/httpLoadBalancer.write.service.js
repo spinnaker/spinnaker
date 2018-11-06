@@ -28,7 +28,7 @@ module.exports = angular
     }
 
     function deleteLoadBalancers(loadBalancer, application, params = {}) {
-      let job = {
+      const job = {
         type: 'deleteLoadBalancer',
         loadBalancerName: loadBalancer.listeners[0].name,
         regions: ['global'],

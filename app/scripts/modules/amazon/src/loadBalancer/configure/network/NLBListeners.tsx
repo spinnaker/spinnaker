@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { difference, flatten, get, uniq } from 'lodash';
-import { FormikErrors } from 'formik';
 
 import { IWizardPageProps, ValidationMessage, wizardPage } from '@spinnaker/core';
 
@@ -32,7 +31,7 @@ class NLBListenersImpl extends React.Component<INLBListenersProps, INLBListeners
   }
 
   public validate(values: IAmazonNetworkLoadBalancerUpsertCommand) {
-    const errors = {} as FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand>;
+    const errors = {} as any;
 
     // Check to make sure all target groups have an associated listener
     const targetGroupNames = values.targetGroups.map(tg => tg.name);

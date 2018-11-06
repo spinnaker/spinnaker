@@ -3,8 +3,8 @@
 describe('Controller: gceInstanceDetailsCtrl', function() {
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
-  var controller;
-  var scope;
+  let controller;
+  let scope;
 
   beforeEach(window.module(require('./instance.details.controller.js').name));
 

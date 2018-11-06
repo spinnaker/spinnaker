@@ -78,17 +78,17 @@ module.exports = angular
       if ($scope.$$destroyed) {
         return;
       }
-      let cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
+      const cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
-        let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
+        const newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
-          var newStateParams = {
+          const newStateParams = {
             serverGroup: newServerGroupName,
             accountId: $scope.command.credentials,
             region: $scope.command.region,
             provider: 'gce',
           };
-          var transitionTo = '^.^.^.clusters.serverGroup';
+          let transitionTo = '^.^.^.clusters.serverGroup';
           if ($state.includes('**.clusters.serverGroup')) {
             // clone via details, all view
             transitionTo = '^.serverGroup';
@@ -122,7 +122,7 @@ module.exports = angular
       gceServerGroupConfigurationService
         .configureCommand(application, serverGroupCommand)
         .then(function() {
-          var mode = serverGroupCommand.viewState.mode;
+          const mode = serverGroupCommand.viewState.mode;
           if (mode === 'clone' || mode === 'create') {
             if (!serverGroupCommand.backingData.packageImages || !serverGroupCommand.backingData.packageImages.length) {
               serverGroupCommand.viewState.useAllImageSelection = true;
@@ -193,11 +193,11 @@ module.exports = angular
     }
 
     function setInstanceTypeFromCustomChoices() {
-      let c = $scope.command,
+      const c = $scope.command,
         location = c.regional ? c.region : c.zone,
         { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
 
-      let customInstanceChoices = [
+      const customInstanceChoices = [
         _.get(c, 'viewState.customInstance.vCpuCount'),
         _.get(c, 'viewState.customInstance.memory'),
       ];
@@ -260,7 +260,7 @@ module.exports = angular
       if (_.get(loadBalancerNames, 'length') > 0) {
         metadata = loadBalancerNames.reduce(
           (metadata, name) => {
-            let loadBalancerDetails = loadBalancerIndex[name];
+            const loadBalancerDetails = loadBalancerIndex[name];
 
             if (loadBalancerDetails.loadBalancerType === 'HTTP') {
               metadata['global-load-balancer-names'] = metadata['global-load-balancer-names'].concat(
@@ -287,7 +287,7 @@ module.exports = angular
         );
       }
 
-      for (let key in metadata) {
+      for (const key in metadata) {
         if (metadata[key].length === 0) {
           delete metadata[key];
         } else {
@@ -304,7 +304,7 @@ module.exports = angular
         loadBalancerNames = loadBalancerNames.concat(loadBalancerMetadata['load-balancer-names'].split(','));
       }
 
-      let selectedSslLoadBalancerNames = _.chain(loadBalancerIndex)
+      const selectedSslLoadBalancerNames = _.chain(loadBalancerIndex)
         .filter({ loadBalancerType: 'SSL' })
         .map('name')
         .intersection(
@@ -314,7 +314,7 @@ module.exports = angular
         )
         .value();
 
-      let selectedTcpLoadBalancerNames = _.chain(loadBalancerIndex)
+      const selectedTcpLoadBalancerNames = _.chain(loadBalancerIndex)
         .filter({ loadBalancerType: 'TCP' })
         .map('name')
         .intersection(
@@ -329,13 +329,13 @@ module.exports = angular
 
     this.submit = function() {
       // We use this list of load balancer names when 'Enabling' a server group.
-      var loadBalancerMetadata = buildLoadBalancerMetadata(
+      const loadBalancerMetadata = buildLoadBalancerMetadata(
         $scope.command.loadBalancers,
         $scope.command.backingData.filtered.loadBalancerIndex,
         $scope.command.backendServices,
       );
 
-      var origLoadBalancers = $scope.command.loadBalancers;
+      const origLoadBalancers = $scope.command.loadBalancers;
       $scope.command.loadBalancers = collectLoadBalancerNamesForCommand(
         $scope.command.backingData.filtered.loadBalancerIndex,
         loadBalancerMetadata,
@@ -347,8 +347,8 @@ module.exports = angular
 
       angular.extend($scope.command.instanceMetadata, loadBalancerMetadata);
 
-      var origTags = $scope.command.tags;
-      var transformedTags = [];
+      const origTags = $scope.command.tags;
+      const transformedTags = [];
       // The tags are stored using a 'value' attribute to enable the Add/Remove behavior in the wizard.
       $scope.command.tags.forEach(function(tag) {
         transformedTags.push(tag.value);
@@ -371,7 +371,7 @@ module.exports = angular
         return $uibModalInstance.close($scope.command);
       }
       $scope.taskMonitor.submit(function() {
-        var promise = serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
+        const promise = serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
 
         // Copy back the original objects so the wizard can still be used if the command needs to be resubmitted.
         $scope.command.instanceMetadata = _.omit($scope.command.instanceMetadata, gceServerGroupHiddenMetadataKeys);

@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import { CREATE_PIPELINE_COMPONENT } from './createPipeline.component';
 import { PIPELINE_GRAPH_COMPONENT } from './graph/pipeline.graph.component';
+import { TARGET_SELECT_COMPONENT } from 'core/pipeline/config/targetSelect.component';
 import './validation/requiredField.validator';
 import './validation/anyFieldRequired.validator';
 import './validation/serviceAccountAccess.validator';
@@ -24,6 +25,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config', [
   require('./pipelineConfig.controller.js').name,
   require('./pipelineConfigView.js').name,
   require('./pipelineConfigurer.js').name,
-  require('./targetSelect.directive.js').name,
+  TARGET_SELECT_COMPONENT,
   require('./health/stagePlatformHealthOverride.directive.js').name,
 ]);

@@ -1,12 +1,8 @@
 <div ng-if="ctrl.state.loaded" class="clearfix">
-  <div class="alert alert-warning">
-    <strong>Warning!</strong> This stage is under active development and is subject to change.
-  </div>
-
   <div class="container-fluid form-horizontal">
     <h4>Resource to Patch</h4>
     <div class="horizontal-rule"></div>
-    <kubernetes-manifest-selector selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
+    <kubernetes-manifest-selector on-change="ctrl.handleManifestSelectorChange" selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
 
     <h4>Patch Content</h4>
     <hr>
@@ -27,10 +23,15 @@
       </stage-config-field>
     </ng-form>
     <yaml-editor
-      ng-if="stage.source === ctrl.textSource"
-      on-change="ctrl.handleYamlChange"
-      value="stage.patchBody">
+      ng-if="stage.source === ctrl.textSource && ctrl.getEditorMode() === 'yaml'"
+      on-change="ctrl.handlePatchBodyChange"
+      value="ctrl.rawPatchBody">
     </yaml-editor>
+    <json-editor
+      ng-if="stage.source === ctrl.textSource && ctrl.getEditorMode() === 'json'"
+      on-change="ctrl.handlePatchBodyChange"
+      value="ctrl.rawPatchBody">
+    </json-editor>
     <stage-config-field label="Expected Artifact" help-key="kubernetes.manifest.expectedArtifact" field-columns="8" ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
       <expected-artifact-selector-react
                                   expected-artifacts="ctrl.$scope.expectedArtifacts"
@@ -68,6 +69,9 @@
 
     <h4>Patch Options</h4>
     <div class="horizontal-rule"></div>
-    <kubernetes-patch-manifest-options-form options="ctrl.$scope.stage.options"></kubernetes-patch-manifest-options-form>
+    <kubernetes-patch-manifest-options-form
+      options="ctrl.$scope.stage.options"
+      on-change="ctrl.handleMergeStrategyChange">
+    </kubernetes-patch-manifest-options-form>
   </div>
 </div>

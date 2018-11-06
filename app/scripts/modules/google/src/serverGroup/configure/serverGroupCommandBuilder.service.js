@@ -38,14 +38,14 @@ module.exports = angular
     }
 
     function extractNetworkName(serverGroup) {
-      let projectId = gceXpnNamingService.deriveProjectId(serverGroup.launchConfig.instanceTemplate);
-      let networkUrl = _.get(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
+      const projectId = gceXpnNamingService.deriveProjectId(serverGroup.launchConfig.instanceTemplate);
+      const networkUrl = _.get(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
       return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, networkUrl);
     }
 
     function extractSubnetName(serverGroup) {
-      let projectId = gceXpnNamingService.deriveProjectId(serverGroup.launchConfig.instanceTemplate);
-      let subnetworkUrl = _.get(
+      const projectId = gceXpnNamingService.deriveProjectId(serverGroup.launchConfig.instanceTemplate);
+      const subnetworkUrl = _.get(
         serverGroup,
         'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork',
       );
@@ -188,8 +188,8 @@ module.exports = angular
     function populateAutoHealingPolicy(serverGroup, command) {
       if (serverGroup.autoHealingPolicy) {
         let autoHealingPolicy = serverGroup.autoHealingPolicy;
-        let healthCheckUrl = autoHealingPolicy.healthCheck;
-        let autoHealingPolicyHealthCheck = healthCheckUrl ? _.last(healthCheckUrl.split('/')) : null;
+        const healthCheckUrl = autoHealingPolicy.healthCheck;
+        const autoHealingPolicyHealthCheck = healthCheckUrl ? _.last(healthCheckUrl.split('/')) : null;
 
         if (autoHealingPolicyHealthCheck) {
           command.autoHealingPolicy = {
@@ -198,7 +198,7 @@ module.exports = angular
           };
         }
 
-        let maxUnavailable = autoHealingPolicy.maxUnavailable;
+        const maxUnavailable = autoHealingPolicy.maxUnavailable;
         if (maxUnavailable) {
           command.autoHealingPolicy.maxUnavailable = maxUnavailable;
           command.viewState.maxUnavailableMetric = typeof maxUnavailable.percent === 'number' ? 'percent' : 'fixed';
@@ -212,7 +212,7 @@ module.exports = angular
         let customUserData = '';
         let customUserDataKeys = [];
         if (angular.isArray(metadataItems)) {
-          let customUserDataItem = metadataItems.find(metadataItem => metadataItem.key === 'customUserData');
+          const customUserDataItem = metadataItems.find(metadataItem => metadataItem.key === 'customUserData');
           if (customUserDataItem) {
             customUserData = customUserDataItem.value;
             customUserDataKeys = getCustomUserDataKeys(customUserData);
@@ -239,9 +239,9 @@ module.exports = angular
     }
 
     function getCustomUserDataKeys(customUserData) {
-      let customUserDataKeys = [];
+      const customUserDataKeys = [];
       customUserData.split(/\n|,/).forEach(function(userDataItem) {
-        let customUserDataKey = userDataItem.split('=')[0];
+        const customUserDataKey = userDataItem.split('=')[0];
         customUserDataKeys.push(customUserDataKey);
       });
       return customUserDataKeys;
@@ -282,10 +282,10 @@ module.exports = angular
 
     function attemptToSetValidCredentials(application, defaultCredentials, command) {
       return AccountService.listAccounts('gce').then(function(gceAccounts) {
-        var gceAccountNames = _.map(gceAccounts, 'name');
-        var firstGCEAccount = gceAccountNames[0];
+        const gceAccountNames = _.map(gceAccounts, 'name');
+        const firstGCEAccount = gceAccountNames[0];
 
-        var defaultCredentialsAreValid = defaultCredentials && gceAccountNames.includes(defaultCredentials);
+        const defaultCredentialsAreValid = defaultCredentials && gceAccountNames.includes(defaultCredentials);
 
         command.credentials = defaultCredentialsAreValid ? defaultCredentials : firstGCEAccount || 'my-account-name';
       });
@@ -294,14 +294,14 @@ module.exports = angular
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var defaultCredentials = defaults.account || GCEProviderSettings.defaults.account;
-      var defaultRegion = defaults.region || GCEProviderSettings.defaults.region;
-      var defaultZone = defaults.zone || GCEProviderSettings.defaults.zone;
-      var associatePublicIpAddress = _.has(application, 'attributes.providerSettings.gce.associatePublicIpAddress')
+      const defaultCredentials = defaults.account || GCEProviderSettings.defaults.account;
+      const defaultRegion = defaults.region || GCEProviderSettings.defaults.region;
+      const defaultZone = defaults.zone || GCEProviderSettings.defaults.zone;
+      const associatePublicIpAddress = _.has(application, 'attributes.providerSettings.gce.associatePublicIpAddress')
         ? application.attributes.providerSettings.gce.associatePublicIpAddress
         : true;
 
-      var command = {
+      const command = {
         application: application.name,
         credentials: defaultCredentials,
         region: defaultRegion,
@@ -360,7 +360,7 @@ module.exports = angular
 
     // Only used to prepare view requiring template selecting
     function buildNewServerGroupCommandForPipeline(currentStage, pipeline) {
-      var expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
+      const expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
       return $q.when({
         viewState: {
           expectedArtifacts: expectedArtifacts,
@@ -371,9 +371,9 @@ module.exports = angular
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
-      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
+      const serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
-      var command = {
+      const command = {
         application: application.name,
         autoscalingPolicy: _.cloneDeep(serverGroup.autoscalingPolicy),
         strategy: '',
@@ -437,7 +437,7 @@ module.exports = angular
       populateAutoHealingPolicy(serverGroup, command);
 
       if (serverGroup.launchConfig) {
-        let instanceType = serverGroup.launchConfig.instanceType;
+        const instanceType = serverGroup.launchConfig.instanceType;
         angular.extend(command, {
           instanceType: instanceType,
         });
@@ -467,24 +467,24 @@ module.exports = angular
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster, currentStage, pipeline) {
-      var pipelineCluster = _.cloneDeep(originalCluster);
-      var region = Object.keys(pipelineCluster.availabilityZones)[0];
-      var zone = pipelineCluster.zone;
-      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType(
+      const pipelineCluster = _.cloneDeep(originalCluster);
+      const region = Object.keys(pipelineCluster.availabilityZones)[0];
+      const zone = pipelineCluster.zone;
+      const instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType(
         'gce',
         pipelineCluster.instanceType,
       );
-      var commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
-      var asyncLoader = $q.all({
+      const commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
+      const asyncLoader = $q.all({
         command: buildNewServerGroupCommand(application, commandOptions),
         instanceProfile: instanceTypeCategoryLoader,
       });
 
       return asyncLoader.then(function(asyncData) {
-        var command = asyncData.command;
+        const command = asyncData.command;
 
-        var expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
-        var viewState = {
+        const expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
+        const viewState = {
           pipeline,
           stage: currentStage,
           instanceProfile: asyncData.instanceProfile,
@@ -500,7 +500,7 @@ module.exports = angular
               : null,
         };
 
-        var viewOverrides = {
+        const viewOverrides = {
           region: region,
           credentials: pipelineCluster.account,
           enableTraffic: !pipelineCluster.disableTraffic,
@@ -509,10 +509,10 @@ module.exports = angular
 
         pipelineCluster.strategy = pipelineCluster.strategy || '';
 
-        var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
+        const extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
 
         return populateDisksFromPipeline(extendedCommand).then(function() {
-          var instanceMetadata = extendedCommand.instanceMetadata;
+          const instanceMetadata = extendedCommand.instanceMetadata;
           extendedCommand.loadBalancers = extractLoadBalancersFromMetadata(instanceMetadata);
           extendedCommand.backendServiceMetadata = instanceMetadata['backend-service-names']
             ? instanceMetadata['backend-service-names'].split(',')
@@ -522,7 +522,7 @@ module.exports = angular
           populateCustomMetadata(instanceMetadata, extendedCommand);
           populateAutoHealingPolicy(pipelineCluster, extendedCommand);
 
-          var instanceTemplateTags = { items: extendedCommand.tags };
+          const instanceTemplateTags = { items: extendedCommand.tags };
           extendedCommand.tags = [];
           populateTags(instanceTemplateTags, extendedCommand);
 

@@ -1,0 +1,13 @@
+<!-- SSH Key -->
+<div class="form-group">
+    <div class="col-md-3 sm-label-right">
+        SSH Key
+        <help-field key="oracle.serverGroup.sshAuthorizedKeys"></help-field>
+    </div>
+    <div class="col-md-9">
+        <textarea class="form-control input-sm"
+                  name="sshAuthorizedKeys"
+                  placeholder="Enter the public SSH key for the default user on the instance."
+                  ng-model="command.sshAuthorizedKeys" />
+    </div>
+</div>

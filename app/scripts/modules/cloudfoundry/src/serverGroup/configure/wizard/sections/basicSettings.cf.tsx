@@ -4,12 +4,12 @@ import { FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
+  AccountSelectField,
   AccountService,
   IAccount,
   IDeploymentStrategy,
   IRegion,
   IWizardPageProps,
-  NgReact,
   wizardPage,
   HelpField,
   RegionSelectField,
@@ -18,15 +18,7 @@ import {
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../serverGroupConfigurationModel.cf';
 
-export interface ICloudFoundryServerGroupBasicSettingsProps
-  extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
-  credentials: string;
-  region: string;
-  stack: string;
-  freeFormDetails: string;
-  strategy?: string;
-  viewState: { mode: string };
-}
+export type ICloudFoundryServerGroupBasicSettingsProps = IWizardPageProps<ICloudFoundryCreateServerGroupCommand>;
 
 export interface ICloudFoundryServerGroupLocationSettingsState {
   accounts: IAccount[];
@@ -73,6 +65,12 @@ class BasicSettingsImpl extends React.Component<
     });
   }
 
+  private startApplicationUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const startApplication = event.target.checked;
+    this.props.formik.values.startApplication = startApplication;
+    this.props.formik.setFieldValue('startApplication', startApplication);
+  };
+
   private accountUpdated = (account: string): void => {
     this.props.formik.values.credentials = account;
     this.props.formik.setFieldValue('credentials', account);
@@ -113,7 +111,6 @@ class BasicSettingsImpl extends React.Component<
   public render(): JSX.Element {
     const { accounts, regions } = this.state;
     const { values, errors } = this.props.formik;
-    const { AccountSelectField } = NgReact;
     return (
       <div>
         <div className="form-group">
@@ -157,6 +154,18 @@ class BasicSettingsImpl extends React.Component<
             />
           </div>
         </div>
+        <div className="form-group">
+          <div className="col-md-3 sm-label-right">
+            Start on creation <HelpField id="cf.serverGroup.startApplication" />
+          </div>
+          <div className="checkbox checkbox-inline">
+            <input
+              type="checkbox"
+              checked={this.props.formik.values.startApplication}
+              onChange={this.startApplicationUpdated}
+            />
+          </div>
+        </div>
         {(values.viewState.mode === 'editPipeline' || values.viewState.mode === 'createPipeline') && (
           <div className="form-group row">
             <label className="col-md-3 sm-label-right">Deployment Strategy</label>
@@ -197,7 +206,7 @@ class BasicSettingsImpl extends React.Component<
     );
   }
 
-  public validate(values: ICloudFoundryServerGroupBasicSettingsProps) {
+  public validate(values: ICloudFoundryCreateServerGroupCommand) {
     const errors = {} as FormikErrors<ICloudFoundryCreateServerGroupCommand>;
 
     if (!values.credentials) {

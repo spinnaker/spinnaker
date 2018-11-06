@@ -26,6 +26,4 @@ class ServerGroupAdvancedSettingsImpl extends React.Component<IServerGroupAdvanc
   }
 }
 
-export const ServerGroupAdvancedSettings = wizardPage<IServerGroupAdvancedSettingsProps>(
-  ServerGroupAdvancedSettingsImpl,
-);
+export const ServerGroupAdvancedSettings = wizardPage(ServerGroupAdvancedSettingsImpl);

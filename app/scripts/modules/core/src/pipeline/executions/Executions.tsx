@@ -18,10 +18,10 @@ import { ExecutionFilters } from 'core/pipeline/filter/ExecutionFilters';
 import { ExecutionFilterService } from 'core/pipeline/filter/executionFilter.service';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
 import { FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ExecutionState } from 'core/state';
 import { ScrollToService } from 'core/utils';
+import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { SchedulerFactory } from 'core/scheduler';
 
 import './executions.less';
@@ -34,6 +34,7 @@ export interface IExecutionsState {
   initializationError?: boolean;
   filtersExpanded: boolean;
   loading: boolean;
+  poll: IRetryablePromise<any>;
   sortFilter: ISortFilter;
   tags: IFilterTag[];
   triggeringExecution: boolean;
@@ -54,6 +55,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     this.state = {
       filtersExpanded: this.insightFilterStateModel.filtersExpanded,
       loading: true,
+      poll: null,
       sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
       tags: [],
       triggeringExecution: false,
@@ -140,16 +142,16 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   };
 
   private startPipeline(command: IPipelineCommand): IPromise<void> {
+    const { executionService } = ReactInjector;
     this.setState({ triggeringExecution: true });
-    return PipelineConfigService.triggerPipeline(this.props.app.name, command.pipelineName, command.trigger).then(
-      (newPipelineId: string) => {
-        const monitor = ReactInjector.executionService.waitUntilNewTriggeredPipelineAppears(
-          this.props.app,
-          newPipelineId,
-        );
-        monitor.then(() => this.setState({ triggeringExecution: false }));
+    return executionService.startAndMonitorPipeline(this.props.app, command.pipelineName, command.trigger).then(
+      monitor => {
+        this.setState({ poll: monitor });
+        monitor.promise.then(() => this.setState({ triggeringExecution: false }));
       },
-      () => this.setState({ triggeringExecution: false }),
+      () => {
+        this.setState({ triggeringExecution: false });
+      },
     );
   }
 
@@ -265,6 +267,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     this.groupsUpdatedSubscription.unsubscribe();
     this.locationChangeUnsubscribe();
     this.activeRefresher && this.activeRefresher.unsubscribe();
+    this.state.poll && this.state.poll.cancel();
   }
 
   private showFilters = (): void => {

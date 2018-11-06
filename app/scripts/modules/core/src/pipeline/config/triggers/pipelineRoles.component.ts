@@ -13,7 +13,6 @@ class PipelineRolesController implements IController {
 
 class PipelineRolesComponent implements ng.IComponentOptions {
   public template = `
-    <div class="form-horizontal panel-pipeline-phase">
       <div class="form-group row">
         <div class="col-md-10">
           <div class="row">
@@ -33,7 +32,6 @@ class PipelineRolesComponent implements ng.IComponentOptions {
             </div>
           </div>
         </div>
-      </div>
     </div>
  `;
 

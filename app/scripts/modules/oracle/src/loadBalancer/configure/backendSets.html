@@ -1,0 +1,51 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-12">
+      <table class="table table-condensed packed">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Policy</th>
+            <th>Health Check Protocol</th>
+            <th>Health Check Port</th>
+            <th>Health Check Path</th>
+            <!-- TODO other nonrequired health check fields - do we need another popup for health check? -->
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="backendSet in ctrl.backendSets">
+            <td>
+              <input class="form-control input-sm" ng-model="backendSet.name" required
+                     ng-focus="prevBackendSetNames[$index] = backendSet.name"
+                     ng-blur="ctrl.backendSetNameChanged($index)"/>
+            </td>
+            <td>
+              <select class="form-control input-sm" ng-model="backendSet.policy" ng-options="policy for policy in ctrl.loadBalancingPolicies"></select>
+            </td>
+            <td>
+              <input class="form-control input-sm" ng-model="backendSet.healthChecker.protocol" required/>
+            </td>
+            <td>
+              <input class="form-control input-sm" ng-model="backendSet.healthChecker.port" required/>
+            </td>
+            <td>
+              <input class="form-control input-sm" ng-model="backendSet.healthChecker.urlPath" required/>
+            </td>
+            <td><a href class="sm-label" ng-click="ctrl.removeBackendSet($index)"><span
+              class="glyphicon glyphicon-trash"></span></a></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">
+              <button class="add-new col-md-12" ng-click="ctrl.addBackendSet()"><span class="glyphicon glyphicon-plus-sign"></span>
+                Add Backend Set
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+    </div>
+  </div>
+</div>

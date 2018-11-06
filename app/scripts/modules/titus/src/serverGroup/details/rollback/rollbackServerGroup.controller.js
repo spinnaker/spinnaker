@@ -56,6 +56,7 @@ module.exports = angular
         rollbackServerGroupName: serverGroup.name,
         restoreServerGroupName: previousServerGroup ? previousServerGroup.name : undefined,
         targetHealthyRollbackPercentage: healthyPercent,
+        delayBeforeDisableSeconds: 0,
       },
     };
 

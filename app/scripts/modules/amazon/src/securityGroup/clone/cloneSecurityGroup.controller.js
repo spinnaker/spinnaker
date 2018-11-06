@@ -78,6 +78,15 @@ module.exports = angular
       .value();
 
     vm.upsert = function() {
+      // <account-select-field> only updates securityGroup.credentials, but Orca looks at account* before looking at credentials
+      // Updating the rest of the attributes to send the correct (expected) account for all attributes
+      const { credentials } = $scope.securityGroup;
+      Object.assign($scope.securityGroup, {
+        account: credentials,
+        accountName: credentials,
+        accountId: credentials,
+      });
+
       vm.mixinUpsert('Clone');
     };
 

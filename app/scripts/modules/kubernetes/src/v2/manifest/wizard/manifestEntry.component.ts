@@ -1,4 +1,5 @@
 import { IComponentOptions, IController, IScope, module } from 'angular';
+import { dump } from 'js-yaml';
 
 import { IManifest } from '@spinnaker/core';
 import { IKubernetesManifestCommand } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
@@ -8,7 +9,7 @@ import './manifestEntry.less';
 class KubernetesManifestCtrl implements IController {
   public command: IKubernetesManifestCommand;
   public manifests: IManifest[];
-  public initialValue: any;
+  public rawManifest: string;
 
   constructor(private $scope: IScope) {
     'ngInject';
@@ -19,16 +20,24 @@ class KubernetesManifestCtrl implements IController {
   // that the underlying model is a list.
   public $onInit = (): void => {
     const [first = null, ...rest] = this.manifests || [];
-    this.initialValue = rest && rest.length ? this.manifests : first;
+    const manifest = rest && rest.length ? this.manifests : first;
+    try {
+      this.rawManifest = manifest ? dump(manifest) : null;
+    } catch (e) {
+      this.rawManifest = null;
+    }
   };
 
   public $onChanges = () => this.$onInit();
 
-  public handleChange = (manifests: any): void => {
+  public handleChange = (rawManifest: string, manifest: any): void => {
+    this.rawManifest = rawManifest;
     if (!this.command.manifests) {
       this.command.manifests = [];
     }
-    Object.assign(this.command.manifests, Array.isArray(manifests) ? manifests : [manifests]);
+    if (manifest) {
+      Object.assign(this.command.manifests, Array.isArray(manifest) ? manifest : [manifest]);
+    }
     this.$scope.$applyAsync();
   };
 }
@@ -39,7 +48,7 @@ class KubernetesManifestEntryComponent implements IComponentOptions {
   public controllerAs = 'ctrl';
   public template = `
     <yaml-editor
-      value="ctrl.initialValue"
+      value="ctrl.rawManifest"
       on-change="ctrl.handleChange"
     ></yaml-editor>`;
 }

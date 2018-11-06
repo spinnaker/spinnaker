@@ -2,18 +2,29 @@ import { IPromise, IQService, module } from 'angular';
 
 import { IStage, IPipeline } from '@spinnaker/core';
 
-import { ICloudFoundryApplication, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { ICloudFoundryApplication, ICloudFoundryEnvVar, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 import {
   ICloudFoundryCreateServerGroupCommand,
   ICloudFoundryDeployConfiguration,
 } from './serverGroupConfigurationModel.cf';
 
 export class CloudFoundryServerGroupCommandBuilder {
-  constructor(private $q: IQService) {
-    'ngInject';
+  public static buildUpdateServerGroupCommand(_originalServerGroup: any) {
+    throw new Error('Implement me!');
   }
 
-  private getSubmitButtonLabel(mode: string) {
+  private static envVarsFromObject(someObject: any): ICloudFoundryEnvVar[] {
+    const envVars = [];
+    for (const property in someObject) {
+      if (someObject.hasOwnProperty(property)) {
+        const envVar = { key: property, value: someObject[property] };
+        envVars.push(envVar);
+      }
+    }
+    return envVars;
+  }
+
+  private static getSubmitButtonLabel(mode: string) {
     switch (mode) {
       case 'createPipeline':
         return 'Add';
@@ -26,10 +37,15 @@ export class CloudFoundryServerGroupCommandBuilder {
     }
   }
 
+  constructor(private $q: IQService) {
+    'ngInject';
+  }
+
   public buildNewServerGroupCommand(
     app: ICloudFoundryApplication,
-    defaults: any = {},
+    defaults: any,
   ): IPromise<ICloudFoundryCreateServerGroupCommand> {
+    defaults = defaults || {};
     return this.$q.when({
       application: app.name,
       stack: '',
@@ -39,7 +55,7 @@ export class CloudFoundryServerGroupCommandBuilder {
       credentials: '',
       viewState: {
         mode: defaults.mode || 'create',
-        submitButtonLabel: this.getSubmitButtonLabel(defaults.mode || 'create'),
+        submitButtonLabel: CloudFoundryServerGroupCommandBuilder.getSubmitButtonLabel(defaults.mode || 'create'),
       },
       artifact: {
         type: 'artifact',
@@ -47,14 +63,9 @@ export class CloudFoundryServerGroupCommandBuilder {
         account: '',
       },
       manifest: {
-        type: 'direct',
-        memory: '1024M',
-        diskQuota: '1024M',
-        buildpack: '',
-        instances: 1,
-        routes: [],
-        env: [],
-        services: [],
+        type: 'artifact',
+        reference: '',
+        account: '',
       },
       startApplication: true,
     } as ICloudFoundryCreateServerGroupCommand);
@@ -74,13 +85,16 @@ export class CloudFoundryServerGroupCommandBuilder {
       };
       command.manifest = {
         type: 'direct',
-        memory: serverGroup.memory + 'M',
-        diskQuota: serverGroup.diskQuota + 'M',
-        buildpack: serverGroup.droplet.buildpacks.length > 0 ? serverGroup.droplet.buildpacks[0].name : '',
-        instances: serverGroup.instances.length,
+        memory: serverGroup.memory ? serverGroup.memory + 'M' : '1024M',
+        diskQuota: serverGroup.diskQuota ? serverGroup.diskQuota + 'M' : '1024M',
+        buildpack:
+          serverGroup.droplet && serverGroup.droplet.buildpacks.length > 0
+            ? serverGroup.droplet.buildpacks[0].name
+            : '',
+        instances: serverGroup.instances ? serverGroup.instances.length : 1,
         routes: serverGroup.loadBalancers,
-        env: serverGroup.env,
-        services: serverGroup.serviceInstances.map(serviceInstance => serviceInstance.name),
+        environment: CloudFoundryServerGroupCommandBuilder.envVarsFromObject(serverGroup.env),
+        services: (serverGroup.serviceInstances || []).map(serviceInstance => serviceInstance.name),
         reference: '',
         account: '',
         pattern: '',
@@ -125,10 +139,6 @@ export class CloudFoundryServerGroupCommandBuilder {
 
       return app;
     });
-  }
-
-  public buildUpdateServerGroupCommand(_originalServerGroup: any) {
-    throw new Error('Implement me!');
   }
 }
 

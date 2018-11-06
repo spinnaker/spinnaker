@@ -91,23 +91,23 @@ export class TitusServerGroupConfigurationService {
   }
 
   private attachEventHandlers(cmd: ITitusServerGroupCommand) {
-    cmd.credentialsChanged = () => {
+    cmd.credentialsChanged = (command: ITitusServerGroupCommand) => {
       const result = { dirty: {} };
-      const backingData = cmd.backingData;
-      this.configureZones(cmd);
-      if (cmd.credentials) {
-        cmd.registry = (backingData.credentialsKeyedByAccount[cmd.credentials] as any).registry;
-        backingData.filtered.regions = backingData.credentialsKeyedByAccount[cmd.credentials].regions;
-        if (!backingData.filtered.regions.some(r => r.name === cmd.region)) {
-          cmd.region = null;
-          cmd.regionChanged(cmd);
+      const backingData = command.backingData;
+      this.configureZones(command);
+      if (command.credentials) {
+        command.registry = (backingData.credentialsKeyedByAccount[command.credentials] as any).registry;
+        backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
+        if (!backingData.filtered.regions.some(r => r.name === command.region)) {
+          command.region = null;
+          command.regionChanged(command);
         }
       } else {
-        cmd.region = null;
+        command.region = null;
       }
-      cmd.viewState.dirty = { ...(cmd.viewState.dirty || {}), ...result.dirty };
-      this.configureLoadBalancerOptions(cmd);
-      this.configureSecurityGroupOptions(cmd);
+      command.viewState.dirty = { ...(command.viewState.dirty || {}), ...result.dirty };
+      this.configureLoadBalancerOptions(command);
+      this.configureSecurityGroupOptions(command);
       return result;
     };
 

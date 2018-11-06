@@ -17,6 +17,7 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   cloudProviders?: string[];
   configAccountExtractor?: any;
   configuration?: any;
+  defaults?: any;
   defaultTimeoutMs?: number;
   disableNotifications?: boolean;
   executionConfigSections?: string[]; // angular only

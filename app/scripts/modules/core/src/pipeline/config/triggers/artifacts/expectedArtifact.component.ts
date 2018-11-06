@@ -1,5 +1,6 @@
 import { IAttributes, IComponentController, IComponentOptions, module } from 'angular';
 
+import { ExpectedArtifactService } from 'core';
 import { IExpectedArtifact } from 'core/domain';
 import { Registry } from 'core/registry';
 
@@ -20,14 +21,15 @@ class ExpectedArtifactController implements IComponentController {
       expectedArtifact: { useDefaultArtifact, defaultArtifact, matchArtifact },
     } = this;
     if (useDefaultArtifact && defaultArtifact.type == null) {
-      const defaultKey = 'default.' + matchArtifact.kind;
+      const matchKind = ExpectedArtifactService.getKind(matchArtifact);
+      const defaultKey = 'default.' + matchKind;
       const defaultKindConfig = Registry.pipeline.getArtifactKinds().find(kind => kind.key === defaultKey);
       if (defaultKindConfig) {
         defaultArtifact.type = defaultKindConfig.type;
         defaultArtifact.kind = defaultKindConfig.key;
       } else {
         defaultArtifact.type = matchArtifact.type;
-        defaultArtifact.kind = matchArtifact.kind;
+        defaultArtifact.kind = matchKind;
       }
     }
   }

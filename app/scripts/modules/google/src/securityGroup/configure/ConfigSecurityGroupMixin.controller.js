@@ -33,7 +33,7 @@ module.exports = angular
     gceSecurityGroupHelpTextService,
     mode,
   ) {
-    var ctrl = this;
+    const ctrl = this;
 
     $scope.isNew = true;
 
@@ -69,7 +69,7 @@ module.exports = angular
     };
 
     ctrl.initializeTargetOptions = function() {
-      let options = ['allowAllTraffic', 'specifyTags'];
+      const options = ['allowAllTraffic', 'specifyTags'];
       if ($scope.state.mode === 'edit') {
         $scope.state.targetOptions = options;
       } else {
@@ -124,7 +124,7 @@ module.exports = angular
         return;
       }
       $uibModalInstance.close();
-      var newStateParams = {
+      const newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         region: 'global',
@@ -164,8 +164,8 @@ module.exports = angular
 
     ctrl.mixinUpsert = function(descriptor) {
       $scope.taskMonitor.submit(function() {
-        var allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
-          var rule = {
+        const allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
+          const rule = {
             ipProtocol: ipIngressRule.type,
           };
 
@@ -206,9 +206,9 @@ module.exports = angular
 
     ctrl.initializeSecurityGroups = function() {
       return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
-        var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+        const account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
 
-        var existingGroups;
+        let existingGroups;
         if (account) {
           existingGroups = securityGroups[account].gce.global;
         } else {
@@ -225,7 +225,7 @@ module.exports = angular
 
     ctrl.updateNetworks = function() {
       NetworkReader.listNetworksByProvider('gce').then(function(gceNetworks) {
-        var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+        const account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
         $scope.securityGroup.backingData.networks = _(gceNetworks)
           .filter(n => n.account === account && !n.id.includes('/'))
           .map(n => n.id)
@@ -238,7 +238,7 @@ module.exports = angular
     };
 
     ctrl.updateName = function() {
-      var securityGroup = $scope.securityGroup,
+      let securityGroup = $scope.securityGroup,
         name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;

@@ -53,6 +53,8 @@ const helpContents: { [key: string]: string } = {
         <li>Trigger</li>
         <li>Context - server groups, bakery results, etc.</li>
       </ul>`,
+  'pipeline.config.triggers.respectQuietPeriod': `
+      <p>The quiet period is a system operator designated period of time when automated pipelines and deploys should not run.</p>`,
   'pipeline.config.expectedArtifact':
     'Artifacts required for trigger to execute.  Only one of the artifacts needs to be present for the trigger to execute.',
   'pipeline.config.artifact.help': `
@@ -170,6 +172,10 @@ const helpContents: { [key: string]: string } = {
   `,
   'loadBalancer.advancedSettings.healthTimeout':
     '<p>Configures the timeout, in seconds, for reaching the healthCheck target.  Must be less than the interval.</p><p> Default: <b>5</b></p>',
+  'loadBalancer.advancedSettings.idleTimeout':
+    '<p>Configures the idle timeout, in seconds. If no data has been sent or received by the time that the idle timeout period elapses, the load balancer closes the connection. </p><p> Default: <b>60</b></p>',
+  'loadBalancer.advancedSettings.deletionProtection':
+    '<p>To prevent your load balancer from being deleted accidentally, you can enable deletion protection.</p><p> Default: <b>false</b></p>',
   'loadBalancer.advancedSettings.healthInterval':
     '<p>Configures the interval, in seconds, between ELB health checks.  Must be greater than the timeout.</p><p>Default: <b>10</b></p>',
   'loadBalancer.advancedSettings.healthyThreshold':

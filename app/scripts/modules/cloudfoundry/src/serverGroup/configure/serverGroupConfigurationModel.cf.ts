@@ -36,7 +36,7 @@ export interface ICloudFoundryManifestDirectSource {
   instances: number;
   buildpack: string;
   routes: string[];
-  env: ICloudFoundryEnvVar[];
+  environment: ICloudFoundryEnvVar[];
   services: string[];
 }
 

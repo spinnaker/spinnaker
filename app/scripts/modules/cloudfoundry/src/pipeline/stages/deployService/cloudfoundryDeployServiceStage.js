@@ -32,12 +32,14 @@ module.exports = angular
   .controller('CloudfoundryDeployServiceStageCtrl', function($scope) {
     let stage = $scope.stage;
     stage.action = 'deployService';
+    stage.cloudProvider = 'cloudfoundry';
     stage.tags = stage.tags || [];
 
     $scope.state = {
       accounts: false,
       regionsLoaded: false,
     };
+
     $scope.tagName = '';
 
     AccountService.listAccounts('cloudfoundry').then(function(accounts) {
@@ -45,41 +47,52 @@ module.exports = angular
       $scope.state.accounts = true;
     });
 
-    AccountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
-      $scope.regions = regions;
-    });
-
-    if ($scope.stage.credentials) {
-      ServicesReader.getServices($scope.stage.credentials).then(function(services) {
-        $scope.serviceNamesAndPlans = services;
-        $scope.services = services.map(function(item) {
-          return item.name;
-        });
-        let service = $scope.serviceNamesAndPlans.find(it => it.name === $scope.stage.service) || { servicePlans: [] };
-        $scope.servicePlans = service.servicePlans.map(it => it.name);
-      });
-    }
-
-    stage.cloudProvider = 'cloudfoundry';
-    $scope.onAccountChange = () => {
-      $scope.stage.service = null;
+    $scope.clearAndReloadRegions = () => {
+      $scope.regions = [];
+      $scope.servicePlans = [];
       $scope.serviceNamesAndPlans = [];
 
       AccountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
         $scope.regions = regions;
+        $scope.state.regionsLoaded = true;
       });
+    };
 
-      ServicesReader.getServices($scope.stage.credentials).then(function(services) {
+    $scope.clearAndReloadRegions();
+
+    $scope.onAccountChange = () => {
+      $scope.stage.region = null;
+      $scope.state.regionsLoaded = false;
+      $scope.stage.service = null;
+      $scope.clearAndReloadRegions();
+    };
+
+    $scope.clearAndReloadServices = () => {
+      $scope.serviceNamesAndPlans = [];
+      $scope.servicePlans = [];
+      $scope.services = [];
+
+      ServicesReader.getServices($scope.stage.credentials, $scope.stage.region).then(function(services) {
         $scope.serviceNamesAndPlans = services;
         $scope.services = services.map(function(item) {
           return item.name;
         });
+
         $scope.onServiceChange();
       });
     };
 
-    $scope.onServiceChange = () => {
+    $scope.onRegionChange = () => {
+      $scope.stage.service = null;
       $scope.stage.servicePlan = null;
+      $scope.clearAndReloadServices();
+    };
+
+    if ($scope.stage.region) {
+      $scope.clearAndReloadServices();
+    }
+
+    $scope.onServiceChange = () => {
       let service = $scope.serviceNamesAndPlans.find(it => it.name === $scope.stage.service) || { servicePlans: [] };
       $scope.servicePlans = service.servicePlans.map(it => it.name);
     };

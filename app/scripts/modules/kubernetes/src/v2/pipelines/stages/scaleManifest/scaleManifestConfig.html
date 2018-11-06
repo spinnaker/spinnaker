@@ -1,10 +1,7 @@
 <div class="form-horizontal">
-  <div class="alert alert-warning">
-    <strong>Warning!</strong> This stage is under active development and is subject to change.
-  </div>
   <h4>Manifest</h4>
   <div class="horizontal-rule"></div>
-  <kubernetes-manifest-selector selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
+  <kubernetes-manifest-selector on-change="ctrl.handleManifestSelectorChange" selector="ctrl.$scope.stage"></kubernetes-manifest-selector>
   <h4>Settings</h4>
   <div class="horizontal-rule"></div>
   <kubernetes-scale-manifest-settings-form settings="ctrl.$scope.stage"></kubernetes-scale-manifest-settings-form>

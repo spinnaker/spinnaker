@@ -1,0 +1,11 @@
+.FormikApplicationsPicker .zombie-label {
+  border: 1px solid var(--color-accent-g2);
+  border-radius: 2px;
+  text-align: left;
+  color: var(--color-text-caption);
+}
+
+.FormikApplicationsPicker .Select {
+  flex: 1;
+  margin-right: 2em;
+}

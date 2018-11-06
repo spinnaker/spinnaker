@@ -7,7 +7,7 @@ const angular = require('angular');
 import { FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).factory('gceTagManager', function() {
-  let resetKeys = ['command', 'securityGroups', 'securityGroupObjectsKeyedByTag', 'securityGroupObjectsKeyedById'];
+  const resetKeys = ['command', 'securityGroups', 'securityGroupObjectsKeyedByTag', 'securityGroupObjectsKeyedById'];
 
   this.reset = () => {
     resetKeys.forEach(key => delete this[key]);
@@ -15,13 +15,13 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
 
   this.register = command => {
     this.command = command;
-    let { credentials, backingData } = command;
+    const { credentials, backingData } = command;
     if (backingData.securityGroups[credentials] !== undefined) {
       this.securityGroupObjects = _.cloneDeep(backingData.securityGroups[credentials].gce.global);
 
       initializeSecurityGroupObjects(this.securityGroupObjects, command.tags);
 
-      let { byTag, bySecurityGroupId } = groupSecurityGroupObjects(this.securityGroupObjects);
+      const { byTag, bySecurityGroupId } = groupSecurityGroupObjects(this.securityGroupObjects);
       this.securityGroupObjectsKeyedByTag = byTag;
       this.securityGroupObjectsKeyedById = bySecurityGroupId;
     }
@@ -42,24 +42,24 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
       .value();
   };
 
-  let initializeSecurityGroupObjects = (securityGroupObjects, commandTags = []) => {
+  const initializeSecurityGroupObjects = (securityGroupObjects, commandTags = []) => {
     securityGroupObjects.forEach(sg => {
       // Raw target tags look like '[tag-a, tag-b]'.
-      let rawTags = sg.targetTags;
+      const rawTags = sg.targetTags;
       sg.tagsArray = rawTags ? rawTags.substring(1, rawTags.length - 1).split(', ') : [];
 
       sg.selectedTags = commandTags ? _.intersection(commandTags.map(t => t.value), sg.tagsArray) : [];
     });
   };
 
-  let groupSecurityGroupObjects = securityGroupObjects => {
+  const groupSecurityGroupObjects = securityGroupObjects => {
     return securityGroupObjects.reduce(
       (groupings, sg) => {
-        let { bySecurityGroupId } = groupings;
+        const { bySecurityGroupId } = groupings;
         bySecurityGroupId[sg.id] = sg;
 
         return sg.tagsArray.reduce((groupings, tag) => {
-          let { byTag } = groupings;
+          const { byTag } = groupings;
           if (!byTag[tag]) {
             byTag[tag] = [];
           }
@@ -94,7 +94,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
   }, 100);
 
   this.updateSelectedTags = () => {
-    let c = this.command,
+    const c = this.command,
       tags = c.tags.map(t => t.value);
 
     getSecurityGroupObjectsFromIds(c.securityGroups).forEach(sg => {
@@ -130,9 +130,9 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
     }
   };
 
-  let getSecurityGroupObjectsFromIds = ids => ids.map(id => this.securityGroupObjectsKeyedById[id]);
+  const getSecurityGroupObjectsFromIds = ids => ids.map(id => this.securityGroupObjectsKeyedById[id]);
 
-  let updateSelectedTagsOnSecurityGroupObjects = (securityGroupObjects, newTag) => {
+  const updateSelectedTagsOnSecurityGroupObjects = (securityGroupObjects, newTag) => {
     securityGroupObjects.forEach(sg => {
       sg.selectedTags = _.chain(sg.selectedTags || [])
         .concat([newTag])
@@ -141,7 +141,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
     });
   };
 
-  let updateSelectedSecurityGroups = (oldGroups, newGroups) => {
+  const updateSelectedSecurityGroups = (oldGroups, newGroups) => {
     return _.chain(oldGroups)
       .concat(newGroups)
       .uniq()
@@ -149,7 +149,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
   };
 
   this.removeTag = tagName => {
-    let c = this.command,
+    const c = this.command,
       securityGroupIds = c.securityGroups || [],
       securityGroupObjects = getSecurityGroupObjectsFromIds(securityGroupIds);
 
@@ -163,7 +163,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
   };
 
   this.removeSecurityGroup = securityGroupId => {
-    let securityGroupObject = this.securityGroupObjectsKeyedById[securityGroupId],
+    const securityGroupObject = this.securityGroupObjectsKeyedById[securityGroupId],
       tagsToRemove = securityGroupObject.selectedTags,
       c = this.command;
 
@@ -182,7 +182,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
   };
 
   this.getToolTipContent = tagName => {
-    let groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]),
+    const groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]),
       groupIds = groups ? groups.filter(sg => sg.network === this.command.network).map(sg => sg.id) : [];
 
     return `This tag associates this server group with ${
