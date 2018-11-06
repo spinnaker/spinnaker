@@ -1,9 +1,10 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .infrastructure {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
+  height: 100%;
 
   .infrastructure-section.container {
     overflow-y: auto;
@@ -14,7 +15,7 @@
     background-color: var(--color-accent-g2);
     flex: 0 0 auto;
     .fa-search {
-      .encircled
+      .encircled;
     }
     .search-label {
       color: var(--color-primary);
@@ -87,12 +88,14 @@
       width: 20px;
       opacity: 0;
     }
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
       .remove-result-link {
         opacity: 1;
         transition: opacity 0.25s ease-in;
         color: var(--color-concrete);
-        &:hover, &:active {
+        &:hover,
+        &:active {
           color: var(--color-accent);
         }
       }
@@ -109,7 +112,8 @@
         line-height: 18px;
         padding-right: 0;
         background-color: var(--color-alabaster);
-        &:hover, &:focus {
+        &:hover,
+        &:focus {
           background-color: var(--color-white);
         }
         &:first-child {
