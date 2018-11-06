@@ -22,11 +22,13 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.TriggerEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.netflix.spinnaker.echo.pipelinetriggers.postprocessors.PipelinePostProcessorHandler;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Listens for TriggerEvents and sends them out to any registered TriggerMonitors, which in turn
@@ -40,10 +42,12 @@ public class TriggerEventListener implements EchoEventListener {
   public TriggerEventListener(@NonNull PipelineCache pipelineCache,
     @NonNull PipelineInitiator pipelineInitiator,
     @NonNull Registry registry,
+    @NonNull PipelinePostProcessorHandler pipelinePostProcessorHandler,
     @NonNull List<TriggerEventHandler<?>> eventHandlers) {
     this.triggerMonitors = eventHandlers
       .stream()
-      .map(e -> new TriggerMonitor<>(pipelineCache, pipelineInitiator, registry, e))
+      .map(e -> new TriggerMonitor<>(pipelineCache, pipelineInitiator, registry,
+        pipelinePostProcessorHandler, e))
       .collect(Collectors.toList());
   }
 

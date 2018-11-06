@@ -10,9 +10,15 @@ spinnaker:
      enabled: true
 
 front50:
+  enabled: ${services.front50.enabled:false}
   baseUrl: ${services.front50.baseUrl:http://localhost:8080}
 
+igor:
+  enabled: ${services.igor.enabled:false}
+  baseUrl: ${services.igor.baseUrl:http://localhost:8088}
+
 orca:
+  enabled: ${services.orca.enabled:false}
   baseUrl: ${services.orca.baseUrl:http://localhost:8083}
 
 endpoints.health.sensitive: false

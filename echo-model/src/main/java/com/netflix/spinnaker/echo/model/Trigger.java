@@ -113,6 +113,8 @@ public class Trigger {
    */
   Integer buildNumber;
   String hash;
+  Map<String, Object> buildInfo;
+  Map<String, Object> properties;
   Map parameters;
   Map payload;
   String runAsUser;

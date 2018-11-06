@@ -18,14 +18,24 @@ dependencies {
     spinnaker.group("retrofitDefault")
 
     compile project(":echo-model")
-    compile spinnaker.dependency('rxJava')
-    compile spinnaker.dependency('logstashEncoder')
+
+    compile spinnaker.dependency('kork')
+    compile spinnaker.dependency('korkArtifacts')
     compile spinnaker.dependency('korkExceptions')
     compile spinnaker.dependency('korkSecurity')
+    compile spinnaker.dependency('korkWeb')
+
+    compile spinnaker.dependency('bootWeb')
+    compile spinnaker.dependency('commonsLang')
     compile spinnaker.dependency('eurekaClient')
+    compile spinnaker.dependency('jinjava')
+    compile spinnaker.dependency('lombok')
+    compile spinnaker.dependency('retrofit1okHttp3Client')
+    compile spinnaker.dependency('rxJava')
+    compile spinnaker.dependency('springContext')
+
+    compile 'commons-io:commons-io:2.5'
+
     testCompile spinnaker.dependency('spockSpring')
     testCompile spinnaker.dependency('springTest')
-
-    // TODO(jacobkiefer): Add jinjava to spinnaker-dependencies.
-    compile 'com.hubspot.jinjava:jinjava:2.2.3'
 }
