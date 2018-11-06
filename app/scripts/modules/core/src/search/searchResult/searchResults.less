@@ -1,7 +1,7 @@
-@import "~bootstrap/less/mixins/vendor-prefixes.less";
-@import (reference) "~core/presentation/main.less";
-@import (reference) "~core/presentation/less/imports/commonImports.less";
-@import "~core/search/searchResult/baseTable.less";
+@import '~bootstrap/less/mixins/vendor-prefixes.less';
+@import (reference) '~core/presentation/main.less';
+@import (reference) '~core/presentation/less/imports/commonImports.less';
+@import '~core/search/searchResult/baseTable.less';
 
 .search-results {
   .faded {
@@ -10,9 +10,10 @@
 
   display: flex;
   margin-top: 10px;
+  height: 100%;
+  overflow: hidden;
 
   .search-groups {
-
     background-color: var(--color-alabaster);
     cursor: default;
     min-width: 275px;
@@ -75,6 +76,10 @@
 
     .small {
       font-size: 90%;
+    }
+
+    .table-contents.flex-fill {
+      height: inherit; // overrides flex-fill: height 100%, which causes issues on firefox when the table has a sticky header
     }
   }
 }
