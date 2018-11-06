@@ -22,5 +22,8 @@ import groovy.transform.Canonical
 @AutoClone
 @Canonical
 class DeregisterTitusInstanceFromLoadBalancerDescription extends AbstractTitusCredentialsDescription {
-
+  @Override
+  boolean requiresApplicationRestriction() {
+    return false
+  }
 }

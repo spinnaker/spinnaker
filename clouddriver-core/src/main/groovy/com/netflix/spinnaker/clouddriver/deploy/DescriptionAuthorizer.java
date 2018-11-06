@@ -31,6 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.Errors;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -77,14 +78,20 @@ public class DescriptionAuthorizer<T> {
     if (description instanceof ApplicationNameable) {
       ApplicationNameable applicationNameable = (ApplicationNameable) description;
       applications.addAll(
-        applicationNameable.getApplications().stream().filter(Objects::nonNull).collect(Collectors.toList())
+        Optional.ofNullable(applicationNameable.getApplications()).orElse(Collections.emptyList())
+          .stream()
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList())
       );
     }
 
     if (description instanceof ResourcesNameable) {
       ResourcesNameable resourcesNameable = (ResourcesNameable) description;
       applications.addAll(
-        resourcesNameable.getResourceApplications().stream().filter(Objects::nonNull).collect(Collectors.toList())
+        Optional.ofNullable(resourcesNameable.getResourceApplications()).orElse(Collections.emptyList())
+          .stream()
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList())
       );
     }
 

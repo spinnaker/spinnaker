@@ -17,16 +17,23 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonInstanceProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.RebootInstancesDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.RebootInstancesAtomicOperation
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Slf4j
 @AmazonOperation(AtomicOperations.REBOOT_INSTANCES)
 @Component("rebootInstancesDescription")
 class RebootInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired
+  AmazonInstanceProvider amazonInstanceProvider
+
   @Override
   AtomicOperation convertOperation(Map input) {
     new RebootInstancesAtomicOperation(convertDescription(input))
@@ -36,6 +43,24 @@ class RebootInstancesAtomicOperationConverter extends AbstractAtomicOperationsCr
   RebootInstancesDescription convertDescription(Map input) {
     def converted = objectMapper.convertValue(input, RebootInstancesDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
+
+    try {
+      def applications = converted.instanceIds.findResults {
+        def instance = amazonInstanceProvider.getInstance(converted.credentials.name, converted.region, it)
+        return instance?.any()?.get("serverGroup")
+      } as Set<String>
+      converted.applications = applications
+    } catch (Exception e) {
+      converted.applications = []
+      log.error(
+        "Unable to determine application for instances (instanceIds: {}, account: {}, region: {})",
+        converted.instanceIds,
+        converted.credentials.name,
+        converted.region,
+        e
+      )
+    }
+
     converted
   }
 }

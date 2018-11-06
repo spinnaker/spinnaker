@@ -20,18 +20,24 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertTitusScalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.UpsertTitusScalingPolicyAtomicOperation
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component('titusUpsertScalingPolicyDescription')
 @TitusOperation(AtomicOperations.UPSERT_SCALING_POLICY)
 class UpsertTitusScalingPolicyAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   @Autowired
   ObjectMapper objectMapper
+
+  @Autowired
+  TitusClientProvider titusClientProvider
 
   @Override
   UpsertTitusScalingPolicyAtomicOperation convertOperation(Map input) {
@@ -44,6 +50,16 @@ class UpsertTitusScalingPolicyAtomicOperationConverter extends AbstractAtomicOpe
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
       .convertValue(input, UpsertTitusScalingPolicyDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
+
+    try {
+      def titusClient = titusClientProvider.getTitusClient(converted.credentials, converted.region)
+      def titusJob = titusClient.getJobAndAllRunningAndCompletedTasks(converted.jobId)
+      converted.application = titusJob.applicationName
+    } catch (Exception e) {
+      converted.application = null
+      log.error("Unable to determine application for titus job (jobId: {})", converted.jobId, e)
+    }
+
     converted
   }
 }

@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-class RebootInstancesDescription extends AbstractAmazonCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
+
+class RebootInstancesDescription extends AbstractAmazonCredentialsDescription implements ApplicationNameable {
   String region
   List<String> instanceIds
+
+  Set<String> applications
 }

@@ -20,4 +20,9 @@ class AllowLaunchDescription extends AbstractAmazonCredentialsDescription {
   String account
   String amiName
   String region
+
+  @Override
+  boolean requiresApplicationRestriction() {
+    return false
+  }
 }

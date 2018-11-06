@@ -26,6 +26,7 @@ import com.google.protobuf.DoubleValue
 import com.google.protobuf.Int32Value
 import com.google.protobuf.Int64Value
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.titus.grpc.protogen.*
 import com.netflix.titus.grpc.protogen.AlarmConfiguration.ComparisonOperator
 import com.netflix.titus.grpc.protogen.AlarmConfiguration.Statistic
@@ -33,7 +34,9 @@ import com.netflix.titus.grpc.protogen.ScalingPolicy.Builder
 import com.netflix.titus.grpc.protogen.StepScalingPolicy.AdjustmentType
 import com.netflix.titus.grpc.protogen.StepScalingPolicy.MetricAggregationType
 
-class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescription {
+class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescription implements ApplicationNameable {
+  String application
+
   // required
   String region
   String jobId
@@ -47,6 +50,11 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
   TargetTrackingConfiguration targetTrackingConfiguration
 
   UpsertAlarmDescription alarm
+
+  @Override
+  Collection<String> getApplications() {
+    return [application]
+  }
 
   static class Step {
     Collection<StepAdjustment> stepAdjustments
@@ -209,4 +217,6 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
 
     description
   }
+
+
 }

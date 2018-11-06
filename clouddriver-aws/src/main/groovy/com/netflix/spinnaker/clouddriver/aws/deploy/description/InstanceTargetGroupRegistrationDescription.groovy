@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-class InstanceTargetGroupRegistrationDescription extends AbstractRegionAsgInstanceIdsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
+
+class InstanceTargetGroupRegistrationDescription extends AbstractRegionAsgInstanceIdsDescription implements ResourcesNameable {
   List<String> targetGroupNames
+
+  @Override
+  Collection<String> getNames() {
+    return targetGroupNames ?: []
+  }
 }

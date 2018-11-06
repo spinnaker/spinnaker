@@ -21,4 +21,9 @@ class UpsertAmiTagsDescription extends AbstractAmazonCredentialsDescription {
   String amiName
   Collection<String> regions
   Map<String, String> tags
+
+  @Override
+  boolean requiresApplicationRestriction() {
+    return false
+  }
 }
