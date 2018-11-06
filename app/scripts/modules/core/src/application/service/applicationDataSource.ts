@@ -297,6 +297,12 @@ export class ApplicationDataSource implements IDataSourceConfig {
   private nextRefresh$ = Observable.merge(this.data$.skip(1), this.throwFailures$).take(1);
 
   /**
+   * A flag to toggle debug messages on. To use, open the JS console and enter:
+   * spinnaker.application.<datasource>.debugEnabled = true
+   */
+  private debugEnabled = false;
+
+  /**
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated
    * independent of the execution data source's refresh cycle
    */
@@ -447,7 +453,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   private updateData(data: any) {
     this.data = data || [];
     this.data$.next(this.data);
-    this.debug(`this.data = ${JSON.stringify(this.data)}`);
+    this.debug(`this.data:`, this.data);
   }
 
   /**
@@ -494,8 +500,10 @@ export class ApplicationDataSource implements IDataSourceConfig {
     }
   }
 
-  private debug(_message: string) {
-    // tslint:disable-next-line
-    // console.log(`DEBUG ${this.application.name}.${this.key}: ${_message}`);
+  private debug(message: string, object?: any) {
+    if (this.debugEnabled) {
+      // tslint:disable-next-line
+      console.log(`DEBUG ${this.application.name}.${this.key}: ${message}`, object);
+    }
   }
 }
