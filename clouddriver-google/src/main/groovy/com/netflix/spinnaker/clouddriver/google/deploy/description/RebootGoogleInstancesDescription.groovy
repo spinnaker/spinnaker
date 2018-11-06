@@ -24,6 +24,6 @@ class RebootGoogleInstancesDescription extends AbstractGoogleCredentialsDescript
   String accountName
 
   List<String> getNames() {
-    return instanceIds
+    return instanceIds ?: []
   }
 }

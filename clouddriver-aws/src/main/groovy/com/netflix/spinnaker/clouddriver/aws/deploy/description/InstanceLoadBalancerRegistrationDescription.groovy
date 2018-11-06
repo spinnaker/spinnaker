@@ -23,6 +23,6 @@ class InstanceLoadBalancerRegistrationDescription extends AbstractRegionAsgInsta
 
   @Override
   Collection<String> getNames() {
-    return loadBalancerNames
+    return loadBalancerNames ?: []
   }
 }
