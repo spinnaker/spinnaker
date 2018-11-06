@@ -7,7 +7,10 @@ module.exports = angular
     require('../../cluster/cluster.kubernetes.module.js').name,
   ])
   .factory('kubernetesServerGroupCommandBuilder', function($q, kubernetesClusterCommandBuilder) {
-    function buildNewServerGroupCommand(application, defaults = {}) {
+    function buildNewServerGroupCommand(application, defaults) {
+      if (defaults == null) {
+        defaults = {};
+      }
       var command = kubernetesClusterCommandBuilder.buildNewClusterCommand(application, defaults);
       command.targetSize = 1;
 
