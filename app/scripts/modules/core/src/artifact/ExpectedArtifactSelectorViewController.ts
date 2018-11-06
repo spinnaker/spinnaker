@@ -27,7 +27,10 @@ export class ExpectedArtifactSelectorViewController {
     } else {
       const artifact = ExpectedArtifactService.artifactFromExpected(expectedArtifact);
       const allAccounts = this.delegate.getExpectedArtifactAccounts();
-      this.accountsForArtifact = allAccounts.filter(a => a.types.includes(artifact.type));
+      this.accountsForArtifact =
+        artifact.type === 'helm/chart'
+          ? allAccounts.filter(a => a.types.includes(artifact.type) && a.name === artifact.artifactAccount)
+          : allAccounts.filter(a => a.types.includes(artifact.type));
       const selected = this.delegate.getSelectedAccount();
       if (!selected || !this.accountsForArtifact.find(a => a.name === selected.name)) {
         if (this.accountsForArtifact.length) {

@@ -35,3 +35,4 @@ ArtifactIconService.registerType(ArtifactTypePatterns.GITHUB_FILE, require('./ic
 ArtifactIconService.registerType(ArtifactTypePatterns.GITLAB_FILE, require('./icons/gitlab-file-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.BITBUCKET_FILE, require('./icons/bitbucket-file-artifact.svg'));
 ArtifactIconService.registerType(ArtifactTypePatterns.S3_OBJECT, require('./icons/s3-object-artifact.svg'));
+ArtifactIconService.registerType(ArtifactTypePatterns.HELM_CHART, require('./icons/helm-chart-artifact.svg'));

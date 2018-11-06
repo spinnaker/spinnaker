@@ -142,6 +142,7 @@ export class ExpectedArtifactEditor extends React.Component<
         )}
         {EditCmp && (
           <EditCmp
+            account={account}
             artifact={artifact}
             onChange={this.onArtifactEdit}
             labelColumns={3}

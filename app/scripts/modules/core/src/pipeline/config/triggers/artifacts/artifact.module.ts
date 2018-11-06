@@ -12,6 +12,7 @@ import { DEFAULT_BITBUCKET_ARTIFACT } from './bitbucket/defaultBitbucket.artifac
 import { ARTIFACT } from './artifact.component';
 import { GITHUB_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/github/github.artifact';
 import { GITLAB_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/gitlab/gitlab.artifact';
+import { HELM_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/helm/helm.artifact';
 import { BITBUCKET_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/bitbucket/bitbucket.artifact';
 import { BASE64_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/base64/base64.artifact';
 import { DEFAULT_BASE64_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/base64/defaultBase64.artifact';
@@ -26,6 +27,7 @@ module(ARTIFACT_MODULE, [
   GCS_ARTIFACT,
   GITHUB_ARTIFACT,
   GITLAB_ARTIFACT,
+  HELM_ARTIFACT,
   BITBUCKET_ARTIFACT,
   DOCKER_ARTIFACT,
   BASE64_ARTIFACT,
