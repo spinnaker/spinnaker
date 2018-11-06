@@ -38,7 +38,8 @@
         <span class="input-label">and</span>
       </span>
       <span class="input-label" ng-if="$last">
-        is greater than
+        is greater than 
+        <span ng-if="!$first || $ctrl.command.alarm.comparisonOperator.includes('Equal')"> or equal to </span>
         <span class="input-label" ng-bind="step.metricIntervalLowerBound"></span>
       </span>
 
@@ -66,7 +67,8 @@
              style="width: 85px"/>
       <span class="input-label" ng-if="!$last">and</span>
       <span class="input-label" ng-if="$last">
-        is less than
+        is less than 
+        <span ng-if="!$first || $ctrl.command.alarm.comparisonOperator.includes('Equal')"> or equal to </span>
       </span>
       <span class="input-label text-right" ng-bind="step.metricIntervalUpperBound"></span>
     </span>
