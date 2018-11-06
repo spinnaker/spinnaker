@@ -23,6 +23,7 @@ import com.netflix.spinnaker.echo.services.Front50Service;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.Scheduler;
@@ -55,7 +56,7 @@ public class PipelineCache implements MonitoredPoller {
 
   @Autowired
   public PipelineCache(@NonNull Scheduler scheduler,
-                       int pollingIntervalSeconds,
+                       @Value("${front50.pollingIntervalSeconds:10}") int pollingIntervalSeconds,
                        @NonNull Front50Service front50,
                        @NonNull Registry registry) {
     this.scheduler = scheduler;
