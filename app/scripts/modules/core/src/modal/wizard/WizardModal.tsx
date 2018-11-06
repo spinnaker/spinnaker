@@ -118,7 +118,9 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
     const currentPageIndex = pageTops.length - (reversedCurrentPage + 1);
     const currentPage = this.pages[this.state.pages[currentPageIndex]];
 
-    this.setState({ currentPage });
+    if (this.state.currentPage !== currentPage) {
+      this.setState({ currentPage });
+    }
   };
 
   private getFilteredChildren(): React.ReactChild[] {
