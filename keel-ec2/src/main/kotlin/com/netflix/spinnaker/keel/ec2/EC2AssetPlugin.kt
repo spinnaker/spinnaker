@@ -64,7 +64,7 @@ class EC2AssetPlugin(
       }
     }
 
-  override fun converge(request: Asset): ConvergeResponse =
+  override fun upsert(request: Asset): ConvergeResponse =
     try {
       when (request.kind) {
         "ec2.SecurityGroup" -> {

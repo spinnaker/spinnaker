@@ -10,6 +10,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
 
   testImplementation "io.strikt:strikt-core:+"
+  testImplementation "com.oneeyedmen:minutest:+"
 }
 
 test {

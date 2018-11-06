@@ -15,6 +15,10 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+
+@JsonInclude(NON_NULL)
 data class SecurityGroup(
   val application: String,
   val name: String,

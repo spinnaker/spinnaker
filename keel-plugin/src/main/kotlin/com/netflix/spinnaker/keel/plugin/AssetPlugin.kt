@@ -21,7 +21,7 @@ interface AssetPlugin : KeelPlugin {
   val supportedTypes: Iterable<String>
 
   fun current(request: Asset): CurrentResponse
-  fun converge(request: Asset): ConvergeResponse
+  fun upsert(request: Asset): ConvergeResponse
 }
 
 sealed class CurrentResponse

@@ -61,7 +61,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
         subject.handle(message)
       }
 
-      it("does not try to converge any assets") {
+      it("does not try to upsert any assets") {
         verifyZeroInteractions(queue)
       }
     }
@@ -86,7 +86,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
           subject.handle(message)
         }
 
-        it("does not try to converge any assets") {
+        it("does not try to upsert any assets") {
           verifyZeroInteractions(queue)
         }
 

@@ -15,34 +15,37 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes(
+  Type(value = ReferenceSecurityGroupRule::class, name = "Reference"),
+  Type(value = CidrSecurityGroupRule::class, name = "Cidr")
+)
+@JsonInclude(NON_NULL)
 sealed class SecurityGroupRule {
-  abstract val protocol: String // TODO: enum
+  abstract val protocol: Protocol
   abstract val portRange: PortRange
+
+  enum class Protocol {
+    TCP, UDP, ICMP
+  }
 }
 
 data class ReferenceSecurityGroupRule(
-  override val protocol: String,
-  val name: String?,
-  val account: String?,
-  val vpcName: String?,
-  override val portRange: PortRange
-) : SecurityGroupRule()
-
-data class CrossAccountSecurityGroupRule(
-  override val protocol: String,
-  val name: String,
-  val account: String,
-  val vpcName: String,
-  override val portRange: PortRange
-) : SecurityGroupRule()
-
-data class SelfReferencingSecurityGroupRule(
-  override val protocol: String,
+  override val protocol: Protocol,
+  val name: String? = null,
+  val account: String? = null,
+  val vpcName: String? = null,
   override val portRange: PortRange
 ) : SecurityGroupRule()
 
 data class CidrSecurityGroupRule(
-  override val protocol: String,
+  override val protocol: Protocol,
   override val portRange: PortRange,
   val blockRange: String
 ) : SecurityGroupRule()
