@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
+import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -73,7 +73,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
 
     List<HttpHealthCheck> httpHealthChecks = new PaginatedRequest<HttpHealthCheckList>(this) {
       @Override
-      protected AbstractGoogleJsonClientRequest<HttpHealthCheckList> request (String pageToken) {
+      protected ComputeRequest<HttpHealthCheckList> request (String pageToken) {
         return compute.httpHealthChecks().list(project).setPageToken(pageToken)
       }
 
@@ -103,7 +103,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
 
     List<HttpsHealthCheck> httpsHealthChecks = new PaginatedRequest<HttpsHealthCheckList>(this) {
       @Override
-      protected AbstractGoogleJsonClientRequest<HttpsHealthCheckList> request (String pageToken) {
+      protected ComputeRequest<HttpsHealthCheckList> request (String pageToken) {
         return compute.httpsHealthChecks().list(project).setPageToken(pageToken)
       }
 
@@ -133,7 +133,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
 
     List<HealthCheck> healthChecks = new PaginatedRequest<HealthCheckList>(this) {
       @Override
-      protected AbstractGoogleJsonClientRequest<HealthCheckList> request (String pageToken) {
+      protected ComputeRequest<HealthCheckList> request (String pageToken) {
         return compute.healthChecks().list(project).setPageToken(pageToken)
       }
 

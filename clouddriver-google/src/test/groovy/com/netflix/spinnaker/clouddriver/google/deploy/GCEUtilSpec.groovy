@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestFactory
@@ -40,6 +39,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLo
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Shared
 import spock.lang.Specification
@@ -103,12 +103,12 @@ class GCEUtilSpec extends Specification {
 
     then:
       1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
-        BatchRequest batchRequest = it[0]
-        assert batchRequest.requestInfos != null
+        GoogleBatchRequest batchRequest = it[0]
+        assert batchRequest.queuedRequests.every { it.request != null }
         // 1 request for each of the 3 projects (PROJECT_NAME + BASE_IMAGE_PROJECTS)
-        assert batchRequest.requestInfos.size() == 3
-        batchRequest.requestInfos.each { BatchRequest.RequestInfo requestInfo ->
-          requestInfo.callback.onSuccess(imageList, null)
+        assert batchRequest.queuedRequests.size() == 3
+        batchRequest.queuedRequests.each {
+          it.callback.onSuccess(imageList, null)
         }
       }
       sourceImage == soughtImage
@@ -136,12 +136,12 @@ class GCEUtilSpec extends Specification {
 
     then:
       1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
-        BatchRequest batchRequest = it[0]
-        assert batchRequest.requestInfos != null
+        GoogleBatchRequest batchRequest = it[0]
+        assert batchRequest.queuedRequests.every { it.request != null }
         // 1 request for each of the 4 projects (PROJECT_NAME + IMAGE_PROJECT_NAME + BASE_IMAGE_PROJECTS)
-        assert batchRequest.requestInfos.size() == 4
-        batchRequest.requestInfos.each { BatchRequest.RequestInfo requestInfo ->
-          requestInfo.callback.onSuccess(imageList, null)
+        assert batchRequest.queuedRequests.size() == 4
+        batchRequest.queuedRequests.each {
+          it.callback.onSuccess(imageList, null)
         }
       }
       sourceImage == soughtImage
@@ -164,12 +164,12 @@ class GCEUtilSpec extends Specification {
 
     then:
       1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
-        BatchRequest batchRequest = it[0]
-        assert batchRequest.requestInfos != null
+        GoogleBatchRequest batchRequest = it[0]
+        assert batchRequest.queuedRequests.every { it.request != null }
         // 1 request for each of the 3 projects (PROJECT_NAME + IMAGE_PROJECT_NAME + BASE_IMAGE_PROJECTS)
-        assert batchRequest.requestInfos.size() == 3
-        batchRequest.requestInfos.each { BatchRequest.RequestInfo requestInfo ->
-          requestInfo.callback.onSuccess(emptyImageList, null)
+        assert batchRequest.queuedRequests.size() == 3
+        batchRequest.queuedRequests.each {
+          it.callback.onSuccess(emptyImageList, null)
         }
       }
       thrown GoogleResourceNotFoundException

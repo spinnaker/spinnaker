@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
-import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.client.http.HttpHeaders
+import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -31,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
@@ -72,9 +72,9 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
     List<GoogleLoadBalancer> loadBalancers = []
     List<String> failedSubjects = []
 
-    BatchRequest forwardingRulesRequest = buildBatchRequest()
-    BatchRequest targetTcpProxyRequest = buildBatchRequest()
-    BatchRequest groupHealthRequest = buildBatchRequest()
+    GoogleBatchRequest forwardingRulesRequest = buildGoogleBatchRequest()
+    GoogleBatchRequest targetTcpProxyRequest = buildGoogleBatchRequest()
+    GoogleBatchRequest groupHealthRequest = buildGoogleBatchRequest()
 
     // Reset the local getHealth caches/queues each caching agent cycle.
     bsNameToGroupHealthsMap = [:]
@@ -95,12 +95,12 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
 
     if (onDemandLoadBalancerName) {
       ForwardingRuleCallbacks.ForwardingRuleSingletonCallback frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
-      compute.globalForwardingRules().get(project, onDemandLoadBalancerName).queue(forwardingRulesRequest, frCallback)
+      forwardingRulesRequest.queue(compute.globalForwardingRules().get(project, onDemandLoadBalancerName), frCallback)
     } else {
       ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
       new PaginatedRequest<ForwardingRuleList>(this) {
         @Override
-        AbstractGoogleJsonClientRequest<ForwardingRuleList> request(String pageToken) {
+        ComputeRequest<ForwardingRuleList> request(String pageToken) {
           return compute.globalForwardingRules().list(project).setPageToken(pageToken)
         }
 
@@ -136,10 +136,10 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
   class ForwardingRuleCallbacks {
     List<GoogleHttpLoadBalancer> loadBalancers
     List<String> failedSubjects = []
-    BatchRequest targetTcpProxyRequest
+    GoogleBatchRequest targetTcpProxyRequest
 
     // Pass through objects
-    BatchRequest groupHealthRequest
+    GoogleBatchRequest groupHealthRequest
     List<BackendService> projectBackendServices
     List<HealthCheck> projectHealthChecks
 
@@ -208,7 +208,7 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
         subject: newLoadBalancer.name,
         failedSubjects: failedSubjects,
       )
-      compute.targetTcpProxies().get(project, targetTcpProxyName).queue(targetTcpProxyRequest, targetTcpProxyCallback)
+      targetTcpProxyRequest.queue(compute.targetTcpProxies().get(project, targetTcpProxyName), targetTcpProxyCallback)
     }
   }
 
@@ -216,7 +216,7 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
     GoogleTcpLoadBalancer googleLoadBalancer
     List<BackendService> projectBackendServices
     List<HealthCheck> projectHealthChecks
-    BatchRequest groupHealthRequest
+    GoogleBatchRequest groupHealthRequest
 
     @Override
     void onSuccess(TargetTcpProxy targetTcpProxy, HttpHeaders responseHeaders) throws IOException {
@@ -235,7 +235,7 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
   private void handleBackendService(BackendService backendService,
                                     GoogleTcpLoadBalancer googleLoadBalancer,
                                     List<HealthCheck> healthChecks,
-                                    BatchRequest groupHealthRequest) {
+                                    GoogleBatchRequest groupHealthRequest) {
     def groupHealthCallback = new GroupHealthCallback(backendServiceName: backendService.name)
 
     GoogleBackendService newService = new GoogleBackendService(
@@ -262,9 +262,9 @@ class GoogleTcpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
         // The groupHealthCallback updates the local cache.
         log.debug("Queueing a batch call for getHealth(): {}", ghr)
         queuedBsGroupHealthRequests.add(ghr)
-        compute.backendServices()
-          .getHealth(project, backendService.name, resourceGroup)
-          .queue(groupHealthRequest, groupHealthCallback)
+        groupHealthRequest
+          .queue(compute.backendServices().getHealth(project, backendService.name as String, resourceGroup),
+          groupHealthCallback)
       } else {
         log.debug("Passing, batch call result cached for getHealth(): {}", ghr)
       }

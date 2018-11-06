@@ -304,7 +304,7 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
   Map<Service, List<Version>> loadServerGroups() {
     def project = credentials.project
     def loadBalancers = credentials.appengine.apps().services().list(project).execute().getServices() ?: []
-    BatchRequest batch = credentials.appengine.batch()
+    BatchRequest batch = credentials.appengine.batch() // TODO(jacobkiefer): Consider limiting batch sizes. https://github.com/spinnaker/spinnaker/issues/3564.
     Map<Service, List<Version>> serverGroupsByLoadBalancer = [:].withDefault { [] }
 
     loadBalancers.each { loadBalancer ->

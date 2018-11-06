@@ -18,9 +18,6 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.client.googleapis.batch.BatchRequest
-import com.google.api.client.http.HttpRequest
-import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spectator.api.Registry
@@ -28,6 +25,7 @@ import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 
 abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware, GoogleExecutorTraits {
@@ -70,22 +68,13 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware,
     credentials?.name
   }
 
-  def executeIfRequestsAreQueued(BatchRequest batch, String instrumentationContext) {
-    if (batch.size()) {
-      timeExecuteBatch(batch, instrumentationContext)
-    }
+  GoogleBatchRequest buildGoogleBatchRequest() {
+    return new GoogleBatchRequest(compute, clouddriverUserAgentApplicationName)
   }
 
-  BatchRequest buildBatchRequest() {
-    return compute.batch(
-        new HttpRequestInitializer() {
-          @Override
-          void initialize(HttpRequest request) throws IOException {
-            request.headers.setUserAgent(clouddriverUserAgentApplicationName);
-            request.setConnectTimeout(2 * 60000)  // 2 minutes connect timeout
-            request.setReadTimeout(2 * 60000)  // 2 minutes read timeout
-          }
-        }
-    )
+  def executeIfRequestsAreQueued(GoogleBatchRequest googleBatchRequest, String instrumentationContext) {
+    if (googleBatchRequest.size()) {
+      timeExecuteBatch(googleBatchRequest, instrumentationContext)
+    }
   }
 }

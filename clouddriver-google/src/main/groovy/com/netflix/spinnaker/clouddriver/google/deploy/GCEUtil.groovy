@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.clouddriver.google.deploy
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
-import com.google.api.client.http.*
+import com.google.api.client.http.GenericUrl
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponse
 import com.google.api.client.json.JsonObjectParser
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
@@ -44,6 +45,7 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
@@ -90,7 +92,7 @@ class GCEUtil {
     def imageProjects = [projectName] + credentials?.imageProjects + baseImageProjects - null
     def sourceImage = null
 
-    def imageListBatch = buildBatchRequest(compute, clouddriverUserAgentApplicationName)
+    def imageListBatch = new GoogleBatchRequest(compute, clouddriverUserAgentApplicationName)
     def imageListCallback = new JsonBatchCallback<ImageList>() {
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -108,7 +110,7 @@ class GCEUtil {
     imageProjects.each { imageProject ->
       def imagesList = compute.images().list(imageProject)
       imagesList.setFilter(filter)
-      imagesList.queue(imageListBatch, imageListCallback)
+      imageListBatch.queue(imagesList, imageListCallback)
     }
 
     executor.timeExecuteBatch(imageListBatch, "findImage")
@@ -178,17 +180,6 @@ class GCEUtil {
         baseImageProjects,
         executor)
     }
-  }
-
-  private static BatchRequest buildBatchRequest(def compute, String clouddriverUserAgentApplicationName) {
-    return compute.batch(
-      new HttpRequestInitializer() {
-        @Override
-        void initialize(HttpRequest request) throws IOException {
-          request.headers.setUserAgent(clouddriverUserAgentApplicationName);
-        }
-      }
-    )
   }
 
   static GoogleNetwork queryNetwork(String accountName, String networkName, Task task, String phase, GoogleNetworkProvider googleNetworkProvider) {
