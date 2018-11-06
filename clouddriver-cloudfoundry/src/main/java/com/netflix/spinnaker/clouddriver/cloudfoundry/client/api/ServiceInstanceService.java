@@ -41,15 +41,18 @@ public interface ServiceInstanceService {
   @GET("/v2/service_plans")
   Page<ServicePlan> findServicePlans(@Query("page") Integer page, @Query("q") List<String> queryParams);
 
-  @POST("/v2/service_instances?accepts_incomplete=false")
-  Response createServiceInstance(@Body CreateServiceInstance body);
+  @POST("/v2/service_instances?accepts_incomplete=true")
+  Resource<ServiceInstance> createServiceInstance(@Body CreateServiceInstance body);
 
-  @PUT("/v2/service_instances/{guid}?accepts_incomplete=false")
-  Response updateServiceInstance(@Path("guid") String serviceInstanceGuid, @Body CreateServiceInstance body);
+  @PUT("/v2/service_instances/{guid}?accepts_incomplete=true")
+  Resource<ServiceInstance> updateServiceInstance(@Path("guid") String serviceInstanceGuid, @Body CreateServiceInstance body);
 
   @GET("/v2/service_instances/{guid}/service_bindings")
   Page<ServiceBinding> getBindingsForServiceInstance(@Path("guid") String serviceInstanceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
 
   @DELETE("/v2/service_instances/{guid}?accepts_incomplete=false")
   Response destroyServiceInstance(@Path("guid") String serviceInstanceGuid);
+
+  @GET("/v2/service_instances/{guid}")
+  Resource<ServiceInstance> getServiceInstanceById(@Path("guid") String serviceInstanceGuid);
 }

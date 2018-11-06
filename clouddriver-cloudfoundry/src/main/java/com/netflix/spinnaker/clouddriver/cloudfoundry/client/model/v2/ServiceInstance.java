@@ -23,4 +23,5 @@ public class ServiceInstance {
   private String name;
   private String plan;
   private String servicePlanGuid;
+  private LastOperation lastOperation;
 }

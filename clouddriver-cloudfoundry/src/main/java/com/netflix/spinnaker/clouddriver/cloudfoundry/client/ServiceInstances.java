@@ -17,29 +17,32 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.time.Duration;
+import java.util.*;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription.Code.SERVICE_ALREADY_EXISTS;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class ServiceInstances {
   private final ServiceInstanceService api;
   private final Organizations orgs;
   private final Spaces spaces;
+  private Duration timeout = Duration.ofSeconds(450);
+  private Duration pollingInterval = Duration.ofSeconds(10);
 
   public void createServiceBindingsByName(CloudFoundryServerGroup cloudFoundryServerGroup, @Nullable List<String> serviceNames) throws CloudFoundryApiException {
     if (serviceNames != null && !serviceNames.isEmpty()) {
@@ -155,19 +158,56 @@ public class ServiceInstances {
     command.setTags(tags);
     command.setParameters(parameters);
 
+    Optional<Resource<ServiceInstance>> serviceInstance;
     try {
-      safelyCall(() -> api.createServiceInstance(command));
-    } catch (CloudFoundryApiException e) {
-      if (ErrorDescription.Code.SERVICE_ALREADY_EXISTS == e.getErrorCode()) {
+      serviceInstance = safelyCall(() -> api.createServiceInstance(command));
+    } catch (CloudFoundryApiException cfe) {
+      if (cfe.getErrorCode() == SERVICE_ALREADY_EXISTS) {
         Resource<ServiceInstance> serviceInstanceResource = getServiceInstances(space, newServiceInstanceName);
-        if (serviceInstanceResource.getEntity().getServicePlanGuid().equals(command.getServicePlanGuid())) {
-          safelyCall(() -> api.updateServiceInstance(serviceInstanceResource.getMetadata().getGuid(), command));
-        } else {
+        if (!serviceInstanceResource.getEntity().getServicePlanGuid().equals(command.getServicePlanGuid())) {
           throw new CloudFoundryApiException("A service with name '" + serviceName + "' exists but has a different plan");
         }
+
+        serviceInstance = safelyCall(() -> api.updateServiceInstance(serviceInstanceResource.getMetadata().getGuid(), command));
       } else {
-        throw e;
+        throw cfe;
       }
     }
+
+    String guid = serviceInstance.map(res -> res.getMetadata().getGuid())
+      .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' not found"));
+
+    RetryConfig retryConfig = RetryConfig.custom()
+      .waitDuration(pollingInterval)
+      .maxAttempts((int) (timeout.getSeconds() / pollingInterval.getSeconds()))
+      .retryExceptions(OperationInProgressException.class)
+      .build();
+
+    try {
+      Retry.of("async-create-service", retryConfig).executeCallable(() -> {
+          LastOperation.State state = safelyCall(() -> api.getServiceInstanceById(guid))
+            .map(res -> res.getEntity().getLastOperation().getState())
+            .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' not found"));
+
+          switch (state) {
+            case FAILED:
+              throw new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' creation failed");
+            case IN_PROGRESS:
+              throw new OperationInProgressException();
+            case SUCCEEDED:
+              break;
+          }
+          return state;
+        });
+      } catch (CloudFoundryApiException e) {
+        throw e;
+      } catch (OperationInProgressException ignored) {
+        throw new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' creation did not complete");
+      } catch (Exception unknown) {
+        throw new CloudFoundryApiException(unknown);
+      }
+  }
+
+  private static class OperationInProgressException extends RuntimeException {
   }
 }
