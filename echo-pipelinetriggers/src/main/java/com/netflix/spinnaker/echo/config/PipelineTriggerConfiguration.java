@@ -22,8 +22,6 @@ import retrofit.RestAdapter.LogLevel;
 import retrofit.client.Client;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 @Slf4j
 @Configuration
@@ -46,11 +44,6 @@ public class PipelineTriggerConfiguration {
   @Bean
   public OrcaService orca(@Value("${orca.baseUrl}") final String endpoint) {
     return bindRetrofitService(OrcaService.class, endpoint);
-  }
-
-  @Bean
-  public Scheduler scheduler() {
-    return Schedulers.io();
   }
 
   @Bean

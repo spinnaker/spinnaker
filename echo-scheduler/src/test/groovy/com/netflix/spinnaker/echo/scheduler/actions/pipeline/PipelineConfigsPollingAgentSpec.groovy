@@ -25,7 +25,6 @@ import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineConfigsPollingAgent
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -35,7 +34,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
     Registry registry = new NoopRegistry()
     def actionsOperator = Mock(ActionsOperator)
     def pipelineCache = Mock(PipelineCache)
-    @Subject pollingAgent = new PipelineConfigsPollingAgent(registry, pipelineCache, actionsOperator, 1000000, 'America/Los_Angeles')
+    @Subject pollingAgent = new PipelineConfigsPollingAgent(registry, pipelineCache, actionsOperator, 1_000_000, 'America/Los_Angeles')
 
     void 'when a new pipeline trigger is added, a scheduled action instance is registered with an id same as the trigger id'() {
         given:
@@ -45,7 +44,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
             .cronExpression('* 0/30 * * * ? *')
             .build()
         Pipeline pipeline = buildPipeline([trigger])
-        pipelineCache.getPipelines() >> Observable.just(PipelineCache.decorateTriggers([pipeline]))
+        pipelineCache.getPipelinesSync() >> PipelineCache.decorateTriggers([pipeline])
         actionsOperator.getActionInstances() >> []
 
         when:
@@ -71,7 +70,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         Pipeline pipeline = buildPipeline([trigger], pipelineDisabled)
         def decoratedPipelines = PipelineCache.decorateTriggers([pipeline]) // new id for trigger will be generated here
         ActionInstance actionInstance = buildScheduledAction(decoratedPipelines[0].triggers[0].id, '* 0/30 * * * ? *', true)
-        pipelineCache.getPipelines() >> Observable.just(decoratedPipelines)
+        pipelineCache.getPipelinesSync() >> decoratedPipelines
         actionsOperator.getActionInstances() >> [actionInstance]
 
         when:
@@ -96,7 +95,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         given:
         Pipeline pipeline = buildPipeline([])
         ActionInstance actionInstance = buildScheduledAction('t1', '* 0/30 * * * ? *', true)
-        pipelineCache.getPipelines() >> Observable.just(PipelineCache.decorateTriggers([pipeline]))
+        pipelineCache.getPipelinesSync() >> PipelineCache.decorateTriggers([pipeline])
         actionsOperator.getActionInstances() >> [actionInstance]
 
         when:
@@ -124,7 +123,7 @@ class PipelineConfigsPollingAgentSpec extends Specification {
         Pipeline pipeline = buildPipeline([trigger])
         def decoratedPipelines = PipelineCache.decorateTriggers([pipeline]) // new id for trigger will be generated here
         ActionInstance actionInstance = buildScheduledAction(changeTrigger ? trigger.id : decoratedPipelines[0].triggers[0].id, actionCron, actionEnabled)
-        pipelineCache.getPipelines() >> Observable.just(decoratedPipelines)
+        pipelineCache.getPipelinesSync() >> decoratedPipelines
         actionsOperator.getActionInstances() >> [actionInstance]
 
         when:

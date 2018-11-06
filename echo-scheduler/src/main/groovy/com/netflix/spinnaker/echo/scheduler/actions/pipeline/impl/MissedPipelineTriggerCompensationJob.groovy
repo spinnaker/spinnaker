@@ -34,9 +34,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
-import rx.Observable
-import rx.Scheduler
-import rx.Subscription
 
 import java.text.ParseException
 import java.time.Clock
@@ -44,7 +41,10 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 import static com.netflix.spinnaker.echo.model.Trigger.Type.CRON
 import static net.logstash.logback.argument.StructuredArguments.kv
@@ -62,10 +62,6 @@ import static net.logstash.logback.argument.StructuredArguments.kv
 @Component
 @Slf4j
 class MissedPipelineTriggerCompensationJob implements ApplicationListener<ContextRefreshedEvent> {
-
-  final static Duration STARTUP_POLL_INTERVAL = Duration.ofSeconds(60)
-
-  final Scheduler scheduler
   final PipelineCache pipelineCache
   final OrcaService orcaService
   final PipelineInitiator pipelineInitiator
@@ -76,12 +72,10 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   final int pipelineFetchSize
   final DateContext dateContext
 
-  Subscription startupSubscription
-  Subscription recurringSubscription
+  private Boolean running = false
 
   @Autowired
-  MissedPipelineTriggerCompensationJob(Scheduler scheduler,
-                                       PipelineCache pipelineCache,
+  MissedPipelineTriggerCompensationJob(PipelineCache pipelineCache,
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
                                        Registry registry,
@@ -93,12 +87,11 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
                                        @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize) {
 
-    this(scheduler, pipelineCache, orcaService, pipelineInitiator, registry, quietPeriodIndicator, compensationWindowMs, compensationWindowToleranceMs, timeZoneId,
+    this(pipelineCache, orcaService, pipelineInitiator, registry, quietPeriodIndicator, compensationWindowMs, compensationWindowToleranceMs, timeZoneId,
       enableRecurring, recurringPollIntervalMs, pipelineFetchSize, null)
   }
 
-  MissedPipelineTriggerCompensationJob(Scheduler scheduler,
-                                       PipelineCache pipelineCache,
+  MissedPipelineTriggerCompensationJob(PipelineCache pipelineCache,
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
                                        Registry registry,
@@ -110,7 +103,6 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        @Value('${scheduler.compensationJob.recurringPollIntervalMs:300000}') long recurringPollIntervalMs, // 5 min
                                        @Value('${scheduler.compensationJob.pipelineFetchSize:20}') int pipelineFetchSize,
                                        DateContext dateContext) {
-    this.scheduler = scheduler
     this.pipelineCache = pipelineCache
     this.orcaService = orcaService
     this.pipelineInitiator = pipelineInitiator
@@ -124,38 +116,28 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
   @Override
   void onApplicationEvent(ContextRefreshedEvent event) {
-    if (startupSubscription == null) {
-      startupSubscription = Observable.interval(STARTUP_POLL_INTERVAL.toMillis(), TimeUnit.MILLISECONDS, scheduler)
-        .doOnNext { onPipelineCacheAwait(it) }
-        .flatMap { tick -> pipelineCache.getPipelines() }
-        .doOnError { onPipelineCacheError(it) }
-        .retry()
-        .subscribe { List<Pipeline> pipelines ->
-          if (pipelines.isEmpty()) {
-            return
-          }
-          triggerMissedExecutions(pipelines)
-          startupSubscription.unsubscribe()
-
-          scheduleRecurringCompensation()
-        }
+    // nothing to do if we are already running periodically
+    if (running) {
+      return
     }
-  }
 
-  void scheduleRecurringCompensation() {
-    if (enableRecurring && recurringSubscription == null) {
-      recurringSubscription = Observable.interval(recurringPollInterval.toMinutes(), TimeUnit.MINUTES, scheduler)
-        .doOnNext { onPipelineCacheAwait(it) }
-        .flatMap { tick -> pipelineCache.getPipelines() }
-        .doOnError { onPipelineCacheError(it) }
-        .retry()
-        .subscribe { List<Pipeline> pipelines ->
-          if (pipelines.isEmpty()) {
-            return
-          }
-          triggerMissedExecutions(pipelines)
-        }
+    // if we're in one-shot mode, do just that and exit
+    if (!enableRecurring) {
+      triggerMissedExecutions()
+      return
     }
+
+    // otherwise, schedule the recurring job
+    Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(
+      new Runnable() {
+        @Override
+        public void run() {
+          triggerMissedExecutions();
+        }
+      },
+      0, recurringPollInterval.getSeconds(), TimeUnit.SECONDS);
+
+    running = true
   }
 
   void onPipelineCacheAwait(long tick) {
@@ -164,6 +146,14 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
   void onPipelineCacheError(Throwable t) {
     log.error("Error waiting for pipeline cache", t)
+  }
+
+  void triggerMissedExecutions() {
+    try {
+      triggerMissedExecutions(pipelineCache.getPipelinesSync())
+    } catch(TimeoutException e) {
+      log.error("Failed to get pipelines from the cache", e)
+    }
   }
 
   void triggerMissedExecutions(List<Pipeline> pipelines) {

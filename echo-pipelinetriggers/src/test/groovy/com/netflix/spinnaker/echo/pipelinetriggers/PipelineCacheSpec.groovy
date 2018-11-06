@@ -24,130 +24,59 @@ import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
-import rx.observers.TestSubscriber
-import rx.schedulers.Schedulers
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+
 import static java.util.concurrent.TimeUnit.SECONDS
-import static rx.Observable.empty
-import static rx.Observable.just
 
 class PipelineCacheSpec extends Specification implements RetrofitStubs {
-  def scheduler = Schedulers.test()
   def front50 = Mock(Front50Service)
   def registry = new NoopRegistry()
 
   @Shared
   def interval = 30
 
+  @Shared
+  def sleepMs = 100
+
   @Subject
-  def pipelineCache = new PipelineCache(scheduler, interval, front50, registry)
-
-  private waitForTicks(int n) {
-    scheduler.advanceTimeBy(n * interval, SECONDS)
-  }
-
-  def "doesn't poll until started"() {
-    when:
-    waitForTicks(1)
-
-    then:
-    0 * _
-  }
-
-  def "doesn't poll after being stopped"() {
-    given:
-    pipelineCache.start()
-    pipelineCache.stop()
-
-    when:
-    waitForTicks(1)
-
-    then:
-    0 * _
-  }
-
-  def "tolerates stop before start"() {
-    when:
-    pipelineCache.stop()
-
-    then:
-    notThrown Throwable
-  }
-
-  def "tolerates multiple stop calls"() {
-    given:
-    pipelineCache.start()
-    pipelineCache.stop()
-
-    when:
-    pipelineCache.stop()
-
-    then:
-    notThrown Throwable
-  }
-
-  def "tolerates multiple start calls"() {
-    given:
-    pipelineCache.start()
-    pipelineCache.start()
-    pipelineCache.stop()
-
-    when:
-    waitForTicks(1)
-
-    then:
-    0 * _
-  }
-
-  def "can be restarted after shutting down"() {
-    given:
-    pipelineCache.start()
-    pipelineCache.stop()
-    pipelineCache.start()
-
-    when:
-    waitForTicks(1)
-
-    then:
-    1 * front50.getPipelines() >> empty()
-  }
-
-  @Unroll
-  def "polls Front50 #ticks times in #delayTime seconds"() {
-    given:
-    pipelineCache.start()
-
-    when:
-    waitForTicks(ticks)
-
-    then:
-    ticks * front50.getPipelines() >> empty()
-
-    where:
-    ticks | _
-    1     | _
-    2     | _
-
-    delayTime = ticks * interval
-  }
+  def pipelineCache = new PipelineCache(Mock(ScheduledExecutorService), interval, sleepMs, front50, registry)
 
   def "keeps polling if Front50 returns an error"() {
     given:
-    TestSubscriber<List<Pipeline>> testSubscriber = new TestSubscriber<>();
     def pipeline = Pipeline.builder().application('application').name('Pipeline').id('P1').build()
+    def initialLoad = []
+    front50.getPipelines() >> initialLoad >> { throw unavailable() } >> [pipeline]
     pipelineCache.start()
 
-    when:
-    waitForTicks(3)
-    pipelineCache.getPipelines().subscribe(testSubscriber)
+    expect: 'null pipelines when we have not polled yet'
+    pipelineCache.getPipelines() == null
 
-    then:
-    front50.getPipelines() >> just([]) >> { throw unavailable() } >> just([pipeline])
-    testSubscriber.assertValue([pipeline])
+    when: 'we complete our first polling cycle'
+    pipelineCache.pollPipelineConfigs()
+
+    then: 'we reflect the initial value'
+    pipelineCache.getPipelines() == initialLoad
+
+    when: 'a polling cycle encounters an error'
+    pipelineCache.pollPipelineConfigs()
+
+    then: 'we still return the cached value'
+    pipelineCache.getPipelines() == initialLoad
+
+    when: 'we recover after a failed poll'
+    pipelineCache.pollPipelineConfigs()
+
+    then: 'we return the updated value'
+    pipelineCache.getPipelines() == [pipeline]
   }
 
   def "we can serialize pipelines with triggers that have a parent"() {
@@ -175,7 +104,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     Pipeline decorated = PipelineCache.decorateTriggers([pipeline])[0]
 
     expect:
-    decorated.triggers.size() == 0
+    decorated.triggers.isEmpty()
 
     when:
     objectMapper.writeValueAsString(decorated)
@@ -184,3 +113,4 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     notThrown(JsonMappingException)
   }
 }
+

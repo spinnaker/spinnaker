@@ -73,7 +73,7 @@ class PipelineTriggerActionConverterSpec extends Specification {
     void 'fromParameters() should return an equivalent valid Pipeline instance'() {
         setup:
         def pipelineCache = Mock(PipelineCache) {
-          getPipelines() >> Observable.just([pipeline])
+          getPipelinesSync() >> [pipeline]
         }
 
         Map parameters = [

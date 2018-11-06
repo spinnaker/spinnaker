@@ -24,7 +24,6 @@ dependencies {
     compile spinnaker.dependency("logstashEncoder")
     compile spinnaker.dependency("kork")
     compile spinnaker.dependency('korkWeb')
-    compile spinnaker.dependency("rxJava")
     compile "javax.mail:mail:1.4.1"
     compile "org.springframework.boot:spring-boot-starter-mail:${spinnaker.version('springBoot')}"
     compile "org.springframework.boot:spring-boot-starter-freemarker:${spinnaker.version('springBoot')}"

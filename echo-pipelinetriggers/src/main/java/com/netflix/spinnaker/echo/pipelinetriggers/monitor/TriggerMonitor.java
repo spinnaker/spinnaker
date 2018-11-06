@@ -26,10 +26,11 @@ import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.TriggerEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator;
 import com.netflix.spinnaker.echo.pipelinetriggers.postprocessors.PipelinePostProcessorHandler;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
+
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 /**
  * Triggers pipelines in orca when a TriggerEvent of type T is received by echo.
@@ -72,14 +73,18 @@ public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener
   }
 
   private void triggerMatchingPipelines(T event) {
-    List<Pipeline> allPipelines = pipelineCache.getPipelinesSync();
-    List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(event, allPipelines);
-    matchingPipelines.stream()
-      .map(pipelinePostProcessorHandler::process)
-      .forEach(p -> {
-        recordMatchingPipeline(p);
-        pipelineInitiator.startPipeline(p);
-      });
+    try {
+      List<Pipeline> allPipelines = pipelineCache.getPipelinesSync();
+      List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(event, allPipelines);
+      matchingPipelines.stream()
+        .map(pipelinePostProcessorHandler::process)
+        .forEach(p -> {
+          recordMatchingPipeline(p);
+          pipelineInitiator.startPipeline(p);
+        });
+    } catch (TimeoutException e) {
+      log.error("Failed to get pipeline configs", e);
+    }
   }
 
   private void recordMetrics() {

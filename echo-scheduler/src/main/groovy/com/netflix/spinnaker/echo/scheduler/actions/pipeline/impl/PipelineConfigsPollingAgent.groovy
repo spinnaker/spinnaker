@@ -79,7 +79,7 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
       log.info("Running the pipeline configs polling agent...")
 
       // Only interested in pipelines that have triggers and that too scheduled triggers
-      def pipelines = pipelineCache.getPipelines().toBlocking().first().findAll {
+      def pipelines = pipelineCache.getPipelinesSync().findAll {
         it.triggers && it.triggers.any { TRIGGER_TYPE.equalsIgnoreCase(it.type) }
       }
 
