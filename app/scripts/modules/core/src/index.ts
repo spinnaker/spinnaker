@@ -58,6 +58,7 @@ export * from './pageTitle';
 export * from './pagerDuty';
 export * from './pipeline';
 export * from './presentation';
+export * from './projects';
 export * from './pubsub';
 
 export * from './reactShims';
