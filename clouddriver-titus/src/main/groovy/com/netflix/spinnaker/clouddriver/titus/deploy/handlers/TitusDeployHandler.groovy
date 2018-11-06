@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers
 
-import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper.TargetGroupLookupResult
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
@@ -45,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDes
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription.Source
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertTitusScalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.titus.model.DockerImage
+import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.titus.grpc.protogen.PutPolicyRequest
 import com.netflix.titus.grpc.protogen.PutPolicyRequest.Builder
@@ -404,8 +404,13 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       submitJobRequest.withJobName(description.application)
       return description.application
     }
+    String nextServerGroupName
     TitusServerGroupNameResolver serverGroupNameResolver = new TitusServerGroupNameResolver(titusClient, description.region)
-    String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
+    if (description.sequence != null) {
+      nextServerGroupName = serverGroupNameResolver.generateServerGroupName(description.application, description.stack, description.freeFormDetails, description.sequence, false)
+    } else {
+      nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
+    }
     submitJobRequest.withJobName(nextServerGroupName)
     task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName} ${System.currentTimeMillis()}"
     return nextServerGroupName

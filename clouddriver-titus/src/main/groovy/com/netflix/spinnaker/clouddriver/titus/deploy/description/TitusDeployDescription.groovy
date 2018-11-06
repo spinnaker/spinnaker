@@ -52,6 +52,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   List<String> interestingHealthProviderNames
   MigrationPolicy migrationPolicy
   Boolean copySourceScalingPoliciesAndActions = true
+  Integer sequence
 
   /**
    * If false, the newly created server group will not pick up scaling policies and actions from an ancestor group
