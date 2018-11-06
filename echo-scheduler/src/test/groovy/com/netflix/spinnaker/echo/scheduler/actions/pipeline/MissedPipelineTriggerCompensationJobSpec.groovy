@@ -120,6 +120,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       ]
     }
     0 * pipelineInitiator.startPipeline(_)
+    1 * quietPeriodIndicator.inQuietPeriod(_)
     0 * _
   }
 

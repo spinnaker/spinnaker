@@ -168,7 +168,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
   void triggerMissedExecutions(List<Pipeline> pipelines) {
     pipelines = pipelines.findAll { !it.disabled }
-    List<Trigger> allEnabledCronTriggers = getEnabledCronTriggers(pipelines, false)
+    List<Trigger> allEnabledCronTriggers = getEnabledCronTriggers(pipelines, quietPeriodIndicator.inQuietPeriod(System.currentTimeMillis()))
     List<Trigger> triggers = getWithValidTimeInWindow(allEnabledCronTriggers)
     List<String> ids = getPipelineConfigIds(pipelines, triggers)
 
