@@ -17,13 +17,10 @@ func NewPipelineCmd(out io.Writer) *cobra.Command {
 	options := pipelineOptions{}
 	cmd := &cobra.Command{
 		Use:     "pipeline",
-		Aliases: []string{"pipelines"},
+		Aliases: []string{"pipelines", "pi"},
 		Short:   pipelineShort,
 		Long:    pipelineLong,
 		Example: pipelineExample,
-		Run: func(cmd *cobra.Command, args []string) {
-
-		},
 	}
 
 	// create subcommands

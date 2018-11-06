@@ -27,26 +27,18 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 	options := RootOptions{}
 
 	cmd := &cobra.Command{
-		Short: `Global Options:
-
-		--gate-endpoint               Gate (API server) endpoint.
-		--no-color                    Removes color from CLI output.
-		--insecure=false              Ignore certificate errors during connection to endpoints.
-		--quiet=false                 Squelch non-essential output.
-		--output <output format>      Formats CLI output.
-	`,
 		SilenceUsage: true,
 		Version:      version.String(),
 	}
 
-	cmd.PersistentFlags().StringVar(&options.configFile, "config", "", "config file (default is $HOME/.spin/config)")
-	cmd.PersistentFlags().StringVar(&options.GateEndpoint, "gate-endpoint", "", "Gate (API server) endpoint. Default http://localhost:8084")
-	cmd.PersistentFlags().BoolVar(&options.ignoreCertErrors, "insecure", false, "Ignore Certificate Errors")
-	cmd.PersistentFlags().BoolVar(&options.quiet, "quiet", false, "Squelch non-essential output")
-	cmd.PersistentFlags().BoolVar(&options.color, "no-color", true, "Disable color")
+	cmd.PersistentFlags().StringVar(&options.configFile, "config", "", "path to config file (default $HOME/.spin/config)")
+	cmd.PersistentFlags().StringVar(&options.GateEndpoint, "gate-endpoint", "", "Gate (API server) endpoint (default http://localhost:8084)")
+	cmd.PersistentFlags().BoolVar(&options.ignoreCertErrors, "insecure", false, "ignore certificate errors")
+	cmd.PersistentFlags().BoolVar(&options.quiet, "quiet", false, "squelch non-essential output")
+	cmd.PersistentFlags().BoolVar(&options.color, "no-color", true, "disable color")
 	// TODO(jacobkiefer): Codify the json-path as part of an OutputConfig or
 	// something similar. Sets the stage for yaml output, etc.
-	cmd.PersistentFlags().StringVar(&options.outputFormat, "output", "", "Configure output formatting")
+	cmd.PersistentFlags().StringVar(&options.outputFormat, "output", "", "configure output formatting")
 
 	// create subcommands
 	cmd.AddCommand(application.NewApplicationCmd(out))

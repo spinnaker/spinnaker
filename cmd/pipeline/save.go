@@ -33,13 +33,6 @@ type SaveOptions struct {
 var (
 	savePipelineShort   = "Save the provided pipeline"
 	savePipelineLong    = "Save the provided pipeline"
-	savePipelineExample = `
-	usage: spin pipeline save [options]
-
-	Save the provided pipeline
-
-    --file: Path to the pipeline file
-`
 )
 
 func NewSaveCmd(appOptions pipelineOptions) *cobra.Command {
@@ -51,13 +44,12 @@ func NewSaveCmd(appOptions pipelineOptions) *cobra.Command {
 		Aliases: []string{},
 		Short:   savePipelineShort,
 		Long:    savePipelineLong,
-		Example: savePipelineExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return savePipeline(cmd, options)
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&options.pipelineFile, "file", "f", "", "Path to the pipeline file")
+	cmd.PersistentFlags().StringVarP(&options.pipelineFile, "file", "f", "", "path to the pipeline file")
 
 	return cmd
 }

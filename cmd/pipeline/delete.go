@@ -34,15 +34,6 @@ type DeleteOptions struct {
 var (
 	deletePipelineShort   = "Delete the provided pipeline"
 	deletePipelineLong    = "Delete the provided pipeline"
-	deletePipelineExample = `
-	usage: spin pipeline delete [options]
-
-	Delete the provided pipeline
-
-    --application: Spinnaker application the pipeline lives in
-    --name: Name of the pipeline to delete
-
-`
 )
 
 func NewDeleteCmd(appOptions pipelineOptions) *cobra.Command {
@@ -54,14 +45,13 @@ func NewDeleteCmd(appOptions pipelineOptions) *cobra.Command {
 		Aliases: []string{"del"},
 		Short:   deletePipelineShort,
 		Long:    deletePipelineLong,
-		Example: deletePipelineExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return deletePipeline(cmd, options)
 		},
 	}
 
 	cmd.PersistentFlags().StringVarP(&options.application, "application", "a", "", "Spinnaker application the pipeline lives in")
-	cmd.PersistentFlags().StringVarP(&options.name, "name", "n", "", "Name of the pipeline to delete")
+	cmd.PersistentFlags().StringVarP(&options.name, "name", "n", "", "name of the pipeline to delete")
 
 	return cmd
 }

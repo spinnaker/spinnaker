@@ -38,14 +38,6 @@ type ExecuteOptions struct {
 var (
 	executePipelineShort   = "Execute the provided pipeline"
 	executePipelineLong    = "Execute the provided pipeline"
-	executePipelineExample = `
-usage: spin pipeline execute [options]
-
-	Execute the provided pipeline
-
-    --application: Spinnaker application the pipeline lives in
-    --name: Name of the pipeline to execute
-`
 )
 
 func NewExecuteCmd(appOptions pipelineOptions) *cobra.Command {
@@ -57,15 +49,14 @@ func NewExecuteCmd(appOptions pipelineOptions) *cobra.Command {
 		Aliases: []string{"exec"},
 		Short:   executePipelineShort,
 		Long:    executePipelineLong,
-		Example: executePipelineExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return executePipeline(cmd, options)
 		},
 	}
 
 	cmd.PersistentFlags().StringVarP(&options.application, "application", "a", "", "Spinnaker application the pipeline lives in")
-	cmd.PersistentFlags().StringVarP(&options.name, "name", "n", "", "Name of the pipeline to execute")
-	cmd.PersistentFlags().StringVarP(&options.parameterFile, "parameter-file", "f", "", "File to load pipeline parameter values from")
+	cmd.PersistentFlags().StringVarP(&options.name, "name", "n", "", "name of the pipeline to execute")
+	cmd.PersistentFlags().StringVarP(&options.parameterFile, "parameter-file", "f", "", "file to load pipeline parameter values from")
 
 	return cmd
 }

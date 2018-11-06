@@ -35,16 +35,7 @@ type SaveOptions struct {
 
 var (
 	saveApplicationShort   = "Save the provided application"
-	saveApplicationLong    = "Get the specified application"
-	saveApplicationExample = `usage: spin application save [options]
-
-	Save the provided application
-
-    --application-name: Name of the application
-    --file: Path to the application file
-    --owner-email: Email of the application owner
-    --cloud-providers: List of configured cloud providers
-`
+	saveApplicationLong    = "Save the specified application"
 )
 
 func NewSaveCmd(appOptions applicationOptions) *cobra.Command {
@@ -53,18 +44,16 @@ func NewSaveCmd(appOptions applicationOptions) *cobra.Command {
 	}
 	cmd := &cobra.Command{
 		Use:     "save",
-		Aliases: []string{"save"},
 		Short:   saveApplicationShort,
 		Long:    saveApplicationLong,
-		Example: saveApplicationExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return saveApplication(cmd, options)
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&options.applicationFile, "file", "", "", "Path to the application file")
-	cmd.PersistentFlags().StringVarP(&options.applicationName, "application-name", "", "", "Name of the application")
-	cmd.PersistentFlags().StringVarP(&options.ownerEmail, "owner-email", "", "", "Email of the application owner")
-	options.cloudProviders = cmd.PersistentFlags().StringArrayP("cloud-providers", "", []string{}, "Cloud providers configured for this application")
+	cmd.PersistentFlags().StringVarP(&options.applicationFile, "file", "", "", "path to the application file")
+	cmd.PersistentFlags().StringVarP(&options.applicationName, "application-name", "", "", "name of the application")
+	cmd.PersistentFlags().StringVarP(&options.ownerEmail, "owner-email", "", "", "email of the application owner")
+	options.cloudProviders = cmd.PersistentFlags().StringArrayP("cloud-providers", "", []string{}, "cloud providers configured for this application")
 
 	return cmd
 }

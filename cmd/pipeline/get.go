@@ -34,14 +34,6 @@ type GetOptions struct {
 var (
 	getPipelineShort   = "Get the pipeline with the provided name from the provided application"
 	getPipelineLong    = "Get the specified pipeline"
-	getPipelineExample = `
-	usage: spin pipeline get [options]
-
-Get the provided pipeline
-
---application: Application the pipeline lives in
---name: Name of the pipeline
-`
 )
 
 func NewGetCmd(appOptions pipelineOptions) *cobra.Command {
@@ -50,17 +42,15 @@ func NewGetCmd(appOptions pipelineOptions) *cobra.Command {
 	}
 	cmd := &cobra.Command{
 		Use:     "get",
-		Aliases: []string{"get"},
 		Short:   getPipelineShort,
 		Long:    getPipelineLong,
-		Example: getPipelineExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return getPipeline(cmd, options)
 		},
 	}
 
 	cmd.PersistentFlags().StringVarP(&options.application, "application", "a", "", "Spinnaker application the pipeline belongs to")
-	cmd.PersistentFlags().StringVarP(&options.name, "name", "n", "", "Name of the pipeline")
+	cmd.PersistentFlags().StringVarP(&options.name, "name", "n", "", "name of the pipeline")
 
 	return cmd
 }

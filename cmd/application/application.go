@@ -19,13 +19,10 @@ func NewApplicationCmd(out io.Writer) *cobra.Command {
 	options := applicationOptions{}
 	cmd := &cobra.Command{
 		Use:     "application",
-		Aliases: []string{"applications"},
+		Aliases: []string{"applications", "app"},
 		Short:   applicationShort,
 		Long:    applicationLong,
 		Example: applicationExample,
-		Run: func(cmd *cobra.Command, args []string) {
-
-		},
 	}
 
 	// create subcommands

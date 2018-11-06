@@ -33,14 +33,6 @@ type ListOptions struct {
 var (
 	listPipelineShort   = "List the pipelines for the provided application"
 	listPipelineLong    = "List the pipelines for the provided application"
-	listPipelineExample = `
-	usage: spin pipeline list [options]
-
-	List the pipelines for the provided application
-
-    --application: Name of the application
-
-`
 )
 
 func NewListCmd(appOptions pipelineOptions) *cobra.Command {
@@ -52,7 +44,6 @@ func NewListCmd(appOptions pipelineOptions) *cobra.Command {
 		Aliases: []string{"ls"},
 		Short:   listPipelineShort,
 		Long:    listPipelineLong,
-		Example: listPipelineExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listPipeline(cmd, options)
 		},
