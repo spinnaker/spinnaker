@@ -281,13 +281,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
     private void updateJob(Map<String, Job> jobs, Job job) {
       if (FINISHED_JOB_STATES.contains(job.getStatus().getState())) {
         if (jobs.keySet().contains(job.getId())) {
-          String asgName =
-            getAsgName(new com.netflix.spinnaker.clouddriver.titus.client.model.Job(job, Collections.EMPTY_LIST));
-          jobs.remove(job.getId());
-          cache.evictDeletedItems(SERVER_GROUPS.ns,
-            Stream.of(Keys.getServerGroupV2Key(asgName, account.getName(), region.getName()))
-              .collect(Collectors.toList()));
-          log.debug("Evicting job: {}, {}", asgName, job.getId());
+          evictJob(jobs, job);
         }
       } else {
         jobs.putIfAbsent(job.getId(), job);
@@ -361,6 +355,51 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
         }, 5000);
     }
 
+    private void evictJob(Map<String, Job> jobs, Job job){
+        String asgName =
+                getAsgName(new com.netflix.spinnaker.clouddriver.titus.client.model.Job(job, Collections.EMPTY_LIST));
+
+        Names name = Names.parseName(asgName);
+
+        String appNameKey = Keys.getApplicationKey(name.getApp());
+        String clusterKey = Keys.getClusterV2Key(name.getCluster(), name.getApp(), account.getName());
+        String serverGroupKey = Keys.getServerGroupV2Key(asgName, account.getName(), region.getName());
+
+        cache.evictDeletedItems(SERVER_GROUPS.ns, Stream.of(serverGroupKey).collect(Collectors.toList()));
+
+        CacheData applicationCache = cache.get(APPLICATIONS.ns, appNameKey);
+        CacheData clusterCache = cache.get(CLUSTERS.ns, clusterKey);
+
+        if (clusterCache != null) {
+          Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
+          if (clusterCache.getRelationships().get(SERVER_GROUPS.ns).contains(serverGroupKey)) {
+                clusterCache.getRelationships().get(SERVER_GROUPS.ns).remove(serverGroupKey);
+                applicationCache.getRelationships().get(SERVER_GROUPS.ns).remove(serverGroupKey);
+                if (clusterCache.getRelationships().get(SERVER_GROUPS.ns).isEmpty()) {
+                    cache.evictDeletedItems(CLUSTERS.ns, Stream.of(clusterKey).collect(Collectors.toList()));
+                    if (applicationCache.getRelationships().containsKey(CLUSTERS.ns)) {
+                        applicationCache.getRelationships().get(CLUSTERS.ns).remove(clusterKey);
+                        log.info("Removing cluster {} in {}", account.getName(), getAgentType());
+                        if (applicationCache.getRelationships().get(CLUSTERS.ns).isEmpty()) {
+                            cache.evictDeletedItems(APPLICATIONS.ns,
+                                    Stream.of(appNameKey).collect(Collectors.toList()));
+                            log.info("Removing application {} in {}", name.getApp(), getAgentType());
+                        } else {
+                          cacheResults.put(APPLICATIONS.ns, Stream.of(applicationCache).collect(Collectors.toList()));
+                        }
+                    }
+                } else {
+                  cacheResults.put(CLUSTERS.ns, Stream.of(clusterCache).collect(Collectors.toList()));
+                }
+            }
+            if(!cacheResults.isEmpty()){
+              writeToCache(new DefaultCacheResult(cacheResults), false, JOB_TYPES);
+            }
+        }
+        jobs.remove(job.getId());
+        log.info("Evicting job: {}, {} in {}", asgName, job.getId(), getAgentType());
+    }
+
     private void updateTask(Job job, Task task, Map<String, Set<Task>> tasks) {
       if (FILTERED_STATES.contains(task.getStatus().getState())) {
         Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
@@ -392,7 +431,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
         cache.evictDeletedItems(INSTANCES.ns,
           Stream.of(Keys.getInstanceV2Key(task.getId(), account.getName(), region.getName()))
             .collect(Collectors.toList()));
-        log.info("Evicting task: {}", task.getId());
+        log.info("Evicting task: {} in {}", task.getId(), getAgentType());
       }
     }
 
