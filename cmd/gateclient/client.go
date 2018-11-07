@@ -139,7 +139,7 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 	}
 
 	if yamlFile != nil {
-		err = yaml.UnmarshalStrict(yamlFile, &gateClient.Config)
+		err = yaml.UnmarshalStrict([]byte(os.ExpandEnv(string(yamlFile))), &gateClient.Config)
 		if err != nil {
 			util.UI.Error(fmt.Sprintf("Could not deserialize config file with contents: %d, failing.", yamlFile))
 			return nil, err
