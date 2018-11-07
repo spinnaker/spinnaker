@@ -103,10 +103,10 @@ public class PipelineCache implements MonitoredPoller {
     PolledMeter
       .using(registry)
       .withName("front50.lastPoll")
-      .monitorValue(lastPollTimestamp, this::getDurationSeconds);
+      .monitorValue(this, PipelineCache::getDurationSeconds);
   }
 
-  private Double getDurationSeconds(Instant from) {
+  private Double getDurationSeconds() {
     return lastPollTimestamp == null
       ? -1d
       : (double) Duration.between(lastPollTimestamp, now()).getSeconds();
