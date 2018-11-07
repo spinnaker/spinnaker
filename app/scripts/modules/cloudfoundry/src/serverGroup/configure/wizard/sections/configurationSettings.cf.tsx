@@ -364,7 +364,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
 
           <div className="form-group">
             <div className="col-md-12">
-              <b>Services</b>
+              <b>Bind Services</b>
               <table className="table table-condensed packed metadata">
                 <tbody>
                   {manifest.services &&
@@ -394,7 +394,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
                   <tr>
                     <td colSpan={1}>
                       <button type="button" className="add-new col-md-12" onClick={addServicesVariable}>
-                        <span className="glyphicon glyphicon-plus-sign" /> Add New Service
+                        <span className="glyphicon glyphicon-plus-sign" /> Bind Service
                       </button>
                     </td>
                   </tr>
