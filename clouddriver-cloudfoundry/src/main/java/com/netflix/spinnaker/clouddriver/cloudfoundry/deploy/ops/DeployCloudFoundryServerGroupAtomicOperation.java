@@ -41,7 +41,6 @@ import java.util.function.Function;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 @RequiredArgsConstructor
 public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOperation<DeploymentResult> {
@@ -194,7 +193,13 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
     throw new IllegalArgumentException("Invalid size for application " + field + " = '" + size + "'");
   }
 
-  private boolean mapRoutes(List<String> routes, CloudFoundrySpace space, String serverGroupId) {
+  // VisibleForTesting
+  boolean mapRoutes(@Nullable List<String> routes, CloudFoundrySpace space, String serverGroupId) {
+    if (routes == null) {
+      getTask().updateStatus(PHASE, "No load balancers provided to create or update");
+      return true;
+    }
+
     getTask().updateStatus(PHASE, "Creating or updating load balancers");
 
     List<String> invalidRoutes = new ArrayList<>();
