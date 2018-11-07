@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.config.validate.v1.canary.aws.AwsCanaryVali
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.google.GoogleCanaryValidator;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -42,6 +43,9 @@ public class CanaryValidator extends Validator<Canary> {
 
   @Autowired
   private Registry registry;
+
+  @Autowired
+  TaskScheduler taskScheduler;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, Canary n) {
@@ -64,7 +68,11 @@ public class CanaryValidator extends Validator<Canary> {
       if (s instanceof GoogleCanaryServiceIntegration) {
         GoogleCanaryServiceIntegration googleCanaryServiceIntegration = (GoogleCanaryServiceIntegration)s;
 
-        new GoogleCanaryValidator().setHalyardVersion(halyardVersion).setRegistry(registry).validate(p, googleCanaryServiceIntegration);
+        new GoogleCanaryValidator()
+            .setHalyardVersion(halyardVersion)
+            .setRegistry(registry)
+            .setTaskScheduler(taskScheduler)
+            .validate(p, googleCanaryServiceIntegration);
 
         if (!configurationAndObjectStoresAreConfigured) {
           configurationAndObjectStoresAreConfigured = googleCanaryServiceIntegration.isEnabled() && googleCanaryServiceIntegration.isGcsEnabled();

@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.canary.google;
 
-import com.google.api.services.compute.Compute;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.front50.model.GcsStorageService;
+import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -26,13 +28,28 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.io.IOException;
+import lombok.Setter;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.stereotype.Component;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Component
 public class GoogleCanaryAccountValidator extends CanaryAccountValidator {
-  final private String halyardVersion;
+
+  @Setter
+  private String halyardVersion;
+
+  @Setter
+  private Registry registry;
+
+  @Setter
+  TaskScheduler taskScheduler;
+
+  private long maxWaitInterval = 60000;
+  private long retryIntervalBase = 2;
+  private long jitterMultiplier = 1000;
+  private long maxRetries = 10;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, AbstractCanaryAccount n) {
@@ -48,12 +65,26 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator {
       return;
     }
 
-    try {
-      Compute compute = credentials.getCompute();
+    String jsonPath = canaryAccount.getJsonPath();
 
-      compute.projects().get(canaryAccount.getProject()).execute();
-    } catch (IOException e) {
-      p.addProblem(Severity.ERROR, "Failed to load project \"" + canaryAccount.getProject() + "\": " + e.getMessage() + ".");
+    try {
+      StorageService storageService = new GcsStorageService(
+          canaryAccount.getBucket(),
+          canaryAccount.getBucketLocation(),
+          canaryAccount.getRootFolder(),
+          canaryAccount.getProject(),
+          jsonPath != null ? jsonPath : "",
+          "halyard",
+          maxWaitInterval,
+          retryIntervalBase,
+          jitterMultiplier,
+          maxRetries,
+          taskScheduler,
+          registry);
+
+      storageService.ensureBucketExists();
+    } catch (Exception e) {
+      p.addProblem(Severity.ERROR, "Failed to ensure the required bucket \"" + canaryAccount.getBucket() + "\" exists: " + e.getMessage());
     }
   }
 }

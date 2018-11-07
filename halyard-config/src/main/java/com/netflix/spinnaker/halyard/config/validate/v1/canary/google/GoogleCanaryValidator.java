@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Setter;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -36,11 +37,16 @@ public class GoogleCanaryValidator extends Validator<GoogleCanaryServiceIntegrat
   @Setter
   private Registry registry;
 
+  @Setter
+  TaskScheduler taskScheduler;
+
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleCanaryServiceIntegration n) {
-    GoogleCanaryAccountValidator googleCanaryAccountValidator = new GoogleCanaryAccountValidator(halyardVersion);
-
-    n.getAccounts().forEach(a -> googleCanaryAccountValidator.validate(p, a));
+    GoogleCanaryAccountValidator googleCanaryAccountValidator =
+        new GoogleCanaryAccountValidator()
+            .setHalyardVersion(halyardVersion)
+            .setRegistry(registry)
+            .setTaskScheduler(taskScheduler);
 
     if (n.isGcsEnabled()) {
       List<GoogleCanaryAccount> accountsWithBucket =
@@ -51,6 +57,8 @@ public class GoogleCanaryValidator extends Validator<GoogleCanaryServiceIntegrat
 
       if (CollectionUtils.isEmpty(accountsWithBucket)) {
         p.addProblem(Problem.Severity.ERROR, "At least one Google account must specify a bucket if GCS is enabled.");
+      } else {
+        accountsWithBucket.forEach(a -> googleCanaryAccountValidator.validate(p, a));
       }
     }
   }
