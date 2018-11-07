@@ -41,7 +41,7 @@ data class MigrationProperties(
   var user: String? = null,
   var password: String? = null,
   var driver: String? = null,
-  var additionalChangeLogs: List<String> = listOf()
+  var additionalChangeLogs: List<String> = mutableListOf()
 )
 
 data class ConnectionPoolProperties(
