@@ -50,7 +50,7 @@ public interface ServiceInstanceService {
   @GET("/v2/service_instances/{guid}/service_bindings")
   Page<ServiceBinding> getBindingsForServiceInstance(@Path("guid") String serviceInstanceGuid, @Query("page") Integer page, @Query("q") List<String> queryParams);
 
-  @DELETE("/v2/service_instances/{guid}?accepts_incomplete=false")
+  @DELETE("/v2/service_instances/{guid}?accepts_incomplete=true")
   Response destroyServiceInstance(@Path("guid") String serviceInstanceGuid);
 
   @GET("/v2/service_instances/{guid}")

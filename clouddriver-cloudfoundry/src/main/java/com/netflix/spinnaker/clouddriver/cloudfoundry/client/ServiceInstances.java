@@ -27,13 +27,19 @@ import lombok.RequiredArgsConstructor;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription.Code.SERVICE_ALREADY_EXISTS;
-import static java.util.Collections.emptyList;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.FAILED;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.CREATE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.DELETE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.UPDATE;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @AllArgsConstructor
 @RequiredArgsConstructor
@@ -106,34 +112,39 @@ public class ServiceInstances {
     return org.map(cfOrg -> spaces.findByName(cfOrg.getId(), space.getName())).orElse(null);
   }
 
-  private Resource<ServiceInstance> getServiceInstances(CloudFoundrySpace space, @Nullable String serviceInstanceName) throws CloudFoundryApiException {
-    List<String> queryParams = serviceInstanceName != null ? singletonList("name IN " + serviceInstanceName) : emptyList();
+  // package-level for testing visibility
+  Resource<ServiceInstance> getServiceInstance(CloudFoundrySpace space, @Nullable String serviceInstanceName) throws CloudFoundryApiException {
+    if (isBlank(serviceInstanceName)) {
+      throw new CloudFoundryApiException("Please specify a name for the service being sought");
+    }
+    List<String> queryParams = singletonList("name IN " + serviceInstanceName);
     List<Resource<ServiceInstance>> services = collectPageResources("service instances by space and name",
       pg -> api.findAllServiceInstancesBySpaceId(space.getId(), pg, queryParams));
 
     if (services.isEmpty()) {
-      throw new CloudFoundryApiException("No services instances with name + '" + serviceInstanceName + "' found in space " + space.getName());
+      throw new CloudFoundryApiException("No service instances with name '" + serviceInstanceName + "' found in space " + space.getName());
     }
 
-    if (services.size() > 1 && serviceInstanceName != null) {
-      throw new CloudFoundryApiException(services.size() + " services instances found with name " +
-        serviceInstanceName + " in space " + space.getName() + ", but expected only 1");
+    if (services.size() > 1) {
+      throw new CloudFoundryApiException(services.size() + " service instances found with name '" +
+        serviceInstanceName + "' in space " + space.getName() + ", but expected only 1");
     }
 
     return services.get(0);
   }
 
   public void destroyServiceInstance(CloudFoundrySpace space, String serviceInstanceName) throws CloudFoundryApiException {
-    Resource<ServiceInstance> serviceInstance = getServiceInstances(space, serviceInstanceName);
+    Resource<ServiceInstance> serviceInstance = getServiceInstance(space, serviceInstanceName);
     String serviceInstanceId = serviceInstance.getMetadata().getGuid();
     List<Resource<ServiceBinding>> serviceBindings = collectPageResources("service bindings",
       pg -> api.getBindingsForServiceInstance(serviceInstanceId, pg, null));
 
-    if (serviceBindings.isEmpty()) {
-      safelyCall(() -> api.destroyServiceInstance(serviceInstanceId));
-    } else {
+    if (!serviceBindings.isEmpty()) {
       throw new CloudFoundryApiException("Unable to destroy service instance while " + serviceBindings.size() + " service binding(s) exist");
     }
+
+    safelyCall(() -> api.destroyServiceInstance(serviceInstanceId));
+    pollServiceInstanceStatus(serviceInstanceName, serviceInstanceId, DELETE);
   }
 
   public void createServiceInstance(String newServiceInstanceName, String serviceName, String servicePlanName,
@@ -158,54 +169,63 @@ public class ServiceInstances {
     command.setTags(tags);
     command.setParameters(parameters);
 
-    Optional<Resource<ServiceInstance>> serviceInstance;
+    LastOperation.Type type = CREATE;
+    String guid;
     try {
-      serviceInstance = safelyCall(() -> api.createServiceInstance(command));
+      guid = safelyCall(() -> api.createServiceInstance(command)).map(res -> res.getMetadata().getGuid())
+        .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' not found"));
     } catch (CloudFoundryApiException cfe) {
       if (cfe.getErrorCode() == SERVICE_ALREADY_EXISTS) {
-        Resource<ServiceInstance> serviceInstanceResource = getServiceInstances(space, newServiceInstanceName);
+        Resource<ServiceInstance> serviceInstanceResource = getServiceInstance(space, newServiceInstanceName);
         if (!serviceInstanceResource.getEntity().getServicePlanGuid().equals(command.getServicePlanGuid())) {
           throw new CloudFoundryApiException("A service with name '" + serviceName + "' exists but has a different plan");
         }
 
-        serviceInstance = safelyCall(() -> api.updateServiceInstance(serviceInstanceResource.getMetadata().getGuid(), command));
+        guid = safelyCall(() -> api.updateServiceInstance(serviceInstanceResource.getMetadata().getGuid(), command))
+          .map(res -> res.getMetadata().getGuid())
+          .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' not found"));
+        type = UPDATE;
       } else {
         throw cfe;
       }
     }
 
-    String guid = serviceInstance.map(res -> res.getMetadata().getGuid())
-      .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' not found"));
+    pollServiceInstanceStatus(newServiceInstanceName, guid, type);
+  }
 
+  // package-level for testing visibility
+  void pollServiceInstanceStatus(String serviceInstanceName, String guid, LastOperation.Type type) {
     RetryConfig retryConfig = RetryConfig.custom()
       .waitDuration(pollingInterval)
       .maxAttempts((int) (timeout.getSeconds() / pollingInterval.getSeconds()))
       .retryExceptions(OperationInProgressException.class)
       .build();
 
+    AtomicReference<LastOperation> lastOperation = new AtomicReference<>();
     try {
-      Retry.of("async-create-service", retryConfig).executeCallable(() -> {
-          LastOperation.State state = safelyCall(() -> api.getServiceInstanceById(guid))
-            .map(res -> res.getEntity().getLastOperation().getState())
-            .orElseThrow(() -> new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' not found"));
+      Retry.of("async-service-operation", retryConfig).executeCallable(() -> {
+        LastOperation operation = safelyCall(() -> api.getServiceInstanceById(guid))
+          .map(res -> res.getEntity().getLastOperation())
+          .orElse(type == DELETE ? new LastOperation().setType(DELETE).setState(SUCCEEDED) : new LastOperation().setType(type).setState(FAILED));
+        lastOperation.set(operation);
 
-          switch (state) {
-            case FAILED:
-              throw new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' creation failed");
-            case IN_PROGRESS:
-              throw new OperationInProgressException();
-            case SUCCEEDED:
-              break;
-          }
-          return state;
-        });
-      } catch (CloudFoundryApiException e) {
-        throw e;
-      } catch (OperationInProgressException ignored) {
-        throw new CloudFoundryApiException("Service instance '" + newServiceInstanceName + "' creation did not complete");
-      } catch (Exception unknown) {
-        throw new CloudFoundryApiException(unknown);
-      }
+        switch (operation.getState()) {
+          case FAILED:
+            throw new CloudFoundryApiException("Service instance '" + serviceInstanceName + "' " + type + " failed");
+          case IN_PROGRESS:
+            throw new OperationInProgressException();
+          case SUCCEEDED:
+            break;
+        }
+        return operation;
+      });
+    } catch (CloudFoundryApiException e) {
+      throw e;
+    } catch (OperationInProgressException ignored) {
+      throw new CloudFoundryApiException("Service instance '" + serviceInstanceName + "' " + type + " did not complete");
+    } catch (Exception unknown) {
+      throw new CloudFoundryApiException(unknown);
+    }
   }
 
   private static class OperationInProgressException extends RuntimeException {
