@@ -1,6 +1,5 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
-apply from: "$rootDir/gradle/spek.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
@@ -11,10 +10,4 @@ dependencies {
 
   testImplementation "io.strikt:strikt-core:+"
   testImplementation "com.oneeyedmen:minutest:+"
-}
-
-test {
-  useJUnitPlatform {
-    includeEngines "spek", "junit-jupiter"
-  }
 }

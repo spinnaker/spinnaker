@@ -19,7 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.AmazonAssetHandler
@@ -62,6 +65,9 @@ class AmazonSecurityGroupHandler(
             "vpcId" to spec.vpcName,
             "description" to spec.description,
             "ingressAppendOnly" to true,
+            // TODO: would be nice if these two things were more homeomorphic
+            "securityGroupIngress" to portRangeRuleToJob(spec),
+            "ipIngress" to spec.inboundRules.flatMap { convertCidrRuleToJob(it) },
             "accountName" to spec.accountName
           )
         )),
@@ -96,58 +102,55 @@ class AmazonSecurityGroupHandler(
     }
   }
 
-//  private fun portRangeRuleToJob(spec: SecurityGroupProto): JobRules {
-//    return spec
-//      .inboundRuleList
-//      .filter { it.hasReferenceRule() || it.hasSelfReferencingRule() }
-//      .mapNotNull { rule ->
-//        when {
-//          rule.hasReferenceRule() -> rule.referenceRule.portRange
-//          rule.hasSelfReferencingRule() -> rule.selfReferencingRule.portRange
-//          else -> null
-//        }
-//          .let { if (it != null) Pair(rule, it) else null }
-//      }
-//      .map { (rule, ports) ->
-//        mutableMapOf<String, Any?>(
-//          "type" to rule.protocol,
-//          "startPort" to ports.startPort,
-//          "endPort" to ports.endPort,
-//          "name" to if (rule.hasReferenceRule()) rule.referenceRule.name else spec.name
-//        )
-//          .let { m ->
-//            if (rule.hasCrossRegionReferenceRule()) {
-//              m["accountName"] = rule.crossRegionReferenceRule.account
-//              m["crossAccountEnabled"] = true
-//              m["vpcId"] = cloudDriverCache.networkBy(
-//                rule.crossRegionReferenceRule.vpcName,
-//                spec.accountName,
-//                spec.region
-//              )
-//            }
-//            m
-//          }
-//      }
-//  }
+  private fun portRangeRuleToJob(spec: SecurityGroup): JobRules {
+    return spec
+      .inboundRules
+      .mapNotNull { rule ->
+        when (rule) {
+          is ReferenceSecurityGroupRule -> rule to rule.portRange
+          else -> null
+        }
+      }
+      .map { (rule, ports) ->
+        mutableMapOf<String, Any?>(
+          "type" to rule.protocol.name,
+          "startPort" to ports.startPort,
+          "endPort" to ports.endPort,
+          "name" to (rule.name ?: spec.name)
+        )
+          .let { m ->
+            if (rule.account != null && rule.vpcName != null) {
+              m["accountName"] = rule.account
+              m["crossAccountEnabled"] = true
+              m["vpcId"] = cloudDriverCache.networkBy(
+                rule.vpcName,
+                spec.accountName,
+                spec.region
+              )
+            }
+            m
+          }
+      }
+  }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
 
-//typealias JobRules = List<MutableMap<String, Any?>>
-//
-//private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
-//  when {
-//    rule.hasCidrRule() -> rule.cidrRule.portRange.let { ports ->
-//      listOf(mutableMapOf(
-//        "type" to rule.protocol,
-//        "startPort" to ports.startPort,
-//        "endPort" to ports.endPort,
-//        "cidr" to rule.cidrRule.blockRange
-//      ))
-//    }
-//    else -> emptyList()
-//  }
-//
+private typealias JobRules = List<MutableMap<String, Any?>>
+
+private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
+  when(rule) {
+    is CidrSecurityGroupRule -> rule.portRange.let { ports ->
+      listOf(mutableMapOf<String, Any?>(
+        "type" to rule.protocol.name,
+        "startPort" to ports.startPort,
+        "endPort" to ports.endPort,
+        "cidr" to rule.blockRange
+      ))
+    }
+    else -> emptyList()
+  }
+
 //private val SecurityGroupRule.protocol: String
 //  get() = when (ruleCase) {
 //    CIDRRULE -> cidrRule.protocol

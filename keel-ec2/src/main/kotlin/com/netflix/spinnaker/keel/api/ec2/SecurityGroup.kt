@@ -25,5 +25,6 @@ data class SecurityGroup(
   val accountName: String,
   val region: String,
   val vpcName: String?,
-  val description: String?
+  val description: String?,
+  val inboundRules: List<SecurityGroupRule> = emptyList()
 )
