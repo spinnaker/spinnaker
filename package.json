@@ -17,7 +17,7 @@
   },
   "scripts": {
     "clean": "rimraf .awcache .cache-loader build node_modules transpiled",
-    "build": "webpack --bail --progress --mode=production",
+    "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --progress --mode=production",
     "eslint": "eslint -c .eslintrc app/scripts/modules",
     "start": "sh ./start.sh",
     "start-dev-server": "webpack-dev-server --progress --mode=development",
