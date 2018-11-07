@@ -45,15 +45,15 @@ class RebootInstancesAtomicOperationConverter extends AbstractAtomicOperationsCr
     converted.credentials = getCredentialsObject(input.credentials as String)
 
     try {
-      def applications = converted.instanceIds.findResults {
+      def serverGroups = converted.instanceIds.findResults {
         def instance = amazonInstanceProvider.getInstance(converted.credentials.name, converted.region, it)
         return instance?.any()?.get("serverGroup")
       } as Set<String>
-      converted.applications = applications
+      converted.serverGroups = serverGroups
     } catch (Exception e) {
-      converted.applications = []
+      converted.serverGroups = []
       log.error(
-        "Unable to determine application for instances (instanceIds: {}, account: {}, region: {})",
+        "Unable to determine server groups for instances (instanceIds: {}, account: {}, region: {})",
         converted.instanceIds,
         converted.credentials.name,
         converted.region,
