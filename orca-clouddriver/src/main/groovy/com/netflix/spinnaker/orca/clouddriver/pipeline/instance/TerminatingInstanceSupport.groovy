@@ -52,7 +52,8 @@ class TerminatingInstanceSupport implements CloudProviderAware {
     if (stage.context[TERMINATE_REMAINING_INSTANCES]) {
       terminatingInstances = Arrays.asList(stage.mapTo("/" + TERMINATE_REMAINING_INSTANCES, TerminatingInstance[]))
     } else {
-      List<String> instanceIds = stage.context.instanceIds as List // Used by terminateInstances.
+      // Used by terminateInstances, ensure its not a list of nulls or empty strings
+      List<String> instanceIds = (stage.context.instanceIds as List ?: []).findResults { it }
       if (!instanceIds) {
         String instanceId = stage.context.instance // Used by terminateInstanceAndDecrementServerGroup.
                                                    // Because consistency is overvalued </sarcasm>.

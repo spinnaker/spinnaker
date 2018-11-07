@@ -49,19 +49,20 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
     String account = getCredentials(stage)
 
     List<TerminatingInstance> remainingInstances = instanceSupport.remainingInstances(stage)
-
+    List<String> instanceIds = remainingInstances*.id
     def serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
 
     trafficGuard.verifyInstanceTermination(
       serverGroupName,
       MonikerHelper.monikerFromStage(stage, serverGroupName),
-      stage.context.instanceIds as List<String>,
+      instanceIds,
       account,
       Location.region(stage.context.region as String),
       cloudProvider,
       "Terminating the requested instances in")
 
-    TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: stage.context]])
+    Map<String, Object> opCtx = stage.context + [instanceIds: instanceIds]
+    TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: opCtx]])
         .toBlocking()
         .first()
     new TaskResult(ExecutionStatus.SUCCEEDED, [
@@ -70,7 +71,7 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
         "terminate.region"                                        : stage.context.region,
         "kato.last.task.id"                                       : taskId,
         "kato.task.id"                                            : taskId, // TODO retire this.
-        "terminate.instance.ids"                                  : stage.context.instanceIds,
+        "terminate.instance.ids"                                  : instanceIds,
         (TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances,
     ])
   }
