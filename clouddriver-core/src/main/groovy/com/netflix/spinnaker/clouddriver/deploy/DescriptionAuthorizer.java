@@ -69,10 +69,14 @@ public class DescriptionAuthorizer<T> {
 
     String account = null;
     List<String> applications = new ArrayList<>();
+    boolean requiresApplicationRestriction = true;
+
 
     if (description instanceof AccountNameable) {
       AccountNameable accountNameable = (AccountNameable) description;
       account = accountNameable.getAccount();
+
+      requiresApplicationRestriction = accountNameable.requiresApplicationRestriction();
     }
 
     if (description instanceof ApplicationNameable) {
@@ -114,7 +118,7 @@ public class DescriptionAuthorizer<T> {
     }
 
 
-    if (account != null && applications.isEmpty()) {
+    if (requiresApplicationRestriction && account != null && applications.isEmpty()) {
       registry.counter(
           missingApplicationId
             .withTag("descriptionClass", description.getClass().getSimpleName())
