@@ -20,8 +20,10 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileTimer;
 
+import com.netflix.spinnaker.kork.telemetry.MetricTags.ResultValue;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -79,20 +81,20 @@ public class InstrumentedProxy implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     MethodMetrics methodMetrics = getMethodMetrics(method);
-    if (methodMetrics != null) {
-      final long start = System.currentTimeMillis();
-      try {
-        Object result = method.invoke(target, args);
-        registry.counter(methodMetrics.invocationsId.withTag(RESULT_KEY, SUCCESS.toString())).increment();
-        recordTiming(methodMetrics.timingId.withTag(RESULT_KEY, SUCCESS.toString()), start);
-        return result;
-      } catch (Exception e) {
-        registry.counter(methodMetrics.invocationsId.withTag(RESULT_KEY, FAILURE.toString())).increment();
-        recordTiming(methodMetrics.timingId.withTag(RESULT_KEY, FAILURE.toString()), start);
-        throw e;
+    ResultValue resultValue = FAILURE;
+    final long start = System.currentTimeMillis();
+    try {
+      Object result = method.invoke(target, args);
+      resultValue = SUCCESS;
+      return result;
+    } catch (InvocationTargetException e) {
+      throw e.getCause();
+    } finally {
+      if (methodMetrics != null) {
+        registry.counter(methodMetrics.invocationsId.withTag(RESULT_KEY, resultValue.toString()))
+          .increment();
+        recordTiming(methodMetrics.timingId.withTag(RESULT_KEY, resultValue.toString()), start);
       }
-    } else {
-      return method.invoke(target, args);
     }
   }
 

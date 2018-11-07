@@ -26,20 +26,28 @@ class InstrumentedProxySpec extends Specification {
   @Shared
   Registry registry = new DefaultRegistry()
 
+  MyContract subject = java.lang.reflect.Proxy.newProxyInstance(
+     getClass().classLoader,
+     [MyContract] as Class[],
+     new InstrumentedProxy(registry, new MyContractImpl(), "myns")
+  )
+
   def "should generate method metrics on init"() {
     when:
-    MyContract subject = java.lang.reflect.Proxy.newProxyInstance(
-      getClass().classLoader,
-      [MyContract] as Class[],
-      new InstrumentedProxy(registry, new MyContractImpl(), "myns")
-    )
-
     def ignored = subject.ignored()
     def result = subject.doStuff()
 
     then:
     ignored == "so sad"
     result == "did stuff"
+  }
+
+  def "should preserve the exception class"() {
+    when:
+    subject.throwError()
+
+    then:
+    thrown MyException
   }
 }
 
@@ -54,6 +62,8 @@ interface MyContract {
 
   @Instrumented(metricName = "sig1Long", tags = ["foo", "bar"])
   String sig1(Long p1);
+
+  void throwError()
 }
 
 class MyContractImpl implements MyContract {
@@ -77,4 +87,11 @@ class MyContractImpl implements MyContract {
   String sig1(Long p1) {
     return null
   }
+
+  @Override
+  void throwError() {
+    throw new MyException()
+  }
 }
+
+class MyException extends RuntimeException {}
