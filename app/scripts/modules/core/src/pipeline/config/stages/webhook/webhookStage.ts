@@ -160,6 +160,7 @@ module(WEBHOOK_STAGE, [])
             key: preconfiguredWebhook.type,
             alias: 'preconfiguredWebhook',
             addAliasToConfig: true,
+            producesArtifacts: true,
             restartable: true,
             controller: 'WebhookStageCtrl',
             controllerAs: '$ctrl',
