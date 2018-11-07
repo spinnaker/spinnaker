@@ -80,7 +80,7 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler implements
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    if (!manifest.isNewerThanObservedGeneration()) {
+    if (manifest.isNewerThanObservedGeneration()) {
       return (new Status()).unknown();
     }
     V1beta2DaemonSet v1beta2DaemonSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2DaemonSet.class);

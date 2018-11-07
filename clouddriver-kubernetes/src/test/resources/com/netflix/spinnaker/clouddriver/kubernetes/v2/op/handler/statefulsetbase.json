@@ -1,0 +1,148 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "StatefulSet",
+  "metadata": {
+    "annotations": {
+      "artifact.spinnaker.io/location": "$namespace",
+      "artifact.spinnaker.io/name": "$name",
+      "artifact.spinnaker.io/type": "kubernetes/statefulSet",
+      "moniker.spinnaker.io/application": "testapp",
+      "moniker.spinnaker.io/cluster": "statefulSet $name"
+    },
+    "creationTimestamp": "2018-10-28T19:13:07Z",
+    "generation": 1,
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "testapp"
+    },
+    "name": "$name",
+    "namespace": "$namespace",
+    "resourceVersion": "37483385",
+    "selfLink": "/apis/apps/v1/namespaces/$namespace/statefulsets/$name",
+    "uid": "80e2cc62-dae5-11e8-bcfc-0efba1451dfa"
+  },
+  "spec": {
+    "podManagementPolicy": "OrderedReady",
+    "replicas": $replicas,
+    "revisionHistoryLimit": 10,
+    "selector": {
+      "matchLabels": {
+        "app": "$name"
+      }
+    },
+    "serviceName": "$name-service",
+    "template": {
+      "metadata": {
+        "annotations": {
+          "artifact.spinnaker.io/location": "$namespace",
+          "artifact.spinnaker.io/name": "$name",
+          "artifact.spinnaker.io/type": "kubernetes/statefulSet",
+          "moniker.spinnaker.io/application": "testapp",
+          "moniker.spinnaker.io/cluster": "statefulSet $name"
+        },
+        "creationTimestamp": null,
+        "labels": {
+          "app": "$name",
+          "app.kubernetes.io/managed-by": "spinnaker",
+          "app.kubernetes.io/name": "testapp"
+        }
+      },
+      "spec": {
+        "affinity": {
+          "nodeAffinity": {
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
+                {
+                  "matchExpressions": [
+                    {
+                      "key": "node-role.kubernetes.io/testapp",
+                      "operator": "Exists"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "containers": [
+          {
+            "image": "testapp/$image:0.1",
+            "imagePullPolicy": "IfNotPresent",
+            "livenessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/",
+                "port": 5000,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 20,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 2
+            },
+            "name": "testapp",
+            "ports": [
+              {
+                "containerPort": 5000,
+                "name": "http",
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/",
+                "port": 5000,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 20,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 2
+            },
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/test",
+                "name": "$name"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "terminationGracePeriodSeconds": 10,
+        "tolerations": []
+      }
+    },
+    "updateStrategy": {
+      "type": "RollingUpdate"
+    },
+    "volumeClaimTemplates": [
+      {
+        "metadata": {
+          "creationTimestamp": null,
+          "name": "$name"
+        },
+        "spec": {
+          "accessModes": [
+            "ReadWriteOnce"
+          ],
+          "resources": {
+            "requests": {
+              "storage": "1Gi"
+            }
+          },
+          "storageClassName": "standard"
+        },
+        "status": {
+          "phase": "Pending"
+        }
+      }
+    ]
+  }
+}
