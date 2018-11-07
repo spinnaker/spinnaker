@@ -80,18 +80,18 @@ describe('<ManifestCopier />', () => {
 
   describe('dropdown grouping & ordering', () => {
     it('sorts deployments to the top of the list', () => {
-      const state = ManifestCopier.getDerivedStateFromProps(buildProps(application));
+      const state = ManifestCopier.getState(buildProps(application));
       expect(state.manifests.map(manifest => manifest.name)[0]).toEqual('my-deployment');
     });
 
     it('only includes the most recent versioned resource', () => {
-      const state = ManifestCopier.getDerivedStateFromProps(buildProps(application));
+      const state = ManifestCopier.getState(buildProps(application));
       expect(state.manifests.map(manifest => manifest.name)).toContain('my-replicaSet-v002');
       expect(state.manifests.map(manifest => manifest.name)).not.toContain('my-replicaSet-v001');
     });
 
     it('does not include managed server groups', () => {
-      const state = ManifestCopier.getDerivedStateFromProps(buildProps(application));
+      const state = ManifestCopier.getState(buildProps(application));
       expect(state.manifests.map(manifest => manifest.name)).not.toContain('my-managed-replicaSet-v001');
     });
   });

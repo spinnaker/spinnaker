@@ -22,7 +22,7 @@ class KubernetesManifestCtrl implements IController {
     const [first = null, ...rest] = this.manifests || [];
     const manifest = rest && rest.length ? this.manifests : first;
     try {
-      this.rawManifest = manifest ? dump(manifest) : null;
+      this.rawManifest = manifest ? dump(manifest) : this.rawManifest;
     } catch (e) {
       this.rawManifest = null;
     }
@@ -37,6 +37,8 @@ class KubernetesManifestCtrl implements IController {
     }
     if (manifest) {
       Object.assign(this.command.manifests, Array.isArray(manifest) ? manifest : [manifest]);
+    } else {
+      this.command.manifests = [];
     }
     this.$scope.$applyAsync();
   };

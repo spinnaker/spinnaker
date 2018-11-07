@@ -47,7 +47,7 @@ const LAST_APPLIED_CONFIGURATION = 'kubectl.kubernetes.io/last-applied-configura
  * A modal that allows a user to copy a running Kubernetes resource.
  **/
 export class ManifestCopier extends React.Component<IManifestCopierProps, IManifestCopierState> {
-  public static getDerivedStateFromProps = (props: IManifestCopierProps): IManifestCopierState => {
+  public static getState = (props: IManifestCopierProps) => {
     let manifests: IManifestOption[] = [];
 
     const serverGroups: IServerGroup[] = props.application.getDataSource('serverGroups').data.filter(
@@ -130,10 +130,7 @@ export class ManifestCopier extends React.Component<IManifestCopierProps, IManif
 
   constructor(props: IManifestCopierProps) {
     super(props);
-    this.state = {
-      selectedManifest: null,
-      manifests: [],
-    };
+    this.state = ManifestCopier.getState(props);
   }
 
   private fetchManifest = (data: { account: string; region: string; name: string }): IPromise<IManifest> => {
