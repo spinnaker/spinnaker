@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
+import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Response;
 import io.github.resilience4j.retry.Retry;
@@ -73,7 +74,44 @@ public class CloudFoundryClient {
     }
   };
 
-  private static class RetryableApiException extends Exception {
+  private static class RetryableApiException extends RuntimeException {
+  }
+
+  Response createRetryInterceptor(Interceptor.Chain chain) {
+    Retry retry = Retry.of("cf.api.call", RetryConfig.custom()
+      .retryExceptions(RetryableApiException.class)
+      .build());
+
+    AtomicReference<Response> lastResponse = new AtomicReference<>();
+    try {
+      return retry.executeCallable(() -> {
+        Response response = chain.proceed(chain.request());
+        lastResponse.set(response);
+
+        switch (response.code()) {
+          case 401:
+            BufferedSource source = response.body().source();
+            source.request(Long.MAX_VALUE); // request the entire body
+            Buffer buffer = source.buffer();
+            String body = buffer.clone().readString(Charset.forName("UTF-8"));
+            if (!body.contains("Bad credentials")) {
+              refreshToken();
+              response = chain.proceed(chain.request().newBuilder().header("Authorization", "bearer " + token.getAccessToken()).build());
+              lastResponse.set(response);
+            }
+            break;
+          case 502:
+          case 503:
+          case 504:
+            // after retries fail, the response body for these status codes will get wrapped up into a CloudFoundryApiException
+            throw new RetryableApiException();
+        }
+
+        return response;
+      });
+    } catch (Exception e) {
+      return lastResponse.get();
+    }
   }
 
   public CloudFoundryClient(String account, String apiHost, String user, String password) {
@@ -82,41 +120,7 @@ public class CloudFoundryClient {
     this.password = password;
 
     this.okHttpClient = new OkHttpClient();
-    okHttpClient.interceptors().add(chain -> {
-      Retry retry = Retry.of("cf.api.call", RetryConfig.custom()
-        .retryExceptions(RetryableApiException.class)
-        .build());
-
-      AtomicReference<Response> lastResponse = new AtomicReference<>();
-      try {
-        return retry.executeCallable(() -> {
-          Response response = chain.proceed(chain.request());
-          lastResponse.set(response);
-
-          switch (response.code()) {
-            case 401:
-              BufferedSource source = response.body().source();
-              source.request(Long.MAX_VALUE); // request the entire body
-              Buffer buffer = source.buffer();
-              String body = buffer.clone().readString(Charset.forName("UTF-8"));
-              if (!body.contains("Bad credentials")) {
-                refreshToken();
-                response = chain.proceed(chain.request().newBuilder().header("Authorization", "bearer " + token.getAccessToken()).build());
-              }
-              break;
-            case 502:
-            case 503:
-            case 504:
-              // after retries fail, the response body for these status codes will get wrapped up into a CloudFoundryApiException
-              throw new RetryableApiException();
-          }
-
-          return response;
-        });
-      } catch (Exception e) {
-        return lastResponse.get();
-      }
-    });
+    okHttpClient.interceptors().add(this::createRetryInterceptor);
 
     okHttpClient.setHostnameVerifier((s, sslSession) -> true);
 
