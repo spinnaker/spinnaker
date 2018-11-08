@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel.ec2
 
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetName
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 
 interface AmazonAssetHandler<S> {
   /**
@@ -27,7 +28,14 @@ interface AmazonAssetHandler<S> {
   /**
    * Converge on the provided asset.
    *
-   * [assetName] is provided for use in correlation IDs.
+   * @param assetName is provided for use in correlation IDs.
    */
   fun converge(assetName: AssetName, spec: S)
+
+  /**
+   * Delete an asset.
+
+   * @param assetName is provided for use in correlation IDs.
+   */
+  fun delete(assetName: AssetName, spec: SecurityGroup)
 }

@@ -76,7 +76,7 @@ class AmazonSecurityGroupHandler(
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
-  fun delete(assetName: AssetName, spec: SecurityGroup) {
+  override fun delete(assetName: AssetName, spec: SecurityGroup) {
     val taskRef = orcaService
       .orchestrate(OrchestrationRequest(
         "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
@@ -173,13 +173,3 @@ private fun convertCidrRuleToJob(rule: SecurityGroupRule): JobRules =
     }
     else -> emptyList()
   }
-
-//private val SecurityGroupRule.protocol: String
-//  get() = when (ruleCase) {
-//    CIDRRULE -> cidrRule.protocol
-//    CROSSREGIONREFERENCERULE -> crossRegionReferenceRule.protocol
-//    SELFREFERENCINGRULE -> selfReferencingRule.protocol
-//    REFERENCERULE -> referenceRule.protocol
-//    RULE_NOT_SET -> "unknown"
-//    else -> "unknown"
-//  }
