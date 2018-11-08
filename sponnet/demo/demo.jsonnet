@@ -1,6 +1,6 @@
+local sponnet = import '../pipeline.libsonnet';
 local deployment = import 'deployment.json';
 local kubeutils = import 'kubeutils.libsonnet';
-local sponnet = import 'pipeline.libsonnet';
 
 local canaryDeployment = kubeutils.canary(deployment);
 local account = 'staging-demo';
