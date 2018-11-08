@@ -50,27 +50,33 @@ class TerminateInstanceAndDecrementServerGroupTask extends AbstractCloudProvider
 
     List<TerminatingInstance> remainingInstances = instanceSupport.remainingInstances(stage)
 
-    def serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
+    List<String> instanceIds = remainingInstances*.id
 
-    trafficGuard.verifyInstanceTermination(
-      serverGroupName,
-      MonikerHelper.monikerFromStage(stage, serverGroupName),
-      [stage.context.instance] as List<String>,
-      account,
-      Location.region(stage.context.region as String),
-      cloudProvider,
-      "Terminating the requested instance in ")
+    def ctx = stage.context + [
+            "notification.type"                                       : "terminateinstanceanddecrementservergroup",
+            "terminate.account.name"                                  : account,
+            "terminate.region"                                        : stage.context.region,
+            "terminate.instance.ids"                                  : instanceIds,
+            (TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances,
+    ]
 
-    def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
-        .toBlocking()
-        .first()
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"                                       : "terminateinstanceanddecrementservergroup",
-        "terminate.account.name"                                  : account,
-        "terminate.region"                                        : stage.context.region,
-        "kato.last.task.id"                                       : taskId,
-        "terminate.instance.ids"                                  : [stage.context.instance],
-        (TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances,
-    ])
+    if (instanceIds) {
+      String serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
+
+      trafficGuard.verifyInstanceTermination(
+              serverGroupName,
+              MonikerHelper.monikerFromStage(stage, serverGroupName),
+              instanceIds,
+              account,
+              Location.region(stage.context.region as String),
+              cloudProvider,
+              "Terminating the requested instance in ")
+      def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
+              .toBlocking()
+              .first()
+      ctx['kato.last.task.id'] = taskId
+    }
+
+    return new TaskResult(ExecutionStatus.SUCCEEDED, ctx)
   }
 }

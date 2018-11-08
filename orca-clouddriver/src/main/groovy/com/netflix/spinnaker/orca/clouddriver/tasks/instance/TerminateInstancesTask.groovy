@@ -50,29 +50,32 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
 
     List<TerminatingInstance> remainingInstances = instanceSupport.remainingInstances(stage)
     List<String> instanceIds = remainingInstances*.id
-    def serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
 
-    trafficGuard.verifyInstanceTermination(
-      serverGroupName,
-      MonikerHelper.monikerFromStage(stage, serverGroupName),
-      instanceIds,
-      account,
-      Location.region(stage.context.region as String),
-      cloudProvider,
-      "Terminating the requested instances in")
+    def ctx = [
+            "notification.type"                                       : "terminateinstances",
+            "terminate.account.name"                                  : account,
+            "terminate.region"                                        : stage.context.region,
+            "terminate.instance.ids"                                  : instanceIds,
+            (TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances,
+    ]
+    if (instanceIds) {
+      String serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
 
-    Map<String, Object> opCtx = stage.context + [instanceIds: instanceIds]
-    TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: opCtx]])
-        .toBlocking()
-        .first()
-    new TaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"                                       : "terminateinstances",
-        "terminate.account.name"                                  : account,
-        "terminate.region"                                        : stage.context.region,
-        "kato.last.task.id"                                       : taskId,
-        "kato.task.id"                                            : taskId, // TODO retire this.
-        "terminate.instance.ids"                                  : instanceIds,
-        (TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances,
-    ])
+      trafficGuard.verifyInstanceTermination(
+              serverGroupName,
+              MonikerHelper.monikerFromStage(stage, serverGroupName),
+              instanceIds,
+              account,
+              Location.region(stage.context.region as String),
+              cloudProvider,
+              "Terminating the requested instances in")
+      Map<String, Object> opCtx = stage.context + [instanceIds: instanceIds]
+      TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: opCtx]])
+              .toBlocking()
+              .first()
+      ctx["kato.last.task.id"] = taskId
+      ctx["kato.task.id"] = taskId // TODO retire this.
+    }
+    new TaskResult(ExecutionStatus.SUCCEEDED, ctx)
   }
 }

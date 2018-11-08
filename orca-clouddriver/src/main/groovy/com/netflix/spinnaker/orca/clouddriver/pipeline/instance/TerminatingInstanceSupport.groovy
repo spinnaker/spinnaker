@@ -52,19 +52,25 @@ class TerminatingInstanceSupport implements CloudProviderAware {
     if (stage.context[TERMINATE_REMAINING_INSTANCES]) {
       terminatingInstances = Arrays.asList(stage.mapTo("/" + TERMINATE_REMAINING_INSTANCES, TerminatingInstance[]))
     } else {
+      List<String> instanceIds
       // Used by terminateInstances, ensure its not a list of nulls or empty strings
-      List<String> instanceIds = (stage.context.instanceIds as List ?: []).findResults { it }
-      if (!instanceIds) {
+      if (stage.context.containsKey('instanceIds')) {
+        instanceIds = (stage.context.instanceIds as List ?: []).findResults { it }
+      } else {
         String instanceId = stage.context.instance // Used by terminateInstanceAndDecrementServerGroup.
                                                    // Because consistency is overvalued </sarcasm>.
-        if (!instanceId) {
-          throw new IllegalStateException("no instanceIds for termination check")
+        if (instanceId) {
+          instanceIds = [ instanceId ]
+        } else {
+          instanceIds = []
         }
-        instanceIds = [instanceId]
       }
       terminatingInstances = instanceIds.collect { new TerminatingInstance(id: it) }
     }
 
+    if (terminatingInstances.isEmpty()) {
+      return terminatingInstances
+    }
     String serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
     return serverGroupName ?
         getRemainingInstancesFromServerGroup(stage, serverGroupName, terminatingInstances) :

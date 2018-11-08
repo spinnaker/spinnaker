@@ -43,13 +43,14 @@ class TerminatingInstanceSupportSpec extends Specification {
       def results = support.remainingInstances(stage)
 
     then:
-      1 * oortHelper.getTargetServerGroup("creds", "santa-claus", "north-pole", "aws") >> [
+      getTSGCount * oortHelper.getTargetServerGroup("creds", "santa-claus", "north-pole", "aws") >> [
           new TargetServerGroup(instances: returnedInstances)
       ]
       results == expected
 
     where:
       stageMods                                                                                   | returnedInstances                                                      || expected
+      [:]                                                                                         | []                                                                     || []
       [instanceIds: ["abc123"]]                                                                   | []                                                                     || []
       [instanceIds: ["abc123"]]                                                                   | [[name: "abc123", launchTime: 123], [name: "def456", launchTime: 456]] || [new TerminatingInstance(id: "abc123", launchTime: 123)]
       [instanceIds: ["abc123", "def456"]]                                                         | [[name: "abc123", launchTime: 123], [name: "def456", launchTime: 456]] || [new TerminatingInstance(id: "abc123", launchTime: 123), new TerminatingInstance(id: "def456", launchTime: 456)]
@@ -57,6 +58,8 @@ class TerminatingInstanceSupportSpec extends Specification {
       [instance: "abc123"]                                                                        | [[name: "abc123", launchTime: 123], [name: "def456", launchTime: 456]] || [new TerminatingInstance(id: "abc123", launchTime: 123)]
       ["terminate.remaining.instances": [new TerminatingInstance(id: "abc123", launchTime: 123)]] | [[name: "abc123", launchTime: 123]]                                    || [new TerminatingInstance(id: "abc123", launchTime: 123)]
       ["terminate.remaining.instances": [new TerminatingInstance(id: "abc123", launchTime: 123)]] | [[name: "abc123", launchTime: 789]]                                    || []
+
+      getTSGCount = stageMods.isEmpty() ? 0 : 1
   }
 
   @Unroll
@@ -69,16 +72,19 @@ class TerminatingInstanceSupportSpec extends Specification {
       def results = support.remainingInstances(stage)
 
     then:
-      1 * oortHelper.getSearchResults("abc123", "instances", "aws") >> [[totalMatches: totalMatches]]
+      searchCount * oortHelper.getSearchResults("abc123", "instances", "aws") >> [[totalMatches: totalMatches]]
       results == expected
 
     where:
       stageMods                                                                                   | totalMatches | expected
+      [:]                                                                                         | 0            | []
       [instanceIds: ["abc123"]]                                                                   | 0            | []
       [instanceIds: ["abc123"]]                                                                   | 1            | [new TerminatingInstance(id: "abc123", launchTime: null)]
       [instance: "abc123"]                                                                        | 0            | []
       [instance: "abc123"]                                                                        | 1            | [new TerminatingInstance(id: "abc123", launchTime: null)]
       ["terminate.remaining.instances": [new TerminatingInstance(id: "abc123", launchTime: 123)]] | 0            | []
       ["terminate.remaining.instances": [new TerminatingInstance(id: "abc123", launchTime: 123)]] | 1            | [new TerminatingInstance(id: "abc123", launchTime: 123)]
+
+      searchCount = stageMods.isEmpty() ? 0 : 1
   }
 }
