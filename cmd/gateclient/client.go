@@ -31,16 +31,19 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/pflag"
+	"gopkg.in/yaml.v2"
 
 	"github.com/spinnaker/spin/util"
 
-	"github.com/mitchellh/go-homedir"
+
 	"github.com/spinnaker/spin/config"
 	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/version"
 	"golang.org/x/oauth2"
-	"gopkg.in/yaml.v2"
+	"encoding/base64"
+	"crypto/sha256"
 )
 
 // GatewayClient is the wrapper with authentication
@@ -279,7 +282,7 @@ func (m *GatewayClient) Authenticate() error {
 		if auth.OAuth2.CachedToken != nil {
 			// Look up cached credentials to save oauth2 roundtrip.
 			token := auth.OAuth2.CachedToken
-			tokenSource := config.TokenSource(context.TODO(), token)
+			tokenSource := config.TokenSource(context.Background(), token)
 			newToken, err = tokenSource.Token()
 			if err != nil {
 				util.UI.Error(fmt.Sprintf("Could not refresh token from source: %v", tokenSource))
@@ -294,20 +297,20 @@ func (m *GatewayClient) Authenticate() error {
 			go http.ListenAndServe(":8085", nil)
 			// Note: leaving server connection open for scope of request, will be reaped on exit.
 
-			verifierBytes := make([]byte, 5)
-			if _, err := rand.Read(verifierBytes); err != nil {
-				util.UI.Error("Could not generate random string for code_verifier")
+			verifier, verifierCode, err := generateCodeVerifier()
+			if err != nil {
 				return err
 			}
-			verifier := string(verifierBytes)
-			codeChallenge := oauth2.SetAuthURLParam("code_challenge", verifier)
+
 			codeVerifier := oauth2.SetAuthURLParam("code_verifier", verifier)
+			codeChallenge := oauth2.SetAuthURLParam("code_challenge", verifierCode)
+			challengeMethod := oauth2.SetAuthURLParam("code_challenge_method", "S256")
 
-			authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce, codeChallenge)
+			authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce, challengeMethod, codeChallenge)
 			util.UI.Output(fmt.Sprintf("Navigate to %s and authenticate", authURL))
-			code := m.Prompt()
+			code := Prompt()
 
-			newToken, err = config.Exchange(context.TODO(), code, codeVerifier)
+			newToken, err = config.Exchange(context.Background(), code, codeVerifier)
 			if err != nil {
 				return err
 			}
@@ -323,7 +326,22 @@ func (m *GatewayClient) Authenticate() error {
 	return nil
 }
 
-func (m *GatewayClient) Prompt() string {
+// generateCodeVerifier generates an OAuth2 code verifier
+// in accordance to https://www.oauth.com/oauth2-servers/pkce/authorization-request and
+// https://tools.ietf.org/html/rfc7636#section-4.1.
+func generateCodeVerifier() (verifier string, code string, err error) {
+	randomBytes := make([]byte, 64)
+	if _, err := rand.Read(randomBytes); err != nil {
+		util.UI.Error("Could not generate random string for code_verifier")
+		return "", "", err
+	}
+	verifier = base64.RawURLEncoding.EncodeToString(randomBytes)
+	verifierHash := sha256.Sum256([]byte(verifier))
+	code = base64.RawURLEncoding.EncodeToString(verifierHash[:]) // Slice for type conversion
+	return verifier, code, nil
+}
+
+func Prompt() string {
 	reader := bufio.NewReader(os.Stdin)
 	util.UI.Output(fmt.Sprintf("Paste authorization code:"))
 	text, _ := reader.ReadString('\n')
