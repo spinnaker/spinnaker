@@ -10,22 +10,20 @@ import com.netflix.spinnaker.keel.persistence.randomData
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import com.oneeyedmen.minutest.junit.junitTests
+import org.junit.jupiter.api.TestFactory
 import java.time.Clock
 
-internal object ScheduledAssetCheckerSpec : Spek({
+internal object ScheduledAssetCheckerTests {
 
   val clock = Clock.systemDefaultZone()
   val repository = InMemoryAssetRepository(clock)
   val queue: Queue = mock()
   val subject = ScheduledAssetChecker(repository, queue)
 
-  describe("checking assets") {
-    given("the repository contains some assets") {
+  @TestFactory
+  fun `checking assets`() = junitTests<Unit> {
+    context("the repository contains some assets") {
 
       val rootAsset1 = Asset(
         apiVersion = SPINNAKER_API_V1,
@@ -45,21 +43,18 @@ internal object ScheduledAssetCheckerSpec : Spek({
       )
       val assets = listOf(rootAsset1, rootAsset2)
 
-      beforeGroup {
+      before {
         assets.forEach(repository::store)
       }
 
-      afterGroup { repository.dropAll() }
+      after { repository.dropAll() }
 
-      on("running the check cycle") {
+      test("on running the check cycle it requests validation for each asset") {
         subject.runCheckCycle()
-      }
 
-      it("requests validation for each asset") {
         verify(queue).push(ValidateAsset(rootAsset1.id))
         verify(queue).push(ValidateAsset(rootAsset2.id))
       }
     }
   }
-
-})
+}

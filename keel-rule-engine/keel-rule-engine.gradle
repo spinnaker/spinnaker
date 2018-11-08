@@ -1,6 +1,5 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
-apply from: "$rootDir/gradle/spek.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
 apply plugin: "application"
 
@@ -24,7 +23,7 @@ dependencies {
 
 test {
   useJUnitPlatform {
-    includeEngines "junit-jupiter", "junit-vintage", "spek"
+    includeEngines "junit-jupiter", "junit-vintage"
   }
 }
 mainClassName = "com.netflix.spinnaker.keel.MainKt"

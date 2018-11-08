@@ -1,5 +1,5 @@
 apply plugin: "java-library"
-apply from: "$rootDir/gradle/spek.gradle"
+apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
   implementation project(":keel-plugin")

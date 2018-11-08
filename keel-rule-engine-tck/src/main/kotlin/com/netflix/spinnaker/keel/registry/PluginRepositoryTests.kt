@@ -15,10 +15,8 @@
  */
 package com.netflix.spinnaker.keel.registry
 
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
+import com.oneeyedmen.minutest.junit.junitTests
+import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -29,13 +27,11 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
-abstract class PluginRepositoryTests<T : PluginRepository>(
-  factory: () -> T,
-  clear: (T) -> Unit,
-  shutdownHook: () -> Unit = {}
-) : Spek({
+abstract class PluginRepositoryTests<T : PluginRepository> {
 
-  val subject = factory()
+  abstract fun factory(): T
+
+  open fun clear(subject: T) {}
 
   val securityGroup = AssetType(
     kind = "ec2:SecurityGroup",
@@ -46,96 +42,97 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
     apiVersion = "1.0"
   )
 
-  afterGroup { shutdownHook() }
+  inner class Fixture(val subject: T)
 
-  describe("getting plugins from the registry") {
-    given("no plugins are stored") {
-      afterGroup { clear(subject) }
+  @TestFactory
+  fun `getting plugins from the registry`() = junitTests<Fixture> {
+    fixture {
+      Fixture(factory())
+    }
 
-      it("returns null from assetPluginsFor") {
+    after {
+      clear(subject)
+    }
+
+    context("no plugins are stored") {
+      test("it returns null from assetPluginsFor") {
         expectThat(subject.assetPluginFor(securityGroup)).isNull()
       }
 
-      it("returns no asset plugins") {
+      test("it returns no asset plugins") {
         expectThat(subject.assetPlugins()).isEmpty()
       }
 
-      it("returns no veto plugins") {
+      test("it returns no veto plugins") {
         expectThat(subject.vetoPlugins()).isEmpty()
       }
 
-      it("returns no plugins") {
+      test("it returns no plugins") {
         expectThat(subject.allPlugins()).isEmpty()
       }
     }
 
-    given("an asset plugin is registered") {
+    context("an asset plugin is registered") {
       val address = PluginAddress("EC2 security group", "${securityGroup.kind}.vip", 6565)
 
-      beforeGroup {
+      before {
         subject.addAssetPluginFor(securityGroup, address)
       }
 
-      afterGroup { clear(subject) }
-
-      it("returns the plugin address in the list of all plugins") {
+      test("it returns the plugin address in the list of all plugins") {
         expectThat(subject.allPlugins()).containsExactly(address)
       }
 
-      it("returns the plugin in the list of asset plugins") {
+      test("it returns the plugin in the list of asset plugins") {
         expectThat(subject.assetPlugins()).containsExactly(address)
       }
 
-      it("returns the plugin address by type") {
+      test("it returns the plugin address by type") {
         expectThat(subject.assetPluginFor(securityGroup))
           .isNotNull()
           .isEqualTo(address)
       }
 
-      it("does not return the plugin address for a different type") {
+      test("it does not return the plugin address for a different type") {
         expectThat(subject.assetPluginFor(loadBalancer)).isNull()
       }
     }
 
-    given("an asset plugin supporting multiple asset kinds is registered") {
+    context("an asset plugin supporting multiple asset kinds is registered") {
       val address = PluginAddress("Amazon security group", "ec2plugin.vip", 6565)
 
-      beforeGroup {
+      before {
         subject.addAssetPluginFor(securityGroup, address)
         subject.addAssetPluginFor(loadBalancer, address)
       }
 
-      afterGroup { clear(subject) }
-
-      it("returns the plugin only once in the list of all plugins") {
+      test("it returns the plugin only once in the list of all plugins") {
         expectThat(subject.allPlugins()).containsExactly(address)
       }
 
-      it("returns the plugin only once in the list of asset plugins") {
+      test("it returns the plugin only once in the list of asset plugins") {
         expectThat(subject.assetPlugins()).containsExactly(address)
       }
     }
 
-    given("a veto plugin is registered") {
+    context("a veto plugin is registered") {
       val address1 = PluginAddress("Veto 1", "veto1.vip", 6565)
       val address2 = PluginAddress("Veto 2", "veto2.vip", 6565)
 
-      beforeGroup {
+      before {
         with(subject) {
           addVetoPlugin(address1)
           addVetoPlugin(address2)
         }
       }
 
-      afterGroup { clear(subject) }
-
-      it("returns the plugin address in the list of all plugins") {
+      test("it returns the plugin address in the list of all plugins") {
         expectThat(subject.allPlugins()) {
           containsExactlyInAnyOrder(address1, address2)
         }
       }
 
-      it("returns the plugin") {
+      test("it returns the plugin") {
         expectThat(subject.vetoPlugins()) {
           containsExactlyInAnyOrder(address1, address2)
         }
@@ -143,22 +140,33 @@ abstract class PluginRepositoryTests<T : PluginRepository>(
     }
   }
 
-  describe("registering plugins") {
+  @TestFactory
+  fun `registering plugins`() = junitTests<Fixture> {
     val address = PluginAddress("EC2 security group", "${securityGroup.kind}.vip", 6565)
 
-    given("an asset plugin is not already registered") {
-      it("registering it returns true") {
+    fixture { Fixture(factory()) }
+
+    after {
+      clear(subject)
+    }
+
+    context("an asset plugin is not already registered") {
+      test("registering it returns true") {
         expectThat(subject.addAssetPluginFor(securityGroup, address)).isTrue()
       }
     }
 
-    given("an asset plugin is already registered") {
-      it("registering it returns false") {
+    context("an asset plugin is already registered") {
+      before {
+        subject.addAssetPluginFor(securityGroup, address)
+      }
+
+      test("registering it returns false") {
         expectThat(subject.addAssetPluginFor(securityGroup, address)).isFalse()
       }
     }
   }
-})
+}
 
 fun <T : Iterable<E>, E> Assertion.Builder<T>.isEmpty() =
   assert("is empty") {

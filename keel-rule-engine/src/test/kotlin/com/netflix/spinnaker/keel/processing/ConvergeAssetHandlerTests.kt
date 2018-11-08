@@ -15,14 +15,11 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import com.oneeyedmen.minutest.junit.junitTests
+import org.junit.jupiter.api.TestFactory
 import java.time.Instant.now
 
-internal object ConvergeAssetHandlerSpec : Spek({
+internal object ConvergeAssetHandlerTests {
 
   val repository: AssetRepository = mock()
   val assetService: AssetService = mock()
@@ -41,54 +38,49 @@ internal object ConvergeAssetHandlerSpec : Spek({
 
   val message = ConvergeAsset(asset.id)
 
-  describe("converging an asset") {
-    given("the asset cannot be found") {
-      beforeGroup { whenever(repository.get(asset.id)) doReturn null as Asset? }
-      afterGroup { reset(repository) }
-
-      on("receiving a message") {
-        subject.handle(message)
-      }
+  @TestFactory
+  fun `converging an asset`() = junitTests<Unit> {
+    context("the asset cannot be found") {
+      before { whenever(repository.get(asset.id)) doReturn null as Asset? }
+      after { reset(repository) }
 
       // TODO: do we want to flag an error? I feel like yes.
-      it("does nothing") {
+      test("on receiving a message it does nothing") {
+        subject.handle(message)
+
         verifyZeroInteractions(assetService)
       }
     }
 
-    given("dependent assets are up-to-date") {
-      beforeGroup {
+    context("dependent assets are up-to-date") {
+      before {
         whenever(repository.get(asset.id)) doReturn asset
         whenever(repository.lastKnownState(asset.id)) doReturn (Ok to now())
       }
 
-      afterGroup { reset(repository) }
+      after { reset(repository) }
 
-      given("nothing vetoes the convergence") {
-        beforeGroup { whenever(vetoService.allow(asset)) doReturn true }
-        afterGroup { reset(vetoService) }
+      context("nothing vetoes the convergence") {
+        before { whenever(vetoService.allow(asset)) doReturn true }
+        after { reset(vetoService) }
 
-        on("receiving a message") {
+        test("on receiving a message it requests convergence of the asset") {
           subject.handle(message)
-        }
 
-        it("requests convergence of the asset") {
           verify(assetService).converge(asset)
         }
       }
 
-      given("something vetoes the convergence") {
-        beforeGroup { whenever(vetoService.allow(asset)) doReturn false }
-        afterGroup { reset(vetoService) }
+      context("something vetoes the convergence") {
+        before { whenever(vetoService.allow(asset)) doReturn false }
+        after { reset(vetoService) }
 
-        on("receiving a message") {
+        test("on receiving a message it does not request convergence of the asset") {
           subject.handle(message)
-        }
 
-        it("does not request convergence of the asset") {
           verifyZeroInteractions(assetService)
         }
       }
     }
   }
-})
+}

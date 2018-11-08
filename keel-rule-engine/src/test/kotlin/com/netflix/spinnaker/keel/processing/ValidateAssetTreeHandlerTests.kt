@@ -17,11 +17,8 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import com.oneeyedmen.minutest.junit.junitTests
+import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.first
@@ -32,7 +29,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
-internal object ValidateAssetTreeHandlerSpec : Spek({
+internal object ValidateAssetTreeHandlerTests {
 
   val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
   val repository = InMemoryAssetRepository(clock)
@@ -50,47 +47,46 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
 
   val message = ValidateAsset(rootAsset.id)
 
-  describe("validating an asset") {
-    given("no desired state is known") {
-      afterGroup {
+  @TestFactory
+  fun `validating an asset`() = junitTests<Unit> {
+    context("no desired state is known") {
+      after {
         repository.dropAll()
         reset(queue)
       }
 
-      on("receiving a message") {
+      test("on receiving a message it does not try to upsert any assets") {
         subject.handle(message)
-      }
 
-      it("does not try to upsert any assets") {
         verifyZeroInteractions(queue)
       }
     }
 
-    given("assets exist in the repository") {
-      beforeGroup {
+    context("assets exist in the repository") {
+      before {
         repository.store(rootAsset)
       }
 
-      afterGroup {
+      after {
         repository.dropAll()
       }
 
-      given("all states match the desired state") {
-        beforeGroup {
+      context("all states match the desired state") {
+        before {
           whenever(assetService.current(rootAsset)) doReturn CurrentAssetPair(rootAsset, rootAsset)
         }
 
-        afterGroup { reset(assetService, queue) }
+        after { reset(assetService, queue) }
 
-        on("receiving a message") {
+        test("on receiving a message it does not try to upsert any assets") {
           subject.handle(message)
-        }
 
-        it("does not try to upsert any assets") {
           verifyZeroInteractions(queue)
         }
 
-        it("marks the asset as $Ok") {
+        test("it marks the asset as $Ok") {
+          subject.handle(message)
+
           repository.lastKnownState(rootAsset.id) expect {
             isNotNull().and {
               first.isEqualTo(Ok)
@@ -100,22 +96,22 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
         }
       }
 
-      given("the current state of the asset differs from the desired state") {
-        beforeGroup {
+      context("the current state of the asset differs from the desired state") {
+        before {
           whenever(assetService.current(rootAsset)) doReturn CurrentAssetPair(rootAsset, rootAsset.copy(spec = randomData()))
         }
 
-        afterGroup { reset(assetService, queue) }
+        after { reset(assetService, queue) }
 
-        on("receiving a message") {
+        test("it requests convergence of the invalid asset") {
           subject.handle(message)
-        }
 
-        it("requests convergence of the invalid asset") {
           verify(queue).push(ConvergeAsset(rootAsset.id))
         }
 
-        it("marks the asset as $Diff") {
+        test("it marks the asset as $Diff") {
+          subject.handle(message)
+
           repository.lastKnownState(rootAsset.id) expect {
             isNotNull().and {
               first.isEqualTo(Diff)
@@ -125,22 +121,22 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
         }
       }
 
-      given("the asset does not exist in the cloud") {
-        beforeGroup {
+      context("the asset does not exist in the cloud") {
+        before {
           whenever(assetService.current(rootAsset)) doReturn CurrentAssetPair(rootAsset, null)
         }
 
-        afterGroup { reset(assetService, queue) }
+        after { reset(assetService, queue) }
 
-        on("receiving a message") {
+        test("it requests convergence of all missing assets") {
           subject.handle(message)
-        }
 
-        it("requests convergence of all missing assets") {
           verify(queue).push(ConvergeAsset(rootAsset.id))
         }
 
-        it("marks missing assets as $Missing") {
+        test("it marks missing assets as $Missing") {
+          subject.handle(message)
+
           repository.lastKnownState(rootAsset.id) expect {
             isNotNull().and {
               first.isEqualTo(Missing)
@@ -151,7 +147,7 @@ internal object ValidateAssetTreeHandlerSpec : Spek({
       }
     }
   }
-})
+}
 
 infix fun <T> T.expect(block: Assertion.Builder<T>.() -> Unit) =
   expectThat(this, block)
