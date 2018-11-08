@@ -49,6 +49,7 @@ task webpack(type: NodeTask) {
   environment = [
     "NODE_ENV": "production",
     "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
+    "NODE_OPTIONS": "--max_old_space_size=8192",
   ]
 }
 

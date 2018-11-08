@@ -35,7 +35,6 @@ function configure(env, webpackOpts) {
     devtool: IS_PRODUCTION ? 'source-map' : 'eval',
     optimization: {
       splitChunks: { chunks: 'all' },
-      minimizer: [],
       minimizer: IS_PRODUCTION
         ? [
             new UglifyJSPlugin({
