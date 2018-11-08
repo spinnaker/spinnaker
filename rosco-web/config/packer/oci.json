@@ -12,7 +12,7 @@
     "oracle_user_id": null,
     "oracle_fingerprint": null,
     "oracle_ssh_private_key_file_path": null,
-    "oracle_pass_phrase": null,
+    "oracle_pass_phrase": "",
 
     "appversion": "",
     "build_host": "",
