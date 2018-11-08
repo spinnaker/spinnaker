@@ -69,6 +69,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     given:
     def pipeline = [
       application: 'orca',
+      id: 'pipeline-id',
       name: 'My pipeline',
       stages: [],
       roles: ['foo']
@@ -79,7 +80,7 @@ class SaveServiceAccountTaskSpec extends Specification {
       ]
     }
 
-    def expectedServiceAccount = new ServiceAccount(name: 'my-pipeline@managed-service-account', memberOf: ['foo'])
+    def expectedServiceAccount = new ServiceAccount(name: 'pipeline-id@managed-service-account', memberOf: ['foo'])
 
     when:
     stage.getExecution().setTrigger(new DefaultTrigger('manual', null, 'abc@somedomain.io'))
@@ -102,6 +103,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     given:
     def pipeline = [
       application: 'orca',
+      id: 'pipeline-id',
       name: 'my pipeline',
       stages: [],
       roles: ['foo', 'bar']
