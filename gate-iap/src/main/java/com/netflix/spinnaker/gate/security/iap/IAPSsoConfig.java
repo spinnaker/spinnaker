@@ -26,15 +26,16 @@ import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import java.util.List;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,10 +48,12 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  * This Web Security configuration supports the Google Cloud Identity-Aware Proxy authentication
  * model.
  */
+@Slf4j
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
 @ConditionalOnExpression("${google.iap.enabled:false}")
+@Import(SecurityAutoConfiguration.class)
 @SuppportsMultiAuth
 @EnableConfigurationProperties(IAPSecurityConfigProperties.class)
 @Order(Ordered.LOWEST_PRECEDENCE)
@@ -94,11 +97,9 @@ public class IAPSsoConfig extends WebSecurityConfigurerAdapter {
     String iapVerifyKeyUrl = "https://www.gstatic.com/iap/verify/public_key-jwk";
   }
 
-  private final Logger logger = LoggerFactory.getLogger(IAPSsoConfig.class);
-
   @Override
   public void configure(HttpSecurity http) throws Exception {
-    logger.info("IAP JWT token verification is enabled.");
+    log.info("IAP JWT token verification is enabled.");
 
     Preconditions.checkNotNull(configProperties.getAudience(), "Please set the "
       + "Audience field. You can retrieve this field from the IAP console: "

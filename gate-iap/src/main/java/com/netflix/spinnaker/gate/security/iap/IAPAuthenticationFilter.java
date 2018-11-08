@@ -136,7 +136,7 @@ public class IAPAuthenticationFilter extends OncePerRequestFilter {
       }
       return false;
     } catch (RetrofitError re) {
-      logger.warn("Could not get list of service accounts.", re);
+      log.warn("Could not get list of service accounts.", re);
     }
     return false;
   }
@@ -195,7 +195,7 @@ public class IAPAuthenticationFilter extends OncePerRequestFilter {
    */
   @Scheduled(fixedDelay = 18000000L)
   void clearKeyCache() {
-    logger.debug("Clearing IAP public key cache.");
+    log.debug("Clearing IAP public key cache.");
     keyCache.clear();
   }
 }
