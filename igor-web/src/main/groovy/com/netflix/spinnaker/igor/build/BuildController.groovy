@@ -65,6 +65,9 @@ class BuildController {
     RetrySupport retrySupport
 
     @Autowired(required = false)
+    BuildArtifactFilter buildArtifactFilter
+
+    @Autowired(required = false)
     ArtifactDecorator artifactDecorator
 
     @RequestMapping(value = '/builds/status/{buildNumber}/{master:.+}/**')
@@ -81,6 +84,10 @@ class BuildController {
 
             if (artifactDecorator) {
                 artifactDecorator.decorate(build)
+            }
+
+            if (buildArtifactFilter) {
+                build.artifacts = buildArtifactFilter.filterArtifacts(build.artifacts)
             }
 
             return build
