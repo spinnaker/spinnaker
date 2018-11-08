@@ -72,7 +72,7 @@
 
   notification:: {
     withAddress(address):: self + { address: address },
-    withCC(address):: self + { address: address },
+    withCC(cc):: self + { cc: cc },
     withLevel(level):: self + { level: level },
     // Custom notification messages are optional
     withWhen(when, message=false):: self + {
