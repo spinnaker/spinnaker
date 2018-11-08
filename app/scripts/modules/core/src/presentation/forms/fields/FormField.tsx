@@ -1,20 +1,23 @@
 import * as React from 'react';
+import { Subject } from 'rxjs';
 
 import { noop } from 'core/utils';
 
-import { Validation, ValidationFunction } from '../Validation';
-
+import { createFieldValidator } from './FormikFormField';
+import { renderContent } from './renderContent';
+import { StandardFieldLayout } from '../layouts';
+import { Validator } from '../Validation';
+import { WatchValue } from '../../WatchValue';
 import {
   ICommonFormFieldProps,
   IControlledInputProps,
   IFieldLayoutPropsWithoutInput,
+  IFieldValidationStatus,
   IValidationProps,
 } from '../interface';
-import { StandardFieldLayout } from '../layouts';
-import { renderContent } from './renderContent';
 
 export interface IFormFieldValidationProps {
-  validate?: ValidationFunction | ValidationFunction[];
+  validate?: Validator | Validator[];
 }
 
 export type IFormFieldProps = IFormFieldValidationProps &
@@ -23,7 +26,9 @@ export type IFormFieldProps = IFormFieldValidationProps &
   IFieldLayoutPropsWithoutInput &
   IValidationProps;
 
-export class FormField extends React.Component<IFormFieldProps> {
+type IFormFieldState = Pick<IValidationProps, 'validationMessage' | 'validationStatus'>;
+
+export class FormField extends React.Component<IFormFieldProps, IFormFieldState> {
   public static defaultProps: Partial<IFormFieldProps> = {
     layout: StandardFieldLayout,
     validate: noop,
@@ -32,23 +37,35 @@ export class FormField extends React.Component<IFormFieldProps> {
     name: null,
   };
 
-  /** Returns validation function composed of all the `validate` functions (and `isRequired` if `required` is truthy) */
-  /** Returns validation function composed of all the `validate` functions (and `isRequired` if `required` is truthy) */
-  private composedValidation(
-    label: IFormFieldProps['label'],
-    required: boolean,
-    validate: IFormFieldProps['validate'],
-  ): ValidationFunction {
-    const labelStr = typeof label === 'string' ? label : 'This Field';
-    const requiredFn = !!required && Validation.isRequired(`${labelStr} is required`);
-    const validationFns = [requiredFn].concat(validate).filter(x => !!x);
+  public state: IFormFieldState = {
+    validationMessage: undefined,
+    validationStatus: undefined,
+  };
 
-    return validationFns.length ? Validation.compose(...validationFns) : null;
+  private destroy$ = new Subject();
+  private value$ = new Subject();
+
+  public componentDidMount() {
+    this.value$
+      .distinctUntilChanged()
+      .takeUntil(this.destroy$)
+      .subscribe(value => {
+        const { label, required, validate } = this.props;
+        const validator = createFieldValidator(label, required, validate);
+        Promise.resolve(validator(value)).then(error => {
+          const validationMessage: string = !!error ? error : undefined;
+          const validationStatus: IFieldValidationStatus = !!validationMessage ? 'error' : undefined;
+          this.setState({ validationMessage, validationStatus });
+        });
+      });
+  }
+
+  public componentWillUnmount() {
+    this.destroy$.next();
   }
 
   public render() {
     const { input, layout } = this.props; // ICommonFormFieldProps
-    const { validate } = this.props; // IFormFieldValidationProps
     const { label, help, required, actions } = this.props; // IFieldLayoutPropsWithoutInput
     const { touched, validationMessage: message, validationStatus: status } = this.props; // IValidationProps
     const { onChange, onBlur, value, name } = this.props; // IControlledInputProps
@@ -56,11 +73,16 @@ export class FormField extends React.Component<IFormFieldProps> {
     const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
     const controlledInputProps: IControlledInputProps = { onChange, onBlur, value, name };
 
-    const validationMessage = message || this.composedValidation(label, required, validate)(value);
-    const validationStatus = status || !!validationMessage ? 'error' : null;
+    const validationMessage = message || this.state.validationMessage;
+    const validationStatus = status || this.state.validationStatus;
     const validationProps: IValidationProps = { touched, validationMessage, validationStatus };
 
     const inputElement = renderContent(input, { field: controlledInputProps, validation: validationProps });
-    return renderContent(layout, { ...fieldLayoutPropsWithoutInput, ...validationProps, input: inputElement });
+
+    return (
+      <WatchValue onChange={x => this.value$.next(x)} value={value}>
+        {renderContent(layout, { ...fieldLayoutPropsWithoutInput, ...validationProps, input: inputElement })}
+      </WatchValue>
+    );
   }
 }

@@ -29,7 +29,7 @@ class ALBAdvancedSettingsImpl extends React.Component<IALBAdvancedSettingsProps>
           name="idleTimeout"
           label="Idle Timeout"
           help={<HelpField id="loadBalancer.advancedSettings.idleTimeout" />}
-          validate={Validation.minValue(0, 'Idle Timeout cannot be negative')}
+          validate={Validation.minValue(0)}
           input={props => <NumberInput {...props} min={0} />}
         />
 

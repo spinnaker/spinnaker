@@ -26,7 +26,7 @@ class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
           help={<HelpField id="loadBalancer.advancedSettings.healthTimeout" />}
           input={NumberInput}
           validate={[
-            Validation.minValue(0, 'Timeout cannot be negative'),
+            Validation.minValue(0),
             Validation.maxValue(values.healthInterval, 'Timeout must be less than the health Interval.'),
           ]}
         />
@@ -36,7 +36,7 @@ class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
           label="Interval"
           help={<HelpField id="loadBalancer.advancedSettings.healthInterval" />}
           input={NumberInput}
-          validate={Validation.minValue(0, 'Interval cannot be negative')}
+          validate={Validation.minValue(0)}
         />
 
         <FormikFormField
@@ -44,7 +44,7 @@ class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
           label="Healthy Threshold"
           help={<HelpField id="loadBalancer.advancedSettings.healthyThreshold" />}
           input={NumberInput}
-          validate={Validation.minValue(0, 'Healthy Threshold cannot be negative')}
+          validate={Validation.minValue(0)}
         />
 
         <FormikFormField
@@ -52,7 +52,7 @@ class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
           label="Unhealthy Threshold"
           help={<HelpField id="loadBalancer.advancedSettings.unhealthyThreshold" />}
           input={NumberInput}
-          validate={Validation.minValue(0, 'Unhealthy Threshold cannot be negative')}
+          validate={Validation.minValue(0)}
         />
 
         <FormikFormField
@@ -60,7 +60,7 @@ class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
           label="Idle Timeout"
           help={<HelpField id="loadBalancer.advancedSettings.idleTimeout" />}
           input={NumberInput}
-          validate={Validation.minValue(0, 'Idle Timeout cannot be negative')}
+          validate={Validation.minValue(0)}
         />
 
         <div className="col-md-12">
