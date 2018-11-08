@@ -83,6 +83,25 @@ class EC2AssetPlugin(
         ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.id}")
     }
 
+  override fun delete(request: Asset): ConvergeResponse =
+    try {
+      when (request.kind) {
+        "ec2.SecurityGroup" -> {
+          val spec: SecurityGroup = objectMapper.convertValue(request.spec)
+          securityGroupHandler.delete(request.id, spec)
+          ConvergeAccepted
+        }
+        else -> {
+          val message = "Unsupported asset type ${request.kind} with id ${request.id}"
+          log.error("Converge failed: {}", message)
+          ConvergeFailed(message)
+        }
+      }
+    } catch (e: Exception) {
+      ConvergeFailed(e.message
+        ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.id}")
+    }
+
   private val securityGroupHandler =
     AmazonSecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper)
 

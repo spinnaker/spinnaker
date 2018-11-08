@@ -22,6 +22,7 @@ interface AssetPlugin : KeelPlugin {
 
   fun current(request: Asset): CurrentResponse
   fun upsert(request: Asset): ConvergeResponse
+  fun delete(request: Asset): ConvergeResponse
 }
 
 sealed class CurrentResponse

@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -189,45 +190,173 @@ internal object EC2AssetPluginTests {
     }
   }
 
-  @TestFactory
-  fun `converging a security group`() = junitTests<Unit> {
-    val securityGroup = SecurityGroup(
-      application = "keel",
-      name = "fnord",
-      accountName = vpc.account,
-      region = vpc.region,
-      vpcName = vpc.name,
-      description = "dummy security group"
-    )
+  private open class SecurityGroupFixture(
+    val spec: SecurityGroup
+  ) {
+    val request: Asset by lazy {
+      Asset(
+        apiVersion = SPINNAKER_API_V1,
+        metadata = AssetMetadata(
+          name = AssetName("ec2.SecurityGroup:${spec.application}:${spec.accountName}:${spec.region}:${spec.name}")
+        ),
+        kind = "ec2.SecurityGroup",
+        spec = objectMapper.convertValue(spec.copy(inboundRules = rules))
+      )
+    }
 
-    context("no rule partial assets provided") {
+    open val rules: List<SecurityGroupRule> = emptyList()
+  }
+
+  private class SecurityGroupWithReferenceRuleFixture(
+    spec: SecurityGroup,
+    val rule: ReferenceSecurityGroupRule
+  ) : SecurityGroupFixture(spec) {
+    override val rules: List<SecurityGroupRule>
+      get() = listOf(rule)
+  }
+
+  private class SecurityGroupWithCidrRuleFixture(
+    spec: SecurityGroup,
+    val rule: CidrSecurityGroupRule
+  ) : SecurityGroupFixture(spec) {
+    override val rules: List<SecurityGroupRule>
+      get() = listOf(rule)
+  }
+
+  @TestFactory
+  fun `upserting a security group`() = junitTests<SecurityGroupFixture> {
+    fixture {
+      SecurityGroupFixture(
+        spec = SecurityGroup(
+          application = "keel",
+          name = "fnord",
+          accountName = vpc.account,
+          region = vpc.region,
+          vpcName = vpc.name,
+          description = "dummy security group"
+        )
+      )
+    }
+
+    context("a security group with no ingress rules") {
       before {
         whenever(orcaService.orchestrate(any())) doAnswer {
           TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
         }
+
+        subject.upsert(request)
       }
 
       after {
         reset(cloudDriverService, orcaService)
       }
 
-      val request = Asset(
-        apiVersion = SPINNAKER_API_V1,
-        metadata = AssetMetadata(
-          name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel")
-        ),
-        kind = "ec2.SecurityGroup",
-        spec = objectMapper.convertValue(securityGroup)
-      )
-
       test("it upserts the security group via Orca") {
-        subject.upsert(request)
-
         argumentCaptor<OrchestrationRequest>().apply {
           verify(orcaService).orchestrate(capture())
           expectThat(firstValue) {
-            application.isEqualTo(securityGroup.application)
+            application.isEqualTo(spec.application)
+            job
+              .hasSize(1)
+              .first()
+              .type
+              .isEqualTo("upsertSecurityGroup")
+          }
+        }
+      }
+    }
+
+    derivedContext<SecurityGroupWithReferenceRuleFixture>("a security group with a reference ingress rule") {
+      mapFixture {
+        SecurityGroupWithReferenceRuleFixture(
+          spec = it.spec,
+          rule = ReferenceSecurityGroupRule(
+            protocol = TCP,
+            account = "test",
+            name = "otherapp",
+            vpcName = "vpc0",
+            portRange = PortRange(
+              startPort = 443,
+              endPort = 443
+            )
+          )
+        )
+      }
+
+      context("the referenced security group exists") {
+        before {
+          whenever(orcaService.orchestrate(any())) doAnswer {
+            TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
+          }
+
+          subject.upsert(request)
+        }
+
+        after {
+          reset(cloudDriverService, orcaService)
+        }
+
+        test("it upserts the security group via Orca") {
+          argumentCaptor<OrchestrationRequest>().apply {
+            verify(orcaService).orchestrate(capture())
+            expectThat(firstValue) {
+              application.isEqualTo(spec.application)
+              job.hasSize(1)
+              job[0]["securityGroupIngress"].isA<List<*>>()
+                .hasSize(1).first().isA<Map<String, *>>()
+                .and {
+                  get("type").isEqualTo(rule.protocol.name)
+                  get("startPort").isEqualTo(rule.portRange.startPort)
+                  get("endPort").isEqualTo(rule.portRange.endPort)
+                  get("name").isEqualTo(rule.name)
+                }
+            }
+          }
+        }
+      }
+    }
+
+    derivedContext<SecurityGroupWithCidrRuleFixture>("a security group with an IP block range ingress rule") {
+      mapFixture {
+        SecurityGroupWithCidrRuleFixture(
+          spec = it.spec,
+          rule = CidrSecurityGroupRule(
+            protocol = TCP,
+            blockRange = "10.0.0.0/16",
+            portRange = PortRange(
+              startPort = 443,
+              endPort = 443
+            )
+          )
+        )
+      }
+
+      before {
+        whenever(orcaService.orchestrate(any())) doAnswer {
+          TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
+        }
+
+        subject.upsert(request)
+      }
+
+      after {
+        reset(cloudDriverService, orcaService)
+      }
+
+      test("it upserts the security group via Orca") {
+        argumentCaptor<OrchestrationRequest>().apply {
+          verify(orcaService).orchestrate(capture())
+          expectThat(firstValue) {
+            application.isEqualTo(spec.application)
             job.hasSize(1)
+            job[0]["ipIngress"].isA<List<*>>()
+              .hasSize(1).first().isA<Map<String, *>>()
+              .and {
+                get("type").isEqualTo(rule.protocol.name)
+                get("cidr").isEqualTo(rule.blockRange)
+                get("startPort").isEqualTo(rule.portRange.startPort)
+                get("endPort").isEqualTo(rule.portRange.endPort)
+              }
           }
         }
       }
@@ -235,116 +364,42 @@ internal object EC2AssetPluginTests {
   }
 
   @TestFactory
-  fun `converging a security group with an ingress rule`() = junitTests<Unit> {
-    context("the referenced security group exists") {
-      val securityGroup = SecurityGroup(
-        application = "keel",
-        name = "fnord",
-        accountName = vpc.account,
-        region = vpc.region,
-        vpcName = vpc.name,
-        description = "dummy security group"
+  fun `deleting a security group`() = junitTests<SecurityGroupFixture> {
+    fixture {
+      SecurityGroupFixture(
+        spec = SecurityGroup(
+          application = "keel",
+          name = "fnord",
+          accountName = vpc.account,
+          region = vpc.region,
+          vpcName = vpc.name,
+          description = "dummy security group"
+        )
       )
+    }
 
-      context("an security group ingress rule") {
-        before {
-          whenever(orcaService.orchestrate(any())) doAnswer {
-            TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
-          }
-        }
-
-        after {
-          reset(cloudDriverService, orcaService)
-        }
-
-        val securityGroupRule = ReferenceSecurityGroupRule(
-          protocol = TCP,
-          account = "test",
-          name = "otherapp",
-          vpcName = "vpc0",
-          portRange = PortRange(
-            startPort = 443,
-            endPort = 443
-          )
-        )
-
-        val request = Asset(
-          apiVersion = SPINNAKER_API_V1,
-          metadata = AssetMetadata(
-            name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel")
-          ),
-          kind = "ec2.SecurityGroup",
-          spec = objectMapper.convertValue(securityGroup.copy(inboundRules = listOf(securityGroupRule)))
-        )
-
-        test("it upserts the security group via Orca") {
-          subject.upsert(request)
-
-          argumentCaptor<OrchestrationRequest>().apply {
-            verify(orcaService).orchestrate(capture())
-            expectThat(firstValue) {
-              application.isEqualTo(securityGroup.application)
-              job.hasSize(1)
-              job[0]["securityGroupIngress"].isA<List<*>>()
-                .hasSize(1).first().isA<Map<String, *>>()
-                .and {
-                  get("type").isEqualTo(securityGroupRule.protocol.name)
-                  get("startPort").isEqualTo(securityGroupRule.portRange.startPort)
-                  get("endPort").isEqualTo(securityGroupRule.portRange.endPort)
-                  get("name").isEqualTo(securityGroupRule.name)
-                }
-            }
-          }
-        }
+    before {
+      whenever(orcaService.orchestrate(any())) doAnswer {
+        TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
       }
 
-      context("an IP block range ingress rule") {
-        before {
-          whenever(orcaService.orchestrate(any())) doAnswer {
-            TaskRefResponse(TaskRef(UUID.randomUUID().toString()))
-          }
-        }
+      subject.delete(request)
+    }
 
-        after{
-          reset(cloudDriverService, orcaService)
-        }
+    after {
+      reset(cloudDriverService, orcaService)
+    }
 
-        val securityGroupRule = CidrSecurityGroupRule(
-          protocol = TCP,
-          blockRange = "10.0.0.0/16",
-          portRange = PortRange(
-            startPort = 443,
-            endPort = 443
-          )
-        )
-
-        val request = Asset(
-          apiVersion = SPINNAKER_API_V1,
-          metadata = AssetMetadata(
-            name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel")
-          ),
-          kind = "ec2.SecurityGroup",
-          spec = objectMapper.convertValue(securityGroup.copy(inboundRules = listOf(securityGroupRule)))
-        )
-
-        test("it upserts the security group via Orca") {
-          subject.upsert(request)
-
-          argumentCaptor<OrchestrationRequest>().apply {
-            verify(orcaService).orchestrate(capture())
-            expectThat(firstValue) {
-              application.isEqualTo(securityGroup.application)
-              job.hasSize(1)
-              job[0]["ipIngress"].isA<List<*>>()
-                .hasSize(1).first().isA<Map<String, *>>()
-                .and {
-                  get("type").isEqualTo(securityGroupRule.protocol.name)
-                  get("cidr").isEqualTo(securityGroupRule.blockRange)
-                  get("startPort").isEqualTo(securityGroupRule.portRange.startPort)
-                  get("endPort").isEqualTo(securityGroupRule.portRange.endPort)
-                }
-            }
-          }
+    test("it deletes the security group via Orca") {
+      argumentCaptor<OrchestrationRequest>().apply {
+        verify(orcaService).orchestrate(capture())
+        expectThat(firstValue) {
+          application.isEqualTo(spec.application)
+          job
+            .hasSize(1)
+            .first()
+            .type
+            .isEqualTo("deleteSecurityGroup")
         }
       }
     }
@@ -356,3 +411,6 @@ private val Assertion.Builder<OrchestrationRequest>.application: Assertion.Build
 
 private val Assertion.Builder<OrchestrationRequest>.job: Assertion.Builder<List<Job>>
   get() = get(OrchestrationRequest::job)
+
+private val Assertion.Builder<Job>.type: Assertion.Builder<String>
+  get() = get { getValue("type").toString() }

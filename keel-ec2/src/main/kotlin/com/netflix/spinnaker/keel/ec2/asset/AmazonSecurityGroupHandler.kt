@@ -76,6 +76,29 @@ class AmazonSecurityGroupHandler(
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
+  fun delete(assetName: AssetName, spec: SecurityGroup) {
+    val taskRef = orcaService
+      .orchestrate(OrchestrationRequest(
+        "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
+        spec.application,
+        "Delete security group ${spec.name} in ${spec.accountName}/${spec.region}",
+        listOf(Job(
+          "deleteSecurityGroup",
+          mutableMapOf(
+            "application" to spec.application,
+            "credentials" to spec.accountName,
+            "cloudProvider" to CLOUD_PROVIDER,
+            "securityGroupName" to spec.name,
+            "regions" to listOf(spec.region),
+            "vpcId" to spec.vpcName,
+            "accountName" to spec.accountName
+          )
+        )),
+        OrchestrationTrigger(assetName.toString())
+      ))
+    log.info("Started task {} to upsert security group", taskRef.ref)
+  }
+
   private fun CloudDriverService.getSecurityGroup(spec: SecurityGroup): SecurityGroup? {
     try {
       return getSecurityGroup(
