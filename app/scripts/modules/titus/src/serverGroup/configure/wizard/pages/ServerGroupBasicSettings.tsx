@@ -15,7 +15,7 @@ import {
   AccountTag,
 } from '@spinnaker/core';
 
-import { DockerImageAndTagSelector } from '@spinnaker/docker';
+import { DockerImageAndTagSelector, DockerImageUtils } from '@spinnaker/docker';
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
 
@@ -33,7 +33,6 @@ export interface IServerGroupBasicSettingsState {
   namePreview: string;
   createsNewCluster: boolean;
   latestServerGroup: IServerGroup;
-  showImageIdField: boolean;
   showPreviewAsWarning: boolean;
 }
 
@@ -47,14 +46,8 @@ class ServerGroupBasicSettingsImpl extends React.Component<
     super(props);
 
     const { values, setFieldValue } = this.props.formik;
-    if (values.imageId) {
-      const image = values.imageId;
-      const parts = image.split('/');
-      const organization = parts.length > 1 ? parts.shift() : '';
-      const rest = parts.shift().split(':');
-      const repository = organization ? `${organization}/${rest.shift()}` : rest.shift();
-      const tag = rest.shift();
-
+    if (values.imageId && !values.imageId.includes('${')) {
+      const { organization, repository, tag } = DockerImageUtils.splitImageId(values.imageId);
       setFieldValue('organization', organization);
       setFieldValue('repository', repository);
       setFieldValue('tag', tag);
@@ -62,18 +55,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
     this.state = {
       ...this.getStateFromProps(props),
-      showImageIdField: values.imageId && values.imageId.includes('${'),
     };
-  }
-
-  private updateImageId(repository: string, tag: string) {
-    // If image id parameterized, don't blow it away
-    if (!this.state.showImageIdField) {
-      const newImageId = repository && tag ? `${repository}:${tag}` : '';
-      if (this.props.formik.values.imageId !== newImageId) {
-        this.props.formik.setFieldValue('imageId', newImageId);
-      }
-    }
   }
 
   private getStateFromProps(props: IServerGroupBasicSettingsProps) {
@@ -165,8 +147,6 @@ class ServerGroupBasicSettingsImpl extends React.Component<
   };
 
   public componentWillReceiveProps(nextProps: IServerGroupBasicSettingsProps) {
-    const { values } = nextProps.formik;
-    this.updateImageId(values.repository, values.tag);
     this.setState(this.getStateFromProps(nextProps));
   }
 
@@ -187,7 +167,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
   public render() {
     const { errors, setFieldValue, values } = this.props.formik;
-    const { createsNewCluster, latestServerGroup, namePreview, showImageIdField, showPreviewAsWarning } = this.state;
+    const { createsNewCluster, latestServerGroup, namePreview, showPreviewAsWarning } = this.state;
 
     const accounts = values.backingData.accounts;
     const readOnlyFields = values.viewState.readOnlyFields || {};
@@ -263,31 +243,21 @@ class ServerGroupBasicSettingsImpl extends React.Component<
           </div>
         )}
 
-        {!showImageIdField &&
-          !values.viewState.disableImageSelection && (
-            <DockerImageAndTagSelector
-              specifyTagByRegex={false}
-              account={values.credentials}
-              organization={values.organization}
-              registry={values.registry}
-              repository={values.repository}
-              tag={values.tag || ''}
-              showRegistry={false}
-              deferInitialization={values.deferredInitialization}
-              labelClass="col-md-3"
-              fieldClass="col-md-7"
-              onChange={this.dockerValuesChanged}
-            />
-          )}
-        {showImageIdField && (
-          <div className="form-group">
-            <div className="col-md-3 sm-label-right">
-              <b>Image ID</b>
-            </div>
-            <div className="col-md-7">
-              <Field type="text" className="form-control input-sm no-spel" name="imageId" />
-            </div>
-          </div>
+        {!values.viewState.disableImageSelection && (
+          <DockerImageAndTagSelector
+            specifyTagByRegex={false}
+            account={values.credentials}
+            imageId={values.imageId}
+            organization={values.organization}
+            registry={values.registry}
+            repository={values.repository}
+            tag={values.tag}
+            showRegistry={false}
+            deferInitialization={values.deferredInitialization}
+            labelClass="col-md-3"
+            fieldClass="col-md-7"
+            onChange={this.dockerValuesChanged}
+          />
         )}
         <div className="form-group">
           <div className="col-md-3 sm-label-right">

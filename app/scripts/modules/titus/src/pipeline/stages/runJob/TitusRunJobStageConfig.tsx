@@ -15,7 +15,7 @@ import {
   AccountSelectField,
 } from '@spinnaker/core';
 
-import { DockerImageAndTagSelector, IDockerImageAndTagChanges } from '@spinnaker/docker';
+import { DockerImageAndTagSelector, DockerImageUtils, IDockerImageAndTagChanges } from '@spinnaker/docker';
 
 import { TitusSecurityGroupPicker } from './TitusSecurityGroupPicker';
 
@@ -40,8 +40,8 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
     stage.cluster = stage.cluster || {};
     stage.waitForCompletion = stage.waitForCompletion === undefined ? true : stage.waitForCompletion;
 
-    if (stage.cluster.imageId) {
-      Object.assign(stage, this.splitImageId(stage.cluster.imageId));
+    if (stage.cluster.imageId && !stage.cluster.imageId.includes('${')) {
+      Object.assign(stage, DockerImageUtils.splitImageId(stage.cluster.imageId));
     }
 
     if (!stage.credentials && application.defaultCredentials.titus) {
@@ -103,19 +103,15 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
     this.updateRegions(account);
   };
 
-  private updateImageId() {
-    const { stage } = this.props;
-    if (stage.repository && stage.tag) {
-      stage.cluster.imageId = `${stage.repository}:${stage.tag}`;
-    } else {
-      delete stage.cluster.imageId;
-    }
-  }
-
   private dockerChanged = (changes: IDockerImageAndTagChanges) => {
     // Temporary until stage config section is no longer angular
-    Object.assign(this.props.stage, changes);
-    this.updateImageId();
+    const { imageId, ...rest } = changes;
+    Object.assign(this.props.stage, rest);
+    if (imageId) {
+      this.props.stage.cluster.imageId = imageId;
+    } else {
+      delete this.props.stage.cluster.imageId;
+    }
     this.props.stageFieldUpdated();
     this.forceUpdate();
   };
@@ -125,17 +121,6 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
     this.props.stageFieldUpdated();
     this.forceUpdate();
   };
-
-  // Split the image id up into the selectable parts to feed the UI
-  private splitImageId(image: string): { organization: string; repository: string; tag: string } {
-    const parts = image.split('/');
-    const organization = parts.length > 1 ? parts.shift() : '';
-    const rest = parts.shift().split(':');
-    const repository = organization.length > 0 ? `${organization}/${rest.shift()}` : rest.shift();
-    const tag = rest.shift();
-
-    return { organization, repository, tag };
-  }
 
   public componentDidMount() {
     const { stage } = this.props;
@@ -199,6 +184,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
         <DockerImageAndTagSelector
           specifyTagByRegex={false}
           account={stage.credentials}
+          imageId={stage.cluster.imageId}
           organization={stage.organization}
           registry={stage.registry}
           repository={stage.repository}

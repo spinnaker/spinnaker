@@ -15,4 +15,12 @@ export class DockerImageUtils {
 
     return { organization, repository, tag };
   }
+
+  public static generateImageId(parts: IDockerImageParts): string {
+    if (!parts.repository || !parts.tag) {
+      return undefined;
+    }
+
+    return `${parts.repository}:${parts.tag}`;
+  }
 }
