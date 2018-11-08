@@ -632,33 +632,33 @@
     "@types/uglify-js" "*"
     source-map "^0.6.0"
 
-"@uirouter/angularjs@1.0.19", "@uirouter/angularjs@^1.0.15":
-  version "1.0.19"
-  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.19.tgz#f9595f972c50b90c487f2c7ea6ddcc44d95f04bf"
-  integrity sha512-O+M3CB4en9OPMKqSrMC6hZsuMbtttYpGlALZoqAYqUmqdw1CJ5WBnuj7s/40svhZG338SfqxXN/Y2uKh5x+gPQ==
+"@uirouter/angularjs@1.0.20", "@uirouter/angularjs@^1.0.15":
+  version "1.0.20"
+  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.20.tgz#bd330544cb2f1c35987f610d8fc353071786c04e"
+  integrity sha512-fY6bsesTL/tg8gyFHXaIjD1r5b7Ac+SYupodO9OzT4/gKI0YC+uGzLpQESAiXlT3fsxdEPVBzdtAbzXDwCKdEA==
   dependencies:
-    "@uirouter/core" "5.0.20"
+    "@uirouter/core" "5.0.21"
 
-"@uirouter/core@5.0.1", "@uirouter/core@5.0.20":
+"@uirouter/core@5.0.1", "@uirouter/core@5.0.20", "@uirouter/core@5.0.21":
   version "5.0.20"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.20.tgz#9c27d8d14d50358040840fd00e9d38c36be1adc5"
   integrity sha512-7MwtORbMF0UFCgMb+KcBAx+7EsYn/6sP5mEAjLNQq14AkHOJom5pPRE0N3nxduFbK3V2TXfsOX2UjtbkuXql+A==
 
-"@uirouter/react-hybrid@0.3.3", "@uirouter/react-hybrid@^0.1.0":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.3.3.tgz#12c6f9cd0669ccc2df73a3623f9f171a754e2875"
-  integrity sha512-48+fzGo4p+amGlJ6yUvjJ6XNzyzjB9QNa8QeSkeZ6tv+cwRBeXoGyzSlIYbMbVjrZaz7lVR9Hbaai5DMXazEpg==
+"@uirouter/react-hybrid@0.3.6", "@uirouter/react-hybrid@^0.1.0":
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.3.6.tgz#75775f90758166af4869feb739287883d8f5014b"
+  integrity sha512-VbN3yYxXklb4N+a6mBD+7NHRD7hJYiDXccHzlZLbsK1Tp9oHvUPnFDAtFmmI8cfZqlBsxTzYDL0Zenfobuu+kg==
   dependencies:
-    "@uirouter/angularjs" "1.0.19"
-    "@uirouter/core" "5.0.20"
-    "@uirouter/react" "0.8.5"
+    "@uirouter/angularjs" "1.0.20"
+    "@uirouter/core" "5.0.21"
+    "@uirouter/react" "0.8.7"
 
-"@uirouter/react@0.8.5":
-  version "0.8.5"
-  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.8.5.tgz#7328985e1abfb60921b1535e636349eeb0bdb085"
-  integrity sha512-pdseoUPxNBuvr60Invgig0Vyn9nlDz/zXoD8JfCkKXhdSp0FjFanUbOp6TnLuPa5cUhyAEbOhKReqxTAzu5p4A==
+"@uirouter/react@0.8.7":
+  version "0.8.7"
+  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.8.7.tgz#5d1e773ba904e9ebf31a67731118837ffeae6b33"
+  integrity sha512-+uGHIYDV22NH4CpIeShtr4pSXc6p4Uvvkv6v7UHLGRvytWQcy90erEgdWF5b1Y03GPa0A28Iv6xdhBlS0YNgRA==
   dependencies:
-    "@uirouter/core" "5.0.20"
+    "@uirouter/core" "5.0.21"
     classnames "^2.2.5"
     prop-types "^15.6.1"
 
@@ -3304,10 +3304,15 @@ classname@^0.0.0:
   resolved "https://registry.yarnpkg.com/classname/-/classname-0.0.0.tgz#43d171b484e354c7a293a5b78004df6852db20d6"
   integrity sha1-Q9FxtITjVMeik6W3gATfaFLbINY=
 
-classnames@^2.2.3, classnames@^2.2.4, classnames@^2.2.5:
+classnames@^2.2.3, classnames@^2.2.4:
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.5.tgz#fb3801d453467649ef3603c7d61a02bd129bde6d"
   integrity sha1-+zgB1FNGdknvNgPH1hoCvRKb3m0=
+
+classnames@^2.2.5:
+  version "2.2.6"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
+  integrity sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
 
 clean-css@4.0.x:
   version "4.0.13"
