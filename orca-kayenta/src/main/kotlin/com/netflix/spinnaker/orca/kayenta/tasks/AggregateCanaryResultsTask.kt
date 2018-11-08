@@ -34,10 +34,11 @@ class AggregateCanaryResultsTask : Task {
 
   override fun execute(stage: Stage): TaskResult {
     val canaryConfig = stage.mapTo<KayentaCanaryContext>("/canaryConfig")
+    val intervalStageId = stage.context["intervalStageId"] as String
     val runCanaryStages = stage
       .execution
       .stages
-      .filter { it -> it.type == RunCanaryPipelineStage.STAGE_TYPE && it.parentStageId == stage.id }
+      .filter { it -> it.type == RunCanaryPipelineStage.STAGE_TYPE && it.parentStageId == intervalStageId }
       .sortedBy { it.name.substringAfterLast("#").toInt() }
     val runCanaryScores = runCanaryStages
       .map { it -> it.mapTo<Number>("/canaryScore") }

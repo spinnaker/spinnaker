@@ -16,36 +16,21 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
-import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.orca.ext.mapTo
 import com.netflix.spinnaker.orca.ext.withTask
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.kayenta.CanaryScope
-import com.netflix.spinnaker.orca.kayenta.CanaryScopes
 import com.netflix.spinnaker.orca.kayenta.model.KayentaCanaryContext
-import com.netflix.spinnaker.orca.kayenta.model.RunCanaryContext
 import com.netflix.spinnaker.orca.kayenta.tasks.AggregateCanaryResultsTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
-import java.time.Duration.ZERO
 import java.time.Instant
-import java.time.Instant.now
-import java.time.temporal.ChronoUnit.*
-import java.util.*
 
 @Component
 class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
-
-  private val mapper = OrcaObjectMapper
-    .newInstance()
-    .disable(WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
 
   override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
     builder.withTask<AggregateCanaryResultsTask>("aggregateCanaryResults")
@@ -65,57 +50,19 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
       throw IllegalArgumentException("Canary stage configuration must contain at least one scope.")
     }
 
-    val lifetime: Duration = if (canaryConfig.endTime != null) {
-      Duration.ofMinutes((canaryConfig.startTime ?: now(clock))
-        .until(canaryConfig.endTime, MINUTES))
-    } else if (canaryConfig.lifetime != null) {
-      canaryConfig.lifetime
-    } else {
+    // These are not used in this stage, but fail fast if they are missing as RunCanaryIntervalsStage
+    // needs one of these.
+    if (canaryConfig.endTime == null && canaryConfig.lifetime == null) {
       throw IllegalArgumentException("Canary stage configuration must include either `endTime` or `lifetimeDuration`.")
     }
 
-    var canaryAnalysisInterval = canaryConfig.canaryAnalysisInterval ?: lifetime
-    if (canaryAnalysisInterval == ZERO || canaryAnalysisInterval > lifetime) {
-      canaryAnalysisInterval = lifetime
+    val runStage = graph.append {
+      it.type = RunCanaryIntervalsStage.STAGE_TYPE
+      it.name = "Run Canary Intervals"
+      it.context["canaryConfig"] = canaryConfig
+      it.context["continuePipeline"] = parent.context["continuePipeline"]
     }
-
-    val numIntervals = (lifetime.toMinutes() / canaryAnalysisInterval.toMinutes()).toInt()
-
-    if (canaryConfig.beginCanaryAnalysisAfter > ZERO) {
-      graph.append {
-        it.type = WaitStage.STAGE_TYPE
-        it.name = "Warmup Wait"
-        it.context["waitTime"] = canaryConfig.beginCanaryAnalysisAfter.seconds
-      }
-    }
-
-    for (i in 1..numIntervals) {
-      // If an end time was explicitly specified, we don't need to synchronize
-      // the execution of the canary pipeline with the real time.
-      if (canaryConfig.endTime == null) {
-        graph.append {
-          it.type = WaitStage.STAGE_TYPE
-          it.name = "Interval Wait #$i"
-          it.context["waitTime"] = canaryAnalysisInterval.seconds
-        }
-      }
-
-      val runCanaryContext = RunCanaryContext(
-        canaryConfig.metricsAccountName,
-        canaryConfig.configurationAccountName,
-        canaryConfig.storageAccountName,
-        canaryConfig.canaryConfigId,
-        buildRequestScopes(canaryConfig, i, canaryAnalysisInterval),
-        canaryConfig.scoreThresholds
-      )
-
-      graph.append {
-        it.type = RunCanaryPipelineStage.STAGE_TYPE
-        it.name = "${RunCanaryPipelineStage.STAGE_NAME_PREFIX}$i"
-        it.context.putAll(mapper.convertValue<Map<String, Any>>(runCanaryContext))
-        it.context["continuePipeline"] = parent.context["continuePipeline"]
-      }
-    }
+    parent.context["intervalStageId"] = runStage.id
   }
 
   override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
@@ -129,52 +76,6 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
 
   override fun onFailureStages(stage: Stage, graph: StageGraphBuilder) {
     afterStages(stage, graph)
-  }
-
-  private fun buildRequestScopes(
-    config: KayentaCanaryContext,
-    interval: Int,
-    intervalDuration: Duration
-  ): Map<String, CanaryScopes> {
-    val requestScopes = HashMap<String, CanaryScopes>()
-    config.scopes.forEach { scope ->
-      var start: Instant
-      val end: Instant
-
-      val warmup = config.beginCanaryAnalysisAfter
-      val offset = intervalDuration.multipliedBy(interval.toLong())
-
-      if (config.endTime == null) {
-        start = (config.startTime ?: now(clock)).plus(warmup)
-        end = (config.startTime ?: now(clock)).plus(warmup + offset)
-      } else {
-        start = (config.startTime ?: now(clock))
-        end = (config.startTime ?: now(clock)).plus(offset)
-      }
-
-      if (config.lookback > ZERO) {
-        start = end.minus(config.lookback)
-      }
-
-      val controlScope = CanaryScope(
-        scope.controlScope,
-        scope.controlLocation,
-        start,
-        end,
-        config.step.seconds,
-        scope.extendedScopeParams
-      )
-      val experimentScope = controlScope.copy(
-        scope = scope.experimentScope,
-        location = scope.experimentLocation
-      )
-
-      requestScopes[scope.scopeName] = CanaryScopes(
-        controlScope = controlScope,
-        experimentScope = experimentScope
-      )
-    }
-    return requestScopes
   }
 
   override fun getType() = STAGE_TYPE

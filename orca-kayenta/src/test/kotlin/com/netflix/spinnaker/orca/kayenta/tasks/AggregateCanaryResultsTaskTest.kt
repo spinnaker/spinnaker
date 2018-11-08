@@ -102,7 +102,7 @@ object AggregateCanaryResultsTaskSpec : Spek({
           .forEach { stage -> stage.parentStageId = parentStage.id }
       }
       val canaryStage = reversedPipeline.stageByRef("1")
-
+      canaryStage.context["intervalStageId"] = canaryStage.id
       val taskResult = task.execute(canaryStage)
 
       it("stores the aggregated scores") {
@@ -185,6 +185,7 @@ object AggregateCanaryResultsTaskSpec : Spek({
       }
 
       val canaryStage1 = reversedPipeline.stageByRef("1")
+      canaryStage1.context["intervalStageId"] = canaryStage1.id
       val taskResult1 = task.execute(canaryStage1)
 
       it("stores the aggregated scores independently") {
@@ -196,6 +197,7 @@ object AggregateCanaryResultsTaskSpec : Spek({
       }
 
       val canaryStage2 = reversedPipeline.stageByRef("2")
+      canaryStage2.context["intervalStageId"] = canaryStage2.id
       val taskResult2 = task.execute(canaryStage2)
 
       it("stores the aggregated scores independently") {

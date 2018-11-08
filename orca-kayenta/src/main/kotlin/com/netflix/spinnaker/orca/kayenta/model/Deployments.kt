@@ -30,7 +30,7 @@ import java.time.Duration
 internal data class Deployments(
   val baseline: Baseline,
   val serverGroupPairs: List<ServerGroupPair>,
-  val delayBeforeCleanup: Duration = Duration.ofHours(1)
+  val delayBeforeCleanup: Duration = Duration.ZERO
 )
 
 /**

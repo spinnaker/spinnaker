@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kayenta.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.orca.kayenta.Thresholds
 import java.time.Duration
 import java.time.Instant
@@ -29,10 +30,20 @@ data class KayentaCanaryContext(
   val scopes: List<CanaryConfigScope> = emptyList(),
   val scoreThresholds: Thresholds = Thresholds(pass = 75, marginal = 50),
   @Deprecated("Kept to support pipelines that haven't been updated to use lifetimeDuration")
+
+  @JsonProperty(access = JsonProperty.Access.READ_WRITE)
   private val lifetimeHours: Int? = null,
+
+  @JsonProperty(access = JsonProperty.Access.READ_WRITE)
   private val lifetimeDuration: Duration? = null,
+
+  @JsonProperty(access = JsonProperty.Access.READ_WRITE)
   private val beginCanaryAnalysisAfterMins: Int = 0,
+
+  @JsonProperty(access = JsonProperty.Access.READ_WRITE)
   private val lookbackMins: Int = 0,
+
+  @JsonProperty(access = JsonProperty.Access.READ_WRITE)
   private val canaryAnalysisIntervalMins: Int? = null
 ) {
   @JsonIgnore
