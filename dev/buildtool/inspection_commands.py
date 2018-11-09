@@ -1150,6 +1150,15 @@ class AuditArtifactVersions(CommandProcessor):
       self.__found_images[service] = holder
       return True
 
+    # 20181109: Dont audit images as these are no longer built
+    #           so are not expected anyway.
+    #
+    expect_images = False
+    if not expect_images:
+      return True
+
+    # 20181109: We're leaving this around for the time being
+    #           but it isnt reachable.
     holder = self.__missing_images.get(service, {})
     holder[build_version] = entries
     self.__missing_images[service] = holder
@@ -1274,6 +1283,7 @@ class AuditArtifactVersions(CommandProcessor):
             deb_ok = self.audit_debian(service, version_buildnum, info_list)
             gcr_ok = self.audit_container(service, version_buildnum, info_list)
             image_ok = self.audit_image(service, version_buildnum, info_list)
+
             add_invalid_boms(jar_ok, deb_ok, gcr_ok, image_ok,
                              service, version_buildnum,
                              info_list, self.__invalid_boms)
