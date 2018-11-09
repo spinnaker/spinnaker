@@ -237,7 +237,17 @@ class CatsSearchProvider implements SearchProvider, Runnable {
           return true
         }
       }
-      log.info("no query string specified, looked for sensible default and found: ${q}")
+
+      if (q) {
+        log.info(
+          "no query string specified, looked for sensible default and found: {} (cachesToQuery: {})",
+          q,
+          cachesToQuery
+        )
+      } else {
+        log.info("no query string specified and no sensible default found (cachesToQuery: {})", cachesToQuery)
+        return []
+      }
     }
 
     log.info("Querying ${cachesToQuery} for term: ${q}")
