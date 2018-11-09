@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
   public CloudFoundryCredentials(String name, String apiHost, String userName, String password, String environment) {
     this.name = name;
     this.environment = environment;
-    this.credentials = new CloudFoundryClient(name, apiHost, userName, password);
+    this.credentials = new HttpCloudFoundryClient(name, apiHost, userName, password);
   }
 
   public CloudFoundryClient getClient() {

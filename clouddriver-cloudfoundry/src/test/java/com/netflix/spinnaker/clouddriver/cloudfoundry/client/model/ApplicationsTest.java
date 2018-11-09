@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Applications;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.*;
 class ApplicationsTest {
   @Test
   void errorHandling() {
-    CloudFoundryClient client = new CloudFoundryClient("pws", "api.run.pivotal.io",
+    CloudFoundryClient client = new HttpCloudFoundryClient("pws", "api.run.pivotal.io",
       "baduser", "badpassword");
 
     assertThatThrownBy(() -> client.getApplications().all())

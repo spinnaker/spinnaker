@@ -31,7 +31,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class CloudFoundryClientTest {
+public class HttpCloudFoundryClientTest {
   @Test
   public void createRetryInterceptorShouldRetryOnInternalServerErrorsThenTimeOut() {
     Request request = new Request.Builder().url("http://duke.of.url").build();
@@ -48,7 +48,7 @@ public class CloudFoundryClientTest {
       fail("Should not happen!");
     }
 
-    CloudFoundryClient cloudFoundryClient = new CloudFoundryClient("account", "host", "user", "password");
+    HttpCloudFoundryClient cloudFoundryClient = new HttpCloudFoundryClient("account", "host", "user", "password");
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
@@ -73,7 +73,7 @@ public class CloudFoundryClientTest {
       fail("Should not happen!");
     }
 
-    CloudFoundryClient cloudFoundryClient = new CloudFoundryClient("account", "host", "user", "password");
+    HttpCloudFoundryClient cloudFoundryClient = new HttpCloudFoundryClient("account", "host", "user", "password");
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {
@@ -98,7 +98,7 @@ public class CloudFoundryClientTest {
       fail("Should not happen!");
     }
 
-    CloudFoundryClient cloudFoundryClient = new CloudFoundryClient("account", "host", "user", "password");
+    HttpCloudFoundryClient cloudFoundryClient = new HttpCloudFoundryClient("account", "host", "user", "password");
     Response response = cloudFoundryClient.createRetryInterceptor(chain);
 
     try {

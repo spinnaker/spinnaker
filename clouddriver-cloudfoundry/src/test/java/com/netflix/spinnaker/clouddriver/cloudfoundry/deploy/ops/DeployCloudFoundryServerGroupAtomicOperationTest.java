@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Applications;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
@@ -38,7 +35,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Index.atIndex;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoundryAtomicOperationTest {
@@ -57,9 +53,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
   void mapRoutesShouldReturnTrueWhenRoutesIsNull() {
     DefaultTask testTask = new DefaultTask("testTask");
     TaskRepository.threadLocalTask.set(testTask);
-    CloudFoundryClient client = mock(CloudFoundryClient.class);
     DeployCloudFoundryServerGroupDescription description = new DeployCloudFoundryServerGroupDescription();
-    description.setClient(client);
     DeployCloudFoundryServerGroupAtomicOperation operation = new DeployCloudFoundryServerGroupAtomicOperation(null, description, null);
 
     assertThat(operation.mapRoutes(null, null, null)).isTrue();
@@ -71,14 +65,11 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
     DefaultTask testTask = new DefaultTask("testTask");
     TaskRepository.threadLocalTask.set(testTask);
 
-    CloudFoundryClient client = mock(CloudFoundryClient.class);
     DeployCloudFoundryServerGroupDescription description = new DeployCloudFoundryServerGroupDescription();
     description.setClient(client);
     description.setServerGroupName("sg-name");
     DeployCloudFoundryServerGroupAtomicOperation operation = new DeployCloudFoundryServerGroupAtomicOperation(null, description, null);
-    Routes routes = mock(Routes.class);
-    when(client.getRoutes()).thenReturn(routes);
-    when(routes.toRouteId(anyString())).thenReturn(new RouteId("road.to.nowhere", null, null, "domain-guid"));
+    when(client.getRoutes().toRouteId(anyString())).thenReturn(new RouteId("road.to.nowhere", null, null, "domain-guid"));
 
     CloudFoundryOrganization org = CloudFoundryOrganization.builder().id("org-id").name("org-name").build();
     CloudFoundrySpace space = CloudFoundrySpace.builder().id("space-id").name("space-name").organization(org).build();
@@ -90,9 +81,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
         organization(org).
         build()).
       build();
-    when(routes.find(any(), anyString())).thenReturn(loadBalancer);
-    Applications applications = mock(Applications.class);
-    when(client.getApplications()).thenReturn(applications);
+    when(client.getRoutes().find(any(), anyString())).thenReturn(loadBalancer);
 
     List<String> routeList = Collections.singletonList("road.to.nowhere");
 
@@ -105,14 +94,11 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
     DefaultTask testTask = new DefaultTask("testTask");
     TaskRepository.threadLocalTask.set(testTask);
 
-    CloudFoundryClient client = mock(CloudFoundryClient.class);
     DeployCloudFoundryServerGroupDescription description = new DeployCloudFoundryServerGroupDescription();
     description.setClient(client);
     description.setServerGroupName("sg-name");
     DeployCloudFoundryServerGroupAtomicOperation operation = new DeployCloudFoundryServerGroupAtomicOperation(null, description, null);
-    Routes routes = mock(Routes.class);
-    when(client.getRoutes()).thenReturn(routes);
-    when(routes.toRouteId(anyString())).thenReturn(null);
+    when(client.getRoutes().toRouteId(anyString())).thenReturn(null);
 
     List<String> routeList = Collections.singletonList("road.to.nowhere");
 

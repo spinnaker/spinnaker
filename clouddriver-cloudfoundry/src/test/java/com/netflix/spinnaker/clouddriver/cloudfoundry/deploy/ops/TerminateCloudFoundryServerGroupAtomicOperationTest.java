@@ -48,6 +48,6 @@ class TerminateCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudF
       .has(status("Terminating application instances ['123-0', '123-1']"), atIndex(1))
       .has(status("Terminated application instances ['123-0', '123-1']"), atIndex(2));
 
-    verify(applications, times(2)).deleteAppInstance(eq("123"), anyString());
+    verify(client.getApplications(), times(2)).deleteAppInstance(eq("123"), anyString());
   }
 }

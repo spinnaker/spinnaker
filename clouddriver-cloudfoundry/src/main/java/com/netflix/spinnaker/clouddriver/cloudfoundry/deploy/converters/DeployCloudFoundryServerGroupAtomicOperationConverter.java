@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.gcs.GcsArtifactCredentials;
@@ -45,6 +46,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -115,29 +117,36 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
         InputStream manifestInput = manifestArtifactCredentials.download(manifestArtifact);
         Yaml parser = new Yaml();
         Map manifestMap = (Map) parser.load(manifestInput);
-
-        List<CloudFoundryManifest> manifestApps = new ObjectMapper()
-          .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
-          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-          .convertValue(manifestMap.get("applications"), new TypeReference<List<CloudFoundryManifest>>() {
-          });
-
-        manifestApps.stream().findFirst().ifPresent(app -> {
-          DeployCloudFoundryServerGroupDescription.ApplicationAttributes attrs = new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
-          attrs.setInstances(app.getInstances() == null ? 1 : app.getInstances());
-          attrs.setMemory(app.getMemory() == null ? "1024" : app.getMemory());
-          attrs.setDiskQuota(app.getDiskQuota() == null ? "1024" : app.getDiskQuota());
-          attrs.setBuildpack(app.getBuildpack());
-          attrs.setServices(app.getServices());
-          attrs.setRoutes(app.getRoutes() == null ? null : app.getRoutes().stream().flatMap(route -> route.values().stream()).collect(toList()));
-          attrs.setEnv(app.getEnv() == null ? null : app.getEnv().stream().flatMap(env -> env.entrySet().stream()).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
-          converted.setApplicationAttributes(attrs);
+        final Optional<DeployCloudFoundryServerGroupDescription.ApplicationAttributes> attrs = convertManifest(manifestMap);
+        attrs.ifPresent(a -> {
+          converted.setApplicationAttributes(a);
         });
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
     }
     return converted;
+  }
+
+  @VisibleForTesting
+  Optional<DeployCloudFoundryServerGroupDescription.ApplicationAttributes> convertManifest(Map manifestMap) {
+    List<CloudFoundryManifest> manifestApps = new ObjectMapper()
+      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .convertValue(manifestMap.get("applications"), new TypeReference<List<CloudFoundryManifest>>() {
+      });
+
+    return manifestApps.stream().findFirst().map(app -> {
+      DeployCloudFoundryServerGroupDescription.ApplicationAttributes attrs = new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
+      attrs.setInstances(app.getInstances() == null ? 1 : app.getInstances());
+      attrs.setMemory(app.getMemory() == null ? "1024" : app.getMemory());
+      attrs.setDiskQuota(app.getDiskQuota() == null ? "1024" : app.getDiskQuota());
+      attrs.setBuildpack(app.getBuildpack());
+      attrs.setServices(app.getServices());
+      attrs.setRoutes(app.getRoutes() == null ? null : app.getRoutes().stream().flatMap(route -> route.values().stream()).collect(toList()));
+      attrs.setEnv(app.getEnv() == null ? null : app.getEnv().stream().flatMap(env -> env.entrySet().stream()).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
+      return attrs;
+    });
   }
 
   @Data

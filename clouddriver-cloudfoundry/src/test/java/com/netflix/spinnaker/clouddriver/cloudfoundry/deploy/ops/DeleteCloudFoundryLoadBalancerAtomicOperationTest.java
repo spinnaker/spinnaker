@@ -48,7 +48,7 @@ class DeleteCloudFoundryLoadBalancerAtomicOperationTest extends AbstractCloudFou
       .has(status("Deleting load balancer " + loadBalancer.getName()), atIndex(1))
       .has(status("Deleted load balancer " + loadBalancer.getName()), atIndex(2));
 
-    verify(routes).deleteRoute(loadBalancer.getId());
+    verify(client.getRoutes()).deleteRoute(loadBalancer.getId());
   }
 
   @Test

@@ -30,22 +30,9 @@ import static org.mockito.Mockito.when;
 
 class AbstractCloudFoundryAtomicOperationTest {
   final CloudFoundryClient client;
-  final Routes routes;
-  final Spaces spaces;
-  final Domains domains;
-  final Applications applications;
 
   AbstractCloudFoundryAtomicOperationTest() {
-    client = mock(CloudFoundryClient.class);
-    routes = mock(Routes.class);
-    spaces = mock(Spaces.class);
-    domains = mock(Domains.class);
-    applications = mock(Applications.class);
-
-    when(client.getRoutes()).thenReturn(routes);
-    when(client.getSpaces()).thenReturn(spaces);
-    when(client.getDomains()).thenReturn(domains);
-    when(client.getApplications()).thenReturn(applications);
+    client = new MockCloudFoundryClient();
   }
 
   Task runOperation(AtomicOperation<?> op) {
