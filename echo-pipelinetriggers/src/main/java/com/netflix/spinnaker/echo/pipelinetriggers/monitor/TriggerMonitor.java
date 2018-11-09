@@ -88,7 +88,6 @@ public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener
   }
 
   private void recordMetrics() {
-    registry.gauge("echo.events.per.poll", 1);
     registry.counter("echo.events.processed").increment();
   }
 

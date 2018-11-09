@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ArtifactPostProcessorSpec extends Specification implements RetrofitStubs {
+  def objectMapper = new ObjectMapper()
   @Subject
-  def artifactPostProcessor = new ArtifactPostProcessor()
+  def artifactPostProcessor = new ArtifactPostProcessor(objectMapper)
 
   def "is (currently) a no-op"() {
     given:

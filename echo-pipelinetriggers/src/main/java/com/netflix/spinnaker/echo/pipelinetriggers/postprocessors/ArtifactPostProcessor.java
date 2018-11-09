@@ -16,8 +16,21 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.model.Pipeline;
+import com.netflix.spinnaker.echo.model.Trigger;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaTemplate;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Post-processor extracts artifacts from a pipeline using a supplied Jinja template and adds
@@ -25,10 +38,52 @@ import org.springframework.stereotype.Component;
  * This post-processor is not implemented yet and is currently a no-op.
  */
 @Component
+@Slf4j
 public class ArtifactPostProcessor implements PipelinePostProcessor {
+  private final ObjectMapper objectMapper;
+
+  @Autowired
+  public ArtifactPostProcessor(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
+
   public Pipeline processPipeline(Pipeline inputPipeline) {
-    // TODO(ezimanyi): implement this
-    return inputPipeline;
+    List<Artifact> newArtifacts = extractArtifacts(inputPipeline.getTrigger());
+    List<Artifact> existingArtifacts = inputPipeline.getReceivedArtifacts();
+
+    List<Artifact> receivedArtifacts = new ArrayList<>();
+    if (existingArtifacts != null) {
+      receivedArtifacts.addAll(existingArtifacts);
+    }
+    if (newArtifacts != null) {
+      receivedArtifacts.addAll(newArtifacts);
+    }
+    return inputPipeline.withReceivedArtifacts(receivedArtifacts);
+  }
+
+  private List<Artifact> extractArtifacts(Trigger inputTrigger) {
+    final String messageString;
+    try {
+      messageString = objectMapper.writeValueAsString(inputTrigger);
+    } catch (JsonProcessingException e) {
+      log.error("Error processing JSON: {}", e);
+      return Collections.emptyList();
+    }
+
+    return getArtifactTemplates(inputTrigger)
+      .stream()
+      .flatMap(template -> processTemplate(template, messageString).stream())
+      .collect(Collectors.toList());
+  }
+
+  private List<Artifact> processTemplate(JinjaTemplate template, String messageString) {
+    MessageArtifactTranslator messageArtifactTranslator = new MessageArtifactTranslator(template.getAsStream());
+    return messageArtifactTranslator.parseArtifacts(messageString);
+  }
+
+  private List<JinjaTemplate> getArtifactTemplates(Trigger trigger) {
+    // TODO: This always returns an empty list; implement this so that it selects a template based on the trigger
+    return Collections.emptyList();
   }
 
   public PostProcessorPriority priority() {

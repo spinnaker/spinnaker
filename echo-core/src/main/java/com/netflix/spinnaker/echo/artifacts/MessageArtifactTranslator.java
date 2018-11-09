@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class MessageArtifactTranslator {
   private JinjavaFactory jinjavaFactory;
 
   private static final TypeReference<List<Artifact>> artifactListReference = new TypeReference<List<Artifact>>() {};
+  private static final TypeReference<Map<String,?>> stringMapReference = new TypeReference<Map<String,?>>() {};
 
   public MessageArtifactTranslator() {
     this.jinjavaFactory = new DefaultJinjavaFactory();
@@ -56,7 +58,7 @@ public class MessageArtifactTranslator {
       this.jinjaTemplate = "";
     } else {
       try {
-        this.jinjaTemplate = IOUtils.toString(templateStream);
+        this.jinjaTemplate = IOUtils.toString(templateStream, Charset.forName("UTF-8"));
       } catch (IOException ioe) {
         throw new RuntimeException(ioe);
       }
@@ -78,15 +80,15 @@ public class MessageArtifactTranslator {
       return messagePayload;
     } else {
       Jinjava jinja = jinjavaFactory.create();
-      Map context = readMapValue(mapper, messagePayload);
+      Map<String, ?> context = readMapValue(mapper, messagePayload);
       return jinja.render(jinjaTemplate, context);
     }
   }
 
-  private Map readMapValue(ObjectMapper mapper, String messagePayload) {
-    Map context;
+  private Map<String,?> readMapValue(ObjectMapper mapper, String messagePayload) {
+    Map<String,?> context;
     try {
-      context = mapper.readValue(messagePayload, Map.class);
+      context = mapper.readValue(messagePayload, stringMapReference);
     } catch (IOException ioe) {
       log.error(messagePayload);
       throw new InvalidRequestException(ioe);
@@ -103,6 +105,6 @@ public class MessageArtifactTranslator {
       // there is no template and no artifacts are expected
       log.warn("Unable to parse artifact from {}", hydratedTemplate);
     }
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 }
