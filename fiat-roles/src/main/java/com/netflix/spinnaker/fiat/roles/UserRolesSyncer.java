@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.roles;
 
 import com.diffplug.common.base.Functions;
+import com.google.common.collect.Maps;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
@@ -143,10 +144,6 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
         if (!(temp = getUserPermissions()).isEmpty()) {
           combo.putAll(temp);
         }
-        if (!(temp = getServiceAccountsAsMap()).isEmpty()) {
-          combo.putAll(temp);
-        }
-
         return updateUserPermissions(combo);
       } catch (ProviderException | PermissionResolutionException ex) {
         Status status = healthIndicator.health().getStatus();
@@ -195,13 +192,8 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
     return permissionsRepository.getAllById();
   }
 
-  public long updateUserPermissions(Map<String, UserPermission> permissionsById) {
-    if (permissionsById.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
-      permissionsRepository.put(permissionsResolver.resolveUnrestrictedUser());
-      log.info("Synced anonymous user role.");
-    }
-
-    List<ExternalUser> extUsers = permissionsById
+  private List<ExternalUser> permissionToUsers(Map<String, UserPermission> permissionsById) {
+    return permissionsById
         .values()
         .stream()
         .map(permission -> new ExternalUser()
@@ -211,13 +203,32 @@ public class UserRolesSyncer implements ApplicationListener<RemoteStatusChangedE
                 .filter(role -> role.getSource() == Role.Source.EXTERNAL)
                 .collect(Collectors.toList())))
         .collect(Collectors.toList());
+  }
 
-    if (extUsers.isEmpty()) {
+  public long updateUserPermissions(Map<String, UserPermission> permissionsById) {
+    if (permissionsById.remove(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME) != null) {
+      permissionsRepository.put(permissionsResolver.resolveUnrestrictedUser());
+      log.info("Synced anonymous user role.");
+    }
+
+    Map<String, UserPermission> serviceAccounts = getServiceAccountsAsMap();
+    // Service account permissions are already fetched from Front50
+    Map<String, UserPermission> resolved = new HashMap<>(serviceAccounts);
+
+    // Non service account users whose permissions need to be resolved from the role provider
+    List<ExternalUser> extUsers = permissionToUsers(Maps.difference(permissionsById,
+        serviceAccounts).entriesOnlyOnLeft());
+
+    if (!extUsers.isEmpty()) {
+      resolved.putAll(permissionsResolver.resolve(extUsers));
+    }
+
+    if (resolved.isEmpty()) {
       log.info("Found no non-anonymous user roles to sync.");
       return 0;
     }
 
-    long count = permissionsResolver.resolve(extUsers)
+    long count = resolved
         .values()
         .stream()
         .map(permission -> permissionsRepository.put(permission))
