@@ -27,4 +27,13 @@ class TerminateInstancesDescription extends AbstractAmazonCredentialsDescription
   Collection<String> getServerGroupNames() {
     return serverGroups
   }
+
+  @Override
+  boolean requiresApplicationRestriction() {
+    if (instanceIds == null || instanceIds.isEmpty()) {
+      return false
+    }
+
+    return true
+  }
 }
