@@ -365,8 +365,6 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
         String clusterKey = Keys.getClusterV2Key(name.getCluster(), name.getApp(), account.getName());
         String serverGroupKey = Keys.getServerGroupV2Key(asgName, account.getName(), region.getName());
 
-        cache.evictDeletedItems(SERVER_GROUPS.ns, Stream.of(serverGroupKey).collect(Collectors.toList()));
-
         CacheData applicationCache = cache.get(APPLICATIONS.ns, appNameKey);
         CacheData clusterCache = cache.get(CLUSTERS.ns, clusterKey);
 
@@ -396,6 +394,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
               writeToCache(new DefaultCacheResult(cacheResults), false, JOB_TYPES);
             }
         }
+        cache.evictDeletedItems(SERVER_GROUPS.ns, Stream.of(serverGroupKey).collect(Collectors.toList()));
         jobs.remove(job.getId());
         log.info("Evicting job: {}, {} in {}", asgName, job.getId(), getAgentType());
     }
