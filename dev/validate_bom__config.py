@@ -1480,9 +1480,9 @@ class MonitoringConfigurator(Configurator):
   def add_files_to_upload(self, options, file_set):
     if options.monitoring_filter_dir:
       logging.info('Taring %s', options.monitoring_filter_dir)
-      os.system('tar cf monitoring_filter.tz -C %s .'
+      os.system('tar cf monitoring_filters.tar -C %s .'
                 % options.monitoring_filter_dir)
-      file_set.add('monitoring_filter.tz')
+      file_set.add('monitoring_filters.tar')
 
   def add_config(self, options, script):
     """Implements interface."""
@@ -1501,9 +1501,12 @@ class MonitoringConfigurator(Configurator):
                     ' --push-gateway {gateway}'
                     .format(gateway=options.monitoring_prometheus_gateway))
     if options.monitoring_filter_dir:
-      script.append('sudo mkdir -p /opt/spinnaker-monitoring/filters')
-      script.append('cat monitoring_filter.tz'
-                    ' | (cd /opt/spinnaker-monitoring/filters; sudo tar xf -)')
+      # Unpack the tar file into halyard's config directory.
+      script.extend([
+          'mkdir -p ~/.hal/default/profiles/monitoring-daemon/filters',
+          'tar xf monitoring_filters.tar'
+             ' --directory ~/.hal/default/profiles/monitoring-daemon/filters'
+      ])
 
 
 class NotificationConfigurator(Configurator):
