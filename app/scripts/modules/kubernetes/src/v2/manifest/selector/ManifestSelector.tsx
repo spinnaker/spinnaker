@@ -17,7 +17,6 @@ import {
   AccountService,
   noop,
   ScopeClusterSelector,
-  TextInput,
 } from '@spinnaker/core';
 
 import { IManifestSelector, SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
@@ -38,7 +37,6 @@ export interface IManifestSelectorState {
   kinds: string[];
   resources: string[];
   loading: boolean;
-  nameInputType: 'select' | 'text';
 }
 
 interface ISelectorHandler {
@@ -116,7 +114,6 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       kinds: [],
       resources: [],
       loading: false,
-      nameInputType: 'select',
     };
     this.handlers = [new StaticManifestSelectorHandler(this), new DynamicManifestSelectorHandler(this)];
   }
@@ -136,15 +133,10 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       .switchMap(({ kind, namespace, account }) => Observable.fromPromise(this.search(kind, namespace, account)))
       .takeUntil(this.destroy$)
       .subscribe(resources => {
-        const { manifestName } = this.state.selector;
-        if (manifestName == null) {
+        if (this.state.selector.manifestName == null) {
           this.handleNameChange('');
         }
-        this.setStateAndUpdateStage({
-          loading: false,
-          resources: resources,
-          nameInputType: manifestName.includes('${') ? 'text' : 'select',
-        });
+        this.setStateAndUpdateStage({ loading: false, resources: resources });
       });
   };
 
@@ -257,10 +249,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   private modeDelegate = (): ISelectorHandler =>
     this.handlers.find(handler => handler.handles(this.state.selector.mode || SelectorMode.Static));
 
-  private toggleNameInputType = (type: 'select' | 'text') => {
-    this.setStateAndUpdateStage({ nameInputType: type });
-    this.handleNameChange('');
-  };
+  private promptTextCreator = (text: string) => `Use custom expression: ${text}`;
 
   public render() {
     const { TargetSelect } = NgReact;
@@ -295,6 +284,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
             value={{ value: selector.location, label: selector.location }}
             options={namespaces.map(ns => ({ value: ns, label: ns }))}
             onChange={this.handleNamespaceChange}
+            promptTextCreator={this.promptTextCreator}
           />
         </StageConfigField>
         <StageConfigField label="Kind">
@@ -303,6 +293,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
             value={{ value: kind, label: kind }}
             options={kinds.map(k => ({ value: k, label: k }))}
             onChange={(option: Option<string>) => this.handleKindChange(option && option.value)}
+            promptTextCreator={this.promptTextCreator}
           />
         </StageConfigField>
         {modes.length > 1 && (
@@ -334,36 +325,14 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
         {modes.includes(SelectorMode.Static) &&
           mode === SelectorMode.Static && (
             <StageConfigField label="Name">
-              {this.state.nameInputType === 'select' && (
-                <>
-                  <Creatable
-                    isLoading={loading}
-                    clearable={false}
-                    value={{ value: name, label: name }}
-                    options={resourceNames.map(r => ({ value: r, label: r }))}
-                    onChange={(option: Option) => this.handleNameChange(option ? (option.value as string) : null)}
-                  />
-                  <button className="link pull-right" onClick={() => this.toggleNameInputType('text')}>
-                    Toggle for text input
-                  </button>
-                </>
-              )}
-              {this.state.nameInputType === 'text' && (
-                <>
-                  <TextInput
-                    field={{
-                      name: 'name-input',
-                      onBlur: noop,
-                      onChange: (e: any) => this.handleNameChange(e.target.value),
-                      value: name,
-                    }}
-                    validation={{}}
-                  />
-                  <button className="link pull-right" onClick={() => this.toggleNameInputType('select')}>
-                    Toggle for list of existing names
-                  </button>
-                </>
-              )}
+              <Creatable
+                isLoading={loading}
+                clearable={false}
+                value={{ value: name, label: name }}
+                options={resourceNames.map(r => ({ value: r, label: r }))}
+                onChange={(option: Option) => this.handleNameChange(option ? (option.value as string) : '')}
+                promptTextCreator={this.promptTextCreator}
+              />
             </StageConfigField>
           )}
         {modes.includes(SelectorMode.Dynamic) &&

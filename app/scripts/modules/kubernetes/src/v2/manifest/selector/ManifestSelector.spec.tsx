@@ -4,7 +4,7 @@ import { Creatable, Option } from 'react-select';
 import { $q } from 'ngimport';
 import Spy = jasmine.Spy;
 
-import { AccountService, noop, AccountSelectField, ScopeClusterSelector, TextInput } from 'core';
+import { AccountService, noop, AccountSelectField, ScopeClusterSelector } from 'core';
 
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
@@ -59,22 +59,6 @@ describe('<ManifestSelector />', () => {
         .find(Creatable)
         .first();
       expect((name.props().value as Option).value).toEqual('my-config-map');
-    });
-
-    it('renders name from input props when name is expression', () => {
-      const wrapper = component({
-        manifestName: 'deployment ${parameters.deployment}',
-        account: 'my-account',
-        location: 'default',
-      });
-
-      wrapper.setState({ nameInputType: 'text' });
-
-      const name = wrapper
-        .find({ label: 'Name' })
-        .find(TextInput)
-        .first();
-      expect(name.props().field.value).toEqual('${parameters.deployment}');
     });
 
     describe('cluster dropdown', () => {
