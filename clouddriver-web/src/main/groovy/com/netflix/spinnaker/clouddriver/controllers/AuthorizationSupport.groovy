@@ -17,7 +17,10 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
@@ -32,6 +35,9 @@ class AuthorizationSupport {
 
   @Autowired
   FiatPermissionEvaluator permissionEvaluator
+
+  @Autowired
+  AccountCredentialsProvider accountCredentialsProvider
 
   /**
    * Performs READ authorization checks on returned Maps that are keyed by account name.
@@ -117,5 +123,34 @@ class AuthorizationSupport {
       return false
     }
     return true
+  }
+
+  /**
+   * Verify that the current user has access to the application/account (as appropriate) for each tagged entity.
+   */
+  boolean authorizeEntityTags(List<EntityTags> entityTags) {
+    if (!entityTags) {
+      return false
+    }
+
+    Map<String, String> accountNameById = accountCredentialsProvider.all.collectEntries { AccountCredentials credentials ->
+      [credentials.accountId?.toString(), credentials.name]
+    }
+
+    def auth = SecurityContextHolder.context.authentication;
+    return entityTags.every {
+      boolean hasPermission = true
+
+      if (it.entityRef.application) {
+        hasPermission = hasPermission && permissionEvaluator.hasPermission(auth, it.entityRef.application, 'APPLICATION', 'READ')
+      }
+
+      String accountName = accountNameById[it.entityRef.accountId]
+      if (accountName) {
+        hasPermission = hasPermission && permissionEvaluator.hasPermission(auth, accountName, 'ACCOUNT', 'READ')
+      }
+
+      return hasPermission
+    }
   }
 }
