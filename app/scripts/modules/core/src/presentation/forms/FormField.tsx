@@ -4,17 +4,17 @@ import { Subject } from 'rxjs';
 import { noop } from 'core/utils';
 
 import { createFieldValidator } from './FormikFormField';
-import { renderContent } from './renderContent';
-import { StandardFieldLayout } from '../layouts';
-import { Validator } from '../Validation';
-import { WatchValue } from '../../WatchValue';
+import { renderContent } from './fields/renderContent';
+import { StandardFieldLayout } from './layouts/index';
+import { Validator } from './Validation';
+import { WatchValue } from '../WatchValue';
 import {
   ICommonFormFieldProps,
   IControlledInputProps,
   IFieldLayoutPropsWithoutInput,
   IFieldValidationStatus,
   IValidationProps,
-} from '../interface';
+} from './interface';
 
 export interface IFormFieldValidationProps {
   validate?: Validator | Validator[];

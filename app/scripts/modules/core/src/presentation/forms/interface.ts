@@ -25,15 +25,13 @@ export interface IControlledInputProps {
   name: FieldProps['field']['name'];
 }
 
-export type IValidatorCallback = (validator: Validator) => void;
-
 /** These props are used by Input components, such as TextInput */
 export interface IValidationProps {
   touched?: boolean;
   validationMessage?: React.ReactNode;
   validationStatus?: IFieldValidationStatus;
-  addValidator?: IValidatorCallback;
-  removeValidator?: IValidatorCallback;
+  addValidator?: (validator: Validator) => void;
+  removeValidator?: (validator: Validator) => void;
 }
 
 /** These props are used by Input components, such as TextInput */

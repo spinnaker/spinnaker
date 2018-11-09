@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { ValidationMessage } from 'core/validation';
 
-import { FormikFormField, IFormikFieldProps } from '../fields';
+import { FormikFormField, IFormikFieldProps } from '../FormikFormField';
 import { ExpressionError, ExpressionInput, ExpressionPreview, ISpelError } from '../inputs';
 import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput, IFormInputProps } from '../interface';
 

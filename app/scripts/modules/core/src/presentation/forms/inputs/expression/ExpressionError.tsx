@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import { ISpelError } from './ExpressionInput';
+
 import { ValidationMessage } from 'core/validation';
+
+import { ISpelError } from './evaluateExpression';
 
 export interface IExpressionErrorProps {
   spelError: ISpelError;

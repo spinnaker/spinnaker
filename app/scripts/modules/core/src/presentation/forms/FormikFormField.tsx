@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { isString, isUndefined } from 'lodash';
 import { Field, FastField, FieldProps, getIn } from 'formik';
-import { WatchValue } from '../../WatchValue';
 
-import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput, IValidationProps } from '../interface';
-import { StandardFieldLayout } from '../layouts';
-import { composeValidators, Validator, Validation } from '../Validation';
-import { renderContent } from './renderContent';
+import { WatchValue } from '../WatchValue';
+import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput, IValidationProps } from './interface';
+import { StandardFieldLayout } from './layouts/index';
+import { composeValidators, Validator, Validation } from './Validation';
+import { renderContent } from './fields/renderContent';
 
 export interface IFormikFieldProps<T> {
   /**
