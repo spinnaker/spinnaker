@@ -17,6 +17,7 @@ import {
   AccountService,
   noop,
   ScopeClusterSelector,
+  TextInput,
 } from '@spinnaker/core';
 
 import { IManifestSelector, SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
@@ -37,6 +38,7 @@ export interface IManifestSelectorState {
   kinds: string[];
   resources: string[];
   loading: boolean;
+  nameInputType: 'select' | 'text';
 }
 
 interface ISelectorHandler {
@@ -114,6 +116,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       kinds: [],
       resources: [],
       loading: false,
+      nameInputType: 'select',
     };
     this.handlers = [new StaticManifestSelectorHandler(this), new DynamicManifestSelectorHandler(this)];
   }
@@ -133,10 +136,15 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       .switchMap(({ kind, namespace, account }) => Observable.fromPromise(this.search(kind, namespace, account)))
       .takeUntil(this.destroy$)
       .subscribe(resources => {
-        if (!(resources || []).some(resource => resource === this.state.selector.manifestName)) {
+        const { manifestName } = this.state.selector;
+        if (manifestName == null) {
           this.handleNameChange('');
         }
-        this.setStateAndUpdateStage({ loading: false, resources: resources });
+        this.setStateAndUpdateStage({
+          loading: false,
+          resources: resources,
+          nameInputType: manifestName.includes('${') ? 'text' : 'select',
+        });
       });
   };
 
@@ -249,6 +257,11 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   private modeDelegate = (): ISelectorHandler =>
     this.handlers.find(handler => handler.handles(this.state.selector.mode || SelectorMode.Static));
 
+  private toggleNameInputType = (type: 'select' | 'text') => {
+    this.setStateAndUpdateStage({ nameInputType: type });
+    this.handleNameChange('');
+  };
+
   public render() {
     const { TargetSelect } = NgReact;
     const mode = this.state.selector.mode || SelectorMode.Static;
@@ -321,13 +334,36 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
         {modes.includes(SelectorMode.Static) &&
           mode === SelectorMode.Static && (
             <StageConfigField label="Name">
-              <Creatable
-                isLoading={loading}
-                clearable={false}
-                value={{ value: name, label: name }}
-                options={resourceNames.map(r => ({ value: r, label: r }))}
-                onChange={(option: Option) => this.handleNameChange(option ? (option.value as string) : null)}
-              />
+              {this.state.nameInputType === 'select' && (
+                <>
+                  <Creatable
+                    isLoading={loading}
+                    clearable={false}
+                    value={{ value: name, label: name }}
+                    options={resourceNames.map(r => ({ value: r, label: r }))}
+                    onChange={(option: Option) => this.handleNameChange(option ? (option.value as string) : null)}
+                  />
+                  <button className="link pull-right" onClick={() => this.toggleNameInputType('text')}>
+                    Toggle for text input
+                  </button>
+                </>
+              )}
+              {this.state.nameInputType === 'text' && (
+                <>
+                  <TextInput
+                    field={{
+                      name: 'name-input',
+                      onBlur: noop,
+                      onChange: (e: any) => this.handleNameChange(e.target.value),
+                      value: name,
+                    }}
+                    validation={{}}
+                  />
+                  <button className="link pull-right" onClick={() => this.toggleNameInputType('select')}>
+                    Toggle for list of existing names
+                  </button>
+                </>
+              )}
             </StageConfigField>
           )}
         {modes.includes(SelectorMode.Dynamic) &&
