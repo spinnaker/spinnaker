@@ -17,15 +17,12 @@
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,19 +30,12 @@ import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("artifacts.s3.enabled")
-@EnableScheduling
+@EnableConfigurationProperties(S3ArtifactProviderProperties.class)
+@RequiredArgsConstructor
 @Slf4j
 public class S3ArtifactConfiguration {
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  @ConfigurationProperties("artifacts.s3")
-  S3ArtifactProviderProperties s3ArtifactProviderProperties() { return new S3ArtifactProviderProperties(); }
-
-  @Autowired
-  S3ArtifactProviderProperties s3ArtifactProviderProperties;
-
-  @Autowired
-  ArtifactCredentialsRepository artifactCredentialsRepository;
+  private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
+  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
   List<? extends S3ArtifactCredentials> s3ArtifactCredentials() {

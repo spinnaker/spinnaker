@@ -18,25 +18,19 @@
 package com.netflix.spinnaker.clouddriver.artifacts.embedded;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Configuration
-@EnableScheduling
+@RequiredArgsConstructor
 @Slf4j
 public class EmbeddedArtifactConfiguration {
-  @Autowired
-  ArtifactCredentialsRepository artifactCredentialsRepository;
+  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
   List<? extends EmbeddedArtifactAccount> embeddedArtifactAccounts() {

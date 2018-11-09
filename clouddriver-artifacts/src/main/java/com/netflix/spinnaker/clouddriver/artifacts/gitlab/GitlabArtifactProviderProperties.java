@@ -18,14 +18,14 @@ package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactProvider;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class GitlabArtifactProviderProperties extends ArtifactProvider<GitlabArtifactAccount> {
+@ConfigurationProperties("artifacts.gitlab")
+public class GitlabArtifactProviderProperties implements ArtifactProvider<GitlabArtifactAccount> {
   private boolean enabled;
   private List<GitlabArtifactAccount> accounts = new ArrayList<>();
 }

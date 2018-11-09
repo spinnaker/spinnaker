@@ -19,15 +19,12 @@ package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.List;
 import java.util.Objects;
@@ -35,21 +32,12 @@ import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("artifacts.http.enabled")
-@EnableScheduling
+@EnableConfigurationProperties(HttpArtifactProviderProperties.class)
+@RequiredArgsConstructor
 @Slf4j
 public class HttpArtifactConfiguration {
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  @ConfigurationProperties("artifacts.http")
-  HttpArtifactProviderProperties HttpArtifactProviderProperties() {
-    return new HttpArtifactProviderProperties();
-  }
-
-  @Autowired
-  HttpArtifactProviderProperties httpArtifactProviderProperties;
-
-  @Autowired
-  ArtifactCredentialsRepository artifactCredentialsRepository;
+  private final HttpArtifactProviderProperties httpArtifactProviderProperties;
+  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
   OkHttpClient httpOkHttpClient() {

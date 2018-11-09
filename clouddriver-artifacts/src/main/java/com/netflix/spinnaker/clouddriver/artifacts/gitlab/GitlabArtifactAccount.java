@@ -18,11 +18,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class GitlabArtifactAccount extends ArtifactAccount {
+public class GitlabArtifactAccount implements ArtifactAccount {
   private String name;
   private String token;
   private String tokenFile;

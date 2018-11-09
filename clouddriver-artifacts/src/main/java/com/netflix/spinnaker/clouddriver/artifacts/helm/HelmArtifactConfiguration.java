@@ -19,15 +19,12 @@ package com.netflix.spinnaker.clouddriver.artifacts.helm;
 
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.List;
 import java.util.Objects;
@@ -35,25 +32,12 @@ import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty("artifacts.helm.enabled")
-@EnableScheduling
+@EnableConfigurationProperties(HelmArtifactProviderProperties.class)
+@RequiredArgsConstructor
 @Slf4j
 public class HelmArtifactConfiguration {
-
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  @Bean
-  @ConfigurationProperties("artifacts.helm")
-  HelmArtifactProviderProperties HelmArtifactProviderProperties() {
-    return new HelmArtifactProviderProperties();
-  }
-
-  @Autowired
-  HelmArtifactProviderProperties helmArtifactProviderProperties;
-
-  @Autowired
-  ArtifactCredentialsRepository artifactCredentialsRepository;
-
-  @Autowired
-  OkHttpClient helmOkHttpClient;
+  private final HelmArtifactProviderProperties helmArtifactProviderProperties;
+  private final ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Bean
   OkHttpClient helmOkHttpClient() {
@@ -61,7 +45,7 @@ public class HelmArtifactConfiguration {
   }
 
   @Bean
-  List<? extends HelmArtifactCredentials> helmArtifactCredentials() {
+  List<? extends HelmArtifactCredentials> helmArtifactCredentials(OkHttpClient helmOkHttpClient) {
     List<HelmArtifactCredentials> result = helmArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {

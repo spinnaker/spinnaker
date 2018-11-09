@@ -20,11 +20,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class BitbucketArtifactAccount extends ArtifactAccount {
+public class BitbucketArtifactAccount implements ArtifactAccount {
   private String name;
   private String username;
   private String password;

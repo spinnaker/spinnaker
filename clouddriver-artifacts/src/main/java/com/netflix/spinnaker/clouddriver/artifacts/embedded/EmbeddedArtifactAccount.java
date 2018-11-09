@@ -19,10 +19,8 @@ package com.netflix.spinnaker.clouddriver.artifacts.embedded;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class EmbeddedArtifactAccount extends ArtifactAccount {
+public class EmbeddedArtifactAccount implements ArtifactAccount {
   private String name = "embedded-artifact";
 }

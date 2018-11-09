@@ -20,11 +20,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.github;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class GitHubArtifactAccount extends ArtifactAccount {
+public class GitHubArtifactAccount implements ArtifactAccount {
   private String name;
   /*
     One of the following are required for auth:

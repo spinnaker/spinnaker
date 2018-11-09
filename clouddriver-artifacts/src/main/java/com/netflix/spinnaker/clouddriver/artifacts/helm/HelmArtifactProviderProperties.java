@@ -19,11 +19,14 @@ package com.netflix.spinnaker.clouddriver.artifacts.helm;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactProvider;
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class HelmArtifactProviderProperties extends ArtifactProvider<HelmArtifactAccount> {
+@ConfigurationProperties("artifacts.helm")
+public class HelmArtifactProviderProperties implements ArtifactProvider<HelmArtifactAccount> {
   private boolean enabled;
   private List<HelmArtifactAccount> accounts = new ArrayList<>();
 }

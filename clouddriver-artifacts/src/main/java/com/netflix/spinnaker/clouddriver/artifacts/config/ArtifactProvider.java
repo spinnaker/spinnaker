@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import java.util.List;
 
-public abstract class ArtifactProvider<A extends ArtifactAccount> {
-  public abstract boolean isEnabled();
-  public abstract List<A> getAccounts();
+public interface ArtifactProvider<A extends ArtifactAccount> {
+  boolean isEnabled();
+  List<A> getAccounts();
 }

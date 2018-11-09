@@ -18,14 +18,14 @@ package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactProvider;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class S3ArtifactProviderProperties extends ArtifactProvider<S3ArtifactAccount> {
+@ConfigurationProperties("artifacts.s3")
+public class S3ArtifactProviderProperties implements ArtifactProvider<S3ArtifactAccount> {
   private boolean enabled;
   private List<S3ArtifactAccount> accounts = new ArrayList<>();
 }

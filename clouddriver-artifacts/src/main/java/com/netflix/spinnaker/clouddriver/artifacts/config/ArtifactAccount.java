@@ -17,6 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
-public abstract class ArtifactAccount {
-  public abstract String getName();
+public interface ArtifactAccount {
+  String getName();
 }

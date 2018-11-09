@@ -19,11 +19,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.gcs;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class GcsArtifactAccount extends ArtifactAccount {
+public class GcsArtifactAccount implements ArtifactAccount {
   private String name;
   private String jsonPath;
 }

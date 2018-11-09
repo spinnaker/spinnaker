@@ -19,12 +19,14 @@ package com.netflix.spinnaker.clouddriver.artifacts.gcs;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactProvider;
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class GcsArtifactProviderProperties extends ArtifactProvider<GcsArtifactAccount> {
+@ConfigurationProperties("artifacts.gcs")
+public class GcsArtifactProviderProperties implements ArtifactProvider<GcsArtifactAccount> {
   private boolean enabled;
   private List<GcsArtifactAccount> accounts = new ArrayList<>();
 }
