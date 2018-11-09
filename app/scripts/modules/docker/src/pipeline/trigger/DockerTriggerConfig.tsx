@@ -53,6 +53,7 @@ export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigPro
           tag={trigger.tag}
           showRegistry={true}
           onChange={this.dockerChanged}
+          showDigest={false}
         />
 
         {fiatEnabled && (

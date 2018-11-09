@@ -7,12 +7,15 @@ import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip } from '
 import { DockerImageReader, IDockerImage } from './DockerImageReader';
 import { DockerImageUtils, IDockerImageParts } from './DockerImageUtils';
 
+export type IDockerLookupType = 'tag' | 'digest';
+
 export interface IDockerImageAndTagChanges {
   account?: string;
   organization?: string;
   registry?: string;
   repository?: string;
   tag?: string;
+  digest?: string;
   imageId?: string;
 }
 
@@ -23,12 +26,14 @@ export interface IDockerImageAndTagSelectorProps {
   registry: string;
   repository: string;
   tag: string;
+  digest: string;
   account: string;
   showRegistry?: boolean;
   labelClass?: string;
   fieldClass?: string;
   onChange: (changes: IDockerImageAndTagChanges) => void;
   deferInitialization?: boolean;
+  showDigest?: boolean;
 }
 
 export interface IDockerImageAndTagSelectorState {
@@ -39,6 +44,7 @@ export interface IDockerImageAndTagSelectorState {
   organizationOptions: Array<Option<string>>;
   repositoryOptions: Array<Option<string>>;
   tagOptions: Array<Option<string>>;
+  lookupType: IDockerLookupType;
 }
 
 export class DockerImageAndTagSelector extends React.Component<
@@ -51,6 +57,7 @@ export class DockerImageAndTagSelector extends React.Component<
     organization: '',
     registry: '',
     repository: '',
+    showDigest: true,
   };
 
   private images: IDockerImage[];
@@ -62,6 +69,7 @@ export class DockerImageAndTagSelector extends React.Component<
   private organizationMap: { [key: string]: string[] };
   private repositoryMap: { [key: string]: string[] };
   private organizations: string[];
+  private cachedValues: { [key: string]: string } = {};
 
   public constructor(props: IDockerImageAndTagSelectorProps) {
     super(props);
@@ -81,6 +89,7 @@ export class DockerImageAndTagSelector extends React.Component<
       organizationOptions,
       repositoryOptions,
       tagOptions,
+      lookupType: props.digest ? 'digest' : 'tag',
     };
   }
 
@@ -191,9 +200,9 @@ export class DockerImageAndTagSelector extends React.Component<
   }
 
   private synchronizeChanges(values: IDockerImageParts, registry: string) {
-    const { organization, repository, tag } = values;
+    const { organization, repository, tag, digest } = values;
     if (this.props.onChange) {
-      const imageId = DockerImageUtils.generateImageId({ organization, repository, tag });
+      const imageId = DockerImageUtils.generateImageId({ organization, repository, tag, digest });
       const changes: IDockerImageAndTagChanges = {};
       if (tag !== this.props.tag) {
         changes.tag = tag;
@@ -209,6 +218,9 @@ export class DockerImageAndTagSelector extends React.Component<
       }
       if (repository !== this.props.repository) {
         changes.repository = repository;
+      }
+      if (digest !== this.props.digest) {
+        changes.digest = digest;
       }
       if (Object.keys(changes).length > 0) {
         this.props.onChange(changes);
@@ -235,7 +247,7 @@ export class DockerImageAndTagSelector extends React.Component<
 
     const { tag, tags } = this.getTags(props.tag, this.repositoryMap, repository);
 
-    this.synchronizeChanges({ organization, repository, tag }, registry);
+    this.synchronizeChanges({ organization, repository, tag, digest: this.props.digest }, registry);
 
     this.setState({
       accountOptions: this.newAccounts.sort().map(a => ({ label: a, value: a })),
@@ -318,24 +330,40 @@ export class DockerImageAndTagSelector extends React.Component<
 
   private valueChanged(name: string, value: string) {
     const changes = { [name]: value };
-    if (['organization', 'repository', 'tag'].some(n => n === name)) {
+    if (['organization', 'repository', 'tag', 'digest'].some(n => n === name)) {
       // values are parts of the image
-      const { organization, repository, tag } = this.props;
-      const imageParts = { ...{ organization, repository, tag }, ...changes };
+      const { organization, repository, tag, digest } = this.props;
+      const imageParts = { ...{ organization, repository, tag, digest }, ...changes };
       const imageId = DockerImageUtils.generateImageId(imageParts);
       changes.imageId = imageId;
     }
     this.props.onChange && this.props.onChange(changes);
   }
 
+  private lookupTypeChanged = (o: Option<IDockerLookupType>) => {
+    const newType = o.value;
+    const oldType = this.state.lookupType;
+    const oldValue = this.props[oldType];
+    const cachedValue = this.cachedValues[newType];
+
+    this.valueChanged(oldType, undefined);
+    if (this.cachedValues[newType]) {
+      this.valueChanged(newType, cachedValue);
+    }
+    this.setState({ lookupType: newType });
+    this.cachedValues[oldType] = oldValue;
+  };
+
   public render() {
     const {
       account,
+      digest,
       fieldClass,
       imageId,
       labelClass,
       organization,
       repository,
+      showDigest,
       showRegistry,
       specifyTagByRegex,
       tag,
@@ -344,6 +372,7 @@ export class DockerImageAndTagSelector extends React.Component<
       accountOptions,
       imagesLoading,
       imagesRefreshing,
+      lookupType,
       organizationOptions,
       repositoryOptions,
       tagOptions,
@@ -436,53 +465,88 @@ export class DockerImageAndTagSelector extends React.Component<
       </div>
     );
 
-    const Tag = specifyTagByRegex ? (
-      <div className="form-group">
-        <div className={`sm-label-right ${labelClass}`}>
-          Tag <HelpField id="pipeline.config.docker.trigger.tag" />
+    const Tag =
+      lookupType === 'tag' ? (
+        specifyTagByRegex ? (
+          <div className="form-group">
+            <div className={`sm-label-right ${labelClass}`}>
+              Tag <HelpField id="pipeline.config.docker.trigger.tag" />
+            </div>
+            <div className={fieldClass}>
+              <input
+                type="text"
+                className="form-control input-sm"
+                value={tag || ''}
+                disabled={imagesRefreshing || !repository}
+                onChange={e => this.valueChanged('tag', e.target.value)}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="form-group">
+            <div className={`sm-label-right ${labelClass}`}>Tag</div>
+            <div className={fieldClass}>
+              {tag && tag.includes('${') ? (
+                <input
+                  className="form-control input-sm"
+                  disabled={imagesRefreshing}
+                  value={tag || ''}
+                  onChange={e => this.valueChanged('tag', e.target.value)}
+                  required={true}
+                />
+              ) : (
+                <Select
+                  value={tag || ''}
+                  disabled={imagesRefreshing || !repository}
+                  isLoading={imagesLoading}
+                  onChange={(o: Option<string>) => this.valueChanged('tag', o ? o.value : undefined)}
+                  options={tagOptions}
+                  placeholder="No tag"
+                  required={true}
+                />
+              )}
+            </div>
+          </div>
+        )
+      ) : null;
+
+    const Digest =
+      lookupType === 'digest' ? (
+        <div className="form-group">
+          <div className={`sm-label-right ${labelClass}`}>Digest</div>
+          <div className={fieldClass}>
+            <input
+              className="form-control input-sm"
+              placeholder="sha256:abc123"
+              value={digest || ''}
+              onChange={e => this.valueChanged('digest', e.target.value)}
+              required={true}
+            />
+          </div>
         </div>
-        <div className={fieldClass}>
-          <input
-            type="text"
-            className="form-control input-sm"
-            value={tag || ''}
-            disabled={imagesRefreshing || !repository}
-            onChange={e => this.valueChanged('tag', e.target.value)}
+      ) : null;
+
+    const LookupTypeSelector = showDigest ? (
+      <div className="form-group">
+        <div className={`sm-label-right ${labelClass}`}>Type</div>
+        <div className="col-md-3">
+          <Select
+            clearable={false}
+            value={lookupType}
+            options={[{ value: 'digest', label: 'Digest' }, { value: 'tag', label: 'Tag' }]}
+            onChange={this.lookupTypeChanged}
           />
         </div>
       </div>
-    ) : (
-      <div className="form-group">
-        <div className={`sm-label-right ${labelClass}`}>Tag</div>
-        <div className={fieldClass}>
-          {tag && tag.includes('${') ? (
-            <input
-              className="form-control input-sm"
-              disabled={imagesRefreshing}
-              value={tag || ''}
-              onChange={e => this.valueChanged('tag', e.target.value)}
-              required={true}
-            />
-          ) : (
-            <Select
-              value={tag || ''}
-              disabled={imagesRefreshing || !repository}
-              isLoading={imagesLoading}
-              onChange={(o: Option<string>) => this.valueChanged('tag', o ? o.value : undefined)}
-              options={tagOptions}
-              placeholder="No tag"
-              required={true}
-            />
-          )}
-        </div>
-      </div>
-    );
+    ) : null;
 
     return (
       <>
         {Registry}
         {Organization}
         {Image}
+        {LookupTypeSelector}
+        {Digest}
         {Tag}
       </>
     );
