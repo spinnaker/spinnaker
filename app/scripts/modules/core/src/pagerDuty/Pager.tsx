@@ -342,7 +342,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       const re = new RegExp(match, 'gi');
       return DOMPurify.sanitize(text.replace(re, '<span class="highlighted">$&</span>'));
     }
-    return text;
+    return DOMPurify.sanitize(text);
   }
 
   private onCallRenderer = (data: TableCellProps): React.ReactNode => {
