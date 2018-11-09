@@ -1,8 +1,8 @@
+local sponnet = import '../pipeline.libsonnet';
 local deployment = import 'deployment.json';
 local kubeutils = import 'kubeutils.libsonnet';
-local sponnet = import 'pipeline.libsonnet';
 
-local canary_deployment = kubeutils.canary(deployment);
+local canaryDeployment = kubeutils.canary(deployment);
 local account = 'staging-demo';
 local app = 'cluster';
 local moniker = sponnet.moniker(app, 'some-cluster')
@@ -36,94 +36,112 @@ local mySlug = 'your-project';
 local mySource = 'gitlab';
 
 
-local docker_artifact = sponnet.artifacts
-                        .dockerImage()
-                        .withName(myDockerArtifactName)
-                        .withReference(myDockerRegistry + '/' + myDockerRepository);
+local dockerArtifact = sponnet.artifacts
+                       .dockerImage()
+                       .withName(myDockerArtifactName)
+                       .withReference(myDockerRegistry + '/' + myDockerRepository);
 
-local expected_docker = sponnet.expectedArtifact(myDockerArtifactName)
-                        .withMatchArtifact(docker_artifact)
-                        .withDefaultArtifact(docker_artifact)
-                        .withUsePriorArtifact(false)
-                        .withUseDefaultArtifact(true);
+local expectedDocker = sponnet.expectedArtifact(myDockerArtifactName)
+                       .withDefaultArtifact(dockerArtifact)
+                       .withMatchArtifact(dockerArtifact)
+                       .withUseDefaultArtifact(true)
+                       .withUsePriorArtifact(false);
 
-local gitlab_artifact = sponnet.artifacts
-                        .gitlabFile()
-                        .withName(myManifestArtifactName)
-                        .withVersion(myManifestArtifactVersion)
-                        .withReference(myManifestArtifactReference)
-                        .withLocation(myManifestArtifactLocation);
+local gitlabArtifact = sponnet.artifacts
+                       .gitlabFile()
+                       .withLocation(myManifestArtifactLocation)
+                       .withName(myManifestArtifactName)
+                       .withReference(myManifestArtifactReference)
+                       .withVersion(myManifestArtifactVersion);
 
-local expected_manifest = sponnet.expectedArtifact(myManifestArtifactName)
-                          .withMatchArtifact(gitlab_artifact)
-                          .withDefaultArtifact(gitlab_artifact)
-                          .withUsePriorArtifact(false)
-                          .withUseDefaultArtifact(true);
+local expectedManifest = sponnet.expectedArtifact(myManifestArtifactName)
+                         .withDefaultArtifact(gitlabArtifact)
+                         .withMatchArtifact(gitlabArtifact)
+                         .withUsePriorArtifact(false)
+                         .withUseDefaultArtifact(true);
 
-local docker_trigger = sponnet.triggers
-                       .docker('myDockerTrigger')
-                       // If ExpectedArtifact Required, add below.
-                       // .withExpectedArtifacts([expected_docker])
-                       .withAccount(myDockerAccount)
-                       .withOrganization(myDockerOrganization)
-                       .withRegistry(myDockerRegistry)
-                       .withRepository(myDockerRepository)
-                       .withTag(myDockerTag);
+local dockerTrigger = sponnet.triggers
+                      .docker('myDockerTrigger')
+                      // If ExpectedArtifact Required, add below.
+                      // .withExpectedArtifacts([expectedDocker])
+                      .withAccount(myDockerAccount)
+                      .withOrganization(myDockerOrganization)
+                      .withRegistry(myDockerRegistry)
+                      .withRepository(myDockerRepository)
+                      .withTag(myDockerTag);
 
-local git_trigger = sponnet.triggers
-                    .git('myGitTrigger')
-                    // If ExpectedArtifact Required, add below.
-                    // .withExpectedArtifacts([expected_manifest])
-                    .withBranch(myBranch)
-                    .withProject(myProject)
-                    .withSlug(mySlug)
-                    .withSource(mySource);
+local gitTrigger = sponnet.triggers
+                   .git('myGitTrigger')
+                   // If ExpectedArtifact Required, add below.
+                   // .withExpectedArtifacts([expectedManifest])
+                   .withBranch(myBranch)
+                   .withProject(myProject)
+                   .withSlug(mySlug)
+                   .withSource(mySource);
 
-local slack = sponnet.notifications
-              .withAddress(notificationAddress)
-              .withType(notificationType)
-              .withWhen('starting')
-              .withWhen('failed', 'testf: one two three, $variable, %value, "quoted": https://example.com')
-              .withWhen('complete', 'test');
+local emailPipelineNotification = sponnet.notification
+                                  .withAddress('someone@example.com')
+                                  .withCC('test@example.com')
+                                  .withLevel('pipeline')
+                                  .withType('email')
+                                  .withWhen('starting');
+
+local slackNotification = sponnet.notification
+                          .withAddress(notificationAddress)
+                          .withType(notificationType)
+                          .withWhen('starting')
+                          .withWhen('failed', 'testf: one two three, $variable, %value, "quoted": https://example.com')
+                          .withWhen('complete', 'test');
 
 local wait = sponnet.stages
              .wait('Wait')
+             .withSkipWaitText('Custom wait message')
              .withWaitTime(30);
 
-local manifest_artifact = sponnet.stages
-                          .deploy_manifest('Deploy a manifest with artifact')
-                          .withManifestArtifact(expected_manifest)
-                          .withManifestArtifactAccount(myManifestArtifactAccount)
-                          .withAccount(account)
-                          .withMoniker(moniker)
-                          .withOverrideTimeout('300000')
-                          .withRequisiteStages(wait);
+local deployManifestArtifact = sponnet.stages
+                               .deployManifest('Deploy a manifest with artifact')
+                               .withAccount(account)
+                               .withManifestArtifact(expectedManifest)
+                               .withManifestArtifactAccount(myManifestArtifactAccount)
+                               .withMoniker(moniker)
+                               .withOverrideTimeout('300000')
+                               .withRequisiteStages(wait);
 
-local manifest_baseline = sponnet.stages
-                          .deploy_manifest('Deploy a manifest')
-                          .withManifests(deployment)
-                          .withAccount(account)
-                          .withMoniker(moniker)
-                          .withRequisiteStages(wait);
+local deployManifestTextBaseline = sponnet.stages
+                                   .deployManifest('Deploy a manifest')
+                                   .withAccount(account)
+                                   .withManifests(deployment)
+                                   .withMoniker(moniker)
+                                   .withRequisiteStages(wait);
 
-local manifest_canary = sponnet.stages
-                        .deploy_manifest('Deploy a canary manifest')
-                        .withManifests(canary_deployment)
-                        .withAccount(account)
-                        .withMoniker(moniker)
-                        .withRequisiteStages(wait);
+local deployManifestTextCanary = sponnet.stages
+                                 .deployManifest('Deploy a canary manifest')
+                                 .withManifests(canaryDeployment)
+                                 .withAccount(account)
+                                 .withMoniker(moniker)
+                                 .withRequisiteStages(wait);
 
-local jenkins_job = sponnet.stages
-                    .jenkins('Run Jenkins Job')
-                    .withMaster(myJenkinsMaster)
-                    .withJob(myJenkinsJob)
-                    .withOverrideTimeout('300000')
-                    .withRequisiteStages(wait);
+local findArtifactsFromResource = sponnet.stages
+                                  .findArtifactsFromResource('Find nginx-deployment')
+                                  .withAccount(account)
+                                  .withLocation('default')
+                                  .withManifestName('Deployment nginx-deployment')
+                                  .withRequisiteStages([deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact]);
+
+local jenkinsJob = sponnet.stages
+                   .jenkins('Run Jenkins Job')
+                   .withJob(myJenkinsJob)
+                   .withMarkUnstableAsSuccessful('false')
+                   .withMaster(myJenkinsMaster)
+                   .withNotifications(slackNotification.withLevel('stage'))
+                   .withOverrideTimeout('300000')
+                   .withRequisiteStages(findArtifactsFromResource)
+                   .withWaitForCompletion('true');
 
 sponnet.pipeline()
 .withApplication(app)
-.withExpectedArtifacts([expected_docker, expected_manifest])
+.withExpectedArtifacts([expectedDocker, expectedManifest])
 .withName('Demo pipeline')
-.withNotifications(slack)
-.withTriggers([docker_trigger, git_trigger])
-.withStages([wait, manifest_baseline, manifest_canary, manifest_artifact, jenkins_job])
+.withNotifications([emailPipelineNotification, slackNotification.withLevel('pipeline')])
+.withTriggers([dockerTrigger, gitTrigger])
+.withStages([wait, deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact, findArtifactsFromResource, jenkinsJob])
