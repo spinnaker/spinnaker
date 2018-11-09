@@ -57,7 +57,7 @@ SPINNAKER_SERVICES = [
 def decode_json(data):
   try:
     return json.JSONDecoder().decode(data)
-  except TypeError as err:
+  except (ValueError, TypeError) as err:
     logging.error('Error decoding JSON: %s\n%s\n',
                   err.message, data)
     raise
