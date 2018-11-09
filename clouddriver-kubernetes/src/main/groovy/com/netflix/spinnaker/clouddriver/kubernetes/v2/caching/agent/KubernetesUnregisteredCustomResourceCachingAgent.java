@@ -76,7 +76,10 @@ public class KubernetesUnregisteredCustomResourceCachingAgent extends Kubernetes
 
   public Collection<AgentDataType> getProvidedDataTypes() {
     return Collections.unmodifiableSet(
-        primaryKinds().stream().map(k -> AUTHORITATIVE.forType(k.toString())).collect(Collectors.toSet())
+        primaryKinds().stream()
+            .filter(credentials::isValidKind)
+            .map(k -> AUTHORITATIVE.forType(k.toString()))
+            .collect(Collectors.toSet())
     );
   }
 
