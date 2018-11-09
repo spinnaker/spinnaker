@@ -56,6 +56,7 @@ module.exports = angular
         securityGroups: [],
         imageId: defaults.imageId,
         migrationPolicy: { type: 'systemDefault' },
+        digest: '',
         organization: '',
         tag: '',
         registry: '',
@@ -124,6 +125,7 @@ module.exports = angular
         },
         organization: '',
         tag: '',
+        digest: '',
         registry: '',
         repository: '',
       };

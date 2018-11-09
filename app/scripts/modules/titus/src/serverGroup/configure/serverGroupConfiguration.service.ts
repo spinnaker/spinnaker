@@ -47,7 +47,8 @@ export interface ITitusServerGroupCommand extends IServerGroupCommand {
   imageId: string;
   organization: string;
   repository: string;
-  tag: string;
+  tag?: string;
+  digest?: string;
   image: string;
   inService: boolean;
   resources: {

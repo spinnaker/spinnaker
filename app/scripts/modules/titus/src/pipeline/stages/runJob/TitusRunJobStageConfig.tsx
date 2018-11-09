@@ -184,6 +184,7 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
         <DockerImageAndTagSelector
           specifyTagByRegex={false}
           account={stage.credentials}
+          digest={stage.digest}
           imageId={stage.cluster.imageId}
           organization={stage.organization}
           registry={stage.registry}

@@ -47,7 +47,8 @@ class ServerGroupBasicSettingsImpl extends React.Component<
 
     const { values, setFieldValue } = this.props.formik;
     if (values.imageId && !values.imageId.includes('${')) {
-      const { organization, repository, tag } = DockerImageUtils.splitImageId(values.imageId);
+      const { digest, organization, repository, tag } = DockerImageUtils.splitImageId(values.imageId);
+      setFieldValue('digest', digest);
       setFieldValue('organization', organization);
       setFieldValue('repository', repository);
       setFieldValue('tag', tag);
@@ -247,6 +248,7 @@ class ServerGroupBasicSettingsImpl extends React.Component<
           <DockerImageAndTagSelector
             specifyTagByRegex={false}
             account={values.credentials}
+            digest={values.digest}
             imageId={values.imageId}
             organization={values.organization}
             registry={values.registry}
