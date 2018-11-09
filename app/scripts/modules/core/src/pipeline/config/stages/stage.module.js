@@ -3,7 +3,7 @@
 const angular = require('angular');
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { defaultsDeep } from 'lodash';
+import { defaultsDeep, extend } from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
@@ -13,6 +13,7 @@ import { EDIT_STAGE_JSON_CONTROLLER } from './core/editStageJson.controller';
 import { STAGE_NAME } from './StageName';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Registry } from 'core/registry';
+import { StageConfigWrapper } from './StageConfigWrapper';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stage', [
@@ -190,13 +191,17 @@ module.exports = angular
           applyConfigController(config, stageScope);
 
           if (config.component) {
-            const StageConfig = config.component;
             const props = {
               application: $scope.application,
               stageFieldUpdated: $scope.stageFieldUpdated,
+              updateStageField: changes => {
+                extend($scope.stage, changes);
+                $scope.stageFieldUpdated();
+              },
               stage: $scope.stage,
+              component: config.component,
             };
-            ReactDOM.render(React.createElement(StageConfig, props), stageDetailsNode);
+            ReactDOM.render(React.createElement(StageConfigWrapper, props), stageDetailsNode);
           } else {
             const template = $templateCache.get(config.templateUrl);
             const templateBody = $compile(template)(stageScope);

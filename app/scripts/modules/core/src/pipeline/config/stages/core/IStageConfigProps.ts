@@ -5,4 +5,5 @@ export interface IStageConfigProps {
   application: Application;
   stage: IStage;
   stageFieldUpdated: () => void;
+  updateStageField: (changes: { [key: string]: any }) => void;
 }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { map, set } from 'lodash';
+import { map } from 'lodash';
 
 import { IStageConfigProps, StageConfigField } from 'core/pipeline';
 import { MapEditor } from 'core/forms';
@@ -14,14 +14,8 @@ export class EvaluateVariablesStageConfig extends React.Component<IStageConfigPr
     return map(variables, (value, key): IEvaluatedVariable => ({ key, value }));
   }
 
-  private stageFieldChanged = (fieldIndex: string, value: { [key: string]: string }) => {
-    set(this.props.stage, fieldIndex, this.expand(value));
-    this.props.stageFieldUpdated();
-    this.forceUpdate();
-  };
-
   private mapChanged = (key: string, values: { [key: string]: string }) => {
-    this.stageFieldChanged(key, values);
+    this.props.updateStageField({ [key]: this.expand(values) });
   };
 
   public render() {
