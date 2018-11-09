@@ -20,4 +20,9 @@ class DeleteTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
 
   String region
   String scalingPolicyID
+
+  @Override
+  boolean requiresApplicationRestriction() {
+    return false
+  }
 }
