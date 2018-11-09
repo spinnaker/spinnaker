@@ -3,8 +3,6 @@ import * as React from 'react';
 import { orEmptyString, validationClassName } from './utils';
 import { IFormInputProps } from '../interface';
 
-import './NumberInput.css';
-
 interface ICheckBoxInputProps extends IFormInputProps, React.InputHTMLAttributes<any> {
   inputClassName?: string;
   text?: React.ReactNode;

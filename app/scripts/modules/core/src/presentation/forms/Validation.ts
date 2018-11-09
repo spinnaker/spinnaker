@@ -34,16 +34,21 @@ export class Validation {
   };
 }
 
-export const composeValidators = (...validators: Validator[]): Validator => {
+export const composeValidators = (validators: Validator[]): Validator => {
+  const validatorList = validators.filter(x => !!x);
+  if (!validatorList.length) {
+    return null;
+  } else if (validatorList.length === 1) {
+    return validatorList[0];
+  }
+
   const composedValidators: Validator = (value: any, label?: string) => {
-    const validatorResults: ValidatorResult[] = validators.map(validator => Promise.resolve(validator(value, label)));
+    const results: ValidatorResult[] = validatorList.map(validator => Promise.resolve(validator(value, label)));
 
     // Return the first error returned from a validator
     // Or return the first rejected promise (thrown/rejected by an async validator)
-    return Promise.all(validatorResults)
-      .then((errors: string[]) => {
-        return errors.find(error => !!error);
-      })
+    return Promise.all(results)
+      .then((errors: string[]) => errors.find(error => !!error))
       .catch((error: string) => error);
   };
 

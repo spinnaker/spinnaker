@@ -23,44 +23,43 @@ class AdvancedSettingsImpl extends React.Component<IAdvancedSettingsProps> {
         <FormikFormField
           name="healthTimeout"
           label="Timeout"
+          required={true}
+          fastField={false} /* This field depends on healthInterval */
           help={<HelpField id="loadBalancer.advancedSettings.healthTimeout" />}
-          input={NumberInput}
-          validate={[
-            Validation.minValue(0),
-            Validation.maxValue(values.healthInterval, 'Timeout must be less than the health Interval.'),
-          ]}
+          input={props => <NumberInput {...props} min={0} max={values.healthInterval} />}
+          validate={Validation.maxValue(values.healthInterval, 'Timeout must be less than the health interval.')}
         />
 
         <FormikFormField
           name="healthInterval"
           label="Interval"
+          required={true}
           help={<HelpField id="loadBalancer.advancedSettings.healthInterval" />}
-          input={NumberInput}
-          validate={Validation.minValue(0)}
+          input={props => <NumberInput {...props} min={0} />}
         />
 
         <FormikFormField
           name="healthyThreshold"
           label="Healthy Threshold"
+          required={true}
           help={<HelpField id="loadBalancer.advancedSettings.healthyThreshold" />}
-          input={NumberInput}
-          validate={Validation.minValue(0)}
+          input={props => <NumberInput {...props} min={0} />}
         />
 
         <FormikFormField
           name="unhealthyThreshold"
           label="Unhealthy Threshold"
+          required={true}
           help={<HelpField id="loadBalancer.advancedSettings.unhealthyThreshold" />}
-          input={NumberInput}
-          validate={Validation.minValue(0)}
+          input={props => <NumberInput {...props} min={0} />}
         />
 
         <FormikFormField
           name="idleTimeout"
           label="Idle Timeout"
+          required={true}
           help={<HelpField id="loadBalancer.advancedSettings.idleTimeout" />}
-          input={NumberInput}
-          validate={Validation.minValue(0)}
+          input={props => <NumberInput {...props} min={0} />}
         />
 
         <div className="col-md-12">

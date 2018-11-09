@@ -1,15 +1,7 @@
 import * as React from 'react';
 import { FormikErrors } from 'formik';
 
-import {
-  FormikFormField,
-  SelectInput,
-  TextInput,
-  NumberInput,
-  IWizardPageProps,
-  wizardPage,
-  Validation,
-} from '@spinnaker/core';
+import { FormikFormField, SelectInput, TextInput, NumberInput, IWizardPageProps, wizardPage } from '@spinnaker/core';
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
@@ -59,8 +51,7 @@ class HealthCheckImpl extends React.Component<IHealthCheckProps> {
                   <FormikFormField
                     name="healthCheckPort"
                     required={true}
-                    input={NumberInput}
-                    validate={[Validation.minValue(1), Validation.maxValue(65534)]}
+                    input={props => <NumberInput {...props} min={1} max={65534} />}
                   />
                 </td>
                 <td>

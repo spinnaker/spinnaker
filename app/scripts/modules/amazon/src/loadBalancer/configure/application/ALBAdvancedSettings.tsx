@@ -1,15 +1,7 @@
 import * as React from 'react';
 import { FormikErrors } from 'formik';
 
-import {
-  Validation,
-  FormikFormField,
-  CheckboxInput,
-  NumberInput,
-  HelpField,
-  IWizardPageProps,
-  wizardPage,
-} from '@spinnaker/core';
+import { FormikFormField, CheckboxInput, NumberInput, HelpField, IWizardPageProps, wizardPage } from '@spinnaker/core';
 
 import { IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 
@@ -29,7 +21,6 @@ class ALBAdvancedSettingsImpl extends React.Component<IALBAdvancedSettingsProps>
           name="idleTimeout"
           label="Idle Timeout"
           help={<HelpField id="loadBalancer.advancedSettings.idleTimeout" />}
-          validate={Validation.minValue(0)}
           input={props => <NumberInput {...props} min={0} />}
         />
 
