@@ -55,6 +55,9 @@ type GatewayClient struct {
 	// Generate Gate Api client.
 	*gate.APIClient
 
+	// Raw Http Client to do OAuth2 login.
+	HttpClient *http.Client
+
 	// Spin CLI configuration.
 	Config config.Config
 
@@ -152,15 +155,16 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 	}
 
 	// Api client initialization.
-	err = gateClient.Authenticate()
-	if err != nil {
-		util.UI.Error(fmt.Sprintf("OAuth2 Authentication failed."))
-		return nil, err
-	}
-
 	httpClient, err := gateClient.InitializeClient()
 	if err != nil {
 		util.UI.Error(fmt.Sprintf("Could not initialize http client, failing."))
+		return nil, err
+	}
+	gateClient.HttpClient = httpClient
+
+	err = gateClient.Authenticate()
+	if err != nil {
+		util.UI.Error(fmt.Sprintf("OAuth2 Authentication failed."))
 		return nil, err
 	}
 
@@ -321,8 +325,20 @@ func (m *GatewayClient) Authenticate() error {
 		buf, _ := yaml.Marshal(&m.Config)
 		info, _ := os.Stat(m.configLocation)
 		ioutil.WriteFile(m.configLocation, buf, info.Mode())
-		m.Context = context.WithValue(context.Background(), gate.ContextAccessToken, newToken.AccessToken)
+
+		m.login(newToken.AccessToken)
+		m.Context = context.Background()
 	}
+	return nil
+}
+
+func (m *GatewayClient) login(accessToken string) error {
+	loginReq, err := http.NewRequest("GET", m.GateEndpoint() + "/login", nil)
+	if err != nil {
+		return err
+	}
+	loginReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	m.HttpClient.Do(loginReq) // Login to establish session.
 	return nil
 }
 
