@@ -18,21 +18,23 @@ package com.netflix.spinnaker.keel.plugin
 import com.netflix.spinnaker.keel.api.Asset
 
 interface AssetPlugin : KeelPlugin {
-  val supportedTypes: Iterable<String>
+  val supportedKinds: Iterable<String>
 
   fun current(request: Asset): CurrentResponse
+  fun create(request: Asset): ConvergeResponse = upsert(request)
+  fun update(request: Asset): ConvergeResponse = upsert(request)
   fun upsert(request: Asset): ConvergeResponse
   fun delete(request: Asset): ConvergeResponse
 }
 
 sealed class CurrentResponse
 
-data class CurrentSuccess(val desired: Asset, val current: Asset?): CurrentResponse()
+data class CurrentSuccess(val desired: Asset, val current: Asset?) : CurrentResponse()
 
-data class CurrentError(val reason:String): CurrentResponse()
+data class CurrentError(val reason: String) : CurrentResponse()
 
 sealed class ConvergeResponse
 
 object ConvergeAccepted : ConvergeResponse()
 
-data class ConvergeFailed(val reason: String): ConvergeResponse()
+data class ConvergeFailed(val reason: String) : ConvergeResponse()

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
+@Deprecated("not needed if we use k8s")
 interface PluginRegistry {
   fun register(plugin: AssetPlugin)
   fun register(plugin: VetoPlugin)

@@ -1,5 +1,6 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
+apply plugin: "com.google.cloud.tools.minikube"
 apply from: "$rootDir/gradle/junit4.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
 
@@ -7,13 +8,17 @@ dependencies {
   api project(":keel-api")
   implementation project(":keel-common")
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
+  implementation("io.kubernetes:client-java:3.0.0")
 
   testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
   testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
+  testImplementation "com.oneeyedmen:minutest:+"
   testImplementation "io.strikt:strikt-core:+"
 }
 
 test {
+  dependsOn("minikubeStart")
+  finalizedBy("minikubeStop")
   useJUnitPlatform {
     includeEngines "junit-jupiter", "junit-vintage"
   }

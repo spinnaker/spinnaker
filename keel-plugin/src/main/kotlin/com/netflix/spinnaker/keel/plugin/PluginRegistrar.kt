@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationListener
 
+@Deprecated("not needed if we use k8s")
 class PluginRegistrar(
   private val plugins: List<KeelPlugin>,
   private val pluginRegistry: PluginRegistry

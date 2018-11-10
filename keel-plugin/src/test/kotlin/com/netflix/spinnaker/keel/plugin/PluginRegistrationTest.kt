@@ -19,7 +19,7 @@ internal class PluginRegistrationTest {
   @BeforeEach
   fun setUpMockPlugin() {
     whenever(amazonAssetPlugin.name) doReturn "Amazon plugin"
-    whenever(amazonAssetPlugin.supportedTypes) doReturn listOf(
+    whenever(amazonAssetPlugin.supportedKinds) doReturn listOf(
       "ec2.SecurityGroup",
       "ec2.ClassicLoadBalancer"
     )

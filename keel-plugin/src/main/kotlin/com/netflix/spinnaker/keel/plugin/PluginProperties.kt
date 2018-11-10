@@ -19,5 +19,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("keel")
 class PluginProperties {
+  @Deprecated("not needed if we use k8s")
   var registryVip: String = "keel-test.netflix.net"
 }

@@ -42,7 +42,7 @@ class EC2AssetPlugin(
   private val objectMapper: ObjectMapper
 ) : AssetPlugin {
 
-  override val supportedTypes: Iterable<String> = setOf(
+  override val supportedKinds: Iterable<String> = setOf(
     "ec2.SecurityGroup",
     "ec2.SecurityGroupRule",
     "ec2.ClassicLoadBalancer"
