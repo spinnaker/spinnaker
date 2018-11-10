@@ -105,7 +105,9 @@ public class Routes {
       queryParams.add("port:" + routeId.getPort().toString());
 
     return collectPageResources("route mappings", pg -> api.all(pg, queryParams))
-      .stream().findFirst().map(this::map).orElse(null);
+      .stream().filter(routeResource ->
+        (routeId.getPath() != null || routeResource.getEntity().getPath().isEmpty()) && (routeId.getPort() != null || routeResource.getEntity().getPort() == null)
+      ).findFirst().map(this::map).orElse(null);
   }
 
   @Nullable
