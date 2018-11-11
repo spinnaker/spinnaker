@@ -1,13 +1,20 @@
 import * as React from 'react';
-import { Field, FieldProps, FormikProps } from 'formik';
+import { connect, FormikContext } from 'formik';
 
 interface IFormikFormProps<T> {
-  render: (props: FormikProps<T>) => React.ReactNode;
+  render: (props: FormikContext<T>) => React.ReactElement<any>;
+}
+
+interface IFormikFormImplProps<T> extends IFormikFormProps<T> {
+  formik: FormikContext<T>;
 }
 
 /**
  * This component provides access to the current Formik `form` props.
+ *
  * This can be useful to access current form data outside of a FormField or Input.
+ *
+ * This component adapts the formik `connect()` api as a render prop.
  *
  * Example:
  * ```js
@@ -19,8 +26,5 @@ interface IFormikFormProps<T> {
  * }} />
  * ```
  */
-export class FormikForm<T = any> extends React.Component<IFormikFormProps<T>> {
-  public render() {
-    return <Field name="" render={(props: FieldProps<T>) => this.props.render(props.form)} />;
-  }
-}
+const FormikFormImpl = <T extends any>({ render, formik }: IFormikFormImplProps<T>) => render(formik);
+export const FormikForm: React.ComponentType<IFormikFormProps<any>> = connect(FormikFormImpl);
