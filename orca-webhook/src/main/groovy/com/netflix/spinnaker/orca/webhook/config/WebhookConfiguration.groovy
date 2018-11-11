@@ -24,6 +24,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.http.converter.StringHttpMessageConverter
 import org.springframework.web.client.RestTemplate
@@ -41,6 +42,8 @@ class WebhookConfiguration {
     List<MessageConverter> converters = restTemplate.getMessageConverters()
     converters.add(new ObjectStringHttpMessageConverter())
     restTemplate.setMessageConverters(converters)
+    HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+    restTemplate.setRequestFactory(requestFactory)
     return restTemplate
   }
 

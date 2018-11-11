@@ -155,4 +155,25 @@ class WebhookServiceSpec extends Specification {
     responseEntity.body == 'This is text/plain'
   }
 
+  def "Should accept PATCH request"() {
+    setup:
+    def responseActions = server.expect(requestTo("https://localhost/v1/test"))
+      .andExpect(method(HttpMethod.PATCH))
+    responseActions.andRespond(withSuccess())
+
+    when:
+    webhookService
+    def responseEntity = webhookService.exchange(
+      HttpMethod.PATCH,
+      "https://localhost/v1/test",
+      null,
+      null
+    )
+
+    then:
+    noExceptionThrown()
+    server.verify()
+    responseEntity.statusCode == HttpStatus.OK
+  }
+
 }
