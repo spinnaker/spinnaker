@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.Set;
+
 /**
  * "Service" in this context refers to an Open Service Broker service.
  */
@@ -36,4 +38,7 @@ public class CloudFoundryServiceInstance {
 
   @JsonView(Views.Cache.class)
   String plan;
+
+  @JsonView(Views.Cache.class)
+  Set<String> tags;
 }

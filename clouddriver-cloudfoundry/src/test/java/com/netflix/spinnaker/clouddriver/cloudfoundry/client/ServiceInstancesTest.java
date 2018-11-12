@@ -32,12 +32,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription.Code.SERVICE_ALREADY_EXISTS;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.FAILED;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.IN_PROGRESS;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.CREATE;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.DELETE;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.UPDATE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.*;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.*;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -318,6 +314,7 @@ public class ServiceInstancesTest {
 
     serviceInstances.destroyServiceInstance(cloudFoundrySpace, "newServiceInstanceName");
 
+    verify(serviceInstanceService, times(1)).findAllServiceInstancesBySpaceId(any(), any(), anyListOf(String.class));
     verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
     verify(serviceInstanceService, times(2)).getServiceInstanceById("service-instance-guid");
   }

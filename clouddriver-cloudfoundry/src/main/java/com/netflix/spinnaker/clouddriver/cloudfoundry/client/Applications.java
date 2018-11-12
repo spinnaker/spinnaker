@@ -201,6 +201,7 @@ public class Applications {
             .serviceName(vcap.getKey())
             .name(instance.getName())
             .plan(instance.getPlan())
+            .tags(instance.getTags())
             .build()))
         .collect(toList());
 
