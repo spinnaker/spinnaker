@@ -118,15 +118,7 @@ export class TitusSecurityGroupPicker extends React.Component<
       groupsToEdit = matchedGroups.map(g => g.id);
       this.props.onChange(groupsToEdit);
     }
-    availableGroups = availableGroups.sort((a, b) => {
-      if (groupsToEdit.includes(a.id)) {
-        return -1;
-      }
-      if (groupsToEdit.includes(b.id)) {
-        return 1;
-      }
-      return a.name.localeCompare(b.name);
-    });
+    availableGroups = availableGroups.sort((a, b) => a.name.localeCompare(b.name));
     this.setState({ availableGroups, loaded: true, removedGroups });
   }
 

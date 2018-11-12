@@ -472,14 +472,6 @@ export class AwsServerGroupConfigurationService {
       }
     }
     command.backingData.filtered.securityGroups = newRegionalSecurityGroups.sort((a, b) => {
-      if (command.securityGroups && !isExpression) {
-        if (command.securityGroups.includes(a.id)) {
-          return -1;
-        }
-        if (command.securityGroups.includes(b.id)) {
-          return 1;
-        }
-      }
       return a.name.localeCompare(b.name);
     });
     return result;
