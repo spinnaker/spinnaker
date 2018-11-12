@@ -54,6 +54,11 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
   final GcloudReleaseTrack gcloudReleaseTrack
   final List<AppengineGitCredentialType> supportedGitCredentialTypes
 
+  final List<String> services
+  final List<String> versions
+  final List<String> omitServices
+  final List<String> omitVersions
+
   static class Builder {
     String name
     String environment
@@ -79,6 +84,10 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
     boolean sshTrustUnknownHosts
     GcloudReleaseTrack gcloudReleaseTrack
     AppengineGitCredentials gitCredentials
+    List<String> services
+    List<String> versions
+    List<String> omitServices
+    List<String> omitVersions
 
     /*
     * If true, the builder will overwrite region with a value from the platform.
@@ -204,6 +213,26 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
       return this
     }
 
+    Builder services(List<String> serviceNames) {
+      this.services = serviceNames
+      return this
+    }
+
+    Builder versions(List<String> versionNames) {
+      this.versions = versionNames
+      return this
+    }
+
+    Builder omitServices(List<String> serviceNames) {
+      this.omitServices = serviceNames
+      return this
+    }
+
+    Builder omitVersions(List<String> versionNames) {
+      this.omitVersions = versionNames
+      return this
+    }
+
     AppengineNamedAccountCredentials build() {
       credentials = credentials ?:
         jsonKey ?
@@ -243,7 +272,11 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
                                                   localRepositoryDirectory,
                                                   gitCredentials,
                                                   gcloudReleaseTrack,
-                                                  gitCredentials.getSupportedCredentialTypes())
+                                                  gitCredentials.getSupportedCredentialTypes(),
+                                                  services,
+                                                  versions,
+                                                  omitServices,
+                                                  omitVersions)
     }
   }
 }

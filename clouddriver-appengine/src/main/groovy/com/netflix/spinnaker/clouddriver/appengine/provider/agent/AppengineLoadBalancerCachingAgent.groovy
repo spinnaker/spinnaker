@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCach
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.appengine.cache.Keys.Namespace.LOAD_BALANCERS
@@ -93,6 +94,10 @@ class AppengineLoadBalancerCachingAgent extends AbstractAppengineCachingAgent im
 
     def loadBalancerName = data.loadBalancerName.toString()
 
+    if (shouldIgnoreLoadBalancer(loadBalancerName)) {
+      return null
+    }
+
     Service service = metricsSupport.readData {
       loadService(loadBalancerName)
     }
@@ -137,7 +142,7 @@ class AppengineLoadBalancerCachingAgent extends AbstractAppengineCachingAgent im
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     Long start = System.currentTimeMillis()
-    List<Service> services = loadServices()
+    List<Service> services = loadServices().stream().filter { !shouldIgnoreLoadBalancer(it.getId()) }.collect(Collectors.toList())
     List<CacheData> evictFromOnDemand = []
     List<CacheData> keepInOnDemand = []
 

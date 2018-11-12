@@ -100,6 +100,9 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
     }
 
     def serverGroupName = data.serverGroupName.toString()
+    if (shouldIgnoreServerGroup(serverGroupName)) {
+      return null
+    }
     def matchingServerGroupAndLoadBalancer = metricsSupport.readData {
       loadServerGroupAndLoadBalancer(serverGroupName)
     }
@@ -309,9 +312,13 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
 
     loadBalancers.each { loadBalancer ->
       def loadBalancerName = loadBalancer.getId()
+      if (shouldIgnoreLoadBalancer(loadBalancerName)) {
+        return
+      }
       def callback = new AppengineCallback<ListVersionsResponse>()
         .success { ListVersionsResponse versionsResponse, HttpHeaders responseHeaders ->
           def versions = versionsResponse.getVersions()
+          versions.removeIf { shouldIgnoreServerGroup(it.getId()) }
           if (versions) {
             serverGroupsByLoadBalancer[loadBalancer].addAll(versions)
           }
@@ -325,11 +332,16 @@ class AppengineServerGroupCachingAgent extends AbstractAppengineCachingAgent imp
   }
 
   Map loadServerGroupAndLoadBalancer(String serverGroupName) {
+    if (shouldIgnoreServerGroup(serverGroupName)) {
+      return [:]
+    }
     def project = credentials.project
     def loadBalancers = credentials.appengine.apps().services().list(project).execute().getServices() ?: []
     BatchRequest batch = credentials.appengine.batch()
     Service loadBalancer
     Version serverGroup
+
+    loadBalancers.removeIf { shouldIgnoreLoadBalancer(it.getName()) }
 
     // We don't know where our server group is, so we have to check all of the load balancers.
     loadBalancers.each { Service lb ->

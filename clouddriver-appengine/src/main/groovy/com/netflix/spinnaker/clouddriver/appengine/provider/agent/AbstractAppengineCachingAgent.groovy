@@ -40,6 +40,30 @@ abstract class AbstractAppengineCachingAgent implements CachingAgent, AccountAwa
     this.credentials = credentials
   }
 
+  boolean shouldIgnoreLoadBalancer(String loadBalancerName) {
+    if (credentials.services != null && !credentials.services.isEmpty() &&
+      credentials.services.every { !loadBalancerName.matches(it) }) {
+      return true
+    }
+    if (credentials.omitServices != null && !credentials.omitServices.isEmpty() &&
+      credentials.omitServices.any { loadBalancerName.matches(it) }) {
+      return true
+    }
+    return false
+  }
+
+  boolean shouldIgnoreServerGroup(String serverGroupName) {
+    if (credentials.versions != null && !credentials.versions.isEmpty() &&
+      credentials.versions.every { !serverGroupName.matches(it) }) {
+      return true
+    }
+    if (credentials.omitVersions != null && !credentials.omitVersions.isEmpty()
+      && credentials.omitVersions.any { serverGroupName.matches(it) }) {
+      return true
+    }
+    return false
+  }
+
   static void cache(Map<String, List<CacheData>> cacheResults,
                     String cacheNamespace,
                     Map<String, CacheData> cacheDataById) {
