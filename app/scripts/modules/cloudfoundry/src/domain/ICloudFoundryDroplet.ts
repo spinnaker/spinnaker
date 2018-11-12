@@ -6,8 +6,7 @@ export interface ICloudFoundryDroplet {
   space: ICloudFoundrySpace;
   stack: string;
   buildpacks: ICloudFoundryBuildpack[];
-  sourcePackage: ICloudFoundryPackage;
-  packageChecksum: string;
+  sourcePackage?: ICloudFoundryPackage;
 }
 
 export interface ICloudFoundryBuildpack {
@@ -18,5 +17,6 @@ export interface ICloudFoundryBuildpack {
 }
 
 export interface ICloudFoundryPackage {
+  checksum: string;
   downloadUrl: string;
 }

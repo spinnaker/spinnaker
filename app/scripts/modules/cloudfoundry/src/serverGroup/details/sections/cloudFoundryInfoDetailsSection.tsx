@@ -75,12 +75,15 @@ export class CloudFoundryInfoDetailsSection extends React.Component<ICloudFoundr
             <dd>{serverGroup.memory}</dd>
           </dl>
         </CollapsibleSection>
-        <CollapsibleSection heading="Package" defaultExpanded={true}>
-          <dl className="dl-horizontal dl-flex">
-            <dt>Checksum</dt>
-            <dd>{serverGroup.droplet.packageChecksum}</dd>
-          </dl>
-        </CollapsibleSection>
+        {serverGroup.droplet &&
+          serverGroup.droplet.sourcePackage && (
+            <CollapsibleSection heading="Package" defaultExpanded={true}>
+              <dl className="dl-horizontal dl-flex">
+                <dt>Checksum</dt>
+                <dd>{serverGroup.droplet.sourcePackage.checksum}</dd>
+              </dl>
+            </CollapsibleSection>
+          )}
         {!isEmpty(serverGroup.serviceInstances) && (
           <CollapsibleSection heading="Bound Services" defaultExpanded={true}>
             <dl className="dl-horizontal dl-flex">
