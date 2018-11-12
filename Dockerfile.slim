@@ -20,6 +20,11 @@ RUN wget https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/lin
   chmod +x ./heptio-authenticator-aws && \
   mv ./heptio-authenticator-aws /usr/local/bin/heptio-authenticator-aws
 
+RUN apk -v --update add py-pip && \
+  pip install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic && \
+  apk -v --purge del py-pip && \
+  rm /var/cache/apk/*
+
 ENV PATH "$PATH:/usr/local/bin/heptio-authenticator-aws"
 
 ENV PATH=$PATH:/opt/google-cloud-sdk/bin/
