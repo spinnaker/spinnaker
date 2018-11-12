@@ -43,6 +43,9 @@ public class GoogleBatchRequest {
   private static final int MAX_BATCH_SIZE = 100; // Platform specified max to not overwhelm batch backends.
   private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = (int) TimeUnit.MINUTES.toMillis(2);
   private static final int DEFAULT_READ_TIMEOUT_MILLIS = (int) TimeUnit.MINUTES.toMillis(2);
+  // Many requests (ex: caching load balancers) have callbacks that execute further requests, up to a depth of 3-4
+  // requests. For this reason, make the overall execute timeout a factor of ~5 longer than the individual timeouts.
+  private static final int DEFAULT_EXECUTE_TIMEOUT_MINUTES = 10;
 
   private List<QueuedRequest> queuedRequests;
   private String clouddriverUserAgentApplicationName;
@@ -81,6 +84,14 @@ public class GoogleBatchRequest {
       log.error("Executing queued batches failed.", e);
     }
     threadPool.shutdown();
+
+    try {
+      if (!threadPool.awaitTermination(DEFAULT_EXECUTE_TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
+        throw new IllegalStateException("Timed out waiting for GoogleBatchRequest.");
+      }
+    } catch (InterruptedException intex) {
+      throw new IllegalStateException(intex);
+    }
   }
 
   private void executeInternalBatch(BatchRequest b) {
