@@ -24,6 +24,7 @@ dependencies {
   compile project(':kayenta-google')
   compile project(':kayenta-influxdb')
   compile project(':kayenta-judge')
+  compile project(':kayenta-newrelic-insights')
   compile project(':kayenta-objectstore-configbin')
   compile project(':kayenta-objectstore-memory')
   compile project(':kayenta-orca')

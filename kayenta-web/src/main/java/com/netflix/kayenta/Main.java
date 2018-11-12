@@ -16,19 +16,6 @@
 
 package com.netflix.kayenta;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
 import com.netflix.kayenta.atlas.config.AtlasConfiguration;
 import com.netflix.kayenta.aws.config.AwsConfiguration;
 import com.netflix.kayenta.config.KayentaConfiguration;
@@ -40,10 +27,22 @@ import com.netflix.kayenta.google.config.GoogleConfiguration;
 import com.netflix.kayenta.influxdb.config.InfluxDbConfiguration;
 import com.netflix.kayenta.judge.config.NetflixJudgeConfiguration;
 import com.netflix.kayenta.memory.config.MemoryConfiguration;
+import com.netflix.kayenta.newrelic.config.NewRelicConfiguration;
 import com.netflix.kayenta.prometheus.config.PrometheusConfiguration;
 import com.netflix.kayenta.s3.config.S3Configuration;
 import com.netflix.kayenta.signalfx.config.SignalFxConfiguration;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @Import({
@@ -56,6 +55,7 @@ import com.netflix.kayenta.stackdriver.config.StackdriverConfiguration;
   InfluxDbConfiguration.class,
   KayentaConfiguration.class,
   MemoryConfiguration.class,
+  NewRelicConfiguration.class,
   PrometheusConfiguration.class,
   S3Configuration.class,
   SignalFxConfiguration.class,

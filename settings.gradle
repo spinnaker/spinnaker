@@ -25,6 +25,7 @@ include 'kayenta-google'
 include 'kayenta-influxdb'
 include 'kayenta-judge'
 include 'kayenta-mannwhitney'
+include 'kayenta-newrelic-insights'
 include 'kayenta-objectstore-configbin'
 include 'kayenta-objectstore-memory'
 include 'kayenta-orca'
@@ -44,4 +45,3 @@ def setBuildFile(project) {
 rootProject.children.each {
   setBuildFile(it)
 }
-
