@@ -281,6 +281,8 @@ module.exports = angular
       if ($scope.viewState.nameFilter !== q) {
         $scope.viewState.nameFilter = q;
         this.sortTasksAndResetPaginator();
+      } else if ($stateParams.taskId) {
+        setTaskFilter();
       }
     };
 
