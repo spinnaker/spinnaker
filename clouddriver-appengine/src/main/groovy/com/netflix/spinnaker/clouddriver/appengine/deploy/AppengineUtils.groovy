@@ -33,8 +33,6 @@ class AppengineUtils {
     task.updateStatus phase, "Querying all versions for project $project..."
     def services = queryAllServices(project, credentials, task, phase)
 
-    // TODO(jacobkiefer): Consider limiting batch sizes.
-    // https://github.com/spinnaker/spinnaker/issues/3564.
     BatchRequest batch = credentials.appengine.batch()
     def allVersions = []
 

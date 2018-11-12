@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.ComputeRequest
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.BackendServiceList
 import com.netflix.spectator.api.Registry
@@ -66,7 +66,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
     GoogleBackendServiceCachingAgent cachingAgent = this
     List<BackendService> globalBackendServices = new PaginatedRequest<BackendServiceList>(cachingAgent) {
       @Override
-      protected ComputeRequest<BackendServiceList> request (String pageToken) {
+      protected AbstractGoogleJsonClientRequest<BackendServiceList> request (String pageToken) {
         return compute.backendServices().list(project).setPageToken(pageToken)
       }
 
@@ -87,7 +87,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
     credentials.regions.collect { it.name }.each { String region ->
       List<BackendService> regionBackendServices = new PaginatedRequest<BackendServiceList>(cachingAgent) {
         @Override
-        protected ComputeRequest<BackendServiceList> request (String pageToken) {
+        protected AbstractGoogleJsonClientRequest<BackendServiceList> request (String pageToken) {
           return compute.regionBackendServices().list(project, region).setPageToken(pageToken)
         }
 

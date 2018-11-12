@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
@@ -30,7 +31,6 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -83,7 +83,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
     allImageProjects.each { imageProjectToNextPageTokenMap[it] = null }
 
     while (imageProjectToNextPageTokenMap) {
-      GoogleBatchRequest imageListBatch = buildGoogleBatchRequest()
+      BatchRequest imageListBatch = buildBatchRequest()
       AllImagesCallback<ImageList> imageListCallback =
         new AllImagesCallback(imageProjectToNextPageTokenMap: imageProjectToNextPageTokenMap, imageList: imageList)
 
@@ -94,7 +94,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
           imagesList = imagesList.setPageToken(pageToken)
         }
 
-        imageListBatch.queue(imagesList, imageListCallback)
+        imagesList.queue(imageListBatch, imageListCallback)
       }
 
       executeIfRequestsAreQueued(imageListBatch, "ImageCaching.image")

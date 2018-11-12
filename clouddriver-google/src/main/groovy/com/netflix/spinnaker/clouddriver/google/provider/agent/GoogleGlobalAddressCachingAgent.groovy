@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.ComputeRequest
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.services.compute.model.Address
 import com.google.api.services.compute.model.AddressList
 import com.netflix.spectator.api.Registry
@@ -61,7 +61,7 @@ class GoogleGlobalAddressCachingAgent extends AbstractGoogleCachingAgent {
   List<Address> loadAddresses() {
     List<Address> globalAddresses = new PaginatedRequest<AddressList>(this) {
       @Override
-      protected ComputeRequest<AddressList> request (String pageToken) {
+      protected AbstractGoogleJsonClientRequest<AddressList> request (String pageToken) {
         return compute.globalAddresses().list(project).setPageToken(pageToken)
       }
 

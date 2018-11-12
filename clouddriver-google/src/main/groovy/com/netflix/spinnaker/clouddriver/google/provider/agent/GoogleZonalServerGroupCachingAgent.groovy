@@ -18,11 +18,12 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.*
 import com.netflix.frigga.Names
 import com.netflix.frigga.ami.AppVersion
@@ -43,7 +44,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -138,9 +138,9 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     List<String> zones = credentials.getZonesFromRegion(region)
     List<GoogleServerGroup> serverGroups = []
 
-    GoogleBatchRequest igmRequest = buildGoogleBatchRequest()
-    GoogleBatchRequest instanceGroupsRequest = buildGoogleBatchRequest()
-    GoogleBatchRequest autoscalerRequest = buildGoogleBatchRequest()
+    BatchRequest igmRequest = buildBatchRequest()
+    BatchRequest instanceGroupsRequest = buildBatchRequest()
+    BatchRequest autoscalerRequest = buildBatchRequest()
 
     List<InstanceTemplate> instanceTemplates = fetchInstanceTemplates(cachingAgent, compute, project)
     List<GoogleInstance> instances = GCEUtil.fetchInstances(this, credentials)
@@ -156,13 +156,13 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       if (onDemandServerGroupName) {
         InstanceGroupManagerCallbacks.InstanceGroupManagerSingletonCallback igmCallback =
           instanceGroupManagerCallbacks.newInstanceGroupManagerSingletonCallback(instanceTemplates, instances)
-        igmRequest.queue(compute.instanceGroupManagers().get(project, zone, onDemandServerGroupName), igmCallback)
+        compute.instanceGroupManagers().get(project, zone, onDemandServerGroupName).queue(igmRequest, igmCallback)
       } else {
         InstanceGroupManagerCallbacks.InstanceGroupManagerListCallback igmlCallback =
           instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback(instanceTemplates, instances)
         new PaginatedRequest<InstanceGroupManagerList>(cachingAgent) {
           @Override
-          ComputeRequest<InstanceGroupManagerList> request(String pageToken) {
+          AbstractGoogleJsonClientRequest<InstanceGroupManagerList> request(String pageToken) {
             return compute.instanceGroupManagers().list(project, zone).setMaxResults(maxMIGPageSize).setPageToken(pageToken)
           }
 
@@ -183,7 +183,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
   static List<InstanceTemplate> fetchInstanceTemplates(AbstractGoogleCachingAgent cachingAgent, Compute compute, String project) {
     List<InstanceTemplate> instanceTemplates = new PaginatedRequest<InstanceTemplateList>(cachingAgent) {
       @Override
-      protected ComputeRequest<InstanceTemplateList> request (String pageToken) {
+      protected AbstractGoogleJsonClientRequest<InstanceTemplateList> request (String pageToken) {
         return compute.instanceTemplates().list(project).setPageToken(pageToken)
       }
 
@@ -400,8 +400,8 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     ProviderCache providerCache
     List<GoogleServerGroup> serverGroups
     String zone
-    GoogleBatchRequest instanceGroupsRequest
-    GoogleBatchRequest autoscalerRequest
+    BatchRequest instanceGroupsRequest
+    BatchRequest autoscalerRequest
     List<GoogleInstance> instances
 
     InstanceGroupManagerSingletonCallback<InstanceGroupManager> newInstanceGroupManagerSingletonCallback(List<InstanceTemplate> instanceTemplates, List<GoogleInstance> instances) {
@@ -435,7 +435,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
           populateInstanceTemplate(providerCache, instanceGroupManager, serverGroup, instanceTemplates)
 
           def autoscalerCallback = new AutoscalerSingletonCallback(serverGroup: serverGroup)
-          autoscalerRequest.queue(compute.autoscalers().get(project, zone, serverGroup.name), autoscalerCallback)
+          compute.autoscalers().get(project, zone, serverGroup.name).queue(autoscalerRequest, autoscalerCallback)
         }
       }
     }
@@ -457,7 +457,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
         }
 
         def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
-        autoscalerRequest.queue(compute.autoscalers().aggregatedList(project), autoscalerCallback)
+        compute.autoscalers().aggregatedList(project).queue(autoscalerRequest, autoscalerCallback)
       }
     }
 

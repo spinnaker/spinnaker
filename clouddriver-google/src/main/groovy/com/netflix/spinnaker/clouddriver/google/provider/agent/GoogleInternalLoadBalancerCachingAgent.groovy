@@ -17,10 +17,11 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.client.http.HttpHeaders
-import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -28,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
@@ -71,8 +71,8 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     List<GoogleInternalLoadBalancer> loadBalancers = []
     List<String> failedLoadBalancers = []
 
-    GoogleBatchRequest forwardingRulesRequest = buildGoogleBatchRequest()
-    GoogleBatchRequest groupHealthRequest = buildGoogleBatchRequest()
+    BatchRequest forwardingRulesRequest = buildBatchRequest()
+    BatchRequest groupHealthRequest = buildBatchRequest()
 
     // Reset the local getHealth caches/queues each caching agent cycle.
     bsNameToGroupHealthsMap = [:]
@@ -96,12 +96,12 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
     if (onDemandLoadBalancerName) {
       ForwardingRuleCallbacks.ForwardingRuleSingletonCallback frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
-      forwardingRulesRequest.queue(compute.forwardingRules().get(project, region, onDemandLoadBalancerName), frCallback)
+      compute.forwardingRules().get(project, region, onDemandLoadBalancerName).queue(forwardingRulesRequest, frCallback)
     } else {
       ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
       new PaginatedRequest<ForwardingRuleList>(this) {
         @Override
-        ComputeRequest<ForwardingRuleList> request(String pageToken) {
+        AbstractGoogleJsonClientRequest<ForwardingRuleList> request(String pageToken) {
           return compute.forwardingRules().list(project, region).setPageToken(pageToken)
         }
 
@@ -129,7 +129,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     List<String> failedLoadBalancers = []
 
     // Pass through objects
-    GoogleBatchRequest groupHealthRequest
+    BatchRequest groupHealthRequest
     List<BackendService> projectRegionBackendServices
     List<HttpHealthCheck> projectHttpHealthChecks
     List<HttpsHealthCheck> projectHttpsHealthChecks
@@ -209,7 +209,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
                                     List<HttpHealthCheck> httpHealthChecks,
                                     List<HttpsHealthCheck> httpsHealthChecks,
                                     List<HealthCheck> healthChecks,
-                                    GoogleBatchRequest groupHealthRequest) {
+                                    BatchRequest groupHealthRequest) {
     def groupHealthCallback = new GroupHealthCallback(backendServiceName: backendService.name)
 
     GoogleBackendService newService = new GoogleBackendService(
@@ -236,9 +236,9 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
         // The groupHealthCallback updates the local cache.
         log.debug("Queueing a batch call for getHealth(): {}", ghr)
         queuedBsGroupHealthRequests.add(ghr)
-        groupHealthRequest
-          .queue(compute.regionBackendServices().getHealth(project, region, backendService.name as String, resourceGroup),
-          groupHealthCallback)
+        compute.regionBackendServices()
+          .getHealth(project, region, backendService.name, resourceGroup)
+          .queue(groupHealthRequest, groupHealthCallback)
       } else {
         log.debug("Passing, batch call result cached for getHealth(): {}", ghr)
       }

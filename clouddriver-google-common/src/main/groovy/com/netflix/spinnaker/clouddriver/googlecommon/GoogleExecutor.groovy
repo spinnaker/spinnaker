@@ -15,16 +15,17 @@
  */
 package com.netflix.spinnaker.clouddriver.googlecommon
 
+import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.HttpResponseException
 import com.netflix.spectator.api.Clock
+import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
 import java.util.concurrent.TimeUnit
+import javax.annotation.PostConstruct
 
 /**
  * Provides a static-ish means to wrap API execution calls with spectator metrics.
@@ -74,11 +75,12 @@ class GoogleExecutor {
   final static String TAG_REGION = "region"
   final static String TAG_SCOPE = "scope"
   final static String TAG_ZONE = "zone"
+  final static String SCOPE_BATCH = "batch"
   final static String SCOPE_GLOBAL = "global"
   final static String SCOPE_REGIONAL = "regional"
   final static String SCOPE_ZONAL = "zonal"
 
-  public static <T> T timeExecuteBatch(Registry spectator_registry, GoogleBatchRequest batch, String batchContext, String... tags) throws IOException {
+  public static <T> T timeExecuteBatch(Registry spectator_registry, BatchRequest batch, String batchContext, String... tags) throws IOException {
      def batchSize = batch.size()
      def success = "false"
      Clock clock = spectator_registry.clock()

@@ -17,10 +17,11 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
 import com.google.api.client.http.HttpHeaders
-import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
 import com.google.api.services.compute.model.InstanceReference
@@ -30,7 +31,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.TargetPoolHealthRequest
@@ -72,10 +72,10 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
     queuedTpHealthRequests = new HashSet<>()
     resolutions = new HashSet<>()
 
-    GoogleBatchRequest forwardingRulesRequest = buildGoogleBatchRequest()
-    GoogleBatchRequest targetPoolsRequest = buildGoogleBatchRequest()
-    GoogleBatchRequest httpHealthChecksRequest = buildGoogleBatchRequest()
-    GoogleBatchRequest instanceHealthRequest = buildGoogleBatchRequest()
+    BatchRequest forwardingRulesRequest = buildBatchRequest()
+    BatchRequest targetPoolsRequest = buildBatchRequest()
+    BatchRequest httpHealthChecksRequest = buildBatchRequest()
+    BatchRequest instanceHealthRequest = buildBatchRequest()
 
     ForwardingRuleCallbacks forwardingRuleCallbacks = new ForwardingRuleCallbacks(
       loadBalancers: loadBalancers,
@@ -87,12 +87,12 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
 
     if (onDemandLoadBalancerName) {
       ForwardingRuleCallbacks.ForwardingRuleSingletonCallback frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
-      forwardingRulesRequest.queue(compute.forwardingRules().get(project, region, onDemandLoadBalancerName), frCallback)
+      compute.forwardingRules().get(project, region, onDemandLoadBalancerName).queue(forwardingRulesRequest, frCallback)
     } else {
       ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
       new PaginatedRequest<ForwardingRuleList>(this) {
         @Override
-        protected ComputeRequest<ForwardingRuleList> request(String pageToken) {
+        protected AbstractGoogleJsonClientRequest<ForwardingRuleList> request(String pageToken) {
           return compute.forwardingRules().list(project, region).setPageToken(pageToken)
         }
 
@@ -121,11 +121,11 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
 
     List<GoogleNetworkLoadBalancer> loadBalancers
     List<String> failedLoadBalancers = []
-    GoogleBatchRequest targetPoolsRequest
+    BatchRequest targetPoolsRequest
 
     // Pass through objects
-    GoogleBatchRequest httpHealthChecksRequest
-    GoogleBatchRequest instanceHealthRequest
+    BatchRequest httpHealthChecksRequest
+    BatchRequest instanceHealthRequest
 
     ForwardingRuleSingletonCallback<ForwardingRule> newForwardingRuleSingletonCallback() {
       return new ForwardingRuleSingletonCallback<ForwardingRule>()
@@ -193,7 +193,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
           failedSubjects: failedLoadBalancers
         )
 
-        targetPoolsRequest.queue(compute.targetPools().get(project, region, targetPoolName), targetPoolsCallback)
+        compute.targetPools().get(project, region, targetPoolName).queue(targetPoolsRequest, targetPoolsCallback)
       }
     }
   }
@@ -202,8 +202,8 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
 
     GoogleNetworkLoadBalancer googleLoadBalancer
 
-    GoogleBatchRequest httpHealthChecksRequest
-    GoogleBatchRequest instanceHealthRequest
+    BatchRequest httpHealthChecksRequest
+    BatchRequest instanceHealthRequest
 
     @Override
     void onSuccess(TargetPool targetPool, HttpHeaders responseHeaders) throws IOException {
@@ -219,7 +219,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
             failedSubjects: failedSubjects
         )
 
-        httpHealthChecksRequest.queue(compute.httpHealthChecks().get(project, localHealthCheckName), httpHealthCheckCallback)
+        compute.httpHealthChecks().get(project, localHealthCheckName).queue(httpHealthChecksRequest, httpHealthCheckCallback)
       }
       if (!hasHealthChecks) {
         new TargetPoolInstanceHealthCallInvoker(googleLoadBalancer: googleLoadBalancer,
@@ -234,7 +234,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
     GoogleNetworkLoadBalancer googleLoadBalancer
     def targetPool
 
-    GoogleBatchRequest instanceHealthRequest
+    BatchRequest instanceHealthRequest
 
     @Override
     void onSuccess(HttpHealthCheck httpHealthCheck, HttpHeaders responseHeaders) throws IOException {
@@ -261,7 +261,7 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
     GoogleNetworkLoadBalancer googleLoadBalancer
     def targetPool
 
-    GoogleBatchRequest instanceHealthRequest
+    BatchRequest instanceHealthRequest
 
     def doCall() {
       def region = Utils.getLocalName(targetPool.region as String)
@@ -277,9 +277,9 @@ class GoogleNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCa
           // The groupHealthCallback updates the local cache along with running handleHealthObject.
           log.debug("Queueing a batch call for getHealth(): {}", tphr)
           queuedTpHealthRequests.add(tphr)
-          instanceHealthRequest
-            .queue(compute.targetPools().getHealth(project, region, targetPoolName, instanceReference),
-            instanceHealthCallback)
+          compute.targetPools()
+            .getHealth(project, region, targetPoolName, instanceReference)
+            .queue(instanceHealthRequest, instanceHealthCallback)
         } else {
           log.debug("Passing, batch call result cached for getHealth(): {}", tphr)
         }

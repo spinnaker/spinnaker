@@ -27,7 +27,7 @@ import com.google.api.services.compute.model.ImageList
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
+import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
@@ -36,8 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.security.TestDefaults
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
-import com.netflix.spinnaker.config.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.google.GoogleApiTestUtils
 import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 import spock.lang.Subject
@@ -60,7 +59,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
   void "should create instance"() {
     setup:
       def computeMock = new MockFor(Compute)
-      def googleBatchMock = new MockFor(GoogleBatchRequest)
+      def batchMock = new MockFor(BatchRequest)
       def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
@@ -75,19 +74,20 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
       def images = new Compute.Builder(
               httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
 
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+
       JsonBatchCallback<ImageList> callback = null
 
       for (def imageProject : imageProjects) {
         computeMock.demand.images { return images }
         listMock.demand.setFilter { }
-        googleBatchMock.demand.queue { imageList, imageListCallback ->
+        listMock.demand.queue { imageListBatch, imageListCallback ->
           callback = imageListCallback
         }
       }
 
-      googleBatchMock.demand.size { return 1 }
-
-      googleBatchMock.demand.execute {
+      batchMock.demand.size { return 1 }
+      batchMock.demand.execute {
         def imageList = new ImageList(
           selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
           items: [new Image(name: IMAGE)]
@@ -100,7 +100,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
       computeMock.ignore('asBoolean')
 
     when:
-      googleBatchMock.use {
+      batchMock.use {
         computeMock.use {
           listMock.use {
             def compute = new Compute.Builder(

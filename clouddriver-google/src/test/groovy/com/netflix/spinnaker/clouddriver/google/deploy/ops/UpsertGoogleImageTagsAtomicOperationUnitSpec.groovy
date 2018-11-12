@@ -32,7 +32,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleI
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.security.TestDefaults
-import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest
 import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 import spock.lang.Subject
@@ -55,7 +54,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
   void "should set labels on image with no existing labels"() {
     setup:
       def computeMock = new MockFor(Compute)
-      def googleBatchMock = new MockFor(GoogleBatchRequest)
+      def batchMock = new MockFor(BatchRequest)
       def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
@@ -70,18 +69,20 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       def images = new Compute.Builder(
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
 
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+
       JsonBatchCallback<ImageList> callback = null
 
       for (def imageProject : imageProjects) {
         computeMock.demand.images { return images }
         listMock.demand.setFilter { }
-        googleBatchMock.demand.queue { imageList, imageListCallback ->
+        listMock.demand.queue { imageListBatch, imageListCallback ->
           callback = imageListCallback
         }
       }
 
-      googleBatchMock.demand.size { return 1 }
-      googleBatchMock.demand.execute {
+      batchMock.demand.size { return 1 }
+      batchMock.demand.execute {
         def imageList = new ImageList(
           selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
           items: [new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK)]
@@ -93,7 +94,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       computeMock.ignore('asBoolean')
 
     when:
-      googleBatchMock.use {
+      batchMock.use {
         computeMock.use {
           listMock.use {
             def compute = new Compute.Builder(
@@ -126,7 +127,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
   void "should add to labels on image with existing labels"() {
     setup:
       def computeMock = new MockFor(Compute)
-      def googleBatchMock = new MockFor(GoogleBatchRequest)
+      def batchMock = new MockFor(BatchRequest)
       def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
@@ -141,18 +142,20 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       def images = new Compute.Builder(
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
 
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+
       JsonBatchCallback<ImageList> callback = null
 
       for (def imageProject : imageProjects) {
         computeMock.demand.images { return images }
         listMock.demand.setFilter { }
-        googleBatchMock.demand.queue { imageList, imageListCallback ->
+        listMock.demand.queue { imageListBatch, imageListCallback ->
           callback = imageListCallback
         }
       }
 
-      googleBatchMock.demand.size { return 1 }
-      googleBatchMock.demand.execute {
+      batchMock.demand.size { return 1 }
+      batchMock.demand.execute {
         def imageList = new ImageList(
           selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
           items: [new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK, labels: LABELS)]
@@ -164,7 +167,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       computeMock.ignore('asBoolean')
 
     when:
-      googleBatchMock.use {
+      batchMock.use {
         computeMock.use {
           listMock.use {
             def compute = new Compute.Builder(
@@ -197,7 +200,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
   void "should fail to create instance because image is invalid"() {
     setup:
       def computeMock = new MockFor(Compute)
-      def googleBatchMock = new MockFor(GoogleBatchRequest)
+      def batchMock = new MockFor(BatchRequest)
       def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
@@ -212,25 +215,28 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
         items: []
       )
 
+      batchMock.demand.size { return 1 }
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+      computeMock.ignore('asBoolean')
+
       JsonBatchCallback<ImageList> callback = null
 
       for (def imageProject : imageProjects) {
         computeMock.demand.images { return images }
         listMock.demand.setFilter { }
-        googleBatchMock.demand.queue { imageList, imageListCallback ->
+        listMock.demand.queue { imageListBatch, imageListCallback ->
           callback = imageListCallback
         }
       }
 
-      googleBatchMock.demand.size { return 1 }
-      googleBatchMock.demand.execute {
+      batchMock.demand.execute {
         callback.onSuccess(emptyImageList, null)
         callback.onSuccess(emptyImageList, null)
         callback.onSuccess(emptyImageList, null)
       }
 
     when:
-      googleBatchMock.use {
+      batchMock.use {
         computeMock.use {
           listMock.use {
             def compute = new Compute.Builder(
