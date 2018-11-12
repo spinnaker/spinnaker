@@ -22,28 +22,28 @@ public class CleanupController {
   @ApiOperation(value = "Opt out of clean up for a marked resource.", response = String.class)
   @RequestMapping(method = RequestMethod.GET,
                   value = "/resources/{namespace}/{resourceId}/optOut",
-                  produces = "text/html")
-  String optOut(@PathVariable String namespace,
+                  produces = "application/json")
+  Map optOut(@PathVariable String namespace,
                 @PathVariable String resourceId) {
     Map markedResource = cleanupService.optOut(namespace, resourceId);
     if (markedResource.isEmpty()) {
-      return getHtmlWithMessage(namespace, resourceId, "Resource does not exist. Please try a valid resource.");
+      return getJsonWithMessage(namespace, resourceId, "Resource does not exist. Please try a valid resource.");
     }
 
-    return getHtmlWithMessage(namespace, resourceId, "Resource has been restored, and opted out of future deletion!");
+    return getJsonWithMessage(namespace, resourceId, "Resource has been restored, and opted out of future deletion!");
   }
 
   @ApiOperation(value = "Get information about a marked resource.", response = String.class)
   @RequestMapping(method = RequestMethod.GET,
                   value = "/resources/{namespace}/{resourceId}",
-                  produces = "text/html")
-  String getMarkedResource(@PathVariable String namespace,
+                  produces = "application/json")
+  Map getMarkedResource(@PathVariable String namespace,
                         @PathVariable String resourceId) {
     Map markedResource = cleanupService.get(namespace, resourceId);
     if (markedResource.isEmpty()) {
-      return getHtmlWithMessage(namespace, resourceId, "Resource does not exist. Please try a valid resource.");
+      return getJsonWithMessage(namespace, resourceId, "Resource does not exist. Please try a valid resource.");
     }
-    return markedResource.toString();
+    return markedResource;
   }
 
   // todo eb: expose once AWS gives us soft delete
@@ -51,19 +51,21 @@ public class CleanupController {
 //  @RequestMapping(method = RequestMethod.PUT,
 //                  value = "/resources/{namespace}/{resourceId}/restore",
 //                  produces= "text/html")
-  String restore(String namespace, String resourceId) {
+  Map restore(String namespace, String resourceId) {
     String status = cleanupService.restore(namespace, resourceId);
     if (status.equals("404")) {
-      return getHtmlWithMessage(namespace, resourceId, "Resource does not exist. Please try a valid resource.");
+      return getJsonWithMessage(namespace, resourceId, "Resource does not exist. Please try a valid resource.");
     }
 
-    return getHtmlWithMessage(namespace, resourceId, "Resource has been opted out!");
+    return getJsonWithMessage(namespace, resourceId, "Resource has been opted out!");
   }
 
-  private String getHtmlWithMessage(String namespace, String resourceId, String message) {
-    return "<body>\n" +
-      "Swabbie Resource: [namespace=" + namespace + ", resourceId=" + resourceId + "] <br>\n" +
-      "Message: " + message + "\n" +
-      "</body>";
+  private Map<String, String> getJsonWithMessage(String namespace, String resourceId, String message) {
+    Map<String, String> json = new HashMap();
+
+    json.put("swabbieNamespace", namespace);
+    json.put("swabbieResourceId", resourceId);
+    json.put("message", message);
+    return json;
   }
 }
