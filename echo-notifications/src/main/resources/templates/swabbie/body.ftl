@@ -95,7 +95,7 @@
           </td>
           <td class="title" align="left" valign="middle" style="padding: 16px 0 16px 32px; height: 100%;">
             <h1 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 28px;">Cleanup Notifications</h1>
-            <h2 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #d8d8d8; font-size: 16px; font-weight: normal;">${notification.additionalContext.resources?size} image(s) scheduled for cleanup</h2>
+            <h2 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #d8d8d8; font-size: 16px; font-weight: normal;">${notification.additionalContext.resources?size} image(s) not in use scheduled for cleanup</h2>
           </td>
           <td align="center" valign="top" style="padding: 16px 32px 16px 16px; width: 140px;" class="logo">
             <img alt="Spinnaker" src="https://www.spinnaker.io/assets/emails/spinnaker-logo-400.png" width="140" height="140" border="0">
@@ -138,6 +138,16 @@
               </td>
             </tr>
             </#if>
+            <#if resource.createTs??>
+            <tr>
+              <td class="loop__key" align="right" valign="top" style="padding: 4px 16px 4px 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: bold;" width="30%">
+                created on
+              </td>
+              <td align="left" style="padding: 4px 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+                ${resource.createTs?number_to_date?string("EEE, d MMM yyyy")}
+              </td>
+            </tr>
+            </#if>
             <#if resource.lastSeenInfo??>
             <tr>
               <td class="loop__key" align="right" valign="top" style="padding: 4px 16px 4px 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: bold;" width="30%">
@@ -160,7 +170,7 @@
           </td>
           <td class="loop__btns" valign="middle" style="padding: 16px 32px 16px 16px; width: 112px;">
             <a href="${notification.additionalContext.optOutLink}/${resource.namespace}/${resource.resourceId}" target="_blank" style="font-size: 14px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; margin: 8px 0; text-decoration: none; background-color: #149cb5; text-align: center; text-decoration: none; border-radius: 4px; padding: 8px 16px; display: block;" class="mobile-button">More Info</a>
-            <a href="${notification.additionalContext.optOutLink}/${resource.namespace}/${resource.resourceId}/optOut" target="_blank" style="font-size: 14px; font-family: Helvetica, Arial, sans-serif; color: #666666; margin: 8px 0; text-decoration: none; background-color: #ffffff; text-align: center; text-decoration: none; border-radius: 4px; padding: 8px 16px; display: block; border: 1px solid #cccccc" class="mobile-button">Opt Out</a>
+            <a href="${notification.additionalContext.optOutLink}/${resource.namespace}/${resource.resourceId}/optOut" target="_blank" style="font-size: 14px; font-family: Helvetica, Arial, sans-serif; color: #666666; margin: 8px 0; text-decoration: none; background-color: #ffffff; text-align: center; text-decoration: none; border-radius: 4px; padding: 8px 16px; display: block; border: 1px solid #cccccc" class="mobile-button">Opt Out of Delete</a>
           </td>
         </tr>
         </#foreach>
