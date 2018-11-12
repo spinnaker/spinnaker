@@ -78,6 +78,7 @@ export class SecurityGroupSelector extends React.Component<ISecurityGroupSelecto
           )}
           <div className="col-md-8">
             <VirtualizedSelect
+              ignoreAccents={true}
               options={availableGroupOptions}
               onChange={this.onChange}
               value={groupsToEdit}
