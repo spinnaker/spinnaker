@@ -133,7 +133,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       .switchMap(({ kind, namespace, account }) => Observable.fromPromise(this.search(kind, namespace, account)))
       .takeUntil(this.destroy$)
       .subscribe(resources => {
-        if (!(resources || []).some(resource => resource === this.state.selector.manifestName)) {
+        if (this.state.selector.manifestName == null) {
           this.handleNameChange('');
         }
         this.setStateAndUpdateStage({ loading: false, resources: resources });
@@ -249,6 +249,8 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   private modeDelegate = (): ISelectorHandler =>
     this.handlers.find(handler => handler.handles(this.state.selector.mode || SelectorMode.Static));
 
+  private promptTextCreator = (text: string) => `Use custom expression: ${text}`;
+
   public render() {
     const { TargetSelect } = NgReact;
     const mode = this.state.selector.mode || SelectorMode.Static;
@@ -282,6 +284,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
             value={{ value: selector.location, label: selector.location }}
             options={namespaces.map(ns => ({ value: ns, label: ns }))}
             onChange={this.handleNamespaceChange}
+            promptTextCreator={this.promptTextCreator}
           />
         </StageConfigField>
         <StageConfigField label="Kind">
@@ -290,6 +293,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
             value={{ value: kind, label: kind }}
             options={kinds.map(k => ({ value: k, label: k }))}
             onChange={(option: Option<string>) => this.handleKindChange(option && option.value)}
+            promptTextCreator={this.promptTextCreator}
           />
         </StageConfigField>
         {modes.length > 1 && (
@@ -326,7 +330,8 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
                 clearable={false}
                 value={{ value: name, label: name }}
                 options={resourceNames.map(r => ({ value: r, label: r }))}
-                onChange={(option: Option) => this.handleNameChange(option ? (option.value as string) : null)}
+                onChange={(option: Option) => this.handleNameChange(option ? (option.value as string) : '')}
+                promptTextCreator={this.promptTextCreator}
               />
             </StageConfigField>
           )}
