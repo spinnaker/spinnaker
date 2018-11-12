@@ -3855,14 +3855,18 @@ hal config provider appengine account add ACCOUNT [parameters]
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--local-repository-directory`: (*Default*: `/var/tmp/clouddriver`) A local directory to be used to stage source files for App Engine deployments within Spinnaker's Clouddriver microservice.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--omit-services`: A list of regular expressions. Any service matching one of these regexes will be ignored by Spinnaker.
+ * `--omit-versions`: A list of regular expressions. Any version matching one of these regexes will be ignored by Spinnaker.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--services`: A list of regular expressions. Any service matching one of these regexes will be indexed by Spinnaker.
  * `--ssh-known-hosts-file-path`: The path to a known_hosts file to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-trust-unknown-hosts`: (*Default*: `false`) Enabling this flag will allow Spinnaker to connect with a remote git repository over SSH without verifying the server's IP address against a known_hosts file.
+ * `--versions`: A list of regular expressions. Any version matching one of these regexes will be indexed by Spinnaker.
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 
@@ -3906,6 +3910,8 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--local-repository-directory`: A local directory to be used to stage source files for App Engine deployments within Spinnaker's Clouddriver microservice.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--omit-services`: A list of regular expressions. Any service matching one of these regexes will be ignored by Spinnaker.
+ * `--omit-versions`: A list of regular expressions. Any version matching one of these regexes will be ignored by Spinnaker.
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
@@ -3913,10 +3919,12 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--services`: A list of regular expressions. Any service matching one of these regexes will be indexed by Spinnaker.
  * `--ssh-known-hosts-file-path`: The path to a known_hosts file to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-trust-unknown-hosts`: Enabling this flag will allow Spinnaker to connect with a remote git repository over SSH without verifying the server's IP address against a known_hosts file.
+ * `--versions`: A list of regular expressions. Any version matching one of these regexes will be indexed by Spinnaker.
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 

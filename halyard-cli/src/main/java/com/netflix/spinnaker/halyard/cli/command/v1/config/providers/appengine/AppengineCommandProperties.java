@@ -37,4 +37,12 @@ public class AppengineCommandProperties {
             + " against a known_hosts file.";
     static final String GCLOUD_RELEASE_TRACK = "The gcloud release track (ALPHA, BETA, or STABLE) that Spinnaker"
             + " will use when deploying to App Engine.";
+    static final String SERVICES = "A list of regular expressions. Any service matching one of these regexes " +
+            "will be indexed by Spinnaker.";
+    static final String VERSIONS = "A list of regular expressions. Any version matching one of these regexes " +
+            "will be indexed by Spinnaker.";
+    static final String OMIT_SERVICES = "A list of regular expressions. Any service matching one of these regexes " +
+            "will be ignored by Spinnaker.";
+    static final String OMIT_VERSIONS = "A list of regular expressions. Any version matching one of these regexes " +
+            "will be ignored by Spinnaker.";
 }

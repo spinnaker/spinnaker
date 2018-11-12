@@ -24,6 +24,8 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 
+import java.util.List;
+
 import static com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount.GcloudReleaseTrack;
 
 @Parameters(separators = "=")
@@ -106,6 +108,34 @@ public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
   )
   private GcloudReleaseTrack gcloudReleaseTrack;
 
+  @Parameter(
+      names = "--services",
+      description = AppengineCommandProperties.SERVICES,
+      variableArity = true
+  )
+  private List<String> services;
+
+  @Parameter(
+      names = "--versions",
+      description = AppengineCommandProperties.VERSIONS,
+      variableArity = true
+  )
+  private List<String> versions;
+
+  @Parameter(
+      names = "--omit-services",
+      description = AppengineCommandProperties.OMIT_SERVICES,
+      variableArity = true
+  )
+  private List<String> omitServices;
+
+  @Parameter(
+      names = "--omit-versions",
+      description = AppengineCommandProperties.OMIT_VERSIONS,
+      variableArity = true
+  )
+  private List<String> omitVersions;
+
   @Override
   protected Account buildAccount(String accountName) {
     AppengineAccount account = (AppengineAccount) new AppengineAccount().setName(accountName);
@@ -115,7 +145,11 @@ public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
             .setGitHttpsPassword(gitHttpsPassword).setGithubOAuthAccessToken(githubOAuthAccessToken)
             .setSshPrivateKeyFilePath(sshPrivateKeyFilePath).setSshPrivateKeyPassphrase(sshPrivateKeyPassphrase)
             .setSshKnownHostsFilePath(sshKnownHostsFilePath).setSshTrustUnknownHosts(sshTrustUnknownHosts)
-            .setGcloudReleaseTrack(gcloudReleaseTrack);
+            .setGcloudReleaseTrack(gcloudReleaseTrack)
+            .setServices(services)
+            .setVersions(versions)
+            .setOmitServices(omitServices)
+            .setOmitVersions(omitVersions);
 
     return account;
   }

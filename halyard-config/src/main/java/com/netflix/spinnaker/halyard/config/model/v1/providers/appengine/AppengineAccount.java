@@ -22,6 +22,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoog
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AppengineAccount extends CommonGoogleAccount {
@@ -39,6 +41,26 @@ public class AppengineAccount extends CommonGoogleAccount {
                 + " is not configurable prior to this release."
   )
   private GcloudReleaseTrack gcloudReleaseTrack;
+  @ValidForSpinnakerVersion(
+          lowerBound = "1.11.0",
+          tooLowMessage = "The set of services that Spinnaker will index is not configurable prior to this release."
+  )
+  private List<String> services;
+  @ValidForSpinnakerVersion(
+          lowerBound = "1.11.0",
+          tooLowMessage = "The set of versions that Spinnaker will index is not configurable prior to this release."
+  )
+  private List<String> versions;
+  @ValidForSpinnakerVersion(
+          lowerBound = "1.11.0",
+          tooLowMessage = "The set of services that Spinnaker will ignore is not configurable prior to this release."
+  )
+  private List<String> omitServices;
+  @ValidForSpinnakerVersion(
+          lowerBound = "1.11.0",
+          tooLowMessage = "The set of versions that Spinnaker will ignore is not configurable prior to this release."
+  )
+  private List<String> omitVersions;
 
   public enum GcloudReleaseTrack {
     ALPHA,

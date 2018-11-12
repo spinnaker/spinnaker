@@ -24,6 +24,8 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 
+import java.util.List;
+
 import static com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount.GcloudReleaseTrack;
 
 @Parameters(separators = "=")
@@ -106,6 +108,34 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
   )
   private GcloudReleaseTrack gcloudReleaseTrack;
 
+  @Parameter(
+      names = "--services",
+      description = AppengineCommandProperties.SERVICES,
+      variableArity = true
+  )
+  private List<String> services;
+
+  @Parameter(
+      names = "--versions",
+      description = AppengineCommandProperties.VERSIONS,
+      variableArity = true
+  )
+  private List<String> versions;
+
+  @Parameter(
+      names = "--omit-services",
+      description = AppengineCommandProperties.OMIT_SERVICES,
+      variableArity = true
+  )
+  private List<String> omitServices;
+
+  @Parameter(
+      names = "--omit-versions",
+      description = AppengineCommandProperties.OMIT_VERSIONS,
+      variableArity = true
+  )
+  private List<String> omitVersions;
+
   @Override
   protected Account editAccount(AppengineAccount account) {
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
@@ -119,6 +149,10 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
     account.setSshKnownHostsFilePath(isSet(sshKnownHostsFilePath) ? sshKnownHostsFilePath : account.getSshKnownHostsFilePath());
     account.setSshTrustUnknownHosts(sshTrustUnknownHosts != null ? sshTrustUnknownHosts : account.isSshTrustUnknownHosts());
     account.setGcloudReleaseTrack(gcloudReleaseTrack != null ? gcloudReleaseTrack : account.getGcloudReleaseTrack());
+    account.setServices(services != null ? services : account.getServices());
+    account.setVersions(versions != null ? versions : account.getVersions());
+    account.setOmitServices(omitServices != null ? omitServices : account.getOmitServices());
+    account.setOmitVersions(omitVersions != null ? omitVersions : account.getOmitVersions());
     
     return account;
   }
