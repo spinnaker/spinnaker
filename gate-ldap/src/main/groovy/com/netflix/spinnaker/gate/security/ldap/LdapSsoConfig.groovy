@@ -26,6 +26,7 @@ import com.netflix.spinnaker.security.User
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
@@ -62,8 +63,22 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired(required = false)
   List<MultiAuthConfigurer> additionalAuthProviders
 
+  @Autowired
+  SecurityProperties securityProperties
+
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+
+    // In order for the HttpBasic user to have its creds checked first (and to keep unnecessary calls
+    // from hitting the LDAP server), this must be configured before the full LDAP config.
+    // See https://github.com/spinnaker/spinnaker/issues/3589
+    if (securityProperties.basic.enabled) {
+      auth.inMemoryAuthentication()
+          .withUser(securityProperties.user.name)
+          .password(securityProperties.user.password)
+          .roles("USER")
+    }
+
     def ldapConfigurer =
         auth.ldapAuthentication()
             .contextSource()
