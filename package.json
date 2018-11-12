@@ -33,7 +33,7 @@
     "@spinnaker/styleguide": "^1.0.10",
     "@types/memoize-one": "^3.1.1",
     "@types/react-tether": "^0.5.3",
-    "@uirouter/react-hybrid": "0.3.6",
+    "@uirouter/react-hybrid": "0.3.7",
     "@uirouter/rx": "0.4.5",
     "@uirouter/visualizer": "6.0.2",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
@@ -190,7 +190,7 @@
   },
   "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
   "resolutions": {
-    "@uirouter/react-hybrid": "0.3.6",
+    "@uirouter/react-hybrid": "0.3.7",
     "@uirouter/react": "0.8.7",
     "@uirouter/angularjs": "1.0.20",
     "@uirouter/core": "5.0.21"
