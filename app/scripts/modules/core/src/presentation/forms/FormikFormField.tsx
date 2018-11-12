@@ -21,7 +21,7 @@ export interface IFormikFieldProps<T> {
    * Use `fastField={false}` if the field depends on other fields.
    * See: https://jaredpalmer.com/formik/docs/api/fastfield#when-to-use-fastfield
    */
-  fastField: boolean;
+  fastField?: boolean;
   /** Inline validation function or functions */
   validate?: Validator | Validator[];
   /** A callback that is invoked whenever the field value changes */

@@ -51,6 +51,66 @@ export class CloudProviderIcon extends React.Component<IServerGroupHeaderProps> 
   }
 }
 
+export interface IImageListState {
+  collapsed: boolean;
+}
+
+export class ImageList extends React.Component<IServerGroupHeaderProps, IImageListState> {
+  private toggle() {
+    this.setState((previousState: IImageListState) => {
+      return { collapsed: !previousState.collapsed };
+    });
+  }
+
+  constructor(props: IServerGroupHeaderProps) {
+    super(props);
+    this.state = {
+      collapsed: true,
+    };
+    this.toggle = this.toggle.bind(this);
+  }
+
+  public render() {
+    const images = this.props.images.sort();
+    const { collapsed } = this.state;
+    const buttonStyle = {
+      padding: 0,
+      fontSize: '13px',
+    };
+
+    return (
+      <>
+        {collapsed && (
+          <>
+            <span>{images[0]}</span>
+            &nbsp;
+            {images.length > 1 && (
+              <button className="link" onClick={this.toggle} style={buttonStyle}>
+                (+ {images.length - 1} more)
+              </button>
+            )}
+          </>
+        )}
+        {!collapsed && (
+          <>
+            {images.map((image, index) => (
+              <span key={image}>
+                {index > 0 && <br />}
+                {image}
+                {index < images.length - 1 ? ',' : ''}
+              </span>
+            ))}
+            <br />
+            <button className="link" onClick={this.toggle} style={buttonStyle}>
+              collapse
+            </button>
+          </>
+        )}
+      </>
+    );
+  }
+}
+
 export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeaderProps> {
   public render() {
     const { serverGroup, jenkins, images, docker } = this.props;
@@ -69,14 +129,7 @@ export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeade
             {docker.image}:{docker.tag}
           </a>
         )}
-        {!!images &&
-          images.map((image, index) => (
-            <span key={image}>
-              {index > 0 && <br />}
-              {image}
-              {index < images.length - 1 ? ',' : ''}
-            </span>
-          ))}
+        {!!images && <ImageList {...this.props} />}
       </div>
     );
   }
