@@ -1,31 +1,15 @@
 import * as React from 'react';
 
-import {
-  CollapsibleSection,
-  NgReact,
-  Overridable,
-  ModalInjector,
-  ReactInjector,
-  Application,
-  IServerGroup,
-} from '@spinnaker/core';
+import { CollapsibleSection, NgReact, Overridable, Application } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AmazonResizeServerGroupModal } from '../resize/AmazonResizeServerGroupModal';
+import { IAmazonServerGroup } from 'amazon/domain';
 
 @Overridable('amazon.serverGroup.CapacityDetailsSection')
 export class CapacityDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
-  public static resizeServerGroup(serverGroup: IServerGroup, application: Application): void {
-    ModalInjector.modalService.open({
-      templateUrl: ReactInjector.overrideRegistry.getTemplate(
-        'aws.resize.modal',
-        require('../resize/resizeServerGroup.html'),
-      ),
-      controller: 'awsResizeServerGroupCtrl as ctrl',
-      resolve: {
-        serverGroup: () => serverGroup,
-        application: () => application,
-      },
-    });
+  public static resizeServerGroup(serverGroup: IAmazonServerGroup, application: Application): void {
+    AmazonResizeServerGroupModal.show({ application, serverGroup });
   }
 
   public render(): JSX.Element {

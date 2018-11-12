@@ -9,6 +9,5 @@ module(SERVER_GROUP_DETAILS_MODULE, [
   require('./scalingProcesses/modifyScalingProcesses.controller.js').name,
   require('./scheduledAction/editScheduledActions.modal.controller.js').name,
   require('./advancedSettings/editAsgAdvancedSettings.modal.controller.js').name,
-  require('./resize/resizeServerGroup.controller.js').name,
   require('./rollback/rollbackServerGroup.controller.js').name,
 ]);

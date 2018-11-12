@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { isEqual } from 'lodash';
 
-import { IServerGroupCommand } from 'core/serverGroup';
 import { HelpField } from 'core/help/HelpField';
 
 export interface IPlatformHealthOverrideProps {
-  command: IServerGroupCommand;
+  interestingHealthProviderNames: string[];
   onChange: (healthProviderNames: string[]) => void;
   platformHealthType: string;
   showHelpDetails?: boolean;
@@ -23,7 +22,7 @@ export class PlatformHealthOverride extends React.Component<IPlatformHealthOverr
         <label>
           <input
             type="checkbox"
-            checked={isEqual(this.props.command.interestingHealthProviderNames, [this.props.platformHealthType])}
+            checked={isEqual(this.props.interestingHealthProviderNames, [this.props.platformHealthType])}
             onChange={this.clicked}
           />
           Consider only {this.props.platformHealthType} health

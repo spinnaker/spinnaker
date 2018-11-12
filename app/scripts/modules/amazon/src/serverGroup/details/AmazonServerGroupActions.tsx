@@ -18,6 +18,7 @@ import { IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
 import { AmazonCloneServerGroupModal } from 'amazon/serverGroup/configure/wizard/AmazonCloneServerGroupModal';
 import { AwsReactInjector } from 'amazon/reactShims';
 import { IAmazonServerGroupCommand } from '../configure';
+import { AmazonResizeServerGroupModal } from './resize/AmazonResizeServerGroupModal';
 
 export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: IAmazonServerGroupView;
@@ -255,17 +256,8 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
   };
 
   private resizeServerGroup = (): void => {
-    ModalInjector.modalService.open({
-      templateUrl: ReactInjector.overrideRegistry.getTemplate(
-        'aws.resize.modal',
-        require('./resize/resizeServerGroup.html'),
-      ),
-      controller: 'awsResizeServerGroupCtrl as ctrl',
-      resolve: {
-        serverGroup: () => this.props.serverGroup,
-        application: () => this.props.app,
-      },
-    });
+    const { app, serverGroup } = this.props;
+    AmazonResizeServerGroupModal.show({ application: app, serverGroup });
   };
 
   private cloneServerGroup = (): void => {

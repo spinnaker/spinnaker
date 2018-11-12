@@ -5,6 +5,7 @@ import { AccountService, UserVerification, IAccountDetails } from '@spinnaker/co
 
 export interface IAwsModalFooterProps {
   account: string;
+  isValid?: boolean;
   onCancel: () => void;
   onSubmit: () => void;
 }
@@ -15,6 +16,10 @@ export interface IAwsModalFooterState {
 }
 
 export class AwsModalFooter extends React.Component<IAwsModalFooterProps, IAwsModalFooterState> {
+  public static defaultProps: Partial<IAwsModalFooterProps> = {
+    isValid: true,
+  };
+
   public state = { verified: false, requireVerification: false };
 
   public componentDidMount() {
@@ -31,7 +36,7 @@ export class AwsModalFooter extends React.Component<IAwsModalFooterProps, IAwsMo
   };
 
   public render() {
-    const { account, onCancel, onSubmit } = this.props;
+    const { account, onCancel, onSubmit, isValid } = this.props;
     const { verified, requireVerification } = this.state;
     const handleSubmit = () => {
       this.props.onSubmit();
@@ -51,7 +56,7 @@ export class AwsModalFooter extends React.Component<IAwsModalFooterProps, IAwsMo
           type="submit"
           className="btn btn-primary"
           onClick={onSubmit}
-          disabled={requireVerification && !verified}
+          disabled={!isValid || (requireVerification && !verified)}
         >
           Submit
         </button>

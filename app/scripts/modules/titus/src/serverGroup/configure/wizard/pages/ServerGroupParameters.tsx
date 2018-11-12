@@ -200,7 +200,7 @@ class ServerGroupParametersImpl extends React.Component<IServerGroupParametersPr
             </div>
             <div className="col-md-6">
               <PlatformHealthOverride
-                command={values}
+                interestingHealthProviderNames={values.interestingHealthProviderNames}
                 platformHealthType="Titus"
                 onChange={this.platformHealthOverrideChanged}
               />

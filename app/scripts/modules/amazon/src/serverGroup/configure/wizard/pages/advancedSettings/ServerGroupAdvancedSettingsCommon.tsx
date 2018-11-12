@@ -306,7 +306,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
             </div>
             <div className="col-md-6">
               <PlatformHealthOverride
-                command={values}
+                interestingHealthProviderNames={values.interestingHealthProviderNames}
                 platformHealthType="Amazon"
                 onChange={this.platformHealthOverrideChanged}
               />
