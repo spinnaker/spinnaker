@@ -220,6 +220,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   )
   public Boolean onlySpinnakerManaged;
 
+  @Parameter(
+        names = "--check-permissions-on-startup",
+        arity = 1,
+        description = KubernetesCommandProperties.CHECK_PERMISSIONS_ON_STARTUP
+  )
+  public Boolean checkPermissionsOnStartup;
+
   @Override
   protected Account editAccount(KubernetesAccount account) {
     boolean contextSet = context != null && !context.isEmpty();
@@ -288,7 +295,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     account.setNamingStrategy(isSet(namingStrategy) ? namingStrategy : account.getNamingStrategy());
     account.setSkin(isSet(skin) ? skin : account.getSkin());
     account.setOnlySpinnakerManaged(isSet(onlySpinnakerManaged) ? onlySpinnakerManaged : account.getOnlySpinnakerManaged());
-    
+    account.setCheckPermissionsOnStartup(isSet(checkPermissionsOnStartup) ? checkPermissionsOnStartup : Boolean.TRUE);
     return account;
   }
 

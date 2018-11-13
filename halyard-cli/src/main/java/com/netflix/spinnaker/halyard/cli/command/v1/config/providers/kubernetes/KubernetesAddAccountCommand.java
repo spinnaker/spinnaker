@@ -127,6 +127,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   )
   public Boolean onlySpinnakerManaged = false;
 
+  @Parameter(
+        names = "--check-permissions-on-startup",
+        arity = 1,
+        description = KubernetesCommandProperties.CHECK_PERMISSIONS_ON_STARTUP
+  )
+  public Boolean checkPermissionsOnStartup;
+
   @Override
   protected Account buildAccount(String accountName) {
     KubernetesAccount account = (KubernetesAccount) new KubernetesAccount().setName(accountName);
@@ -144,6 +151,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setNamingStrategy(namingStrategy);
     account.setSkin(skin);
     account.setOnlySpinnakerManaged(onlySpinnakerManaged);
+    account.setCheckPermissionsOnStartup(checkPermissionsOnStartup);
     return account;
   }
 
