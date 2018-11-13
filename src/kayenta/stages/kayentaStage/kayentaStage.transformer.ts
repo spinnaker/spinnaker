@@ -11,8 +11,9 @@ export class KayentaStageTransformer implements ITransformer {
       if (stage.type === KAYENTA_CANARY) {
         OrchestratedItemTransformer.defineProperties(stage);
 
+        const intervalStageId = stage.context.intervalStageId;
         const syntheticCanaryStages = execution.stages.filter(
-          s => s.parentStageId === stage.id && [WAIT, RUN_CANARY].includes(s.type),
+          s => s.parentStageId === intervalStageId && [WAIT, RUN_CANARY].includes(s.type),
         );
         stagesToRenderAsTasks = stagesToRenderAsTasks.concat(syntheticCanaryStages);
 
