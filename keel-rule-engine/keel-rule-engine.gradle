@@ -4,7 +4,7 @@ apply from: "$rootDir/gradle/junit5.gradle"
 apply plugin: "application"
 
 dependencies {
-  implementation project(":keel-api")
+  api project(":keel-api")
   implementation project(":keel-common")
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"

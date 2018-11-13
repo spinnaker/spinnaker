@@ -5,5 +5,5 @@ dependencies {
   implementation "org.junit.jupiter:junit-jupiter-api:+"
   implementation "io.strikt:strikt-core:+"
   implementation "com.nhaarman:mockito-kotlin:+"
-  implementation "com.oneeyedmen:minutest:+"
+  api "com.oneeyedmen:minutest:+"
 }

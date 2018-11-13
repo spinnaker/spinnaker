@@ -40,7 +40,7 @@ com.nhaarman:mockito-kotlin:1.5.0
 com.nimbusds:lang-tag:1.4.4
 com.nimbusds:nimbus-jose-jwt:6.3
 com.nimbusds:oauth2-oidc-sdk:5.24.1
-com.oneeyedmen:minutest:0.22.0
+com.oneeyedmen:minutest:0.23.0
 com.squareup.okhttp:logging-interceptor:2.7.5
 com.squareup.okhttp:okhttp-ws:2.7.5
 com.squareup.okhttp:okhttp:2.7.5
@@ -100,11 +100,11 @@ org.hamcrest:hamcrest-core:1.3
 org.hamcrest:hamcrest-library:1.3
 org.hibernate:hibernate-validator:5.3.6.Final
 org.jboss.logging:jboss-logging:3.3.0.Final
-org.jetbrains.kotlin:kotlin-reflect:1.3.0
-org.jetbrains.kotlin:kotlin-stdlib-common:1.3.0
-org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.0
-org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.0
-org.jetbrains.kotlin:kotlin-stdlib:1.3.0
+org.jetbrains.kotlin:kotlin-reflect:1.3.10
+org.jetbrains.kotlin:kotlin-stdlib-common:1.3.10
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.10
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.10
+org.jetbrains.kotlin:kotlin-stdlib:1.3.10
 org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.0.0
 org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0
 org.jetbrains:annotations:13.0
