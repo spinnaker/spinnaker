@@ -12,6 +12,8 @@ import {
   ICloudFoundryManifestTriggerSource,
 } from '../../serverGroupConfigurationModel.cf';
 
+import { Field, FieldArray } from 'formik';
+
 export interface ICloudFoundryServerGroupConfigurationSettingsProps
   extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
   artifactAccounts: IArtifactAccount[];
@@ -96,33 +98,6 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
         break;
     }
     this.props.formik.setFieldValue('manifest', this.props.formik.values.manifest);
-  };
-
-  private routeUpdated = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { manifest } = this.props.formik.values;
-    if (isManifestDirectSource(manifest)) {
-      manifest.routes[index] = event.target.value;
-      this.props.formik.setFieldValue('manifest.routes', manifest.routes);
-    }
-  };
-
-  private addRoutesVariable = (): void => {
-    const { manifest } = this.props.formik.values;
-    if (isManifestDirectSource(manifest)) {
-      if (manifest.routes === undefined) {
-        manifest.routes = [];
-      }
-      manifest.routes.push('');
-      this.props.formik.setFieldValue('manifest.routes', manifest.routes);
-    }
-  };
-
-  private removeRoutesVariable = (index: number): void => {
-    const { manifest } = this.props.formik.values;
-    if (isManifestDirectSource(manifest)) {
-      manifest.routes.splice(index, 1);
-      this.props.formik.setFieldValue('manifest.routes', manifest.routes);
-    }
   };
 
   private addEnvironmentVariable = (): void => {
@@ -221,9 +196,6 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
 
   private directConfiguration = (manifest: ICloudFoundryManifestSource): JSX.Element => {
     const {
-      routeUpdated,
-      removeRoutesVariable,
-      addRoutesVariable,
       addEnvironmentVariable,
       removeEnvironmentVariable,
       environmentKeyUpdated,
@@ -266,41 +238,42 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
               <b>Routes</b>
               &nbsp;
               <HelpField id="cf.serverGroup.routes" />
-              <table className="table table-condensed packed metadata">
-                <tbody>
-                  {manifest.routes &&
-                    manifest.routes.map(function(route, index) {
-                      return (
-                        <tr key={index}>
-                          <td>
-                            <input
-                              className="form-control input-sm"
-                              value={route}
-                              type="text"
-                              ng-model="command.services[$index]"
-                              required={true}
-                              onChange={event => routeUpdated(index, event)}
-                            />
-                          </td>
-                          <td>
-                            <a className="btn btn-link sm-label" onClick={() => removeRoutesVariable(index)}>
-                              <span className="glyphicon glyphicon-trash" />
-                            </a>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan={1}>
-                      <button type="button" className="add-new col-md-12" onClick={addRoutesVariable}>
-                        <span className="glyphicon glyphicon-plus-sign" /> Add New Route
-                      </button>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+              <FieldArray
+                name="manifest.routes"
+                render={arrayHelpers => (
+                  <table className="table table-condensed packed metadata">
+                    <tbody>
+                      {manifest.routes &&
+                        manifest.routes.map((_, index) => (
+                          <tr key={index}>
+                            <td>
+                              <Field
+                                className="form-control input-sm"
+                                name={`manifest.routes.${index}`}
+                                type="text"
+                                required={true}
+                              />
+                            </td>
+                            <td>
+                              <a className="btn btn-link sm-label" onClick={() => arrayHelpers.remove(index)}>
+                                <span className="glyphicon glyphicon-trash" />
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan={1}>
+                          <button type="button" className="add-new col-md-12" onClick={() => arrayHelpers.push('')}>
+                            <span className="glyphicon glyphicon-plus-sign" /> Add New Route
+                          </button>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                )}
+              />
             </div>
           </div>
 
@@ -415,11 +388,12 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
               </div>
             )}
           {errors.manifest &&
-            errors.manifest.routes && (
+            errors.manifest.routes &&
+            errors.manifest.routes.map((routeError: string) => (
               <div className="wizard-pod-row-errors">
-                <ValidationMessage message={errors.manifest.routes} type={'error'} />
+                <ValidationMessage message={routeError} type={'error'} />
               </div>
-            )}
+            ))}
           {errors.manifest &&
             errors.manifest.env && (
               <div className="wizard-pod-row-errors">
@@ -624,12 +598,16 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
         values.manifest.routes.forEach(function(route) {
           if (!route) {
             errors.manifest = errors.manifest || {};
-            errors.manifest.routes = `A route was not specified`;
+            errors.manifest.routes = errors.manifest.routes || [];
+            errors.manifest.routes.push(`A route was not specified`);
           }
           const regex = /^([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_.-]+)(\:[0-9]+)?([\/a-zA-Z0-9_-]+)?$/gm;
           if (route && regex.exec(route) === null) {
             errors.manifest = errors.manifest || {};
-            errors.manifest.routes = `A route did not match the expected format "host.some.domain[:9999][/some/path]"`;
+            errors.manifest.routes = errors.manifest.routes || [];
+            errors.manifest.routes.push(
+              `A route did not match the expected format "host.some.domain[:9999][/some/path]"`,
+            );
           }
         });
       }
