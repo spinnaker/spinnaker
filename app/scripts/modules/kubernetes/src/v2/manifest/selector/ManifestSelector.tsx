@@ -179,7 +179,10 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
       .map(([kind]) => kind)
       .sort();
 
-    if (namespaces.every(ns => ns !== this.state.selector.location)) {
+    if (
+      !this.isExpression(this.state.selector.location) &&
+      namespaces.every(ns => ns !== this.state.selector.location)
+    ) {
       this.state.selector.location = null;
     }
     this.state.selector.account = selectedAccount;
