@@ -11,14 +11,22 @@
     <div ng-if="$ctrl.activeTab === 'minutes'">
       <div class="row" ng-init="$ctrl.regenerateCron()">
         <div class="col-md-12">
-          <input class="form-control input-sm"
-                 type="number"
-                 min="1"
-                 max="59"
-                 ng-change="$ctrl.regenerateCron()"
-                 ng-model="$ctrl.state.minutes.minutes"
-                 ng-required="$ctrl.activeTab === 'minutes'">
-          minute<span ng-if="$ctrl.state.minutes.minutes > 1">s</span>
+          Every
+          <select class="form-control input-sm" ng-change="$ctrl.regenerateCron()" ng-model="$ctrl.state.minutes.minutes"
+            ng-required="$ctrl.activeTab === 'minutes'">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>10</option>
+            <option>12</option>
+            <option>15</option>
+            <option>20</option>
+            <option>30</option>
+          </select>
+          minute<span ng-if="$ctrl.state.minutes.minutes !== '1'">s</span>
         </div>
       </div>
     </div>
