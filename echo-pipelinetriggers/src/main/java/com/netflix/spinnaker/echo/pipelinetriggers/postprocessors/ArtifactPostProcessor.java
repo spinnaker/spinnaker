@@ -22,14 +22,17 @@ import com.netflix.spinnaker.echo.artifacts.MessageArtifactTranslator;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaTemplate;
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaTemplateService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,10 +44,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ArtifactPostProcessor implements PipelinePostProcessor {
   private final ObjectMapper objectMapper;
+  private final JinjaTemplateService jinjaTemplateService;
 
   @Autowired
-  public ArtifactPostProcessor(ObjectMapper objectMapper) {
+  public ArtifactPostProcessor(ObjectMapper objectMapper, JinjaTemplateService jinjaTemplateService) {
     this.objectMapper = objectMapper;
+    this.jinjaTemplateService = jinjaTemplateService;
   }
 
   public Pipeline processPipeline(Pipeline inputPipeline) {
@@ -82,8 +87,37 @@ public class ArtifactPostProcessor implements PipelinePostProcessor {
   }
 
   private List<JinjaTemplate> getArtifactTemplates(Trigger trigger) {
-    // TODO: This always returns an empty list; implement this so that it selects a template based on the trigger
-    return Collections.emptyList();
+    List<JinjaTemplate> templates = new ArrayList<>();
+
+    JinjaTemplate templateFromProperty = getTemplateFromProperty(trigger);
+    if (templateFromProperty != null) {
+      templates.add(templateFromProperty);
+    }
+    return templates;
+  }
+
+  private JinjaTemplate getTemplateFromProperty(Trigger trigger) {
+    if (trigger == null) {
+      return null;
+    }
+
+    Map<String, Object> properties = trigger.getProperties();
+    if (properties == null) {
+      return null;
+    }
+
+    String messageFormat = (String) properties.get("messageFormat");
+    if (StringUtils.isEmpty(messageFormat)) {
+      return null;
+    }
+
+    JinjaTemplate.TemplateType templateType = JinjaTemplate.TemplateType.STANDARD;
+    String customTemplate = (String) properties.get("customFormat");
+    if (Boolean.parseBoolean(customTemplate)) {
+      templateType = JinjaTemplate.TemplateType.CUSTOM;
+    }
+
+    return jinjaTemplateService.getTemplate(messageFormat, templateType);
   }
 
   public PostProcessorPriority priority() {

@@ -17,14 +17,17 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.JinjaTemplateService
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ArtifactPostProcessorSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
+  def jinjaTemplateService = GroovyMock(JinjaTemplateService)
+
   @Subject
-  def artifactPostProcessor = new ArtifactPostProcessor(objectMapper)
+  def artifactPostProcessor = new ArtifactPostProcessor(objectMapper, jinjaTemplateService)
 
   def "is (currently) a no-op"() {
     given:
