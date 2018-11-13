@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.FindArtifactsFromResourceTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DynamicResolveManifestTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -30,7 +31,7 @@ public class FindArtifactsFromResourceStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder
+    builder.withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
       .withTask(FindArtifactsFromResourceTask.TASK_NAME, FindArtifactsFromResourceTask.class)
       .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
   }
