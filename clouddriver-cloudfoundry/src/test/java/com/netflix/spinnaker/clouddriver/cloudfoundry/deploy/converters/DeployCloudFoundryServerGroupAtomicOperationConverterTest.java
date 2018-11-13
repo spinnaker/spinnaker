@@ -132,6 +132,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
           "instances", 7,
           "memory", "1G",
           "disk_quota", "2048M",
+          "buildpack", "buildpack1",
           "services", List.of(
             "service1"
           ).asJava(),
@@ -154,6 +155,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         .setInstances(7)
         .setMemory("1G")
         .setDiskQuota("2048M")
+        .setBuildpack("buildpack1")
         .setServices(List.of("service1").asJava())
         .setRoutes(List.of(
           "www.example.com/foo"
