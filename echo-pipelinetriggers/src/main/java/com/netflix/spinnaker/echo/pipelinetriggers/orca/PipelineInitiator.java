@@ -22,8 +22,13 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -34,9 +39,6 @@ import retrofit.RetrofitError;
 import retrofit.RetrofitError.Kind;
 import rx.Observable;
 import rx.functions.Func1;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Triggers a {@link Pipeline} by invoking _Orca_.
@@ -92,9 +94,18 @@ public class PipelineInitiator {
         final String templatedPipelineType = "templatedPipeline";
         if (templatedPipelineType.equals(pipeline.getType())) { // TODO(jacobkiefer): Constantize.
           log.debug("Planning templated pipeline {} before triggering", pipeline.getId());
+
+          // TODO(jacobkiefer): Refactor and simplify /orchestrate and the artifact resolution (https://github.com/spinnaker/spinnaker/issues/3593).
+          // receivedArtifacts and expectedArtifacts are not returned in the /orchestrate 'plan=true' path, so we need to remember
+          // them and re-insert them after the plan.
+          List<Artifact> prePlanReceivedArtifacts = pipeline.getReceivedArtifacts();
+          List<ExpectedArtifact> prePlanExpectedArtifacts = pipeline.getExpectedArtifacts();
+
           pipeline = pipeline.withPlan(true);
           Map resolvedPipelineMap = orca.plan(objectMapper.convertValue(pipeline, Map.class));
-          pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
+          pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class)
+            .withReceivedArtifacts(prePlanReceivedArtifacts)
+            .withExpectedArtifacts(prePlanExpectedArtifacts);
         }
         triggerPipeline(pipeline);
         registry.counter("orca.requests").increment();
