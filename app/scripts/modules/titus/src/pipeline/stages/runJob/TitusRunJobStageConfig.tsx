@@ -320,6 +320,16 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
               in <AccountTag account={awsAccount} />
             </div>
           </div>
+
+          <StageConfigField label="Capacity Group" fieldColumns={4} helpKey="titus.job.capacityGroup">
+            <input
+              type="text"
+              className="form-control input-sm"
+              value={stage.cluster.capacityGroup || ''}
+              onChange={e => this.stageFieldChanged('cluster.capacityGroup', e.target.value)}
+            />
+          </StageConfigField>
+
           <StageConfigField label={FirewallLabels.get('Firewalls')} helpKey="titus.job.securityGroups">
             {(!stage.credentials || !stage.cluster.region) && (
               <div>Account and region must be selected before {FirewallLabels.get('firewalls')} can be added</div>

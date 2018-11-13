@@ -43,6 +43,7 @@ const helpContents: { [key: string]: string } = {
       <p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>`,
   'titus.deploy.securityGroups':
     'AWS Security Groups to assign to this service. Security groups are set only if <samp>Allocate IP?</samp> has been selected and are assigned to the Titus AWS Elastic Network Interface.',
+  'titus.job.capacityGroup': 'Capacity Group will default to application name if not specified.',
   'titus.job.securityGroups': 'AWS Security Groups to assign to this job',
   'titus.configBin.metrics': `
       <p>Metrics must be forwarded from Atlas to Cloudwatch in order to use them in scaling policies. Metrics can be
