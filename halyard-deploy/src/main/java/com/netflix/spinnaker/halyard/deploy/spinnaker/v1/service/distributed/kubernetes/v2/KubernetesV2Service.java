@@ -255,6 +255,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .addBinding("containers", containers)
         .addBinding("initContainers", initContainers)
         .addBinding("hostAliases", hostAliases)
+        .addBinding("imagePullSecrets", settings.getKubernetes().getImagePullSecrets())
         .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
         .addBinding("volumes", volumes);
 

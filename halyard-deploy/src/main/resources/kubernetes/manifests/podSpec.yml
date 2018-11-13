@@ -5,6 +5,14 @@
     {% endfor %}
   ],
 
+  {% if imagePullSecrets != null %}
+  "imagePullSecrets": [
+    {% for secret in imagePullSecrets %}
+    "name": "{{ secret }}" {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
   {% if initContainers != null %}
   "initContainers": [
     {% for c in initContainers %}
