@@ -10,12 +10,10 @@ class KubernetesScaleManifestSettingsFormComponent implements IComponentOptions 
           Replicas
         </div>
         <div class="col-md-4">
-          <div class="input-group">
-            <input type="number"
-                  class="form-control input-sm highlight-pristine"
-                  ng-model="ctrl.settings.replicas"
-                  min="0"/>
-          </div>
+          <input type="number"
+                 class="form-control input-sm highlight-pristine"
+                 ng-model="ctrl.settings.replicas"
+                 min="0"/>
         </div>
       </div>
     </div>
