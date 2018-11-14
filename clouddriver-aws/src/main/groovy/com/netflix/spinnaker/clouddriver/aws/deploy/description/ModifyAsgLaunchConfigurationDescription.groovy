@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
+class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
   String region
   String asgName
   String amiName

@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
-class ResizeAsgDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
+class ResizeAsgDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
   ServerGroup.Capacity capacity
   List<AsgTargetDescription> asgs = []
 

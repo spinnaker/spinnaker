@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 import groovy.transform.Canonical
 
-class ResizeTitusServerGroupDescription extends AbstractTitusCredentialsDescription implements ServerGroupNameable {
+class ResizeTitusServerGroupDescription extends AbstractTitusCredentialsDescription implements ServerGroupsNameable {
   String region
   String serverGroupName
   String user

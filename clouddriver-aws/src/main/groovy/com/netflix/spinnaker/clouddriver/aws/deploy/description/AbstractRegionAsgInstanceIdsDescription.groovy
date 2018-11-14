@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
-abstract class AbstractRegionAsgInstanceIdsDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
+abstract class AbstractRegionAsgInstanceIdsDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
   String region
   String asgName
   List<String> instanceIds

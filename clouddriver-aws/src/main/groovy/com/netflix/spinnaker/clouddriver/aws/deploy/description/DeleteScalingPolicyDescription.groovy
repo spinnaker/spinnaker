@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
-class DeleteScalingPolicyDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
+class DeleteScalingPolicyDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
   String policyName
   String serverGroupName
   String region

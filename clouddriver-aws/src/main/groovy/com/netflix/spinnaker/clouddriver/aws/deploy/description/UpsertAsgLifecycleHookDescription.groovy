@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.DefaultResult
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.Transition
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
-class UpsertAsgLifecycleHookDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
+class UpsertAsgLifecycleHookDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
 
   // required
   String serverGroupName

@@ -18,9 +18,9 @@
 package com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup;
 
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.AbstractDcosCredentialsDescription;
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable;
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable;
 
-abstract class AbstractDcosServerGroupDescription extends AbstractDcosCredentialsDescription implements ServerGroupNameable {
+abstract class AbstractDcosServerGroupDescription extends AbstractDcosCredentialsDescription implements ServerGroupsNameable {
   String serverGroupName
   boolean forceDeployment = true
 

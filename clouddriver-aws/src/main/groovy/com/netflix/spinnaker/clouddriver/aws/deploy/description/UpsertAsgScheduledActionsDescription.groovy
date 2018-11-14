@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 import groovy.transform.ToString
 
-class UpsertAsgScheduledActionsDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
+class UpsertAsgScheduledActionsDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
 
   List<AsgDescription> asgs = []
   List<ScheduledActionDescription> scheduledActions

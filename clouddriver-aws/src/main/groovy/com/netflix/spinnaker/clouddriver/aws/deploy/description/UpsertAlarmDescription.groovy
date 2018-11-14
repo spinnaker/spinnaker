@@ -21,9 +21,9 @@ import com.amazonaws.services.cloudwatch.model.Dimension
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
 import com.amazonaws.services.cloudwatch.model.StandardUnit
 import com.amazonaws.services.cloudwatch.model.Statistic
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
-class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
+class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
   String name
   String asgName
   String region

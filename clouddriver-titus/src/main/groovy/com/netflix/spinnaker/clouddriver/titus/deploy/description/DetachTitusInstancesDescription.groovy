@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
-class DetachTitusInstancesDescription extends AbstractTitusCredentialsDescription implements ServerGroupNameable {
+class DetachTitusInstancesDescription extends AbstractTitusCredentialsDescription implements ServerGroupsNameable {
   String region
   List<String> instanceIds
   boolean decrementDesiredCapacity

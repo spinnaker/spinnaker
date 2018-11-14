@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
-class ModifyAsgDescription extends AbstractAmazonCredentialsDescription implements ServerGroupNameable {
+class ModifyAsgDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
   List<AsgDescription> asgs = []
 
   Integer cooldown

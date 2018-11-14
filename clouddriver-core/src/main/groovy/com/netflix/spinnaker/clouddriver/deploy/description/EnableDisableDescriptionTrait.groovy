@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.deploy.description
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 
-trait EnableDisableDescriptionTrait implements ServerGroupNameable {
+trait EnableDisableDescriptionTrait implements ServerGroupsNameable {
   String serverGroupName
 
   Integer getDesiredPercentage() {

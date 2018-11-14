@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
@@ -93,7 +93,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   }
 
   @Canonical
-  static class Source implements ServerGroupNameable {
+  static class Source implements ServerGroupsNameable {
     // TODO(duftler): Add accountName/credentials to support cloning from one account to another.
     String region
     String serverGroupName
