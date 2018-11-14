@@ -1,4 +1,4 @@
-# oss-approvers
+# oss-reviewers
 * claymccoy
 * clareliguori
 * Jammy-Louie
