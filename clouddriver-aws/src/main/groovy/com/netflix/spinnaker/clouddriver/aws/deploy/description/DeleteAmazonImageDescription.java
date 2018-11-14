@@ -35,4 +35,9 @@ public class DeleteAmazonImageDescription extends AbstractAmazonCredentialsDescr
   public void setRegion(String region) {
     this.region = region;
   }
+
+  @Override
+  public boolean requiresApplicationRestriction() {
+    return false;
+  }
 }
