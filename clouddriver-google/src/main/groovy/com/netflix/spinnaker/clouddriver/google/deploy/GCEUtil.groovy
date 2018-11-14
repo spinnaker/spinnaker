@@ -709,6 +709,12 @@ class GCEUtil {
                                  safeRetry,
                                  executor)
 
+    disks.findAll { it.isPersistent() }
+      .eachWithIndex { disk, i ->
+      def baseDeviceName = description.baseDeviceName ?: 'device'
+      disk.deviceName = "$baseDeviceName-$i"
+    }
+
     def firstPersistentDisk = disks.find { it.persistent }
     return disks.collect { disk ->
       def diskType = useDiskTypeUrl ? buildDiskTypeUrl(credentials.project, zone, disk.type) : disk.type
@@ -740,6 +746,7 @@ class GCEUtil {
 
       new AttachedDisk(boot: disk.is(firstPersistentDisk),
                        autoDelete: disk.autoDelete,
+                       deviceName: disk.deviceName,
                        type: disk.persistent ? DISK_TYPE_PERSISTENT : DISK_TYPE_SCRATCH,
                        initializeParams: attachedDiskInitializeParams)
     }

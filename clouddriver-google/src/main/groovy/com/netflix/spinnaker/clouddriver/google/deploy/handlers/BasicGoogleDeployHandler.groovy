@@ -193,6 +193,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
+    description.baseDeviceName = serverGroupName
     def attachedDisks = GCEUtil.buildAttachedDisks(description,
                                                    null,
                                                    false,

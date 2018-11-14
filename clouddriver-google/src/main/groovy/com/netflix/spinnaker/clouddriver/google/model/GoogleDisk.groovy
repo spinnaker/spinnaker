@@ -30,6 +30,11 @@ class GoogleDisk {
   String sourceImage
   boolean autoDelete = true
 
+  // Unique disk device name addressable by a Linux OS in /dev/disk/by-id/google-* in the running instance.
+  // Used to reference disk for mounting, resizing, etc.
+  // Only applicable for persistent disks.
+  String deviceName
+
   void setType(String type) {
     this.type = GoogleDiskType.fromValue(type)
   }

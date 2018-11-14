@@ -167,6 +167,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
 
         clonedDescription.disks = overriddenProperties.disks
 
+        clonedDescription.baseDeviceName = description.serverGroupName
         def attachedDisks = GCEUtil.buildAttachedDisks(clonedDescription,
                                                        null,
                                                        false,

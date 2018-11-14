@@ -98,6 +98,7 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
 
     task.updateStatus BASE_PHASE, "Composing instance..."
 
+    description.baseDeviceName = description.instanceName
     def attachedDisks = GCEUtil.buildAttachedDisks(description,
                                                    zone,
                                                    true,

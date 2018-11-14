@@ -43,6 +43,11 @@ class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription
   Boolean automaticRestart
   OnHostMaintenance onHostMaintenance
 
+  // Unique disk device name addressable by a Linux OS in /dev/disk/by-id/google-* in the running instance.
+  // Used to reference disk for mounting, resizing, etc.
+  // Only applicable for persistent disks.
+  String baseDeviceName
+
   // We support passing the image to deploy as either a string or an artifact, but default to
   // the string for backwards-compatibility
   ImageSource imageSource = ImageSource.STRING
