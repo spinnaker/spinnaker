@@ -90,7 +90,7 @@
                 ng-change="vm.parameters[parameter.name] = parameter.model.toISOString().slice(0,10); vm.updateParameters();"
                 is-open="vm.dateOpened[parameter.name]"
                 datepicker-options="vm.dateOptions"
-                ng-required="true"
+                ng-required="parameter.required"
                 close-text="Close"
               />
               <span class="input-group-btn">
