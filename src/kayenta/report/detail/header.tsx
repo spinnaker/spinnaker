@@ -18,13 +18,13 @@ export interface IReportHeaderStateProps {
 
 const ReportHeader = ({ id, name, score }: IReportHeaderStateProps) => (
   <section className="horizontal report-header">
-    <h1 className="heading-1 color-text-primary">
-      <UISref to="^.^.canaryConfig.configDetail" params={{ id }}>
-        <a className="clickable color-text-primary"> {name}</a>
-      </UISref>
-    </h1>
     <div className="report-score-wrapper">
       <ReportScore score={score} showClassification={true} />
+      <h1 className="heading-2 color-text-primary">
+        <UISref to="^.^.canaryConfig.configDetail" params={{ id }}>
+          <a className="clickable color-text-primary"> {name}</a>
+        </UISref>
+      </h1>
     </div>
     <ReportMetadata />
   </section>

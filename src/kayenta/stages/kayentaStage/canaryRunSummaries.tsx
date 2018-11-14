@@ -28,7 +28,13 @@ export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICana
       getContent: run => {
         return (
           <>
-            <CanaryScore score={run.context.canaryScore} health={run.health} result={run.result} inverse={false} />
+            <CanaryScore
+              score={run.context.canaryScore}
+              health={run.health}
+              result={run.result}
+              inverse={false}
+              className="label"
+            />
             {get(run, ['context', 'warnings'], []).length > 0 && (
               <HoverablePopover template={<CanaryRunWarningMessages messages={run.context.warnings} />}>
                 <i className="fa fa-exclamation-triangle" style={{ paddingLeft: '8px' }} />

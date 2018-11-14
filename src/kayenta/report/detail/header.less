@@ -3,22 +3,45 @@
   align-items: center;
 
   h1 {
-    display: flex;
+    flex: 1 0 200px;
     align-items: center;
     margin: 0;
     padding: 0;
+    word-break: break-all;
   }
 
   .report-score-wrapper {
     padding: 5px 20px 0 0;
     margin-left: 15px;
     border-right: 1px solid var(--color-titanium);
+    text-align: center;
+    flex: 0 0 200px;
   }
 
   .report-metadata {
-    flex: 1;
+    flex: 0 1 auto;
+    display: flex;
+    overflow: hidden;
     padding-left: 20px;
     padding-top: 10px;
+    width: 100%;
+
+    .group {
+      flex: 1 1 200px;
+      margin-right: 20px;
+      overflow: hidden;
+
+      &.group-time {
+        flex: 0 0 150px;
+      }
+      &.group-threshold {
+        flex: 0 0 80px;
+      }
+      &.group-source {
+        flex: 0 0 64px;
+        margin-right: 0;
+      }
+    }
 
     ul {
       margin-bottom: 0;
@@ -30,5 +53,18 @@
         font-size: 85%;
       }
     }
+  }
+
+  .kayenta-scope {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.popover {
+  .kayenta-scope {
+    word-break: break-all;
   }
 }

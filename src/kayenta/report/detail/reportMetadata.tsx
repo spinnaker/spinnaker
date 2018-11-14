@@ -5,6 +5,7 @@ import { ICanaryState } from 'kayenta/reducers';
 import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
 import FormattedDate from 'kayenta/layout/formattedDate';
 import SourceLinks from './sourceLinks';
+import { HoverablePopover } from '@spinnaker/core';
 
 interface IReportMetadata {
   run: ICanaryExecutionStatusResult;
@@ -18,6 +19,7 @@ interface IMetadataGroup {
 interface IMetadataEntry {
   label: string;
   getContent: () => JSX.Element;
+  popover?: boolean;
 }
 
 const Label = ({ label, extraClass }: { label: string; extraClass?: string }) => (
@@ -51,7 +53,8 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
       entries: [
         {
           label: 'scope',
-          getContent: () => <p>{controlScope}</p>,
+          popover: true,
+          getContent: () => <p className="kayenta-scope">{controlScope}</p>,
         },
         {
           label: 'location',
@@ -64,7 +67,8 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
       entries: [
         {
           label: 'scope',
-          getContent: () => <p>{experimentScope}</p>,
+          popover: true,
+          getContent: () => <p className="kayenta-scope">{experimentScope}</p>,
         },
         {
           label: 'location',
@@ -130,24 +134,26 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
 
   return (
     <section className="report-metadata">
-      <div className="horizontal space-between bottom">
-        {metadataGroups.map((group, index) => (
-          <div key={group.label || index}>
-            <Label label={group.label || ''} extraClass="label-lg" />
-            <ul className="list-unstyled list-inline">
-              {group.entries.map(e => (
-                <li key={e.label || index}>
-                  <Label label={e.label} />
-                  {e.getContent()}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-        <div key="source">
-          <Label label="Source" extraClass="label-lgf" />
-          <SourceLinks />
+      {metadataGroups.map((group, index) => (
+        <div className={`group group-${group.label}`} key={group.label || index}>
+          <Label label={group.label || ''} extraClass="label-lg" />
+          <ul className="list-unstyled">
+            {group.entries.map(e => (
+              <li key={e.label || index}>
+                <Label label={e.label} />
+                {e.popover ? (
+                  <HoverablePopover template={e.getContent()}>{e.getContent()}</HoverablePopover>
+                ) : (
+                  <>{e.getContent()}</>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
+      ))}
+      <div className="group group-source" key="source">
+        <Label label="Source" extraClass="label-lgf" />
+        <SourceLinks />
       </div>
     </section>
   );
