@@ -6,5 +6,5 @@ import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelect
 export const KUBERNETES_MANIFEST_SELECTOR = 'spinnaker.kubernetes.v2.manifest.selector.component';
 module(KUBERNETES_MANIFEST_SELECTOR, []).component(
   'kubernetesManifestSelector',
-  react2angular(ManifestSelector, ['selector', 'onChange']),
+  react2angular(ManifestSelector, ['selector', 'modes', 'application', 'onChange']),
 );

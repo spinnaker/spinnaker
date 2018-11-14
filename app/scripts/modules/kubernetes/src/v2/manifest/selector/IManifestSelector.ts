@@ -13,6 +13,7 @@ export interface IManifestSelector {
   cluster?: string;
   criteria?: string;
   mode?: SelectorMode;
+  app?: string;
 }
 
 export enum SelectorMode {
