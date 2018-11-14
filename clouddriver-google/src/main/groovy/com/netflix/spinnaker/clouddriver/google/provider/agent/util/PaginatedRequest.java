@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent.util;
 
-import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
-import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest;
+import com.google.api.services.compute.ComputeRequest;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.AbstractGoogleCachingAgent;
+import com.netflix.spinnaker.clouddriver.googlecommon.batch.GoogleBatchRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,18 +33,19 @@ public abstract class PaginatedRequest<T> {
     this.cachingAgent = cachingAgent;
   }
 
-  public void queue(BatchRequest batchRequest, JsonBatchCallback<T> callback, String instrumentationContext) throws IOException {
-    request(null).queue(batchRequest, new PaginatedCallback<T>(callback) {
+  public void queue(GoogleBatchRequest googleBatchRequest, JsonBatchCallback callback, String instrumentationContext) throws IOException {
+    PaginatedCallback<T> paginatedCallback = new PaginatedCallback<T>(callback) {
       @Override
       protected void requestNextBatch(T t) throws IOException {
         String nextPageToken = getNextPageToken(t);
-        BatchRequest batch = cachingAgent.buildBatchRequest();
+        GoogleBatchRequest batch = cachingAgent.buildGoogleBatchRequest();
         if (nextPageToken != null) {
-          request(nextPageToken).queue(batch, this);
+          batch.queue(request(nextPageToken), this);
         }
         cachingAgent.executeIfRequestsAreQueued(batch, instrumentationContext);
       }
-    });
+    };
+    googleBatchRequest.queue(request(null), paginatedCallback);
   }
 
   public <U> List<U> timeExecute(Function<T, List<U>> itemExtractor, String api, String... tags) throws IOException {
@@ -62,5 +63,5 @@ public abstract class PaginatedRequest<T> {
   }
 
   protected abstract String getNextPageToken(T t);
-  protected abstract AbstractGoogleJsonClientRequest<T> request(String pageToken);
+  protected abstract ComputeRequest<T> request(String pageToken);
 }
