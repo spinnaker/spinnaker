@@ -31,6 +31,7 @@ import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
+import com.netflix.kayenta.util.Retry;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,6 +51,9 @@ import java.util.*;
 @Slf4j
 public class S3StorageService implements StorageService {
 
+  public final int MAX_RETRIES = 10; // maximum number of times we'll retry an operation
+  public final long RETRY_BACKOFF = 1000; // time between retries in millis
+
   @NotNull
   private ObjectMapper objectMapper;
 
@@ -68,6 +72,8 @@ public class S3StorageService implements StorageService {
   public boolean servicesAccount(String accountName) {
     return accountNames.contains(accountName);
   }
+
+  private final Retry retry = new Retry();
 
   /**
    * Check to see if the bucket exists, creating it if it is not there.
@@ -164,7 +170,7 @@ public class S3StorageService implements StorageService {
     long updatedTimestamp = -1;
     String correlationId = null;
     String canaryConfigSummaryJson = null;
-    String originalPath = null;
+    final String originalPath;
 
     if (objectType == ObjectType.CANARY_CONFIG) {
       updatedTimestamp = canaryConfigIndex.getRedisTime();
@@ -176,6 +182,8 @@ public class S3StorageService implements StorageService {
       if (isAnUpdate) {
         // Storing a canary config while not checking for naming collisions can only be a PUT (i.e. an update to an existing config).
         originalPath = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
+      } else {
+        originalPath = null;
       }
 
       correlationId = UUID.randomUUID().toString();
@@ -201,6 +209,8 @@ public class S3StorageService implements StorageService {
         correlationId,
         canaryConfigSummaryJson
       );
+    } else {
+      originalPath = null;
     }
 
     try {
@@ -209,17 +219,16 @@ public class S3StorageService implements StorageService {
       objectMetadata.setContentLength(bytes.length);
       objectMetadata.setContentMD5(new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
 
-      amazonS3.putObject(
-        bucket,
-        path,
-        new ByteArrayInputStream(bytes),
-        objectMetadata
-      );
+      retry.retry(() -> amazonS3.putObject(
+          bucket,
+          path,
+          new ByteArrayInputStream(bytes),
+          objectMetadata), MAX_RETRIES, RETRY_BACKOFF);
 
       if (objectType == ObjectType.CANARY_CONFIG) {
         // This will be true if the canary config is renamed.
         if (originalPath != null && !originalPath.equals(path)) {
-          amazonS3.deleteObject(bucket, originalPath);
+          retry.retry(() -> amazonS3.deleteObject(bucket, originalPath), MAX_RETRIES, RETRY_BACKOFF);
         }
 
         canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.UPDATE, correlationId);
@@ -301,7 +310,7 @@ public class S3StorageService implements StorageService {
     }
 
     try {
-      amazonS3.deleteObject(bucket, path);
+      retry.retry(() -> amazonS3.deleteObject(bucket, path), MAX_RETRIES, RETRY_BACKOFF);
 
       if (correlationId != null) {
         canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.DELETE, correlationId);

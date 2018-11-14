@@ -29,7 +29,7 @@ import com.netflix.kayenta.index.config.CanaryConfigIndexAction;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
-import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.kayenta.util.Retry;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.RequestBody;
@@ -51,6 +51,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ConfigBinStorageService implements StorageService {
 
+  public final int MAX_RETRIES = 10; // maximum number of times we'll retry a ConfigBin operation
+  public final long RETRY_BACKOFF = 1000; // time between retries in millis
+
   @NotNull
   @Singular
   @Getter
@@ -64,6 +67,8 @@ public class ConfigBinStorageService implements StorageService {
 
   @Autowired
   CanaryConfigIndex canaryConfigIndex;
+
+  private final Retry retry = new Retry();
 
   @Override
   public boolean servicesAccount(String accountName) {
@@ -80,9 +85,8 @@ public class ConfigBinStorageService implements StorageService {
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
     String json;
 
-    RetrySupport retrySupport = new RetrySupport();
     try {
-      json = retrySupport.retry(() -> remoteService.get(ownerApp, configType, objectKey), 10, 1000, false);
+      json = retry.retry(() -> remoteService.get(ownerApp, configType, objectKey), MAX_RETRIES, RETRY_BACKOFF);
     } catch (RetrofitError e) {
       throw new NotFoundException("No such object named " + objectKey);
     }
@@ -143,7 +147,7 @@ public class ConfigBinStorageService implements StorageService {
     try {
       String json = kayentaObjectMapper.writeValueAsString(obj);
       RequestBody body = RequestBody.create(MediaType.parse("application/json"), json);
-      remoteService.post(ownerApp, configType, objectKey, body);
+      retry.retry(() -> remoteService.post(ownerApp, configType, objectKey, body), MAX_RETRIES, RETRY_BACKOFF);
 
       if (objectType == ObjectType.CANARY_CONFIG) {
         canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.UPDATE, correlationId);
@@ -228,7 +232,7 @@ public class ConfigBinStorageService implements StorageService {
     // TODO(mgraff): If remoteService.delete() throws an exception when the target config does not exist, we should
     // try/catch it here and then call canaryConfigIndex.removeFailedPendingUpdate() like the other storage service
     // implementations do.
-    remoteService.delete(ownerApp, configType, objectKey);
+    retry.retry(() -> remoteService.delete(ownerApp, configType, objectKey), MAX_RETRIES, RETRY_BACKOFF);
 
     if (correlationId != null) {
       canaryConfigIndex.finishPendingUpdate(credentials, CanaryConfigIndexAction.DELETE, correlationId);
@@ -249,7 +253,7 @@ public class ConfigBinStorageService implements StorageService {
       String ownerApp = credentials.getOwnerApp();
       String configType = credentials.getConfigType();
       ConfigBinRemoteService remoteService = credentials.getRemoteService();
-      String jsonBody = remoteService.list(ownerApp, configType);
+      String jsonBody = retry.retry(() -> remoteService.list(ownerApp, configType), MAX_RETRIES, RETRY_BACKOFF);
 
       try {
         List<String> ids = kayentaObjectMapper.readValue(jsonBody, new TypeReference<List<String>>() {});
@@ -275,7 +279,7 @@ public class ConfigBinStorageService implements StorageService {
     String configType = credentials.getConfigType();
     String json;
     try {
-      json = remoteService.get(ownerApp, configType, id);
+      json = retry.retry(() -> remoteService.get(ownerApp, configType, id), MAX_RETRIES, RETRY_BACKOFF);
     } catch (RetrofitError e) {
       throw new IllegalArgumentException("No such object named " + id);
     }

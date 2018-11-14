@@ -33,6 +33,7 @@ import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.util.Retry;
 import com.netflix.spectator.api.Registry;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.Builder;
@@ -56,6 +57,9 @@ public class AtlasMetricsService implements MetricsService {
 
   public final String URI_SCHEME = "http";
 
+  public final int MAX_RETRIES = 10; // maximum number of times we'll retry an Atlas query
+  public final long RETRY_BACKOFF = 1000; // time between retries in millis
+
   @NotNull
   @Singular
   @Getter
@@ -72,6 +76,8 @@ public class AtlasMetricsService implements MetricsService {
 
   @Autowired
   private final Registry registry;
+
+  private final Retry retry = new Retry();
 
   @Override
   public String getType() {
@@ -96,8 +102,7 @@ public class AtlasMetricsService implements MetricsService {
                                       CanaryScope canaryScope) {
 
     OkHttpClient okHttpClient = new OkHttpClient();
-    // TODO: (mgraff, duftler) -- we should find out the defaults, and if too small, make this reasonable / configurable
-    okHttpClient.setConnectTimeout(90, TimeUnit.SECONDS);
+    okHttpClient.setConnectTimeout(30, TimeUnit.SECONDS);
     okHttpClient.setReadTimeout(90, TimeUnit.SECONDS);
 
     if (!(canaryScope instanceof AtlasCanaryScope)) {
@@ -146,12 +151,10 @@ public class AtlasMetricsService implements MetricsService {
     long start = registry.clock().monotonicTime();
     List <AtlasResults> atlasResultsList;
     try {
-      atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
-                                                  atlasCanaryScope.getStart().toEpochMilli(),
-                                                  atlasCanaryScope.getEnd().toEpochMilli(),
-                                                  isoStep,
-                                                  credentials.getFetchId(),
-                                                  UUID.randomUUID() + "");
+      atlasResultsList = retry.retry(() -> atlasRemoteService.fetch(decoratedQuery,
+                                                                    atlasCanaryScope.getStart().toEpochMilli(),
+                                                                    atlasCanaryScope.getEnd().toEpochMilli(), isoStep, credentials.getFetchId(), UUID.randomUUID() + ""),
+      MAX_RETRIES, RETRY_BACKOFF);
     } finally {
       long end = registry.clock().monotonicTime();
       registry.timer("atlas.fetchTime").record(end - start, TimeUnit.NANOSECONDS);
