@@ -219,12 +219,14 @@ class SqlInstrumentedExecutionRepository(
 
   override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds: MutableList<String>,
                                                                              buildTimeStartBoundary: Long,
-                                                                             buildTimeEndBoundary: Long): Observable<Execution> {
+                                                                             buildTimeEndBoundary: Long,
+                                                                             limit: Int): Observable<Execution> {
     return withMetrics("retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary") {
       executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
         pipelineConfigIds,
         buildTimeStartBoundary,
-        buildTimeEndBoundary
+        buildTimeEndBoundary,
+        limit
       )
     }
   }

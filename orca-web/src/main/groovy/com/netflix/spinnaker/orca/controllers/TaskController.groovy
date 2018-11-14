@@ -272,9 +272,11 @@ class TaskController {
     Set<String> statusesAsSet = (statuses && statuses != "*") ? statuses.split(",") as Set : null // null means all statuses
 
     // Filter by application
-    List<String> pipelineConfigIds = application == "*" ? getPipelineConfigIdsOfReadableApplications() : front50Service.getPipelines(application, false)*.id as List<String>
+    List<String> pipelineConfigIds = application == "*" ?
+    getPipelineConfigIdsOfReadableApplications() :
+    front50Service.getPipelines(application, false)*.id as List<String>
 
-    List<Execution> pipelineExecutions = executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds, triggerTimeStartBoundary, triggerTimeEndBoundary)
+    List<Execution> pipelineExecutions = executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds, triggerTimeStartBoundary, triggerTimeEndBoundary, size)
       .subscribeOn(Schedulers.io())
       .filter{
         // Filter by pipeline name

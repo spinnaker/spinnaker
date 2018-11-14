@@ -304,7 +304,7 @@ class TaskControllerSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _) >> rx.Observable.from(pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       Execution pipeline = pipeline {
@@ -348,7 +348,7 @@ class TaskControllerSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _) >> rx.Observable.from(pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       Execution pipeline = pipeline {
@@ -394,7 +394,7 @@ class TaskControllerSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _) >> rx.Observable.from(pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       Execution pipeline = pipeline {
@@ -440,7 +440,7 @@ class TaskControllerSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _) >> rx.Observable.from(pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       Execution pipeline = pipeline {
@@ -482,7 +482,7 @@ class TaskControllerSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _) >> rx.Observable.from(pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       Execution pipeline = pipeline {
@@ -524,7 +524,7 @@ class TaskControllerSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _) >> rx.Observable.from(pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       Execution pipeline = pipeline {
@@ -565,7 +565,7 @@ class TaskControllerSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _) >> rx.Observable.from(pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       Execution pipeline = pipeline {
@@ -612,7 +612,7 @@ class TaskControllerSpec extends Specification {
 
     ObjectMapper mapper = new ObjectMapper()
 
-    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _) >> rx.Observable.from(pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       Execution pipeline = pipeline {

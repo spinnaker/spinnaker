@@ -74,7 +74,8 @@ public interface ExecutionRepository {
   @Nonnull
   Observable<Execution> retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(@Nonnull List<String> pipelineConfigIds,
                                                                                       long buildTimeStartBoundary,
-                                                                                      long buildTimeEndBoundary);
+                                                                                      long buildTimeEndBoundary,
+                                                                                      int limit);
 
   @Deprecated // Use the non-rx interface instead
   @Nonnull

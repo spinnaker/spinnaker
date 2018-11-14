@@ -16,6 +16,9 @@
 
 apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
+apply from: "$rootDir/gradle/spock.gradle"
+
+apply plugin: "groovy"
 
 dependencies {
   compile project(":orca-core")
@@ -29,6 +32,7 @@ dependencies {
   compile "org.liquibase:liquibase-core:3.6.1"
   compile 'com.zaxxer:HikariCP:2.5.1'
 
-  testCompile project(":orca-core-tck")
   testCompile "com.h2database:h2:1.4.197"
+  testCompile project(":orca-core-tck")
+  testCompile project(":orca-test-groovy")
 }

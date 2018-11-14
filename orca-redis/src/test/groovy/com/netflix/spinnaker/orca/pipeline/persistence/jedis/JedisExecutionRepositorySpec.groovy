@@ -331,8 +331,13 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecution
     })
 
     when:
-    def retrieved = repository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(Arrays.asList("pipeline-2", "pipeline-3"), 9L, 11L)
-      .sorted({ a,b -> a.buildTime <=> b.buildTime })
+    def retrieved = repository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+      Arrays.asList("pipeline-2", "pipeline-3"),
+      9L,
+      11L,
+      10
+    )
+      .sorted({ a, b -> a.buildTime <=> b.buildTime })
       .toList().toBlocking().first()
 
     then:

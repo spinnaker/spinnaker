@@ -33,6 +33,7 @@ import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepositor
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.sql.SqlTestUtil.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepository> {
 
@@ -64,12 +65,12 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
 
   @Override
   SqlExecutionRepository createExecutionRepository() {
-    new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties())
+    new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties(), 10)
   }
 
   @Override
   SqlExecutionRepository createExecutionRepositoryPrevious() {
-    new SqlExecutionRepository("test", previousDatabase.context, mapper, new TransactionRetryProperties())
+    new SqlExecutionRepository("test", previousDatabase.context, mapper, new TransactionRetryProperties(), 10)
   }
 
   def "can store a new pipeline"() {
@@ -401,4 +402,46 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
     21         | 5    | 5     || 1               | "Orchestration #1"  | "Orchestration #1"
     21         | 5    | 2     || 2               | "Orchestration #13" | "Orchestration #12"
   }
+
+  def "can retrieve pipelines by configIds between build time boundaries"() {
+    given:
+    (storeLimit + 1).times { i ->
+      repository.store(pipeline {
+        application = "spinnaker"
+        pipelineConfigId = "foo1"
+        name = "Execution #${i + 1}"
+        buildTime = i + 1
+      })
+
+      repository.store(pipeline {
+        application = "spinnaker"
+        pipelineConfigId = "foo2"
+        name = "Execution #${i + 1}"
+        buildTime = i + 1
+      })
+    }
+
+    when:
+    def results = repository
+      .retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+      ["foo1", "foo2"],
+      0L,
+      6L,
+      retrieveLimit * 2
+    )
+      .subscribeOn(Schedulers.immediate())
+      .toList()
+      .toBlocking()
+      .first()
+
+    then:
+    with(results) {
+      size() == retrieveLimit
+    }
+
+    where:
+    storeLimit = 6
+    retrieveLimit = 10
+  }
+
 }

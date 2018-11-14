@@ -51,10 +51,7 @@ import org.jooq.SelectWhereStep
 import org.jooq.Table
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.count
-import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.name
-import org.jooq.impl.DSL.table
+import org.jooq.impl.DSL.*
 import org.slf4j.LoggerFactory
 import rx.Observable
 import java.lang.System.currentTimeMillis
@@ -406,19 +403,21 @@ class SqlExecutionRepository(
 
   override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(pipelineConfigIds: MutableList<String>,
                                                                              buildTimeStartBoundary: Long,
-                                                                             buildTimeEndBoundary: Long): Observable<Execution> {
+                                                                             buildTimeEndBoundary: Long,
+                                                                             limit: Int): Observable<Execution> {
     val select = jooq.selectExecutions(
-      ORCHESTRATION,
+      PIPELINE,
       conditions = {
-        it.where(field("config_id").`in`(pipelineConfigIds.toTypedArray()))
+        val inClause = "config_id IN (${pipelineConfigIds.joinToString(",") { "'$it'" }})"
+        it.where(inClause)
           .and(field("build_time").gt(buildTimeStartBoundary))
           .and(field("build_time").lt(buildTimeEndBoundary))
       },
       seek = {
         it.orderBy(field("id").desc())
+        it.limit(limit)
       }
     )
-
     return Observable.from(select.fetchExecutions())
   }
 
@@ -493,7 +492,7 @@ class SqlExecutionRepository(
       )
 
       when (execution.type) {
-        PIPELINE      -> upsert(
+        PIPELINE -> upsert(
           ctx,
           execution.type.tableName,
           insertPairs.plus(field("config_id") to execution.pipelineConfigId),
@@ -563,7 +562,7 @@ class SqlExecutionRepository(
   private fun storeCorrelationIdInternal(ctx: DSLContext, execution: Execution) {
     if (execution.trigger.correlationId != null && !execution.status.isComplete) {
       val executionIdField = when (execution.type) {
-        PIPELINE      -> field("pipeline_id")
+        PIPELINE -> field("pipeline_id")
         ORCHESTRATION -> field("orchestration_id")
       }
 
@@ -683,10 +682,10 @@ class SqlExecutionRepository(
                                           fields: List<Field<Any>> = selectFields(),
                                           conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
                                           seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>) =
-      select(fields)
-        .from(type.tableName)
-        .let { conditions(it) }
-        .let { seek(it) }
+    select(fields)
+      .from(type.tableName)
+      .let { conditions(it) }
+      .let { seek(it) }
 
   private fun DSLContext.selectExecution(type: ExecutionType, fields: List<Field<Any>> = selectFields()) =
     select(fields)

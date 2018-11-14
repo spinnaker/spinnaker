@@ -453,10 +453,15 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
   /*
    * There is no guarantee that the returned results will be sorted.
+   * @param limit is only implemented in SqlExecutionRepository
    */
   @Override
   public @Nonnull
-  Observable<Execution> retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(@Nonnull List<String> pipelineConfigIds, long buildTimeStartBoundary, long buildTimeEndBoundary) {
+  Observable<Execution> retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
+    @Nonnull List<String> pipelineConfigIds,
+    long buildTimeStartBoundary,
+    long buildTimeEndBoundary,
+    int limit) {
     List<Observable<Execution>> observables = allRedisDelegates().stream()
       .map(d -> getPipelinesForPipelineConfigIdsBetweenBuildTimeBoundaryFromRedis(d, pipelineConfigIds, buildTimeStartBoundary, buildTimeEndBoundary))
       .collect(Collectors.toList());
