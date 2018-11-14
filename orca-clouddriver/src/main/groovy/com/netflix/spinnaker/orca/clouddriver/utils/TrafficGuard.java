@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.utils;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
@@ -37,20 +38,25 @@ import static java.lang.String.format;
 
 @Component
 public class TrafficGuard {
-
+  private final static String MIN_CAPACITY_RATIO = "trafficGuards.minCapacityRatio";
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final OortHelper oortHelper;
   private final Front50Service front50Service;
   private final Registry registry;
+  private final DynamicConfigService dynamicConfigService;
 
   private final Id savesId;
 
   @Autowired
-  public TrafficGuard(OortHelper oortHelper, Optional<Front50Service> front50Service, Registry registry) {
+  public TrafficGuard(OortHelper oortHelper,
+                      Optional<Front50Service> front50Service,
+                      Registry registry,
+                      DynamicConfigService dynamicConfigService) {
     this.oortHelper = oortHelper;
     this.front50Service = front50Service.orElse(null);
     this.registry = registry;
+    this.dynamicConfigService = dynamicConfigService;
     this.savesId = registry.createId("trafficGuard.saves");
   }
 
@@ -116,44 +122,48 @@ public class TrafficGuard {
     verifyOtherServerGroupsAreTakingTraffic(serverGroupName, serverGroupMoniker, location, account, cloudProvider, operationDescriptor);
   }
 
-  private void verifyOtherServerGroupsAreTakingTraffic(String serverGroupName, Moniker serverGroupMoniker, Location location, String account, String cloudProvider, String operationDescriptor) {
+  private void verifyOtherServerGroupsAreTakingTraffic(String serverGroupName, Moniker serverGroupMoniker,
+                                                       Location location, String account, String cloudProvider,
+                                                       String operationDescriptor) {
     // TODO rz - Expose traffic guards endpoint in clouddriver
-    Optional<Map> cluster = oortHelper.getCluster(serverGroupMoniker.getApp(), account, serverGroupMoniker.getCluster(), cloudProvider);
-
+    Optional<Map> cluster = oortHelper.getCluster(serverGroupMoniker.getApp(), account,
+      serverGroupMoniker.getCluster(), cloudProvider);
     if (!cluster.isPresent()) {
-      throw new TrafficGuardException(format("Could not find cluster '%s' in %s/%s with traffic guard configured.", serverGroupMoniker.getCluster(), account, location.getValue()));
+      throw new TrafficGuardException(format("Could not find cluster '%s' in %s/%s with traffic guard configured.",
+        serverGroupMoniker.getCluster(), account, location.getValue()));
     }
+
     List<TargetServerGroup> targetServerGroups = ((List<Map<String, Object>>) cluster.get().get("serverGroups"))
       .stream()
       .map(TargetServerGroup::new)
       .filter(tsg -> location.equals(tsg.getLocation()))
       .collect(Collectors.toList());
 
-    List<TargetServerGroup> otherTargetServerGroups = targetServerGroups
+    Map<String, Integer> capacityByServerGroupName = targetServerGroups
       .stream()
-      .filter(tsg -> !serverGroupName.equalsIgnoreCase(tsg.getName()))
-      .collect(Collectors.toList());
+      .collect(Collectors.toMap(TargetServerGroup::getName, this::getServerGroupCapacity));
 
-    boolean hasOtherEnabledServerGroups = otherTargetServerGroups
-      .stream()
-      .anyMatch(tsg -> (tsg.getInstances().stream().filter(i -> "Up".equals(i.get("healthState"))).count()) > 0);
+    int currentCapacity = capacityByServerGroupName.values().stream().reduce(0, Integer::sum);
+    int serverGroupCapacity = capacityByServerGroupName.get(serverGroupName);
+    int futureCapacity = currentCapacity - serverGroupCapacity;
 
-    if (!hasOtherEnabledServerGroups) {
-      // TODO rz - Context can be empty; could use a stand-in message in log
-      List<Map> context = otherTargetServerGroups.stream().map(tsg -> ImmutableMap.builder()
-        .put("name", tsg.getName())
-        .put("disabled", tsg.isDisabled())
-        .put("instances", tsg.getInstances())
-        .build()
-      ).collect(Collectors.toList());
+    if (currentCapacity == 0) {
+      log.debug("Bypassing traffic guard check for '{}' in {}/{} with no instances Up. Context: {}",
+        serverGroupMoniker.getCluster(), account, location.getValue(), generateContext(targetServerGroups));
+      return;
+    }
 
-      String message = format(
-        "This cluster ('%s' in %s/%s) has traffic guards enabled. " +
-        "%s %s would leave the cluster with no instances taking traffic.",
-        serverGroupMoniker.getCluster(), account, location.getValue(), operationDescriptor, serverGroupName
-      );
+    double futureCapacityRatio = ((double) futureCapacity) / currentCapacity;
+    if (futureCapacityRatio <= getMinCapacityRatio()) {
+      String message = format("This cluster ('%s' in %s/%s) has traffic guards enabled. %s %s would leave the cluster ",
+        serverGroupMoniker.getCluster(), account, location.getValue(), operationDescriptor, serverGroupName);
 
-      log.debug("{} Context: {}", message, context);
+      message += (futureCapacity == 0)
+        ? "with no instances taking traffic."
+        : format("with %d instances up (%.2f%% of %d instances currently up)",
+            futureCapacity, futureCapacityRatio * 100, currentCapacity);
+
+      log.debug("{} Context: {}", message, generateContext(targetServerGroups));
 
       registry.counter(savesId.withTags(
         "application", serverGroupMoniker.getApp(),
@@ -162,6 +172,32 @@ public class TrafficGuard {
 
       throw new TrafficGuardException(message);
     }
+  }
+
+  private double getMinCapacityRatio() {
+    Double minCapacityRatio = dynamicConfigService.getConfig(Double.class, MIN_CAPACITY_RATIO, 0d);
+    if (minCapacityRatio == null || minCapacityRatio < 0 || 0.5 <= minCapacityRatio) {
+      log.error("Expecting a double value in range [0, 0.5) for {} but got {}", MIN_CAPACITY_RATIO, minCapacityRatio);
+      return 0;
+    }
+
+    return minCapacityRatio;
+  }
+
+  private List<Map> generateContext(List<TargetServerGroup> targetServerGroups) {
+    return targetServerGroups.stream()
+      .map(tsg -> ImmutableMap.builder()
+        .put("name", tsg.getName())
+        .put("disabled", tsg.isDisabled())
+        .put("instances", tsg.getInstances())
+        .build())
+      .collect(Collectors.toList());
+  }
+
+  private int getServerGroupCapacity(TargetServerGroup serverGroup) {
+    return (int) serverGroup.getInstances().stream()
+      .filter(instance -> "Up".equals(instance.get("healthState")))
+      .count();
   }
 
   public boolean hasDisableLock(Moniker clusterMoniker, String account, Location location) {
