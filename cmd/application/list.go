@@ -51,10 +51,6 @@ func listApplication(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	// TODO(jacobkiefer): Turns out using the type 'HashMap' doesn't help much in the CLI
-	// since json.Marshal* doesn't serialize it properly (it is not treated as a Map).
-	// We need to think of a strategy (e.g. Concrete types or deferring to just returning Object)
-	// In the cases where we use 'HashMap' currently.
 	appList, resp, err := gateClient.ApplicationControllerApi.GetAllApplicationsUsingGET(gateClient.Context, map[string]interface{}{})
 	if err != nil {
 		return err

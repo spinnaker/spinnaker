@@ -55,9 +55,6 @@ type GatewayClient struct {
 	// Generate Gate Api client.
 	*gate.APIClient
 
-	// Raw Http Client to do OAuth2 login.
-	HttpClient *http.Client
-
 	// Spin CLI configuration.
 	Config config.Config
 
@@ -71,6 +68,10 @@ type GatewayClient struct {
 
 	// Location of the spin config.
 	configLocation string
+
+	// Raw Http Client to do OAuth2 login.
+	httpClient *http.Client
+
 }
 
 func (m *GatewayClient) GateEndpoint() string {
@@ -85,41 +86,50 @@ func (m *GatewayClient) GateEndpoint() string {
 
 // Create new spinnaker gateway client with flag
 func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
-	quiet, err := flags.GetBool("quiet")
+	err := configureOutput(flags)
 	if err != nil {
 		return nil, err
 	}
-	nocolor, err := flags.GetBool("no-color")
-	if err != nil {
-		return nil, err
-	}
-	outputFormat, err := flags.GetString("output")
-	if err != nil {
-		return nil, err
-	}
-	util.InitUI(quiet, nocolor, outputFormat)
 
-	gateEndpoint, err := flags.GetString("gate-endpoint")
+	gateClient, err := createClient(flags)
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
 		return nil, err
 	}
+
+	err = userConfig(flags, gateClient)
+	if err != nil {
+		return nil, err
+	}
+
+	// Api client initialization.
+	httpClient, err := gateClient.initializeClient()
+	if err != nil {
+		util.UI.Error("Could not initialize http client, failing.")
+		return nil, err
+	}
+	gateClient.httpClient = httpClient
+
+	err = gateClient.authenticateOAuth2()
+	if err != nil {
+		util.UI.Error("OAuth2 Authentication failed.")
+		return nil, err
+	}
+
+	cfg := &gate.Configuration{
+		BasePath:      gateClient.GateEndpoint(),
+		DefaultHeader: make(map[string]string),
+		UserAgent:     fmt.Sprintf("%s/%s", version.UserAgent, version.String()),
+		HTTPClient:    httpClient,
+	}
+	gateClient.APIClient = gate.NewAPIClient(cfg)
+	return gateClient, nil
+}
+
+func userConfig(flags *pflag.FlagSet, gateClient *GatewayClient) error {
 	configLocationFlag, err := flags.GetString("config")
 	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
-		return nil, err
+		return err
 	}
-	ignoreCertErrors, err := flags.GetBool("insecure")
-	if err != nil {
-		util.UI.Error(fmt.Sprintf("%s\n", err))
-		return nil, err
-	}
-	gateClient := &GatewayClient{
-		gateEndpoint:     gateEndpoint,
-		ignoreCertErrors: ignoreCertErrors,
-	}
-
-	// CLI configuration.
 	if configLocationFlag != "" {
 		gateClient.configLocation = configLocationFlag
 	} else {
@@ -131,8 +141,8 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 			if userHome != "" {
 				err = nil
 			} else {
-				util.UI.Error(fmt.Sprintf("Could not read current user from environment, failing."))
-				return nil, err
+				util.UI.Error("Could not read current user from environment, failing.")
+				return err
 			}
 		} else {
 			userHome = usr.HomeDir
@@ -147,38 +157,48 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 	if yamlFile != nil {
 		err = yaml.UnmarshalStrict([]byte(os.ExpandEnv(string(yamlFile))), &gateClient.Config)
 		if err != nil {
-			util.UI.Error(fmt.Sprintf("Could not deserialize config file with contents: %d, failing.", yamlFile))
-			return nil, err
+			util.UI.Error(fmt.Sprintf("Could not deserialize config file with contents: %s, failing.", yamlFile))
+			return err
 		}
 	} else {
 		gateClient.Config = config.Config{}
 	}
-
-	// Api client initialization.
-	httpClient, err := gateClient.InitializeClient()
-	if err != nil {
-		util.UI.Error(fmt.Sprintf("Could not initialize http client, failing."))
-		return nil, err
-	}
-	gateClient.HttpClient = httpClient
-
-	err = gateClient.Authenticate()
-	if err != nil {
-		util.UI.Error(fmt.Sprintf("OAuth2 Authentication failed."))
-		return nil, err
-	}
-
-	cfg := &gate.Configuration{
-		BasePath:      gateClient.GateEndpoint(),
-		DefaultHeader: make(map[string]string),
-		UserAgent:     fmt.Sprintf("%s/%s", version.UserAgent, version.String()),
-		HTTPClient:    httpClient,
-	}
-	gateClient.APIClient = gate.NewAPIClient(cfg)
-	return gateClient, nil
+	return nil
 }
 
-func (m *GatewayClient) InitializeClient() (*http.Client, error) {
+func createClient(flags *pflag.FlagSet) (*GatewayClient, error) {
+	gateEndpoint, err := flags.GetString("gate-endpoint")
+	if err != nil {
+		return nil, err
+	}
+	ignoreCertErrors, err := flags.GetBool("insecure")
+	if err != nil {
+		return nil, err
+	}
+	return &GatewayClient{
+		gateEndpoint:     gateEndpoint,
+		ignoreCertErrors: ignoreCertErrors,
+	}, nil
+}
+
+func configureOutput(flags *pflag.FlagSet) (error) {
+	quiet, err := flags.GetBool("quiet")
+	if err != nil {
+		return err
+	}
+	nocolor, err := flags.GetBool("no-color")
+	if err != nil {
+		return err
+	}
+	outputFormat, err := flags.GetString("output")
+	if err != nil {
+		return err
+	}
+	util.InitUI(quiet, nocolor, outputFormat)
+	return nil
+}
+
+func (m *GatewayClient) initializeClient() (*http.Client, error) {
 	auth := m.Config.Auth
 	cookieJar, _ := cookiejar.New(nil)
 	client := http.Client{
@@ -261,7 +281,7 @@ func (m *GatewayClient) initializeX509Config(client http.Client, clientCA []byte
 	return &client
 }
 
-func (m *GatewayClient) Authenticate() error {
+func (m *GatewayClient) authenticateOAuth2() error {
 	auth := m.Config.Auth
 	if auth != nil && auth.Enabled && auth.OAuth2 != nil {
 		OAuth2 := auth.OAuth2
@@ -312,7 +332,7 @@ func (m *GatewayClient) Authenticate() error {
 
 			authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce, challengeMethod, codeChallenge)
 			util.UI.Output(fmt.Sprintf("Navigate to %s and authenticate", authURL))
-			code := Prompt()
+			code := prompt()
 
 			newToken, err = config.Exchange(context.Background(), code, codeVerifier)
 			if err != nil {
@@ -338,7 +358,7 @@ func (m *GatewayClient) login(accessToken string) error {
 		return err
 	}
 	loginReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	m.HttpClient.Do(loginReq) // Login to establish session.
+	m.httpClient.Do(loginReq) // Login to establish session.
 	return nil
 }
 
@@ -357,9 +377,9 @@ func generateCodeVerifier() (verifier string, code string, err error) {
 	return verifier, code, nil
 }
 
-func Prompt() string {
+func prompt() string {
 	reader := bufio.NewReader(os.Stdin)
-	util.UI.Output(fmt.Sprintf("Paste authorization code:"))
+	util.UI.Output("Paste authorization code:")
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
 }

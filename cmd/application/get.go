@@ -58,10 +58,6 @@ func getApplication(cmd *cobra.Command, args []string) error {
 		return errors.New("application name required")
 	}
 	applicationName := args[0]
-	// TODO(jacobkiefer): Turns out using the type 'HashMap' doesn't help much in the CLI
-	// since json.Marshal* doesn't serialize it properly (it is not treated as a Map).
-	// We need to think of a strategy (e.g. Concrete types or deferring to just returning Object)
-	// In the cases where we use 'HashMap' currently.
 	app, resp, err := gateClient.ApplicationControllerApi.GetApplicationUsingGET(gateClient.Context, applicationName, map[string]interface{}{})
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {

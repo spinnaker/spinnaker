@@ -28,6 +28,7 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 
 	cmd := &cobra.Command{
 		SilenceUsage: true,
+		SilenceErrors: true,
 		Version:      version.String(),
 	}
 
@@ -36,8 +37,6 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 	cmd.PersistentFlags().BoolVarP(&options.ignoreCertErrors, "insecure", "k", false, "ignore certificate errors")
 	cmd.PersistentFlags().BoolVarP(&options.quiet, "quiet", "q", false, "squelch non-essential output")
 	cmd.PersistentFlags().BoolVar(&options.color, "no-color", true, "disable color")
-	// TODO(jacobkiefer): Codify the json-path as part of an OutputConfig or
-	// something similar. Sets the stage for yaml output, etc.
 	cmd.PersistentFlags().StringVar(&options.outputFormat, "output", "", "configure output formatting")
 
 	// create subcommands
