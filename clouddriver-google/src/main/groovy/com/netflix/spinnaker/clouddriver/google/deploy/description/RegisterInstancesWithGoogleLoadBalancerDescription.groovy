@@ -16,9 +16,23 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-class RegisterInstancesWithGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
+
+class RegisterInstancesWithGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription implements ApplicationNameable{
   List<String> loadBalancerNames
   List<String> instanceIds
   String region
   String accountName
+
+  @Override
+  Collection<String> getApplications() {
+    def list = (loadBalancerNames - null)
+    if (!list) {
+      return Collections.EMPTY_LIST
+    }
+    return list.collect {
+      Names.parseName(it).getApp()
+    }
+  }
 }

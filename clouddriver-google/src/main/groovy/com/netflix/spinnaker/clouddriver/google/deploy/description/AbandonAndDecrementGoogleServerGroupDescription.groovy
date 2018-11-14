@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-class AbandonAndDecrementGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+
+class AbandonAndDecrementGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription implements ServerGroupNameable {
   String serverGroupName
   List<String> instanceIds
   String region

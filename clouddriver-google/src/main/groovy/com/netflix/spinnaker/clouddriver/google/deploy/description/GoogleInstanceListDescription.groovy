@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-class GoogleInstanceListDescription extends AbstractGoogleCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+
+class GoogleInstanceListDescription extends AbstractGoogleCredentialsDescription implements ServerGroupNameable {
   String serverGroupName
   String region
   List<String> instanceIds

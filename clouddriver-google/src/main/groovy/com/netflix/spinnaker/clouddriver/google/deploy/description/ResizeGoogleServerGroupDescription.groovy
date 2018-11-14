@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-class ResizeGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+
+class ResizeGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription implements ServerGroupNameable {
   String serverGroupName
   Integer targetSize
   String region

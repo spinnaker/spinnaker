@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-class UpsertGoogleServerGroupTagsDescription extends AbstractGoogleCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+
+class UpsertGoogleServerGroupTagsDescription extends AbstractGoogleCredentialsDescription implements ServerGroupNameable {
   String serverGroupName
   List<String> tags
   String region

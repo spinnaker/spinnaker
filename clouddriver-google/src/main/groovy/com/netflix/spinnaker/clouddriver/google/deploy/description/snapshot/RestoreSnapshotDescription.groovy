@@ -16,10 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot
 
+import com.google.common.collect.ImmutableList
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.deploy.description.AbstractGoogleCredentialsDescription
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 
-class RestoreSnapshotDescription extends AbstractGoogleCredentialsDescription {
+class RestoreSnapshotDescription extends AbstractGoogleCredentialsDescription implements ApplicationNameable {
   String applicationName
   String accountName
   Long snapshotTimestamp
+
+  @Override
+  Collection<String> getApplications() {
+    return ImmutableList.of(Names.parseName(applicationName).getApp())
+  }
 }

@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class ModifyGoogleServerGroupInstanceTemplateDescription extends BaseGoogleInstanceDescription {
+class ModifyGoogleServerGroupInstanceTemplateDescription extends BaseGoogleInstanceDescription implements ServerGroupNameable {
   String serverGroupName
   String region
 

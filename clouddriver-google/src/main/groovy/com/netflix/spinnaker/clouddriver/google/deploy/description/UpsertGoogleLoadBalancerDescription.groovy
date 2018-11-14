@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.google.api.services.compute.model.HealthCheck
+import com.google.common.collect.ImmutableList
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 
-class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription {
+class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescription implements ApplicationNameable {
   // Common attributes.
   String loadBalancerName
   HealthCheck healthCheck
@@ -62,5 +66,10 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
     Integer port
     Integer timeoutSec
     String requestPath
+  }
+
+  @Override
+  Collection<String> getApplications() {
+    return ImmutableList.of(Names.parseName(loadBalancerName).getApp())
   }
 }

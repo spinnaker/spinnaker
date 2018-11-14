@@ -18,8 +18,9 @@ package com.netflix.spinnaker.clouddriver.google.deploy.description
 
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 
-class UpsertGoogleAutoscalingPolicyDescription extends AbstractGoogleCredentialsDescription {
+class UpsertGoogleAutoscalingPolicyDescription extends AbstractGoogleCredentialsDescription implements ServerGroupNameable {
   String serverGroupName
   String region
   String accountName

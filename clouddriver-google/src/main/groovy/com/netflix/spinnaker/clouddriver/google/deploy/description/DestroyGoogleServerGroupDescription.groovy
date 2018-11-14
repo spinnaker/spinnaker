@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-class DestroyGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
+
+class DestroyGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription implements ServerGroupNameable {
   String serverGroupName
   String region
   String accountName
