@@ -8,6 +8,7 @@ import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.hasEntry
 import strikt.assertions.isEqualTo
+import java.util.*
 
 internal object AssetMetadataTest {
 
@@ -17,30 +18,33 @@ internal object AssetMetadataTest {
   @TestFactory
   fun serialize() = junitTests<AssetMetadata> {
     fixture {
-      AssetMetadata(AssetName("my-new-cron-object"), mapOf(
-        "clusterName" to "",
-        "creationTimestamp" to "2017-05-31T12:56:35Z",
-        "deletionGracePeriodSeconds" to null,
-        "deletionTimestamp" to null,
-        "namespace" to "default",
-        "resourceVersion" to "285",
-        "selfLink" to "/apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object",
-        "uid" to "9423255b-4600-11e7-af6a-28d2447dc82b"
-      ))
+      AssetMetadata(
+        AssetName("my-new-cron-object"),
+        285,
+        UUID.fromString("9423255b-4600-11e7-af6a-28d2447dc82b"),
+        mapOf(
+          "clusterName" to "",
+          "creationTimestamp" to "2017-05-31T12:56:35Z",
+          "deletionGracePeriodSeconds" to null,
+          "deletionTimestamp" to null,
+          "namespace" to "default",
+          "selfLink" to "/apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object"
+        )
+      )
     }
 
     test("serializes as a hash") {
       expectThat(mapper.writeValueAsString(this)).isEqualTo(
         """---
           |name: "my-new-cron-object"
+          |resourceVersion: 285
+          |uid: "9423255b-4600-11e7-af6a-28d2447dc82b"
           |clusterName: ""
           |creationTimestamp: "2017-05-31T12:56:35Z"
           |deletionGracePeriodSeconds: null
           |deletionTimestamp: null
           |namespace: "default"
-          |resourceVersion: "285"
           |selfLink: "/apis/stable.example.com/v1/namespaces/default/crontabs/my-new-cron-object"
-          |uid: "9423255b-4600-11e7-af6a-28d2447dc82b"
           |""".trimMargin())
     }
   }
