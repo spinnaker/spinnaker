@@ -17,14 +17,12 @@ export class ApplicationRefresher extends React.Component<IApplicationRefresherP
   private app$ = new Subject<Application>();
   private destroy$ = new Subject();
 
-  public state = {
+  public state: IApplicationRefresherState = {
     refreshing: false,
     lastRefresh: 0,
   };
 
-  constructor(props: IApplicationRefresherProps) {
-    super(props);
-
+  public componentDidMount() {
     this.app$
       .filter(app => !!app)
       .distinctUntilChanged()
@@ -33,13 +31,13 @@ export class ApplicationRefresher extends React.Component<IApplicationRefresherP
       .startWith(null)
       .mergeMap((dataSource: ApplicationDataSource) => {
         // If there is no active data source (e.g., on config tab), use the application's status.
-        const fetchStatus$: Observable<IFetchStatus> = (dataSource && dataSource.status$) || props.app.status$;
+        const fetchStatus$: Observable<IFetchStatus> = (dataSource && dataSource.status$) || this.props.app.status$;
         return fetchStatus$.filter(fetchStatus => ['FETCHING', 'FETCHED', 'ERROR'].includes(fetchStatus.status));
       })
       .takeUntil(this.destroy$)
       .subscribe(fetchStatus => this.update(fetchStatus));
 
-    this.app$.next(props.app);
+    this.app$.next(this.props.app);
   }
 
   public componentWillReceiveProps(nextProps: IApplicationRefresherProps) {
