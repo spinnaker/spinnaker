@@ -1524,11 +1524,18 @@ class SpinnakerConfigurator(Configurator):
 
   def init_argument_parser(self, parser, defaults):
     """Implements interface."""
-    pass
+    add_parser_argument(
+        parser, 'halyard_profile_dir', defaults, None,
+        help='Directory for custom service setting files'
+             ' to install as the default halyard profile.')
+
 
   def validate_options(self, options):
     """Implements interface."""
-    pass
+    if (options.halyard_profile_dir
+        and not os.path.exists(options.halyard_profile_dir)):
+        raise ValueError('--halyard_profile_dir %r does not exist' %
+                         options.halyard_profile_dir)
 
   def add_config(self, options, script):
     """Implements interface."""
@@ -1545,9 +1552,21 @@ hystrix:
     script.append('echo "{}" > ~/.hal/default/profiles/gate-local.yml'.format(hystrix_config))
     script.append('echo "{}" > ~/.hal/default/profiles/front50-local.yml'.format(hystrix_config))
 
+    if options.halyard_profile_dir:
+      # Unpack the tar file into halyard's defualt profile directory.
+      script.extend([
+          'mkdir -p ~/.hal/default/profiles',
+          'tar xf halyard_profiles.tar'
+             ' --directory ~/.hal/default/profiles'
+      ])
+
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
-    pass
+    if options.halyard_profile_dir:
+      logging.info('Taring %s', options.halyard_profile_dir)
+      os.system('tar cf halyard_profiles.tar -C %s .'
+                % options.halyard_profile_dir)
+      file_set.add('halyard_profiles.tar')
 
 
 class HaConfigurator(Configurator):
