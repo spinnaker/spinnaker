@@ -23,7 +23,9 @@ interface AssetPlugin : KeelPlugin {
   fun current(request: Asset): CurrentResponse
   fun create(request: Asset): ConvergeResponse = upsert(request)
   fun update(request: Asset): ConvergeResponse = upsert(request)
-  fun upsert(request: Asset): ConvergeResponse
+  fun upsert(request: Asset): ConvergeResponse {
+    TODO("Not implemented")
+  }
   fun delete(request: Asset): ConvergeResponse
 }
 

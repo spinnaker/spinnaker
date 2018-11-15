@@ -5,11 +5,8 @@ import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetMetadata
+import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
 import com.oneeyedmen.minutest.junit.junitTests
 import com.squareup.okhttp.Call
 import com.squareup.okhttp.Response
@@ -43,6 +40,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.map
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * NOTE: requires minikube to be running.
@@ -62,16 +60,12 @@ import java.util.concurrent.TimeUnit.SECONDS
 internal object AssetPluginKubernetesAdapterTests {
 
   private data class Fixture(
-    val plugin: AssetPlugin,
+    val plugin: MockAssetPlugin,
     val crd: V1beta1CustomResourceDefinition,
     val crdApi: ApiextensionsV1beta1Api = ApiextensionsV1beta1Api(),
     val customObjectsApi: CustomObjectsApi = CustomObjectsApi()
   ) {
-    val callbackLatch = CountDownLatch(1)
-
-    val watcher: ResourceWatcher<Map<String, Any>> = ResourceWatcher(customObjectsApi, crd, plugin) {
-      callbackLatch.countDown()
-    }
+    val watcher: ResourceWatcher<Map<String, Any>> = ResourceWatcher(customObjectsApi, crd, plugin)
   }
 
   @BeforeAll
@@ -106,7 +100,7 @@ internal object AssetPluginKubernetesAdapterTests {
   fun `kubernetes integration`() = junitTests<Fixture> {
     fixture {
       Fixture(
-        plugin = mock(),
+        plugin = MockAssetPlugin(),
         crd = V1beta1CustomResourceDefinition().apply {
           apiVersion = "apiextensions.k8s.io/v1beta1"
           kind = "CustomResourceDefinition"
@@ -147,8 +141,6 @@ internal object AssetPluginKubernetesAdapterTests {
         // FFS k8s, learn to parse your own responses
       }
       crdApi.waitForCRDDeleted(crd.metadata.name)
-
-      reset(plugin)
     }
 
     test("can see the CRD") {
@@ -212,7 +204,12 @@ internal object AssetPluginKubernetesAdapterTests {
           securityGroup,
           "true"
         )
-        Thread.sleep(1000)
+        customObjectsApi.waitForObjectCreated(
+          crd.spec.group,
+          crd.spec.version,
+          crd.spec.names.plural,
+          "my-security-group"
+        )
       }
 
       after {
@@ -229,8 +226,9 @@ internal object AssetPluginKubernetesAdapterTests {
       }
 
       test("the plugin gets invoked") {
-        callbackLatch.await()
-        verify(plugin).create(any())
+        expectThat(plugin.lastCreated.get())
+          .get { metadata.name }
+          .isEqualTo("my-security-group".let(::AssetName))
       }
 
       test("there should be one object") {
@@ -257,8 +255,6 @@ internal object AssetPluginKubernetesAdapterTests {
 
       context("the instance is updated") {
         before {
-          reset(plugin)
-
           val uid = customObjectsApi.getClusterCustomObjectCall(
             crd.spec.group,
             crd.spec.version,
@@ -290,6 +286,9 @@ internal object AssetPluginKubernetesAdapterTests {
             )
           )
 
+          // ensure the create has completed
+          plugin.lastCreated.get()
+
           val response = customObjectsApi.patchClusterCustomObjectWithHttpInfo(
             crd.spec.group,
             crd.spec.version,
@@ -299,11 +298,12 @@ internal object AssetPluginKubernetesAdapterTests {
           )
           println(response.statusCode)
           println(response.data)
-          Thread.sleep(2000)
         }
 
         test("the plugin gets invoked") {
-          verify(plugin).update(any())
+          expectThat(plugin.lastUpdated.get())
+            .get { spec["description"] }
+            .isEqualTo("a security group with an updated description")
         }
       }
     }
@@ -340,48 +340,60 @@ data class SecurityGroup(
 )
 
 // TODO: there's a correct way to do this by watching for a create event.
-private fun ApiextensionsV1beta1Api.waitForCRDCreated(name: String) {
+private fun CustomObjectsApi.waitForObjectCreated(group: String, version: String, plural: String, name: String) {
   var found = false
   while (!found) {
-    found = listCustomResourceDefinition(
-      "true",
-      "true",
-      null,
-      null,
-      null,
-      0,
-      null,
-      5,
-      false
-    )
-      .items
-      .map { it.metadata.name }
-      .contains(name)
-    if (!found) {
-      Thread.sleep(100)
+    found = getClusterCustomObject(
+      group,
+      version,
+      plural,
+      name
+    ) != null
+  }
+}
+
+private fun ApiextensionsV1beta1Api.waitForCRDCreated(name: String) {
+  runBlocking {
+    var found = false
+    while (!found) {
+      found = listCustomResourceDefinition(
+        "true",
+        "true",
+        null,
+        null,
+        null,
+        0,
+        null,
+        5,
+        false
+      )
+        .items
+        .map { it.metadata.name }
+        .contains(name)
+      yield()
     }
   }
 }
 
 private fun ApiextensionsV1beta1Api.waitForCRDDeleted(name: String) {
-  var found = true
-  while (found) {
-    found = listCustomResourceDefinition(
-      "true",
-      "true",
-      null,
-      null,
-      null,
-      0,
-      null,
-      5,
-      false
-    )
-      .items
-      .map { it.metadata.name }
-      .contains(name)
-    if (!found) {
-      Thread.sleep(100)
+  runBlocking {
+    var found = true
+    while (found) {
+      found = listCustomResourceDefinition(
+        "true",
+        "true",
+        null,
+        null,
+        null,
+        0,
+        null,
+        5,
+        false
+      )
+        .items
+        .map { it.metadata.name }
+        .contains(name)
+      yield()
     }
   }
 }
@@ -389,8 +401,7 @@ private fun ApiextensionsV1beta1Api.waitForCRDDeleted(name: String) {
 private class ResourceWatcher<T>(
   private val customObjectsApi: CustomObjectsApi,
   private val crd: V1beta1CustomResourceDefinition,
-  private val plugin: AssetPlugin,
-  private val callback: (Resource<T>) -> Unit
+  private val plugin: AssetPlugin
 ) {
   private var job: Job? = null
   private var watch: Watch<Resource<T>>? = null
@@ -444,7 +455,6 @@ private class ResourceWatcher<T>(
                       spec as Map<String, Any>
                     )
                   })
-                  callback(it.`object`)
                 }
                 "MODIFIED" -> {
                   seen = version
@@ -457,7 +467,6 @@ private class ResourceWatcher<T>(
                       spec as Map<String, Any>
                     )
                   })
-                  callback(it.`object`)
                 }
               }
             }
@@ -483,3 +492,48 @@ private inline fun <reified T : Any> parse(response: Response): T =
     response.body().string(),
     object : TypeToken<T>() {}.type
   )
+
+class BlockingReference<V> {
+  private val ref = AtomicReference<V>()
+  private val latch = CountDownLatch(1)
+
+  fun get(): V {
+    latch.await()
+    return ref.get()
+  }
+
+  fun set(value: V) {
+    ref.set(value)
+    latch.countDown()
+  }
+}
+
+private class MockAssetPlugin : AssetPlugin {
+
+  val lastCreated = BlockingReference<Asset>()
+  val lastUpdated = BlockingReference<Asset>()
+  val lastDeleted = BlockingReference<Asset>()
+
+  override val supportedKinds: Iterable<String>
+    get() = TODO("not implemented")
+
+  override fun current(request: Asset): CurrentResponse {
+    TODO("not implemented")
+  }
+
+  override fun create(request: Asset): ConvergeResponse {
+    lastCreated.set(request)
+    return ConvergeAccepted
+  }
+
+  override fun update(request: Asset): ConvergeResponse {
+    lastUpdated.set(request)
+    return ConvergeAccepted
+  }
+
+  override fun delete(request: Asset): ConvergeResponse {
+    lastDeleted.set(request)
+    return ConvergeAccepted
+  }
+
+}
