@@ -153,6 +153,10 @@ public class SaveServiceAccountTask implements RetryableTask {
       return false;
     }
 
+    if (permission.isAdmin()) {
+      return true;
+    }
+
     // User has to have all the pipeline roles.
     Set<String> userRoles = permission.getRoles()
       .stream()

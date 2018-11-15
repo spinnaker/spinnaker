@@ -129,4 +129,38 @@ class SaveServiceAccountTaskSpec extends Specification {
     result.context == ImmutableMap.of()
   }
 
+  def "should allow an admin to save pipelines"() {
+    given:
+    def pipeline = [
+      application: 'orca',
+      id: 'pipeline-id',
+      name: 'My pipeline',
+      stages: [],
+      roles: ['foo']
+    ]
+    def stage = stage {
+      context = [
+        pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+      ]
+    }
+
+    def expectedServiceAccount = new ServiceAccount(name: 'pipeline-id@managed-service-account', memberOf: ['foo'])
+
+    when:
+    stage.getExecution().setTrigger(new DefaultTrigger('manual', null, 'abc@somedomain.io'))
+    def result = task.execute(stage)
+
+    then:
+    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
+      new UserPermission().setAdmin(true).view
+    }
+
+    1 * front50Service.saveServiceAccount(expectedServiceAccount) >> {
+      new Response('http://front50', 200, 'OK', [], null)
+    }
+
+    result.status == ExecutionStatus.SUCCEEDED
+    result.context == ImmutableMap.of('pipeline.serviceAccount', expectedServiceAccount.name)
+  }
+
 }
