@@ -136,7 +136,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
 
   private noRowsRender = (): JSX.Element => {
     const dataSource = this.props.app.getDataSource('serverGroups');
-    if (!this.props.initialized) {
+    if (!this.props.initialized || dataSource.loadFailure) {
       return null;
     }
 
