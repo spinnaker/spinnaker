@@ -644,10 +644,10 @@
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.21.tgz#b6c4c311e9416a1e8ce76b072e042a60224d1b3a"
   integrity sha512-QWHc0wT00qtYNkT0BXZaFNLLHZyux0qJjF8c2WklW5/Q0Z866NoJjJErEMWjQb/AR+olkR2NlfEEi8KTQU2OpA==
 
-"@uirouter/react-hybrid@0.3.7", "@uirouter/react-hybrid@^0.1.0":
-  version "0.3.7"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.3.7.tgz#67309ccd82f5f35fc70d50af59dca72ab00031aa"
-  integrity sha512-L5xGmlSpSK8UTKb3WDFbbCLPGCt229lv2Hp5dZuKbXXRirSkElXp9Q6748gLzQZHsAPotCLB/uuYefu5RGC+sA==
+"@uirouter/react-hybrid@0.3.8", "@uirouter/react-hybrid@^0.1.0":
+  version "0.3.8"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.3.8.tgz#895fe1f42be0c27056549a4459eecd651b167b27"
+  integrity sha512-3ESdlWWF4BzoikUBbhlA0POCmaNTWhmv5MaKR/Qh3q3q+zleIHMbPl2VLzoR5OfUN5fBVANwf/tVGnXt0/uZYA==
   dependencies:
     "@uirouter/angularjs" "1.0.20"
     "@uirouter/core" "5.0.21"
