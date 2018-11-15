@@ -58,6 +58,7 @@ export class OracleLoadBalancerTransformer {
       shape: loadBalancer.shape,
       isPrivate: loadBalancer.isPrivate,
       subnetIds: loadBalancer.subnets.map(subnet => subnet.id),
+      certificates: loadBalancer.certificates,
       listeners: loadBalancer.listeners,
       hostnames: loadBalancer.hostnames,
       backendSets: loadBalancer.backendSets,
@@ -104,7 +105,9 @@ export class OracleLoadBalancerTransformer {
     return {
       name: name,
       policy: LoadBalancingPolicy.ROUND_ROBIN,
-      healthChecker: { protocol: 'HTTP', port: 80, urlPath: '/healthZ' },
+      healthChecker: { protocol: 'HTTP', port: 80, urlPath: '/' },
+      backends: [],
+      isNew: true,
     };
   }
 
@@ -123,6 +126,7 @@ export class OracleLoadBalancerTransformer {
       caCertificate: undefined,
       privateKey: undefined,
       passphrase: undefined,
+      isNew: true,
     };
   }
 }

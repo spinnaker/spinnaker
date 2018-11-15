@@ -14,10 +14,12 @@
         </thead>
         <tbody>
           <tr ng-repeat="backendSet in ctrl.backendSets">
-            <td>
+            <td ng-if="backendSet.isNew">
               <input class="form-control input-sm" ng-model="backendSet.name" required
                      ng-focus="prevBackendSetNames[$index] = backendSet.name"
                      ng-blur="ctrl.backendSetNameChanged($index)"/>
+            </td>
+            <td ng-if="!backendSet.isNew">{{backendSet.name}}
             </td>
             <td>
               <select class="form-control input-sm" ng-model="backendSet.policy" ng-options="policy for policy in ctrl.loadBalancingPolicies"></select>
@@ -31,8 +33,10 @@
             <td>
               <input class="form-control input-sm" ng-model="backendSet.healthChecker.urlPath" required/>
             </td>
-            <td><a href class="sm-label" ng-click="ctrl.removeBackendSet($index)"><span
-              class="glyphicon glyphicon-trash"></span></a></td>
+            <td>
+              <a href class="sm-label" ng-if="ctrl.isBackendSetRemovable($index)"
+                 ng-click="ctrl.removeBackendSet($index)"><span class="glyphicon glyphicon-trash"></span></a>
+            </td>
           </tr>
         </tbody>
         <tfoot>

@@ -13,29 +13,33 @@
         </thead>
         <tbody>
           <tr ng-repeat="cert in ctrl.certificates">
-            <td>
+            <td ng-if="!cert.isNew">{{cert.certificateName}}</td>
+            <td ng-if="cert.isNew">
               <input class="form-control input-sm" ng-model="cert.certificateName" required
                      ng-focus="prevCertNames[$index] = cert.name"
                      ng-blur="ctrl.certNameChanged($index)"/>
             </td>
             <td>
-              <textarea ng-model="cert.publicCertificate" required
+              <textarea ng-if="cert.isNew" ng-model="cert.publicCertificate" required
                         class="form-control input-sm"></textarea>
             </td>
             <td>
-              <textarea ng-model="cert.caCertificate"
+              <textarea ng-if="cert.isNew" ng-model="cert.caCertificate"
                         class="form-control input-sm"></textarea>
             </td>
             <td>
-              <textarea ng-model="cert.privateKey" required
+              <textarea ng-if="cert.isNew" ng-model="cert.privateKey" required
                         class="form-control input-sm"></textarea>
             </td>
             <td>
-              <textarea ng-model="cert.passphrase"
+              <textarea ng-if="cert.isNew" ng-model="cert.passphrase"
                         class="form-control input-sm"></textarea>
             </td>
-            <td><a href class="sm-label" ng-click="ctrl.removeCert($index)"><span
-              class="glyphicon glyphicon-trash"></span></a></td>
+            <td>
+              <a href class="sm-label" ng-if="ctrl.isCertRemovable($index)"
+                 ng-click="ctrl.removeCert($index)"><span class="glyphicon glyphicon-trash"></span>
+              </a>
+            </td>
           </tr>
         </tbody>
         <tfoot>
@@ -48,7 +52,6 @@
           </tr>
         </tfoot>
       </table>
-
     </div>
   </div>
 </div>

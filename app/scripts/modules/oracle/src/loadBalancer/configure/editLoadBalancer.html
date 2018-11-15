@@ -1,5 +1,8 @@
-<form name="form" novalidate validate-on-submit>
-<v2-modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}" task-monitor="taskMonitor">
+<form name="form" class="form-horizontal" novalidate validate-on-submit>
+<v2-modal-wizard heading="Edit Load Balancer {{ctrl.loadBalancer.name}}" task-monitor="taskMonitor" dismiss="$dismiss()">
+  <v2-wizard-page key="Certificates" label="SSL Certificates" done="true">
+    <ng-include src="ctrl.pages.certificates"></ng-include>
+  </v2-wizard-page>
   <v2-wizard-page key="Backend Sets" label="Backend Sets" done="true">
     <ng-include src="ctrl.pages.backendSets"></ng-include>
   </v2-wizard-page>

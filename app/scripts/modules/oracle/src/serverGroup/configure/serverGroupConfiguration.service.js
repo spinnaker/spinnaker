@@ -197,6 +197,11 @@ module.exports = angular
           backingData.filtered.shapes = shapesMap;
           backingData.filtered.allShapes = _.uniqBy(_.flatten(_.values(shapesMap)), 'name');
           command.backingData = backingData;
+          if (command.account) {
+            loadLoadBalancers(command);
+            backingData.loadBalancerOnChange();
+            backingData.backendSetOnChange();
+          }
         });
     }
 

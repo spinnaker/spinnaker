@@ -19,7 +19,7 @@ export interface IOracleLoadBalancer extends ILoadBalancer {
   shape: string; // required
   isPrivate: boolean; // required
   subnets: IOracleSubnet[]; // required 1 for private LB, 2 for public LB
-  certificates: IOracleListenerCertificate[];
+  certificates?: { [name: string]: IOracleListenerCertificate };
   listeners?: { [name: string]: IOracleListener }; // not required to create LB, but useless without it
   hostnames?: IOracleHostname[];
   backendSets?: { [name: string]: IOracleBackEndSet }; // not required to create LB, but useless without it
@@ -63,6 +63,8 @@ export interface IOracleBackEndSet {
   policy: LoadBalancingPolicy;
   healthChecker: IOracleBackendSetHealthCheck;
   // TODO desagar sessionPersistenceConfiguration?: IOracleLoadBalancerSessionPersistenceConfiguration;
+  backends: any[];
+  isNew: boolean;
 }
 
 export interface IOracleListenerCertificate {
@@ -71,6 +73,7 @@ export interface IOracleListenerCertificate {
   caCertificate: string;
   privateKey: string;
   passphrase: string;
+  isNew: boolean;
 }
 
 export interface IOracleBackendSetHealthCheck {
@@ -92,6 +95,7 @@ export interface IOracleLoadBalancerUpsertCommand extends ILoadBalancerUpsertCom
   shape: string; // required
   isPrivate: boolean; // required
   subnetIds: string[]; // required 1 for private LB, 2 for public LB
+  certificates?: { [name: string]: IOracleListenerCertificate };
   listeners?: { [name: string]: IOracleListener }; // not required to create LB, but useless without it
   hostnames?: IOracleHostname[];
   backendSets?: { [name: string]: IOracleBackEndSet }; // not required to create LB, but useless without it

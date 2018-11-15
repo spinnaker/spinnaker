@@ -94,7 +94,7 @@ describe('Controller: oracleCreateLoadBalancerCtrl', function() {
     expect(controller.backendSets[0].policy).toEqual(LoadBalancingPolicy.ROUND_ROBIN);
     expect(controller.backendSets[0].healthChecker.protocol).toEqual('HTTP');
     expect(controller.backendSets[0].healthChecker.port).toEqual(80);
-    expect(controller.backendSets[0].healthChecker.urlPath).toEqual('/healthZ');
+    expect(controller.backendSets[0].healthChecker.urlPath).toEqual('/');
   });
 
   it('correctly creates default certificate', function() {
@@ -103,11 +103,53 @@ describe('Controller: oracleCreateLoadBalancerCtrl', function() {
     expect(controller.certificates[0].certificateName).toEqual('certificate1');
   });
 
+  it('adds & removes certificate', function() {
+    controller.addCert();
+    expect(controller.certificates).toBeDefined();
+    expect(controller.certificates.length).toEqual(2);
+    expect(controller.certificates[1].certificateName).toEqual('certificate2');
+    controller.removeCert(0);
+    expect(controller.certificates.length).toEqual(1);
+    expect(controller.certificates[0].certificateName).toEqual('certificate2');
+  });
+
+  it('cannot remove certificate if used by listener', function() {
+    const newCertName = 'myCert';
+    controller.addCert();
+    expect(controller.certificates.length).toEqual(2);
+    controller.certificates[1].certificateName = newCertName;
+    controller.certNameChanged(1);
+    controller.addListener();
+    controller.listeners[1].isSsl = true;
+    controller.listeners[1].sslConfiguration = {
+      certificateName: newCertName,
+      verifyDepth: 0,
+      verifyPeerCertificates: false,
+    };
+    expect(controller.isCertRemovable(1)).toEqual(false);
+    controller.removeListener(1);
+    expect(controller.isCertRemovable(1)).toEqual(true);
+    controller.removeCert(1);
+  });
+
   it('changed backend set name updates listener', function() {
     expect(controller.listeners[0].defaultBackendSetName).toEqual('backendSet1');
     controller.backendSets[0].name = 'UpdatedBackendSetName';
     controller.backendSetNameChanged(0);
     expect(controller.listeners[0].defaultBackendSetName).toEqual('UpdatedBackendSetName');
+  });
+
+  it('cannot remove backendset if used by listener', function() {
+    const newBackendSetName = 'myBackendSet';
+    controller.addBackendSet();
+    controller.addListener();
+    controller.backendSets[1].name = newBackendSetName;
+    controller.backendSetNameChanged(1);
+    controller.listeners[1].defaultBackendSetName = newBackendSetName;
+    expect(controller.isBackendSetRemovable(1)).toEqual(false);
+    controller.removeListener(1);
+    expect(controller.isBackendSetRemovable(1)).toEqual(true);
+    controller.removeBackendSet(1);
   });
 
   it('remove backend set updates listener', function() {

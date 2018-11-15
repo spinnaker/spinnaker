@@ -121,6 +121,11 @@ export class OracleLoadBalancerController implements IController {
         this.backendSets.push(this.$scope.loadBalancerCmd.backendSets[b]);
       });
     }
+    if (this.$scope.loadBalancerCmd.certificates) {
+      Object.keys(this.$scope.loadBalancerCmd.certificates).forEach(b => {
+        this.certificates.push(this.$scope.loadBalancerCmd.certificates[b]);
+      });
+    }
   }
 
   public initializeController() {
@@ -334,6 +339,20 @@ export class OracleLoadBalancerController implements IController {
     });
   }
 
+  public isBackendSetRemovable(idx: number): boolean {
+    const backendSet = this.backendSets[idx];
+    if (backendSet && backendSet.backends && backendSet.backends.length > 0) {
+      return false;
+    }
+    let hasListener = false;
+    this.listeners.forEach(lis => {
+      if (lis.defaultBackendSetName === backendSet.name) {
+        hasListener = true;
+      }
+    });
+    return !hasListener;
+  }
+
   public addBackendSet() {
     const nameSuffix: number = this.backendSets.length + 1;
     const name: string = 'backendSet' + nameSuffix;
@@ -350,13 +369,24 @@ export class OracleLoadBalancerController implements IController {
     }
   }
 
+  public isCertRemovable(idx: number): boolean {
+    const cert = this.certificates[idx];
+    let hasListener = false;
+    this.listeners.forEach(lis => {
+      if (lis.isSsl && lis.sslConfiguration && lis.sslConfiguration.certificateName === cert.certificateName) {
+        hasListener = true;
+      }
+    });
+    return !hasListener;
+  }
+
   public removeCert(idx: number) {
     const cert = this.certificates[idx];
     this.certificates.splice(idx, 1);
     this.$scope.prevCertNames.splice(idx, 1);
     // Also clear the certificateName field of any listeners who are using this certificate
     this.listeners.forEach(lis => {
-      if (lis.sslConfiguration.certificateName === cert.certificateName) {
+      if (lis.sslConfiguration && lis.sslConfiguration.certificateName === cert.certificateName) {
         lis.sslConfiguration.certificateName = undefined;
       }
     });
@@ -372,9 +402,11 @@ export class OracleLoadBalancerController implements IController {
   public certNameChanged(idx: number) {
     const prevName = this.$scope.prevCertNames && this.$scope.prevCertNames[idx];
     if (prevName && prevName !== this.certificates[idx].certificateName) {
-      this.listeners.filter(lis => lis.sslConfiguration.certificateName === prevName).forEach(lis => {
-        lis.sslConfiguration.certificateName = this.certificates[idx].certificateName;
-      });
+      this.listeners
+        .filter(lis => lis.sslConfiguration && lis.sslConfiguration.certificateName === prevName)
+        .forEach(lis => {
+          lis.sslConfiguration.certificateName = this.certificates[idx].certificateName;
+        });
     }
   }
 
@@ -404,7 +436,7 @@ export class OracleLoadBalancerController implements IController {
         });
       }
 
-      if (this.backendSets.length > 0) {
+      if (this.backendSets) {
         this.$scope.loadBalancerCmd.backendSets = this.backendSets.reduce(
           (backendSetsMap: { [name: string]: IOracleBackEndSet }, backendSet: IOracleBackEndSet) => {
             backendSetsMap[backendSet.name] = backendSet;
@@ -414,7 +446,7 @@ export class OracleLoadBalancerController implements IController {
         );
       }
 
-      if (this.listeners.length > 0) {
+      if (this.listeners) {
         this.$scope.loadBalancerCmd.listeners = this.listeners.reduce(
           (listenersMap: { [name: string]: IOracleListener }, listener: IOracleListener) => {
             listener.name = listener.protocol + '_' + listener.port;
@@ -425,10 +457,14 @@ export class OracleLoadBalancerController implements IController {
         );
       }
 
-      if (this.certificates.length > 0) {
+      if (this.certificates) {
         this.$scope.loadBalancerCmd.certificates = this.certificates.reduce(
           (certMap: { [name: string]: IOracleListenerCertificate }, cert: IOracleListenerCertificate) => {
             certMap[cert.certificateName] = cert;
+            if (!cert.isNew) {
+              // existing certificate sends only the name
+              certMap[cert.certificateName].publicCertificate = null;
+            }
             return certMap;
           },
           {},
