@@ -17,6 +17,7 @@ import {
   PlatformHealthOverride,
   CheckboxInput,
   TaskReason,
+  ValidationMessage,
   NgReact,
   ICapacity,
 } from '@spinnaker/core';
@@ -94,29 +95,37 @@ export class AmazonResizeServerGroupModal extends React.Component<
   private validate = (
     values: IAmazonResizeServerGroupValues,
   ): Partial<FormikErrors<IAmazonResizeServerGroupValues>> => {
-    if (!this.state.advancedMode) {
-      return {};
-    }
-    const errors: Partial<FormikErrors<IAmazonResizeServerGroupValues>> = {};
     const { min, max, desired } = values;
+    const { asg } = this.props.serverGroup;
+    const errors: Partial<FormikErrors<IAmazonResizeServerGroupValues>> = {};
+
+    if (asg.minSize === min && asg.maxSize === max && asg.desiredCapacity === desired) {
+      (errors as any).nochange = 'no changes to capacity';
+    }
+
+    if (!this.state.advancedMode) {
+      return errors;
+    }
+
     // try to only show one error message at a time
     if (min > max && min > desired) {
-      errors.min = 'cannot be larger than Max/Desired';
+      errors.min = 'Min cannot be larger than Max/Desired';
     } else if (max < min && max < desired) {
-      errors.max = 'cannot be smaller than Min/Desired';
+      errors.max = 'Max cannot be smaller than Min/Desired';
     } else {
       if (min > max) {
-        errors.min = 'cannot be larger than Max';
+        errors.min = 'Min cannot be larger than Max';
       }
       if (!this.isDesiredControlledByAutoscaling()) {
         if (desired < min) {
-          errors.desired = 'cannot be smaller than Min';
+          errors.desired = 'Desired cannot be smaller than Min';
         }
         if (desired > max) {
-          errors.desired = 'cannot be larger than Max';
+          errors.desired = 'Desired cannot be larger than Max';
         }
       }
     }
+
     return errors;
   };
 
@@ -166,12 +175,23 @@ export class AmazonResizeServerGroupModal extends React.Component<
     const { advancedMode, interestingHealthProviderNames } = this.state;
     const { serverGroup, application } = this.props;
     const { asg } = serverGroup;
+    const capacity: Partial<ICapacity> = {
+      min: advancedMode ? min : desired,
+      max: advancedMode ? max : desired,
+      desired,
+    };
+    // only send changed capacity values
+    if (capacity.min === asg.minSize) {
+      delete capacity.min;
+    }
+    if (capacity.max === asg.maxSize) {
+      delete capacity.max;
+    }
+    if (capacity.desired === asg.desiredCapacity) {
+      delete capacity.desired;
+    }
     const command: IResizeJob = {
-      capacity: {
-        min: advancedMode ? min : desired,
-        max: advancedMode ? max : desired,
-        desired,
-      },
+      capacity,
       reason,
       interestingHealthProviderNames,
     };
@@ -224,9 +244,13 @@ export class AmazonResizeServerGroupModal extends React.Component<
     );
   }
 
-  private renderAdvancedMode(): JSX.Element {
+  private renderAdvancedMode(formik: FormikProps<IAmazonResizeServerGroupValues>): JSX.Element {
     const { serverGroup } = this.props;
+    const { errors } = formik;
     const { asg } = serverGroup;
+
+    const surfacedErrorMessage: string = errors.min || errors.max || errors.desired;
+
     return (
       <div>
         <p>Sets up autoscaling for this server group.</p>
@@ -266,6 +290,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
                   onChange={ev => this.autoIncrementDesiredIfNeeded(ev.target.value, 'min')}
                 />
               )}
+              validationMessage={null}
               touched={true}
             />
           </div>
@@ -279,6 +304,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
                   onChange={ev => this.autoIncrementDesiredIfNeeded(ev.target.value, 'max')}
                 />
               )}
+              validationMessage={null}
               touched={true}
             />
           </div>
@@ -286,10 +312,17 @@ export class AmazonResizeServerGroupModal extends React.Component<
             <FormikFormField
               name="desired"
               input={props => <NumberInput {...props} min={0} disabled={this.isDesiredControlledByAutoscaling()} />}
+              validationMessage={null}
               touched={true}
             />
           </div>
         </div>
+
+        {!!surfacedErrorMessage && (
+          <div className="col-md-offset-3 col-md-9">
+            <ValidationMessage message={surfacedErrorMessage} type="error" />
+          </div>
+        )}
       </div>
     );
   }
@@ -377,18 +410,17 @@ export class AmazonResizeServerGroupModal extends React.Component<
           ref={this.formikRef}
           initialValues={initialValues}
           validate={this.validate}
-          isInitialValid={true}
           onSubmit={this.submit}
           render={formik => {
             return (
               <>
-                <Form className="form-horizontal">
-                  <Modal.Header>
-                    <h3>Resize {serverGroup.name}</h3>
-                  </Modal.Header>
-                  <ModalClose dismiss={this.close} />
-                  <Modal.Body>
-                    {advancedMode && this.renderAdvancedMode()}
+                <Modal.Header>
+                  <h3>Resize {serverGroup.name}</h3>
+                </Modal.Header>
+                <ModalClose dismiss={this.close} />
+                <Modal.Body>
+                  <Form className="form-horizontal">
+                    {advancedMode && this.renderAdvancedMode(formik)}
                     {!advancedMode && this.renderSimpleMode()}
                     {this.renderScalingPolicyWarning(formik)}
                     {this.renderCapacityConstraintSelector()}
@@ -405,8 +437,8 @@ export class AmazonResizeServerGroupModal extends React.Component<
                       </div>
                     )}
                     <TaskReason reason={formik.values.reason} onChange={val => formik.setFieldValue('reason', val)} />
-                  </Modal.Body>
-                </Form>
+                  </Form>
+                </Modal.Body>
                 <AwsModalFooter
                   onSubmit={() => this.submit(formik.values)}
                   onCancel={this.close}

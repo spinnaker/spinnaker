@@ -16,7 +16,7 @@ export interface ICapacity {
 export interface IServerGroupJob extends IJob {
   amiName?: string;
   asgName?: string;
-  capacity?: ICapacity;
+  capacity?: Partial<ICapacity>;
   credentials?: string;
   cloudProvider?: string;
   region?: string;
@@ -124,13 +124,14 @@ export class ServerGroupWriter {
     params.region = serverGroup.region;
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
+    const newSize: string = Object.keys(params.capacity)
+      .map((k: keyof ICapacity) => `${k}: ${params.capacity[k]}`)
+      .join(', ');
 
     return TaskExecutor.executeTask({
       job: [params],
       application,
-      description: `Resize Server Group: ${serverGroup.name} to ${params.capacity.min}/${params.capacity.desired}/${
-        params.capacity.max
-      }`,
+      description: `Resize Server Group: ${serverGroup.name} to ${newSize}`,
     });
   }
 
