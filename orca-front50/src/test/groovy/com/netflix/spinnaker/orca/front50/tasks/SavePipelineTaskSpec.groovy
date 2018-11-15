@@ -130,10 +130,11 @@ class SavePipelineTaskSpec extends Specification {
   def "should update runAsUser with service account in each trigger where it is not set "() {
     given:
     String runAsUser
-    def expectedRunAsUser = 'my-pipeline@managed-service-account'
+    def expectedRunAsUser = 'my-pipeline-id@managed-service-account'
     def pipeline = [
       application: 'orca',
       name: 'my pipeline',
+      roles: ['foo'],
       stages: [],
       triggers: [
         [
@@ -188,5 +189,37 @@ class SavePipelineTaskSpec extends Specification {
 
     then:
     runAsUser == expectedRunAsUser
+  }
+
+  def "should remove runAsUser in triggers if roles are empty"(){
+    given:
+    String runAsUser
+    def pipeline = [
+      application: 'orca',
+      name: 'my pipeline',
+      roles: [],
+      stages: [],
+      triggers: [
+        [
+          type: 'cron',
+          enabled: true,
+          runAsUser: 'id@managed-service-account'
+        ]
+      ]
+    ]
+    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+    ])
+
+    when:
+    stage.getContext().put('pipeline.serviceAccount', 'id@managed-service-account')
+    front50Service.savePipeline(_) >> { Map<String, Object> newPipeline ->
+      runAsUser = newPipeline.get("triggers")[0]?.runAsUser
+      new Response('http://front50', 200, 'OK', [], null)
+    }
+    task.execute(stage)
+
+    then:
+    runAsUser == null
   }
 }

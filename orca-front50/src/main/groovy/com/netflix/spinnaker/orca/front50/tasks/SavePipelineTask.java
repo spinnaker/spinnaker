@@ -82,17 +82,9 @@ public class SavePipelineTask implements RetryableTask {
         pipeline.put("index", existingPipeline.get("index"));
       }
     }
-
-    if (stage.getContext().containsKey("pipeline.serviceAccount")) {
-      String serviceAccount = (String) stage.getContext().get("pipeline.serviceAccount");
-      pipeline.put("serviceAccount", serviceAccount);
-
-      // Each trigger contains a runAsUser field.
-      // We'll update each one with the pipelineServiceAccount if not already set.
-      if (pipeline.containsKey("triggers")) {
-        List<Map<String, Object>> triggers = (List<Map<String, Object>>) pipeline.get("triggers");
-        triggers.forEach(trigger -> trigger.putIfAbsent("runAsUser", serviceAccount));
-      }
+    String serviceAccount = (String) stage.getContext().get("pipeline.serviceAccount");
+    if (serviceAccount != null) {
+      updateServiceAccount(pipeline, serviceAccount);
     }
 
     pipelineModelMutators.stream().filter(m -> m.supports(pipeline)).forEach(m -> m.mutate(pipeline));
@@ -131,6 +123,23 @@ public class SavePipelineTask implements RetryableTask {
   @Override
   public long getTimeout() {
     return TimeUnit.SECONDS.toMillis(30);
+  }
+
+  private void updateServiceAccount(Map<String, Object> pipeline, String serviceAccount) {
+    if (StringUtils.isEmpty(serviceAccount) || !pipeline.containsKey("triggers")) {
+      return;
+    }
+
+    List<Map<String, Object>> triggers = (List<Map<String, Object>>) pipeline.get("triggers");
+    List<String> roles = (List<String>) pipeline.get("roles");
+    // Managed service acct but no roles; Remove runAsUserFrom triggers
+    if (roles == null || roles.isEmpty()) {
+      triggers.forEach(t -> t.remove("runAsUser", serviceAccount));
+      return;
+    }
+
+    // Managed Service account exists and roles are set; Update triggers
+    triggers.forEach(t -> t.putIfAbsent("runAsUser", serviceAccount));
   }
 
   private Map<String, Object> fetchExistingPipeline(Map<String, Object> newPipeline) {
