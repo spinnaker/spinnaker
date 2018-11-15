@@ -136,7 +136,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
         .setInstances(7)
         .setMemory("1G")
         .setDiskQuota("2048M")
-        .setBuildpack("buildpack1")
+        .setBuildpacks(io.vavr.collection.List.of("buildpack1", "buildpack2").asJava())
         .setServices(io.vavr.collection.List.of("service1").asJava())
         .setEnv(HashMap.of(
           "token", "ASDF"
@@ -167,7 +167,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
     final InOrder inOrder = Mockito.inOrder(apps, cloudFoundryClient.getServiceInstances());
     inOrder.verify(apps).createApplication("app1-stack1-detail1-v000",
       CloudFoundrySpace.builder().id("space1Id").name("space1").build(),
-      "buildpack1",
+      io.vavr.collection.List.of("buildpack1", "buildpack2").asJava(),
       HashMap.of(
         "token", "ASDF"
       ).toJavaMap());

@@ -40,11 +40,11 @@ public class CreateApplication {
   private final BuildpackLifecycle lifecycle;
 
   public CreateApplication(String name, Map<String, ToOneRelationship> relationships, @Nullable Map<String, String> environmentVariables,
-                           String buildpack) {
+                           List<String> buildpacks) {
     this.name = name;
     this.relationships = relationships;
     this.environmentVariables = environmentVariables;
-    this.lifecycle = new BuildpackLifecycle(buildpack);
+    this.lifecycle = new BuildpackLifecycle(buildpacks);
   }
 
   @AllArgsConstructor
@@ -53,8 +53,8 @@ public class CreateApplication {
     private String type = "buildpack";
     private Map<String, List<String>> data;
 
-    BuildpackLifecycle(String buildpack) {
-      this.data = Collections.singletonMap("buildpacks", singletonList(buildpack != null && buildpack.length() > 0 ? buildpack : null));
+    BuildpackLifecycle(List<String> buildpacks) {
+      this.data = Collections.singletonMap("buildpacks", buildpacks);
     }
   }
 }

@@ -57,7 +57,7 @@ public class DeployCloudFoundryServerGroupDescription extends AbstractCloudFound
     private List<String> routes;
 
     @Nullable
-    private String buildpack;
+    private List<String> buildpacks;
 
     @Nullable
     private Map<String, String> env;

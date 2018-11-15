@@ -34,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -121,6 +122,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         .setInstances(42)
         .setMemory("1024")
         .setDiskQuota("1024")
+        .setBuildpacks(Collections.emptyList())
     );
   }
 
@@ -132,7 +134,10 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
           "instances", 7,
           "memory", "1G",
           "disk_quota", "2048M",
-          "buildpack", "buildpack1",
+          "buildpacks", List.of(
+            "buildpack1",
+            "buildpack2"
+          ).asJava(),
           "services", List.of(
             "service1"
           ).asJava(),
@@ -155,7 +160,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         .setInstances(7)
         .setMemory("1G")
         .setDiskQuota("2048M")
-        .setBuildpack("buildpack1")
+        .setBuildpacks(List.of("buildpack1", "buildpack2").asJava())
         .setServices(List.of("service1").asJava())
         .setRoutes(List.of(
           "www.example.com/foo"
@@ -163,6 +168,61 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         .setEnv(HashMap.of(
           "token", "ASDF"
         ).toJavaMap())
+    );
+  }
+
+  @Test
+  void convertManifestMapToApplicationAttributesUsingDeprecatedBuildpackAttr() {
+    final Map input = HashMap.of(
+      "applications", List.of(
+        HashMap.of(
+          "buildpack", "buildpack1"
+        ).toJavaMap()
+      ).asJava()
+    ).toJavaMap();
+
+    assertThat(converter.convertManifest(input).get()).isEqualToComparingFieldByFieldRecursively(
+      new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
+        .setInstances(1)
+        .setMemory("1024")
+        .setDiskQuota("1024")
+        .setBuildpacks(List.of("buildpack1").asJava())
+    );
+  }
+
+  @Test
+  void convertManifestMapToApplicationAttributesUsingDeprecatedBuildpackAttrBlankStringValue() {
+    final Map input = HashMap.of(
+      "applications", List.of(
+        HashMap.of(
+          "buildpack", ""
+        ).toJavaMap()
+      ).asJava()
+    ).toJavaMap();
+
+    assertThat(converter.convertManifest(input).get()).isEqualToComparingFieldByFieldRecursively(
+      new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
+        .setInstances(1)
+        .setMemory("1024")
+        .setDiskQuota("1024")
+        .setBuildpacks(Collections.emptyList())
+    );
+  }
+
+  @Test
+  void convertManifestMapToApplicationAttributesUsingWithNoBuildpacks() {
+    final Map input = HashMap.of(
+      "applications", List.of(
+        Collections.EMPTY_MAP
+      ).asJava()
+    ).toJavaMap();
+
+    assertThat(converter.convertManifest(input).get()).isEqualToComparingFieldByFieldRecursively(
+      new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
+        .setInstances(1)
+        .setMemory("1024")
+        .setDiskQuota("1024")
+        .setBuildpacks(Collections.emptyList())
     );
   }
 

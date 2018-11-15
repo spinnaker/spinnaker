@@ -248,12 +248,12 @@ public class Applications {
     safelyCall(() -> api.deleteAppInstance(guid, index));
   }
 
-  public CloudFoundryServerGroup createApplication(String appName, CloudFoundrySpace space, @Nullable String buildpack,
+  public CloudFoundryServerGroup createApplication(String appName, CloudFoundrySpace space, List<String> buildpacks,
                                                    @Nullable Map<String, String> environmentVariables) throws CloudFoundryApiException {
     Map<String, ToOneRelationship> relationships = new HashMap<>();
     relationships.put("space", new ToOneRelationship(new Relationship(space.getId())));
 
-    return safelyCall(() -> api.createApplication(new CreateApplication(appName, relationships, environmentVariables, buildpack)))
+    return safelyCall(() -> api.createApplication(new CreateApplication(appName, relationships, environmentVariables, buildpacks)))
       .map(this::map)
       .orElseThrow(() -> new CloudFoundryApiException("Cloud Foundry signaled that application creation succeeded but failed to provide a response."));
   }

@@ -44,10 +44,12 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.vavr.API.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -137,11 +139,18 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
       });
 
     return manifestApps.stream().findFirst().map(app -> {
+      final List<String> buildpacks = Match(app).of(
+        Case($(a -> a.getBuildpacks() != null), app.getBuildpacks()),
+        Case($(a -> a.getBuildpack() != null && a.getBuildpack().length() > 0),
+          Collections.singletonList(app.getBuildpack())),
+        Case($(), Collections.emptyList())
+      );
+
       DeployCloudFoundryServerGroupDescription.ApplicationAttributes attrs = new DeployCloudFoundryServerGroupDescription.ApplicationAttributes();
       attrs.setInstances(app.getInstances() == null ? 1 : app.getInstances());
       attrs.setMemory(app.getMemory() == null ? "1024" : app.getMemory());
       attrs.setDiskQuota(app.getDiskQuota() == null ? "1024" : app.getDiskQuota());
-      attrs.setBuildpack(app.getBuildpack());
+      attrs.setBuildpacks(buildpacks);
       attrs.setServices(app.getServices());
       attrs.setRoutes(app.getRoutes() == null ? null : app.getRoutes().stream().flatMap(route -> route.values().stream()).collect(toList()));
       attrs.setEnv(app.getEnv() == null ? null : app.getEnv().stream().flatMap(env -> env.entrySet().stream()).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -162,6 +171,9 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
 
     @Nullable
     private String buildpack;
+
+    @Nullable
+    private List<String> buildpacks;
 
     @Nullable
     private List<String> services;
