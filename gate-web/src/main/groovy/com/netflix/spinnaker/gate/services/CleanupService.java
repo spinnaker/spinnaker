@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -70,5 +71,13 @@ public class CleanupService {
       return "200";
      }).execute();
     return "200";
+  }
+
+  public List getMarkedList() {
+    return (List) HystrixFactory.newListCommand(GROUP, "get", () -> swabbieService.getMarkedList(true)).execute();
+  }
+
+  public List getDeletedList() {
+    return (List) HystrixFactory.newListCommand(GROUP, "get", () -> swabbieService.getDeletedList()).execute();
   }
 }
