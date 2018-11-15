@@ -46,3 +46,12 @@ export interface ICommonFormFieldProps {
   input: React.ComponentType<IFormInputProps>;
   layout?: React.ComponentType<IFieldLayoutProps>;
 }
+
+export interface IFormFieldApi {
+  name(): string;
+  label(): string;
+  value(): any;
+  touched(): boolean;
+  validationMessage(): string;
+  validationStatus(): IFieldValidationStatus;
+}

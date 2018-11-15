@@ -1,9 +1,15 @@
 import * as React from 'react';
 import { isString, isUndefined } from 'lodash';
-import { Field, FastField, FieldProps, getIn } from 'formik';
+import { Field, FastField, FieldProps, getIn, connect, FormikContext } from 'formik';
 
+import {
+  ICommonFormFieldProps,
+  IFieldLayoutPropsWithoutInput,
+  IFieldValidationStatus,
+  IFormFieldApi,
+  IValidationProps,
+} from './interface';
 import { WatchValue } from '../WatchValue';
-import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput, IValidationProps } from './interface';
 import { StandardFieldLayout } from './layouts/index';
 import { composeValidators, Validator, Validation } from './Validation';
 import { renderContent } from './fields/renderContent';
@@ -28,19 +34,24 @@ export interface IFormikFieldProps<T> {
   onChange?: (value: T, prevValue: T) => void;
 }
 
-export interface IFormikFormFieldState {
+export interface IFormikFormFieldImplState {
   internalValidators: Validator[];
 }
 
 export type IFormikFormFieldProps<T> = IFormikFieldProps<T> & ICommonFormFieldProps & IFieldLayoutPropsWithoutInput;
+type IFormikFormFieldImplProps<T> = IFormikFormFieldProps<T> & { formik: FormikContext<T> };
 
-export class FormikFormField<T = any> extends React.Component<IFormikFormFieldProps<T>, IFormikFormFieldState> {
+const ifString = (val: any): string => (isString(val) ? val : undefined);
+
+export class FormikFormFieldImpl<T = any>
+  extends React.Component<IFormikFormFieldImplProps<T>, IFormikFormFieldImplState>
+  implements IFormFieldApi {
   public static defaultProps: Partial<IFormikFormFieldProps<any>> = {
     layout: StandardFieldLayout,
     fastField: true,
   };
 
-  public state: IFormikFormFieldState = {
+  public state: IFormikFormFieldImplState = {
     internalValidators: [],
   };
 
@@ -56,27 +67,41 @@ export class FormikFormField<T = any> extends React.Component<IFormikFormFieldPr
     }));
   };
 
+  public name = () => this.props.name;
+
+  public label = () => ifString(this.props.label);
+
+  public value = () => getIn(this.props.formik.values, this.props.name);
+
+  public touched = () => {
+    const { formik, name, touched } = this.props;
+    return !isUndefined(touched) ? touched : getIn(formik.values, name);
+  };
+
+  public validationMessage = () => {
+    const { name, formik, validationMessage } = this.props;
+    return ifString(validationMessage) || getIn(formik.errors, name);
+  };
+
+  public validationStatus = () => {
+    return (this.props.validationStatus || (this.validationMessage() ? 'error' : null)) as IFieldValidationStatus;
+  };
+
   public render() {
     const { internalValidators } = this.state;
     const { name, validate, onChange } = this.props; // IFormikFieldProps
     const { input, layout } = this.props; // ICommonFieldProps
     const { label, help, required, actions } = this.props; // IFieldLayoutPropsWithoutInput
-    const { touched, validationMessage, validationStatus } = this.props; // IValidationProps
 
     const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
 
     const render = (props: FieldProps<any>) => {
-      const { field, form } = props;
-
-      const formikError = getIn(form.errors, name);
-      const message = !isUndefined(validationMessage) ? validationMessage : formikError;
-      const status = !isUndefined(validationStatus) ? validationStatus : formikError ? 'error' : null;
-      const isTouched = !isUndefined(touched) ? touched : getIn(form.touched, name);
+      const { field } = props;
 
       const validationProps: IValidationProps = {
-        validationMessage: message,
-        validationStatus: status,
-        touched: isTouched,
+        touched: this.touched(),
+        validationMessage: this.validationMessage(),
+        validationStatus: this.validationStatus(),
         addValidator: this.addValidator,
         removeValidator: this.removeValidator,
       };
@@ -115,3 +140,5 @@ export function createFieldValidator<T>(
   const labelString = isString(label) ? label : undefined;
   return (value: any) => validator(value, labelString);
 }
+
+export const FormikFormField = connect(FormikFormFieldImpl);

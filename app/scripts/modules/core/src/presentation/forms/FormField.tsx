@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Subject } from 'rxjs';
+import { isString } from 'lodash';
 
 import { noop } from 'core/utils';
 
@@ -13,6 +14,7 @@ import {
   IControlledInputProps,
   IFieldLayoutPropsWithoutInput,
   IFieldValidationStatus,
+  IFormFieldApi,
   IValidationProps,
 } from './interface';
 
@@ -32,7 +34,9 @@ interface IFormFieldState {
   internalValidators: Validator[];
 }
 
-export class FormField extends React.Component<IFormFieldProps, IFormFieldState> {
+const ifString = (val: any): string => (isString(val) ? val : undefined);
+
+export class FormField extends React.Component<IFormFieldProps, IFormFieldState> implements IFormFieldApi {
   public static defaultProps: Partial<IFormFieldProps> = {
     layout: StandardFieldLayout,
     validate: noop,
@@ -49,6 +53,18 @@ export class FormField extends React.Component<IFormFieldProps, IFormFieldState>
 
   private destroy$ = new Subject();
   private value$ = new Subject();
+
+  public name = () => this.props.name;
+
+  public label = () => ifString(this.props.label);
+
+  public value = () => this.props.value;
+
+  public touched = () => this.props.touched;
+
+  public validationMessage = () => ifString(this.props.validationMessage) || ifString(this.state.validationMessage);
+
+  public validationStatus = () => this.props.validationStatus || this.state.validationStatus;
 
   private addValidator = (internalValidator: Validator) => {
     this.setState(prevState => ({
@@ -85,18 +101,15 @@ export class FormField extends React.Component<IFormFieldProps, IFormFieldState>
   public render() {
     const { input, layout } = this.props; // ICommonFormFieldProps
     const { label, help, required, actions } = this.props; // IFieldLayoutPropsWithoutInput
-    const { touched, validationMessage: message, validationStatus: status } = this.props; // IValidationProps
     const { onChange, onBlur, value, name } = this.props; // IControlledInputProps
 
     const fieldLayoutPropsWithoutInput: IFieldLayoutPropsWithoutInput = { label, help, required, actions };
     const controlledInputProps: IControlledInputProps = { onChange, onBlur, value, name };
 
-    const validationMessage = message || this.state.validationMessage;
-    const validationStatus = status || this.state.validationStatus;
     const validationProps: IValidationProps = {
-      touched,
-      validationMessage,
-      validationStatus,
+      touched: this.touched(),
+      validationMessage: this.validationMessage(),
+      validationStatus: this.validationStatus(),
       addValidator: this.addValidator,
       removeValidator: this.removeValidator,
     };
