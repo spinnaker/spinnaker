@@ -165,7 +165,7 @@ interface AmazonReservationReportBuilder {
       def regionalReservations = support.aggregateRegionalReservations(reservations)
 
       // remove any regional reservations that have been fully utilized (ie. they've all been converted to xlarge)
-      reservations.removeAll { it.availabilityZone == "*" && it.totalSurplus() == 0 }
+      reservations.removeAll { it.availabilityZone == "*" }
 
       // add the aggregated regional reservations
       reservations.addAll(regionalReservations)
