@@ -28,10 +28,10 @@
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free-webfonts/-/fontawesome-free-webfonts-1.0.4.tgz#bac5d89755bf3bc2d2b4deee47d92febf641bb1f"
   integrity sha512-uYd3d748klO7/+0N2F0JFYO1JeSR8/VF50S2+anI3/tG56GDAaT7fwTwlhv3N+C023f4vw3z7IPRc9ixstaAcw==
 
-"@fortawesome/fontawesome-free-webfonts@^1.0.9":
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free-webfonts/-/fontawesome-free-webfonts-1.0.9.tgz#72f2c10453422aba0d338fa6a9cb761b50ba24d5"
-  integrity sha512-nLgl6b6a+tXaoJJnSRw0hjN8cWM/Q5DhxKAwI9Xr0AiC43lQ2F98vQ1KLA6kw5OoYeAyisGGqmlwtBj0WqOI5Q==
+"@fortawesome/fontawesome-free@^5.4.1":
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.5.0.tgz#0c6c53823d04457ae669cd19567b8a21dbb4fcfd"
+  integrity sha512-p4lu0jfj5QN013ddArh99r3OXZ/fp9rbovs62LfaO70OMBsAXxtNd0lAq/97fitrscR0fqfd+/a5KNcp6Sh/0A==
 
 "@mapbox/geojson-area@0.2.2":
   version "0.2.2"

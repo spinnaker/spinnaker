@@ -28,7 +28,7 @@
     "modules": "./gradle/buildModules.sh"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free-webfonts": "^1.0.9",
+    "@fortawesome/fontawesome-free": "^5.4.1",
     "@spinnaker/kayenta": "0.0.63",
     "@spinnaker/styleguide": "^1.0.10",
     "@types/memoize-one": "^3.1.1",
