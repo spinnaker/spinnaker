@@ -140,20 +140,18 @@ export class AmazonResizeServerGroupModal extends React.Component<
     this.props.dismissModal.apply(null, args);
   };
 
-  private autoIncrementDesiredIfNeeded(newValString: string, field: string): void {
-    const newVal = parseInt(newValString, 10);
+  private autoIncrementDesiredIfNeeded(): void {
+    if (!this.isDesiredControlledByAutoscaling()) {
+      return;
+    }
+
     const formik = this.formikRef.current.getFormikContext();
-    let { min, max, desired } = formik.values;
-    if (field === 'min') {
-      min = newVal;
-    } else {
-      max = newVal;
+    const { asg } = this.props.serverGroup;
+    const { min, max, desired } = formik.values;
+    const newDesired = Math.min(max, Math.max(min, asg.desiredCapacity));
+    if (desired !== newDesired) {
+      formik.setFieldValue('desired', newDesired);
     }
-    if (this.isDesiredControlledByAutoscaling()) {
-      desired = desired < min ? min : desired > max ? max : desired;
-      formik.setFieldValue('desired', desired);
-    }
-    formik.setFieldValue(field, newVal);
   }
 
   private platformHealthOverrideChanged = (interestingHealthProviderNames: string[]) => {
@@ -283,13 +281,8 @@ export class AmazonResizeServerGroupModal extends React.Component<
           <div className="col-md-2">
             <FormikFormField
               name="min"
-              input={props => (
-                <NumberInput
-                  {...props}
-                  min={0}
-                  onChange={ev => this.autoIncrementDesiredIfNeeded(ev.target.value, 'min')}
-                />
-              )}
+              input={props => <NumberInput {...props} min={0} />}
+              onChange={() => this.autoIncrementDesiredIfNeeded()}
               validationMessage={null}
               touched={true}
             />
@@ -297,13 +290,8 @@ export class AmazonResizeServerGroupModal extends React.Component<
           <div className="col-md-2">
             <FormikFormField
               name="max"
-              input={props => (
-                <NumberInput
-                  {...props}
-                  min={0}
-                  onChange={ev => this.autoIncrementDesiredIfNeeded(ev.target.value, 'max')}
-                />
-              )}
+              input={props => <NumberInput {...props} min={0} />}
+              onChange={() => this.autoIncrementDesiredIfNeeded()}
               validationMessage={null}
               touched={true}
             />
