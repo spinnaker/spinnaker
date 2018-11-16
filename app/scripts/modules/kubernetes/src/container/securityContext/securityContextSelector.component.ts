@@ -29,7 +29,7 @@ class SecurityContextSelector implements IController {
     },
     {
       label: 'Read Only Root Filesystem',
-      model: 'readOnlyRootFileSystem',
+      model: 'readOnlyRootFilesystem',
       type: 'checkbox',
     },
     {
