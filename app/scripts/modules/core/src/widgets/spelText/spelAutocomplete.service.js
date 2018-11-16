@@ -121,9 +121,9 @@ module.exports = angular
     const leafTemplateFn = stage => {
       return `${
         stage.leaf
-      } <span class="glyphicon glyphicon-triangle-right spel-value-separator"></span> <span class="marker value">${
+      } <span class="glyphicon glyphicon-triangle-right spel-value-separator"></span> <span class="marker value" title="${
         stage.value
-      }</span>`;
+      }">${stage.value.length > 90 ? `${stage.value.slice(0, 90)}...` : stage.value}</span>`;
     };
 
     let addExecutionForAutocomplete = (pipeline, textcompleteConfig) => {
