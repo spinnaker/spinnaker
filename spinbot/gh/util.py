@@ -13,6 +13,9 @@ def HasLabel(issue, name):
     label = next((l for l in issue.get_labels() if l.name == name), None)
     return label is not None
 
+def ReleaseBranch(release):
+    return 'release-{}.x'.format(release)
+
 def RemoveLabel(gh, issue, name, create=True):
     if not HasLabel(issue, name):
         issue.create_comment(
