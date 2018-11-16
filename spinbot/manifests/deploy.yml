@@ -102,6 +102,7 @@ data:
           - spinnaker/spinnaker
           - spinnaker/spinnaker.github.io
       - name: pull_request_closed_event_handler
+      - name: pull_request_cherry_pick_event_handler
 
     database:
       influx:
