@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { FormikErrors, Form, Formik, FormikProps } from 'formik';
+import { startCase } from 'lodash';
 
 import {
   Application,
@@ -22,7 +23,8 @@ import {
   ICapacity,
 } from '@spinnaker/core';
 
-import { AwsModalFooter, IAmazonServerGroup } from 'amazon';
+import { AwsModalFooter } from 'amazon/common';
+import { IAmazonAsg, IAmazonServerGroup } from 'amazon/domain';
 
 export interface IAmazonResizeServerGroupModalProps extends IModalComponentProps {
   application: Application;
@@ -49,6 +51,12 @@ export interface IResizeJob extends IServerGroupJob {
   constraints?: { capacity: ICapacity };
   reason?: string;
   interestingHealthProviderNames: string[];
+}
+
+interface IChangedField {
+  field: keyof ICapacity;
+  prevValue: number;
+  value: number;
 }
 
 export class AmazonResizeServerGroupModal extends React.Component<
@@ -92,6 +100,16 @@ export class AmazonResizeServerGroupModal extends React.Component<
     };
   }
 
+  private getChangedFields(capacity: ICapacity, asg: IAmazonAsg): IChangedField[] {
+    const fields: IChangedField[] = [
+      { field: 'min', value: capacity.min, prevValue: asg.minSize },
+      { field: 'max', value: capacity.max, prevValue: asg.maxSize },
+      { field: 'desired', value: capacity.desired, prevValue: asg.desiredCapacity },
+    ];
+
+    return fields.filter(field => field.value !== field.prevValue);
+  }
+
   private validate = (
     values: IAmazonResizeServerGroupValues,
   ): Partial<FormikErrors<IAmazonResizeServerGroupValues>> => {
@@ -99,7 +117,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
     const { asg } = this.props.serverGroup;
     const errors: Partial<FormikErrors<IAmazonResizeServerGroupValues>> = {};
 
-    if (asg.minSize === min && asg.maxSize === max && asg.desiredCapacity === desired) {
+    if (this.getChangedFields(values, asg).length === 0) {
       (errors as any).nochange = 'no changes to capacity';
     }
 
@@ -170,29 +188,21 @@ export class AmazonResizeServerGroupModal extends React.Component<
 
   private submit = (values: IAmazonResizeServerGroupValues): void => {
     const { min, max, desired, enforceCapacityConstraints, reason } = values;
-    const { advancedMode, interestingHealthProviderNames } = this.state;
+    const { interestingHealthProviderNames } = this.state;
     const { serverGroup, application } = this.props;
     const { asg } = serverGroup;
-    const capacity: Partial<ICapacity> = {
-      min: advancedMode ? min : desired,
-      max: advancedMode ? max : desired,
-      desired,
-    };
-    // only send changed capacity values
-    if (capacity.min === asg.minSize) {
-      delete capacity.min;
-    }
-    if (capacity.max === asg.maxSize) {
-      delete capacity.max;
-    }
-    if (capacity.desired === asg.desiredCapacity) {
-      delete capacity.desired;
-    }
+
+    const changedFields: IChangedField[] = this.getChangedFields({ min, max, desired }, asg);
+    const capacity = changedFields.reduce((acc: Partial<ICapacity>, change) => {
+      return { ...acc, [change.field]: change.value };
+    }, {});
+
     const command: IResizeJob = {
       capacity,
       reason,
       interestingHealthProviderNames,
     };
+
     if (enforceCapacityConstraints) {
       command.constraints = {
         capacity: {
@@ -207,7 +217,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
     });
   };
 
-  private renderSimpleMode(): JSX.Element {
+  private renderSimpleMode(formik: FormikProps<IAmazonResizeServerGroupValues>): JSX.Element {
     const { serverGroup } = this.props;
     const { asg } = serverGroup;
     return (
@@ -233,7 +243,15 @@ export class AmazonResizeServerGroupModal extends React.Component<
           <div className="col-md-3 sm-label-right">Resize to</div>
           <div className="col-md-4">
             <div className="horizontal middle">
-              <FormikFormField name="desired" input={props => <NumberInput {...props} min={0} />} touched={true} />
+              <FormikFormField
+                name="desired"
+                input={props => <NumberInput {...props} min={0} />}
+                touched={true}
+                onChange={value => {
+                  formik.setFieldValue('min', value);
+                  formik.setFieldValue('max', value);
+                }}
+              />
               <div className="sp-padding-xs-xaxis">instances</div>
             </div>
           </div>
@@ -283,7 +301,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
               name="min"
               input={props => <NumberInput {...props} min={0} />}
               onChange={() => this.autoIncrementDesiredIfNeeded()}
-              validationMessage={null}
+              layout={({ input }) => <>{input}</>}
               touched={true}
             />
           </div>
@@ -292,7 +310,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
               name="max"
               input={props => <NumberInput {...props} min={0} />}
               onChange={() => this.autoIncrementDesiredIfNeeded()}
-              validationMessage={null}
+              layout={({ input }) => <>{input}</>}
               touched={true}
             />
           </div>
@@ -300,7 +318,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
             <FormikFormField
               name="desired"
               input={props => <NumberInput {...props} min={0} disabled={this.isDesiredControlledByAutoscaling()} />}
-              validationMessage={null}
+              layout={({ input }) => <>{input}</>}
               touched={true}
             />
           </div>
@@ -400,6 +418,9 @@ export class AmazonResizeServerGroupModal extends React.Component<
           validate={this.validate}
           onSubmit={this.submit}
           render={formik => {
+            const { asg } = serverGroup;
+            const changedCapacityFields: IChangedField[] = this.getChangedFields(formik.values, asg);
+
             return (
               <>
                 <Modal.Header>
@@ -409,7 +430,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
                 <Modal.Body>
                   <Form className="form-horizontal">
                     {advancedMode && this.renderAdvancedMode(formik)}
-                    {!advancedMode && this.renderSimpleMode()}
+                    {!advancedMode && this.renderSimpleMode(formik)}
                     {this.renderScalingPolicyWarning(formik)}
                     {this.renderCapacityConstraintSelector()}
                     {platformHealthOnlyShowOverride && (
@@ -424,7 +445,21 @@ export class AmazonResizeServerGroupModal extends React.Component<
                         </div>
                       </div>
                     )}
+
                     <TaskReason reason={formik.values.reason} onChange={val => formik.setFieldValue('reason', val)} />
+
+                    <div className="form-group">
+                      <div className="col-md-3 sm-label-right">Changes</div>
+                      <div className="col-md-9 sm-control-field">
+                        {!changedCapacityFields.length && 'no changes'}
+                        {changedCapacityFields.map(field => (
+                          <div key={field.field}>
+                            {startCase(field.field)}: <b>{field.prevValue}</b>{' '}
+                            <i className="fa fa-long-arrow-alt-right" /> <b>{field.value}</b>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </Form>
                 </Modal.Body>
                 <AwsModalFooter
