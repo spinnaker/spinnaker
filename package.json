@@ -33,7 +33,7 @@
     "@spinnaker/styleguide": "^1.0.10",
     "@types/memoize-one": "^3.1.1",
     "@types/react-tether": "^0.5.3",
-    "@uirouter/react-hybrid": "0.3.8",
+    "@uirouter/react-hybrid": "0.3.9",
     "@uirouter/rx": "0.4.5",
     "@uirouter/visualizer": "6.0.2",
     "Select2": "git://github.com/select2/select2.git#3.4.8",

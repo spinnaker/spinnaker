@@ -653,6 +653,15 @@
     "@uirouter/core" "5.0.21"
     "@uirouter/react" "0.8.7"
 
+"@uirouter/react-hybrid@0.3.9":
+  version "0.3.9"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.3.9.tgz#5dc37e1a26169bad0ce4c6de5c65c186bff42d60"
+  integrity sha512-0oSCuEn/YmNQyB2WNa9fwbpjcw+LWqFECpHsYHA95KThN9SFgLmvXcQxkytI545q5Xkham8WWFXmKOux4MQR5w==
+  dependencies:
+    "@uirouter/angularjs" "1.0.20"
+    "@uirouter/core" "5.0.21"
+    "@uirouter/react" "0.8.7"
+
 "@uirouter/react@0.8.7":
   version "0.8.7"
   resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.8.7.tgz#5d1e773ba904e9ebf31a67731118837ffeae6b33"
