@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import io.vavr.collection.Stream;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -133,7 +135,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
   @VisibleForTesting
   Optional<DeployCloudFoundryServerGroupDescription.ApplicationAttributes> convertManifest(Map manifestMap) {
     List<CloudFoundryManifest> manifestApps = new ObjectMapper()
-      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+      .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .convertValue(manifestMap.get("applications"), new TypeReference<List<CloudFoundryManifest>>() {
       });
@@ -150,6 +152,8 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
       attrs.setInstances(app.getInstances() == null ? 1 : app.getInstances());
       attrs.setMemory(app.getMemory() == null ? "1024" : app.getMemory());
       attrs.setDiskQuota(app.getDiskQuota() == null ? "1024" : app.getDiskQuota());
+      attrs.setHealthCheckHttpEndpoint(app.getHealthCheckHttpEndpoint());
+      attrs.setHealthCheckType(app.getHealthCheckType());
       attrs.setBuildpacks(buildpacks);
       attrs.setServices(app.getServices());
       attrs.setRoutes(app.getRoutes() == null ? null : app.getRoutes().stream().flatMap(route -> route.values().stream()).collect(toList()));
@@ -167,7 +171,14 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
     private String memory;
 
     @Nullable
+    @JsonProperty("disk_quota")
     private String diskQuota;
+
+    @Nullable
+    private String healthCheckType;
+
+    @Nullable
+    private String healthCheckHttpEndpoint;
 
     @Nullable
     private String buildpack;

@@ -134,6 +134,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
           "instances", 7,
           "memory", "1G",
           "disk_quota", "2048M",
+          "health-check-type", "http",
+          "health-check-http-endpoint", "/health",
           "buildpacks", List.of(
             "buildpack1",
             "buildpack2"
@@ -160,6 +162,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         .setInstances(7)
         .setMemory("1G")
         .setDiskQuota("2048M")
+        .setHealthCheckType("http")
+        .setHealthCheckHttpEndpoint("/health")
         .setBuildpacks(List.of("buildpack1", "buildpack2").asJava())
         .setServices(List.of("service1").asJava())
         .setRoutes(List.of(

@@ -69,6 +69,9 @@ public interface ApplicationService {
   @POST("/v3/processes/{guid}/actions/scale")
   Response scaleApplication(@Path("guid") String guid, @Body ScaleApplication scaleApplication);
 
+  @PATCH("/v3/processes/{guid}")
+  Process updateProcess(@Path("guid") String guid, @Body UpdateProcess updateProcess);
+
   @GET("/v3/processes/{guid}")
   Process findProcessById(@Path("guid") String guid);
 

@@ -126,4 +126,25 @@ class ApplicationsTest {
     assertThat(cloudFoundryServerGroup.getServiceInstances().size()).isEqualTo(1);
     assertThat(cloudFoundryServerGroup.getServiceInstances().get(0).getTags()).containsExactly("tag1", "tag2");
   }
+
+  @Test
+  void updateProcess() {
+    when(applicationService.updateProcess(any(), any())).thenReturn(new Process());
+
+    apps.updateProcess("guid1", "command1", "http", "/endpoint");
+    verify(applicationService).updateProcess("guid1", new UpdateProcess("command1",
+      new UpdateProcess.HealthCheck("http",
+        new UpdateProcess.HealthCheckData(null, null, "/endpoint")
+      )
+    ));
+
+    apps.updateProcess("guid1", "command1", "http", null);
+    verify(applicationService).updateProcess("guid1", new UpdateProcess("command1",
+      new UpdateProcess.HealthCheck("http", null)
+    ));
+
+    apps.updateProcess("guid1", "command1", null, null);
+    verify(applicationService).updateProcess("guid1", new UpdateProcess("command1", null));
+  }
+
 }

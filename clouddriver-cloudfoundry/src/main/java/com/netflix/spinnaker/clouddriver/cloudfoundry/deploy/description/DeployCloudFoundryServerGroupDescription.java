@@ -54,6 +54,12 @@ public class DeployCloudFoundryServerGroupDescription extends AbstractCloudFound
     private String diskQuota;
 
     @Nullable
+    private String healthCheckType;
+
+    @Nullable
+    private String healthCheckHttpEndpoint;
+
+    @Nullable
     private List<String> routes;
 
     @Nullable

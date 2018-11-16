@@ -71,6 +71,9 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
 
     buildDroplet(packageId, serverGroup.getId(), description);
     scaleApplication(serverGroup.getId(), description);
+    if (description.getApplicationAttributes().getHealthCheckType() != null) {
+      updateProcess(serverGroup.getId(), description);
+    }
 
     client.getServiceInstances().createServiceBindingsByName(serverGroup, description.getApplicationAttributes().getServices());
 
@@ -171,6 +174,15 @@ public class DeployCloudFoundryServerGroupAtomicOperation implements AtomicOpera
 
     client.getApplications().scaleApplication(serverGroupId, description.getApplicationAttributes().getInstances(), memoryAmount, diskSizeAmount);
     getTask().updateStatus(PHASE, "Scaled application '" + description.getServerGroupName() + "'");
+  }
+
+  private void updateProcess(String serverGroupId, DeployCloudFoundryServerGroupDescription description) {
+    final CloudFoundryClient client = description.getClient();
+    getTask().updateStatus(PHASE, "Updating process '" + description.getServerGroupName() + "'");
+    client.getApplications().updateProcess(serverGroupId, null,
+      description.getApplicationAttributes().getHealthCheckType(),
+      description.getApplicationAttributes().getHealthCheckHttpEndpoint());
+    getTask().updateStatus(PHASE, "Updated process '" + description.getServerGroupName() + "'");
   }
 
   // VisibleForTesting

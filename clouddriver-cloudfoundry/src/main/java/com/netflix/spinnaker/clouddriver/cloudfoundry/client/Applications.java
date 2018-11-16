@@ -267,6 +267,14 @@ public class Applications {
     safelyCall(() -> api.scaleApplication(guid, new ScaleApplication(instances, memInMb, diskInMb)));
   }
 
+  public void updateProcess(String guid, @Nullable String command, @Nullable String healthCheckType, @Nullable String healthCheckEndpoint) throws CloudFoundryApiException {
+    final UpdateProcess.HealthCheck healthCheck = healthCheckType == null && healthCheckEndpoint == null ? null :
+      new UpdateProcess.HealthCheck(healthCheckType, healthCheckEndpoint == null ? null :
+        new UpdateProcess.HealthCheckData(null, null, healthCheckEndpoint)
+      );
+    safelyCall(() -> api.updateProcess(guid, new UpdateProcess(command, healthCheck)));
+  }
+
   public String createPackage(String appGuid) throws CloudFoundryApiException {
     return safelyCall(() -> api.createPackage(new CreatePackage(appGuid)))
       .map(Package::getGuid)

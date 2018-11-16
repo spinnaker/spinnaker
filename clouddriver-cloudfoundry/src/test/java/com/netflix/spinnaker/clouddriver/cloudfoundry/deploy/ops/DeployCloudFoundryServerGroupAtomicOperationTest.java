@@ -136,6 +136,8 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
         .setInstances(7)
         .setMemory("1G")
         .setDiskQuota("2048M")
+        .setHealthCheckType("http")
+        .setHealthCheckHttpEndpoint("/health")
         .setBuildpacks(io.vavr.collection.List.of("buildpack1", "buildpack2").asJava())
         .setServices(io.vavr.collection.List.of("service1").asJava())
         .setEnv(HashMap.of(
@@ -174,6 +176,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFoun
     inOrder.verify(apps).uploadPackageBits(eq("serverGroupId_package"), any());
     inOrder.verify(apps).createBuild("serverGroupId_package");
     inOrder.verify(apps).scaleApplication("serverGroupId", 7, 1024, 2048);
+    inOrder.verify(apps).updateProcess("serverGroupId", null, "http", "/health");
     inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBindingsByName(any(), eq(Collections.singletonList("service1")));
     inOrder.verify(apps).startApplication("serverGroupId");
 
