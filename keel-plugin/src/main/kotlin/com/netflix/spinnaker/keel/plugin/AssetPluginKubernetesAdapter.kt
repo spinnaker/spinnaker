@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Type
+import java.net.SocketException
 
 internal class AssetPluginKubernetesAdapter<T : Any>(
   private val customObjectsApi: CustomObjectsApi,
@@ -55,29 +56,29 @@ internal class AssetPluginKubernetesAdapter<T : Any>(
         null,
         null
       )
-      watch = createResourceWatch()
       try {
+        watch = createResourceWatch()
         watch?.use { watch ->
           watch.forEach {
             log.info("Event {} on {}", it.type, it.`object`)
             log.info("Event {} on {} v{}, last seen {}", it.type, it.`object`.metadata.name, it.`object`.metadata.resourceVersion, seen)
             val version = it.`object`.metadata.resourceVersion ?: 0L
             if (version > seen) {
+              seen = version
               when (it.type) {
-                "ADDED" -> {
-                  seen = version
-                  plugin.create(it.`object`)
-                }
-                "MODIFIED" -> {
-                  seen = version
-                  plugin.update(it.`object`)
-                }
+                "ADDED" -> plugin.create(it.`object`)
+                "MODIFIED" -> plugin.update(it.`object`)
+                "DELETED" -> plugin.delete(it.`object`)
               }
             }
           }
         }
       } catch (e: Exception) {
-        log.warn("handling exception from watch: ${e.message}", e)
+        if (e.cause is SocketException) {
+          log.debug("Socket timed out or call was cancelled.")
+        } else {
+          throw e
+        }
       }
       yield()
     }

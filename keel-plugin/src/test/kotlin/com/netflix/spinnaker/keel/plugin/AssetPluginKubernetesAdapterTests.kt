@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.oneeyedmen.minutest.junit.junitTests
 import com.squareup.okhttp.Response
+import io.kubernetes.client.ApiException
 import io.kubernetes.client.Configuration
 import io.kubernetes.client.apis.ApiextensionsV1beta1Api
 import io.kubernetes.client.apis.CustomObjectsApi
@@ -32,8 +33,10 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.map
+import java.net.HttpURLConnection.HTTP_NOT_FOUND
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -180,7 +183,7 @@ internal object AssetPluginKubernetesAdapterTests {
       }
     }
 
-    context("an instance of the CRD has been registered") {
+    context("an object has been registered") {
       before {
         val securityGroup = mapOf(
           "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
@@ -214,22 +217,28 @@ internal object AssetPluginKubernetesAdapterTests {
       }
 
       after {
-        customObjectsApi.deleteClusterCustomObject(
-          crd.spec.group,
-          crd.spec.version,
-          crd.spec.names.plural,
-          "my-security-group",
-          V1DeleteOptions(),
-          0,
-          null,
-          "Background"
-        )
+        try {
+          customObjectsApi.deleteClusterCustomObject(
+            crd.spec.group,
+            crd.spec.version,
+            crd.spec.names.plural,
+            "my-security-group",
+            V1DeleteOptions(),
+            0,
+            null,
+            "Background"
+          )
+        } catch (e: ApiException) {
+          if (e.code != HTTP_NOT_FOUND) {
+            throw e
+          }
+        }
       }
 
       test("the plugin gets invoked") {
         expectThat(plugin.lastCreated.get())
           .get { metadata.name }
-          .isEqualTo("my-security-group".let(::AssetName))
+          .isEqualTo(AssetName("my-security-group"))
       }
 
       test("there should be one object") {
@@ -254,28 +263,13 @@ internal object AssetPluginKubernetesAdapterTests {
           }
       }
 
-      context("the instance is updated") {
+      context("the object is updated") {
         before {
-          val uid = customObjectsApi.getClusterCustomObjectCall(
-            crd.spec.group,
-            crd.spec.version,
-            crd.spec.names.plural,
-            "my-security-group",
-            null,
-            null
-          )
-            .execute()
-            .let {
-              parse<Asset<SecurityGroup>>(it)
-                .also(::println)
-                .metadata.uid
-            }
           val securityGroup = mapOf(
             "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
             "kind" to crd.spec.names.kind,
             "metadata" to mapOf(
-              "name" to "my-security-group",
-              "uid" to uid
+              "name" to "my-security-group"
             ),
             "spec" to SecurityGroup(
               application = "fnord",
@@ -290,15 +284,13 @@ internal object AssetPluginKubernetesAdapterTests {
           // ensure the create has completed
           plugin.lastCreated.get()
 
-          val response = customObjectsApi.patchClusterCustomObjectWithHttpInfo(
+          customObjectsApi.patchClusterCustomObject(
             crd.spec.group,
             crd.spec.version,
             crd.spec.names.plural,
             "my-security-group",
             securityGroup
           )
-          println(response.statusCode)
-          println(response.data)
         }
 
         test("the plugin gets invoked") {
@@ -307,6 +299,46 @@ internal object AssetPluginKubernetesAdapterTests {
             .isA<SecurityGroup>()
             .get { description }
             .isEqualTo("a security group with an updated description")
+        }
+      }
+
+      context("the object is deleted") {
+        before {
+          val securityGroup = mapOf(
+            "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
+            "kind" to crd.spec.names.kind,
+            "metadata" to mapOf(
+              "name" to "my-security-group"
+            ),
+            "spec" to SecurityGroup(
+              application = "fnord",
+              name = "fnord",
+              accountName = "test",
+              region = "us-west-2",
+              vpcName = "vpc0",
+              description = "a security group with an updated description"
+            )
+          )
+
+          // ensure the create has completed
+          plugin.lastCreated.get()
+
+          customObjectsApi.deleteClusterCustomObject(
+            crd.spec.group,
+            crd.spec.version,
+            crd.spec.names.plural,
+            "my-security-group",
+            V1DeleteOptions(),
+            0,
+            null,
+            "Background"
+          )
+        }
+
+        test("the plugin gets invoked") {
+          expectThat(plugin.lastDeleted.get())
+            .get { metadata.name }
+            .isEqualTo(AssetName("my-security-group"))
         }
       }
     }
@@ -402,7 +434,9 @@ class BlockingReference<V> {
   private val latch = CountDownLatch(1)
 
   fun get(): V {
-    latch.await()
+    if (!latch.await(1, SECONDS)) {
+      throw TimeoutException("Timed out waiting for value")
+    }
     return ref.get()
   }
 
