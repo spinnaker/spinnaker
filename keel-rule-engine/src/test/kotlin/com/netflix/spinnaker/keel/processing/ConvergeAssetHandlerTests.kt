@@ -41,7 +41,7 @@ internal object ConvergeAssetHandlerTests {
   @TestFactory
   fun `converging an asset`() = junitTests<Unit> {
     context("the asset cannot be found") {
-      before { whenever(repository.get(asset.id)) doReturn null as Asset? }
+      before { whenever(repository.get(asset.id)) doReturn null as Asset<*>? }
       after { reset(repository) }
 
       // TODO: do we want to flag an error? I feel like yes.

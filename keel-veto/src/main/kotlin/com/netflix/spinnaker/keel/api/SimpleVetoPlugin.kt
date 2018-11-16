@@ -31,7 +31,7 @@ class SimpleVetoPlugin(
   private val dynamicConfigService: DynamicConfigService
 ) : VetoPlugin {
 
-  override fun allow(request: Asset): AllowResponse =
+  override fun allow(request: Asset<*>): AllowResponse =
     when (dynamicConfigService.isEnabled("keel.converge.enabled", false)) {
       true -> Proceed
       false -> Halt("Convergence is disabled via fast property")

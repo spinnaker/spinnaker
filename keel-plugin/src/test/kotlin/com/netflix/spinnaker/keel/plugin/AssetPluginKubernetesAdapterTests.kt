@@ -4,11 +4,9 @@ import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
-import com.netflix.spinnaker.keel.api.AssetMetadata
 import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.oneeyedmen.minutest.junit.junitTests
-import com.squareup.okhttp.Call
 import com.squareup.okhttp.Response
 import io.kubernetes.client.Configuration
 import io.kubernetes.client.apis.ApiextensionsV1beta1Api
@@ -20,11 +18,6 @@ import io.kubernetes.client.models.V1beta1CustomResourceDefinitionNames
 import io.kubernetes.client.models.V1beta1CustomResourceDefinitionSpec
 import io.kubernetes.client.util.Config
 import io.kubernetes.client.util.Watch
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Assume.assumeNoException
@@ -35,6 +28,7 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.first
 import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.map
@@ -65,7 +59,12 @@ internal object AssetPluginKubernetesAdapterTests {
     val crdApi: ApiextensionsV1beta1Api = ApiextensionsV1beta1Api(),
     val customObjectsApi: CustomObjectsApi = CustomObjectsApi()
   ) {
-    val watcher: ResourceWatcher<Map<String, Any>> = ResourceWatcher(customObjectsApi, crd, plugin)
+    val watcher: AssetPluginKubernetesAdapter<SecurityGroup> = AssetPluginKubernetesAdapter(
+      customObjectsApi,
+      crd,
+      plugin,
+      object : TypeToken<Watch.Response<Asset<SecurityGroup>>>() {}.type
+    )
   }
 
   @BeforeAll
@@ -74,7 +73,9 @@ internal object AssetPluginKubernetesAdapterTests {
     assumeMinikubeAvailable()
 
     val client = Config.defaultClient()
-    client.httpClient.setReadTimeout(5, SECONDS)
+    with(client.httpClient) {
+      setReadTimeout(5, SECONDS)
+    }
     Configuration.setDefaultApiClient(client)
   }
 
@@ -248,7 +249,7 @@ internal object AssetPluginKubernetesAdapterTests {
           .hasSize(1)
           .first()
           .and {
-            get { apiVersion }.isEqualTo("ec2.${SPINNAKER_API_V1.group}/v1")
+            get { apiVersion }.isEqualTo(ApiVersion("ec2.${SPINNAKER_API_V1.group}", "v1"))
             get { spec.name }.isEqualTo("fnord")
           }
       }
@@ -265,7 +266,7 @@ internal object AssetPluginKubernetesAdapterTests {
           )
             .execute()
             .let {
-              parse<Resource<SecurityGroup>>(it)
+              parse<Asset<SecurityGroup>>(it)
                 .also(::println)
                 .metadata.uid
             }
@@ -302,7 +303,9 @@ internal object AssetPluginKubernetesAdapterTests {
 
         test("the plugin gets invoked") {
           expectThat(plugin.lastUpdated.get())
-            .get { spec["description"] }
+            .get { spec }
+            .isA<SecurityGroup>()
+            .get { description }
             .isEqualTo("a security group with an updated description")
         }
       }
@@ -310,21 +313,11 @@ internal object AssetPluginKubernetesAdapterTests {
   }
 }
 
-data class ResourceList<T>(
+data class ResourceList<T : Any>(
   val apiVersion: String,
-  val items: List<Resource<T>>,
+  val items: List<Asset<T>>,
   val kind: String,
   val metadata: Map<String, Any?>
-)
-
-/**
- * TODO: either use or replace Asset.
- */
-data class Resource<T>(
-  val apiVersion: String,
-  val kind: String,
-  val metadata: AssetMetadata,
-  val spec: T
 )
 
 /**
@@ -398,95 +391,6 @@ private fun ApiextensionsV1beta1Api.waitForCRDDeleted(name: String) {
   }
 }
 
-private class ResourceWatcher<T>(
-  private val customObjectsApi: CustomObjectsApi,
-  private val crd: V1beta1CustomResourceDefinition,
-  private val plugin: AssetPlugin
-) {
-  private var job: Job? = null
-  private var watch: Watch<Resource<T>>? = null
-  private var call: Call? = null
-
-  fun start() {
-    if (job != null) throw IllegalStateException("already running")
-    job = GlobalScope.launch {
-      watchForResourceChanges()
-    }
-  }
-
-  fun stop() {
-    runBlocking {
-      job?.cancel()
-      call?.cancel()
-      job?.join()
-    }
-  }
-
-  private suspend fun CoroutineScope.watchForResourceChanges() {
-    var seen = 0L
-    while (isActive) {
-      call = customObjectsApi.listClusterCustomObjectCall(
-        crd.spec.group,
-        crd.spec.version,
-        crd.spec.names.plural,
-        "true",
-        null,
-        "0",
-        true,
-        null,
-        null
-      )
-      watch = createResourceWatch()
-      try {
-        watch?.use { watch ->
-          watch.forEach {
-            println("${it.type} ${it.`object`} $seen")
-            val version = it.`object`.metadata.resourceVersion ?: 0
-            if (version > seen) {
-              when (it.type) {
-                "ADDED" -> {
-                  seen = version
-                  plugin.create(it.`object`.run {
-                    // TODO: obviously this is silly
-                    Asset(
-                      ApiVersion(apiVersion),
-                      crd.kind,
-                      metadata,
-                      spec as Map<String, Any>
-                    )
-                  })
-                }
-                "MODIFIED" -> {
-                  seen = version
-                  plugin.update(it.`object`.run {
-                    // TODO: obviously this is silly
-                    Asset(
-                      ApiVersion(apiVersion),
-                      crd.kind,
-                      metadata,
-                      spec as Map<String, Any>
-                    )
-                  })
-                }
-              }
-            }
-          }
-        }
-      } catch (e: Exception) {
-        println("handling exception from watch: ${e.message}")
-      }
-      yield()
-    }
-  }
-
-  private fun <T> createResourceWatch(): Watch<Resource<T>> =
-    Watch.createWatch<Resource<T>>(
-      Config.defaultClient(),
-      call,
-      object : TypeToken<Watch.Response<Resource<T>>>() {}.type
-    )
-}
-
 private inline fun <reified T : Any> parse(response: Response): T =
   Configuration.getDefaultApiClient().json.gson.fromJson<T>(
     response.body().string(),
@@ -510,30 +414,29 @@ class BlockingReference<V> {
 
 private class MockAssetPlugin : AssetPlugin {
 
-  val lastCreated = BlockingReference<Asset>()
-  val lastUpdated = BlockingReference<Asset>()
-  val lastDeleted = BlockingReference<Asset>()
+  val lastCreated = BlockingReference<Asset<*>>()
+  val lastUpdated = BlockingReference<Asset<*>>()
+  val lastDeleted = BlockingReference<Asset<*>>()
 
   override val supportedKinds: Iterable<String>
     get() = TODO("not implemented")
 
-  override fun current(request: Asset): CurrentResponse {
+  override fun current(request: Asset<*>): CurrentResponse {
     TODO("not implemented")
   }
 
-  override fun create(request: Asset): ConvergeResponse {
+  override fun create(request: Asset<*>): ConvergeResponse {
     lastCreated.set(request)
     return ConvergeAccepted
   }
 
-  override fun update(request: Asset): ConvergeResponse {
+  override fun update(request: Asset<*>): ConvergeResponse {
     lastUpdated.set(request)
     return ConvergeAccepted
   }
 
-  override fun delete(request: Asset): ConvergeResponse {
+  override fun delete(request: Asset<*>): ConvergeResponse {
     lastDeleted.set(request)
     return ConvergeAccepted
   }
-
 }

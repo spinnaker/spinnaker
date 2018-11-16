@@ -129,7 +129,7 @@ internal object EC2AssetPluginTests {
           name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel")
         ),
         kind = "ec2.SecurityGroup",
-        spec = objectMapper.convertValue(securityGroup)
+        spec = securityGroup
       )
 
       test("it returns null") {
@@ -168,7 +168,7 @@ internal object EC2AssetPluginTests {
           name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel")
         ),
         kind = "ec2.SecurityGroup",
-        spec = objectMapper.convertValue(securityGroup)
+        spec = securityGroup
       )
 
       test("it returns the security group") {
@@ -193,14 +193,14 @@ internal object EC2AssetPluginTests {
   private open class SecurityGroupFixture(
     val spec: SecurityGroup
   ) {
-    val request: Asset by lazy {
+    val request: Asset<*> by lazy {
       Asset(
         apiVersion = SPINNAKER_API_V1,
         metadata = AssetMetadata(
           name = AssetName("ec2.SecurityGroup:${spec.application}:${spec.accountName}:${spec.region}:${spec.name}")
         ),
         kind = "ec2.SecurityGroup",
-        spec = objectMapper.convertValue(spec.copy(inboundRules = rules))
+        spec = spec.copy(inboundRules = rules)
       )
     }
 

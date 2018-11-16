@@ -51,7 +51,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
   data class Fixture<T : AssetRepository>(
     val subject: T,
-    val callback: (Asset) -> Unit
+    val callback: (Asset<*>) -> Unit
   )
 
   @TestFactory
@@ -128,7 +128,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
         test("it does not overwrite the first asset") {
           subject.allAssets(callback)
 
-          argumentCaptor<Asset>().apply {
+          argumentCaptor<Asset<*>>().apply {
             verify(callback, times(2)).invoke(capture())
             expectThat(allValues)
               .hasSize(2)
@@ -150,7 +150,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
         test("it replaces the original asset") {
           expectThat(subject.get(asset.id))
             .isNotNull()
-            .get(Asset::spec)
+            .get(Asset<*>::spec)
             .isEqualTo(updatedAsset.spec)
         }
       }

@@ -48,11 +48,11 @@ class EC2AssetPlugin(
     "ec2.ClassicLoadBalancer"
   )
 
-  override fun current(request: Asset): CurrentResponse =
+  override fun current(request: Asset<*>): CurrentResponse =
     when (request.kind) {
       "ec2.SecurityGroup" -> {
         val spec: SecurityGroup = objectMapper.convertValue(request.spec)
-        val current = securityGroupHandler.current(spec, request)
+        val current = securityGroupHandler.current(spec, request as Asset<SecurityGroup>)
         log.info("{} desired state: {}", request.id, spec)
         log.info("{} current state: {}", request.id, current?.spec)
         CurrentSuccess(request, current)
@@ -64,7 +64,7 @@ class EC2AssetPlugin(
       }
     }
 
-  override fun upsert(request: Asset): ConvergeResponse =
+  override fun upsert(request: Asset<*>): ConvergeResponse =
     try {
       when (request.kind) {
         "ec2.SecurityGroup" -> {
@@ -83,7 +83,7 @@ class EC2AssetPlugin(
         ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.id}")
     }
 
-  override fun delete(request: Asset): ConvergeResponse =
+  override fun delete(request: Asset<*>): ConvergeResponse =
     try {
       when (request.kind) {
         "ec2.SecurityGroup" -> {

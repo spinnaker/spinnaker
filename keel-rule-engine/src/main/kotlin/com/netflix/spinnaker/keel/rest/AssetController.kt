@@ -34,7 +34,7 @@ class AssetController() {
     consumes = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE],
     produces = [APPLICATION_YAML_VALUE, APPLICATION_JSON_VALUE]
   )
-  fun create(@RequestBody resource: Asset): Asset {
+  fun create(@RequestBody resource: Asset<*>): Asset<*> {
     log.info("Creating: $resource")
     return resource
   }

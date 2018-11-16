@@ -36,7 +36,7 @@ internal class AssetTests {
         }
       }
 
-  private fun asset(spec: Map<String, Any>): Asset =
+  private fun asset(spec: Map<String, Any>): Asset<Map<String, Any>> =
     Asset(
       apiVersion = SPINNAKER_API_V1,
       metadata = AssetMetadata(

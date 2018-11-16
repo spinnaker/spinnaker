@@ -9,7 +9,7 @@ dependencies {
   implementation project(":keel-common")
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
   implementation("io.kubernetes:client-java:3.0.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines:0.19.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:+")
 
   testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
   testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"

@@ -43,7 +43,7 @@ class AmazonSecurityGroupHandler(
   private val objectMapper: ObjectMapper
 ) : AmazonAssetHandler<SecurityGroup> {
 
-  override fun current(spec: SecurityGroup, request: Asset): Asset? =
+  override fun current(spec: SecurityGroup, request: Asset<SecurityGroup>): Asset<SecurityGroup>? =
     cloudDriverService.getSecurityGroup(spec)?.let { securityGroup ->
       request.copy(spec = objectMapper.convertValue(securityGroup))
     }

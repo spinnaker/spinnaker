@@ -22,6 +22,7 @@ dependencies {
   implementation "com.fasterxml.jackson.core:jackson-databind:+"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:+"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin:+"
+  implementation "com.google.code.gson:gson:+"
 
   testImplementation "io.strikt:strikt-core:+"
   testImplementation "com.oneeyedmen:minutest:+"

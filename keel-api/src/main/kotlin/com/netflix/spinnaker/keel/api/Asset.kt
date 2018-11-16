@@ -24,16 +24,16 @@ import java.nio.charset.Charset
 /**
  * Internal representation of an asset.
  */
-data class Asset(
+data class Asset<T : Any>(
   val apiVersion: ApiVersion,
   val kind: String, // TODO: create a type
   val metadata: AssetMetadata,
-  val spec: Map<String, Any> // TODO: is this the right format?
+  val spec: T
 )
 
 private val mapper by lazy { YAMLMapper().registerKotlinModule() }
 
-val Asset.fingerprint: HashCode
+val <T : Any> Asset<T>.fingerprint: HashCode
   get() {
     return Hashing
       .murmur3_128()
@@ -43,5 +43,5 @@ val Asset.fingerprint: HashCode
       )
   }
 
-val Asset.id: AssetName
+val <T : Any> Asset<T>.id: AssetName
   get() = metadata.name

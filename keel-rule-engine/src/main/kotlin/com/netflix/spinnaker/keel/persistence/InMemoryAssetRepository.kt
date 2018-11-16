@@ -25,17 +25,17 @@ import java.time.Instant
 class InMemoryAssetRepository(
   private val clock: Clock
 ) : AssetRepository {
-  private val assets = mutableMapOf<AssetName, Asset>()
+  private val assets = mutableMapOf<AssetName, Asset<*>>()
   private val states = mutableMapOf<AssetName, Pair<AssetState, Instant>>()
 
-  override fun allAssets(callback: (Asset) -> Unit) {
+  override fun allAssets(callback: (Asset<*>) -> Unit) {
     assets.values.forEach(callback)
   }
 
-  override fun get(name: AssetName): Asset? =
+  override fun get(name: AssetName): Asset<*>? =
     assets[name]
 
-  override fun store(asset: Asset) {
+  override fun store(asset: Asset<*>) {
     assets[asset.id] = asset
     states[asset.id] = Unknown to clock.instant()
   }

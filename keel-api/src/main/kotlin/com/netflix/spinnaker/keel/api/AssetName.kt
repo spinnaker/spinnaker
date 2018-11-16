@@ -15,4 +15,6 @@
  */
 package com.netflix.spinnaker.keel.api
 
-inline class AssetName(val value: String)
+inline class AssetName(val value: String) {
+  override fun toString(): String = value
+}

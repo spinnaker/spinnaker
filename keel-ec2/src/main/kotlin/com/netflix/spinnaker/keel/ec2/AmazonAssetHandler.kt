@@ -19,11 +19,11 @@ import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 
-interface AmazonAssetHandler<S> {
+interface AmazonAssetHandler<S: Any> {
   /**
    * Retrieve the current state for the provided asset based on the [spec].
    */
-  fun current(spec: S, request: Asset): Asset?
+  fun current(spec: S, request: Asset<S>): Asset<S>?
 
   /**
    * Converge on the provided asset.

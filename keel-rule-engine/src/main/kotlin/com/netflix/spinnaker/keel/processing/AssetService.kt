@@ -21,11 +21,11 @@ import com.netflix.spinnaker.keel.api.Asset
  * Facade for asset plugins.
  */
 interface AssetService {
-  fun current(asset: Asset): CurrentAssetPair
-  fun converge(asset: Asset)
+  fun current(asset: Asset<*>): CurrentAssetPair
+  fun converge(asset: Asset<*>)
 }
 
 data class CurrentAssetPair(
-  val desired: Asset,
-  val current: Asset?
+  val desired: Asset<*>,
+  val current: Asset<*>?
 )

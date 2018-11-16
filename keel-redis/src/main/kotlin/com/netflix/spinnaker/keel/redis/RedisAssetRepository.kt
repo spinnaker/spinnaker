@@ -39,7 +39,7 @@ class RedisAssetRepository(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun allAssets(callback: (Asset) -> Unit) {
+  override fun allAssets(callback: (Asset<*>) -> Unit) {
     withRedis { redis ->
       redis.smembers(INDEX_SET)
         .map(::AssetName)
@@ -51,12 +51,12 @@ class RedisAssetRepository(
     }
   }
 
-  override fun get(name: AssetName): Asset? =
+  override fun get(name: AssetName): Asset<*>? =
     withRedis { redis ->
       readAsset(redis, name)
     }
 
-  override fun store(asset: Asset) {
+  override fun store(asset: Asset<*>) {
     withRedis { redis ->
       redis.hmset(asset.id.key, asset.toHash())
       redis.sadd(INDEX_SET, asset.id.value)
@@ -102,10 +102,10 @@ class RedisAssetRepository(
     private const val STATE_SORTED_SET = "$ASSET_HASH.state"
   }
 
-  private fun readAsset(redis: JedisCommands, name: AssetName): Asset? =
+  private fun readAsset(redis: JedisCommands, name: AssetName): Asset<*>? =
     if (redis.sismember(INDEX_SET, name.value)) {
       redis.hgetAll(name.key)?.let {
-        Asset(
+        Asset<Map<String, Any?>>(
           apiVersion = ApiVersion(it.getValue("apiVersion")),
           metadata = AssetMetadata(
             name = name,
@@ -135,7 +135,7 @@ class RedisAssetRepository(
   private val AssetName.stateKey: String
     get() = STATE_SORTED_SET.format(value)
 
-  private fun Asset.toHash(): Map<String, String> = mapOf(
+  private fun Asset<*>.toHash(): Map<String, String> = mapOf(
     "apiVersion" to apiVersion.toString(),
     "name" to metadata.name.value,
     "metadata" to objectMapper.writeValueAsString(metadata.data),

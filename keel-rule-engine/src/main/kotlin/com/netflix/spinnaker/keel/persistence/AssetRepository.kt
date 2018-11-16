@@ -23,21 +23,21 @@ interface AssetRepository {
   /**
    * Invokes [callback] once with each registered asset.
    */
-  fun allAssets(callback: (Asset) -> Unit)
+  fun allAssets(callback: (Asset<*>) -> Unit)
 
   /**
    * Retrieves a single asset by its unique [com.netflix.spinnaker.keel.api.AssetMetadata.name].
    *
    * @return The asset represented by [name] or `null` if [name] is unknown.
    */
-  fun get(name: AssetName): Asset?
+  fun get(name: AssetName): Asset<*>?
 
   /**
    * Persists an asset.
    *
    * @return the `uid` of the stored asset.
    */
-  fun store(asset: Asset)
+  fun store(asset: Asset<*>)
 
   /**
    * Retrieves the last known state of an asset.

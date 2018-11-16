@@ -19,5 +19,5 @@ import com.netflix.spinnaker.keel.api.Asset
 
 interface VetoService {
   // TODO: probably need a more complex return type
-  fun allow(asset: Asset): Boolean
+  fun allow(asset: Asset<*>): Boolean
 }

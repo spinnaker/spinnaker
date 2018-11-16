@@ -19,7 +19,7 @@ internal object SimpleVetoPluginSpec {
 
   data class Fixture(
     val dynamicConfigService: DynamicConfigService,
-    val request: Asset
+    val request: Asset<*>
   ) {
     val subject: VetoPlugin = SimpleVetoPlugin(dynamicConfigService)
   }
