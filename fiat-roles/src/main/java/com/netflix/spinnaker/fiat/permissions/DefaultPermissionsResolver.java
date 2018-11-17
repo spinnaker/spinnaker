@@ -17,13 +17,12 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.netflix.spinnaker.fiat.config.FiatAdminConfig;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
@@ -31,13 +30,13 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +53,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   @Autowired
   @Setter
   private UserRolesProvider userRolesProvider;
+
+  @Autowired
+  @Setter
+  private ResourceProvider<ServiceAccount> serviceAccountProvider;
 
   @Autowired
   @Setter
@@ -125,21 +128,38 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   @Override
   @SuppressWarnings("unchecked")
   public Map<String, UserPermission> resolve(@NonNull Collection<ExternalUser> users) {
-    val userToRoles = getAndMergeUserRoles(users);
+    Map<String, Collection<Role>> allServiceAccountRoles = getServiceAccountRoles();
 
-    return userToRoles
-        .entrySet()
+    Collection<ExternalUser> serviceAccounts = users
         .stream()
-        .map(entry -> {
-          String username = entry.getKey();
-          Set<Role> userRoles = new HashSet<>(entry.getValue());
+        .filter(user -> allServiceAccountRoles.keySet().contains(user.getId()))
+        .collect(Collectors.toList());
 
-          return new UserPermission().setId(username)
-                                     .setRoles(userRoles)
-                                     .setAdmin(resolveAdminRole(userRoles))
-                                     .addResources(getResources(userRoles, resolveAdminRole(userRoles)));
-        })
-        .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+    // Service accounts should already have external roles set. Remove them from the list so they
+    // are not sent to the RoleProvider for fetching roles.
+    users.removeAll(serviceAccounts);
+
+    Map<String, Collection<Role>> userToRoles = new HashMap<>();
+
+    if (!users.isEmpty()) {
+      userToRoles.putAll(getAndMergeUserRoles(users));
+    }
+
+    userToRoles.putAll(
+        serviceAccounts
+        .stream()
+        .collect(Collectors.toMap(ExternalUser::getId, ExternalUser::getExternalRoles))
+    );
+
+    return resolveResources(userToRoles);
+  }
+
+  private Map<String, Collection<Role>> getServiceAccountRoles() {
+    return serviceAccountProvider
+        .getAll()
+        .stream()
+        .map(ServiceAccount::toUserPermission)
+        .collect(Collectors.toMap(UserPermission::getId, UserPermission::getRoles));
   }
 
   private Map<String, Collection<Role>> getAndMergeUserRoles(@NonNull Collection<ExternalUser> users) {
@@ -159,6 +179,22 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
       }
     }
     return userToRoles;
+  }
+
+  private Map<String, UserPermission> resolveResources(@NonNull Map<String, Collection<Role>> userToRoles) {
+    return userToRoles
+        .entrySet()
+        .stream()
+        .map(entry -> {
+          String username = entry.getKey();
+          Set<Role> userRoles = new HashSet<>(entry.getValue());
+
+          return new UserPermission().setId(username)
+              .setRoles(userRoles)
+              .setAdmin(resolveAdminRole(userRoles))
+              .addResources(getResources(userRoles, resolveAdminRole(userRoles)));
+        })
+        .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
   }
 
   private Set<Resource> getResources(Set<Role> roles, boolean isAdmin) {

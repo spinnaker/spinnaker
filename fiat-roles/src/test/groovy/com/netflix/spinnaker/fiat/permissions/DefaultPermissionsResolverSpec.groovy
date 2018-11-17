@@ -190,6 +190,7 @@ class DefaultPermissionsResolverSpec extends Specification {
         .setResourceProviders(resourceProviders)
         .setMapper(new ObjectMapper())
         .setFiatAdminConfig(new FiatAdminConfig())
+        .setServiceAccountProvider(serviceAccountProvider)
 
     def role1 = new Role("group1")
     def role2 = new Role("group2")
@@ -237,5 +238,49 @@ class DefaultPermissionsResolverSpec extends Specification {
                                     .setServiceAccounts([group1SvcAcct] as Set)
                                     .setRoles([role1, extRole] as Set)
     result == ["user3": user3]
+  }
+
+  def "should resolve service account permissions"() {
+    setup:
+    UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
+    @Subject DefaultPermissionsResolver resolver = new DefaultPermissionsResolver()
+            .setUserRolesProvider(userRolesProvider)
+            .setResourceProviders(resourceProviders)
+            .setMapper(new ObjectMapper())
+            .setFiatAdminConfig(new FiatAdminConfig())
+            .setServiceAccountProvider(serviceAccountProvider)
+
+    def role1 = new Role(group1SvcAcct.memberOf[0])
+    def svc1 = new ExternalUser().setId(group1SvcAcct.name).setExternalRoles([role1])
+    def extUser1 = new ExternalUser().setId("user1")
+
+    when:
+    0 * userRolesProvider.multiLoadRoles()
+    def result = resolver.resolve([svc1])
+
+    then:
+    def expectedServiceAcct  = new UserPermission().setId("group1")
+            .setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
+            .setServiceAccounts([group1SvcAcct] as Set)
+            .setRoles([role1] as Set)
+
+    result.remove("group1") == expectedServiceAcct
+    result.isEmpty()
+
+    when:
+    1 * userRolesProvider.multiLoadRoles([extUser1] as Collection) >> [
+            user1: [role1]
+    ]
+    result = resolver.resolve([svc1, extUser1])
+
+    then:
+    def expectedUser1 = new UserPermission().setId("user1")
+            .setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
+            .setServiceAccounts([group1SvcAcct] as Set)
+            .setRoles([role1] as Set)
+
+    result.remove("group1") == expectedServiceAcct
+    result.remove("user1") == expectedUser1
+    result.isEmpty()
   }
 }
