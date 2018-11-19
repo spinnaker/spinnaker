@@ -35,6 +35,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PooledRequestQueue implements RequestQueue {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -52,7 +53,7 @@ public class PooledRequestQueue implements RequestQueue {
   private final DynamicConfigService dynamicConfigService;
   private final Registry registry;
 
-
+  private final AtomicBoolean isEnabled = new AtomicBoolean(true);
 
   public PooledRequestQueue(DynamicConfigService dynamicConfigService,
                             Registry registry,
@@ -89,6 +90,8 @@ public class PooledRequestQueue implements RequestQueue {
     this.requestQueues = new CopyOnWriteArrayList<>();
     this.requestDistributor = new RequestDistributor(registry, pollCoordinator, executorService, requestQueues);
     executorService.submit(requestDistributor);
+
+    registry.gauge("pooledRequestQueue.enabled", isEnabled, value -> value.get() ? 1.0 : 0.0);
   }
 
   @PreDestroy
@@ -113,6 +116,10 @@ public class PooledRequestQueue implements RequestQueue {
 
   @Override
   public <T> T execute(String partition, Callable<T> operation, long startWorkTimeout, long timeout, TimeUnit unit) throws Throwable {
+    if (!isEnabled.get()) {
+      return operation.call();
+    }
+
     final long startTime = System.nanoTime();
     final Queue<PooledRequest<?>> queue;
     if (!partitionedRequests.containsKey(partition)) {
@@ -165,5 +172,7 @@ public class PooledRequestQueue implements RequestQueue {
       executorService.setCorePoolSize(desiredCorePoolSize);
       executorService.setMaximumPoolSize(desiredCorePoolSize);
     }
+
+    isEnabled.set(dynamicConfigService.isEnabled("requestQueue", true));
   }
 }
