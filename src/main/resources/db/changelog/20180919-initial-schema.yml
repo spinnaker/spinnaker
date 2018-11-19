@@ -1,0 +1,171 @@
+databaseChangeLog:
+- changeSet:
+    id: create-tasks-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: tasks
+        columns:
+        - column:
+            name: id
+            type: char(36)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: request_id
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: owner_id
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: created_at
+            type: bigint
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: tasks
+
+- changeSet:
+    id: create-task-states-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: task_states
+        columns:
+        - column:
+            name: id
+            type: char(36)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: task_id
+            type: char(36)
+            constraints:
+              nullable: false
+        - column:
+            name: created_at
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: state
+            type: varchar(10)
+            constraints:
+              nullable: false
+        - column:
+            name: phase
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: status
+            type: text
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: task_states
+
+- changeSet:
+    id: mysql-change-state-stauts-to-enum-type
+    author: robzienert
+    changes:
+    - sql:
+        dbms: mysql
+        sql: ALTER TABLE `task_states` MODIFY COLUMN `state` ENUM("STARTED", "COMPLETED", "FAILED") NOT NULL DEFAULT "STARTED"
+
+- changeSet:
+    id: create-task-results-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: task_results
+        columns:
+        - column:
+            name: id
+            type: char(36)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: task_id
+            type: char(36)
+            constraints:
+              nullable: false
+        - column:
+            name: body
+            type: longtext
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: task_results
+
+- changeSet:
+    id: create-indices
+    author: robzienert
+    changes:
+    - createIndex:
+        indexName: task_request_id_idx
+        tableName: tasks
+        columns:
+        - column:
+            name: request_id
+    - createIndex:
+        indexName: task_owner_id_idx
+        tableName: tasks
+        columns:
+        - column:
+            name: owner_id
+    - createIndex:
+        indexName: task_created_at_idx
+        tableName: tasks
+        columns:
+        - column:
+            name: created_at
+    - createIndex:
+        indexName: task_states_taskid_createdat_idx
+        tableName: task_states
+        columns:
+        - column:
+            name: task_id
+        - column:
+            name: created_at
+    - createIndex:
+        indexName: result_objects_task_idx
+        tableName: task_results
+        columns:
+        - column:
+            name: task_id
+    rollback:
+    - dropIndex:
+        indexName: task_request_id_idx
+        tableName: tasks
+    - dropIndex:
+        indexName: task_owner_id_idx
+        tableName: tasks
+    - dropIndex:
+        indexName: task_created_at_idx
+        tableName: tasks
+    - dropIndex:
+        indexName: result_objects_task_idx
+        tableName: task_results
