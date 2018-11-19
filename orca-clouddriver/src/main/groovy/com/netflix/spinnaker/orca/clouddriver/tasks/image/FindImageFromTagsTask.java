@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,6 +43,9 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
 
   @Autowired
   List<ImageFinder> imageFinders;
+
+  @Value("${tasks.findImageFromTagsTimeoutMillis:600000}")
+  private Long findImageFromTagsTimeoutMillis;
 
   @Override
   public TaskResult execute(Stage stage) {
@@ -101,7 +105,7 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
 
   @Override
   public long getTimeout() {
-    return 600000;
+    return this.findImageFromTagsTimeoutMillis;
   }
 
   static class StageData {

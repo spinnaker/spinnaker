@@ -43,7 +43,8 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
 
   final long backoffPeriod = 10000
 
-  final long timeout = 600000
+  @Value('${tasks.findImageFromClusterTimeoutMillis:600000}')
+  long timeout
 
   static enum SelectionStrategy {
     /**
