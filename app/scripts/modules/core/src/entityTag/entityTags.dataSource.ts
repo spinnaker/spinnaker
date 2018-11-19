@@ -27,6 +27,10 @@ module(ENTITY_TAGS_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run(($q: IQService
       .ready()
       .then(() => EntityTagsReader.addTagsToServerGroups(application), noop);
     application
+      .getDataSource('serverGroupManagers')
+      .ready()
+      .then(() => EntityTagsReader.addTagsToServerGroupManagers(application), noop);
+    application
       .getDataSource('loadBalancers')
       .ready()
       .then(() => EntityTagsReader.addTagsToLoadBalancers(application), noop);
@@ -34,6 +38,14 @@ module(ENTITY_TAGS_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run(($q: IQService
       .getDataSource('securityGroups')
       .ready()
       .then(() => EntityTagsReader.addTagsToSecurityGroups(application), noop);
+    application
+      .getDataSource('executions')
+      .ready()
+      .then(() => EntityTagsReader.addTagsToExecutions(application), noop);
+    application
+      .getDataSource('pipelineConfigs')
+      .ready()
+      .then(() => EntityTagsReader.addTagsToPipelines(application), noop);
   };
 
   ApplicationDataSourceRegistry.registerDataSource({

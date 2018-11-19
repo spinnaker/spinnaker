@@ -22,6 +22,17 @@
       <cloud-provider-logo provider="ctrl.serverGroupManager.cloudProvider" height="'36px'" width="'36px'"></cloud-provider-logo>
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{ctrl.serverGroupManager.displayName}}
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            entity="ctrl.serverGroupManager"
+            application="ctrl.app"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="serverGroupManager"
+            page-location="details"
+            on-update="ctrl.app.serverGroupManagers.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
       </h3>
     </div>
     <div class="actions">
@@ -61,6 +72,13 @@
               Delete
             </a>
           </li>
+          <render-if-feature feature="entityTags">
+            <add-entity-tag-links component="ctrl.serverGroupManager"
+                                  application="ctrl.app"
+                                  entity-type="serverGroupManager"
+                                  owner-options="ctrl.entityTagTargets"
+                                  on-update="ctrl.app.serverGroupManagers.refresh()" />
+          </render-if-feature>
         </ul>
       </div>
     </div>
@@ -114,4 +132,3 @@
     </collapsible-section>
   </div>
 </div>
-

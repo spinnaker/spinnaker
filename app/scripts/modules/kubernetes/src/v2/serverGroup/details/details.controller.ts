@@ -4,7 +4,10 @@ import { IModalService } from 'angular-ui-bootstrap';
 import {
   Application,
   CONFIRMATION_MODAL_SERVICE,
+  ClusterTargetBuilder,
+  IEntityTags,
   IManifest,
+  IOwnerOption,
   IServerGroup,
   SERVER_GROUP_WRITER,
   ServerGroupReader,
@@ -27,6 +30,7 @@ class KubernetesServerGroupDetailsController implements IController {
   public state = { loading: true };
   public serverGroup: IKubernetesServerGroup;
   public manifest: IManifest;
+  public entityTagTargets: IOwnerOption[];
 
   constructor(
     serverGroup: IServerGroupFromStateParams,
@@ -199,7 +203,26 @@ class KubernetesServerGroupDetailsController implements IController {
       this.serverGroup = this.transformServerGroup(serverGroupDetails);
       this.serverGroup.account = fromParams.accountId;
       this.state.loading = false;
+      this.serverGroup.entityTags = this.extractEntityTags();
+      this.entityTagTargets = this.configureEntityTagTargets();
     });
+  }
+
+  private extractEntityTags(): IEntityTags {
+    for (const toCheck of this.app.serverGroups.data) {
+      if (
+        toCheck.name === this.serverGroup.name &&
+        toCheck.account === this.serverGroup.account &&
+        toCheck.region === this.serverGroup.region
+      ) {
+        return toCheck.entityTags;
+      }
+    }
+    return null;
+  }
+
+  private configureEntityTagTargets(): IOwnerOption[] {
+    return ClusterTargetBuilder.buildClusterTargets(this.serverGroup);
   }
 }
 

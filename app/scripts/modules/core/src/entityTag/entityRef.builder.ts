@@ -1,5 +1,12 @@
 import { Application } from 'core/application/application.model';
-import { IEntityRef, ILoadBalancer, IRegionalCluster, ISecurityGroup, IServerGroup } from 'core/domain';
+import {
+  IEntityRef,
+  ILoadBalancer,
+  IRegionalCluster,
+  ISecurityGroup,
+  IServerGroup,
+  IServerGroupManager,
+} from 'core/domain';
 
 export class EntityRefBuilder {
   public static buildServerGroupRef(serverGroup: IServerGroup): IEntityRef {
@@ -9,6 +16,16 @@ export class EntityRefBuilder {
       entityId: serverGroup.name,
       account: serverGroup.account,
       region: serverGroup.region,
+    };
+  }
+
+  public static buildServerGroupManagerRef(serverGroupManager: IServerGroupManager): IEntityRef {
+    return {
+      cloudProvider: serverGroupManager.cloudProvider,
+      entityType: 'servergroupmanager',
+      entityId: serverGroupManager.name,
+      account: serverGroupManager.account,
+      region: serverGroupManager.region,
     };
   }
 
@@ -57,6 +74,8 @@ export class EntityRefBuilder {
         return this.buildApplicationRef;
       case 'serverGroup':
         return this.buildServerGroupRef;
+      case 'serverGroupManager':
+        return this.buildServerGroupManagerRef;
       case 'loadBalancer':
         return this.buildLoadBalancerRef;
       case 'cluster':

@@ -8,6 +8,9 @@ import {
   IManifest,
   IServerGroupManager,
   IServerGroupManagerStateParams,
+  ClusterTargetBuilder,
+  IOwnerOption,
+  IEntityTags,
 } from '@spinnaker/core';
 import { IKubernetesServerGroupManager } from 'kubernetes/v2/serverGroupManager/IKubernetesServerGroupManager';
 import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
@@ -18,6 +21,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   public serverGroupManager: IKubernetesServerGroupManager;
   public state = { loading: true };
   public manifest: IManifest;
+  public entityTagTargets: IOwnerOption[];
 
   constructor(
     serverGroupManager: IServerGroupManagerStateParams,
@@ -176,6 +180,25 @@ class KubernetesServerGroupManagerDetailsController implements IController {
             manager.account === stateParams.accountId,
         ),
     );
+    this.entityTagTargets = this.configureEntityTagTargets();
+    this.serverGroupManager.entityTags = this.extractEntityTags();
+  }
+
+  private configureEntityTagTargets(): IOwnerOption[] {
+    return ClusterTargetBuilder.buildManagerClusterTargets(this.serverGroupManager);
+  }
+
+  private extractEntityTags(): IEntityTags {
+    for (const toCheck of this.app.serverGroupManagers.data) {
+      if (
+        toCheck.name === this.serverGroupManager.name &&
+        toCheck.account === this.serverGroupManager.account &&
+        toCheck.region === this.serverGroupManager.namespace
+      ) {
+        return toCheck.entityTags;
+      }
+    }
+    return null;
   }
 }
 

@@ -80,6 +80,8 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
           health={this.buildHealthCounts()}
           provider={serverGroups[0].type}
           heading={manager}
+          grouping={grouping}
+          app={application}
         />
 
         {serverGroups.map((sg: IServerGroup) => (

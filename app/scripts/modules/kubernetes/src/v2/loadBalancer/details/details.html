@@ -23,6 +23,20 @@
                              width="'36px'"></cloud-provider-logo>
         <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
           {{ctrl.loadBalancer.displayName}}
+          <render-if-feature feature="entityTags">
+
+            <entity-notifications
+              ng-if="!state.loading"
+              entity="ctrl.loadBalancer"
+              application="ctrl.app"
+              placement="bottom"
+              h-offset-percent="90%"
+              entity-type="loadBalancer"
+              page-location="details"
+              on-update="ctrl.app.loadBalancers.refresh()"
+            ></entity-notifications>
+
+          </render-if-feature>
         </h3>
       </div>
       <div class="actions">
@@ -37,6 +51,12 @@
             <li>
               <a href ng-click="ctrl.editLoadBalancer()">Edit</a>
             </li>
+            <render-if-feature feature="entityTags">
+              <add-entity-tag-links component="ctrl.loadBalancer"
+                                    application="ctrl.app"
+                                    entity-type="loadBalancer"
+                                    on-update="ctrl.app.loadBalancers.refresh()"></add-entity-tag-links>
+            </render-if-feature>
           </ul>
         </div>
       </div>

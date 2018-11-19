@@ -1,3 +1,4 @@
+import { IEntityTags } from './IEntityTags';
 import { IOrchestratedItem } from './IOrchestratedItem';
 import { IExecutionTrigger } from './IExecutionTrigger';
 import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
@@ -13,6 +14,7 @@ export interface IExecution extends IOrchestratedItem {
   currentStages?: IExecutionStageSummary[];
   deploymentTargets: string[];
   // expandedGroups?: {[groupId: string]: boolean};
+  entityTags?: IEntityTags;
   graphStatusHash?: string;
   id: string;
   isComplete?: boolean;

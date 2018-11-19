@@ -92,7 +92,7 @@ class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsFo
           <strong>
             <span>
               {' '}
-              {this.state.collapsed ? 'Show' : 'Hide'} {notifications.length} server groups
+              {this.state.collapsed ? 'Show' : 'Hide'} {notifications.length} entities
             </span>
           </strong>
         </a>

@@ -6,6 +6,7 @@ import { find, flatten, uniq, without } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import { CollapsibleSectionStateCache } from 'core/cache';
+import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { Execution } from '../execution/Execution';
 import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
@@ -275,6 +276,14 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                     </span>
                   )}
                 </h4>
+                <EntityNotifications
+                  entity={pipelineConfig}
+                  application={this.props.application}
+                  entity-type="pipeline"
+                  hOffsetPercent="20%"
+                  placement="top"
+                  onUpdate={() => this.props.application.refresh()}
+                />
                 {this.state.canConfigure && (
                   <div className="text-right execution-group-actions">
                     {pipelineConfig && <TriggersTag pipeline={pipelineConfig} />}

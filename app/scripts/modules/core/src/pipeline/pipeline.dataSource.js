@@ -2,6 +2,7 @@ const angular = require('angular');
 
 import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { DELIVERY_KEY } from 'core/application/nav/defaultCategories';
+import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { EXECUTION_SERVICE } from './service/execution.service';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { SETTINGS } from 'core/config/settings';
@@ -46,7 +47,16 @@ module.exports = angular
     };
 
     let executionsLoaded = application => {
+      addExecutionTags(application);
       executionService.removeCompletedExecutionsFromRunningData(application);
+    };
+
+    let addExecutionTags = application => {
+      EntityTagsReader.addTagsToExecutions(application);
+    };
+
+    let addPipelineTags = application => {
+      EntityTagsReader.addTagsToPipelines(application);
     };
 
     if (SETTINGS.feature.pipelines !== false) {
@@ -71,6 +81,7 @@ module.exports = angular
         key: 'pipelineConfigs',
         loader: loadPipelineConfigs,
         onLoad: addPipelineConfigs,
+        afterLoad: addPipelineTags,
         lazy: true,
         visible: false,
       });

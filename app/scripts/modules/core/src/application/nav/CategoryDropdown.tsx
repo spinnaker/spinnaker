@@ -58,13 +58,24 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
         runningCount: withBadges.reduce((acc: number, ds: ApplicationDataSource) => acc + ds.data.length, 0),
       });
     });
-    this.entityTagsSubscription = merge(...category.dataSources.map(ds => ds.refresh$)).subscribe(() => {
-      const tags = category.dataSources.reduce(
-        (acc: IEntityTags[], ds: ApplicationDataSource) => acc.concat(ds.alerts || []),
-        [],
-      );
-      this.setState({ tags });
-    });
+    if (category.key === 'delivery') {
+      const withTags = [application.getDataSource('executions'), application.getDataSource('pipelineConfigs')];
+      this.entityTagsSubscription = merge(...withTags.map(ds => ds.refresh$)).subscribe(() => {
+        const tags = withTags.reduce(
+          (acc: IEntityTags[], ds: ApplicationDataSource) => acc.concat(ds.alerts || []),
+          [],
+        );
+        this.setState({ tags });
+      });
+    } else {
+      this.entityTagsSubscription = merge(...category.dataSources.map(ds => ds.refresh$)).subscribe(() => {
+        const tags = category.dataSources.reduce(
+          (acc: IEntityTags[], ds: ApplicationDataSource) => acc.concat(ds.alerts || []),
+          [],
+        );
+        this.setState({ tags });
+      });
+    }
   }
 
   private clearSubscriptions(): void {
@@ -89,7 +100,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
   };
 
   private createNonMenuEntry(): JSX.Element {
-    const { runningCount } = this.state;
+    const { runningCount, tags } = this.state;
     const { category, application } = this.props;
     const dataSource = category.dataSources[0];
     return (
@@ -99,11 +110,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
             <NavIcon icon={dataSource.icon} />
             {' ' + dataSource.label}
             {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
-            <DataSourceNotifications
-              tags={dataSource.alerts || []}
-              application={application}
-              tabName={category.label}
-            />
+            <DataSourceNotifications tags={tags} application={application} tabName={category.label} />
           </a>
         </UISref>
       </UISrefActive>

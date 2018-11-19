@@ -17,15 +17,14 @@ export interface INotificationListProps {
 export class NotificationList extends React.Component<INotificationListProps> {
   public render() {
     const { notifications, onEditTag, onDeleteTag } = this.props;
-
     return (
       <div className="notification-list">
         {notifications.map((notification: INotification, idx: number) => {
           const {
             entityTag: {
+              lastModified,
               value: { title, message, tagline },
             },
-            entityTags: { lastModified },
           } = notification;
 
           return (

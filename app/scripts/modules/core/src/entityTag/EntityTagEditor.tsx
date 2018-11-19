@@ -95,6 +95,9 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     const entityType: string = values.ownerOption ? values.ownerOption.type : this.props.entityType;
 
     const entityRef: IEntityRef = this.props.entityRef || EntityRefBuilder.getBuilder(entityType)(owner);
+    if (!entityRef.application) {
+      entityRef.application = application.name;
+    }
 
     tag.value.message = values.message;
 

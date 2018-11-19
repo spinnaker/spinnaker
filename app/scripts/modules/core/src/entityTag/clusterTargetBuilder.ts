@@ -1,11 +1,12 @@
-import { IServerGroup } from 'core/domain';
-import { NameUtils } from 'core/naming';
+import { IServerGroup, IServerGroupManager } from 'core/domain';
+// import { NameUtils } from 'core/naming';
 
 import { IOwnerOption } from './EntityTagEditor';
 
 export class ClusterTargetBuilder {
   public static buildClusterTargets(serverGroup: IServerGroup): IOwnerOption[] {
-    const clusterName = NameUtils.getClusterNameFromServerGroupName(serverGroup.name);
+    const clusterName = serverGroup.moniker.cluster;
+    const regionName = serverGroup.cloudProvider === 'kubernetes' ? 'namespace' : 'region';
     return [
       {
         type: 'serverGroup',
@@ -18,7 +19,7 @@ export class ClusterTargetBuilder {
         label: `all server groups in **${serverGroup.region}** in ${clusterName}`,
         owner: {
           name: clusterName,
-          cloudProvider: 'aws',
+          cloudProvider: serverGroup.cloudProvider,
           region: serverGroup.region,
           account: serverGroup.account,
         },
@@ -26,12 +27,51 @@ export class ClusterTargetBuilder {
       },
       {
         type: 'cluster',
-        label: `all server groups in **all regions** in ${clusterName}`,
+        label: `all server groups in **all ${regionName}s** in ${clusterName}`,
         owner: {
           name: clusterName,
-          cloudProvider: 'aws',
+          cloudProvider: serverGroup.cloudProvider,
           region: '*',
           account: serverGroup.account,
+        },
+        isDefault: false,
+      },
+    ];
+  }
+
+  public static buildManagerClusterTargets(serverGroupManager: IServerGroupManager): IOwnerOption[] {
+    const clusterName = serverGroupManager.moniker.cluster;
+    return [
+      {
+        type: 'serverGroupManager',
+        label: `all server groups in **${serverGroupManager.displayName}** in ${clusterName}`,
+        owner: {
+          name: serverGroupManager.name,
+          cloudProvider: serverGroupManager.cloudProvider,
+          region: serverGroupManager.region,
+          account: serverGroupManager.account,
+        },
+        isDefault: true,
+      },
+      {
+        type: 'cluster',
+        label: `all server groups in **${serverGroupManager.region}** in ${clusterName}`,
+        owner: {
+          name: clusterName,
+          cloudProvider: serverGroupManager.cloudProvider,
+          region: serverGroupManager.region,
+          account: serverGroupManager.account,
+        },
+        isDefault: true,
+      },
+      {
+        type: 'cluster',
+        label: `all server groups in **all namespaces** in ${clusterName}`,
+        owner: {
+          name: clusterName,
+          cloudProvider: serverGroupManager.cloudProvider,
+          region: '*',
+          account: serverGroupManager.account,
         },
         isDefault: false,
       },

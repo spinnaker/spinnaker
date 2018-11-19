@@ -5,7 +5,7 @@ import { $q } from 'ngimport';
 import { API } from 'core/api/ApiService';
 import { IEntityTags, IEntityTag, ICreationMetadataTag } from '../domain/IEntityTags';
 import { Application } from 'core/application/application.model';
-import { IServerGroup, ILoadBalancer, ISecurityGroup } from 'core/domain';
+import { IExecution, IPipeline, IServerGroup, IServerGroupManager, ILoadBalancer, ISecurityGroup } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
@@ -39,14 +39,30 @@ export class EntityTagsReader {
     });
   }
 
+  public static addTagsToServerGroupManagers(application: Application): void {
+    if (!SETTINGS.feature.entityTags) {
+      return;
+    }
+    const allTags = application.getDataSource('entityTags').data;
+    const serverGroupManagerTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'servergroupmanager');
+    application.getDataSource('serverGroupManagers').data.forEach((serverGroupManager: IServerGroupManager) => {
+      serverGroupManager.entityTags = serverGroupManagerTags.find(
+        t =>
+          t.entityRef.entityId === serverGroupManager.name &&
+          t.entityRef.account === serverGroupManager.account &&
+          t.entityRef.region === serverGroupManager.region,
+      );
+    });
+  }
+
   public static addTagsToLoadBalancers(application: Application): void {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
     const allTags = application.getDataSource('entityTags').data;
-    const serverGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'loadbalancer');
+    const loadBalancerTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'loadbalancer');
     application.getDataSource('loadBalancers').data.forEach((loadBalancer: ILoadBalancer) => {
-      loadBalancer.entityTags = serverGroupTags.find(
+      loadBalancer.entityTags = loadBalancerTags.find(
         t =>
           t.entityRef.entityId === loadBalancer.name &&
           t.entityRef.account === loadBalancer.account &&
@@ -68,6 +84,28 @@ export class EntityTagsReader {
           t.entityRef.account === securityGroup.account &&
           t.entityRef.region === securityGroup.region,
       );
+    });
+  }
+
+  public static addTagsToExecutions(application: Application): void {
+    if (!SETTINGS.feature.entityTags) {
+      return;
+    }
+    const allTags = application.getDataSource('entityTags').data;
+    const executionTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'execution');
+    application.getDataSource('executions').data.forEach((execution: IExecution) => {
+      execution.entityTags = executionTags.find(t => t.entityRef.entityId === execution.id);
+    });
+  }
+
+  public static addTagsToPipelines(application: Application): void {
+    if (!SETTINGS.feature.entityTags) {
+      return;
+    }
+    const allTags = application.getDataSource('entityTags').data;
+    const pipelineTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'pipeline');
+    application.getDataSource('pipelineConfigs').data.forEach((pipeline: IPipeline) => {
+      pipeline.entityTags = pipelineTags.find(t => t.entityRef.entityId === pipeline.name);
     });
   }
 

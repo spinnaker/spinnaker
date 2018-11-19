@@ -23,6 +23,21 @@
                              width="'36px'"></cloud-provider-logo>
         <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
           {{ctrl.securityGroup.displayName}}
+
+            <render-if-feature feature="entityTags">
+
+              <entity-notifications
+                ng-if="!state.loading"
+                entity="ctrl.securityGroup"
+                application="ctrl.app"
+                placement="bottom"
+                h-offset-percent="90%"
+                entity-type="securityGroup"
+                page-location="details"
+                on-update="ctrl.app.securityGroups.refresh()"
+              ></entity-notifications>
+
+          </render-if-feature>
         </h3>
       </div>
       <div class="actions">
@@ -37,6 +52,12 @@
             <li>
               <a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"/></a>
             </li>
+          <render-if-feature feature="entityTags">
+            <add-entity-tag-links component="ctrl.securityGroup"
+                                  application="ctrl.app"
+                                  entity-type="securityGroup"
+                                  on-update="ctrl.app.securityGroups.refresh()"></add-entity-tag-links>
+          </render-if-feature>
           </ul>
         </div>
       </div>
