@@ -52,7 +52,7 @@ class TerminateInstanceAndDecrementServerGroupTask extends AbstractCloudProvider
 
     List<String> instanceIds = remainingInstances*.id
 
-    def ctx = stage.context + [
+    def ctx = [
             "notification.type"                                       : "terminateinstanceanddecrementservergroup",
             "terminate.account.name"                                  : account,
             "terminate.region"                                        : stage.context.region,
