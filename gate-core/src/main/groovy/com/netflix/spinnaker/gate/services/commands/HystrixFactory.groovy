@@ -30,10 +30,10 @@ class HystrixFactory {
     HystrixCommandGroupKey.Factory.asKey(name)
   }
 
-  public static <T> ListCommand newListCommand(String groupKey,
-                                           String commandKey,
-                                           Callable<List<T>> work,
-                                           Callable<List<T>> fallback = { null }) {
+  public static <T> ListCommand<T> newListCommand(String groupKey,
+                                                  String commandKey,
+                                                  Callable<List<T>> work,
+                                                  Callable<List<T>> fallback = { null }) {
     new ListCommand(groupKey, commandKey, propagate(work, false), fallback)
   }
 
