@@ -21,10 +21,24 @@ You will need the following:
   sudo mv jsonnet /usr/local/bin/jsonnet
   ```
 
+To build the demo application, run:
+
+```bash
+jsonnet demo-app.jsonnet
+```
+
+If you have the [Spinnaker CLI
+installed](https://www.spinnaker.io/guides/spin/cli/) (`spin`), you can save
+this application in Spinnaker by running:
+
+```bash
+jsonnet demo-app.jsonnet > demo-app.json && spin application save --file demo-app.json
+```
+
 To build the demo pipeline, run:
 
 ```bash
-jsonnet demo.jsonnet
+jsonnet demo-pipeline.jsonnet
 ```
 
 If you have the [Spinnaker CLI
@@ -32,5 +46,5 @@ installed](https://www.spinnaker.io/guides/spin/cli/) (`spin`), you can save
 this pipeline in Spinnaker by running:
 
 ```bash
-jsonnet demo.jsonnet > demo.json && spin pipeline save --file demo.json
+jsonnet demo-pipeline.jsonnet > demo-pipeline.json && spin pipeline save --file demo-pipeline.json
 ```

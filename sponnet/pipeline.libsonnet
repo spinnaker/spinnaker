@@ -1,12 +1,15 @@
 {
   pipeline():: {
-    limitConcurrent: true,
     keepWaitingPipelines: false,
+    limitConcurrent: true,
     notifications: [],
     stages: [],
     triggers: [],
     withApplication(application):: self + { application: application },
     withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifacts: expectedArtifacts } else { expectedArtifacts: [expectedArtifacts] },
+    withId(id):: self + { id: id },
+    withKeepWaitingPipelines(keepWaitingPipelines):: self + { keepWaitingPipelines: keepWaitingPipelines },
+    withLimitConcurrent(limitConcurrent):: self + { limitConcurrent: limitConcurrent },
     withName(name):: self + { name: name },
     withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
     withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
@@ -76,9 +79,9 @@
     withLevel(level):: self + { level: level },
     // Custom notification messages are optional
     withWhen(when, message=false):: self + {
-      when+: [self.level + '.' + when],
+      when+: [when],
       [if std.isString(message) then 'message']+: {
-        [self.level + '.' + when]: {
+        [when]: {
           text: message,
         },
       },
@@ -122,9 +125,20 @@
     name: name,
     type: type,
     requisiteStageRefIds: [],
-    withNotifications(notifications):: self + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
+    withNotifications(notifications):: self + { sendNotifications: true } + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
     withRequisiteStages(stages):: self + if std.type(stages) == 'array' then { requisiteStageRefIds: std.map(function(stage) stage.refId, stages) } else { requisiteStageRefIds: [stages.refId] },
     // execution options
+    // TODO (kskewes): Use a toggle or other mechanism to enforce single choice of `If stage fails`
+    withCompleteOtherBranchesThenFail(completeOtherBranchesThenFail):: self + { completeOtherBranchesThenFail: completeOtherBranchesThenFail },
+    withContinuePipeline(continuePipeline):: self + { continuePipeline: continuePipeline },
+    withFailPipeline(failPipeline):: self + { failPipeline: failPipeline },
+    withFailOnFailedExpressions(failOnFailedExpressions):: self + { failOnFailedExpressions: failOnFailedExpressions },
+    withStageEnabled(expression):: self + { stageEnabled: { type: 'expression', expression: expression } },
+    withRestrictedExecutionWindow(days, whitelist, jitter=null):: self + { restrictExecutionDuringTimeWindow: true } +
+                                                                  (if std.type(days) == 'array' then { restrictedExecutionWindow+: { days: days } } else { restrictedExecutionWindow+: { days: [days] } }) +
+                                                                  (if std.type(whitelist) == 'array' then { restrictedExecutionWindow+: { whitelist: whitelist } } else { restrictedExecutionWindow+: { whitelist: [whitelist] } }) +
+                                                                  (std.prune({ restrictedExecutionWindow+: { jitter: jitter } })),
+    withSkipWindowText(skipWindowText):: self + { skipWindowText: skipWindowText },
     withOverrideTimeout(timeoutMs):: self + { overrideTimeout: true, stageTimeoutMs: timeoutMs },
   },
 
@@ -136,6 +150,30 @@
     },
 
     // agnostic stages
+
+    checkPreconditions(name):: stage(name, 'checkPreconditions') {
+      preconditions: [],
+      withExpression(expression, failPipeline):: self + {
+        preconditions+: [{
+          context: { expression: expression },
+          failPipeline: failPipeline,
+          type: 'expression',
+        }],
+      },
+      withClusterSize(cluster, comparison, credentials, expected, regions, failPipeline):: self + {
+        preconditions+: [{
+          context: {
+            cluster: cluster,
+            comparison: comparison,
+            credentials: credentials,
+            expected: expected,
+            regions: if std.type(regions) == 'array' then { regions: regions } else { regions: [regions] },
+          },
+          failPipeline: failPipeline,
+          type: 'clusterSize',
+        }],
+      },
+    },
 
     findArtifactFromExecution(name):: stage(name, 'findArtifactFromExecution') {
       withApplication(application):: self + { application: application },
@@ -149,9 +187,11 @@
       withPipeline(pipeline):: self + { pipeline: pipeline },
     },
 
-    manualJudgement(name):: stage(name, 'manualJudgement') {
+    manualJudgment(name):: stage(name, 'manualJudgment') {
+      judgmentInputs: [],
       withInstructions(instructions):: self + { instructions: instructions },
-      withJudgementInputs(judgementInputs):: self + if std.type(judgementInputs) == 'array' then { judgementInputs: judgementInputs } else { judgementInputs: [judgementInputs] },
+      withJudgmentInputs(judgmentInputs):: self + if std.type(judgmentInputs) == 'array' then { judgmentInputs: std.map(function(input) { value: input }, judgmentInputs) } else { judgmentInputs: [{ value: judgmentInputs }] },
+      withNotifications(notifications):: self + { sendNotifications: true } + if std.type(notifications) == 'array' then { notifications: notifications } else { notifications: [notifications] },
       withPropagateAuthenticationContext(propagateAuthenticationContext):: self + { propagateAuthenticationContext: propagateAuthenticationContext },
       withSendNotifications(sendNotifications):: self + { sendNotifications: sendNotifications },
     },
@@ -193,6 +233,7 @@
     findArtifactsFromResource(name):: stage(name, 'findArtifactsFromResource') {
       cloudProvider: 'kubernetes',
       withAccount(account):: self + { account: account },
+      withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifacts: expectedArtifacts } else { expectedArtifacts: [expectedArtifacts] },
       withLocation(location):: self + { location: location },
       withManifestName(manifestName):: self + { manifestName: manifestName },
     },
@@ -227,7 +268,7 @@
 
     pipeline(name):: stage(name, 'pipeline') {
       withApplication(application):: self + { application: application },
-      withPipeline(pipeline):: self + { pipeline: pipeline },
+      withPipeline(pipeline):: self + { pipeline: self.application + '-' + pipeline },
       withWaitForCompletion(waitForCompletion):: self + { waitForCompletion: waitForCompletion },
     },
 
