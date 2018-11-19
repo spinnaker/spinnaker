@@ -4,7 +4,7 @@ metadata:
   name: spinbot
   namespace: spinbot
 spec:
-  schedule: "*/4 * * * *"
+  schedule: "*/5 * * * *"
   jobTemplate:
     spec:
       template:
