@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler.v2
+package com.netflix.spinnaker.orca.pipelinetemplate.handler.v2
 
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateSchemaContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration

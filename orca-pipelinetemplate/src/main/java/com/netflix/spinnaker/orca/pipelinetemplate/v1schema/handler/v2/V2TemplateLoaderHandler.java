@@ -22,12 +22,15 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.Handler;
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.HandlerChain;
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateContext;
+import com.netflix.spinnaker.orca.pipelinetemplate.handler.v2.V2PipelineTemplateContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.v2.V2TemplateLoader;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.v2.V2DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.v2.V2RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -40,6 +43,7 @@ public class V2TemplateLoaderHandler implements Handler {
   private V2TemplateLoader templateLoader;
   private ContextParameterProcessor contextParameterProcessor;
   private ObjectMapper objectMapper;
+  private final Logger log = LoggerFactory.getLogger(V2TemplateLoaderHandler.class);
 
   public V2TemplateLoaderHandler(V2TemplateLoader templateLoader, ContextParameterProcessor contextParameterProcessor, ObjectMapper objectMapper) {
     this.templateLoader = templateLoader;

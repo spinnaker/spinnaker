@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 public class V1SchemaValidationHelper {
 
-  static void validateStageDefinitions(List<StageDefinition> stageDefinitions, Errors errors, Function<String, String> locationFormatter) {
+  public static void validateStageDefinitions(List<StageDefinition> stageDefinitions, Errors errors, Function<String, String> locationFormatter) {
     stageDefinitions.forEach(stageDefinition -> {
       if (stageDefinition.getId() == null) {
         errors.add(new Error()
