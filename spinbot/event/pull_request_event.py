@@ -12,6 +12,7 @@ def GetRepo(event):
             return None
 
         return '/'.join(url.split('/')[-4:-2])
+    return repo
     
 def GetPullRequest(g, event):
     repo = GetRepo(event)
