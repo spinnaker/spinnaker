@@ -338,10 +338,6 @@ public class ExecutionMapper {
       application = "kayenta-" + currentInstanceId;
     }
 
-    if (StringUtils.isEmpty(parentPipelineExecutionId)) {
-      parentPipelineExecutionId = "no-parent-pipeline-execution";
-    }
-
     canaryConfig = QueryConfigUtils.escapeTemplates(canaryConfig);
 
     HashMap<String, Object> setupCanaryContext =
@@ -452,10 +448,6 @@ public class ExecutionMapper {
                                                                @NotNull String resolvedStorageAccountName) throws JsonProcessingException {
     if (StringUtils.isEmpty(application)) {
       application = "kayenta-" + currentInstanceId;
-    }
-
-    if (StringUtils.isEmpty(parentPipelineExecutionId)) {
-      parentPipelineExecutionId = "no-parent-pipeline-execution";
     }
 
     canaryConfig = QueryConfigUtils.escapeTemplates(canaryConfig);
