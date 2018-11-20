@@ -60,8 +60,10 @@ class TerminateTitusInstancesAtomicOperationConverter extends AbstractAtomicOper
         return instance?.application
       } as Set<String>
       converted.applications = applications
+      converted.requiresApplicationRestriction = !applications.isEmpty()
     } catch (Exception e) {
       converted.applications = []
+      converted.requiresApplicationRestriction = true
       log.error(
         "Unable to determine applications for instances (instanceIds: {}, account: {}, region: {})",
         converted.instanceIds,

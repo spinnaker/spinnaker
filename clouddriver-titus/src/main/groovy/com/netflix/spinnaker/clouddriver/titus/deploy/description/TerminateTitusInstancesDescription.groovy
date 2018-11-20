@@ -24,13 +24,10 @@ class TerminateTitusInstancesDescription extends AbstractTitusCredentialsDescrip
   String user
 
   Set<String> applications
+  boolean requiresApplicationRestriction = true
 
   @Override
   boolean requiresApplicationRestriction() {
-    if (instanceIds == null || instanceIds.isEmpty()) {
-      return false
-    }
-
-    return true
+    return requiresApplicationRestriction
   }
 }
