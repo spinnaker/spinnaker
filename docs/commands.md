@@ -55,6 +55,15 @@
  * [**hal config artifact gitlab account list**](#hal-config-artifact-gitlab-account-list)
  * [**hal config artifact gitlab disable**](#hal-config-artifact-gitlab-disable)
  * [**hal config artifact gitlab enable**](#hal-config-artifact-gitlab-enable)
+ * [**hal config artifact helm**](#hal-config-artifact-helm)
+ * [**hal config artifact helm account**](#hal-config-artifact-helm-account)
+ * [**hal config artifact helm account add**](#hal-config-artifact-helm-account-add)
+ * [**hal config artifact helm account delete**](#hal-config-artifact-helm-account-delete)
+ * [**hal config artifact helm account edit**](#hal-config-artifact-helm-account-edit)
+ * [**hal config artifact helm account get**](#hal-config-artifact-helm-account-get)
+ * [**hal config artifact helm account list**](#hal-config-artifact-helm-account-list)
+ * [**hal config artifact helm disable**](#hal-config-artifact-helm-disable)
+ * [**hal config artifact helm enable**](#hal-config-artifact-helm-enable)
  * [**hal config artifact http**](#hal-config-artifact-http)
  * [**hal config artifact http account**](#hal-config-artifact-http-account)
  * [**hal config artifact http account add**](#hal-config-artifact-http-account-add)
@@ -680,6 +689,7 @@ hal config artifact [subcommands]
  * `gcs`: Manage and view Spinnaker configuration for the gcs provider
  * `github`: Manage and view Spinnaker configuration for the github provider
  * `gitlab`: Manage and view Spinnaker configuration for the gitlab provider
+ * `helm`: Manage and view Spinnaker configuration for the helm provider
  * `http`: Manage and view Spinnaker configuration for the http provider
  * `oracle`: Manage and view Spinnaker configuration for the oracle provider
  * `s3`: Manage and view Spinnaker configuration for the s3 provider
@@ -1299,6 +1309,164 @@ Set the gitlab artifact provider as enabled
 #### Usage
 ```
 hal config artifact gitlab enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact helm
+
+Manage and view Spinnaker configuration for the helm provider
+
+#### Usage
+```
+hal config artifact helm [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the helm artifact provider's account
+ * `disable`: Set the helm artifact provider as disabled
+ * `enable`: Set the helm artifact provider as enabled
+
+---
+## hal config artifact helm account
+
+Manage and view Spinnaker configuration for the helm artifact provider's account
+
+#### Usage
+```
+hal config artifact helm account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the helm artifact provider.
+ * `delete`: Delete a specific helm artifact account by name.
+ * `edit`: Edit an artifact account in the helm artifact provider.
+ * `get`: Get the specified account details for the helm provider.
+ * `list`: List the artifact account names for the helm artifact provider.
+
+---
+## hal config artifact helm account add
+
+Add an artifact account to the helm artifact provider.
+
+#### Usage
+```
+hal config artifact helm account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Helm chart repository basic auth password
+ * `--repository`: Helm chart repository
+ * `--username`: Helm chart repository basic auth username
+ * `--username-password-file`: File containing "username:password" to use for helm chart repository basic auth
+
+
+---
+## hal config artifact helm account delete
+
+Delete a specific helm artifact account by name.
+
+#### Usage
+```
+hal config artifact helm account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact helm account edit
+
+Edit an artifact account in the helm artifact provider.
+
+#### Usage
+```
+hal config artifact helm account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Helm chart repository basic auth password
+ * `--repository`: Helm chart repository
+ * `--username`: Helm chart repository basic auth username
+ * `--username-password-file`: File containing "username:password" to use for helm chart repository basic auth
+
+
+---
+## hal config artifact helm account get
+
+Get the specified account details for the helm provider.
+
+#### Usage
+```
+hal config artifact helm account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact helm account list
+
+List the artifact account names for the helm artifact provider.
+
+#### Usage
+```
+hal config artifact helm account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact helm disable
+
+Set the helm artifact provider as disabled
+
+#### Usage
+```
+hal config artifact helm disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact helm enable
+
+Set the helm artifact provider as enabled
+
+#### Usage
+```
+hal config artifact helm enable [parameters]
 ```
 
 #### Parameters

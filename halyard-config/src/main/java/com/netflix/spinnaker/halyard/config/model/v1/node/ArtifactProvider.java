@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -46,6 +47,11 @@ abstract public class ArtifactProvider<A extends ArtifactAccount> extends Node {
     return providerType().getName();
   }
 
+  @Override
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
+  }
+
   abstract public ProviderType providerType();
 
   public enum ProviderType {
@@ -54,6 +60,7 @@ abstract public class ArtifactProvider<A extends ArtifactAccount> extends Node {
     ORACLE("oracle"),
     GITHUB("github"),
     GITLAB("gitlab"),
+    HELM("helm"),
     HTTP("http"),
     S3("s3");
 

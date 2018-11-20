@@ -10,8 +10,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.artifacts.oracle;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -21,10 +19,5 @@ public class OracleArtifactProvider extends ArtifactProvider<OracleArtifactAccou
   @Override
   public ArtifactProvider.ProviderType providerType() {
     return ProviderType.ORACLE;
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 }

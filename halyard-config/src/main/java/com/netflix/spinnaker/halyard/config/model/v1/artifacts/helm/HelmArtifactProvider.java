@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Datadog, Inc.
+ * Copyright 2018 Mirantis, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,9 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3;
+package com.netflix.spinnaker.halyard.config.model.v1.artifacts.helm;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
 import lombok.Data;
@@ -22,9 +24,9 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class S3ArtifactProvider extends ArtifactProvider<S3ArtifactAccount> {
-    @Override
-    public ArtifactProvider.ProviderType providerType() {
-        return ArtifactProvider.ProviderType.S3;
+public class HelmArtifactProvider extends ArtifactProvider<HelmArtifactAccount> {
+  @Override
+  public ProviderType providerType() {
+      return ProviderType.HELM;
     }
 }

@@ -19,8 +19,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,10 +28,5 @@ public class GcsArtifactProvider extends ArtifactProvider<GcsArtifactAccount> {
   @Override
   public ProviderType providerType() {
     return ProviderType.GCS;
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 }

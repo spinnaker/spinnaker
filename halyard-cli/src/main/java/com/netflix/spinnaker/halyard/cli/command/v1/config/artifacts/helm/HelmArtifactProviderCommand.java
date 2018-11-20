@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Joel Wilsson
+ * Copyright 2018 Mirantis, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.artifacts.github;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.helm;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.AbstractNamedArtifactProviderCommand;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class GitHubArtifactProvider extends ArtifactProvider<GitHubArtifactAccount> {
+@Parameters(separators = "=")
+public class HelmArtifactProviderCommand extends AbstractNamedArtifactProviderCommand {
   @Override
-  public ProviderType providerType() {
-    return ProviderType.GITHUB;
-  }
+  protected String getArtifactProviderName() {
+        return "helm";
+    }
+
+  public HelmArtifactProviderCommand() {
+        registerSubcommand(new HelmArtifactAccountCommand());
+    }
 }
