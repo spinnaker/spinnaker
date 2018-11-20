@@ -22,8 +22,8 @@ def ApplyPolicies(g):
                 try:
                     p.apply(g, i)
                 except Exception as _err:
-                    logging.warn('Failure applying {} to {}: {}'.format(
-                            p, i, traceback.format_exc()
+                    logging.warn('Failure applying {} to {} due to {}: {}'.format(
+                            p, i, _err, traceback.format_exc()
                     ))
                     err = _err
 
