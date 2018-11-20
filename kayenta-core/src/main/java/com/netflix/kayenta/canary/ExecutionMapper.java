@@ -340,16 +340,17 @@ public class ExecutionMapper {
 
     canaryConfig = QueryConfigUtils.escapeTemplates(canaryConfig);
 
-    HashMap<String, Object> setupCanaryContext =
-      Maps.newHashMap(
-        new ImmutableMap.Builder<String, Object>()
-          .put("refId", CanaryStageNames.REFID_SET_CONTEXT)
-          .put("user", "[anonymous]")
-          .put("application", application)
-          .put("parentPipelineExecutionId", parentPipelineExecutionId)
-          .put("storageAccountName", resolvedStorageAccountName)
-          .put("canaryConfig", canaryConfig)
-          .build());
+    ImmutableMap.Builder<String, Object> mapBuilder = new ImmutableMap.Builder<String, Object>()
+      .put("refId", CanaryStageNames.REFID_SET_CONTEXT)
+      .put("user", "[anonymous]")
+      .put("application", application)
+      .put("storageAccountName", resolvedStorageAccountName)
+      .put("canaryConfig", canaryConfig);
+    if (parentPipelineExecutionId != null) {
+      mapBuilder.put("parentPipelineExecutionId", parentPipelineExecutionId);
+    }
+
+    HashMap<String, Object> setupCanaryContext = Maps.newHashMap(mapBuilder.build());
     if (resolvedConfigurationAccountName != null) {
       setupCanaryContext.put("configurationAccountName", resolvedConfigurationAccountName);
     }
@@ -452,16 +453,18 @@ public class ExecutionMapper {
 
     canaryConfig = QueryConfigUtils.escapeTemplates(canaryConfig);
 
-    HashMap<String, Object> setupCanaryContext =
-      Maps.newHashMap(
-        new ImmutableMap.Builder<String, Object>()
-          .put("refId", CanaryStageNames.REFID_SET_CONTEXT)
-          .put("user", "[anonymous]")
-          .put("application", application)
-          .put("parentPipelineExecutionId", parentPipelineExecutionId)
-          .put("storageAccountName", resolvedStorageAccountName)
-          .put("canaryConfig", canaryConfig)
-          .build());
+    ImmutableMap.Builder<String, Object> mapBuilder = new ImmutableMap.Builder<String, Object>()
+      .put("refId", CanaryStageNames.REFID_SET_CONTEXT)
+      .put("user", "[anonymous]")
+      .put("application", application)
+      .put("storageAccountName", resolvedStorageAccountName)
+      .put("canaryConfig", canaryConfig);
+    if (parentPipelineExecutionId != null) {
+      mapBuilder.put("parentPipelineExecutionId", parentPipelineExecutionId);
+    }
+
+    HashMap<String, Object> setupCanaryContext = Maps.newHashMap(mapBuilder.build());
+
     if (resolvedConfigurationAccountName != null) {
       setupCanaryContext.put("configurationAccountName", resolvedConfigurationAccountName);
     }
