@@ -22,7 +22,7 @@ import org.springframework.http.HttpMethod
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties.StatusUrlResolution.*
+import static com.netflix.spinnaker.orca.webhook.config.WebhookProperties.StatusUrlResolution.*
 
 class PreconfiguredWebhookSpec extends Specification {
 
@@ -40,7 +40,7 @@ class PreconfiguredWebhookSpec extends Specification {
 
   def "getPreconfiguredFields should return empty list if no stage configuration fields are populated"() {
     setup:
-    def preconfiguredWebhook = new PreconfiguredWebhookProperties.PreconfiguredWebhook()
+    def preconfiguredWebhook = new WebhookProperties.PreconfiguredWebhook()
 
     when:
     def fields = preconfiguredWebhook.preconfiguredProperties
@@ -77,10 +77,10 @@ class PreconfiguredWebhookSpec extends Specification {
     "foo"  | true                | webhookResponse      | "bar"           || true
   }
 
-  static PreconfiguredWebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook() {
+  static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook() {
     def customHeaders = new HttpHeaders()
     customHeaders.put("header", ["value1", "value2"])
-    return new PreconfiguredWebhookProperties.PreconfiguredWebhook(
+    return new WebhookProperties.PreconfiguredWebhook(
       url: "url", customHeaders: customHeaders, method: HttpMethod.POST, payload: "payload",
       waitForCompletion: true, statusUrlResolution: webhookResponse,
       statusUrlJsonPath: "statusUrlJsonPath", statusJsonPath: "statusJsonPath", progressJsonPath: "progressJsonPath",

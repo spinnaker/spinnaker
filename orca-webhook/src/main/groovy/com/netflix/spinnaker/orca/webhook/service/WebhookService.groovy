@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.orca.webhook.service
 
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
-import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
+import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -46,7 +46,7 @@ class WebhookService {
   private UserConfiguredUrlRestrictions userConfiguredUrlRestrictions
 
   @Autowired
-  private PreconfiguredWebhookProperties preconfiguredWebhookProperties
+  private WebhookProperties preconfiguredWebhookProperties
 
   ResponseEntity<Object> exchange(HttpMethod httpMethod, String url, Object payload, Object customHeaders) {
     URI validatedUri = userConfiguredUrlRestrictions.validateURI(url)
@@ -62,7 +62,7 @@ class WebhookService {
     return restTemplate.exchange(validatedUri, HttpMethod.GET, httpEntity, Object)
   }
 
-  List<PreconfiguredWebhookProperties.PreconfiguredWebhook> getPreconfiguredWebhooks() {
+  List<WebhookProperties.PreconfiguredWebhook> getPreconfiguredWebhooks() {
     return preconfiguredWebhookProperties.preconfigured.findAll { it.enabled }
   }
 

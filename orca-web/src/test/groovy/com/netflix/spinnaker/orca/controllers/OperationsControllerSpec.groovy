@@ -35,7 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
-import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
+import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.json.JsonSlurper
@@ -713,14 +713,14 @@ class OperationsControllerSpec extends Specification {
     ]
   }
 
-  static PreconfiguredWebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(
+  static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(
     def label, def description, def type, def permissions) {
     def customHeaders = new HttpHeaders()
     customHeaders.put("header", ["value1"])
-    return new PreconfiguredWebhookProperties.PreconfiguredWebhook(
+    return new WebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type,
       url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
-      waitForCompletion: true, statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.webhookResponse,
+      waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.webhookResponse,
       statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h", parameters: null,
       permissions: permissions
     )
