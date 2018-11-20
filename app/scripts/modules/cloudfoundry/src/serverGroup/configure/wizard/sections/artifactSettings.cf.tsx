@@ -24,6 +24,7 @@ import {
 } from '../../serverGroupConfigurationModel.cf';
 import { CloudFoundryImageReader } from 'cloudfoundry/image/image.reader.cf';
 import { ICloudFoundryCluster, ICloudFoundryServerGroup } from 'cloudfoundry/domain';
+import { Field } from 'formik';
 
 export interface ICloudFoundryCreateServerGroupArtifactSettingsProps
   extends IWizardPageProps<ICloudFoundryCreateServerGroupCommand> {
@@ -179,24 +180,6 @@ class ArtifactSettingsImpl extends React.Component<
     }
   };
 
-  private artifactReferenceUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const reference = event.target.value;
-    const { artifact } = this.props.formik.values;
-    if (isArtifactSource(artifact)) {
-      artifact.reference = reference;
-      this.props.formik.setFieldValue('artifact.reference', reference);
-    }
-  };
-
-  private artifactPatternUpdater = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const pattern = event.target.value;
-    const { artifact } = this.props.formik.values;
-    if (isTriggerSource(artifact)) {
-      artifact.pattern = pattern;
-      this.props.formik.setFieldValue('artifact.pattern', pattern);
-    }
-  };
-
   private getArtifactInput = (): JSX.Element => {
     const { artifactAccounts } = this.props;
     const { values, errors: _errors } = this.props.formik;
@@ -225,13 +208,7 @@ class ArtifactSettingsImpl extends React.Component<
         <div className="form-group">
           <div className="col-md-3 sm-label-right">Reference</div>
           <div className="col-md-7">
-            <input
-              type="text"
-              required={true}
-              className="form-control input-sm"
-              value={isArtifactSource(artifact) && artifact.reference}
-              onChange={this.artifactReferenceUpdated}
-            />
+            <Field type="text" required={true} className="form-control input-sm" name="artifact.reference" />
           </div>
         </div>
         {errors.artifact &&
@@ -343,11 +320,7 @@ class ArtifactSettingsImpl extends React.Component<
         <div className="form-group">
           <div className="col-md-3 sm-label-right">Artifact Pattern</div>
           <div className="col-md-7">
-            <input
-              className="form-control input-sm no-spel"
-              value={isTriggerSource(artifact) && artifact.pattern}
-              onChange={this.artifactPatternUpdater}
-            />
+            <Field className="form-control input-sm no-spel" type="text" name="artifact.pattern" />
           </div>
         </div>
         <div className="form-group row">

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { FormikErrors } from 'formik';
+import { Field, FormikErrors } from 'formik';
 import Select, { Option } from 'react-select';
 
 import {
@@ -91,18 +91,6 @@ class BasicSettingsImpl extends React.Component<
     this.props.formik.setFieldValue('region', region);
   };
 
-  private stackUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const stack = event.target.value;
-    this.props.formik.values.stack = stack;
-    this.props.formik.setFieldValue('stack', stack);
-  };
-
-  private detailUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const freeFormDetails = event.target.value;
-    this.props.formik.values.freeFormDetails = freeFormDetails;
-    this.props.formik.setFieldValue('freeFormDetails', freeFormDetails);
-  };
-
   private deploymentStrategyUpdated = (option: Option<string>): void => {
     this.props.formik.values.strategy = option.value;
     this.props.formik.setFieldValue('strategy', option.value);
@@ -138,7 +126,7 @@ class BasicSettingsImpl extends React.Component<
             Stack <HelpField id="cf.serverGroup.stack" />
           </div>
           <div className="col-md-7">
-            <input className="form-control input-sm" type="text" value={values.stack} onChange={this.stackUpdated} />
+            <Field className="form-control input-sm" type="text" name="stack" />
           </div>
         </div>
         <div className="form-group">
@@ -146,12 +134,7 @@ class BasicSettingsImpl extends React.Component<
             Detail <HelpField id="cf.serverGroup.detail" />
           </div>
           <div className="col-md-7">
-            <input
-              className="form-control input-sm"
-              type="text"
-              value={values.freeFormDetails}
-              onChange={this.detailUpdated}
-            />
+            <Field className="form-control input-sm" type="text" name="freeFormDetails" />
           </div>
         </div>
         <div className="form-group">
