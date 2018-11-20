@@ -24,7 +24,7 @@ import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DeployCloudFoundryServiceDescription extends DestroyCloudFoundryServiceDescription {
+public class DeployCloudFoundryServiceDescription extends AbstractCloudFoundryServiceDescription {
   String service;
   String servicePlan;
   Set<String> tags;

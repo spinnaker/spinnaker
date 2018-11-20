@@ -39,7 +39,7 @@ public class DestroyCloudFoundryServiceAtomicOperation implements AtomicOperatio
     task.updateStatus(PHASE, "Initializing the removal of service instance '" + description.getServiceName() + "' from space " + description.getSpace().getName());
     description.getClient()
       .getServiceInstances()
-      .destroyServiceInstance(description.getSpace(), description.getServiceName());
+      .destroyServiceInstance(description.getSpace(), description.getServiceName(), description.getTimeout());
     task.updateStatus(PHASE, "Done removing service instance '" + description.getServiceName() + "'");
     return null;
   }

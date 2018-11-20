@@ -51,7 +51,7 @@ public class ServiceInstancesTest {
     CloudFoundryConfigurationProperties configProps = new CloudFoundryConfigurationProperties();
     configProps.setAsyncOperationTimeoutSecondsDefault(2);
     configProps.setPollingIntervalSeconds(1);
-    serviceInstances = new ServiceInstances(serviceInstanceService, orgs, spaces, Duration.ofSeconds(4), Duration.ofSeconds(1));
+    serviceInstances = new ServiceInstances(serviceInstanceService, orgs, spaces, Duration.ofSeconds(1));
 
     Page<Service> serviceMappingPageOne = Page.singleton(new Service().setLabel("service1"), "service-guid");
     when(serviceInstanceService.findService(any(), anyListOf(String.class))).thenReturn(serviceMappingPageOne);
@@ -124,7 +124,8 @@ public class ServiceInstancesTest {
       "ServicePlan1",
       Collections.emptySet(),
       null,
-      cloudFoundrySpace);
+      cloudFoundrySpace,
+      Duration.ofSeconds(4));
 
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
     verify(serviceInstanceService, never()).updateServiceInstance(any(), any());
@@ -144,7 +145,8 @@ public class ServiceInstancesTest {
       "ServicePlan1",
       Collections.emptySet(),
       null,
-      cloudFoundrySpace);
+      cloudFoundrySpace,
+      Duration.ofSeconds(4));
 
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
     verify(serviceInstanceService, never()).getServiceInstanceById("service-instance-guid");
@@ -164,7 +166,8 @@ public class ServiceInstancesTest {
       "servicePlanName",
       Collections.emptySet(),
       null,
-      cloudFoundrySpace);
+      cloudFoundrySpace,
+      Duration.ofSeconds(4));
   }
 
   @Test
@@ -185,7 +188,8 @@ public class ServiceInstancesTest {
       "ServicePlan1",
       Collections.emptySet(),
       null,
-      cloudFoundrySpace);
+      cloudFoundrySpace,
+      Duration.ofSeconds(4));
 
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
     verify(serviceInstanceService, times(1)).updateServiceInstance(any(), any());
@@ -210,7 +214,8 @@ public class ServiceInstancesTest {
       "ServicePlan1",
       Collections.emptySet(),
       null,
-      cloudFoundrySpace);
+      cloudFoundrySpace,
+      Duration.ofSeconds(4));
 
     verify(serviceInstanceService, times(1)).createServiceInstance(any());
     verify(serviceInstanceService, times(1)).updateServiceInstance(any(), any());
@@ -241,7 +246,8 @@ public class ServiceInstancesTest {
       "ServicePlan1",
       Collections.emptySet(),
       null,
-      cloudFoundrySpace);
+      cloudFoundrySpace,
+      Duration.ofSeconds(4));
   }
 
   @Test
@@ -312,7 +318,7 @@ public class ServiceInstancesTest {
     when(serviceInstanceService.destroyServiceInstance(any())).thenReturn(new Response("url", 202, "reason", Collections.emptyList(), null));
     when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(pollingServiceInstanceResource).thenThrow(retrofitErrorNotFound);
 
-    serviceInstances.destroyServiceInstance(cloudFoundrySpace, "newServiceInstanceName");
+    serviceInstances.destroyServiceInstance(cloudFoundrySpace, "newServiceInstanceName", Duration.ofSeconds(4));
 
     verify(serviceInstanceService, times(1)).findAllServiceInstancesBySpaceId(any(), any(), anyListOf(String.class));
     verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
@@ -337,7 +343,7 @@ public class ServiceInstancesTest {
     when(serviceInstanceService.destroyServiceInstance(any())).thenThrow(destroyFailed);
 
     try {
-      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName");
+      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName", Duration.ofSeconds(4));
       fail("Expected CloudFoundryApiException");
     } catch(CloudFoundryApiException cfe) {
       // expected behavior
@@ -356,7 +362,7 @@ public class ServiceInstancesTest {
       .thenReturn(Page.singleton(new ServiceBinding(), "service-binding-guid"));
 
     try {
-      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName");
+      serviceInstances.destroyServiceInstance(cloudFoundrySpace, "serviceInstanceName", Duration.ofSeconds(4));
       fail("Expected CloudFoundryApiException");
     } catch(CloudFoundryApiException cfe) {
       // expected behavior
@@ -379,7 +385,7 @@ public class ServiceInstancesTest {
     when(serviceInstanceService.getServiceInstanceById(any()))
       .thenReturn(polledServiceInstanceResource, polledServiceInstanceResource, succeededServiceInstanceResource);
 
-    serviceInstances.pollServiceInstanceStatus("new-service-instance-name", "service-instance-guid", DELETE);
+    serviceInstances.pollServiceInstanceStatus("new-service-instance-name", "service-instance-guid", DELETE, Duration.ofSeconds(4));
 
     verify(serviceInstanceService, times(3)).getServiceInstanceById("service-instance-guid");
   }
@@ -393,7 +399,7 @@ public class ServiceInstancesTest {
     when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(polledServiceInstanceResource);
 
     try {
-      serviceInstances.pollServiceInstanceStatus("service-instance-name", "service-instance-guid", DELETE);
+      serviceInstances.pollServiceInstanceStatus("service-instance-name", "service-instance-guid", DELETE, Duration.ofSeconds(4));
       fail("Expected CloudFoundryApiException");
     } catch (CloudFoundryApiException cfe) {
       assertThat(cfe.getMessage()).contains("Service instance 'service-instance-name' DELETE did not complete");
@@ -415,7 +421,7 @@ public class ServiceInstancesTest {
     when(serviceInstanceService.getServiceInstanceById(any())).thenReturn(polledServiceInstanceResource, polledServiceInstanceResource, failedServiceInstanceResource);
 
     try {
-      serviceInstances.pollServiceInstanceStatus("service-instance-name", "service-instance-guid", UPDATE);
+      serviceInstances.pollServiceInstanceStatus("service-instance-name", "service-instance-guid", UPDATE, Duration.ofSeconds(4));
       fail("Expected CloudFoundryApiException");
     } catch (CloudFoundryApiException cfe) {
       assertThat(cfe.getMessage()).contains("Service instance 'service-instance-name' UPDATE failed");

@@ -47,7 +47,6 @@ public class ServiceInstances {
   private final ServiceInstanceService api;
   private final Organizations orgs;
   private final Spaces spaces;
-  private Duration timeout = Duration.ofSeconds(450);
   private Duration pollingInterval = Duration.ofSeconds(10);
 
   public void createServiceBindingsByName(CloudFoundryServerGroup cloudFoundryServerGroup, @Nullable List<String> serviceNames) throws CloudFoundryApiException {
@@ -133,7 +132,7 @@ public class ServiceInstances {
     return services.get(0);
   }
 
-  public void destroyServiceInstance(CloudFoundrySpace space, String serviceInstanceName) throws CloudFoundryApiException {
+  public void destroyServiceInstance(CloudFoundrySpace space, String serviceInstanceName, Duration timeout) throws CloudFoundryApiException {
     Resource<ServiceInstance> serviceInstance = getServiceInstance(space, serviceInstanceName);
     String serviceInstanceId = serviceInstance.getMetadata().getGuid();
     List<Resource<ServiceBinding>> serviceBindings = collectPageResources("service bindings",
@@ -144,11 +143,12 @@ public class ServiceInstances {
     }
 
     safelyCall(() -> api.destroyServiceInstance(serviceInstanceId));
-    pollServiceInstanceStatus(serviceInstanceName, serviceInstanceId, DELETE);
+    pollServiceInstanceStatus(serviceInstanceName, serviceInstanceId, DELETE, timeout);
   }
 
   public void createServiceInstance(String newServiceInstanceName, String serviceName, String servicePlanName,
-                                    Set<String> tags, Map<String, Object> parameters, CloudFoundrySpace space)
+                                    Set<String> tags, Map<String, Object> parameters, CloudFoundrySpace space,
+                                    Duration timeout)
     throws CloudFoundryApiException, ResourceNotFoundException {
 
     List<CloudFoundryServicePlan> cloudFoundryServicePlans = findAllServicePlansByServiceName(serviceName);
@@ -190,11 +190,11 @@ public class ServiceInstances {
       }
     }
 
-    pollServiceInstanceStatus(newServiceInstanceName, guid, type);
+    pollServiceInstanceStatus(newServiceInstanceName, guid, type, timeout);
   }
 
   // package-level for testing visibility
-  void pollServiceInstanceStatus(String serviceInstanceName, String guid, LastOperation.Type type) {
+  void pollServiceInstanceStatus(String serviceInstanceName, String guid, LastOperation.Type type, Duration timeout) {
     RetryConfig retryConfig = RetryConfig.custom()
       .waitDuration(pollingInterval)
       .maxAttempts((int) (timeout.getSeconds() / pollingInterval.getSeconds()))
