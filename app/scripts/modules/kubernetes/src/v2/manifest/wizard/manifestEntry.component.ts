@@ -1,5 +1,6 @@
 import { IComponentOptions, IController, IScope, module } from 'angular';
 import { dump } from 'js-yaml';
+import { isEmpty } from 'lodash';
 
 import { IManifest } from '@spinnaker/core';
 import { IKubernetesManifestCommand } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
@@ -19,27 +20,16 @@ class KubernetesManifestCtrl implements IController {
   // list of manifests. Otherwise, hide the fact
   // that the underlying model is a list.
   public $onInit = (): void => {
-    const [first = null, ...rest] = this.manifests || [];
-    const manifest = rest && rest.length ? this.manifests : first;
     try {
-      this.rawManifest = manifest ? dump(manifest) : this.rawManifest;
+      this.rawManifest = !isEmpty(this.manifests) ? this.manifests.map(m => dump(m)).join('---\n') : null;
     } catch (e) {
       this.rawManifest = null;
     }
   };
 
-  public $onChanges = () => this.$onInit();
-
-  public handleChange = (rawManifest: string, manifest: any): void => {
+  public handleChange = (rawManifest: string, manifests: any): void => {
     this.rawManifest = rawManifest;
-    if (!this.command.manifests) {
-      this.command.manifests = [];
-    }
-    if (manifest) {
-      Object.assign(this.command.manifests, Array.isArray(manifest) ? manifest : [manifest]);
-    } else {
-      this.command.manifests = [];
-    }
+    this.command.manifests = manifests;
     this.$scope.$applyAsync();
   };
 }

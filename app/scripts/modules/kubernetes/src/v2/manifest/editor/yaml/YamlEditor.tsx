@@ -1,7 +1,8 @@
 import * as React from 'react';
 import AceEditor, { Annotation } from 'react-ace';
 import { $log } from 'ngimport';
-import { load, YAMLException } from 'js-yaml';
+import { loadAll, YAMLException } from 'js-yaml';
+import { head } from 'lodash';
 
 import 'brace/theme/textmate';
 import 'brace/mode/yaml';
@@ -24,16 +25,22 @@ interface IMark {
 
 export class YamlEditor extends React.Component<IYamlEditorProps> {
   private handleChange = (raw: string) => {
-    let obj: any;
+    let yamlDocuments: any;
     try {
-      obj = load(raw);
+      yamlDocuments = loadAll(raw, null);
+      if (Array.isArray(head(yamlDocuments))) {
+        // Multi-doc entered as list of maps
+        yamlDocuments = head(yamlDocuments);
+      }
     } catch (e) {}
-    this.props.onChange ? this.props.onChange(raw, obj) : $log.warn('No `onChange` handler provided for YAML editor.');
+    this.props.onChange
+      ? this.props.onChange(raw, yamlDocuments)
+      : $log.warn('No `onChange` handler provided for YAML editor.');
   };
 
   public calculateErrors = (value: string): Annotation[] => {
     try {
-      load(value);
+      loadAll(value, null);
     } catch (e) {
       if (e instanceof YAMLException) {
         const mark = (e as any).mark as IMark;
