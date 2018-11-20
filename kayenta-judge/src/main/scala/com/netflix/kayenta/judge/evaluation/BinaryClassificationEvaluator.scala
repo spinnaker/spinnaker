@@ -55,6 +55,7 @@ class BinaryClassificationEvaluator extends BaseEvaluator{
     label match {
       case High => 1
       case Low => 1
+      case NodataFailMetric => 1
       case Nodata => 0
       case Pass => 0
       case Error => -1

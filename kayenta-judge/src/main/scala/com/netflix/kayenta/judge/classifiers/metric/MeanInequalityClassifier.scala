@@ -31,11 +31,16 @@ class MeanInequalityClassifier extends BaseMetricClassifier {
                         experiment: Metric,
                         direction: MetricDirection,
                         nanStrategy: NaNStrategy,
-                        isCriticalMetric: Boolean): MetricClassification = {
+                        isCriticalMetric: Boolean,
+                        isDataRequired: Boolean): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
       if (nanStrategy == NaNStrategy.Remove) {
+        //Check if the config indicates that the given metric should have data but not critically fail the canary
+        if (isDataRequired && !isCriticalMetric) {
+          return MetricClassification(NodataFailMetric, None, 1.0, critical = false)
+        }
         return MetricClassification(Nodata, None, 0.0, isCriticalMetric)
       } else {
         return MetricClassification(Pass, None, 1.0, critical = false)

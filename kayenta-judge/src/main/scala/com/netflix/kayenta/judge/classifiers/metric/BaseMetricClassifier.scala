@@ -22,6 +22,7 @@ sealed trait MetricClassificationLabel
 case object Pass extends MetricClassificationLabel
 case object High extends MetricClassificationLabel
 case object Low extends MetricClassificationLabel
+case object NodataFailMetric extends MetricClassificationLabel
 case object Nodata extends MetricClassificationLabel
 case object Error extends MetricClassificationLabel
 
@@ -58,11 +59,13 @@ object NaNStrategy {
 case class MetricClassification(classification: MetricClassificationLabel,
                                 reason: Option[String],
                                 deviation: Double,
-                                critical: Boolean)
+                                critical: Boolean,
+                                isDataRequired: Boolean = false)
 
 abstract class BaseMetricClassifier {
   def classify(control: Metric, experiment: Metric,
                direction: MetricDirection = MetricDirection.Either,
                nanStrategy: NaNStrategy = NaNStrategy.Remove,
-               isCriticalMetric: Boolean = false): MetricClassification
+               isCriticalMetric: Boolean = false,
+               isDataRequired: Boolean = false): MetricClassification
 }

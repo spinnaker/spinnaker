@@ -128,12 +128,17 @@ class MannWhitneyClassifier(tolerance: Double=0.25,
                         experiment: Metric,
                         direction: MetricDirection,
                         nanStrategy: NaNStrategy,
-                        isCriticalMetric: Boolean): MetricClassification = {
+                        isCriticalMetric: Boolean,
+                        isDataRequired: Boolean): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
     if (experiment.values.isEmpty || control.values.isEmpty) {
       if (nanStrategy == NaNStrategy.Remove) {
         val reason = s"Missing data for ${experiment.name}"
+        //Check if the config indicates that the given metric should have data but not critically fail the canary
+        if (isDataRequired && !isCriticalMetric) {
+          return MetricClassification(NodataFailMetric, Some(reason), 1.0, critical = false)
+        }
         return MetricClassification(Nodata, Some(reason), 1.0, isCriticalMetric)
       } else {
         return MetricClassification(Pass, None, 1.0, critical = false)
