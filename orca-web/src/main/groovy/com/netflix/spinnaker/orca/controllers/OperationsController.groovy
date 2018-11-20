@@ -23,7 +23,6 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
-import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
@@ -67,9 +66,6 @@ class OperationsController {
 
   @Autowired
   ContextParameterProcessor contextParameterProcessor
-
-  @Autowired(required = false)
-  BuildArtifactFilter buildArtifactFilter
 
   @Autowired(required = false)
   List<PipelinePreprocessor> pipelinePreprocessors
@@ -200,15 +196,9 @@ class OperationsController {
     if (trigger.master && trigger.job && trigger.buildNumber) {
       def buildInfo = buildService.getBuild(trigger.buildNumber, trigger.master, trigger.job)
       if (buildInfo?.artifacts) {
-        if (!buildArtifactFilter) {
-          log.warn("Igor is not enabled, unable to lookup build artifacts. Fix this by setting igor.enabled: true")
-        } else {
-          buildInfo.artifacts = buildArtifactFilter.filterArtifacts(buildInfo.artifacts)
-          if (trigger.type == "manual") {
-            trigger.artifacts = buildInfo.artifacts
-          }
+        if (trigger.type == "manual") {
+          trigger.artifacts = buildInfo.artifacts
         }
-
       }
       trigger.buildInfo = buildInfo
       if (trigger.propertyFile) {

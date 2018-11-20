@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -39,9 +38,6 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
 
   @Autowired
   BuildService buildService
-
-  @Autowired
-  BuildArtifactFilter buildArtifactFilter
 
   @Autowired
   RetrySupport retrySupport
@@ -70,10 +66,6 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
       String result = build.result
       if ((build.building && build.building != 'false') || (build.running && build.running != 'false')) {
         return new TaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
-      }
-
-      if (build?.artifacts) {
-        build.artifacts = buildArtifactFilter.filterArtifacts(build.artifacts as List<Map>)
       }
 
       outputs.buildInfo = build
