@@ -241,16 +241,19 @@ class BuildController {
                 }
 
                 def propertyStream = jenkinsService.getPropertyFile(job, buildNumber, path).body.in()
-
-                if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
-                    Yaml yml = new Yaml(new SafeConstructor())
-                    map = yml.load(propertyStream)
-                } else if (fileName.endsWith('.json')) {
-                    map = objectMapper.readValue(propertyStream, Map)
-                } else {
-                    Properties properties = new Properties()
-                    properties.load(propertyStream)
-                    map = map << properties
+                try {
+                    if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
+                        Yaml yml = new Yaml(new SafeConstructor())
+                        map = yml.load(propertyStream)
+                    } else if (fileName.endsWith('.json')) {
+                        map = objectMapper.readValue(propertyStream, Map)
+                    } else {
+                        Properties properties = new Properties()
+                        properties.load(propertyStream)
+                        map = map << properties
+                    }
+                } finally {
+                    propertyStream.close()
                 }
             } catch (e) {
                 log.error("Unable to get igorProperties '{}'", kv("job", job), e)
