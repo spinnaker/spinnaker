@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spectator.api.Id;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +47,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import com.netflix.spectator.api.Registry;
 
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
@@ -62,15 +66,32 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
   private final long timeout = TimeUnit.MINUTES.toMillis(15);
 
   private final long autoSucceedAfterMs = TimeUnit.MINUTES.toMillis(12);
+  private final Clock clock;
+  private final Registry registry;
+  private final CloudDriverCacheService cacheService;
+  private final CloudDriverCacheStatusService cacheStatusService;
+  private final ObjectMapper objectMapper;
+  private final Id durationTimerId;
 
   @Autowired
-  CloudDriverCacheService cacheService;
+  public ManifestForceCacheRefreshTask(Registry registry,
+                                       CloudDriverCacheService cacheService,
+                                       CloudDriverCacheStatusService cacheStatusService,
+                                       ObjectMapper objectMapper) {
+    this(registry, cacheService, cacheStatusService, objectMapper, Clock.systemUTC());
+  }
 
-  @Autowired
-  CloudDriverCacheStatusService cacheStatusService;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  ManifestForceCacheRefreshTask(Registry registry,
+                                CloudDriverCacheService cacheService,
+                                CloudDriverCacheStatusService cacheStatusService,
+                                ObjectMapper objectMapper, Clock clock) {
+    this.registry = registry;
+    this.cacheService = cacheService;
+    this.cacheStatusService = cacheStatusService;
+    this.objectMapper = objectMapper;
+    this.clock = clock;
+    this.durationTimerId = registry.createId("manifestForceCacheRefreshTask.duration");
+  }
 
   @Override
   public TaskResult execute(Stage stage) {
@@ -78,8 +99,11 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
     if (startTime == null) {
       throw new IllegalStateException("Stage has no start time, cannot be executing.");
     }
-    if ((System.currentTimeMillis() - startTime) > autoSucceedAfterMs) {
+    long duration = clock.millis() - startTime;
+    if (duration > autoSucceedAfterMs) {
       log.info("{}: Force cache refresh never finished processing... assuming the cache is in sync and continuing...", stage.getExecution().getId());
+      registry.timer(durationTimerId.withTags("success", "true", "outcome", "autoSucceed"))
+        .record(duration, TimeUnit.MILLISECONDS);
       return new TaskResult(SUCCEEDED);
     }
 
@@ -89,9 +113,21 @@ public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTas
     stageData.manifestNamesByNamespace = manifestNamesByNamespace(stage);
 
     if (refreshManifests(cloudProvider, account, stageData)) {
+      registry.timer(durationTimerId.withTags("success", "true", "outcome", "complete"))
+        .record(duration, TimeUnit.MILLISECONDS);
       return new TaskResult(SUCCEEDED, toContext(stageData));
     } else {
-      return checkPendingRefreshes(cloudProvider, account, stageData, startTime);
+      TaskResult taskResult = checkPendingRefreshes(cloudProvider, account, stageData, startTime);
+
+      // ignoring any non-success, non-failure statuses
+      if (taskResult.getStatus().isSuccessful()) {
+        registry.timer(durationTimerId.withTags("success", "true", "outcome", "complete"))
+          .record(duration, TimeUnit.MILLISECONDS);
+      } else if (taskResult.getStatus().isFailure()) {
+        registry.timer(durationTimerId.withTags("success", "false", "outcome", "failure"))
+          .record(duration, TimeUnit.MILLISECONDS);
+      }
+      return taskResult;
     }
   }
 
