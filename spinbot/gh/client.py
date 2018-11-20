@@ -52,7 +52,7 @@ class Client(object):
 
     def rate_limit(self):
         ret = self.g.get_rate_limit()
-        self.monitoring_db.write('rate_limit_remaining', { 'value': ret.rate.remaining })
+        self.monitoring_db.write('rate_limit_remaining', { 'value': ret.core.remaining })
         return ret
 
     def get_label(self, repo, name, create=True):
