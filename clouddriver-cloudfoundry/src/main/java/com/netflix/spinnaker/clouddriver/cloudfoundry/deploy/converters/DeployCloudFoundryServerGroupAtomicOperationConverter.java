@@ -157,7 +157,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
       attrs.setBuildpacks(buildpacks);
       attrs.setServices(app.getServices());
       attrs.setRoutes(app.getRoutes() == null ? null : app.getRoutes().stream().flatMap(route -> route.values().stream()).collect(toList()));
-      attrs.setEnv(app.getEnv() == null ? null : app.getEnv().stream().flatMap(env -> env.entrySet().stream()).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
+      attrs.setEnv(app.getEnv());
       return attrs;
     });
   }
@@ -193,7 +193,7 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter extends Abstr
     private List<Map<String, String>> routes;
 
     @Nullable
-    private List<Map<String, String>> env;
+    private Map<String, String> env;
   }
 
   private Artifact convertToArtifact(String account, String reference) {

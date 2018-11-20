@@ -85,7 +85,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     new DefaultAccountCredentialsProvider(accountCredentialsRepository);
 
   private final DeployCloudFoundryServerGroupAtomicOperationConverter converter =
-    new DeployCloudFoundryServerGroupAtomicOperationConverter(null, artifactCredentialsRepository,null);
+    new DeployCloudFoundryServerGroupAtomicOperationConverter(null, artifactCredentialsRepository, null);
 
   @BeforeEach
   void initializeClassUnderTest() {
@@ -148,11 +148,9 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
               "route", "www.example.com/foo"
             ).toJavaMap()
           ).asJava(),
-          "env", List.of(
-            HashMap.of(
-              "token", "ASDF"
-            ).toJavaMap()
-          ).asJava()
+          "env", HashMap.of(
+            "token", "ASDF"
+          ).toJavaMap()
         ).toJavaMap()
       ).asJava()
     ).toJavaMap();
