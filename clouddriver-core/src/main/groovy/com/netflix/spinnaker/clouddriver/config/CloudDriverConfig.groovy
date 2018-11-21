@@ -248,6 +248,7 @@ class CloudDriverConfig {
   }
 
   @Bean
+  @ConditionalOnExpression('${redis.enabled:true}')
   CoreProvider coreProvider(RedisCacheOptions redisCacheOptions,
                             RedisClientDelegate redisClientDelegate,
                             ApplicationContext applicationContext,
