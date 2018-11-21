@@ -116,7 +116,7 @@ class ProviderUtilsSpec extends Specification {
       def executionInstrumentation = new NoopExecutionInstrumentation()
 
     when:
-      new DefaultCatsModule([agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation)
+      new DefaultCatsModule(null, [agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation)
 
     then:
       scheduler.scheduled.collect { it.agent } == [testAgent1]
@@ -159,7 +159,7 @@ class ProviderUtilsSpec extends Specification {
       def catsModule
 
     when:
-      catsModule = new DefaultCatsModule([agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation)
+      catsModule = new DefaultCatsModule(null, [agentSchedulerAwareProvider], namedCacheFactory, scheduler, executionInstrumentation)
 
     then:
       scheduler.scheduled.collect {

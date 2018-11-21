@@ -35,10 +35,20 @@ public class DefaultCatsModule implements CatsModule {
     private final Cache view;
     private final ExecutionInstrumentation executionInstrumentation;
 
-    public DefaultCatsModule(Collection<Provider> providers, NamedCacheFactory namedCacheFactory, AgentScheduler agentScheduler, ExecutionInstrumentation executionInstrumentation) {
-        this.namedCacheFactory = namedCacheFactory;
-        providerRegistry = new DefaultProviderRegistry(providers, namedCacheFactory);
-        this.agentScheduler = agentScheduler;
+    public DefaultCatsModule(ProviderRegistry registry,
+                             Collection<Provider> providers,
+                             NamedCacheFactory namedCacheFactory,
+                             AgentScheduler agentScheduler,
+                             ExecutionInstrumentation executionInstrumentation) {
+        if (registry == null) {
+          this.providerRegistry = new DefaultProviderRegistry(providers, namedCacheFactory);
+        } else {
+          this.providerRegistry = registry;
+        }
+
+      this.namedCacheFactory = namedCacheFactory;
+
+      this.agentScheduler = agentScheduler;
 
         if (agentScheduler instanceof CatsModuleAware) {
           ((CatsModuleAware)agentScheduler).setCatsModule(this);

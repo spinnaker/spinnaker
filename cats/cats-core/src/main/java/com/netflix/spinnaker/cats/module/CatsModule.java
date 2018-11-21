@@ -52,6 +52,7 @@ public interface CatsModule {
     public static class Builder {
         private NamedCacheFactory cacheFactory;
         private AgentScheduler scheduler;
+        private ProviderRegistry providerRegistry;
         private Collection<ExecutionInstrumentation> instrumentations = new LinkedList<>();
 
         public Builder scheduler(AgentScheduler agentScheduler) {
@@ -87,6 +88,11 @@ public interface CatsModule {
             return this;
         }
 
+        public Builder providerRegistry(ProviderRegistry providerRegistry) {
+          this.providerRegistry = providerRegistry;
+          return this;
+        }
+
         public CatsModule build(Provider... providers) {
             return build(Arrays.asList(providers));
         }
@@ -106,7 +112,7 @@ public interface CatsModule {
             if (cacheFactory == null) {
                 cacheFactory = new InMemoryNamedCacheFactory();
             }
-            return new DefaultCatsModule(providers, cacheFactory, scheduler, instrumentation);
+            return new DefaultCatsModule(providerRegistry, providers, cacheFactory, scheduler, instrumentation);
         }
     }
 
