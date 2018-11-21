@@ -2,3 +2,6 @@ databaseChangeLog:
 - include:
     file: changelog/20180919-initial-schema.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20181120-cats.yml
+    relativeToChangelogFile: true

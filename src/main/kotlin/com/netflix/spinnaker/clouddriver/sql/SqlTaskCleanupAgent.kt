@@ -61,18 +61,24 @@ class SqlTaskCleanupAgent(
       val candidateTaskIds = candidates.map { r -> r.field("task_id").getValue(r) }.filterNotNull().toTypedArray()
       val candidateTaskStateIds = candidates.map { r -> r.field("id").getValue(r) }.filterNotNull().toTypedArray()
 
-      val candidateResultIds = it.select(field("id"))
-        .from(taskResultsTable)
-        .where(field("task_id").`in`(candidateTaskIds))
-        .fetch("id")
-        .filterNotNull()
-        .toTypedArray()
+      val candidateResultIds =
+        if (candidateTaskIds.isNotEmpty()) {
+          it.select(field("id"))
+            .from(taskResultsTable)
+            .where(field("task_id").`in`(candidateTaskIds))
+            .fetch("id")
+            .filterNotNull()
+            .toTypedArray()
+        } else {
+          emptyArray()
+        }
 
       CleanupCandidateIds(
         taskIds = candidateTaskIds,
         stateIds = candidateTaskStateIds,
         resultIds = candidateResultIds
       )
+
     }
 
     if (candidates.hasAny()) {

@@ -1,0 +1,157 @@
+databaseChangeLog:
+- changeSet:
+    id: create-cats-resource-table-v1
+    author: afeldman
+    changes:
+    - createTable:
+        tableName: cats_v1_resource_template
+        columns:
+        - column:
+            name: id
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: agent
+            type: varchar(127)
+            constraints:
+              nullable: false
+        - column:
+            name: location
+            type: varchar(64)
+        - column:
+            name: body_hash
+            type: char(64)
+            constraints:
+              nullable: false
+        - column:
+            name: body
+            type: longtext
+            constraints:
+              nullable: false
+        - column:
+            name: last_updated
+            type: bigint
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: cats_v1_resource_template
+
+- changeSet:
+    id: create-cats-resource-table-v1-indices
+    author: afeldman
+    changes:
+    - addPrimaryKey:
+        tableName: cats_v1_resource_template
+        constraintName: cats_pk
+        columnNames: id, agent
+    - createIndex:
+        indexName: agent_body_hash_idx
+        tableName: cats_v1_resource_template
+        columns:
+        - column:
+            name: agent
+        - column:
+            name: body_hash
+    - createIndex:
+        indexName: resource_last_updated_idx
+        tableName: cats_v1_resource_template
+        columns:
+        - column:
+            name: last_updated
+    rollback:
+    - dropIndex:
+        indexName: agent_body_hash_idx
+        tableName: cats_v1_resource_template
+    - dropIndex:
+        indexName: resource_last_updated_idx
+        tableName: cats_v1_resource_template
+
+- changeSet:
+    id: create-cats-rel-table-v1
+    author: afeldman
+    changes:
+    - createTable:
+        tableName: cats_v1_rel_template
+        columns:
+        - column:
+            name: uuid
+            type: char(26)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: id
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: rel_id
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: rel_agent
+            type: varchar(127)
+            constraints:
+              nullable: false
+        - column:
+            name: rel_type
+            type: varchar(64)
+        - column:
+            name: last_updated
+            type: bigint
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: cats_v1_rel_template
+
+- changeSet:
+    id: create-cats-rel-table-v1-indices
+    author: afeldman
+    changes:
+    - createIndex:
+        indexName: id_idx
+        tableName: cats_v1_rel_template
+        columns:
+        - column:
+            name: id
+    - createIndex:
+        indexName: rel_agent_idx
+        tableName: cats_v1_rel_template
+        columns:
+        - column:
+            name: rel_agent
+    - createIndex:
+        indexName: rel_type_idx
+        tableName: cats_v1_rel_template
+        columns:
+        - column:
+            name: rel_type
+    - createIndex:
+        indexName: rel_last_updated_idx
+        tableName: cats_v1_rel_template
+        columns:
+        - column:
+            name: last_updated
+    rollback:
+    - dropIndex:
+        indexName: id_idx
+        tableName: cats_v1_rel_template
+    - dropIndex:
+        indexName: rel_last_updated_idx
+        tableName: cats_v1_rel_template
+    - dropIndex:
+        indexName: rel_agent_idx
+        tableName: cats_v1_rel_template
+    - dropIndex:
+        indexName: rel_type_idx
+        tableName: cats_v1_rel_template
