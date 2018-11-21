@@ -1,0 +1,49 @@
+/*
+ * Copyright 2018 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply plugin: "groovy"
+
+
+tasks.compileGroovy.enabled = false
+
+dependencies {
+  spinnaker.group("spockBase")
+  testCompile spinnaker.dependency("groovy")
+
+  compile("com.netflix.spinnaker.clouddriver:cats-core:${clouddriverVersion}")
+  compile project(":clouddriver-sql")
+
+  testCompile "com.h2database:h2:1.4.197"
+
+  testCompile "io.strikt:strikt-core:0.11.5"
+  testCompile "org.assertj:assertj-core:3.9.0"
+  testCompile "org.junit.jupiter:junit-jupiter-api:${spinnaker.version("jupiter")}"
+  testCompile "com.oneeyedmen:minutest:+"
+  testCompile "com.nhaarman:mockito-kotlin:1.5.0"
+
+  testCompile("com.netflix.spinnaker.clouddriver:cats-test:${clouddriverVersion}")
+  testCompile(spinnaker.dependency("korkSqlTest"))
+  testRuntime "org.junit.jupiter:junit-jupiter-engine:${spinnaker.version("jupiter")}"
+  testRuntime "org.junit.platform:junit-platform-launcher:${spinnaker.version("junit")}"
+  testRuntime "org.junit.vintage:junit-vintage-engine:${spinnaker.version("junitVintage")}"
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines "junit-vintage", "junit-jupiter"
+  }
+}
