@@ -31,8 +31,7 @@ public class DeleteImageStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(@NotNull Stage stage, @NotNull TaskNode.Builder builder) {
     builder
-      .withTask("deleteImage", DeleteImageTask.class)
-      .withTask("monitorDelete", MonitorDeleteImageTask.class);
+      .withTask("deleteImage", DeleteImageTask.class);
   }
 
   public static class DeleteImageRequest {
