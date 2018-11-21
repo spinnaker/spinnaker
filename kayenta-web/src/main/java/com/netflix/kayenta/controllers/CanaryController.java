@@ -127,7 +127,7 @@ public class CanaryController {
     }
 
     return executionMapper.buildExecution(Optional.ofNullable(application).orElse(AD_HOC),
-                                          Optional.ofNullable(parentPipelineExecutionId).orElse(AD_HOC),
+                                          parentPipelineExecutionId,
                                           AD_HOC,
                                           canaryAdhocExecutionRequest.getCanaryConfig(),
                                           null,
