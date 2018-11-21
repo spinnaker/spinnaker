@@ -114,7 +114,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     }
   }
 
-  public HttpCloudFoundryClient(String account, String apiHost, String user, String password) {
+  public HttpCloudFoundryClient(String account, String appsManagerUri, String apiHost, String user, String password) {
     this.apiHost = apiHost;
     this.user = user;
     this.password = password;
@@ -165,7 +165,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
 
     this.organizations = new Organizations(createService(OrganizationService.class));
     this.spaces = new Spaces(createService(SpaceService.class), organizations);
-    this.applications = new Applications(account, createService(ApplicationService.class), spaces);
+    this.applications = new Applications(account, appsManagerUri, createService(ApplicationService.class), spaces);
     this.domains = new Domains(createService(DomainService.class), organizations);
     this.serviceInstances = new ServiceInstances(createService(ServiceInstanceService.class), organizations, spaces);
     this.routes = new Routes(account, createService(RouteService.class), applications, domains, spaces);

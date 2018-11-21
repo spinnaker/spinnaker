@@ -50,6 +50,7 @@ import static java.util.stream.Collectors.toSet;
 @Slf4j
 public class Applications {
   private final String account;
+  private final String appsManagerUri;
   private final ApplicationService api;
   private final Spaces spaces;
 
@@ -209,6 +210,7 @@ public class Applications {
 
     return CloudFoundryServerGroup.builder()
       .account(account)
+      .appsManagerUri(appsManagerUri)
       .name(application.getName())
       .id(application.getGuid())
       .memory(process != null ? process.getMemoryInMb() : null)

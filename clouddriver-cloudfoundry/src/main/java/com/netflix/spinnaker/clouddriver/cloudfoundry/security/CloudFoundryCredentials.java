@@ -47,10 +47,10 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
 
   private final CloudFoundryClient credentials;
 
-  public CloudFoundryCredentials(String name, String apiHost, String userName, String password, String environment) {
+  protected CloudFoundryCredentials(String name, String appsManagerUri, String apiHost, String userName, String password, String environment) {
     this.name = name;
     this.environment = environment;
-    this.credentials = new HttpCloudFoundryClient(name, apiHost, userName, password);
+    this.credentials = new HttpCloudFoundryClient(name, appsManagerUri, apiHost, userName, password);
   }
 
   public CloudFoundryClient getClient() {

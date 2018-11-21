@@ -28,13 +28,13 @@ import com.netflix.spinnaker.clouddriver.model.Image;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Moniker;
+import io.vavr.collection.HashMap;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Wither;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +53,9 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
 
   @JsonView(Views.Cache.class)
   String account;
+
+  @JsonView(Views.Cache.class)
+  String appsManagerUri;
 
   @JsonView(Views.Cache.class)
   String name;
@@ -146,11 +149,12 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   }
 
   public Map getBuildInfo() {
-    Map<String, Object> buildInfo = new HashMap<>();
-    buildInfo.put("droplet", droplet);
-    buildInfo.put("serviceInstances", serviceInstances);
-    buildInfo.put("id", id);
-    return buildInfo;
+    return HashMap.<Object, Object>of(
+      "appsManagerUri", appsManagerUri,
+      "droplet", droplet,
+      "id", id,
+      "serviceInstances", serviceInstances)
+      .toJavaMap();
   }
 
   @Deprecated
