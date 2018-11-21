@@ -21,6 +21,13 @@ import { CloudFoundryNoLoadBalancerModal } from './loadBalancer/configure/cloudF
 import 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
 import 'cloudfoundry/pipeline/config/validation/cfTargetImpedance.validator';
 import 'cloudfoundry/pipeline/config/validation/validServiceParameterJson.validator';
+import { CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE } from './pipeline/stages/deployService/cloudfoundryDeployServiceStage.module';
+import { CLOUD_FOUNDRY_DESTROY_ASG_STAGE } from './pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.module';
+import { CLOUD_FOUNDRY_DESTROY_SERVICE_STAGE } from './pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.module';
+import { CLOUD_FOUNDRY_DISABLE_ASG_STAGE } from './pipeline/stages/disableAsg/cloudfoundryDisableAsgStage.module';
+import { CLOUD_FOUNDRY_ENABLE_ASG_STAGE } from './pipeline/stages/enableAsg/cloudfoundryEnableAsgStage.module';
+import { CLOUD_FOUNDRY_RESIZE_ASG_STAGE } from './pipeline/stages/resizeAsg/cloudfoundryResizeAsgStage.module';
+import { CLOUD_FOUNDRY_ROLLBACK_CLUSTER_STAGE } from './pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.module';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -30,21 +37,21 @@ templates.keys().forEach(function(key) {
 
 export const CLOUD_FOUNDRY_MODULE = 'spinnaker.cloudfoundry';
 module(CLOUD_FOUNDRY_MODULE, [
-  CLOUD_FOUNDRY_REACT_MODULE,
+  CLOUD_FOUNDRY_CREATE_SERVER_GROUP,
+  CLOUD_FOUNDRY_DESTROY_SERVICE_STAGE,
+  CLOUD_FOUNDRY_DEPLOY_SERVICE_STAGE,
+  CLOUD_FOUNDRY_DESTROY_ASG_STAGE,
+  CLOUD_FOUNDRY_DISABLE_ASG_STAGE,
+  CLOUD_FOUNDRY_ENABLE_ASG_STAGE,
   CLOUD_FOUNDRY_INSTANCE_DETAILS_CTRL,
   CLOUD_FOUNDRY_LOAD_BALANCER_MODULE,
-  CLOUD_FOUNDRY_SERVER_GROUP_TRANSFORMER,
-  CLOUD_FOUNDRY_CREATE_SERVER_GROUP,
-  CLOUD_FOUNDRY_SERVER_GROUP_COMMAND_BUILDER,
-  SERVER_GROUP_DETAILS_MODULE,
+  CLOUD_FOUNDRY_REACT_MODULE,
+  CLOUD_FOUNDRY_RESIZE_ASG_STAGE,
+  CLOUD_FOUNDRY_ROLLBACK_CLUSTER_STAGE,
   CLOUD_FOUNDRY_SEARCH_FORMATTER,
-  require('./pipeline/stages/enableAsg/cloudfoundryEnableAsgStage.js').name,
-  require('./pipeline/stages/disableAsg/cloudfoundryDisableAsgStage.js').name,
-  require('./pipeline/stages/destroyAsg/cloudfoundryDestroyAsgStage.js').name,
-  require('./pipeline/stages/resizeAsg/cloudfoundryResizeAsgStage.js').name,
-  require('./pipeline/stages/rollbackCluster/cloudfoundryRollbackClusterStage.js').name,
-  require('./pipeline/stages/deployService/cloudfoundryDeployServiceStage.js').name,
-  require('./pipeline/stages/destroyService/cloudfoundryDestroyServiceStage.js').name,
+  CLOUD_FOUNDRY_SERVER_GROUP_COMMAND_BUILDER,
+  CLOUD_FOUNDRY_SERVER_GROUP_TRANSFORMER,
+  SERVER_GROUP_DETAILS_MODULE,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('cloudfoundry', {
     name: 'Cloud Foundry',
