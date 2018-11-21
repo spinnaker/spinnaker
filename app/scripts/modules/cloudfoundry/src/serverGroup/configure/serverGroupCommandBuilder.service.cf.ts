@@ -67,6 +67,7 @@ export class CloudFoundryServerGroupCommandBuilder {
         reference: '',
         account: '',
       },
+      selectedProvider: 'cloudfoundry',
       startApplication: true,
     } as ICloudFoundryCreateServerGroupCommand);
   }
