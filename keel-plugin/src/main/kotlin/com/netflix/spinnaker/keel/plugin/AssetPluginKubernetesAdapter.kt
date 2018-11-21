@@ -19,8 +19,8 @@ import java.net.SocketException
 
 internal class AssetPluginKubernetesAdapter<T : Any>(
   private val customObjectsApi: CustomObjectsApi,
-  private val crd: V1beta1CustomResourceDefinition,
   private val plugin: AssetPlugin,
+  private val crd: V1beta1CustomResourceDefinition,
   private val watchType: Type
 ) {
   private var job: Job? = null
@@ -28,9 +28,15 @@ internal class AssetPluginKubernetesAdapter<T : Any>(
   private var call: Call? = null
 
   fun start() {
-    if (job != null) throw IllegalStateException("already running")
-    job = GlobalScope.launch {
-      watchForResourceChanges()
+    runBlocking {
+      launch {
+        if (job != null) throw IllegalStateException("Watcher for ${crd.metadata.name} already running")
+        job = GlobalScope.launch {
+          watchForResourceChanges()
+        }
+      }
+        .join()
+      log.debug("All CRDs are registered")
     }
   }
 

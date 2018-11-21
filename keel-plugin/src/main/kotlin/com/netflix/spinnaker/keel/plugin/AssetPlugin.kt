@@ -18,7 +18,7 @@ package com.netflix.spinnaker.keel.plugin
 import com.netflix.spinnaker.keel.api.Asset
 
 interface AssetPlugin : KeelPlugin {
-  val supportedKinds: Iterable<String>
+  val supportedKind: Class<*>
 
   fun current(request: Asset<*>): CurrentResponse
   fun create(request: Asset<*>): ConvergeResponse = upsert(request)

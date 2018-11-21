@@ -8,15 +8,14 @@ import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.oneeyedmen.minutest.junit.junitTests
 import com.squareup.okhttp.Response
+import io.kubernetes.client.ApiClient
 import io.kubernetes.client.ApiException
 import io.kubernetes.client.Configuration
 import io.kubernetes.client.apis.ApiextensionsV1beta1Api
+import io.kubernetes.client.apis.CoreApi
 import io.kubernetes.client.apis.CustomObjectsApi
 import io.kubernetes.client.models.V1DeleteOptions
-import io.kubernetes.client.models.V1ObjectMeta
 import io.kubernetes.client.models.V1beta1CustomResourceDefinition
-import io.kubernetes.client.models.V1beta1CustomResourceDefinitionNames
-import io.kubernetes.client.models.V1beta1CustomResourceDefinitionSpec
 import io.kubernetes.client.util.Config
 import io.kubernetes.client.util.Watch
 import kotlinx.coroutines.runBlocking
@@ -33,108 +32,81 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.map
+import java.io.StringReader
 import java.net.HttpURLConnection.HTTP_NOT_FOUND
+import java.net.HttpURLConnection.HTTP_OK
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * NOTE: requires minikube to be running.
- *
- *     brew cask install minikube
- *     brew install docker-machine-driver-hyperkit (other driver options work but this seems to be the lightest)
- *     minikube start --vm-driver hyperkit
- *
- *     # do stuff
- *
- *     minikube stop
- *
- * Once you've run minikube once it will remember the config including the
- * `vm-driver` setting (in fact it looks like specifying it again gets ignored)
- * so you can run it again with just `minikube start`
+ * NOTE: requires local k8s to be running (either Docker for Mac or Minikube).
  */
-internal object AssetPluginKubernetesAdapterTests {
+internal object KubernetesIntegrationTest {
 
-  private data class Fixture(
-    val plugin: MockAssetPlugin,
-    val crd: V1beta1CustomResourceDefinition,
-    val crdApi: ApiextensionsV1beta1Api = ApiextensionsV1beta1Api(),
-    val customObjectsApi: CustomObjectsApi = CustomObjectsApi()
+  private val client: ApiClient = Config.defaultClient().also {
+    with(it.httpClient) {
+      setConnectTimeout(1, SECONDS)
+      setReadTimeout(1, SECONDS)
+    }
+    Configuration.setDefaultApiClient(it)
+  }
+
+  private val extensionsApi = ApiextensionsV1beta1Api(client)
+  private val customObjectsApi = CustomObjectsApi(client)
+  val crdName = "security-groups.ec2.${SPINNAKER_API_V1.group}"
+  private val crdLocator = { ->
+    """---
+      |apiVersion: apiextensions.k8s.io/v1beta1
+      |kind: CustomResourceDefinition
+      |metadata:
+      |  name: $crdName
+      |spec:
+      |  group: ec2.${SPINNAKER_API_V1.group}
+      |  version: ${SPINNAKER_API_V1.version}
+      |  names:
+      |    kind: security-group
+      |    plural: security-groups
+      |  scope: Cluster
+    """.trimMargin()
+      .let(::StringReader)
+  }
+
+  private class Fixture<T : Any>(
+    val crd: V1beta1CustomResourceDefinition
   ) {
-    val watcher: AssetPluginKubernetesAdapter<SecurityGroup> = AssetPluginKubernetesAdapter(
+    val plugin = MockAssetPlugin()
+    val adapter: AssetPluginKubernetesAdapter<T> = AssetPluginKubernetesAdapter(
       customObjectsApi,
-      crd,
       plugin,
+      crd,
       object : TypeToken<Watch.Response<Asset<SecurityGroup>>>() {}.type
     )
   }
 
   @BeforeAll
   @JvmStatic
-  fun initK8s() {
-    assumeMinikubeAvailable()
-
-    val client = Config.defaultClient()
-    with(client.httpClient) {
-      setReadTimeout(5, SECONDS)
-    }
-    Configuration.setDefaultApiClient(client)
-  }
-
-  /**
-   * Tests to see if minikube is running. If not, skips this test class.
-   */
-  private fun assumeMinikubeAvailable() {
-    val minikubeDir = "/usr/local/bin"
-    val exitStatus = try {
-      ProcessBuilder("$minikubeDir/minikube", "status")
-        .apply {
-          environment()["PATH"] = minikubeDir
-        }
-        .start()
-        .waitFor()
+  fun assumeK8sAvailable() {
+    try {
+      val response = CoreApi(client).apiVersionsWithHttpInfo
+      assumeTrue("Local Kubernetes responded with HTTP ${response.statusCode}", response.statusCode == HTTP_OK)
+      println(response.data)
     } catch (e: Exception) {
       assumeNoException(e)
     }
-    assumeTrue("Exit status from `minikube status` was $exitStatus", exitStatus == 0)
   }
 
   @TestFactory
-  fun `kubernetes integration`() = junitTests<Fixture> {
+  fun `kubernetes integration`() = junitTests<CustomResourceDefinitionRegistrar> {
     fixture {
-      Fixture(
-        plugin = MockAssetPlugin(),
-        crd = V1beta1CustomResourceDefinition().apply {
-          apiVersion = "apiextensions.k8s.io/v1beta1"
-          kind = "CustomResourceDefinition"
-          metadata = V1ObjectMeta().apply {
-            name = "security-groups.ec2.${SPINNAKER_API_V1.group}"
-          }
-          spec = V1beta1CustomResourceDefinitionSpec().apply {
-            group = "ec2.${SPINNAKER_API_V1.group}"
-            version = SPINNAKER_API_V1.version
-            names = V1beta1CustomResourceDefinitionNames().apply {
-              kind = "security-group"
-              plural = "security-groups"
-            }
-            scope = "Cluster"
-          }
-        }
-      )
-    }
-
-    before {
-      crdApi.createCustomResourceDefinition(crd, "true")
-      crdApi.waitForCRDCreated(crd.metadata.name)
-      watcher.start()
+      CustomResourceDefinitionRegistrar(extensionsApi, crdLocator)
     }
 
     after {
-      watcher.stop()
       try {
-        crdApi.deleteCustomResourceDefinition(
-          crd.metadata.name,
+        extensionsApi.deleteCustomResourceDefinition(
+          crdName,
           V1DeleteOptions(),
           "true",
           0,
@@ -144,11 +116,13 @@ internal object AssetPluginKubernetesAdapterTests {
       } catch (e: JsonSyntaxException) {
         // FFS k8s, learn to parse your own responses
       }
-      crdApi.waitForCRDDeleted(crd.metadata.name)
+      extensionsApi.waitForCRDDeleted(crdName)
     }
 
-    test("can see the CRD") {
-      val response = crdApi.listCustomResourceDefinition(
+    test("can see the CRD after registering it") {
+      val crd = registerCustomResourceDefinition()
+
+      val response = extensionsApi.listCustomResourceDefinition(
         "true",
         "true",
         null,
@@ -165,7 +139,11 @@ internal object AssetPluginKubernetesAdapterTests {
         .contains(crd.metadata.name)
     }
 
-    context("no objects of the type have been defined") {
+    derivedContext<Fixture<SecurityGroup>>("no objects of the type have been defined") {
+      deriveFixture {
+        Fixture(registerCustomResourceDefinition())
+      }
+
       test("there should be zero objects") {
         val call = customObjectsApi.listClusterCustomObjectCall(
           crd.spec.group,
@@ -183,7 +161,11 @@ internal object AssetPluginKubernetesAdapterTests {
       }
     }
 
-    context("an object has been registered") {
+    derivedContext<Fixture<SecurityGroup>>("an object has been registered") {
+      deriveFixture {
+        Fixture(registerCustomResourceDefinition())
+      }
+
       before {
         val securityGroup = mapOf(
           "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
@@ -201,6 +183,8 @@ internal object AssetPluginKubernetesAdapterTests {
           )
         )
 
+        adapter.start()
+
         customObjectsApi.createClusterCustomObject(
           crd.spec.group,
           crd.spec.version,
@@ -217,6 +201,8 @@ internal object AssetPluginKubernetesAdapterTests {
       }
 
       after {
+        adapter.stop()
+
         try {
           customObjectsApi.deleteClusterCustomObject(
             crd.spec.group,
@@ -377,29 +363,6 @@ private fun CustomObjectsApi.waitForObjectCreated(group: String, version: String
   }
 }
 
-private fun ApiextensionsV1beta1Api.waitForCRDCreated(name: String) {
-  runBlocking {
-    var found = false
-    while (!found) {
-      found = listCustomResourceDefinition(
-        "true",
-        "true",
-        null,
-        null,
-        null,
-        0,
-        null,
-        5,
-        false
-      )
-        .items
-        .map { it.metadata.name }
-        .contains(name)
-      yield()
-    }
-  }
-}
-
 private fun ApiextensionsV1beta1Api.waitForCRDDeleted(name: String) {
   runBlocking {
     var found = true
@@ -452,8 +415,8 @@ private class MockAssetPlugin : AssetPlugin {
   val lastUpdated = BlockingReference<Asset<*>>()
   val lastDeleted = BlockingReference<Asset<*>>()
 
-  override val supportedKinds: Iterable<String>
-    get() = TODO("not implemented")
+  override val supportedKind: Class<*>
+    get() = SecurityGroup::class.java
 
   override fun current(request: Asset<*>): CurrentResponse {
     TODO("not implemented")
