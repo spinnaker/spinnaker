@@ -25,6 +25,7 @@ import java.util.List;
 
 @ConfigurationProperties(prefix = "travis")
 public class TravisProperties {
+    private long newBuildGracePeriodSeconds = 10;
     private boolean repositorySyncEnabled = false;
     private int cachedJobTTLDays = 60;
     @Valid
@@ -66,6 +67,14 @@ public class TravisProperties {
 
     public void setRegexes(List<String> regexes) {
         this.regexes = regexes;
+    }
+
+    public long getNewBuildGracePeriodSeconds() {
+        return newBuildGracePeriodSeconds;
+    }
+
+    public void setNewBuildGracePeriodSeconds(long newBuildGracePeriodSeconds) {
+        this.newBuildGracePeriodSeconds = newBuildGracePeriodSeconds;
     }
 
     public static class TravisHost {

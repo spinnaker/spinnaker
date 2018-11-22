@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
@@ -173,7 +174,9 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
 
     private List<BuildDelta> processBuilds(List<V3Build> builds, String master, TravisService travisService) {
         List<BuildDelta> results = new ArrayList<>();
-        builds.forEach(build -> {
+        builds.stream()
+            .filter(filterNewBuildsPredicate())
+            .forEach(build -> {
             String branchedRepoSlug = build.branchedRepoSlug();
             int cachedBuild = buildCache.getLastBuild(master, branchedRepoSlug, build.getState().isRunning());
             GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, travisService.getBaseUrl());
@@ -247,6 +250,15 @@ public class TravisBuildMonitor extends CommonPollingMonitor<TravisBuildMonitor.
 
     private int buildCacheJobTTLSeconds() {
         return (int) TimeUnit.DAYS.toSeconds(travisProperties.getCachedJobTTLDays());
+    }
+
+    private Predicate<V3Build> filterNewBuildsPredicate() {
+        /*
+        NewBuildGracePeriodSeconds is here because the travis API needs some time in order to fully represent the build in
+        the api. This can be overridden by travis.newBuildGracePeriod.
+        */
+        Instant threshold = Instant.now().minus(travisProperties.getNewBuildGracePeriodSeconds(), ChronoUnit.SECONDS);
+        return build -> !build.getState().isRunning() || (build.getFinishedAt() != null && build.getFinishedAt().isBefore(threshold));
     }
 
     private List<Repo> filterOutOldBuilds(List<Repo> repos) {

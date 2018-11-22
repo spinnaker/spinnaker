@@ -35,6 +35,10 @@ spring.jackson.serialization.write_dates_as_timestamps: false
 #  This makes new repos with builds in travis the github user has access to tracked by spinnaker.
 #  repositorySyncEnabled: true
 #
+#  This grace period gives travis some time to make the logs available. If a build just finished when we try to fetch
+#  logs, parts of the logs might not be present. Increase this timeout if artifacts are randomly missing.
+#  newBuildGracePeriodSeconds: 10
+#
 #  Travis names are prefixed with travis- inside igor.
 #  masters:
 #    - name: ci # This will show as travis-ci inside spinnaker.
