@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.keel.ec2.asset
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.ec2.CidrSecurityGroupRule
@@ -39,13 +37,12 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as RiverSecuri
 class AmazonSecurityGroupHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
-  private val orcaService: OrcaService,
-  private val objectMapper: ObjectMapper
+  private val orcaService: OrcaService
 ) : AmazonAssetHandler<SecurityGroup> {
 
   override fun current(spec: SecurityGroup, request: Asset<SecurityGroup>): Asset<SecurityGroup>? =
     cloudDriverService.getSecurityGroup(spec)?.let { securityGroup ->
-      request.copy(spec = objectMapper.convertValue(securityGroup))
+      request.copy(spec = securityGroup)
     }
 
   override fun converge(assetName: AssetName, spec: SecurityGroup) {

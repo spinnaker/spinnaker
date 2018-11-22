@@ -87,22 +87,23 @@ internal class AssetPluginKubernetesAdapter(
       )
       calls[crd.metadata.name] = call
       try {
-        val watch: Watch<Asset<T>> = call.createResourceWatch(type)
-        watch?.use { watch ->
-          watch.forEach {
-            log.info("Event {} on {}", it.type, it.`object`)
-            log.info("Event {} on {} v{}, last seen {}", it.type, it.`object`.metadata.name, it.`object`.metadata.resourceVersion, seen)
-            val version = it.`object`.metadata.resourceVersion ?: 0L
-            if (version > seen) {
-              seen = version
-              when (it.type) {
-                "ADDED" -> plugin.create(it.`object`)
-                "MODIFIED" -> plugin.update(it.`object`)
-                "DELETED" -> plugin.delete(it.`object`)
+        call
+          .createResourceWatch(type)
+          .use { watch ->
+            watch.forEach {
+              log.info("Event {} on {}", it.type, it.`object`)
+              log.info("Event {} on {} v{}, last seen {}", it.type, it.`object`.metadata.name, it.`object`.metadata.resourceVersion, seen)
+              val version = it.`object`.metadata.resourceVersion ?: 0L
+              if (version > seen) {
+                seen = version
+                when (it.type) {
+                  "ADDED" -> plugin.create(it.`object`)
+                  "MODIFIED" -> plugin.update(it.`object`)
+                  "DELETED" -> plugin.delete(it.`object`)
+                }
               }
             }
           }
-        }
       } catch (e: Exception) {
         if (e.cause is SocketException) {
           log.debug("Socket timed out or call was cancelled.")

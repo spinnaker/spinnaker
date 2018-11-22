@@ -79,8 +79,7 @@ internal object EC2AssetPluginTests {
   val subject = EC2AssetPlugin(
     cloudDriverService,
     cloudDriverCache,
-    orcaService,
-    objectMapper
+    orcaService
   )
 
   val vpc = Network(CLOUD_PROVIDER, UUID.randomUUID().toString(), "vpc1", "prod", "us-west-3")
@@ -267,9 +266,9 @@ internal object EC2AssetPluginTests {
     }
 
     derivedContext<SecurityGroupWithReferenceRuleFixture>("a security group with a reference ingress rule") {
-      mapFixture {
+      deriveFixture {
         SecurityGroupWithReferenceRuleFixture(
-          spec = it.spec,
+          spec = spec,
           rule = ReferenceSecurityGroupRule(
             protocol = TCP,
             account = "test",
@@ -317,9 +316,9 @@ internal object EC2AssetPluginTests {
     }
 
     derivedContext<SecurityGroupWithCidrRuleFixture>("a security group with an IP block range ingress rule") {
-      mapFixture {
+      deriveFixture {
         SecurityGroupWithCidrRuleFixture(
-          spec = it.spec,
+          spec = spec,
           rule = CidrSecurityGroupRule(
             protocol = TCP,
             blockRange = "10.0.0.0/16",

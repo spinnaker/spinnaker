@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.keel.ec2
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
@@ -41,8 +39,7 @@ import kotlin.reflect.KClass
 class EC2AssetPlugin(
   cloudDriverService: CloudDriverService,
   cloudDriverCache: CloudDriverCache,
-  orcaService: OrcaService,
-  private val objectMapper: ObjectMapper
+  orcaService: OrcaService
 ) : AssetPlugin {
 
   override val supportedKinds: Map<String, KClass<out Any>> = listOf(
@@ -52,10 +49,11 @@ class EC2AssetPlugin(
     "${it.simpleName}s.ec2.${SPINNAKER_API_V1.group}"
   }
 
-  override fun current(request: Asset<*>): CurrentResponse =
-    when (request.kind) {
-      "ec2.SecurityGroup" -> {
-        val spec: SecurityGroup = objectMapper.convertValue(request.spec)
+  override fun current(request: Asset<*>): CurrentResponse {
+    val spec = request.spec
+    return when (spec) {
+      is SecurityGroup -> {
+        @Suppress("UNCHECKED_CAST")
         val current = securityGroupHandler.current(spec, request as Asset<SecurityGroup>)
         log.info("{} desired state: {}", request.id, spec)
         log.info("{} current state: {}", request.id, current?.spec)
@@ -67,12 +65,13 @@ class EC2AssetPlugin(
         CurrentError(message)
       }
     }
+  }
 
-  override fun upsert(request: Asset<*>): ConvergeResponse =
-    try {
-      when (request.kind) {
-        "ec2.SecurityGroup" -> {
-          val spec: SecurityGroup = objectMapper.convertValue(request.spec)
+  override fun upsert(request: Asset<*>): ConvergeResponse {
+    val spec = request.spec
+    return try {
+      when (spec) {
+        is SecurityGroup -> {
           securityGroupHandler.converge(request.id, spec)
           ConvergeAccepted
         }
@@ -86,12 +85,13 @@ class EC2AssetPlugin(
       ConvergeFailed(e.message
         ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.id}")
     }
+  }
 
-  override fun delete(request: Asset<*>): ConvergeResponse =
-    try {
-      when (request.kind) {
-        "ec2.SecurityGroup" -> {
-          val spec: SecurityGroup = objectMapper.convertValue(request.spec)
+  override fun delete(request: Asset<*>): ConvergeResponse {
+    val spec = request.spec
+    return try {
+      when (spec) {
+        is SecurityGroup -> {
           securityGroupHandler.delete(request.id, spec)
           ConvergeAccepted
         }
@@ -105,9 +105,10 @@ class EC2AssetPlugin(
       ConvergeFailed(e.message
         ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.id}")
     }
+  }
 
   private val securityGroupHandler =
-    AmazonSecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper)
+    AmazonSecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
