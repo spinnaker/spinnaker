@@ -27,6 +27,10 @@ RUN curl -o heptio-authenticator-aws https://amazon-eks.s3-us-west-2.amazonaws.c
   chmod +x ./heptio-authenticator-aws && \
   mv ./heptio-authenticator-aws /usr/local/bin/heptio-authenticator-aws
 
+RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
+    python /tmp/get-pip.py && \
+    pip install awscli --upgrade 
+
 ENV PATH "$PATH:/usr/local/bin/heptio-authenticator-aws"
 
 CMD ["/opt/clouddriver/bin/clouddriver"]
