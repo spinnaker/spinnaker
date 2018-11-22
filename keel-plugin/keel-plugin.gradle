@@ -1,6 +1,5 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
-apply plugin: "com.google.cloud.tools.minikube"
 apply from: "$rootDir/gradle/junit4.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
 

@@ -17,7 +17,6 @@ import io.kubernetes.client.apis.CustomObjectsApi
 import io.kubernetes.client.models.V1DeleteOptions
 import io.kubernetes.client.models.V1beta1CustomResourceDefinition
 import io.kubernetes.client.util.Config
-import io.kubernetes.client.util.Watch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Assume.assumeNoException
@@ -39,6 +38,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.reflect.KClass
 
 /**
  * NOTE: requires local k8s to be running (either Docker for Mac or Minikube).
@@ -73,15 +73,43 @@ internal object KubernetesIntegrationTest {
       .let(::StringReader)
   }
 
+
+  private class MockAssetPlugin : AssetPlugin {
+    val lastCreated = BlockingReference<Asset<*>>()
+    val lastUpdated = BlockingReference<Asset<*>>()
+    val lastDeleted = BlockingReference<Asset<*>>()
+
+    override val supportedKinds: Map<String, KClass<out Any>> =
+      mapOf(crdName to SecurityGroup::class)
+
+    override fun current(request: Asset<*>): CurrentResponse {
+      TODO("not implemented")
+    }
+
+    override fun create(request: Asset<*>): ConvergeResponse {
+      lastCreated.set(request)
+      return ConvergeAccepted
+    }
+
+    override fun update(request: Asset<*>): ConvergeResponse {
+      lastUpdated.set(request)
+      return ConvergeAccepted
+    }
+
+    override fun delete(request: Asset<*>): ConvergeResponse {
+      lastDeleted.set(request)
+      return ConvergeAccepted
+    }
+  }
+
   private class Fixture<T : Any>(
     val crd: V1beta1CustomResourceDefinition
   ) {
     val plugin = MockAssetPlugin()
-    val adapter: AssetPluginKubernetesAdapter<T> = AssetPluginKubernetesAdapter(
+    val adapter: AssetPluginKubernetesAdapter = AssetPluginKubernetesAdapter(
+      extensionsApi,
       customObjectsApi,
-      plugin,
-      crd,
-      object : TypeToken<Watch.Response<Asset<SecurityGroup>>>() {}.type
+      plugin
     )
   }
 
@@ -406,34 +434,5 @@ class BlockingReference<V> {
   fun set(value: V) {
     ref.set(value)
     latch.countDown()
-  }
-}
-
-private class MockAssetPlugin : AssetPlugin {
-
-  val lastCreated = BlockingReference<Asset<*>>()
-  val lastUpdated = BlockingReference<Asset<*>>()
-  val lastDeleted = BlockingReference<Asset<*>>()
-
-  override val supportedKind: Class<*>
-    get() = SecurityGroup::class.java
-
-  override fun current(request: Asset<*>): CurrentResponse {
-    TODO("not implemented")
-  }
-
-  override fun create(request: Asset<*>): ConvergeResponse {
-    lastCreated.set(request)
-    return ConvergeAccepted
-  }
-
-  override fun update(request: Asset<*>): ConvergeResponse {
-    lastUpdated.set(request)
-    return ConvergeAccepted
-  }
-
-  override fun delete(request: Asset<*>): ConvergeResponse {
-    lastDeleted.set(request)
-    return ConvergeAccepted
   }
 }

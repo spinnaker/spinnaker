@@ -18,7 +18,9 @@ package com.netflix.spinnaker.keel.ec2
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -33,6 +35,7 @@ import com.netflix.spinnaker.keel.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.plugin.CurrentSuccess
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import kotlin.reflect.KClass
 
 @Component
 class EC2AssetPlugin(
@@ -42,11 +45,12 @@ class EC2AssetPlugin(
   private val objectMapper: ObjectMapper
 ) : AssetPlugin {
 
-  override val supportedKinds: Iterable<String> = setOf(
-    "ec2.SecurityGroup",
-    "ec2.SecurityGroupRule",
-    "ec2.ClassicLoadBalancer"
-  )
+  override val supportedKinds: Map<String, KClass<out Any>> = listOf(
+    SecurityGroup::class,
+    SecurityGroupRule::class
+  ).associateBy {
+    "${it.simpleName}s.ec2.${SPINNAKER_API_V1.group}"
+  }
 
   override fun current(request: Asset<*>): CurrentResponse =
     when (request.kind) {

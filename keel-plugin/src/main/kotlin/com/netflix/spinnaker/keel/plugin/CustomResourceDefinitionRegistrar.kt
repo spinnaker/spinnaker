@@ -1,7 +1,24 @@
+/*
+ * Copyright 2018 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.netflix.spinnaker.keel.plugin
 
 import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
+import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID
+import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -75,9 +92,9 @@ internal class CustomResourceDefinitionRegistrar(
       .registerKotlinModule()
       .registerModule(JavaTimeModule())
       .registerModule(JodaModule())
-      .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-      .enable(SerializationFeature.WRITE_DATES_WITH_ZONE_ID)
-      .enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS)
+      .enable(WRITE_DATES_AS_TIMESTAMPS)
+      .enable(WRITE_DATES_WITH_ZONE_ID)
+      .enable(WRITE_DATE_KEYS_AS_TIMESTAMPS)
       .apply {
         dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").apply {
           timeZone = TimeZone.getDefault()
@@ -90,12 +107,7 @@ internal class CustomResourceDefinitionRegistrar(
 
 private fun ApiextensionsV1beta1Api.getCustomResourceDefinition(name: String): V1beta1CustomResourceDefinition? =
   try {
-    readCustomResourceDefinition(
-      name,
-      "true",
-      null,
-      null
-    )
+    readCustomResourceDefinition(name, "true", null, null)
   } catch (e: ApiException) {
     if (e.code == HTTP_NOT_FOUND) {
       null
