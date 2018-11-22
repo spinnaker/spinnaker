@@ -118,7 +118,7 @@ class BasicSettingsImpl extends React.Component<
             Start on creation <HelpField id="cf.serverGroup.startApplication" />
           </div>
           <div className="checkbox checkbox-inline">
-            <Field type="checkbox" name="startApplication" />
+            <Field type="checkbox" name="startApplication" checked={values.startApplication} />
           </div>
         </div>
         {(values.viewState.mode === 'editPipeline' || values.viewState.mode === 'createPipeline') && (
