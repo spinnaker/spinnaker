@@ -377,6 +377,17 @@ class ArtifactSettingsImpl extends React.Component<
         <div className="form-group row">
           <label className="col-md-3 sm-label-right">Source Type</label>
           <div className="col-md-7">
+            <div className="radio radio-inline">
+              <label>
+                <input
+                  type="radio"
+                  value="artifact"
+                  checked={artifact.type === 'artifact'}
+                  onChange={() => this.artifactTypeUpdated('artifact')}
+                />{' '}
+                Artifact
+              </label>
+            </div>
             {(this.props.formik.values.viewState.mode === 'editPipeline' ||
               this.props.formik.values.viewState.mode === 'createPipeline') && (
               <div className="radio radio-inline">
@@ -391,17 +402,6 @@ class ArtifactSettingsImpl extends React.Component<
                 </label>
               </div>
             )}
-            <div className="radio radio-inline">
-              <label>
-                <input
-                  type="radio"
-                  value="artifact"
-                  checked={artifact.type === 'artifact'}
-                  onChange={() => this.artifactTypeUpdated('artifact')}
-                />{' '}
-                Artifact
-              </label>
-            </div>
             <div className="radio radio-inline">
               <label>
                 <input
