@@ -1,3 +1,6 @@
+test {
+  useJUnitPlatform()
+}
 
 class DownloadTask extends DefaultTask {
   @Input
@@ -67,7 +70,17 @@ dependencies {
   compile spinnaker.dependency("googleStorage")
   compile spinnaker.dependency("awsS3")
   compile "org.apache.commons:commons-compress:1.14"
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.6"
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.7"
+  compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.7'
+  compile "org.apache.ivy:ivy:2.4.0"
 
   compile fileTree(sdkLocation)
+
+  testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+  testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
+  testCompile 'org.assertj:assertj-core:3.8.0'
+  testCompile 'org.junit-pioneer:junit-pioneer:latest.release'
+
+  testCompile 'ru.lanwen.wiremock:wiremock-junit5:1.2.0'
+  testCompile 'com.github.tomakehurst:wiremock:latest.release'
 }
