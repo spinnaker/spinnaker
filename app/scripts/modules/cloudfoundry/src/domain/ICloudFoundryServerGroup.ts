@@ -19,6 +19,7 @@ export interface ICloudFoundryServiceInstance {
   name: string;
   plan: string;
   service: string;
+  tags?: string[];
 }
 
 export interface ICloudFoundryEnvVar {

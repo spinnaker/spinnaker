@@ -94,6 +94,8 @@ export class CloudFoundryInfoDetailsSection extends React.Component<ICloudFoundr
                     <dd>{service.name}</dd>
                     <dt>Plan</dt>
                     <dd>{service.plan}</dd>
+                    <dt>Tags</dt>
+                    {service.tags && <dd>{service.tags.join(', ')}</dd>}
                   </div>
                 );
               })}
