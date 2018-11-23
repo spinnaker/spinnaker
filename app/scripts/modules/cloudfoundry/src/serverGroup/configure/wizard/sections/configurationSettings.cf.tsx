@@ -58,6 +58,8 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
           diskQuota: '1024M',
           instances: 1,
           buildpack: undefined,
+          healthCheckType: 'port',
+          healthCheckEndpoint: undefined,
           routes: [],
           environment: [],
           services: [],
@@ -79,6 +81,10 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
     this.props.formik.setFieldValue('capacity.min', capacity);
     this.props.formik.setFieldValue('capacity.max', capacity);
     this.props.formik.setFieldValue('capacity.desired', capacity);
+  };
+
+  private healthCheckTypeUpdated = (healthCheckType: string): void => {
+    this.props.formik.setFieldValue('manifest.healthCheckType', healthCheckType);
   };
 
   private directConfiguration = (manifest: ICloudFoundryManifestSource): JSX.Element => {
@@ -110,6 +116,55 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
               <Field type="text" name="manifest.buildpack" />
             </div>
           </div>
+
+          <div>
+            <div className="form-group row">
+              <label className="col-md-3 sm-label-right">Health Check Type</label>
+              <div className="col-md-7">
+                <div className="radio radio-inline">
+                  <label>
+                    <input
+                      type="radio"
+                      value="port"
+                      checked={manifest.healthCheckType === 'port'}
+                      onChange={() => this.healthCheckTypeUpdated('port')}
+                    />{' '}
+                    port
+                  </label>
+                </div>
+                <div className="radio radio-inline">
+                  <label>
+                    <input
+                      type="radio"
+                      value="http"
+                      checked={manifest.healthCheckType === 'http'}
+                      onChange={() => this.healthCheckTypeUpdated('http')}
+                    />{' '}
+                    HTTP
+                  </label>
+                </div>
+                <div className="radio radio-inline">
+                  <label>
+                    <input
+                      type="radio"
+                      value="process"
+                      checked={manifest.healthCheckType === 'process'}
+                      onChange={() => this.healthCheckTypeUpdated('process')}
+                    />{' '}
+                    process
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          {manifest.healthCheckType === 'http' && (
+            <div className="form-group">
+              <div className="col-md-3 sm-label-right">Health Check Endpoint</div>
+              <div className="col-md-7">
+                <Field type="text" name="manifest.healthCheckEndpoint" />
+              </div>
+            </div>
+          )}
 
           <div className="form-group">
             <div className="col-md-12">
