@@ -41,9 +41,10 @@ export class AvailabilityZoneSelector extends React.Component<
   private setDefaultZones(props: IAvailabilityZoneSelectorProps) {
     const { credentials, onChange, region } = props;
 
-    AccountService.getAvailabilityZonesForAccountAndRegion('aws', credentials, region).then(
-      preferredZones => preferredZones && onChange(preferredZones.slice()),
-    );
+    AccountService.getAvailabilityZonesForAccountAndRegion('aws', credentials, region).then(preferredZones => {
+      this.setState({ defaultZones: preferredZones });
+      return preferredZones && onChange(preferredZones.slice());
+    });
   }
 
   private handleUsePreferredZonesChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -68,7 +69,7 @@ export class AvailabilityZoneSelector extends React.Component<
         <div className="col-md-3 sm-label-right">Availability Zones</div>
         {region && (
           <div className="col-md-7">
-            <p>Automatic Availability Zone Balancing:</p>
+            <p className="form-control-static">Automatic Availability Zone Balancing:</p>
             <select
               className="form-control input-sm"
               value={usePreferredZones ? 'true' : 'false'}
