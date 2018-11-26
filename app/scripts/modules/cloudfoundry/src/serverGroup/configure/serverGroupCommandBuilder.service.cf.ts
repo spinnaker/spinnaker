@@ -126,8 +126,11 @@ export class CloudFoundryServerGroupCommandBuilder {
     return this.buildNewServerGroupCommand(application, { mode: 'editPipeline' }).then(app => {
       app.credentials = originalCluster.account;
       app.artifact = originalCluster.artifact;
+      app.delayBeforeDisableSec = originalCluster.delayBeforeDisableSec;
       app.manifest = originalCluster.manifest;
+      app.maxRemainingAsgs = originalCluster.maxRemainingAsgs;
       app.region = originalCluster.region;
+      app.rollback = originalCluster.rollback;
       app.strategy = originalCluster.strategy;
       app.startApplication = originalCluster.startApplication;
       if (originalCluster.stack) {
