@@ -30,12 +30,16 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import groovy.util.logging.Slf4j
 
+import com.netflix.spectator.api.Registry
+import groovy.util.logging.Slf4j
 import java.nio.file.Path
 import java.nio.file.Paths
+
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack
+import java.util.concurrent.TimeUnit
+
 
 class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
@@ -43,6 +47,9 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  Registry registry
 
   @Autowired
   AppengineJobExecutor jobExecutor
@@ -107,25 +114,65 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     }
 
     def directoryPath = getFullDirectoryPath(baseDir, directoryId)
+    def serviceAccount = description.credentials.serviceAccountEmail
+    def region = description.credentials.region
 
     /*
     * We can't allow concurrent deploy operations on the same local repository.
     * If operation A checks out a new branch before operation B has run 'gcloud app deploy',
     * operation B will deploy using that new branch's source files.
-    * */
+    *
+    * This means if one were to deploy to multiple regions, that the deployments
+    * will be serialized. If this is a problem, the mutex could be removed in
+    * favor of using temporary directories encapsulated to the request. However
+    * this means that the downloads would not be incremental without more work.
+    */
+    registry.counter(registry.createId("appengine.deployStart",
+                                       "account", serviceAccount,
+                                       "region", region))
+            .increment()
     return AppengineMutexRepository.atomicWrapper(directoryPath, {
       task.updateStatus BASE_PHASE, "Initializing creation of version..."
-      def result = new DeploymentResult()
       String newVersionName
+      String deployPath
+
       if (containerDeployment) {
         createEmptyDirectory(directoryPath)
-        newVersionName = deploy(directoryPath)
+        deployPath = directoryPath
       } else {
-        newVersionName = deploy(cloneOrUpdateLocalRepository(directoryPath, 1))
+        def startTime = registry.clock().monotonicTime()
+        def success = "false"
+        try {
+          deployPath = cloneOrUpdateLocalRepository(directoryPath, 1)
+          success = "true"
+        } finally {
+          def duration = registry.clock().monotonicTime() - startTime
+          registry.timer(
+              registry.createId("appengine.repositoryDownload",
+                                "account", serviceAccount,
+                                "repositoryType", usesGcs ? "gcs" : "git",
+                                "success", success))
+              .record(duration, TimeUnit.NANOSECONDS);
+        }
       }
-      def region = description.credentials.region
+      def startTime = registry.clock().monotonicTime()
+      def success = "false"
+      try {
+          newVersionName = deploy(deployPath)
+          success = "true"
+      } finally {
+          def duration = registry.clock().monotonicTime() - startTime
+          registry.timer(registry.createId("appengine.deploy",
+                                           "success", success,
+                                           "account", serviceAccount,
+                                           "region", region))
+              .record(duration, TimeUnit.NANOSECONDS);
+      }
+
+      def result = new DeploymentResult()
       result.serverGroupNames = Arrays.asList("$region:$newVersionName".toString())
       result.serverGroupNameByRegion[region] = newVersionName
+      success = "true"
       return result
     })
   }
@@ -155,8 +202,11 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
 
       def applicationDirectoryRoot = description.applicationDirectoryRoot
       String credentialPath = ""
-      if (description.storageAccountName != null && !description.storageAccountName.isEmpty()) {
+      String storageAccountName = description.storageAccountName
+      if (storageAccountName != null && !storageAccountName.isEmpty()) {
         credentialPath = storageConfiguration.getAccount(description.storageAccountName).jsonPath
+      } else {
+        storageAccountName = "ApplicationDefaultCredentials";
       }
       GcsStorageService storage = storageServiceFactory.newForCredentials(credentialPath)
       repositoryClient = new AppengineGcsRepositoryClient(repositoryUrl, directoryPath, applicationDirectoryRoot,
@@ -222,11 +272,20 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     }
 
     task.updateStatus BASE_PHASE, "Deploying version $versionName..."
+    def startTime = registry.clock().monotonicTime()
+    def success = "false"
     try {
       jobExecutor.runCommand(deployCommand)
+      success = "true"
     } catch (e) {
       throw new AppengineOperationException("Failed to deploy to App Engine with command ${deployCommand.join(' ')}: ${e.getMessage()}")
     } finally {
+      def duration = registry.clock().monotonicTime() - startTime
+      def id = registry.createId("appengine.deploy",
+                                 "account", description.credentials.serviceAccountEmail,
+                                 "region", description.credentials.region,
+                                 "success", success)
+      registry.timer(id).record(duration, TimeUnit.NANOSECONDS);
       deleteFiles(writtenFullConfigFilePaths)
     }
     task.updateStatus BASE_PHASE, "Done deploying version $versionName..."
