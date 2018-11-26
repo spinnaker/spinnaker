@@ -24,7 +24,7 @@ var canaryFeatureDisabled = process.env.CANARY_FEATURE_ENABLED !== 'true';
 var useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
 var artifactsEnabled = process.env.ARTIFACTS_ENABLED === 'true';
 var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
-var triggerViaEcho = process.env.TRIGGER_VIA_ECHO === 'true';
+var triggerViaEcho = process.env.TRIGGER_VIA_ECHO !== 'false';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
