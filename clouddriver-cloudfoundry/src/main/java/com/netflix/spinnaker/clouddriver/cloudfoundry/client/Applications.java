@@ -157,9 +157,9 @@ public class Applications {
         .map(packages ->
           packages.getResources().stream().findFirst()
             .map(pkg -> CloudFoundryPackage.builder()
-              .downloadUrl(pkg.getLinks().get("download").getHref())
-              .checksumType(pkg.getData().getChecksum().getType())
-              .checksum(pkg.getData().getChecksum().getValue())
+              .downloadUrl(pkg.getLinks().containsKey("download") ? pkg.getLinks().get("download").getHref(): null)
+              .checksumType(pkg.getData().getChecksum() == null ? null : pkg.getData().getChecksum().getType())
+              .checksum(pkg.getData().getChecksum() == null ? null : pkg.getData().getChecksum().getValue())
               .build()
             )
             .orElse(null)
