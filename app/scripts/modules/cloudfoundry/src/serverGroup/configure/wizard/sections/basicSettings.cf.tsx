@@ -5,7 +5,6 @@ import { Field, FormikErrors } from 'formik';
 import {
   AccountSelectField,
   AccountService,
-  DeploymentStrategySelector,
   IAccount,
   IRegion,
   IWizardPageProps,
@@ -16,6 +15,7 @@ import {
 } from '@spinnaker/core';
 
 import { ICloudFoundryCreateServerGroupCommand } from '../../serverGroupConfigurationModel.cf';
+import { CloudFoundryDeploymentStrategySelector } from 'cloudfoundry/deploymentStrategy/DeploymentStrategySelector';
 
 export type ICloudFoundryServerGroupBasicSettingsProps = IWizardPageProps<ICloudFoundryCreateServerGroupCommand>;
 
@@ -122,7 +122,7 @@ class BasicSettingsImpl extends React.Component<
           </div>
         </div>
         {(values.viewState.mode === 'editPipeline' || values.viewState.mode === 'createPipeline') && (
-          <DeploymentStrategySelector
+          <CloudFoundryDeploymentStrategySelector
             onFieldChange={this.onStrategyFieldChange}
             onStrategyChange={this.strategyChanged}
             command={values}

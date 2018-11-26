@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry } from '@spinnaker/core';
 
 import { CLOUD_FOUNDRY_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
 import { CLOUD_FOUNDRY_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
@@ -84,5 +84,3 @@ module(CLOUD_FOUNDRY_MODULE, [
     },
   });
 });
-
-DeploymentStrategyRegistry.registerProvider('cloudfoundry', ['redblack']);
