@@ -21,18 +21,25 @@ import lombok.Getter;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
 
 @Getter
 public class CloudFoundryApiException extends RuntimeException {
+  private static final String UNKNOWN_ERROR = "Unknown Error";
+
   @Nullable
   private ErrorDescription.Code errorCode;
 
   public CloudFoundryApiException(ErrorDescription errorCause) {
-    super(getMessage(errorCause.getErrors().toArray(new String[0])));
-    this.errorCode = errorCause.getCode();
+    super(Optional.ofNullable(errorCause)
+      .map(e -> getMessage(e.getErrors().toArray(new String[0])))
+      .orElse(UNKNOWN_ERROR));
+    if (errorCause != null) {
+      this.errorCode = errorCause.getCode();
+    }
   }
 
   public CloudFoundryApiException(Throwable t, String... errors) {
