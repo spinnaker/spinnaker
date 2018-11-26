@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.4.1",
-    "@spinnaker/kayenta": "0.0.63",
+    "@spinnaker/kayenta": "0.0.64",
     "@spinnaker/styleguide": "^1.0.10",
     "@types/memoize-one": "^3.1.1",
     "@types/react-tether": "^0.5.3",
