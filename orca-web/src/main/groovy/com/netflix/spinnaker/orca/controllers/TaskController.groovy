@@ -178,23 +178,66 @@ class TaskController {
     }
   }
 
+/**
+ * Retrieves an ad-hoc collection of executions based on a number of user-supplied parameters. Either executionIds or
+ * pipelineConfigIds must be supplied in order to return any results. If both are supplied, an IllegalArgumentException
+ * will be thrown.
+ * @param pipelineConfigIds A comma-separated list of pipeline config ids
+ * @param executionIds A comma-separated list of execution ids; if specified, limit and statuses parameters will be
+ * ignored
+ * @param limit (optional) Number of most recent executions to retrieve per pipeline config; defaults to 1, ignored if
+ * executionIds is specified
+ * @param statuses (optional) Execution statuses to filter results by; defaults to all, ignored if executionIds is
+ * specified
+ * @param expand (optional) Expands each execution object in the resulting list. If this value is missing,
+ * it is defaulted to true.
+ * @return
+ */
+  @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
-  List<Execution> listLatestPipelines(
-    @RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
+  List<Execution> listSubsetOfPipelines(
+    @RequestParam(value = "pipelineConfigIds", required = false) String pipelineConfigIds,
+    @RequestParam(value = "executionIds", required = false) String executionIds,
     @RequestParam(value = "limit", required = false) Integer limit,
-    @RequestParam(value = "statuses", required = false) String statuses) {
+    @RequestParam(value = "statuses", required = false) String statuses,
+    @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     limit = limit ?: 1
-    def executionCriteria = new ExecutionRepository.ExecutionCriteria(
+    ExecutionRepository.ExecutionCriteria executionCriteria = new ExecutionRepository.ExecutionCriteria(
       limit: limit,
       statuses: (statuses.split(",") as Collection)
     )
 
-    def ids = pipelineConfigIds.split(',')
+    if (!pipelineConfigIds && !executionIds) {
+      return []
+    }
 
-    def allPipelines = rx.Observable.merge(ids.collect {
+    if (pipelineConfigIds && executionIds) {
+      throw new IllegalArgumentException("Only pipelineConfigIds OR executionIds can be specified")
+    }
+
+    if (executionIds) {
+      List<String> ids = executionIds.split(',')
+
+      List<Execution> executions = rx.Observable.from(ids.collect {
+        executionRepository.retrieve(PIPELINE, it)
+      }).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+
+      if (!expand) {
+        unexpandPipelineExecutions(executions)
+      }
+
+      return executions
+    }
+    List<String> ids = pipelineConfigIds.split(',')
+
+    List<Execution> allPipelines = rx.Observable.merge(ids.collect {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+
+    if (!expand) {
+      unexpandPipelineExecutions(allPipelines)
+    }
 
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
   }
