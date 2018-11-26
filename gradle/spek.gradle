@@ -22,11 +22,22 @@ repositories {
 }
 
 dependencies {
-  spinnaker.group('spek')
+  testCompile spinnaker.dependency("junitPlatformRunner")
+  testCompile spinnaker.dependency("spekApi")
+  testCompile spinnaker.dependency("spekSubjectExtension")
+  testCompile spinnaker.dependency("junitJupiterApi")
+
+  testRuntime spinnaker.dependency("junitPlatformLauncher")
+  testRuntime spinnaker.dependency("junitJupiterEngine")
+  testRuntime spinnaker.dependency("junitVintageEngine")
+  testRuntime spinnaker.dependency("spekJunitPlatformEngine")
+
+  testCompile "com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0"
+  testCompile "io.strikt:strikt-core:0.16.3"
 }
 
 junitPlatform {
-  platformVersion junitVersion
+  platformVersion spinnaker.version('junit5')
   filters {
     engines {
       include "spek", "junit-vintage", "junit-jupiter"

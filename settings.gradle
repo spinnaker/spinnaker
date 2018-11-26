@@ -44,7 +44,8 @@ include 'cats:cats-core',
   'clouddriver-core-tck',
   'clouddriver-elasticsearch',
   'clouddriver-security',
-  'clouddriver-web'
+  'clouddriver-web',
+  'clouddriver-scattergather'
 include(*gradle.ext.includedCloudProviderProjects)
 
 def setBuildFile(project) {
