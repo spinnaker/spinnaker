@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.StageContext;
@@ -241,7 +242,7 @@ public class ArtifactResolver {
       }
 
       if (resolved == null) {
-        throw new IllegalStateException(format("Unmatched expected artifact %s could not be resolved.", expectedArtifact));
+        throw new InvalidRequestException(format("Unmatched expected artifact %s could not be resolved.", expectedArtifact));
       } else {
         resolvedArtifacts.add(resolved);
       }
