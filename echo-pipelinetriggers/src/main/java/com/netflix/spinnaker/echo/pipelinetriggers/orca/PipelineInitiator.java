@@ -34,9 +34,11 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 import retrofit.RetrofitError.Kind;
+import retrofit.client.Response;
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -153,8 +155,21 @@ public class PipelineInitiator {
   }
 
   private static boolean isRetryable(Throwable error) {
-    return error instanceof RetrofitError &&
-      (((RetrofitError) error).getKind() == Kind.NETWORK || ((RetrofitError) error).getKind() == Kind.HTTP);
+    if (!(error instanceof RetrofitError)) {
+      return false;
+    }
+    RetrofitError retrofitError = (RetrofitError) error;
+
+    if (retrofitError.getKind() == Kind.NETWORK) {
+      return true;
+    }
+
+    if (retrofitError.getKind() == Kind.HTTP) {
+      Response response = retrofitError.getResponse();
+      return (response != null && response.getStatus() != HttpStatus.BAD_REQUEST.value());
+    }
+
+    return false;
   }
 
   private static class RetryWithDelay implements Func1<Observable<? extends Throwable>, Observable<?>> {
@@ -173,7 +188,7 @@ public class PipelineInitiator {
     public Observable<?> call(Observable<? extends Throwable> attempts) {
       return attempts
         .flatMap((Func1<Throwable, Observable<?>>) throwable -> {
-          if (++retryCount < maxRetries) {
+          if (isRetryable(throwable) && ++retryCount < maxRetries) {
             log.error("Retrying pipeline trigger, attempt {}/{}", retryCount, maxRetries);
             return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
           }
