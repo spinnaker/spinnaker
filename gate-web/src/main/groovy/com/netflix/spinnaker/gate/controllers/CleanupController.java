@@ -31,7 +31,7 @@ public class CleanupController {
       return getJsonWithMessage(namespace, resourceId, "Resource does not exist. Please try a valid resource.");
     }
 
-    return getJsonWithMessage(namespace, resourceId, "Resource has been restored, and opted out of future deletion!");
+    return getJsonWithMessage(namespace, resourceId, "Resource has been opted out of automated deletion.");
   }
 
   @ApiOperation(value = "Get information about a marked resource.", response = Map.class)
