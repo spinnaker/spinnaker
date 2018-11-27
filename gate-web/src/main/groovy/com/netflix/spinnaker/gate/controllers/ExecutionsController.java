@@ -39,19 +39,27 @@ public class ExecutionsController {
     this.orcaServiceSelector = orcaServiceSelector;
   }
 
-  @ApiOperation(value = "Retrieve a list of the most recent pipeline executions for the provided `pipelineConfigIds` that match the provided `statuses` query parameter")
+  @ApiOperation(value = "Retrieves an ad-hoc collection of executions based on a number of user-supplied parameters. Either executionIds or pipelineConfigIds must be supplied in order to return any results. If both are supplied, an exception will be thrown.")
   @RequestMapping(value = "/executions", method = RequestMethod.GET)
-  List getLatestExecutionsByConfigIds(@RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
-                                      @RequestParam(value = "limit", required = false) Integer limit,
-                                      @RequestParam(value = "statuses", required = false) String statuses) {
-    if (pipelineConfigIds == null || pipelineConfigIds.trim().isEmpty()) {
+  List getLatestExecutionsByConfigIds(
+    @ApiParam(value = "A comma-separated list of pipeline configuration IDs to retrieve recent executions for. Either this OR pipelineConfigIds must be supplied, but not both.")
+    @RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
+    @ApiParam(value = "A comma-separated list of executions to retrieve. Either this OR pipelineConfigIds must be supplied, but not both.")
+    @RequestParam(value = "executionIds") String executionIds,
+    @ApiParam(value = "The number of executions to return per pipeline configuration. Ignored if executionIds parameter is supplied. If this value is missing, it is defaulted to 1.")
+    @RequestParam(value = "limit", required = false) Integer limit,
+    @ApiParam(value = "A comma-separated list of execution statuses to filter by. Ignored if executionIds parameter is supplied. If this value is missing, it is defaulted to all statuses.")
+    @RequestParam(value = "statuses", required = false) String statuses,
+    @ApiParam(value = "Expands each execution object in the resulting list. If this value is missing, it is defaulted to true.")
+    @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
+    if ((executionIds == null || executionIds.trim().isEmpty()) && (pipelineConfigIds == null || pipelineConfigIds.trim().isEmpty())) {
       return Collections.emptyList();
     }
 
-    return orcaServiceSelector.withContext(RequestContext.get()).getLatestExecutionsByConfigIds(pipelineConfigIds, limit, statuses);
+    return orcaServiceSelector.withContext(RequestContext.get()).getSubsetOfExecutions(pipelineConfigIds, executionIds, limit, statuses, expand);
   }
 
-  @ApiOperation(value = "Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that nwewer executions are first in the list.")
+  @ApiOperation(value = "Search for pipeline executions using a combination of criteria. The returned list is sorted by buildTime (trigger time) in reverse order so that newer executions are first in the list.")
   @RequestMapping(value = "/applications/{application}/executions/search", method = RequestMethod.GET)
   List searchForPipelineExecutionsByTrigger(
     @ApiParam(value = "Only includes executions that are part of this application. If this value is \"*\", results will include executions of all applications.", required = true)

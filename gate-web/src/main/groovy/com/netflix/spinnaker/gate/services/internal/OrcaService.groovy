@@ -63,7 +63,7 @@ interface OrcaService {
 
   @Headers("Accept: application/json")
   @GET("/pipelines")
-  List getLatestExecutionsByConfigIds(@Query("pipelineConfigIds") String pipelineConfigIds, @Query("limit") Integer limit, @Query("statuses") String statuses)
+  List getSubsetOfExecutions(@Query("pipelineConfigIds") String pipelineConfigIds, @Query("executionIds") String executionIds, @Query("limit") Integer limit, @Query("statuses") String statuses, @Query("expand") boolean expand)
 
   @Headers("Accept: application/json")
   @GET("/applications/{application}/pipelines/search")
