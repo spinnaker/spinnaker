@@ -1,5 +1,7 @@
 'use strict';
 
+import { SPINNAKER_CORE_NOTIFICATION_TYPES_GITHUB_STATUS } from './types/githubstatus/githubstatus.notification.type.module';
+
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.notifications', [
@@ -15,4 +17,5 @@ module.exports = angular.module('spinnaker.core.notifications', [
   require('./types/hipchat/hipchat.notification.type.module').name,
   require('./types/slack/slack.notification.type.module').name,
   require('./types/sms/sms.notification.type.module').name,
+  SPINNAKER_CORE_NOTIFICATION_TYPES_GITHUB_STATUS,
 ]);
