@@ -75,6 +75,18 @@ export class CloudFoundryInfoDetailsSection extends React.Component<ICloudFoundr
             <dd>{serverGroup.memory}</dd>
           </dl>
         </CollapsibleSection>
+        <CollapsibleSection heading="Health Check" defaultExpanded={true}>
+          <dl className="dl-horizontal dl-flex">
+            <dt>Type</dt>
+            <dd>{serverGroup.healthCheckType}</dd>
+            {serverGroup.healthCheckType === 'http' && (
+              <div>
+                <dt>Endpoint</dt>
+                <dd>{serverGroup.healthCheckHttpEndpoint}</dd>
+              </div>
+            )}
+          </dl>
+        </CollapsibleSection>
         {serverGroup.droplet &&
           serverGroup.droplet.sourcePackage && (
             <CollapsibleSection heading="Package" defaultExpanded={true}>

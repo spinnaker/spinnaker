@@ -59,7 +59,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
           instances: 1,
           buildpack: undefined,
           healthCheckType: 'port',
-          healthCheckEndpoint: undefined,
+          healthCheckHttpEndpoint: undefined,
           routes: [],
           environment: [],
           services: [],
@@ -161,7 +161,7 @@ class ConfigurationSettingsImpl extends React.Component<ICloudFoundryServerGroup
             <div className="form-group">
               <div className="col-md-3 sm-label-right">Health Check Endpoint</div>
               <div className="col-md-7">
-                <Field type="text" name="manifest.healthCheckEndpoint" />
+                <Field type="text" name="manifest.healthCheckHttpEndpoint" />
               </div>
             </div>
           )}
