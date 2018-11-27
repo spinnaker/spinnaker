@@ -68,7 +68,7 @@ class CreateBakeTask implements RetryableTask {
   @Value('${bakery.allowMissingPackageInstallation:false}')
   boolean allowMissingPackageInstallation
 
-  RetrySupport retrySupport
+  RetrySupport retrySupport = new RetrySupport()
 
   private final Logger log = LoggerFactory.getLogger(getClass())
 
