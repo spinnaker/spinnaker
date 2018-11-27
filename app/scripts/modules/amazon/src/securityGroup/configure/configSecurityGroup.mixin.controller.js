@@ -107,6 +107,9 @@ module.exports = angular
     }
 
     ctrl.accountUpdated = function() {
+      const securityGroup = $scope.securityGroup;
+      // sigh.
+      securityGroup.account = securityGroup.accountId = securityGroup.accountName = securityGroup.credentials;
       AccountService.getRegionsForAccount(getAccount()).then(regions => {
         $scope.regions = regions.map(region => region.name);
         clearSecurityGroups();
@@ -171,8 +174,10 @@ module.exports = angular
 
       // When cloning a security group, if a user chooses a different account to clone to, but wants to retain the same VPC in this new account, it was not possible.
       // We matched the vpc ids from one account to another but they are never the same. In order to ensure that users still retain their VPC choice, irrespective of the account, we switched to using vpc names instead of vpc ids
-      const match = (available || []).find(vpc => vpc.label === $scope.securityGroup.vpcName);
-      $scope.securityGroup.vpcId = match ? match.ids[0] : null;
+      const selectedVpc = $scope.allVpcs.find(vpc => vpc.id === $scope.securityGroup.vpcId);
+      const match = (available || []).find(vpc => selectedVpc && selectedVpc.label === vpc.label);
+      const defaultVpc = (available || []).find(vpc => AWSProviderSettings.defaults.vpc === vpc.label);
+      $scope.securityGroup.vpcId = (match && match.ids[0]) || (defaultVpc && defaultVpc.ids[0]);
       this.vpcUpdated();
     };
 
