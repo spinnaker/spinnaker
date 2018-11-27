@@ -19,8 +19,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.pubsub.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,10 +28,5 @@ public class GooglePubsub extends Pubsub<GoogleSubscription> {
   @Override
   public PubsubType pubsubType() {
     return PubsubType.GOOGLE;
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 }

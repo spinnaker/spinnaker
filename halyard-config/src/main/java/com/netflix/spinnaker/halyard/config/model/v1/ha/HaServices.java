@@ -19,15 +19,12 @@
 package com.netflix.spinnaker.halyard.config.model.v1.ha;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -38,16 +35,6 @@ public class HaServices extends Node implements Cloneable {
   @Override
   public String getNodeName() {
     return "haServices";
-  }
-
-  @Override
-  public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeReflectiveIterator(this);
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 
   public static Class<? extends HaService> translateHaServiceType(String serviceName) {

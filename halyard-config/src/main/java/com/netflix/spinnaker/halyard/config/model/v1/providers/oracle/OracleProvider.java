@@ -9,21 +9,12 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.oracle;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleBakeryDefaults;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
 public class OracleProvider extends HasImageProvider<OracleAccount, OracleBakeryDefaults> {
   @Override
   public ProviderType providerType() {
     return ProviderType.ORACLE;
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 
   @Override

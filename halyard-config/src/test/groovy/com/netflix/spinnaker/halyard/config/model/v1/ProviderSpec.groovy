@@ -90,9 +90,6 @@ class ProviderSpec extends Specification {
 
   class TestProvider extends Provider<TestAccount> {
     @Override
-    void accept(ConfigProblemSetBuilder psBuilder, Validator v) { }
-
-    @Override
     Provider.ProviderType providerType() {
       return null
     }

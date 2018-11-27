@@ -2,12 +2,9 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.openstack;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -28,11 +25,6 @@ public class OpenstackAccount extends Account {
   private String userDataFile;
   private OpenstackLbaasOptions lbaas = new OpenstackLbaasOptions();
   private List<String> regions;
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
 
   @Data
   public static class OpenstackLbaasOptions {

@@ -21,8 +21,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitlab;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class GitlabArtifactAccount extends ArtifactAccount {
   String name;
   String token;

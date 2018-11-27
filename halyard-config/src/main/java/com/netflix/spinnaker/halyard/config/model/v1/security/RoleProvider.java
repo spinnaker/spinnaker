@@ -20,8 +20,6 @@ package com.netflix.spinnaker.halyard.config.model.v1.security;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,11 +27,6 @@ import lombok.EqualsAndHashCode;
 @Data
 abstract public class RoleProvider extends Node {
   abstract public GroupMembership.RoleProviderType getRoleProviderType();
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
 
   @Override
   public NodeIterator getChildren() {

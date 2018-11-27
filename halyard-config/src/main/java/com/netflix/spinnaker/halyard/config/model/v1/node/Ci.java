@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -33,10 +32,5 @@ public abstract class Ci<T extends Master> extends Node implements Cloneable {
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeListIterator(masters.stream().map(a -> (Node) a).collect(Collectors.toList()));
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 }

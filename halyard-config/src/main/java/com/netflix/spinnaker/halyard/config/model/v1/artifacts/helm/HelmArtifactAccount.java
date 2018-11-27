@@ -21,8 +21,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.artifacts.helm;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class HelmArtifactAccount extends ArtifactAccount {
     String name;
     String repository;

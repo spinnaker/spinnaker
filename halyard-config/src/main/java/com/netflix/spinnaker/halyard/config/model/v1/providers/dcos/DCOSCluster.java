@@ -20,11 +20,6 @@ public class DCOSCluster extends Cluster {
   LoadBalancer loadBalancer;
 
   @Override
-  public void accept(final ConfigProblemSetBuilder psBuilder, final Validator v) {
-    v.validate(psBuilder, this);
-  }
-
-  @Override
   public String getNodeName() {
     return name;
   }

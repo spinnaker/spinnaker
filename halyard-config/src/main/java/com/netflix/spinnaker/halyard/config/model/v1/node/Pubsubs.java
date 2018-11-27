@@ -19,7 +19,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.pubsub.google.GooglePubsub;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -38,11 +37,6 @@ public class Pubsubs extends Node implements Cloneable {
     return "pubsub";
   }
 
-  @Override
-  public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeReflectiveIterator(this);
-  }
-
   public Boolean getEnabled() {
     NodeIterator pubsubNodes = getChildren();
     Pubsub pubsub;
@@ -55,11 +49,6 @@ public class Pubsubs extends Node implements Cloneable {
 
   public void setEnabled() {
     enabled = getEnabled();
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 
   public static Class<? extends Pubsub> translatePubsubType(String pubsubName) {

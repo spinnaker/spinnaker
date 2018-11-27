@@ -30,7 +30,4 @@ public class X509 extends AuthnMethod {
 
   private String roleOid;
   private String subjectPrincipalRegex;
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v ) { v.validate(psBuilder, this); }
 }

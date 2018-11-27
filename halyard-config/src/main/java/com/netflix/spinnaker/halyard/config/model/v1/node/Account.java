@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -33,11 +32,6 @@ public abstract class Account extends Node implements Cloneable {
   List<String> requiredGroupMembership = new ArrayList<>();
   Provider.ProviderVersion providerVersion = Provider.ProviderVersion.V1;
   Permissions.Builder permissions = new Permissions.Builder();
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
 
   @Override
   public String getNodeName() {

@@ -16,12 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.ADDED;
-import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.EDITED;
-import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.REMOVED;
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -40,15 +34,14 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
+
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.*;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * The "Node" class represents a YAML node in our config hierarchy that can be validated.
@@ -63,9 +56,6 @@ abstract public class Node implements Validatable {
   public abstract String getNodeName();
 
   @JsonIgnore
-  public abstract NodeIterator getChildren();
-
-  @JsonIgnore
   public String getNameToRoot() {
     return getNameToClass(Halconfig.class);
   }
@@ -78,6 +68,16 @@ abstract public class Node implements Validatable {
     } else {
       return parent.getNameToRoot() + "." + name;
     }
+  }
+
+  @Override
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
+  }
+
+  @JsonIgnore
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
   /**

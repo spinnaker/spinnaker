@@ -10,23 +10,15 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.oracle;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
-import java.util.List;
 
 
 @Data
 @ToString
 @EqualsAndHashCode(callSuper = true)
 public class OracleBaseImage extends BaseImage<OracleBaseImage.OracleImageSettings, OracleBaseImage.OracleVirtualizationSettings> {
-    @Override
-    public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-        v.validate(psBuilder, this);
-    }
 
     private OracleImageSettings baseImage;
     private OracleVirtualizationSettings virtualizationSettings;

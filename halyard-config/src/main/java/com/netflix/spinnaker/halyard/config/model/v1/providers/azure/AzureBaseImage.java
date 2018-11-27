@@ -17,18 +17,12 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.azure;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class AzureBaseImage extends BaseImage<AzureBaseImage.AzureOperatingSystemSettings, AzureBaseImage.AzureVirtualizationSettings> {
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
 
   private AzureOperatingSystemSettings baseImage;
   private AzureVirtualizationSettings virtualizationSettings;

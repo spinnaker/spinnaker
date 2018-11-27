@@ -17,19 +17,12 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class KubernetesProvider extends Provider<KubernetesAccount> implements Cloneable {
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
-
   @Override
   public ProviderType providerType() {
     return ProviderType.KUBERNETES;

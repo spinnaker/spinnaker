@@ -18,8 +18,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.artifacts.s3;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class S3ArtifactAccount extends ArtifactAccount {
     public String name;
     public String apiEndpoint;

@@ -17,18 +17,11 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.ci.wercker;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
 public class WerckerCi extends Ci<WerckerMaster> {
   @Override
   public String getNodeName() {
     return "wercker";
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 }

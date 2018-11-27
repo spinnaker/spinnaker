@@ -17,17 +17,10 @@
 package com.netflix.spinnaker.halyard.config.model.v1.ci.travis;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
 public class TravisCi extends Ci<TravisMaster> {
   @Override
   public String getNodeName() {
     return "travis";
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 }

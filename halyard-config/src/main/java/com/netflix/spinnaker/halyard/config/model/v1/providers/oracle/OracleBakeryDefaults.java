@@ -10,20 +10,12 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.oracle;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
-import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class OracleBakeryDefaults extends BakeryDefaults<OracleBaseImage> {
-    @Override
-    public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-        v.validate(psBuilder, this);
-    }
-
     private String availabilityDomain;
     private String subnetId;
     private String instanceShape;

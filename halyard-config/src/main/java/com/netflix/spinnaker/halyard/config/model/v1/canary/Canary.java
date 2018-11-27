@@ -30,8 +30,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCan
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -57,11 +55,6 @@ public class Canary extends Node implements Cloneable {
   String atlasWebComponentsUrl;
   boolean templatesEnabled = true;
   boolean showAllConfigsEnabled = true;
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
 
   @Override
   public String getNodeName() {

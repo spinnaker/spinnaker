@@ -17,17 +17,10 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
 public class DockerRegistryProvider extends Provider<DockerRegistryAccount> {
   @Override
   public ProviderType providerType() {
     return ProviderType.DOCKERREGISTRY;
-  }
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
   }
 }

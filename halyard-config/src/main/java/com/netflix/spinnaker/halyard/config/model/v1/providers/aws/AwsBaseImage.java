@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.aws;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -28,11 +26,6 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AwsBaseImage extends BaseImage<AwsBaseImage.AwsImageSettings, List<AwsBaseImage.AwsVirtualizationSettings>> {
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
-
   private AwsImageSettings baseImage;
   private List<AwsVirtualizationSettings> virtualizationSettings;
 

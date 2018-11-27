@@ -19,7 +19,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -33,11 +32,6 @@ public abstract class Notification extends Node implements Cloneable {
   public abstract NotificationType getNotificationType();
 
   String nodeName = getNotificationType().toString();
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
 
   @Override
   public NodeIterator getChildren() {

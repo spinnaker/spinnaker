@@ -12,8 +12,6 @@ package com.netflix.spinnaker.halyard.config.model.v1.persistentStorage;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -61,11 +59,6 @@ public class OraclePersistentStore extends PersistentStore {
     return PersistentStoreType.ORACLE;
   }
 
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
-  
   public static OraclePersistentStore mergeOracleBMCSPersistentStore(OraclePersistentStore oracle, OracleBMCSPersistentStore bmcs) {
     if (oracle.getTenancyId() == null && bmcs.getTenancyId() != null) {
       return convertFromOracleBMCSPersistentStore(bmcs);

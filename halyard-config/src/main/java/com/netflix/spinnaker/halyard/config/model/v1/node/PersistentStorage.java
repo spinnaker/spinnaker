@@ -3,7 +3,6 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.*;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,11 +23,6 @@ public class PersistentStorage extends Node {
   @JsonProperty(access = Access.WRITE_ONLY)
   OracleBMCSPersistentStore oraclebmcs = new OracleBMCSPersistentStore();
   OraclePersistentStore oracle = new OraclePersistentStore();
-
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
 
   @Override
   public String getNodeName() {

@@ -37,27 +37,12 @@ class NodeSpec extends Specification {
     @LocalFile String file2 = "/d/e/f/"
 
     @Override
-    void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-
-    }
-
-    @Override
     String getNodeName() {
       return "test"
-    }
-
-    @Override
-    NodeIterator getChildren() {
-      return NodeIteratorFactory.makeReflectiveIterator(this)
     }
   }
 
   class ChildTestNode extends Node {
-    @Override
-    void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-
-    }
-
     String name
     List<Node> childNodes = new ArrayList<>()
     String field = "A"
