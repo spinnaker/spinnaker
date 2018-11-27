@@ -74,6 +74,14 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
   Integer diskQuota;
 
   @JsonView(Views.Cache.class)
+  @Nullable
+  private String healthCheckType;
+
+  @JsonView(Views.Cache.class)
+  @Nullable
+  private String healthCheckHttpEndpoint;
+
+  @JsonView(Views.Cache.class)
   State state;
 
   @JsonView(Views.Cache.class)

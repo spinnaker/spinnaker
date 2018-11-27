@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
-import lombok.Data;
+import lombok.*;
+
+import javax.annotation.Nullable;
 
 @Data
 public class Process {
@@ -24,4 +26,23 @@ public class Process {
   private int instances;
   private int memoryInMb;
   private int diskInMb;
+
+  @Nullable
+  private HealthCheck healthCheck;
+
+  @Data
+  public static class HealthCheck {
+    @Nullable
+    private String type;
+
+    @Nullable
+    private HealthCheckData data;
+  }
+
+  @Data
+  public static class HealthCheckData {
+
+    @Nullable
+    private String endpoint;
+  }
 }

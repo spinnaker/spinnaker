@@ -120,10 +120,8 @@ public class Applications {
                   healthState = HealthState.Up;
                   break;
                 case DOWN:
-                  healthState = HealthState.Down;
-                  break;
                 case CRASHED:
-                  healthState = HealthState.OutOfService;
+                  healthState = HealthState.Down;
                   break;
                 case STARTING:
                   healthState = HealthState.Starting;
@@ -208,6 +206,16 @@ public class Applications {
 
     Map<String, String> environmentVars = applicationEnv == null || applicationEnv.getEnvironmentJson() == null ? emptyMap() : applicationEnv.getEnvironmentJson();
 
+    String healthCheckType = null;
+    String healthCheckHttpEndpoint = null;
+    if (process != null && process.getHealthCheck() != null) {
+      final Process.HealthCheck healthCheck = process.getHealthCheck();
+      healthCheckType = healthCheck.getType();
+      if (healthCheck.getData() != null) {
+        healthCheckHttpEndpoint = healthCheck.getData().getEndpoint();
+      }
+    }
+
     return CloudFoundryServerGroup.builder()
       .account(account)
       .appsManagerUri(appsManagerUri)
@@ -217,6 +225,8 @@ public class Applications {
       .instances(emptySet())
       .droplet(droplet)
       .diskQuota(process != null ? process.getDiskInMb() : null)
+      .healthCheckType(healthCheckType)
+      .healthCheckHttpEndpoint(healthCheckHttpEndpoint)
       .space(space)
       .createdTime(application.getCreatedAt().toInstant().toEpochMilli())
       .serviceInstances(cloudFoundryServices)
@@ -270,10 +280,11 @@ public class Applications {
   }
 
   public void updateProcess(String guid, @Nullable String command, @Nullable String healthCheckType, @Nullable String healthCheckEndpoint) throws CloudFoundryApiException {
-    final UpdateProcess.HealthCheck healthCheck = healthCheckType == null && healthCheckEndpoint == null ? null :
-      new UpdateProcess.HealthCheck(healthCheckType, healthCheckEndpoint == null ? null :
-        new UpdateProcess.HealthCheckData(null, null, healthCheckEndpoint)
-      );
+    final Process.HealthCheck healthCheck = healthCheckType != null ?
+      new Process.HealthCheck().setType(healthCheckType) : null;
+    if (healthCheckEndpoint != null) {
+      healthCheck.setData(new Process.HealthCheckData().setEndpoint(healthCheckEndpoint));
+    }
     safelyCall(() -> api.updateProcess(guid, new UpdateProcess(command, healthCheck)));
   }
 

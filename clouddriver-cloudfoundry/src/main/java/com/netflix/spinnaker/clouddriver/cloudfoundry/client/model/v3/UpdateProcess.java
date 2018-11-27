@@ -36,28 +36,5 @@ public class UpdateProcess {
   private final String command;
 
   @Nullable
-  private final HealthCheck healthCheck;
-
-  @Data
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  public static class HealthCheck {
-    @Nullable
-    private final String type;
-
-    @Nullable
-    private final HealthCheckData data;
-  }
-
-  @Data
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  public static class HealthCheckData {
-    @Nullable
-    private final Integer timeout;
-
-    @Nullable
-    private final Integer invocationTimeout;
-
-    @Nullable
-    private final String endpoint;
-  }
+  private final Process.HealthCheck healthCheck;
 }

@@ -134,14 +134,14 @@ class ApplicationsTest {
 
     apps.updateProcess("guid1", "command1", "http", "/endpoint");
     verify(applicationService).updateProcess("guid1", new UpdateProcess("command1",
-      new UpdateProcess.HealthCheck("http",
-        new UpdateProcess.HealthCheckData(null, null, "/endpoint")
+      new Process.HealthCheck().setType("http").setData(
+        new Process.HealthCheckData().setEndpoint("/endpoint")
       )
     ));
 
     apps.updateProcess("guid1", "command1", "http", null);
     verify(applicationService).updateProcess("guid1", new UpdateProcess("command1",
-      new UpdateProcess.HealthCheck("http", null)
+      new Process.HealthCheck().setType("http")
     ));
 
     apps.updateProcess("guid1", "command1", null, null);
