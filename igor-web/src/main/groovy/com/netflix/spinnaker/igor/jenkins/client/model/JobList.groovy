@@ -16,11 +16,28 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
-import org.simpleframework.xml.Root
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import groovy.transform.CompileStatic
+
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
- * Represents a Jenkins job upstream project
+ * Represents a list of projects
  */
-@Root(name = 'upstreamProject', strict=false)
-class UpstreamProject extends RelatedProject {
+@XmlRootElement(name = 'hudson')
+@CompileStatic
+class JobList {
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "job")
+    List<Job> list
+}
+
+class Job {
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "job")
+    List<Job> list
+
+    @XmlElement(required = false)
+    String name
 }

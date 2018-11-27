@@ -25,12 +25,14 @@ import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
+import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
@@ -176,7 +178,8 @@ class InfoControllerSpec extends Specification {
         service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host), false)
     }
 
-    void 'is able to get a job config'() {
+    @Unroll
+    void 'is able to get a job config at url #url'() {
         given:
         setResponse(getJobConfig())
 
@@ -186,7 +189,15 @@ class InfoControllerSpec extends Specification {
 
         then:
         1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': service]
-        response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[{"defaultName":"pullRequestSourceBranch","defaultValue":"master","name":"pullRequestSourceBranch","description":null,"type":"StringParameterDefinition"},{"defaultName":"generation","defaultValue":"4","name":"generation","description":null,"type":"StringParameterDefinition"}],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
+        def output = new JsonSlurper().parseText(response.contentAsString)
+        output.name == 'My-Build'
+        output.description == null
+        output.url == 'http://jenkins.builds.net/job/My-Build/'
+        output.downstreamProjectList[0].name == 'First-Downstream-Build'
+        output.firstBuild == null
+
+        where:
+        url << ['/jobs/master1/MY-JOB', '/jobs/master1/folder/job/MY-JOB']
     }
 
     void 'is able to get a job config where a parameter includes choices'() {
@@ -199,22 +210,13 @@ class InfoControllerSpec extends Specification {
 
         then:
         1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': service]
-        response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[' +
-            '{"defaultName":"someParam","defaultValue":"first","name":"someParam","description":null,"type":"ChoiceParameterDefinition","choices":["first","second"]}' +
-            '],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
-    }
-
-    void 'is able to get a job config with the folders plugin'() {
-        given:
-        setResponse(getJobConfig())
-
-        when:
-        MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/folder/job/MY-JOB')
-            .accept(MediaType.APPLICATION_JSON)).andReturn().response
-
-        then:
-        1 * buildMasters.map >> ['master2': [], 'build.buildMasters.blah': [], 'master1': service]
-        response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[{"defaultName":"pullRequestSourceBranch","defaultValue":"master","name":"pullRequestSourceBranch","description":null,"type":"StringParameterDefinition"},{"defaultName":"generation","defaultValue":"4","name":"generation","description":null,"type":"StringParameterDefinition"}],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
+        def output = new JsonSlurper().parseText(response.contentAsString)
+        output.name == 'My-Build'
+        output.parameterDefinitionList[0].defaultParameterValue == [name: 'someParam', value: 'first']
+        output.parameterDefinitionList[0].defaultName == 'someParam'
+        output.parameterDefinitionList[0].defaultValue == 'first'
+        output.parameterDefinitionList[0].choices == ['first', 'second']
+        output.parameterDefinitionList[0].type == 'ChoiceParameterDefinition'
     }
 
     private String getJobConfig() {

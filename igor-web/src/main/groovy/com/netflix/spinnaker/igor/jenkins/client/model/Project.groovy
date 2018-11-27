@@ -16,22 +16,24 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Attribute
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Root
+
+import javax.xml.bind.annotation.XmlElement
 
 /**
  * Represents a Project returned by the Jenkins service in the project list
  */
 @CompileStatic
-@Root(name = 'job', strict = false)
 class Project {
-    @ElementList(inline = true, name = "job", required = false)
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "job", required = false)
     List<Project> list
-    @Element
+
+    @XmlElement
     String name
-    @Element(required = false)
+
+    @XmlElement
     Build lastBuild
 }

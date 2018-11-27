@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.igor.jenkins.client
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
@@ -290,20 +294,20 @@ class JenkinsClientSpec extends Specification {
     private String getBuildsWithArtifactsAndTests() {
         return '<hudson>' +
                 '<job>' +
-                '<name>job1</name>' +
-                '<lastBuild>' +
-                '<action><failCount>0</failCount><skipCount>1</skipCount><totalCount>111</totalCount><urlName>testReport</urlName></action>' +
-                '<action><failCount>0</failCount><skipCount>0</skipCount><totalCount>123</totalCount><urlName>testngreports</urlName></action>' +
-                '<artifact><displayPath>libs/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/libs/myProject-1.601.0-sources.jar</relativePath></artifact>' +
-                '<artifact><displayPath>libs/myProject-1.601.0.jar</displayPath><fileName>myProject-1.601.0.jar</fileName><relativePath>build/libs/myProject-1.601.0.jar</relativePath></artifact>' +
-                '<artifact><displayPath>publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/tmp/publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</relativePath></artifact>' +
-                '<building>false</building>' +
-                '<duration>39238</duration>' +
-                '<number>1</number>' +
-                '<result>SUCCESS</result>' +
-                '<timestamp>1421717251402</timestamp>' +
-                '<url>http://my.jenkins.net/job/job1/1/</url>' +
-                '</lastBuild>' +
+                ' <name>job1</name>' +
+                ' <lastBuild>' +
+                '   <action><failCount>0</failCount><skipCount>1</skipCount><totalCount>111</totalCount><urlName>testReport</urlName></action>' +
+                '   <action><failCount>0</failCount><skipCount>0</skipCount><totalCount>123</totalCount><urlName>testngreports</urlName></action>' +
+                '   <artifact><displayPath>libs/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/libs/myProject-1.601.0-sources.jar</relativePath></artifact>' +
+                '   <artifact><displayPath>libs/myProject-1.601.0.jar</displayPath><fileName>myProject-1.601.0.jar</fileName><relativePath>build/libs/myProject-1.601.0.jar</relativePath></artifact>' +
+                '   <artifact><displayPath>publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</displayPath><fileName>myProject-1.601.0-sources.jar</fileName><relativePath>build/tmp/publishMavenNebulaPublicationToDistMavenRepository/org/myProject/myProject/1.601.0/myProject-1.601.0-sources.jar</relativePath></artifact>' +
+                '   <building>false</building>' +
+                '   <duration>39238</duration>' +
+                '   <number>1</number>' +
+                '   <result>SUCCESS</result>' +
+                '   <timestamp>1421717251402</timestamp>' +
+                '   <url>http://my.jenkins.net/job/job1/1/</url>' +
+                ' </lastBuild>' +
                 '</job>' +
                 '<job>' +
                 '<name>job2</name>' +

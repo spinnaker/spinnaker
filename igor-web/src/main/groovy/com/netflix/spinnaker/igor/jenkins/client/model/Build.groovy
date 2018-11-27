@@ -17,46 +17,48 @@
 package com.netflix.spinnaker.igor.jenkins.client.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.Result
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Default
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Root
+
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents a build in Jenkins
  */
-@Default
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Root(strict = false)
+@XmlRootElement
 class Build {
     boolean building
     Integer number
-    @Element(required = false)
+    @XmlElement(required = false)
     String result
     String timestamp
-    @Element(required = false)
+    @XmlElement(required = false)
     Long duration
-    @Element(required = false)
+    @XmlElement(required = false)
     Integer estimatedDuration
-    @Element(required = false)
+    @XmlElement(required = false)
     String id
     String url
-    @Element(required = false)
+    @XmlElement(required = false)
     String builtOn
-    @Element(required = false)
+    @XmlElement(required = false)
     String fullDisplayName
 
-    @ElementList(required = false, name = "artifact", inline = true)
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "artifact", required = false)
     List<BuildArtifact> artifacts
+
     /*
     We need to dump this into a list first since the Jenkins query returns
     multiple action elements, with all but the test run one empty.  We then filter it into a testResults var
      */
-    @ElementList(required = false, name = "action", inline = true)
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "action", required = false)
     List<TestResults> testResults
 
     GenericBuild genericBuild(String jobName) {
@@ -69,7 +71,6 @@ class Build {
         }
         return genericBuild
     }
-
 }
 
 

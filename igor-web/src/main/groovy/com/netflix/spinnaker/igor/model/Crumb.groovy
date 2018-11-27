@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.igor.model
 
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.Root
+
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents a Jenkins CSRF Crumb.
  */
-@Root(strict=false)
+@XmlRootElement
 class Crumb {
-    @Element
+    @XmlElement
     String crumbRequestField
 
-    @Element
+    @XmlElement
     String crumb
 }

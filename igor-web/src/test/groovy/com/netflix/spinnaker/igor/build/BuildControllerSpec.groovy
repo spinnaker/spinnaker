@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.build
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.build.model.GenericBuild
+import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
@@ -111,7 +112,7 @@ class BuildControllerSpec extends Specification {
 
     void 'get an item from the queue'() {
         given:
-        1 * jenkinsService.getQueuedItem(QUEUED_JOB_NUMBER) >> new QueuedJob(number: QUEUED_JOB_NUMBER)
+        1 * jenkinsService.getQueuedItem(QUEUED_JOB_NUMBER) >> new QueuedJob(executable: [number: QUEUED_JOB_NUMBER])
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get("/builds/queue/${MASTER}/${QUEUED_JOB_NUMBER}")
@@ -120,7 +121,18 @@ class BuildControllerSpec extends Specification {
         then:
         1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
         1 * buildMasters.map >> [MASTER: jenkinsService]
-        response.contentAsString == "{\"number\":${QUEUED_JOB_NUMBER}}"
+        response.contentAsString == "{\"executable\":{\"number\":${QUEUED_JOB_NUMBER}},\"number\":${QUEUED_JOB_NUMBER}}"
+    }
+
+    void 'deserialize a queue response'() {
+        given:
+        def objectMapper = JenkinsConfig.getObjectMapper()
+
+        when:
+        def queuedJob = objectMapper.readValue("<hudson><executable><number>${QUEUED_JOB_NUMBER}</number></executable></hudson>", QueuedJob.class)
+
+        then:
+        queuedJob.number == QUEUED_JOB_NUMBER
     }
 
     void 'get a list of builds for a job'() {
@@ -187,7 +199,7 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build with parameters to a job with parameters'() {
         given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultParameterValue: [name: "name", value: null], description: "description")])
         1 * jenkinsService.buildWithParameters(JOB_NAME,[name:"myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
         when:
@@ -202,7 +214,7 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build without parameters to a job with parameters with default values'() {
         given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultParameterValue: [name: "name", value: "value"], description: "description")])
         1 * jenkinsService.buildWithParameters(JOB_NAME, ['startedBy': "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
 
@@ -264,7 +276,5 @@ class BuildControllerSpec extends Specification {
         1 * buildMasters.map >> [MASTER: jenkinsService]
         response.status == HttpStatus.BAD_REQUEST.value()
         response.errorMessage == "Job '${JOB_NAME}' is not buildable. It may be disabled."
-
     }
-
 }

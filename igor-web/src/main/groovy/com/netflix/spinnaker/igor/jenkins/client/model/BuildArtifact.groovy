@@ -22,17 +22,22 @@ import org.simpleframework.xml.Default
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.Root
 
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
+
 /**
  * Represents a build artifact
  */
 @CompileStatic
-@Root(name = 'artifact', strict=false)
+@XmlRootElement(name = 'artifact')
 class BuildArtifact {
-    @Element(required = false)
+    @XmlElement(required = false)
     String fileName
-    @Element(required = false)
+
+    @XmlElement(required = false)
     String displayPath
-    @Element(required = false)
+
+    @XmlElement(required = false)
     String relativePath
 
     GenericArtifact getGenericArtifact() {

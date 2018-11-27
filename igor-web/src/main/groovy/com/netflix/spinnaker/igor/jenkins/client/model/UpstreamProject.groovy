@@ -16,18 +16,8 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
-import groovy.transform.CompileStatic
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Root
-
 /**
- * Represents a list of builds
+ * Represents a Jenkins job upstream project
  */
-@Root(strict=false)
-@CompileStatic
-class BuildsList {
-
-    @ElementList(inline = true, name = "build")
-    List<Build> list
-
+class UpstreamProject extends RelatedProject {
 }

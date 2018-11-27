@@ -16,23 +16,20 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Default
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Root
+
+import javax.xml.bind.annotation.XmlElement
 
 /**
  * Represents git details
  */
-@Default
 @CompileStatic
-@Root(strict = false)
 class ScmDetails {
-    @ElementList(inline = true, required = false, name = "action")
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "action")
     ArrayList<Action> actions
-
 
     List<GenericGitRevision> genericGitRevisions() {
         List<GenericGitRevision> genericGitRevisions = new ArrayList<GenericGitRevision>()
@@ -53,26 +50,24 @@ class ScmDetails {
     }
 }
 
-@Root(strict = false)
 class Action {
-    @Element(required = false)
+    @XmlElement(required = false)
     LastBuiltRevision lastBuiltRevision
 
-    @Element(required = false)
+    @XmlElement(required = false)
     String remoteUrl
 }
 
-@Root(strict = false)
 class LastBuiltRevision {
-    @ElementList(inline = true, name = "branch")
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "branch")
     List<Branch> branch
 }
 
-@Root(strict = false)
 class Branch {
-    @Element(required = false)
+    @XmlElement(required = false)
     String name
 
-    @Element(required = false, name = "SHA1")
+    @XmlElement(required = false, name = "SHA1")
     String sha1
 }

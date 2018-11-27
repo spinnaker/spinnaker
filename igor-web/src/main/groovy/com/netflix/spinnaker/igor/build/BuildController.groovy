@@ -236,7 +236,8 @@ class BuildController {
                 String path = getArtifactPathFromBuild(jenkinsService, job, buildNumber, fileName)
 
                 if (path == null) {
-                    log.error("Unable to get igorProperties: Could not find build artifact matching requested filename '{}' on '{}' build '{}", kv("fileName", fileName), kv("master", master), kv("buildNumber", buildNumber))
+                    log.error("Unable to get igorProperties: Could not find build artifact matching requested filename '{}' on '{}' build '{}",
+                            kv("fileName", fileName), kv("master", master), kv("buildNumber", buildNumber))
                     return map
                 }
 

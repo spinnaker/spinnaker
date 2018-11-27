@@ -16,28 +16,19 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Root
+
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
- * Represents a list of projects
+ * Represents a list of builds
  */
-@Root(name = 'hudson', strict=false)
+@XmlRootElement
 @CompileStatic
-class JobList {
-
-    @ElementList(inline = true, name = "job")
-    List<Job> list
-
-}
-
-@Root(strict=false)
-class Job {
-    @ElementList(inline = true, name = "job", required=false)
-    List<Job> list
-
-    @Element(required = false)
-    String name
+class BuildsList {
+    @JacksonXmlElementWrapper(useWrapping=false)
+    @XmlElement(name = 'build')
+    List<Build> list
 }

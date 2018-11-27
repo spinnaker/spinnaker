@@ -33,6 +33,7 @@ dependencies {
 
     compile 'org.yaml:snakeyaml:1.15'
     compile 'com.squareup.retrofit:converter-simplexml:1.9.0'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.6'
     compile 'com.google.code.gson:gson:2.8.2'
     testCompile 'com.squareup.okhttp:mockwebserver:2.7.0'
 

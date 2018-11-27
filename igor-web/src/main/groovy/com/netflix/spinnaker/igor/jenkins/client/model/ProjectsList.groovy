@@ -16,18 +16,23 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Root
+
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents a list of projects
  */
-@Root(name = 'hudson', strict = false)
+@XmlRootElement(name = 'hudson')
 @CompileStatic
 class ProjectsList {
 
-    @ElementList(inline = true, name = "job")
+    // not sure why we need this, it seems that there shouldn't be a <job> element wrapping the list
+    // since we don't have the JAXB @XmlElementWrapper annotation, but for some reason Jackson expects one
+    @JacksonXmlElementWrapper(useWrapping=false)
+    @XmlElement(name = 'job')
     List<Project> list
-
 }

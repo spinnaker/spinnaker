@@ -16,14 +16,23 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
-import org.simpleframework.xml.Default
-import org.simpleframework.xml.Path
-import org.simpleframework.xml.Root
 
-@Default
-@Root(strict = false)
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
+
+@XmlRootElement
 class QueuedJob {
+    @XmlElement
+    QueuedExecutable executable
 
-    @Path('executable[1]')
+    @XmlElement(name = 'number')
+    Integer getNumber() {
+        return executable.number
+    }
+}
+
+
+class QueuedExecutable {
+    @XmlElement
     Integer number
 }

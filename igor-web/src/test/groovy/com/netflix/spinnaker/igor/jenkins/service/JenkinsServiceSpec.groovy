@@ -21,6 +21,7 @@ import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
+import com.netflix.spinnaker.igor.model.Crumb
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import spock.lang.Shared
@@ -29,6 +30,9 @@ import spock.lang.Unroll
 
 @SuppressWarnings(['LineLength', 'DuplicateNumberLiteral'])
 class JenkinsServiceSpec extends Specification {
+    static {
+        System.setProperty("hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds", "30000")
+    }
 
     final String JOB_UNENCODED = 'folder/job/name with spaces'
     final String JOB_ENCODED = 'folder/job/name%20with%20spaces'
@@ -139,6 +143,37 @@ class JenkinsServiceSpec extends Specification {
         'buildWithParameters' | [['key': 'value']]
         'stopRunningBuild'    | [1]
         'stopQueuedBuild'     | []
+    }
+
+    void 'we can read crumbs'() {
+        given:
+        String jenkinsCrumbResponse = '<hudson><crumb>fb171d526b9cc9e25afe80b356e12cb7</crumb><crumbRequestField>.crumb</crumbRequestField></hudson>"}'
+
+        MockWebServer server = new MockWebServer()
+        server.enqueue(
+            new MockResponse()
+                .setBody(jenkinsCrumbResponse)
+                .setHeader('Content-Type', 'text/xml;charset=UTF-8')
+        )
+        server.start()
+        client = Mock(JenkinsClient)
+
+        def host = new JenkinsProperties.JenkinsHost(
+            address: server.url('/').toString(),
+            username: 'username',
+            password: 'password')
+        client = new JenkinsConfig().jenkinsClient(host)
+        service = new JenkinsService('http://my.jenkins.net', client, true)
+
+        when:
+        Crumb crumb = service.getCrumb()
+
+        then:
+        crumb.crumb == "fb171d526b9cc9e25afe80b356e12cb7"
+        crumb.crumbRequestField == ".crumb"
+
+        cleanup:
+        server.shutdown()
     }
 
     void 'get a list of projects with the folders plugin'() {

@@ -16,15 +16,18 @@
 
 package com.netflix.spinnaker.igor.config
 
+
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.client.DefaultJenkinsOkHttpClientProvider
 import com.netflix.spinnaker.igor.config.client.DefaultJenkinsRetrofitRequestInterceptorProvider
 import com.netflix.spinnaker.igor.config.client.JenkinsOkHttpClientProvider
 import com.netflix.spinnaker.igor.config.client.JenkinsRetrofitRequestInterceptorProvider
-
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
-
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
@@ -37,16 +40,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
-import retrofit.ErrorHandler
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.RetrofitError
 import retrofit.client.OkClient
-import retrofit.converter.SimpleXMLConverter
+import retrofit.converter.JacksonConverter
 
 import javax.validation.Valid
 import java.lang.reflect.Proxy
 import java.util.concurrent.TimeUnit
+
 /**
  * Converts the list of Jenkins Configuration properties a collection of clients to access the Jenkins hosts
  */
@@ -108,16 +110,23 @@ class JenkinsConfig {
         return new JenkinsService(jenkinsHostId, jenkinsClient, csrf)
     }
 
+    static ObjectMapper getObjectMapper() {
+        return new XmlMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .registerModule(new JaxbAnnotationModule());
+    }
+
     static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host,
                                        OkHttpClient client,
                                        RequestInterceptor requestInterceptor,
                                        int timeout = 30000) {
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
+
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(host.address))
             .setRequestInterceptor(requestInterceptor)
             .setClient(new OkClient(client))
-            .setConverter(new SimpleXMLConverter())
+            .setConverter(new JacksonConverter(getObjectMapper()))
             .build()
             .create(JenkinsClient)
     }

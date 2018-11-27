@@ -16,21 +16,23 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import groovy.transform.CompileStatic
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Root
+
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
  * Captures build dependencies for a jenkins job
  */
-@Root(strict = false)
+@XmlRootElement
 @CompileStatic
 class BuildDependencies {
-
-    @ElementList(inline = true, entry = 'downstreamProject', required = false)
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "downstreamProject", required = false)
     List<BuildDependency> downstreamProjects
 
-    @ElementList(inline = true, entry = 'upstreamProject', required = false)
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "upstreamProject", required = false)
     List<BuildDependency> upstreamProjects
-
 }

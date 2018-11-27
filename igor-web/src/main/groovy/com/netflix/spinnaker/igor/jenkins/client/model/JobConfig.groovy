@@ -16,44 +16,50 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Path
-import org.simpleframework.xml.Root
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import com.netflix.spinnaker.igor.jenkins.client.model.DownstreamProject
+import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
+import com.netflix.spinnaker.igor.jenkins.client.model.UpstreamProject
+
+import javax.xml.bind.annotation.XmlElement
+import javax.xml.bind.annotation.XmlElementWrapper
+import javax.xml.bind.annotation.XmlRootElement
 
 /**
  * Represents the basic Jenkins job configuration information
  */
-@Root(strict=false)
+@XmlRootElement
 class JobConfig {
-    @Element(required = false)
+    @XmlElement(required = false)
     String description
 
-    @Element
+    @XmlElement
     String displayName
 
-    @Element
+    @XmlElement
     String name
 
-    @Element
+    @XmlElement
     boolean buildable
 
-    @Element
+    @XmlElement
     String color
 
-    @Element
+    @XmlElement
     String url
 
-    @Path("property[1]")
-    @ElementList(required = false, inline = true)
+    @XmlElementWrapper(name = "property")
+    @XmlElement(name = "parameterDefinition", required = false)
     List<ParameterDefinition> parameterDefinitionList
 
-    @ElementList(name = "upstreamProject", required = false, inline = true)
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "upstreamProject", required = false)
     List<UpstreamProject> upstreamProjectList
 
-    @ElementList(name = "downstreamProject", required = false, inline = true)
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @XmlElement(name = "downstreamProject", required = false)
     List<DownstreamProject> downstreamProjectList
 
-    @Element
+    @XmlElement
     boolean concurrentBuild
 }
