@@ -7,11 +7,18 @@ export interface IRunAsUserProps {
   serviceAccounts: string[];
   value: string;
   onChange: (value: string) => void;
+  selectClasses?: string;
+  selectColumns?: number;
 }
 
 export class RunAsUser extends React.Component<IRunAsUserProps> {
+  public static defaultProps = {
+    selectClasses: 'form-control input-sm',
+    selectColumns: 9,
+  };
+
   public render() {
-    const { serviceAccounts, onChange, value } = this.props;
+    const { serviceAccounts, onChange, value, selectClasses, selectColumns } = this.props;
 
     const serviceAccountOptions = serviceAccounts.map(a => ({ label: a, value: a }));
     return (
@@ -20,9 +27,9 @@ export class RunAsUser extends React.Component<IRunAsUserProps> {
           Run As User
           <HelpField id="pipeline.config.trigger.runAsUser" />
         </div>
-        <div className="col-md-9">
+        <div className={'col-md-' + selectColumns}>
           <Select
-            className="form-control input-sm"
+            className={selectClasses}
             options={serviceAccountOptions}
             value={value || ''}
             onChange={(o: Option<string>) => onChange(o.value)}

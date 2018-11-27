@@ -58,7 +58,13 @@ export class DockerTriggerConfig extends React.Component<IDockerTriggerConfigPro
 
         {fiatEnabled && (
           <div className="form-group">
-            <RunAsUser serviceAccounts={serviceAccounts} value={trigger.runAsUser} onChange={this.runAsUserChanged} />
+            <RunAsUser
+              serviceAccounts={serviceAccounts}
+              value={trigger.runAsUser}
+              onChange={this.runAsUserChanged}
+              selectClasses=""
+              selectColumns={8}
+            />
           </div>
         )}
       </div>
