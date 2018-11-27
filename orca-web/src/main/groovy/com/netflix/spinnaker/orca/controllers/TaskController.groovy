@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -220,8 +221,12 @@ class TaskController {
       List<String> ids = executionIds.split(',')
 
       List<Execution> executions = rx.Observable.from(ids.collect {
-        executionRepository.retrieve(PIPELINE, it)
-      }).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+        try {
+          executionRepository.retrieve(PIPELINE, it)
+        } catch (ExecutionNotFoundException e) {
+          null
+        }
+      }).subscribeOn(Schedulers.io()).toList().toBlocking().single().findAll()
 
       if (!expand) {
         unexpandPipelineExecutions(executions)
