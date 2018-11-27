@@ -40,9 +40,16 @@ export class WebhookExecutionDetailsCtrl implements IController {
   private getFailureMessage(): string {
     let failureMessage = this.stage.failureMessage;
     const context = this.stage.context || {},
-      buildInfo = context.buildInfo || {};
-    if (buildInfo.status === 'TERMINAL') {
-      failureMessage = `Webhook failed: ${buildInfo.reason}`;
+      webhook = context.webhook || {},
+      monitor = webhook.monitor || {},
+      error = monitor.error || null;
+
+    if (this.stage.originalStatus === 'TERMINAL') {
+      if (error) {
+        failureMessage = `Webhook failed: ${error}`;
+      } else if (monitor.progressMessage) {
+        failureMessage = `Webhook failed. Last known progress message: ${monitor.progressMessage}`;
+      }
     }
     return failureMessage;
   }
