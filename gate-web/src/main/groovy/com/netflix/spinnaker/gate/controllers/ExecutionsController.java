@@ -43,9 +43,9 @@ public class ExecutionsController {
   @RequestMapping(value = "/executions", method = RequestMethod.GET)
   List getLatestExecutionsByConfigIds(
     @ApiParam(value = "A comma-separated list of pipeline configuration IDs to retrieve recent executions for. Either this OR pipelineConfigIds must be supplied, but not both.")
-    @RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
+    @RequestParam(value = "pipelineConfigIds", required = false) String pipelineConfigIds,
     @ApiParam(value = "A comma-separated list of executions to retrieve. Either this OR pipelineConfigIds must be supplied, but not both.")
-    @RequestParam(value = "executionIds") String executionIds,
+    @RequestParam(value = "executionIds", required = false) String executionIds,
     @ApiParam(value = "The number of executions to return per pipeline configuration. Ignored if executionIds parameter is supplied. If this value is missing, it is defaulted to 1.")
     @RequestParam(value = "limit", required = false) Integer limit,
     @ApiParam(value = "A comma-separated list of execution statuses to filter by. Ignored if executionIds parameter is supplied. If this value is missing, it is defaulted to all statuses.")
