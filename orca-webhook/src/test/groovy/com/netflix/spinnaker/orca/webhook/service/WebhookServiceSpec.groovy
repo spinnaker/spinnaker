@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook.service
 
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
@@ -42,10 +43,13 @@ class WebhookServiceSpec extends Specification {
   def webhookProperties = new WebhookProperties()
 
   @Shared
+  def okHttpClientConfigurationProperties = new OkHttpClientConfigurationProperties()
+
+  @Shared
   def webhookConfiguration = new WebhookConfiguration(webhookProperties)
 
   @Shared
-  def requestFactory = webhookConfiguration.webhookRequestFactory()
+  def requestFactory = webhookConfiguration.webhookRequestFactory(okHttpClientConfigurationProperties)
 
   @Shared
   def restTemplate = webhookConfiguration.restTemplate(requestFactory)

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook.config;
 
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.webhook.util.UnionX509TrustManager;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
@@ -70,11 +71,16 @@ public class WebhookConfiguration {
   }
 
   @Bean
-  public ClientHttpRequestFactory webhookRequestFactory() {
+  public ClientHttpRequestFactory webhookRequestFactory(
+    OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
+  ) {
     X509TrustManager trustManager = webhookX509TrustManager();
     SSLSocketFactory sslSocketFactory = getSSLSocketFactory(trustManager);
     OkHttpClient client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, trustManager).build();
-    return new OkHttp3ClientHttpRequestFactory(client);
+    OkHttp3ClientHttpRequestFactory requestFactory = new OkHttp3ClientHttpRequestFactory(client);
+    requestFactory.setReadTimeout(Math.toIntExact(okHttpClientConfigurationProperties.getReadTimeoutMs()));
+    requestFactory.setConnectTimeout(Math.toIntExact(okHttpClientConfigurationProperties.getConnectTimeoutMs()));
+    return requestFactory;
   }
 
   private X509TrustManager webhookX509TrustManager() {
