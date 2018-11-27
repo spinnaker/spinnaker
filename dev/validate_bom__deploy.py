@@ -980,6 +980,21 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
     self.__instance_id = None
     self.ssh_key_path = options.deploy_aws_pem_path
 
+  def __find_instance_with_name(self, response, name):
+    """Locate the desired instance in the response."""
+    if not response:
+      logging.error('Unexpected empty response.')
+      return {}
+
+    for elem in response:
+      for instance in elem['Instances']:
+        for tag in instance.get('Tags', []):
+          if tag['Key'] == 'Name' and tag['Value'] == name:
+            return instance
+
+    logging.error('No instance tagged %r found in response.', name)
+    return {}
+
   def do_determine_instance_ip(self):
     """Implements GenericVmValidateBomDeployer interface."""
     options = self.options
@@ -1004,14 +1019,17 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
               server='ec2'))
 
     try:
-      ip = found[0]['Instances'][0]['PublicIpAddress']
+      # Although we filtered, sometimes aws CLI returns others.
+      instance = self.__find_instance_with_name(
+          found, options.deploy_aws_name)
+      public_ip = instance['PublicIpAddress']
     except KeyError:
       logging.error('**** aws ec2 describe instances returned %r\n'
-                    'expected [0]["Instances"][0]["PublicIpAddress"]',
-                    found)
+                    'expected "PublicIpAddress" for instance named %s',
+                    found, options.deploy_aws_name)
       raise
-    logging.debug('Using public IP=%s', ip)
-    return ip
+    logging.debug('Using public IP=%s', public_ip)
+    return public_ip
 
   def do_create_vm(self, options):
     """Implements GenericVmValidateBomDeployer interface."""
