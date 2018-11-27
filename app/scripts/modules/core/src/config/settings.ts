@@ -65,7 +65,12 @@ export interface IDockerInsightSettings {
 export interface ISpinnakerSettings {
   [key: string]: any;
 
-  analytics: { ga?: string };
+  analytics: {
+    ga?: string;
+    customConfig?: {
+      siteSpeedSampleRate?: number;
+    };
+  };
   authEnabled: boolean;
   authEndpoint: string;
   authTtl: number;
