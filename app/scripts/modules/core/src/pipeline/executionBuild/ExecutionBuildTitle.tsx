@@ -15,28 +15,22 @@ export class ExecutionBuildTitle extends React.Component<IExecutionBuildTitlePro
     defaultToTimestamp: false,
   };
 
-  private hasParentPipeline: boolean;
-  private hasBuildNumber: boolean;
-
-  constructor(props: IExecutionBuildTitleProps) {
-    super(props);
-    this.hasParentPipeline = !!props.execution && !!props.execution.trigger.parentPipelineName;
-    this.hasBuildNumber = !!props.execution && !!(props.execution.buildInfo && props.execution.buildInfo.number);
-  }
-
   public render() {
+    const { execution, defaultToTimestamp } = this.props;
+    const hasParentPipeline = !!(execution && execution.trigger.parentPipelineName);
+    const hasBuildNumber = !!(execution && execution.buildInfo && execution.buildInfo.number);
+    const showBuildInfo = hasBuildNumber && !hasParentPipeline;
+    const showStartTime = defaultToTimestamp && !hasParentPipeline && !hasBuildNumber;
+
     return (
       <span>
-        {this.hasParentPipeline && <span>{this.props.execution.trigger.parentPipelineName}</span>}
-        {this.hasBuildNumber &&
-          !this.hasParentPipeline && (
-            <span>
-              <span className="build-label">Build</span> #{this.props.execution.buildInfo.number}
-            </span>
-          )}
-        {this.props.defaultToTimestamp &&
-          !this.hasParentPipeline &&
-          !this.hasBuildNumber && <span>{timestamp(this.props.execution.startTime)}</span>}
+        {hasParentPipeline && <span>{execution.trigger.parentPipelineName}</span>}
+        {showBuildInfo && (
+          <span>
+            <span className="build-label">Build</span> #{execution.buildInfo.number}
+          </span>
+        )}
+        {showStartTime && <span>{timestamp(this.props.execution.startTime)}</span>}
       </span>
     );
   }
