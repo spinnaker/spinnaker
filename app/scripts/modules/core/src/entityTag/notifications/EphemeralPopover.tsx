@@ -19,7 +19,7 @@ export class EphemeralPopover extends React.Component<IEphemeralPopoverProps, IE
   }
 
   private getState(props: IEphemeralPopoverProps): IEphemeralPopoverState {
-    const entityTags: IEntityTags = props.entity.entityTags;
+    const entityTags: IEntityTags = props.entity && props.entity.entityTags;
     if (entityTags) {
       const ephemeralTag = entityTags.tags.filter(x => x.name === 'spinnaker:ttl')[0];
       if (ephemeralTag) {

@@ -57,7 +57,7 @@ export class EntityNotifications extends React.Component<IEntityNotificationsPro
 
   public render() {
     const { entity, application, placement, hOffsetPercent, className, onUpdate } = this.props;
-    const entityTags: IEntityTags = entity.entityTags;
+    const entityTags: IEntityTags = entity && entity.entityTags;
 
     const tags = entityTags ? [entityTags] : [];
 
