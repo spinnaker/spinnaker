@@ -19,9 +19,6 @@ import io.kubernetes.client.models.V1beta1CustomResourceDefinition
 import io.kubernetes.client.util.Config
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
-import org.junit.Assume.assumeNoException
-import org.junit.Assume.assumeTrue
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -113,246 +110,259 @@ internal object KubernetesIntegrationTest {
     )
   }
 
-  @BeforeAll
-  @JvmStatic
-  fun assumeK8sAvailable() {
+  /**
+   * I wanted to use JUnit's assumptions here but it causes the test to fail rather than skip on Travis CI.
+   */
+  fun assumeK8sAvailable(): Boolean {
     try {
       val response = CoreApi(client).apiVersionsWithHttpInfo
-      assumeTrue("Local Kubernetes responded with HTTP ${response.statusCode}", response.statusCode == HTTP_OK)
-      println(response.data)
+      return if (response.statusCode != HTTP_OK) {
+        println("Local Kubernetes responded with HTTP ${response.statusCode}")
+        println(response.data)
+        false
+      } else {
+        true
+      }
     } catch (e: Exception) {
-      assumeNoException(e)
+      println("Skipping tests as no k8s available")
+      return false
     }
   }
 
   @TestFactory
   fun `kubernetes integration`() = junitTests<CustomResourceDefinitionRegistrar> {
-    fixture {
-      CustomResourceDefinitionRegistrar(extensionsApi, crdLocator)
-    }
-
-    after {
-      try {
-        extensionsApi.deleteCustomResourceDefinition(
-          crdName,
-          V1DeleteOptions(),
-          "true",
-          0,
-          null,
-          "Background"
-        )
-      } catch (e: JsonSyntaxException) {
-        // FFS k8s, learn to parse your own responses
-      }
-      extensionsApi.waitForCRDDeleted(crdName)
-    }
-
-    test("can see the CRD after registering it") {
-      val crd = registerCustomResourceDefinition()
-
-      val response = extensionsApi.listCustomResourceDefinition(
-        "true",
-        "true",
-        null,
-        null,
-        null,
-        0,
-        null,
-        5,
-        false
-      )
-
-      expectThat(response.items)
-        .map { it.metadata.name }
-        .contains(crd.metadata.name)
-    }
-
-    derivedContext<Fixture<SecurityGroup>>("no objects of the type have been defined") {
-      deriveFixture {
-        Fixture(registerCustomResourceDefinition())
-      }
-
-      test("there should be zero objects") {
-        val call = customObjectsApi.listClusterCustomObjectCall(
-          crd.spec.group,
-          crd.spec.version,
-          crd.spec.names.plural,
-          "true",
-          null,
-          null,
-          false,
-          null,
-          null
-        )
-        val response = parse<ResourceList<SecurityGroup>>(call.execute())
-        expectThat(response.items).isEmpty()
-      }
-    }
-
-    derivedContext<Fixture<SecurityGroup>>("an object has been registered") {
-      deriveFixture {
-        Fixture(registerCustomResourceDefinition())
-      }
-
-      before {
-        val securityGroup = mapOf(
-          "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
-          "kind" to crd.spec.names.kind,
-          "metadata" to mapOf(
-            "name" to "my-security-group"
-          ),
-          "spec" to SecurityGroup(
-            application = "fnord",
-            name = "fnord",
-            accountName = "test",
-            region = "us-west-2",
-            vpcName = "vpc0",
-            description = "a security group"
-          )
-        )
-
-        adapter.start()
-
-        customObjectsApi.createClusterCustomObject(
-          crd.spec.group,
-          crd.spec.version,
-          crd.spec.names.plural,
-          securityGroup,
-          "true"
-        )
-        customObjectsApi.waitForObjectCreated(
-          crd.spec.group,
-          crd.spec.version,
-          crd.spec.names.plural,
-          "my-security-group"
-        )
+    if (assumeK8sAvailable()) {
+      fixture {
+        CustomResourceDefinitionRegistrar(extensionsApi, crdLocator)
       }
 
       after {
-        adapter.stop()
-
         try {
-          customObjectsApi.deleteClusterCustomObject(
-            crd.spec.group,
-            crd.spec.version,
-            crd.spec.names.plural,
-            "my-security-group",
+          extensionsApi.deleteCustomResourceDefinition(
+            crdName,
             V1DeleteOptions(),
+            "true",
             0,
             null,
             "Background"
           )
+        } catch (e: JsonSyntaxException) {
+          // FFS k8s, learn to parse your own responses
         } catch (e: ApiException) {
           if (e.code != HTTP_NOT_FOUND) {
             throw e
           }
         }
+        extensionsApi.waitForCRDDeleted(crdName)
       }
 
-      test("the plugin gets invoked") {
-        expectThat(plugin.lastCreated.get())
-          .get { metadata.name }
-          .isEqualTo(AssetName("my-security-group"))
-      }
+      test("can see the CRD after registering it") {
+        val crd = registerCustomResourceDefinition()
 
-      test("there should be one object") {
-        val call = customObjectsApi.listClusterCustomObjectCall(
-          crd.spec.group,
-          crd.spec.version,
-          crd.spec.names.plural,
+        val response = extensionsApi.listCustomResourceDefinition(
+          "true",
           "true",
           null,
           null,
-          false,
           null,
-          null
+          0,
+          null,
+          5,
+          false
         )
-        val response = parse<ResourceList<SecurityGroup>>(call.execute())
+
         expectThat(response.items)
-          .hasSize(1)
-          .first()
-          .and {
-            get { apiVersion }.isEqualTo(ApiVersion("ec2.${SPINNAKER_API_V1.group}", "v1"))
-            get { spec.name }.isEqualTo("fnord")
-          }
+          .map { it.metadata.name }
+          .contains(crd.metadata.name)
       }
 
-      context("the object is updated") {
-        before {
-          val securityGroup = mapOf(
-            "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
-            "kind" to crd.spec.names.kind,
-            "metadata" to mapOf(
-              "name" to "my-security-group"
-            ),
-            "spec" to SecurityGroup(
-              application = "fnord",
-              name = "fnord",
-              accountName = "test",
-              region = "us-west-2",
-              vpcName = "vpc0",
-              description = "a security group with an updated description"
-            )
-          )
+      derivedContext<Fixture<SecurityGroup>>("no objects of the type have been defined") {
+        deriveFixture {
+          Fixture(registerCustomResourceDefinition())
+        }
 
-          // ensure the create has completed
-          plugin.lastCreated.get()
-
-          customObjectsApi.patchClusterCustomObject(
+        test("there should be zero objects") {
+          val call = customObjectsApi.listClusterCustomObjectCall(
             crd.spec.group,
             crd.spec.version,
             crd.spec.names.plural,
-            "my-security-group",
-            securityGroup
-          )
-        }
-
-        test("the plugin gets invoked") {
-          expectThat(plugin.lastUpdated.get())
-            .get { spec }
-            .isA<SecurityGroup>()
-            .get { description }
-            .isEqualTo("a security group with an updated description")
-        }
-      }
-
-      context("the object is deleted") {
-        before {
-          val securityGroup = mapOf(
-            "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
-            "kind" to crd.spec.names.kind,
-            "metadata" to mapOf(
-              "name" to "my-security-group"
-            ),
-            "spec" to SecurityGroup(
-              application = "fnord",
-              name = "fnord",
-              accountName = "test",
-              region = "us-west-2",
-              vpcName = "vpc0",
-              description = "a security group with an updated description"
-            )
-          )
-
-          // ensure the create has completed
-          plugin.lastCreated.get()
-
-          customObjectsApi.deleteClusterCustomObject(
-            crd.spec.group,
-            crd.spec.version,
-            crd.spec.names.plural,
-            "my-security-group",
-            V1DeleteOptions(),
-            0,
+            "true",
             null,
-            "Background"
+            null,
+            false,
+            null,
+            null
+          )
+          val response = parse<ResourceList<SecurityGroup>>(call.execute())
+          expectThat(response.items).isEmpty()
+        }
+      }
+
+      derivedContext<Fixture<SecurityGroup>>("an object has been registered") {
+        deriveFixture {
+          Fixture(registerCustomResourceDefinition())
+        }
+
+        before {
+          val securityGroup = mapOf(
+            "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
+            "kind" to crd.spec.names.kind,
+            "metadata" to mapOf(
+              "name" to "my-security-group"
+            ),
+            "spec" to SecurityGroup(
+              application = "fnord",
+              name = "fnord",
+              accountName = "test",
+              region = "us-west-2",
+              vpcName = "vpc0",
+              description = "a security group"
+            )
+          )
+
+          adapter.start()
+
+          customObjectsApi.createClusterCustomObject(
+            crd.spec.group,
+            crd.spec.version,
+            crd.spec.names.plural,
+            securityGroup,
+            "true"
+          )
+          customObjectsApi.waitForObjectCreated(
+            crd.spec.group,
+            crd.spec.version,
+            crd.spec.names.plural,
+            "my-security-group"
           )
         }
 
+        after {
+          adapter.stop()
+
+          try {
+            customObjectsApi.deleteClusterCustomObject(
+              crd.spec.group,
+              crd.spec.version,
+              crd.spec.names.plural,
+              "my-security-group",
+              V1DeleteOptions(),
+              0,
+              null,
+              "Background"
+            )
+          } catch (e: ApiException) {
+            if (e.code != HTTP_NOT_FOUND) {
+              throw e
+            }
+          }
+        }
+
         test("the plugin gets invoked") {
-          expectThat(plugin.lastDeleted.get())
+          expectThat(plugin.lastCreated.get())
             .get { metadata.name }
             .isEqualTo(AssetName("my-security-group"))
+        }
+
+        test("there should be one object") {
+          val call = customObjectsApi.listClusterCustomObjectCall(
+            crd.spec.group,
+            crd.spec.version,
+            crd.spec.names.plural,
+            "true",
+            null,
+            null,
+            false,
+            null,
+            null
+          )
+          val response = parse<ResourceList<SecurityGroup>>(call.execute())
+          expectThat(response.items)
+            .hasSize(1)
+            .first()
+            .and {
+              get { apiVersion }.isEqualTo(ApiVersion("ec2.${SPINNAKER_API_V1.group}", "v1"))
+              get { spec.name }.isEqualTo("fnord")
+            }
+        }
+
+        context("the object is updated") {
+          before {
+            val securityGroup = mapOf(
+              "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
+              "kind" to crd.spec.names.kind,
+              "metadata" to mapOf(
+                "name" to "my-security-group"
+              ),
+              "spec" to SecurityGroup(
+                application = "fnord",
+                name = "fnord",
+                accountName = "test",
+                region = "us-west-2",
+                vpcName = "vpc0",
+                description = "a security group with an updated description"
+              )
+            )
+
+            // ensure the create has completed
+            plugin.lastCreated.get()
+
+            customObjectsApi.patchClusterCustomObject(
+              crd.spec.group,
+              crd.spec.version,
+              crd.spec.names.plural,
+              "my-security-group",
+              securityGroup
+            )
+          }
+
+          test("the plugin gets invoked") {
+            expectThat(plugin.lastUpdated.get())
+              .get { spec }
+              .isA<SecurityGroup>()
+              .get { description }
+              .isEqualTo("a security group with an updated description")
+          }
+        }
+
+        context("the object is deleted") {
+          before {
+            val securityGroup = mapOf(
+              "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
+              "kind" to crd.spec.names.kind,
+              "metadata" to mapOf(
+                "name" to "my-security-group"
+              ),
+              "spec" to SecurityGroup(
+                application = "fnord",
+                name = "fnord",
+                accountName = "test",
+                region = "us-west-2",
+                vpcName = "vpc0",
+                description = "a security group with an updated description"
+              )
+            )
+
+            // ensure the create has completed
+            plugin.lastCreated.get()
+
+            customObjectsApi.deleteClusterCustomObject(
+              crd.spec.group,
+              crd.spec.version,
+              crd.spec.names.plural,
+              "my-security-group",
+              V1DeleteOptions(),
+              0,
+              null,
+              "Background"
+            )
+          }
+
+          test("the plugin gets invoked") {
+            expectThat(plugin.lastDeleted.get())
+              .get { metadata.name }
+              .isEqualTo(AssetName("my-security-group"))
+          }
         }
       }
     }
