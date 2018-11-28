@@ -24,6 +24,7 @@ include "keel-api",
   "keel-retrofit",
   "keel-rule-engine",
   "keel-rule-engine-tck",
+  "keel-spring-test-support",
   "keel-veto"
 
 rootProject.name = "keel"

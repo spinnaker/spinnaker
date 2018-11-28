@@ -14,11 +14,11 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
 
   testImplementation "io.strikt:strikt-protobuf:+"
+  testImplementation project(":keel-spring-test-support")
   testImplementation project(":keel-rule-engine-tck")
   testImplementation(project(":keel-ec2")) {
     because("want access to real protos to test conversion between model & proto")
   }
-  testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
 }
 
 test {

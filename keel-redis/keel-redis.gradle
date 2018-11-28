@@ -24,10 +24,9 @@ dependencies {
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
 
   testImplementation "io.strikt:strikt-core:+"
-  testImplementation "com.netflix.spinnaker.kork:kork-jedis-test:2.+"
+  testImplementation project(":keel-spring-test-support")
   testImplementation project(":keel-rule-engine-tck")
   testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
-  testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
 }
 
 test {

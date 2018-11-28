@@ -114,9 +114,9 @@ internal object KubernetesIntegrationTest {
    * I wanted to use JUnit's assumptions here but it causes the test to fail rather than skip on Travis CI.
    */
   fun assumeK8sAvailable(): Boolean {
-    try {
+    return try {
       val response = CoreApi(client).apiVersionsWithHttpInfo
-      return if (response.statusCode != HTTP_OK) {
+      if (response.statusCode != HTTP_OK) {
         println("Local Kubernetes responded with HTTP ${response.statusCode}")
         println(response.data)
         false
@@ -124,8 +124,8 @@ internal object KubernetesIntegrationTest {
         true
       }
     } catch (e: Exception) {
-      println("Skipping tests as no k8s available")
-      return false
+      println("Skipping tests as local Kubernetes is not available")
+      false
     }
   }
 

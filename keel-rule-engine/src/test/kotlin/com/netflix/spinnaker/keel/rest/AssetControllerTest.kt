@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.appinfo.InstanceInfo
-import com.netflix.discovery.EurekaClient
 import com.netflix.spinnaker.keel.RuleEngineApp
 import com.netflix.spinnaker.keel.processing.AssetService
 import com.netflix.spinnaker.keel.processing.VetoService
+import com.netflix.spinnaker.keel.redis.spring.EmbeddedRedisConfiguration
+import com.netflix.spinnaker.keel.redis.spring.MockEurekaConfig
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.context.junit4.SpringRunner
@@ -22,7 +21,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(
-  classes = [RuleEngineApp::class, MockPluginConfig::class, MockEurekaConfig::class],
+  classes = [RuleEngineApp::class, MockPluginConfig::class, MockEurekaConfig::class, EmbeddedRedisConfiguration::class],
   properties = [
     "clouddriver.baseUrl=https://localhost:8081",
     "orca.baseUrl=https://localhost:8082"
@@ -89,18 +88,4 @@ class MockPluginConfig {
 
   @MockBean
   lateinit var vetoService: VetoService
-}
-
-@Configuration
-class MockEurekaConfig {
-  @MockBean
-  lateinit var eurekaClient: EurekaClient
-
-  @Bean
-  fun currentInstance(): InstanceInfo = InstanceInfo.Builder.newBuilder()
-    .run {
-      setAppName("keel")
-      setASGName("keel-local")
-      build()
-    }
 }
