@@ -25,20 +25,10 @@ export interface IApplicationSummary {
 }
 
 export class ApplicationReader {
-  private static applicationMap: Map<string, IApplicationSummary> = new Map<string, IApplicationSummary>();
-
-  public static listApplications(populateMap = false): IPromise<IApplicationSummary[]> {
+  public static listApplications(): IPromise<IApplicationSummary[]> {
     return API.all('applications')
       .useCache()
-      .getList()
-      .then((applications: IApplicationSummary[]) => {
-        if (populateMap) {
-          const tmpMap: Map<string, IApplicationSummary> = new Map<string, IApplicationSummary>();
-          applications.forEach((application: IApplicationSummary) => tmpMap.set(application.name, application));
-          this.applicationMap = tmpMap;
-        }
-        return applications;
-      });
+      .getList();
   }
 
   public static getApplication(name: string, expand = true): IPromise<Application> {
@@ -54,10 +44,6 @@ export class ApplicationReader {
         application.refresh();
         return application;
       });
-  }
-
-  public static getApplicationMap(): Map<string, IApplicationSummary> {
-    return this.applicationMap;
   }
 
   private static splitAttributes(attributes: any, fields: string[]) {
