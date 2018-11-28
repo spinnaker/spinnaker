@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Id;
+import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
@@ -56,7 +57,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 
 @Component
 @Slf4j
-public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task, ManifestAware {
+public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task, ManifestAware, RetryableTask {
   private final static String REFRESH_TYPE = "manifest";
   public final static String TASK_NAME = "forceCacheRefresh";
 
