@@ -28,15 +28,25 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
+import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.*;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -44,6 +54,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Configuration
@@ -65,6 +76,7 @@ public class WebhookConfiguration {
 
     List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
     converters.add(new ObjectStringHttpMessageConverter());
+    converters.add(new MapToStringHttpMessageConverter());
     restTemplate.setMessageConverters(converters);
 
     return restTemplate;
@@ -139,6 +151,57 @@ public class WebhookConfiguration {
     @Override
     public boolean supports(Class<?> clazz) {
       return clazz == Object.class;
+    }
+  }
+
+  /**
+   * An HttpMessageConverter capable of converting a map to url encoded form values.
+   *
+   * Will only apply if the content type of the request has been explicitly set to application/x-www-form-urlencoded.
+   */
+  public class MapToStringHttpMessageConverter extends AbstractHttpMessageConverter<Map<String, Object>> {
+    MapToStringHttpMessageConverter() {
+      super(Charset.defaultCharset(), MediaType.APPLICATION_FORM_URLENCODED);
+    }
+
+    @Override
+    protected boolean supports(Class<?> clazz) {
+      return Map.class.isAssignableFrom(clazz);
+    }
+
+    @Override
+    protected Map<String, Object> readInternal(Class<? extends Map<String, Object>> clazz,
+                                               HttpInputMessage inputMessage) throws HttpMessageNotReadableException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void writeInternal(Map<String, Object> body,
+                                 HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+      Charset charset = getContentTypeCharset(outputMessage.getHeaders().getContentType());
+
+      String str = body.entrySet().stream()
+        .map(p -> urlEncode(p.getKey(), charset) + "=" + urlEncode(p.getValue().toString(), charset))
+        .reduce((p1, p2) -> p1 + "&" + p2)
+        .orElse("");
+
+      StreamUtils.copy(str, charset, outputMessage.getBody());
+    }
+
+    private Charset getContentTypeCharset(MediaType contentType) {
+      if (contentType != null && contentType.getCharset() != null) {
+        return contentType.getCharset();
+      }
+
+      return getDefaultCharset();
+    }
+
+    private String urlEncode(String str, Charset charset) {
+      try {
+        return URLEncoder.encode(str, charset.name());
+      } catch (UnsupportedEncodingException e) {
+        throw new IllegalArgumentException(e);
+      }
     }
   }
 }
