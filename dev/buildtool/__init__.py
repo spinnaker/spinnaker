@@ -9,7 +9,13 @@ SPINNAKER_RUNNABLE_REPOSITORY_NAMES = [
     'echo', 'fiat', 'front50',
     'gate', 'igor', 'kayenta', 'orca', 'rosco']
 
+# For building and validating a release
+SPINNAKER_PROCESS_REPOSITORY_NAMES = ['spinnaker']
+
+# Halyard is independent of spinnaker
 SPINNAKER_HALYARD_REPOSITORY_NAME = 'halyard'
+
+# Documentation is version agnostic
 SPINNAKER_GITHUB_IO_REPOSITORY_NAME = 'spinnaker.github.io'
 
 

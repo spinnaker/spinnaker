@@ -28,6 +28,7 @@ except ImportError:
 from buildtool import (
     SPINNAKER_BOM_REPOSITORY_NAMES,
     SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
+    SPINNAKER_PROCESS_REPOSITORY_NAMES,
     BomSourceCodeManager,
     BranchSourceCodeManager,
     CommandProcessor,
@@ -49,6 +50,7 @@ from buildtool.changelog_commands import PublishChangelogFactory
 class InitiateReleaseBranchFactory(RepositoryCommandFactory):
   def __init__(self, **kwargs):
     repo_names = list(SPINNAKER_BOM_REPOSITORY_NAMES)
+    repo_names.extend(SPINNAKER_PROCESS_REPOSITORY_NAMES)
     repo_names.append(SPINNAKER_GITHUB_IO_REPOSITORY_NAME)
     super(InitiateReleaseBranchFactory, self).__init__(
         'new_release_branch', InitiateReleaseBranchCommand,
@@ -153,6 +155,10 @@ class PublishSpinnakerCommand(CommandProcessor):
         'min_halyard_version'
     ])
 
+    major, minor, _ = self.options.spinnaker_version.split('.')
+    self.__branch = 'release-{major}.{minor}.x'.format(
+        major=major, minor=minor)
+
     options_copy = copy.copy(options)
     self.__scm = BomSourceCodeManager(options_copy, self.get_input_dir())
     self.__hal = HalRunner(options)
@@ -164,10 +170,12 @@ class PublishSpinnakerCommand(CommandProcessor):
     else:
       self.__only_repositories = []
 
+    options_copy.git_branch = self.__branch
+    self.__process_scm = BranchSourceCodeManager(
+        options_copy, self.get_input_dir())
+
   def push_branches_and_tags(self, bom):
     """Update the release branches and tags in each of the BOM repositires."""
-    major, minor, _ = self.options.spinnaker_version.split('.')
-    branch = 'release-{major}.{minor}.x'.format(major=major, minor=minor)
     logging.info('Tagging each of the BOM service repos')
 
     # Run in two passes so we dont push anything if we hit a problem
@@ -192,12 +200,23 @@ class PublishSpinnakerCommand(CommandProcessor):
         repository = self.__scm.make_repository_spec(name)
         self.__scm.ensure_local_repository(repository)
         if which == 'tag':
-          added = self.__branch_and_tag_repository(repository, branch)
+          added = self.__branch_and_tag_repository(
+              repository, self.__branch)
           if added:
             names_to_push.add(name)
         else:
-          self.__push_branch_and_maybe_tag_repository(repository, branch,
-                                                      name in names_to_push)
+          self.__push_branch_and_maybe_tag_repository(
+              repository, self.__branch, name in names_to_push)
+
+    for name in SPINNAKER_PROCESS_REPOSITORY_NAMES:
+      if self.__only_repositories and name not in self.__only_repositories:
+        logging.debug('Skipping %s because of --only_repositories', name)
+        continue
+      repository = self.__process_scm.make_repository_spec(name)
+      self.__process_scm.ensure_local_repository(repository)
+      if self.__branch_and_tag_repository(repository, self.__branch):
+        self.__push_branch_and_maybe_tag_repository(
+            repository, self.__branch)
 
   def __already_have_tag(self, repository, tag):
     """Determine if we already have the tag in the repository."""

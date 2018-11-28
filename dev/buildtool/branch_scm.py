@@ -66,7 +66,7 @@ class BranchSourceCodeManager(SpinnakerSourceCodeManager):
   def determine_origin_for_owner(self, name, github_owner):
     options = self.options
     if github_owner in ('upstream', 'default'):
-      github_owner = 'spinnaker'
+      github_owner = self.options.github_upstream_owner
 
     if self.options.github_repository_root:
       return '/'.join([self.options.github_repository_root,
