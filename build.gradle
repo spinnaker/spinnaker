@@ -76,4 +76,12 @@ subprojects {
   }
 }
 
+/**
+ * Use this task with --write-locks to upgrade all the dependencies in one shot
+ */
+task allDependencies {
+  evaluationDependsOnChildren()
+  dependsOn subprojects.collect { it.tasks["dependencies"] }
+}
+
 defaultTasks ":keel-rule-engine:run"

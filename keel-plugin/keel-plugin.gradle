@@ -1,6 +1,5 @@
 apply plugin: "java-library"
 apply plugin: "kotlin-spring"
-apply from: "$rootDir/gradle/junit4.gradle"
 apply from: "$rootDir/gradle/junit5.gradle"
 
 dependencies {
@@ -18,12 +17,4 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
   testImplementation "com.oneeyedmen:minutest:+"
   testImplementation "io.strikt:strikt-core:+"
-}
-
-test {
-//  dependsOn("minikubeStart")
-//  finalizedBy("minikubeStop")
-  useJUnitPlatform {
-    includeEngines "junit-jupiter", "junit-vintage"
-  }
 }
