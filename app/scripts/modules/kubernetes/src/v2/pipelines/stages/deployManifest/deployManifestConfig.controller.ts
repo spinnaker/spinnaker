@@ -46,6 +46,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
 
   public canShowAccountSelect() {
     return (
+      this.$scope.stage.source === this.artifactSource &&
       !this.$scope.showCreateArtifactForm &&
       (this.manifestArtifactController.accountsForArtifact.length > 1 &&
         this.manifestArtifactDelegate.getSelectedExpectedArtifact() != null)
