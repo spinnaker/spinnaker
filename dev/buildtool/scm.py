@@ -31,6 +31,7 @@ from buildtool import (
     GitRunner,
     RepositorySummary,
 
+    add_parser_argument,
     check_kwargs_empty,
     raise_and_log_error,
     write_to_path,
@@ -82,6 +83,9 @@ class SpinnakerSourceCodeManager(object):
       return
     parser.added_scm = True
     GitRunner.add_parser_args(parser, defaults)
+    add_parser_argument(parser, 'github_upstream_owner',
+                        defaults, 'spinnaker',
+                        help='The standard upstream repository owner.')
 
   @property
   def git(self):
@@ -160,7 +164,9 @@ class SpinnakerSourceCodeManager(object):
         name, origin=origin, upstream=upstream, git_dir=git_dir, **kwargs)
 
   def determine_upstream_url(self, name):
-    upstream_owner = 'spinnaker' if name not in ('citest') else 'google'
+    upstream_owner = (self.__options.github_upstream_owner
+                      if name not in ('citest')
+                      else 'google')
     return 'https://github.com/{upstream}/{name}'.format(
         upstream=upstream_owner, name=name)
 
