@@ -67,7 +67,9 @@ export class ConfigurePipelineTemplateModalController implements IController {
 
   public initialize(): void {
     const { config } = this.pipelineTemplateConfig;
-    const inherit: string[] = (config.configuration || { inherit: [] }).inherit;
+    const defaultConfiguration = { inherit: ['expectedArtifacts', 'parameters', 'triggers'] };
+    const inherit: string[] = (config.configuration || defaultConfiguration).inherit;
+
     this.state.inheritTemplateExpectedArtifacts = inherit.includes('expectedArtifacts');
     this.state.inheritTemplateParameters = inherit.includes('parameters');
     this.state.inheritTemplateTriggers = inherit.includes('triggers');
