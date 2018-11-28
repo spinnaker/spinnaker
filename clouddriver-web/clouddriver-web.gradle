@@ -1,5 +1,10 @@
 apply plugin: 'spinnaker.application'
 
+if (gradle.includedCloudProviderProjects.contains(':clouddriver-oracle')) {
+  tasks.startScripts.dependsOn(':clouddriver-oracle:unpackSdk')
+  tasks.startScripts.mustRunAfter(':clouddriver-oracle:unpackSdk')
+}
+
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
 }
