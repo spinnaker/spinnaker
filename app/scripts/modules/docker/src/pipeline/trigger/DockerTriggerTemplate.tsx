@@ -4,14 +4,24 @@ import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { Observable, Subject, Subscription } from 'rxjs';
 
-import { IDockerTrigger, ITriggerTemplateComponentProps, Spinner, TetheredSelect } from '@spinnaker/core';
+import {
+  IDockerTrigger,
+  ITriggerTemplateComponentProps,
+  Spinner,
+  TetheredSelect,
+  IPipelineCommand,
+} from '@spinnaker/core';
 
-import { DockerImageReader } from '../../image/DockerImageReader';
+import { DockerImageReader, IDockerLookupType } from '../../image';
+
+const lookupTypeOptions = [{ value: 'digest', label: 'Digest' }, { value: 'tag', label: 'Tag' }];
 
 export interface IDockerTriggerTemplateState {
+  digest: string;
   tags: string[];
   tagsLoading: boolean;
   loadError: boolean;
+  lookupType: string;
   selectedTag: string;
 }
 
@@ -29,9 +39,11 @@ export class DockerTriggerTemplate extends React.Component<
   public constructor(props: ITriggerTemplateComponentProps) {
     super(props);
     this.state = {
+      digest: '',
       tags: [],
       tagsLoading: true,
       loadError: false,
+      lookupType: 'tag',
       selectedTag: '',
     };
   }
@@ -47,11 +59,15 @@ export class DockerTriggerTemplate extends React.Component<
     );
   };
 
-  private updateSelectedTag = (tag: string) => {
-    const { command } = this.props;
-    const trigger = command.trigger as IDockerTrigger;
-    command.extraFields.tag = tag;
+  private lookupTypeChanged = (o: Option<IDockerLookupType>) => {
+    const newType = o.value;
+    this.props.command.extraFields.tag = newType === 'tag' ? this.state.selectedTag : this.state.digest;
+    this.setState({ lookupType: newType });
+  };
 
+  private updateArtifact(command: IPipelineCommand, tag: string) {
+    command.extraFields.tag = tag;
+    const trigger = command.trigger as IDockerTrigger;
     if (trigger && trigger.repository) {
       let imageName = '';
       if (trigger.registry) {
@@ -67,7 +83,16 @@ export class DockerTriggerTemplate extends React.Component<
         },
       ];
     }
+  }
+
+  private updateSelectedTag = (tag: string) => {
+    this.updateArtifact(this.props.command, tag);
     this.setState({ selectedTag: tag });
+  };
+
+  private updateDigest = (digest: string) => {
+    this.updateArtifact(this.props.command, digest);
+    this.setState({ digest });
   };
 
   private tagLoadSuccess = (tags: string[]) => {
@@ -128,49 +153,77 @@ export class DockerTriggerTemplate extends React.Component<
   };
 
   public render() {
-    const { tags, tagsLoading, loadError, selectedTag } = this.state;
+    const { digest, tags, tagsLoading, loadError, selectedTag, lookupType } = this.state;
 
     const options = tags.map(tag => {
       return { value: tag } as Option<string>;
     });
 
     return (
-      <div className="form-group">
-        <label className="col-md-4 sm-label-right">Tag</label>
-        {tagsLoading && (
-          <div className="col-md-6">
-            <div className="form-control-static text-center">
-              <Spinner size={'small'} />
+      <>
+        <div className="form-group">
+          <div className="sm-label-right col-md-4">Type</div>
+          <div className="col-md-3">
+            <TetheredSelect
+              clearable={false}
+              value={lookupType}
+              options={lookupTypeOptions}
+              onChange={this.lookupTypeChanged}
+            />
+          </div>
+        </div>
+        {lookupType === 'tag' && (
+          <div className="form-group">
+            <label className="col-md-4 sm-label-right">Tag</label>
+            {tagsLoading && (
+              <div className="col-md-6">
+                <div className="form-control-static text-center">
+                  <Spinner size="small" />
+                </div>
+              </div>
+            )}
+            {/* prevent form submission while tags are loading */}
+            <input type="hidden" required={tagsLoading} value={selectedTag} />
+            {loadError && <div className="col-md-6">Error loading tags!</div>}
+            {!tagsLoading && (
+              <div className="col-md-6">
+                {tags.length === 0 && (
+                  <div>
+                    <p className="form-control-static">No tags found</p>
+                  </div>
+                )}
+                {tags.length > 0 && (
+                  <TetheredSelect
+                    options={options}
+                    optionRenderer={o => <span>{o.value}</span>}
+                    clearable={false}
+                    value={selectedTag}
+                    valueRenderer={o => (
+                      <span>
+                        <strong>{o.value}</strong>
+                      </span>
+                    )}
+                    onChange={(o: Option<string>) => this.updateSelectedTag(o.value)}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        {lookupType === 'digest' && (
+          <div className="form-group">
+            <label className="col-md-4 sm-label-right">Digest</label>
+            <div className="col-md-6">
+              <input
+                value={digest}
+                onChange={e => this.updateDigest(e.target.value)}
+                className="form-control input-sm"
+                required={true}
+              />
             </div>
           </div>
         )}
-        {/* prevent form submission while tags are loading */}
-        <input type="hidden" required={tagsLoading} value={selectedTag} />
-        {loadError && <div className="col-md-6">Error loading tags!</div>}
-        {!tagsLoading && (
-          <div className="col-md-6">
-            {tags.length === 0 && (
-              <div>
-                <p className="form-control-static">No tags found</p>
-              </div>
-            )}
-            {tags.length > 0 && (
-              <TetheredSelect
-                options={options}
-                optionRenderer={o => <span>{o.value}</span>}
-                clearable={false}
-                value={selectedTag}
-                valueRenderer={o => (
-                  <span>
-                    <strong>{o.value}</strong>
-                  </span>
-                )}
-                onChange={(o: Option<string>) => this.updateSelectedTag(o.value)}
-              />
-            )}
-          </div>
-        )}
-      </div>
+      </>
     );
   }
 }
