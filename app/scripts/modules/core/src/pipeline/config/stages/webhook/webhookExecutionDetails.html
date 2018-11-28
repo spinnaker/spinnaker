@@ -44,4 +44,7 @@
       <execution-step-details item="ctrl.stage"></execution-step-details>
     </div>
   </div>
+  <div ng-if="ctrl.detailsSection == 'artifactStatus'">
+    <execution-artifact-tab stage="ctrl.stage" execution=""></execution-artifact-tab>
+  </div>
 </div>

@@ -7,8 +7,10 @@ import {
   ExecutionDetailsSectionService,
 } from 'core/pipeline/details/executionDetailsSection.service';
 
+import { EXECUTION_ARTIFACT_TAB } from 'core/artifact/artifactTab';
+
 export class WebhookExecutionDetailsCtrl implements IController {
-  public configSections = ['webhookConfig', 'taskStatus'];
+  public configSections = ['webhookConfig', 'taskStatus', 'artifactStatus'];
   public detailsSection: string;
   public failureMessage: string;
   public progressMessage: string;
@@ -60,7 +62,7 @@ export class WebhookExecutionDetailsCtrl implements IController {
 }
 
 export const WEBHOOK_EXECUTION_DETAILS_CONTROLLER = 'spinnaker.core.pipeline.stage.webhook.executionDetails.controller';
-module(WEBHOOK_EXECUTION_DETAILS_CONTROLLER, [EXECUTION_DETAILS_SECTION_SERVICE]).controller(
+module(WEBHOOK_EXECUTION_DETAILS_CONTROLLER, [EXECUTION_DETAILS_SECTION_SERVICE, EXECUTION_ARTIFACT_TAB]).controller(
   'WebhookExecutionDetailsCtrl',
   WebhookExecutionDetailsCtrl,
 );
