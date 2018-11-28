@@ -16,6 +16,11 @@
 
 apply plugin: 'spinnaker.application'
 
+if (gradle.includedProviderProjects.contains(':front50-oracle')) {
+  tasks.startScripts.dependsOn(':front50-oracle:unpackSdk')
+  tasks.startScripts.mustRunAfter(':front50-oracle:unpackSdk')
+}
+
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
 }
