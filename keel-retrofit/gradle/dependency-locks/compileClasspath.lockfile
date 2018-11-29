@@ -53,4 +53,3 @@ org.springframework:spring-core:4.3.18.RELEASE
 org.springframework:spring-expression:4.3.18.RELEASE
 org.springframework:spring-web:4.3.18.RELEASE
 org.springframework:spring-webmvc:4.3.18.RELEASE
-org.yaml:snakeyaml:1.17

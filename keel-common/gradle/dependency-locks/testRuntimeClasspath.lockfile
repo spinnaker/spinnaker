@@ -12,7 +12,7 @@ com.fasterxml.jackson.core:jackson-databind:2.9.6
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.6
 com.github.andrewoma.dexx:dexx-collections:0.2
 com.github.vlsi.compactmap:compactmap:1.2.1
-com.google.code.findbugs:jsr305:3.0.1
+com.google.code.findbugs:jsr305:3.0.2
 com.google.code.gson:gson:2.1
 com.google.guava:guava:19.0
 com.google.inject:guice:4.1.0
