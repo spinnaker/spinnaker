@@ -24,8 +24,17 @@ import lombok.NonNull;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface CanaryMetricSetQueryConfig {
 
-  // Optionally defines an explicit filter to be used when composing the query. Takes precedence over customFilterTemplate.
+  /**
+   * @deprecated Use getCustomInlineTemplate instead.
+   */
+  @Deprecated
   default String getCustomFilter() {
+    return null;
+  }
+
+  // Optionally defines a metric-specific query template. Takes precedence over customFilterTemplate.
+  // It is expanded by using the key/value pairs in extendedScopeParams as the variable bindings.
+  default String getCustomInlineTemplate() {
     return null;
   }
 

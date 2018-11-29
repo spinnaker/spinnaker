@@ -111,7 +111,7 @@ public class PrometheusFetchController {
     }
 
     if (!StringUtils.isEmpty(customFilter)) {
-      prometheusCanaryMetricSetQueryConfigBuilder.customFilter(customFilter);
+      prometheusCanaryMetricSetQueryConfigBuilder.customInlineTemplate(customFilter);
     }
 
     CanaryMetricConfig canaryMetricConfig =

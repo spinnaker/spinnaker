@@ -54,23 +54,23 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
     given:
     CanaryConfig canaryConfig = CanaryConfig.builder().templates(templates).build()
     StackdriverCanaryMetricSetQueryConfig stackdriverCanaryMetricSetQueryConfig =
-      StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate(customFilterTemplate).customFilter(customFilter).build()
+      StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate(customFilterTemplate).customInlineTemplate(customInlineTemplate).build()
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(extendedScopeParams: scopeParams)
 
     expect:
     QueryConfigUtils.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == expectedExpandedTemplate
 
     where:
-    templates                                             | customFilterTemplate | customFilter          | scopeParams       || expectedExpandedTemplate
-    ["my-template": 'A test: key1=${key1}.']              | "my-template"        | "An explicit filter." | [key1: "value-1"] || "An explicit filter."
+    templates                                             | customFilterTemplate | customInlineTemplate           | scopeParams       || expectedExpandedTemplate
+    ["my-template": 'A test: key1=${key1}.']              | "my-template"        | 'An inline template: ${key1}.' | [key1: "value-1"] || "An inline template: value-1."
     ["my-template-1": 'A test: key1=${key1}.',
-     "my-template-2": 'A test: key2=${key2}.']            | "my-template-2"      | "An explicit filter." | [key2: "value-2"] || "An explicit filter."
+     "my-template-2": 'A test: key2=${key2}.']            | "my-template-2"      | 'An inline template: ${key2}.' | [key2: "value-2"] || "An inline template: value-2."
     ["my-template-1": 'A test: key1=${key1}.',
-     "my-template-2": 'A test: key2=${key2}.']            | "my-template-1"      | "An explicit filter." | [key1: "value-1"] || "An explicit filter."
-    ["my-template": 'A test: key1=${key1} key2=${key2}.'] | "my-template"        | "An explicit filter." | [key1: "value-1",
-                                                                                                            key2: "value-2"] || "An explicit filter."
-    ["my-template": 'A test: key1=something1.']           | "my-template"        | "An explicit filter." | null              || "An explicit filter."
-    ["my-template": 'A test: key1=something1.']           | "my-template"        | "An explicit filter." | [:]               || "An explicit filter."
+     "my-template-2": 'A test: key2=${key2}.']            | "my-template-1"      | "An inline template."          | [key1: "value-1"] || "An inline template."
+    ["my-template": 'A test: key1=${key1} key2=${key2}.'] | "my-template"        | "An inline template."          | [key1: "value-1",
+                                                                                                                     key2: "value-2"] || "An inline template."
+    ["my-template": 'A test: key1=something1.']           | "my-template"        | "An inline template."          | null              || "An inline template."
+    ["my-template": 'A test: key1=something1.']           | "my-template"        | "An inline template."          | [:]               || "An inline template."
   }
 
   @Unroll
@@ -90,13 +90,15 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
     where:
     templates                                                 | customFilterTemplate | scopeParams
     ["my-template-1": 'A test: key1=${key1}.',
-     "my-template-2": 'A test: key2=${key2}.']                | "my-template-x"      | null
-    [:]                                                       | "my-template-x"      | null
-    null                                                      | "my-template-x"      | null
-    ["my-template": 'A test: key1=${key1} key2=${key2}.']     | "my-template"        | [key3: "value-3",
-                                                                                        key4: "value-4"]
-    ["my-template": 'A test: key1=$\\{key1} key2=$\\{key2}.'] | "my-template"        | [key3: "value-3",
-                                                                                        key4: "value-4"]
+     "my-template-2": 'A test: key2=${key2}.']                | "my-template-x"        | null
+    [:]                                                       | "my-template-x"        | null
+    null                                                      | "my-template-x"        | null
+    ["my-template": 'A test: key1=${key1} key2=${key2}.']     | "my-template"          | [key3: "value-3",
+                                                                                          key4: "value-4"]
+    ["my-template": 'A test: key1=$\\{key1} key2=$\\{key2}.'] | "my-template"          | [key3: "value-3",
+                                                                                          key4: "value-4"]
+    ["my-template": 'A test: key1=$\\{key1} key2=$\\{key2}.'] | 'my-template: ${key1}' | [key3: "value-3",
+                                                                                          key4: "value-4"]
   }
 
   @Unroll

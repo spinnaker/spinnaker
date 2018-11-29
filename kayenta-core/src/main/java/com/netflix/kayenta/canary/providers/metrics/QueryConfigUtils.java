@@ -49,13 +49,25 @@ public class QueryConfigUtils {
                                           CanaryMetricSetQueryConfig metricSetQuery,
                                           CanaryScope canaryScope,
                                           String[] baseScopeAttributes) throws IOException {
-    String customFilter = metricSetQuery.getCustomFilter();
-    String customFilterTemplate = metricSetQuery.getCustomFilterTemplate();
+    if (metricSetQuery.getCustomFilter() != null) {
+      throw new IllegalArgumentException("CanaryMetricSetQueryConfig.customFilter is deprecated, use CanaryMetricSetQueryConfig.customInlineTemplate instead.");
+    }
 
-    log.debug("customFilter={}", customFilter);
+    String customInlineTemplate = metricSetQuery.getCustomInlineTemplate();
+    String customFilterTemplate = metricSetQuery.getCustomFilterTemplate();
+    String templateToExpand;
+    String expandedTemplate;
+
+    log.debug("customInlineTemplate={}", customInlineTemplate);
     log.debug("customFilterTemplate={}", customFilterTemplate);
 
-    if (StringUtils.isEmpty(customFilter) && !StringUtils.isEmpty(customFilterTemplate)) {
+    if (StringUtils.isEmpty(customInlineTemplate) && StringUtils.isEmpty(customFilterTemplate)) {
+      return null;
+    }
+
+    if (!StringUtils.isEmpty(customInlineTemplate)) {
+      templateToExpand = unescapeTemplate(customInlineTemplate);
+    } else {
       Map<String, String> templates = canaryConfig.getTemplates();
 
       // TODO(duftler): Handle this as a config validation step instead.
@@ -65,33 +77,33 @@ public class QueryConfigUtils {
       } else if (!templates.containsKey(customFilterTemplate)) {
         throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was not found.");
       }
-
-      Configuration configuration = new Configuration(Configuration.VERSION_2_3_26);
-      String templateStr = unescapeTemplate(templates.get(customFilterTemplate));
-      Template template = new Template(customFilterTemplate, new StringReader(templateStr), configuration);
-
-      try {
-        log.debug("extendedScopeParams={}", canaryScope.getExtendedScopeParams());
-
-        Map<String, String> templateBindings = new LinkedHashMap<>();
-        populateTemplateBindings(canaryScope, baseScopeAttributes, templateBindings, false);
-        populateTemplateBindings(metricSetQuery, baseScopeAttributes, templateBindings, true);
-
-        if (!CollectionUtils.isEmpty(canaryScope.getExtendedScopeParams())) {
-          templateBindings.putAll(canaryScope.getExtendedScopeParams());
-        }
-
-        log.debug("templateBindings={}", templateBindings);
-
-        customFilter = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateBindings);
-      } catch (TemplateException e) {
-        throw new IllegalArgumentException("Problem evaluating custom filter template:", e);
-      }
+      templateToExpand = unescapeTemplate(templates.get(customFilterTemplate));
     }
 
-    log.debug("Expanded: customFilter={}", customFilter);
+    Configuration configuration = new Configuration(Configuration.VERSION_2_3_26);
+    Template template = new Template("template", new StringReader(templateToExpand), configuration);
 
-    return customFilter;
+    try {
+      log.debug("extendedScopeParams={}", canaryScope.getExtendedScopeParams());
+
+      Map<String, String> templateBindings = new LinkedHashMap<>();
+      populateTemplateBindings(canaryScope, baseScopeAttributes, templateBindings, false);
+      populateTemplateBindings(metricSetQuery, baseScopeAttributes, templateBindings, true);
+
+      if (!CollectionUtils.isEmpty(canaryScope.getExtendedScopeParams())) {
+        templateBindings.putAll(canaryScope.getExtendedScopeParams());
+      }
+
+      log.debug("templateBindings={}", templateBindings);
+
+      expandedTemplate = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateBindings);
+    } catch (TemplateException e) {
+      throw new IllegalArgumentException("Problem evaluating custom filter template:", e);
+    }
+
+    log.debug("expandedTemplate={}", expandedTemplate);
+
+    return expandedTemplate;
   }
 
   private static void populateTemplateBindings(Object bean,
