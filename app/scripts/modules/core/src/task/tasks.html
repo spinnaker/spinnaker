@@ -163,7 +163,7 @@
             <tr ng-if="tasks.isExpanded(task.id)" ng-repeat-end>
               <td colspan="9" class="small text-right">
                 <a href="{{tasksUrl + task.id}}" target="_blank">Source</a> | <a target="_blank" ui-sref=".taskDetails({taskId: task.id})">Permalink</a>
-                <copy-to-clipboard text="$state.href('.taskDetails', {taskId: task.id}, {absolute:true} )" tool-tip="'Copy permalink to clipboard'"></copy-to-clipboard>
+                <copy-to-clipboard text="$state.href(viewState.nameFilter ? '.' : '.taskDetails', {taskId: task.id}, {absolute:true} )" tool-tip="'Copy permalink to clipboard'"></copy-to-clipboard>
               </td>
             </tr>
 
