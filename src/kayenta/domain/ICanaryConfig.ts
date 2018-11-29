@@ -31,7 +31,7 @@ export interface ICanaryMetricConfig<T extends ICanaryMetricSetQueryConfig = any
 export interface ICanaryMetricSetQueryConfig {
   type: string;
   serviceType: string;
-  customFilter?: string;
+  customInlineTemplate?: string;
   customFilterTemplate?: string;
 }
 

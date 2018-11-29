@@ -7,8 +7,6 @@ import EditMetricModal from './editMetricModal';
 import NameAndDescription from './nameAndDescription';
 import TitledSection from '../layout/titledSection';
 import Scoring from './scoring';
-import Templates from './templates/templates';
-import { CanarySettings } from 'kayenta/canary.settings';
 
 /*
  * Top-level config detail layout
@@ -25,11 +23,6 @@ export default function ConfigDetail() {
         <MetricList />
         <EditMetricModal />
       </TitledSection>
-      {CanarySettings.templatesEnabled && (
-        <TitledSection title="Filter Templates">
-          <Templates />
-        </TitledSection>
-      )}
       <TitledSection title="Scoring">
         <Scoring />
       </TitledSection>

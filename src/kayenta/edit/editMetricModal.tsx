@@ -3,21 +3,23 @@ import * as classNames from 'classnames';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get, isNull, values } from 'lodash';
-import { Option } from 'react-select';
 
-import { noop, HelpField } from '@spinnaker/core';
+import { noop } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
 import { ICanaryMetricConfig, ICanaryMetricEffectSizeConfig } from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import Styleguide from 'kayenta/layout/styleguide';
 import FormRow from 'kayenta/layout/formRow';
+import RadioChoice from 'kayenta/layout/radioChoice';
 import { DisableableInput, DisableableSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
-import { configTemplatesSelector, editingMetricValidationErrorsSelector } from 'kayenta/selectors';
+import { editingMetricValidationErrorsSelector } from 'kayenta/selectors';
+import { isTemplateValidSelector, useInlineTemplateEditorSelector } from 'kayenta/selectors/filterTemplatesSelectors';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryMetricValidationErrors } from './editMetricValidation';
-import { FilterTemplateSelector } from './filterTemplateSelector';
+import FilterTemplateSelector from './filterTemplateSelector';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
+import InlineTemplateEditor from './inlineTemplateEditor';
 
 import './editMetricModal.less';
 
@@ -29,44 +31,15 @@ interface IEditMetricModalDispatchProps {
   updateCriticality: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
-  selectTemplate: (template: Option) => void;
   updateScopeName: (event: any) => void;
 }
 
 interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig;
-  templates: { [name: string]: string };
-  filterTemplate: string;
   groups: string[];
+  isTemplateValid: boolean;
+  useInlineTemplateEditor: boolean;
   validationErrors: ICanaryMetricValidationErrors;
-}
-
-function RadioChoice({
-  value,
-  label,
-  name,
-  current,
-  action,
-}: {
-  value: string;
-  label: string;
-  name: string;
-  current: string;
-  action: (event: any) => void;
-}) {
-  return (
-    <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
-      <DisableableInput
-        type="radio"
-        name={name}
-        value={value}
-        onChange={action}
-        checked={value === current}
-        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-      />{' '}
-      {label}
-    </label>
-  );
 }
 
 function EffectSizeSummary({ effectSizes }: { effectSizes: ICanaryMetricEffectSizeConfig }) {
@@ -117,13 +90,12 @@ function EditMetricModal({
   groups,
   confirm,
   cancel,
+  isTemplateValid,
   updateDirection,
   updateNanStrategy,
   updateCriticality,
-  templates,
-  selectTemplate,
-  filterTemplate,
   updateScopeName,
+  useInlineTemplateEditor,
   validationErrors,
 }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
@@ -138,9 +110,13 @@ function EditMetricModal({
     'canary',
     'effectSize',
   ]);
-  const isConfirmDisabled = values(validationErrors).some(e => !isNull(e));
+  const isConfirmDisabled = !isTemplateValid || values(validationErrors).some(e => !isNull(e));
 
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
+  const templatesEnabled =
+    metricStoreConfigService.getDelegate(metric.query.type) &&
+    metricStoreConfigService.getDelegate(metric.query.type).useTemplates &&
+    CanarySettings.templatesEnabled;
   return (
     <Modal bsSize="large" show={true} onHide={noop} className={classNames('kayenta-edit-metric-modal')}>
       <Styleguide>
@@ -210,13 +186,7 @@ function EditMetricModal({
               Fail the canary if this metric fails
             </label>
           </FormRow>
-          <FormRow
-            label={
-              <>
-                NaN Strategy <HelpField id="canary.config.nanStrategy" />
-              </>
-            }
-          >
+          <FormRow label="NaN Strategy" helpId="canary.config.nanStrategy">
             <RadioChoice
               value="default"
               label="Default (remove)"
@@ -249,11 +219,8 @@ function EditMetricModal({
           </FormRow>
           <EffectSizeSummary effectSizes={effectSize} />
           <MetricConfigurerDelegator />
-          {metricStoreConfigService.getDelegate(metric.query.type) &&
-            metricStoreConfigService.getDelegate(metric.query.type).useTemplates &&
-            CanarySettings.templatesEnabled && (
-              <FilterTemplateSelector templates={templates} template={filterTemplate} select={selectTemplate} />
-            )}
+          {templatesEnabled && !useInlineTemplateEditor && <FilterTemplateSelector />}
+          {templatesEnabled && useInlineTemplateEditor && <InlineTemplateEditor />}
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">
@@ -284,9 +251,11 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     cancel: () => {
       dispatch(Creators.editMetricCancel());
+      dispatch(Creators.editTemplateCancel());
     },
     confirm: () => {
       dispatch(Creators.editMetricConfirm());
+      dispatch(Creators.editTemplateCancel());
     },
     updateDirection: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricDirection({ id: target.dataset.id, direction: target.value }));
@@ -297,8 +266,6 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     updateCriticality: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricCriticality({ id: target.dataset.id, critical: Boolean(target.checked) }));
     },
-    selectTemplate: (template: Option) =>
-      dispatch(Creators.selectTemplate({ name: template ? (template.value as string) : null })),
     updateScopeName: (event: any) => dispatch(Creators.updateMetricScopeName({ scopeName: event.target.value })),
   };
 }
@@ -306,9 +273,9 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
 function mapStateToProps(state: ICanaryState): IEditMetricModalStateProps {
   return {
     metric: state.selectedConfig.editingMetric,
-    templates: configTemplatesSelector(state),
-    filterTemplate: get(state, 'selectedConfig.editingMetric.query.customFilterTemplate'),
     groups: state.selectedConfig.group.list.sort(),
+    isTemplateValid: isTemplateValidSelector(state),
+    useInlineTemplateEditor: useInlineTemplateEditorSelector(state),
     validationErrors: editingMetricValidationErrorsSelector(state),
   };
 }

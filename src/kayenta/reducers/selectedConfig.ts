@@ -114,9 +114,24 @@ const metricList = handleActions(
       idMetrics(state.concat([action.payload.metric])),
     [Actions.REMOVE_METRIC]: (state: ICanaryMetricConfig[], action: Action & any) =>
       idMetrics(state.filter(metric => metric.id !== action.payload.id)),
+    [Actions.DELETE_TEMPLATE]: (state: ICanaryMetricConfig[], action: Action & any) =>
+      state.map(m => removeDeletedTemplateFromMetric(m, action.payload.name)),
   },
   [],
 );
+
+function removeDeletedTemplateFromMetric(metric: ICanaryMetricConfig, deletedTemplateName: string) {
+  if (get(metric, 'query.customFilterTemplate') === deletedTemplateName) {
+    return {
+      ...metric,
+      query: {
+        ...metric.query,
+        customFilterTemplate: null,
+      },
+    };
+  }
+  return metric;
+}
 
 const editingMetric = handleActions(
   {
@@ -163,6 +178,10 @@ const editingMetric = handleActions(
     [Actions.UPDATE_METRIC_SCOPE_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
       ...state,
       scopeName: action.payload.scopeName,
+    }),
+    [Actions.EDIT_INLINE_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state,
+      query: { ...state.query, customInlineTemplate: action.payload.value },
     }),
   },
   null,
@@ -444,7 +463,7 @@ const editingTemplateConfirmReducer = (state: ISelectedConfigState, action: Acti
     return state;
   }
 
-  const { name, editedName, editedValue } = state.editingTemplate;
+  const { name, editedName, editedValue, isNew } = state.editingTemplate;
   const templates = {
     ...(name ? omit(state.config.templates, name) : state.config.templates),
     [editedName]: editedValue,
@@ -463,18 +482,34 @@ const editingTemplateConfirmReducer = (state: ISelectedConfigState, action: Acti
     };
   };
 
+  // Select new template for editingMetric
+  const editingMetricUpdater = (metric: ICanaryMetricConfig) => {
+    if (isNew) {
+      return {
+        ...metric,
+        query: {
+          ...metric.query,
+          customFilterTemplate: editedName,
+        },
+      };
+    }
+    return metricUpdater(metric);
+  };
+
   return {
     ...state,
     editingTemplate: {
       name: null,
       editedName: null,
       editedValue: null,
+      isNew: false,
     },
     config: {
       ...state.config,
       templates,
     },
     metricList: (state.metricList || []).map(metricUpdater),
+    editingMetric: editingMetricUpdater(state.editingMetric),
   };
 };
 
