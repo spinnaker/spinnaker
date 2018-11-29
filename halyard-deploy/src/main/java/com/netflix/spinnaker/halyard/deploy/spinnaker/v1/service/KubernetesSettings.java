@@ -30,5 +30,5 @@ import java.util.Map;
 public class KubernetesSettings {
   List<String> imagePullSecrets = new ArrayList<>();
   Map<String, String> podAnnotations = new HashMap<>();
-
+  List<ConfigSource> volumes = new ArrayList<>();
 }
