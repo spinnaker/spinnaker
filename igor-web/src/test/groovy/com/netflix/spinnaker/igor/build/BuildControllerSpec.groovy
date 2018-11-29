@@ -121,7 +121,7 @@ class BuildControllerSpec extends Specification {
         then:
         1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
         1 * buildMasters.map >> [MASTER: jenkinsService]
-        response.contentAsString == "{\"executable\":{\"number\":${QUEUED_JOB_NUMBER}},\"number\":${QUEUED_JOB_NUMBER}}"
+        response.contentAsString == "{\"executable\":{\"number\":${QUEUED_JOB_NUMBER}},\"id\":null,\"number\":${QUEUED_JOB_NUMBER}}"
     }
 
     void 'deserialize a queue response'() {
@@ -130,6 +130,37 @@ class BuildControllerSpec extends Specification {
 
         when:
         def queuedJob = objectMapper.readValue("<hudson><executable><number>${QUEUED_JOB_NUMBER}</number></executable></hudson>", QueuedJob.class)
+
+        then:
+        queuedJob.number == QUEUED_JOB_NUMBER
+    }
+
+    void 'deserialize a more realistic queue response'() {
+        given:
+        def objectMapper = JenkinsConfig.getObjectMapper()
+
+        when:
+        def queuedJob = objectMapper.readValue(
+            "<buildableItem _class=\"hudson.model.Queue\$BuildableItem\">\n" +
+            "    <action _class=\"hudson.model.ParametersAction\">\n" +
+            "        <parameter _class=\"hudson.model.StringParameterValue\">\n" +
+            "            <name>CLUSTER_NAME</name>\n" +
+            "            <value>aspera-ingestqc</value>\n" +
+            "        </parameter>\n" +
+            "    </action>\n" +
+            "    <action _class=\"hudson.model.CauseAction\">\n" +
+            "        <cause _class=\"hudson.model.Cause\$UserIdCause\">\n" +
+            "            <shortDescription>Started by user buildtest</shortDescription>\n" +
+            "            <userId>buildtest</userId>\n" +
+            "            <userName>buildtest</userName>\n" +
+            "        </cause>\n" +
+            "    </action>\n" +
+            "    <blocked>false</blocked>\n" +
+            "    <buildable>true</buildable>\n" +
+            "    <id>${QUEUED_JOB_NUMBER}</id>" +
+            "    <stuck>true</stuck>" +
+            "    <pending>false</pending>" +
+            "</buildableItem>", QueuedJob.class)
 
         then:
         queuedJob.number == QUEUED_JOB_NUMBER

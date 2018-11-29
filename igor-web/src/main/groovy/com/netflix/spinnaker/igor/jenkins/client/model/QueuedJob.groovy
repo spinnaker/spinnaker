@@ -25,9 +25,16 @@ class QueuedJob {
     @XmlElement
     QueuedExecutable executable
 
+    @XmlElement
+    Integer id
+
     @XmlElement(name = 'number')
     Integer getNumber() {
-        return executable.number
+        if (executable != null) {
+            return executable.number
+        }
+
+        return id ?: null
     }
 }
 
