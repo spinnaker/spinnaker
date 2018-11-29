@@ -1,4 +1,5 @@
-import { module, IPromise, IQService } from 'angular';
+import { module, IPromise } from 'angular';
+import { $q } from 'ngimport';
 import {
   chain,
   clone,
@@ -122,7 +123,6 @@ export class AwsServerGroupConfigurationService {
   ];
 
   constructor(
-    private $q: IQService,
     private awsImageReader: any,
     private securityGroupReader: SecurityGroupReader,
     private awsInstanceTypeService: any,
@@ -145,7 +145,7 @@ export class AwsServerGroupConfigurationService {
     this.applyOverrides('beforeConfiguration', cmd);
     let imageLoader;
     if (cmd.viewState.disableImageSelection) {
-      imageLoader = this.$q.when(null);
+      imageLoader = $q.when(null);
     } else {
       imageLoader = cmd.viewState.imageId
         ? this.loadImagesFromAmi(cmd)
@@ -205,7 +205,7 @@ export class AwsServerGroupConfigurationService {
       );
     };
 
-    return this.$q
+    return $q
       .all({
         credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('aws'),
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
@@ -214,14 +214,14 @@ export class AwsServerGroupConfigurationService {
         keyPairs: KeyPairsReader.listKeyPairs(),
         packageImages: imageLoader,
         instanceTypes: this.awsInstanceTypeService.getAllTypesByRegion(),
-        enabledMetrics: this.$q.when(clone(this.enabledMetrics)),
-        healthCheckTypes: this.$q.when(clone(this.healthCheckTypes)),
-        terminationPolicies: this.$q.when(clone(this.terminationPolicies)),
+        enabledMetrics: $q.when(clone(this.enabledMetrics)),
+        healthCheckTypes: $q.when(clone(this.healthCheckTypes)),
+        terminationPolicies: $q.when(clone(this.terminationPolicies)),
       })
       .then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
-        let loadBalancerReloader = this.$q.when();
-        let securityGroupReloader = this.$q.when();
-        let instanceTypeReloader = this.$q.when();
+        let loadBalancerReloader = $q.when();
+        let securityGroupReloader = $q.when();
+        let instanceTypeReloader = $q.when();
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
         backingData.scalingProcesses = AutoScalingProcessService.listProcesses();
@@ -250,7 +250,7 @@ export class AwsServerGroupConfigurationService {
           instanceTypeReloader = this.refreshInstanceTypes(cmd, true);
         }
 
-        return this.$q.all([loadBalancerReloader, securityGroupReloader, instanceTypeReloader]).then(() => {
+        return $q.all([loadBalancerReloader, securityGroupReloader, instanceTypeReloader]).then(() => {
           this.applyOverrides('afterConfiguration', cmd);
           this.attachEventHandlers(cmd);
         });
@@ -265,7 +265,7 @@ export class AwsServerGroupConfigurationService {
     });
   }
 
-  public loadImagesFromApplicationName(application: Application, provider: string): any {
+  public loadImagesFromApplicationName(application: Application, provider: string): IPromise<any> {
     return this.awsImageReader.findImages({
       provider,
       q: application.name.replace(/_/g, '[_\\-]') + '*',
