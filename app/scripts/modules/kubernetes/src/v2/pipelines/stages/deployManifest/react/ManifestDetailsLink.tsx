@@ -2,6 +2,8 @@ import * as React from 'react';
 import { IManifest, Application, ReactInjector, AccountService } from '@spinnaker/core';
 import { get, trim } from 'lodash';
 
+const UNMAPPED_K8S_RESOURCE_STATE_KEY = 'kubernetesResource';
+
 export interface IManifestDetailsProps {
   manifest: IManifest;
   linkName: string;
@@ -38,10 +40,17 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> 
 
   private openDetails(stateKey: string) {
     const { $state } = ReactInjector;
-    const region = this.resourceRegion();
-    const params: { [k: string]: string } = { accountId: this.props.accountId, provider: 'kubernetes', region };
+    const params: { [k: string]: string } = {
+      accountId: this.props.accountId,
+      provider: 'kubernetes',
+      region: this.resourceRegion(),
+    };
     const kind = this.props.manifest.manifest.kind.toLowerCase();
-    params[stateKey] = `${kind} ${this.props.manifest.manifest.metadata.name}`;
+    const name = this.props.manifest.manifest.metadata.name;
+    if (!params.region && kind === 'namespace' && stateKey === UNMAPPED_K8S_RESOURCE_STATE_KEY) {
+      params.region = name;
+    }
+    params[stateKey] = `${kind} ${name}`;
     $state.go(`home.applications.application.insight.clusters.${stateKey}`, params);
   }
 
@@ -50,7 +59,7 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> 
     const { accountId } = this.props;
     AccountService.getAccountDetails(accountId).then(account => {
       const spinnakerKind = this.spinnakerKindFromKubernetesKind(kind, account.spinnakerKindMap);
-      const stateKey = this.spinnakerKindStateMap[spinnakerKind] || 'kubernetesResource';
+      const stateKey = this.spinnakerKindStateMap[spinnakerKind] || UNMAPPED_K8S_RESOURCE_STATE_KEY;
       this.openDetails(stateKey);
     });
   }
