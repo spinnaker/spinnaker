@@ -18,14 +18,14 @@ apply plugin: "kotlin-spring"
 apply from: "$rootDir/gradle/junit4.gradle"
 
 dependencies {
-  implementation project(":keel-rule-engine")
+  implementation project(":keel-api")
   implementation "com.netflix.spinnaker.kork:kork-jedis:2.+"
   implementation "com.netflix.spinnaker.kork:kork-dynomite:2.+"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
 
   testImplementation "io.strikt:strikt-core:+"
   testImplementation project(":keel-spring-test-support")
-  testImplementation project(":keel-rule-engine-tck")
+  testImplementation project(":keel-api-tck")
   testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
 }
 

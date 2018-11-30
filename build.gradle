@@ -84,4 +84,4 @@ task allDependencies {
   dependsOn subprojects.collect { it.tasks["dependencies"] }
 }
 
-defaultTasks ":keel-rule-engine:run"
+defaultTasks ":keel-api:run"

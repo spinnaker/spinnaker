@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-include "keel-core",
+include "keel-api",
+  "keel-api-tck",
   "keel-clouddriver",
+  "keel-core",
   "keel-ec2",
   "keel-orca",
   "keel-plugin",
   "keel-redis",
   "keel-retrofit",
-  "keel-rule-engine",
-  "keel-rule-engine-tck",
   "keel-spring-test-support",
   "keel-veto"
 

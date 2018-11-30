@@ -14,7 +14,7 @@ dependencies {
 
   testImplementation "io.strikt:strikt-protobuf:+"
   testImplementation project(":keel-spring-test-support")
-  testImplementation project(":keel-rule-engine-tck")
+  testImplementation project(":keel-api-tck")
   testImplementation(project(":keel-ec2")) {
     because("want access to real protos to test conversion between model & proto")
   }
