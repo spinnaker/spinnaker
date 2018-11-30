@@ -5,7 +5,7 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.1.4'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.2'
   }
 }
 
@@ -79,6 +79,12 @@ allprojects {
     convention.sourceCompatibility = JavaVersion.VERSION_1_8
     convention.targetCompatibility = JavaVersion.VERSION_1_8
   }
+}
+task listrepos {
+    doLast {
+        println "Repositories:"
+        project.repositories.each { println "Name: " + it.name + "; url: " + it.url }
+   }
 }
 
 defaultTasks ':rosco-web:run'
