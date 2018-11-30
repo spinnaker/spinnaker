@@ -363,6 +363,6 @@ public class Applications {
   public ProcessStats.State getProcessState(String appGuid) throws CloudFoundryApiException {
     return safelyCall(() -> this.api.findProcessStatsById(appGuid))
       .flatMap(pr -> pr.getResources().stream().findAny().map(ProcessStats::getState))
-      .orElse(null);
+      .orElse(ProcessStats.State.DOWN);
   }
 }

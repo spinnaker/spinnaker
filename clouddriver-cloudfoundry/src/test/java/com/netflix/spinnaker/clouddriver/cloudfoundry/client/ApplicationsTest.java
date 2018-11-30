@@ -28,6 +28,9 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGr
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import io.vavr.collection.HashMap;
 import org.junit.jupiter.api.Test;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+import retrofit.mime.TypedInput;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -148,4 +151,20 @@ class ApplicationsTest {
     verify(applicationService).updateProcess("guid1", new UpdateProcess("command1", null));
   }
 
+  @Test
+  void getProcessState(){
+    ProcessStats processStats = new ProcessStats().setState(ProcessStats.State.RUNNING);
+    ProcessResources processResources = new ProcessResources().setResources(Collections.singletonList(processStats));
+    when(applicationService.findProcessStatsById(anyString())).thenReturn(processResources);
+    ProcessStats.State result = apps.getProcessState("some-app-guid");
+    assertThat(result).isEqualTo(ProcessStats.State.RUNNING);
+  }
+
+  @Test
+  void getProcessStateWhenStatsNotFound(){
+    Response errorResponse = new Response("http://capi.io", 404,"Not Found", Collections.EMPTY_LIST, null);
+    when(applicationService.findProcessStatsById(anyString())).thenThrow(RetrofitError.httpError("http://capi.io", errorResponse, null, null));
+    ProcessStats.State result = apps.getProcessState("some-app-guid");
+    assertThat(result).isEqualTo(ProcessStats.State.DOWN);
+  }
 }
