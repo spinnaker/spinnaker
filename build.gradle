@@ -47,21 +47,12 @@ subprojects {
   repositories {
     jcenter()
   }
+  
+  dependencies {
+    implementation platform("org.springframework.boot:spring-boot-dependencies:$bootVersion")
+  }
 
   configurations {
-    all {
-      resolutionStrategy {
-        eachDependency {
-          if (it.requested.group.startsWith("com.fasterxml.jackson")) {
-            it.useVersion "2.9.6"
-          }
-          if (it.requested.group.startsWith("org.springframework.boot")) {
-            it.useVersion bootVersion
-          }
-        }
-      }
-    }
-
     ["compile", "runtime", "testCompile", "testRuntime"].each { scope ->
       getByName("${scope}Classpath") {
         resolutionStrategy.activateDependencyLocking()

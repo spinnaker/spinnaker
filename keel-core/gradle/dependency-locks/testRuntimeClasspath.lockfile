@@ -1,11 +1,11 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
-com.fasterxml.jackson.core:jackson-annotations:2.9.6
-com.fasterxml.jackson.core:jackson-core:2.9.6
-com.fasterxml.jackson.core:jackson-databind:2.9.6
-com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.6
-com.fasterxml.jackson.module:jackson-module-kotlin:2.9.6
+com.fasterxml.jackson.core:jackson-annotations:2.9.0
+com.fasterxml.jackson.core:jackson-core:2.9.7
+com.fasterxml.jackson.core:jackson-databind:2.9.7
+com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.7
+com.fasterxml.jackson.module:jackson-module-kotlin:2.9.7
 com.google.code.findbugs:jsr305:3.0.2
 com.google.code.gson:gson:2.8.5
 com.google.errorprone:error_prone_annotations:2.2.0
@@ -43,4 +43,5 @@ org.junit.vintage:junit-vintage-engine:5.3.2
 org.mockito:mockito-core:2.8.9
 org.objenesis:objenesis:2.5
 org.opentest4j:opentest4j:1.1.1
-org.yaml:snakeyaml:1.18
+org.springframework.boot:spring-boot-dependencies:1.5.14.RELEASE
+org.yaml:snakeyaml:1.23

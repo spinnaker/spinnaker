@@ -10,5 +10,5 @@ dependencies {
 
   testImplementation "io.strikt:strikt-core:+"
   testImplementation "com.oneeyedmen:minutest:+"
-  testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:+"
+  testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 }

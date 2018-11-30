@@ -28,6 +28,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.map
+import java.io.Reader
 import java.io.StringReader
 import java.net.HttpURLConnection.HTTP_NOT_FOUND
 import java.net.HttpURLConnection.HTTP_OK
@@ -53,8 +54,9 @@ internal object KubernetesIntegrationTest {
   private val extensionsApi = ApiextensionsV1beta1Api(client)
   private val customObjectsApi = CustomObjectsApi(client)
   val crdName = "security-groups.ec2.${SPINNAKER_API_V1.group}"
-  private val crdLocator = { ->
-    """---
+  private val crdLocator = object : CustomResourceDefinitionLocator {
+    override fun locate(): Reader =
+      """---
       |apiVersion: apiextensions.k8s.io/v1beta1
       |kind: CustomResourceDefinition
       |metadata:
@@ -67,7 +69,7 @@ internal object KubernetesIntegrationTest {
       |    plural: security-groups
       |  scope: Cluster
     """.trimMargin()
-      .let(::StringReader)
+        .let(::StringReader)
   }
 
 
@@ -133,7 +135,11 @@ internal object KubernetesIntegrationTest {
   fun `kubernetes integration`() = junitTests<CustomResourceDefinitionRegistrar> {
     if (assumeK8sAvailable()) {
       fixture {
-        CustomResourceDefinitionRegistrar(extensionsApi, crdLocator)
+        CustomResourceDefinitionRegistrar(extensionsApi, listOf(crdLocator))
+      }
+
+      before {
+        registerCustomResourceDefinition()
       }
 
       after {
@@ -157,8 +163,6 @@ internal object KubernetesIntegrationTest {
       }
 
       test("can see the CRD after registering it") {
-        val crd = registerCustomResourceDefinition()
-
         val response = extensionsApi.listCustomResourceDefinition(
           "true",
           "true",
@@ -173,12 +177,12 @@ internal object KubernetesIntegrationTest {
 
         expectThat(response.items)
           .map { it.metadata.name }
-          .contains(crd.metadata.name)
+          .contains(crdName)
       }
 
       derivedContext<Fixture<SecurityGroup>>("no objects of the type have been defined") {
         deriveFixture {
-          Fixture(registerCustomResourceDefinition())
+          Fixture(extensionsApi.readCustomResourceDefinition(crdName, "true", null, null))
         }
 
         test("there should be zero objects") {
@@ -200,7 +204,7 @@ internal object KubernetesIntegrationTest {
 
       derivedContext<Fixture<SecurityGroup>>("an object has been registered") {
         deriveFixture {
-          Fixture(registerCustomResourceDefinition())
+          Fixture(extensionsApi.readCustomResourceDefinition(crdName, "true", null, null))
         }
 
         before {

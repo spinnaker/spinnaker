@@ -1,0 +1,12 @@
+apply plugin: "java-library"
+apply plugin: "kotlin-spring"
+apply from: "$rootDir/gradle/junit5.gradle"
+
+dependencies {
+  implementation project(":keel-plugin")
+  implementation "com.netflix.spinnaker.kork:kork-core:2.+"
+
+  testImplementation "io.strikt:strikt-core:+"
+  testImplementation "com.oneeyedmen:minutest:+"
+  testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+}

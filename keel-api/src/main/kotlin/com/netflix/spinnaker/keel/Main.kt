@@ -15,9 +15,10 @@
  */
 package com.netflix.spinnaker.keel
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
+import com.netflix.spinnaker.keel.plugin.CustomResourceDefinitionLocator
+import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,30 +26,28 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
 import java.time.Clock
 import javax.annotation.PostConstruct
 
-object MainDefaults {
-  val PROPS = mapOf(
-    "netflix.environment" to "test",
-    "netflix.account" to "\${netflix.environment}",
-    "netflix.stack" to "test",
-    "spring.config.location" to "\${user.home}/.spinnaker/",
-    "spring.application.name" to "keel",
-    "spring.config.name" to "spinnaker,\${spring.application.name}",
-    "spring.profiles.active" to "\${netflix.environment},local"
-  )
-}
+private val DEFAULT_PROPS = mapOf(
+  "netflix.environment" to "test",
+  "netflix.account" to "\${netflix.environment}",
+  "netflix.stack" to "test",
+  "spring.config.location" to "\${user.home}/.spinnaker/",
+  "spring.application.name" to "keel",
+  "spring.config.name" to "spinnaker,\${spring.application.name}",
+  "spring.profiles.active" to "\${netflix.environment},local"
+)
 
-@SpringBootApplication
-@ComponentScan(basePackages = [
-  "com.netflix.spinnaker.config",
-  "com.netflix.spinnaker.keel"
-])
+@SpringBootApplication(
+  scanBasePackages = [
+    "com.netflix.spinnaker.config",
+    "com.netflix.spinnaker.keel"
+  ]
+)
 @Import(PlatformComponents::class)
-class RuleEngineApp {
+class KeelApplication {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -60,22 +59,27 @@ class RuleEngineApp {
   @ConditionalOnMissingBean
   fun assetRepository(clock: Clock): AssetRepository = InMemoryAssetRepository(clock)
 
+  @Bean
+  @ConditionalOnMissingBean(CustomResourceDefinitionLocator::class)
+  fun noCustomResourceDefinitions(): List<CustomResourceDefinitionLocator> = emptyList()
+
   @Autowired
   lateinit var assetRepository: AssetRepository
 
-  @Autowired
-  lateinit var objectMapper: ObjectMapper
+  @Autowired(required = false)
+  var plugins: List<KeelPlugin> = emptyList()
 
   @PostConstruct
   fun initialStatus() {
     log.info("Using {} asset repository implementation", assetRepository.javaClass.simpleName)
+    log.info("Using plugins: {}", plugins.joinToString { it.name })
   }
 }
 
 fun main(vararg args: String) {
   SpringApplicationBuilder()
-    .properties(MainDefaults.PROPS)
-    .sources<RuleEngineApp>()
+    .properties(DEFAULT_PROPS)
+    .sources<KeelApplication>()
     .run(*args)
 }
 

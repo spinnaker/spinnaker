@@ -7,13 +7,13 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
   implementation("io.kubernetes:client-java:3.0.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:+")
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:[2.9.6,)"
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
-  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:[2.9.6,)"
-  implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda:[2.9.6,)"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-joda"
 
-  testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
-  testImplementation "org.springframework.boot:spring-boot-starter-test:$bootVersion"
+  testImplementation "org.springframework.boot:spring-boot-starter-web"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "com.oneeyedmen:minutest:+"
   testImplementation "io.strikt:strikt-core:+"
 }

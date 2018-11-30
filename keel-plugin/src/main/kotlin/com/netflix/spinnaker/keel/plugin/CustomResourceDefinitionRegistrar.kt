@@ -32,18 +32,25 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 import java.io.Reader
 import java.net.HttpURLConnection.HTTP_CONFLICT
 import java.net.HttpURLConnection.HTTP_NOT_FOUND
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.annotation.PostConstruct
 
-internal class CustomResourceDefinitionRegistrar(
+@Component
+class CustomResourceDefinitionRegistrar(
   private val extensionsApi: ApiextensionsV1beta1Api,
-  private val locator: () -> Reader
+  private val locators: List<CustomResourceDefinitionLocator>
 ) {
-  fun registerCustomResourceDefinition(): V1beta1CustomResourceDefinition =
-    locator().let(::getOrCreate)
+  @PostConstruct
+  fun registerCustomResourceDefinition() {
+    locators.forEach {
+      getOrCreate(it.locate())
+    }
+  }
 
   private fun getOrCreate(reader: Reader): V1beta1CustomResourceDefinition {
     val parsed = try {
@@ -82,6 +89,7 @@ internal class CustomResourceDefinitionRegistrar(
         return extensionsApi.getCustomResourceDefinition(name)
           ?: throw IllegalStateException("CRD $name could not be registered, but can't be found either")
       } else {
+        log.error("Error from Kubernetes when registering CRD {}: {}", name, e.responseBody)
         throw e
       }
     }
@@ -105,7 +113,7 @@ internal class CustomResourceDefinitionRegistrar(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
 
-private fun ApiextensionsV1beta1Api.getCustomResourceDefinition(name: String): V1beta1CustomResourceDefinition? =
+fun ApiextensionsV1beta1Api.getCustomResourceDefinition(name: String): V1beta1CustomResourceDefinition? =
   try {
     readCustomResourceDefinition(name, "true", null, null)
   } catch (e: ApiException) {

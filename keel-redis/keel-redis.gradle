@@ -21,12 +21,12 @@ dependencies {
   implementation project(":keel-api")
   implementation "com.netflix.spinnaker.kork:kork-jedis:2.+"
   implementation "com.netflix.spinnaker.kork:kork-dynomite:2.+"
-  implementation "com.fasterxml.jackson.module:jackson-module-kotlin:[2.9.6,)"
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
   testImplementation "io.strikt:strikt-core:+"
   testImplementation project(":keel-spring-test-support")
   testImplementation project(":keel-api-tck")
-  testImplementation "org.springframework.boot:spring-boot-starter-web:$bootVersion"
+  testImplementation "org.springframework.boot:spring-boot-starter-web"
 }
 
 test {
