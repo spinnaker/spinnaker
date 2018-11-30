@@ -19,11 +19,11 @@ export function EvaluateVariablesExecutionDetails(props: IExecutionDetailsSectio
 
   const evaluatedVariables = context.variables ? (
     <div>
-      <dl>
+      <dl className="dl-horizontal">
         {context.variables.map(({ key }: IEvaluatedVariable) => (
           <React.Fragment key={key}>
             <dt>{key}</dt>
-            <dd>{outputs[key] || '-'}</dd>
+            <dd>{outputs[key]}</dd>
           </React.Fragment>
         ))}
       </dl>
