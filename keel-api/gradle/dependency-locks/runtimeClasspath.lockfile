@@ -33,10 +33,6 @@ com.netflix.spectator:spectator-ext-aws:0.75.0
 com.netflix.spectator:spectator-ext-gc:0.75.0
 com.netflix.spectator:spectator-ext-jvm:0.75.0
 com.netflix.spectator:spectator-web-spring:0.75.0
-com.netflix.spinnaker.keiko:keiko-core:2.9.6
-com.netflix.spinnaker.keiko:keiko-redis-spring:2.9.6
-com.netflix.spinnaker.keiko:keiko-redis:2.9.6
-com.netflix.spinnaker.keiko:keiko-spring:2.9.6
 com.netflix.spinnaker.kork:kork-core:2.6.0
 com.sun.jersey.contribs:jersey-apache-client4:1.19.1
 com.sun.jersey:jersey-client:1.19.1
@@ -55,7 +51,6 @@ joda-time:joda-time:2.8.1
 org.antlr:antlr-runtime:3.4
 org.antlr:stringtemplate:3.2.1
 org.apache.commons:commons-math:2.2
-org.apache.commons:commons-pool2:2.4.2
 org.apache.httpcomponents:httpclient:4.5.5
 org.apache.httpcomponents:httpcore:4.4.9
 org.apache.tomcat.embed:tomcat-embed-core:8.5.31
@@ -65,7 +60,6 @@ org.apache.tomcat:tomcat-annotations-api:8.5.31
 org.checkerframework:checker-qual:2.5.2
 org.codehaus.jettison:jettison:1.3.7
 org.codehaus.mojo:animal-sniffer-annotations:1.17
-org.funktionale:funktionale-partials:1.1
 org.hibernate:hibernate-validator:5.3.6.Final
 org.jboss.logging:jboss-logging:3.3.0.Final
 org.jetbrains.kotlin:kotlin-reflect:1.3.10
@@ -96,7 +90,6 @@ org.springframework:spring-expression:4.3.18.RELEASE
 org.springframework:spring-web:4.3.18.RELEASE
 org.springframework:spring-webmvc:4.3.18.RELEASE
 org.yaml:snakeyaml:1.18
-redis.clients:jedis:2.9.0
 software.amazon.ion:ion-java:1.0.2
 stax:stax-api:1.0.1
 xmlpull:xmlpull:1.1.3.1

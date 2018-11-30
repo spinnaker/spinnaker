@@ -18,8 +18,6 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.redis.RedisAssetRepository
-import com.netflix.spinnaker.keel.redis.RedisPluginRepository
-import com.netflix.spinnaker.keel.registry.PluginRepository
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientConfiguration
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
@@ -31,10 +29,6 @@ import java.time.Clock
 @Configuration
 @Import(JedisClientConfiguration::class, DynomiteClientConfiguration::class)
 class RedisConfiguration {
-  @Bean
-  fun pluginRepository(redisClientSelector: RedisClientSelector): PluginRepository =
-    RedisPluginRepository(redisClientSelector.primary("default"))
-
   @Bean
   fun assetRepository(redisClientSelector: RedisClientSelector, objectMapper: ObjectMapper, clock: Clock): AssetRepository =
     RedisAssetRepository(redisClientSelector.primary("default"), objectMapper, clock)
