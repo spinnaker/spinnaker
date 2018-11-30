@@ -1,5 +1,4 @@
 import { IServerGroup, IServerGroupManager } from 'core/domain';
-// import { NameUtils } from 'core/naming';
 
 import { IOwnerOption } from './EntityTagEditor';
 

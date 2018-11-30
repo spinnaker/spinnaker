@@ -105,7 +105,7 @@ export class EntityTagsReader {
     const allTags = application.getDataSource('entityTags').data;
     const pipelineTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'pipeline');
     application.getDataSource('pipelineConfigs').data.forEach((pipeline: IPipeline) => {
-      pipeline.entityTags = pipelineTags.find(t => t.entityRef.entityId === pipeline.name);
+      pipeline.entityTags = pipelineTags.find(t => t.entityRef.entityId === pipeline.id);
     });
   }
 
