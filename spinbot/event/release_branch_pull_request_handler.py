@@ -1,6 +1,6 @@
 from .handler import Handler
 from .pull_request_event import GetBaseBranch, GetPullRequest, GetTitle, GetRepo
-from gh import ReleaseBranchFor, ParseCommitMessage
+from gh import ReleaseBranchFor, ParseCommitMessage, FormatCommit
 
 format_message = ('Features cannot be merged into release branches. The following commits ' +
     'are not tagged as one of "{}":\n\n{}\n\n' +
@@ -43,7 +43,7 @@ class ReleaseBranchPullRequestHandler(Handler):
         if len(bad_commits) > 0:
             pull_request.create_issue_comment(format_message.format(
                 ', '.join(self.allowed_types),
-                '\n\n'.join(map(lambda c: '{}: {}'.format(c.sha, c.message), bad_commits))
+                '\n\n'.join(map(lambda c: ' * {}'.format(FormatCommit(c)), bad_commits))
             ))
 
 ReleaseBranchPullRequestHandler()
