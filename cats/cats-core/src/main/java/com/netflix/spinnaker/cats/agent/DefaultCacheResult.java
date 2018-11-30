@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.cats.agent;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
+import lombok.Getter;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,13 +29,20 @@ import java.util.Map;
 public class DefaultCacheResult implements CacheResult {
     private final Map<String, Collection<CacheData>> cacheResults;
     private final Map<String, Collection<String>> evictions;
+    @Getter
+    private final Map<String, Object> introspectionDetails;
 
     public DefaultCacheResult(Map<String, Collection<CacheData>> cacheResults) {
       this(cacheResults, new HashMap<>());
     }
     public DefaultCacheResult(Map<String, Collection<CacheData>> cacheResults, Map<String, Collection<String>> evictions) {
+      this(cacheResults, evictions, new HashMap<>());
+    }
+
+    public DefaultCacheResult(Map<String, Collection<CacheData>> cacheResults, Map<String, Collection<String>> evictions, Map<String, Object> introspectionDetails) {
         this.cacheResults = cacheResults;
         this.evictions = evictions;
+        this.introspectionDetails = introspectionDetails;
     }
 
     @Override

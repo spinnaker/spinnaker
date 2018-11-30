@@ -40,4 +40,8 @@ public interface CacheResult {
    * @return The ids of items that should be explicitly evicted.
    */
   default Map<String, Collection<String>> getEvictions() { return Collections.emptyMap(); }
+
+  default Map<String, Object> getIntrospectionDetails() {
+    return Collections.emptyMap();
+  }
 }

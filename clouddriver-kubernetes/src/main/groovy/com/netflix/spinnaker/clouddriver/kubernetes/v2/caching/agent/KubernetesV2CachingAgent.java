@@ -70,6 +70,13 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     throw new NotImplementedException("No primary kind registered, this is an implementation error.");
   }
 
+  protected Map<String, Object> defaultIntrospectionDetails() {
+    Map<String, Object> result = new HashMap<>();
+    result.put("namespaces", namespaces);
+    result.put("kinds", primaryKinds());
+    return result;
+  }
+
   protected List<KubernetesKind> primaryKinds() {
     return Collections.singletonList(primaryKind());
   }
@@ -117,9 +124,13 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
   public CacheResult loadData(ProviderCache providerCache) {
     log.info(getAgentType() + " is starting");
     reloadNamespaces();
+    Map<String, Object> details = defaultIntrospectionDetails();
 
     try {
-      return buildCacheResult(loadPrimaryResourceList());
+      Long start = System.currentTimeMillis();
+      Map<KubernetesKind, List<KubernetesManifest>> primaryResourceList = loadPrimaryResourceList();
+      details.put("timeSpentInKubectlMs", System.currentTimeMillis() - start);
+      return buildCacheResult(primaryResourceList);
     } catch (KubectlJobExecutor.NoResourceTypeException e) {
       log.warn(getAgentType() + ": resource for this caching agent is not supported for this cluster");
       return new DefaultCacheResult(new HashMap<>());

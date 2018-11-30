@@ -18,6 +18,7 @@ package com.netflix.spinnaker.cats.cache;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.Clock;
 import java.util.Collection;
 import java.util.HashMap;

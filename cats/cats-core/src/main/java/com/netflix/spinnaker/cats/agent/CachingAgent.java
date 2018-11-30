@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import com.netflix.spinnaker.cats.cache.AgentIntrospection;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.CacheIntrospectionStore;
+import com.netflix.spinnaker.cats.cache.DefaultAgentIntrospection;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import org.slf4j.Logger;
@@ -70,7 +73,11 @@ public interface CachingAgent extends Agent {
 
     @Override
     public void executeAgent(Agent agent) {
-      storeAgentResult(agent, executeAgentWithoutStore(agent));
+      AgentIntrospection introspection = new DefaultAgentIntrospection(agent);
+      CacheResult result = executeAgentWithoutStore(agent);
+      introspection.finish(result);
+      CacheIntrospectionStore.getStore().recordAgent(introspection);
+      storeAgentResult(agent, result);
     }
 
     public CacheResult executeAgentWithoutStore(Agent agent) {

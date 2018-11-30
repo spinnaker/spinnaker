@@ -39,6 +39,10 @@ public abstract class KubernetesCachingAgent<C extends KubernetesCredentials> im
 
   protected List<String> namespaces;
 
+  public List<String> getNamespaces() {
+    return namespaces;
+  }
+
   protected KubernetesCachingAgent(KubernetesNamedAccountCredentials<C> namedAccountCredentials,
       ObjectMapper objectMapper,
       Registry registry,
