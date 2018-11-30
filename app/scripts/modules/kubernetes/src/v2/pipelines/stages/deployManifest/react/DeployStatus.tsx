@@ -105,7 +105,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
   }
 
   public render() {
-    const { name: sectionName, current: currentSection, application, stage } = this.props;
+    const { name: sectionName, current: currentSection, stage } = this.props;
     const manifests: IManifest[] = this.state.subscriptions.filter(sub => !!sub.manifest).map(sub => sub.manifest);
     return (
       <ExecutionDetailsSection name={sectionName} current={currentSection}>
@@ -116,7 +116,7 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
               <div className="well alert alert-info">
                 {manifests.map(manifest => {
                   const uid = manifest.manifest.metadata.uid || this.manifestIdentifier(manifest.manifest);
-                  return <ManifestStatus key={uid} manifest={manifest} application={application} stage={stage} />;
+                  return <ManifestStatus key={uid} manifest={manifest} stage={stage} />;
                 })}
               </div>
             </div>

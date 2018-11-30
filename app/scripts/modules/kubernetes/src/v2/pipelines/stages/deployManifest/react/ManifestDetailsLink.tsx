@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IManifest, Application, ReactInjector, AccountService } from '@spinnaker/core';
+import { IManifest, ReactInjector, AccountService } from '@spinnaker/core';
 import { get, trim } from 'lodash';
 
 const UNMAPPED_K8S_RESOURCE_STATE_KEY = 'kubernetesResource';
@@ -7,11 +7,14 @@ const UNMAPPED_K8S_RESOURCE_STATE_KEY = 'kubernetesResource';
 export interface IManifestDetailsProps {
   manifest: IManifest;
   linkName: string;
-  application: Application;
   accountId: string;
 }
 
-export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> {
+export interface IManifestDetailsState {
+  url: string;
+}
+
+export class ManifestDetailsLink extends React.Component<IManifestDetailsProps, IManifestDetailsState> {
   private spinnakerKindStateMap: { [k: string]: string } = {
     // keys from clouddriver's KubernetesSpinnakerKindMap
     serverGroupManagers: 'serverGroupManager',
@@ -20,11 +23,14 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> 
 
   constructor(props: IManifestDetailsProps) {
     super(props);
-    this.onClick = this.onClick.bind(this);
+    this.state = {
+      url: '',
+    };
+    this.loadUrl();
   }
 
   private canOpen(): boolean {
-    return !!this.props.manifest.manifest;
+    return !!this.props.manifest.manifest && !!this.state.url;
   }
 
   private spinnakerKindFromKubernetesKind(kind: string, kindMap: { [k: string]: string }) {
@@ -38,36 +44,39 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps> 
     );
   }
 
-  private openDetails(stateKey: string) {
-    const { $state } = ReactInjector;
+  private getStateParams(stateKey: string): any {
+    const kind = this.props.manifest.manifest.kind.toLowerCase();
+    const name = this.props.manifest.manifest.metadata.name;
+    const region = this.resourceRegion();
     const params: { [k: string]: string } = {
       accountId: this.props.accountId,
       provider: 'kubernetes',
-      region: this.resourceRegion(),
+      region,
+      reg: region, // Filters the list of clusters on the Clusters screen to those in the same namespace
+      [stateKey]: `${kind} ${name}`,
     };
-    const kind = this.props.manifest.manifest.kind.toLowerCase();
-    const name = this.props.manifest.manifest.metadata.name;
     if (!params.region && kind === 'namespace' && stateKey === UNMAPPED_K8S_RESOURCE_STATE_KEY) {
       params.region = name;
     }
-    params[stateKey] = `${kind} ${name}`;
-    $state.go(`home.applications.application.insight.clusters.${stateKey}`, params);
+    return params;
   }
 
-  public onClick() {
+  private loadUrl() {
     const kind: string = get(this.props, ['manifest', 'manifest', 'kind'], '');
     const { accountId } = this.props;
     AccountService.getAccountDetails(accountId).then(account => {
       const spinnakerKind = this.spinnakerKindFromKubernetesKind(kind, account.spinnakerKindMap);
       const stateKey = this.spinnakerKindStateMap[spinnakerKind] || UNMAPPED_K8S_RESOURCE_STATE_KEY;
-      this.openDetails(stateKey);
+      const params = this.getStateParams(stateKey);
+      const url = ReactInjector.$state.href(`home.applications.application.insight.clusters.${stateKey}`, params);
+      this.setState({ url });
     });
   }
 
   public render() {
     if (this.canOpen()) {
       return (
-        <a onClick={this.onClick} className="clickable">
+        <a href={this.state.url} className="clickable">
           {this.props.linkName}
         </a>
       );
