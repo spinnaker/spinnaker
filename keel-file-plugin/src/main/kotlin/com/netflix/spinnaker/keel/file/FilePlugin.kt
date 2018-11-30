@@ -34,7 +34,7 @@ class FilePlugin(
   }
 
   override val supportedKinds: Map<String, KClass<out Any>> = mapOf(
-    "Messages.file.${SPINNAKER_API_V1.group}" to Message::class
+    "messages.file.${SPINNAKER_API_V1.group}" to Message::class
   )
 
   override fun current(request: Asset<*>): CurrentResponse {

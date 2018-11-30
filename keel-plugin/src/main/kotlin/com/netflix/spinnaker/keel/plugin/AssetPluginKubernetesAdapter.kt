@@ -33,7 +33,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.slf4j.LoggerFactory
 import java.net.SocketException
+import java.net.SocketTimeoutException
 import javax.annotation.PostConstruct
+import javax.annotation.PreDestroy
 import kotlin.reflect.KClass
 
 internal class AssetPluginKubernetesAdapter(
@@ -45,28 +47,25 @@ internal class AssetPluginKubernetesAdapter(
   private var calls: MutableMap<String, Call> = mutableMapOf()
 
   @PostConstruct
-  fun init() {
-    log.info("AssetPluginKubernetesAdapter for {}", plugin.name)
-  }
-
   fun start() {
-    runBlocking {
-      launch {
-        if (job != null) throw IllegalStateException("Watcher for ${plugin.name} already running")
-        job = GlobalScope.launch {
-          for ((name, type) in plugin.supportedKinds) {
-            val crd = extensionsApi
-              .readCustomResourceDefinition(name, "true", null, null)
-            watchForResourceChanges(crd, type)
-          }
+    log.info("Starting Kubernetes agent for {}", plugin.name)
+
+    if (job != null) throw IllegalStateException("Watcher for ${plugin.name} already running")
+    job = GlobalScope.launch {
+      for ((name, type) in plugin.supportedKinds) {
+        launch {
+          val crd = extensionsApi
+            .readCustomResourceDefinition(name, "true", null, null)
+          watchForResourceChanges(crd, type)
         }
       }
-        .join()
-      log.debug("All CRDs are registered")
     }
   }
 
+  @PreDestroy
   fun stop() {
+    log.info("Stopping Kubernetes agent for {}", plugin.name)
+
     runBlocking {
       job?.cancel()
       calls.forEach { _, call -> call.cancel() }
@@ -93,6 +92,7 @@ internal class AssetPluginKubernetesAdapter(
       )
       calls[crd.metadata.name] = call
       try {
+        log.info("Watching for changes to {} (spec: {})", crd.metadata.name, type.simpleName)
         call
           .createResourceWatch(type)
           .use { watch ->
@@ -111,8 +111,10 @@ internal class AssetPluginKubernetesAdapter(
             }
           }
       } catch (e: Exception) {
-        if (e.cause is SocketException) {
-          log.debug("Socket timed out or call was cancelled.")
+        if (e.cause is SocketTimeoutException) {
+          log.debug("Socket timed out.")
+        } else if (e.cause is SocketException) {
+          log.debug("Call was cancelled?")
         } else {
           throw e
         }
@@ -129,7 +131,6 @@ internal class AssetPluginKubernetesAdapter(
   private fun <T : Any> Call.createResourceWatch(type: KClass<T>): Watch<Asset<T>> =
     TypeToken.getParameterized(Asset::class.java, type.java).type
       .let { TypeToken.getParameterized(Watch.Response::class.java, it).type }
-      .also { log.info("Watching for $it") }
       .let { createWatch<Asset<T>>(Config.defaultClient(), this, it) }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
