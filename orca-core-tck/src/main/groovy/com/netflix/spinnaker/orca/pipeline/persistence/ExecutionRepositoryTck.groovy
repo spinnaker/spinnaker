@@ -224,7 +224,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     )
 
     then:
-    orchestrations*.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
+    orchestrations*.id == ['not-started-2', 'not-started-1', 'pretty-new', 'not-too-old']
 
     where:
     daysOfExecutionHistory = 14

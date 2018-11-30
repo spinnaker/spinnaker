@@ -100,7 +100,7 @@ public interface ExecutionRepository {
   List<String> retrieveAllApplicationNames(@Nullable ExecutionType executionType, int minExecutions);
 
   boolean hasExecution(@Nonnull ExecutionType type, @Nonnull String id);
-  
+
   List<String> retrieveAllExecutionIds(@Nonnull ExecutionType type);
 
   final class ExecutionCriteria {
@@ -178,13 +178,23 @@ public interface ExecutionRepository {
       }
     },
 
+    /**
+     * Sort executions nulls first, then by startTime descending, breaking ties by lexicographically descending IDs.
+     */
     START_TIME_OR_ID {
       @Override
       public int compare(Execution a, Execution b) {
-        Long aStartTime = Optional.ofNullable(a.getStartTime()).orElse(0L);
-        Long bStartTime = Optional.ofNullable(b.getStartTime()).orElse(0L);
+        Long aStartTime = a.getStartTime();
+        Long bStartTime = b.getStartTime();
 
-        int startCompare = aStartTime.compareTo(bStartTime);
+        if (aStartTime == null) {
+          return -1;
+        }
+        if (bStartTime == null) {
+          return 0;
+        }
+
+        int startCompare = bStartTime.compareTo(aStartTime);
         if (startCompare == 0) {
           return b.getId().compareTo(a.getId());
         }

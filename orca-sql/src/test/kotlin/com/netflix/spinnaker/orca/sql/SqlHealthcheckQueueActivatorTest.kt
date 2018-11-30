@@ -16,62 +16,59 @@
 package com.netflix.spinnaker.orca.sql
 
 import com.netflix.spectator.api.NoopRegistry
-import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.isA
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.whenever
+import com.oneeyedmen.minutest.junit.JupiterTests
+import com.oneeyedmen.minutest.junit.context
 import org.jooq.DSLContext
 import org.jooq.DeleteWhereStep
 import org.jooq.Table
 import strikt.api.expect
 import strikt.assertions.isEqualTo
 
-object SqlHealthcheckQueueActivatorSpec : Spek({
+class SqlHealthcheckQueueActivatorTest : JupiterTests {
 
-  describe("healthchecking sql") {
+  override val tests = context<Unit> {
 
     val dslContext = mock<DSLContext>()
     val query = mock<DeleteWhereStep<*>>()
 
-    given("a healthy current state") {
+    after {
+      reset(dslContext, query)
+    }
+
+    context("a healthy current state") {
       val subject = SqlHealthcheckActivator(dslContext, NoopRegistry(), unhealthyThreshold = 1).apply {
         _enabled.set(true)
       }
 
-      afterEachTest { reset(dslContext, query) }
-
-      on("successive write failures") {
+      test("successive write failures") {
         whenever(dslContext.delete(isA<Table<*>>())) doThrow RuntimeException("oh no")
 
         subject.performWrite()
         subject.performWrite()
 
-        it("deactivates its enabled flag") {
-          expect(subject.enabled).isEqualTo(false)
-        }
+        expect(subject.enabled).isEqualTo(false)
       }
     }
 
-    given("an unhealthy sql connection") {
+    context("an unhealthy sql connection") {
       val subject = SqlHealthcheckActivator(dslContext, NoopRegistry(), healthyThreshold = 1).apply {
         _enabled.set(false)
       }
 
-      afterEachTest { reset(dslContext, query) }
-
-      on("successive write failures") {
+      test("successive write failures") {
         whenever(dslContext.delete(isA<Table<*>>())) doReturn query
 
         subject.performWrite()
         subject.performWrite()
 
-        it("deactivates its enabled flag") {
-          expect(subject.enabled).isEqualTo(true)
-        }
+        expect(subject.enabled).isEqualTo(true)
       }
-
     }
   }
-})
+}

@@ -51,7 +51,10 @@ import org.jooq.SelectWhereStep
 import org.jooq.Table
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.count
+import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.name
+import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import rx.Observable
 import java.lang.System.currentTimeMillis
@@ -282,10 +285,11 @@ class SqlExecutionRepository(
 
         val startTime = criteria.startTimeCutoff
         if (startTime != null) {
-          // This may look like a bug, but it isn't. Start time isn't always set (NOT_STARTED status). We
-          // don't want to exclude Executions that haven't started, but we also want to still reduce the result set.
           where
-            .and(field("build_time").greaterThan(startTime.toEpochMilli()))
+            .and(
+              field("start_time").greaterThan(startTime.toEpochMilli())
+                .or(field("start_time").isNull)
+            )
             .statusIn(criteria.statuses)
         } else {
           where.statusIn(criteria.statuses)
@@ -293,7 +297,7 @@ class SqlExecutionRepository(
       },
       seek = {
         val ordered = when (sorter) {
-          START_TIME_OR_ID -> it.orderBy(field("start_time").desc(), field("id").desc())
+          START_TIME_OR_ID -> it.orderBy(field("start_time").desc().nullsFirst(), field("id").desc())
           REVERSE_BUILD_TIME -> it.orderBy(field("build_time").asc(), field("id").asc())
           else -> it.orderBy(field("id").desc())
         }

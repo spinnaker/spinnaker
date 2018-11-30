@@ -53,7 +53,7 @@ class ExecutionComparatorSpec extends Specification {
     executions.sort(START_TIME_OR_ID)
 
     then:
-    assert executions*.id == ["4", "3", "1", "2"]
+    assert executions*.id == ["4", "2", "3", "1"]
   }
 
   def "sort by REVERSE_BUILD_TIME"() {
