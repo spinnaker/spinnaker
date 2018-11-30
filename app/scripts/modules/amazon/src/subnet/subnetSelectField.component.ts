@@ -53,7 +53,7 @@ class SubnetSelectFieldController implements IController {
     this.activeSubnets = subnets.filter(s => !s.deprecated);
     this.deprecatedSubnets = subnets.filter(s => s.deprecated);
     if (subnets.length) {
-      if (!this.component[this.field] && !this.readOnly) {
+      if (this.component[this.field] === null && !this.readOnly) {
         this.component[this.field] = subnets[0].purpose;
         if (this.onChange) {
           this.onChange();
