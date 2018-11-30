@@ -1,7 +1,8 @@
 import * as React from 'react';
-import MetricResultClassification from './metricResultClassification';
 import { ITableColumn } from 'kayenta/layout/table';
 import { IMetricResultsTableRow } from './metricResultsList';
+import MetricResultClassification from './metricResultClassification';
+import MetricResultDeviation from './metricResultDeviation';
 
 export const metricResultsColumns: ITableColumn<IMetricResultsTableRow>[] = [
   {
@@ -10,11 +11,13 @@ export const metricResultsColumns: ITableColumn<IMetricResultsTableRow>[] = [
     width: 5,
   },
   {
+    label: 'deviation',
+    getContent: ({ results }) => <MetricResultDeviation ratio={results[0].resultMetadata.ratio} />,
+    width: 1,
+  },
+  {
     label: 'result',
-    labelClassName: 'pull-right',
-    getContent: ({ results }) => (
-      <MetricResultClassification className="pull-right" classification={results[0].classification} />
-    ),
+    getContent: ({ results }) => <MetricResultClassification classification={results[0].classification} />,
     width: 1,
   },
 ];

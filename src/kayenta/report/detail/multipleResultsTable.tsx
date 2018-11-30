@@ -5,10 +5,12 @@ import * as classNames from 'classnames';
 
 import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
 import { ITableColumn, Table } from 'kayenta/layout/table';
-import MetricResultClassification from './metricResultClassification';
 import { ICanaryState } from 'kayenta/reducers';
 import { selectedMetricResultIdSelector } from 'kayenta/selectors';
 import * as Creators from 'kayenta/actions/creators';
+
+import MetricResultClassification from './metricResultClassification';
+import MetricResultDeviation from './metricResultDeviation';
 
 interface IMultipleResultsTableOwnProps {
   results: ICanaryAnalysisResult[];
@@ -34,16 +36,20 @@ const MultipleResultsTable = ({
 
   let columns: ITableColumn<ICanaryAnalysisResult>[] = tagKeys.map(key => ({
     label: key,
-    width: 1,
+    width: 5,
     getContent: (result: ICanaryAnalysisResult) => <span>{result.tags[key]}</span>,
   }));
 
-  columns = columns.concat({
-    width: 1,
-    getContent: (result: ICanaryAnalysisResult) => (
-      <MetricResultClassification className="pull-right" classification={result.classification} />
-    ),
-  });
+  columns = columns.concat([
+    {
+      width: 1,
+      getContent: ({ resultMetadata }) => <MetricResultDeviation ratio={resultMetadata.ratio} />,
+    },
+    {
+      width: 1,
+      getContent: ({ classification }) => <MetricResultClassification classification={classification} />,
+    },
+  ]);
 
   return (
     <Table
