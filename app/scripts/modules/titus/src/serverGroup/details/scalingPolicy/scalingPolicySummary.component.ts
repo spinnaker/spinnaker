@@ -2,11 +2,7 @@ import { IController, IComponentOptions, module } from 'angular';
 
 import { Application, IServerGroup } from '@spinnaker/core';
 
-import { IScalingPolicy, ITargetTrackingConfiguration } from '@spinnaker/amazon';
-
-interface ITitusPolicy extends IScalingPolicy {
-  targetPolicyDescriptor?: ITargetTrackingConfiguration;
-}
+import { ITitusPolicy } from 'titus/domain';
 
 class ScalingPolicyDetailsSummaryController implements IController {
   public templateUrl: string;

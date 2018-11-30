@@ -7,7 +7,6 @@ import {
   AccountService,
   ClusterTargetBuilder,
   CONFIRMATION_MODAL_SERVICE,
-  FirewallLabels,
   NameUtils,
   ServerGroupReader,
   ServerGroupWarningMessageService,
@@ -23,10 +22,10 @@ import { configBinService } from './scalingPolicy/configBin/configBin.reader';
 import { CONFIG_BIN_LINK_COMPONENT } from './scalingPolicy/configBin/configBinLink.component';
 
 import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';
+import { TITUS_SECURITY_GROUPS_DETAILS } from './titusSecurityGroups.component';
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.titus.controller', [
-    require('../../securityGroup/securityGroup.read.service').name,
     require('@uirouter/angularjs').default,
     require('../configure/ServerGroupCommandBuilder.js').name,
     CONFIG_BIN_LINK_COMPONENT,
@@ -35,6 +34,7 @@ module.exports = angular
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
     SCALING_POLICY_MODULE,
+    TITUS_SECURITY_GROUPS_DETAILS,
   ])
   .controller('titusServerGroupDetailsCtrl', function(
     $scope,
@@ -48,12 +48,9 @@ module.exports = angular
     confirmationModalService,
     serverGroupWriter,
     awsServerGroupTransformer,
-    titusSecurityGroupReader,
   ) {
     let application = app;
     this.application = app;
-
-    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.gateUrl = SETTINGS.gateUrl;
 
@@ -108,18 +105,6 @@ module.exports = angular
         transformScalingPolicies(details);
 
         if (!_.isEmpty($scope.serverGroup)) {
-          if (details.securityGroups) {
-            $scope.securityGroups = _.chain(details.securityGroups)
-              .map(function(id) {
-                return titusSecurityGroupReader.resolveIndexedSecurityGroup(
-                  application['securityGroupsIndex'],
-                  details,
-                  id,
-                );
-              })
-              .compact()
-              .value();
-          }
           configureEntityTagTargets();
         } else {
           autoClose();

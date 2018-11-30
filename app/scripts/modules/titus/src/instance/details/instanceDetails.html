@@ -139,16 +139,7 @@
         <dd>{{instance.placement.host}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="{{firewallsLabel}}">
-      <ul>
-        <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
-          <a
-            ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.account, region: instance.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
-            {{securityGroup.name}} ({{securityGroup.id}})
-          </a>
-        </li>
-      </ul>
-    </collapsible-section>
+    <titus-security-groups app="application" server-group="serverGroup" class="collapsible-section" style="display: block"></titus-security-groups>
     <!--<collapsible-section heading="Resources">
       <dl class="dl-horizontal dl-flex">
         <dt>CPU(s)</dt>

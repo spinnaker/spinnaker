@@ -152,16 +152,8 @@
         <dd>{{serverGroup.resources.gpu}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="{{firewallsLabel}}">
-      <ul>
-        <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
-          <a
-            ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.account, region: serverGroup.placement.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
-            {{securityGroup.name}} ({{securityGroup.id}})
-          </a>
-        </li>
-      </ul>
-    </collapsible-section>
+
+    <titus-security-groups app="ctrl.application" server-group="serverGroup" class="collapsible-section" style="display: block"></titus-security-groups>
 
     <collapsible-section heading="Scaling Policies" ng-if="ctrl.scalingPoliciesEnabled">
       <titus-scaling-policy-summary

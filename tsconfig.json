@@ -41,7 +41,10 @@
       "oracle": ["oracle/src"],
       "@spinnaker/cloudfoundry": ["cloudfoundry/src"],
       "cloudfoundry/*": ["cloudfoundry/src/*"],
-      "cloudfoundry/": ["cloudfoundry/src"]
+      "cloudfoundry/": ["cloudfoundry/src"],
+      "@spinnaker/titus": ["titus/src"],
+      "titus/*": ["titus/src/*"],
+      "titus/": ["titus/src"]
     },
     "pretty": true,
     "removeComments": true,

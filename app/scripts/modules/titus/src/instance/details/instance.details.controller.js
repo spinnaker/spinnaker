@@ -33,7 +33,6 @@ module.exports = angular
     app,
     moniker,
     environment,
-    titusSecurityGroupReader,
   ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
@@ -80,6 +79,7 @@ module.exports = angular
       app.serverGroups.data.some(function(serverGroup) {
         return serverGroup.instances.some(function(possibleInstance) {
           if (possibleInstance.id === instance.instanceId) {
+            $scope.serverGroup = serverGroup;
             instanceSummary = possibleInstance;
             loadBalancers = serverGroup.loadBalancers;
             account = serverGroup.account;
@@ -109,18 +109,6 @@ module.exports = angular
             $scope.instance.loadBalancers = loadBalancers;
             $scope.baseIpAddress = $scope.instance.placement.containerIp || $scope.instance.placement.host;
             $scope.instance.externalIpAddress = $scope.instance.placement.host;
-            if (instanceDetails.securityGroups) {
-              $scope.securityGroups = _.chain(instanceDetails.securityGroups)
-                .map(function(securityGroup) {
-                  return titusSecurityGroupReader.resolveIndexedSecurityGroup(
-                    app['securityGroupsIndex'],
-                    extraData,
-                    securityGroup.groupId,
-                  );
-                })
-                .compact()
-                .value();
-            }
             getBastionAddressForAccount(accountDetails, region);
             $scope.instance.titusUiEndpoint = this.titusUiEndpoint;
           }, autoClose);
