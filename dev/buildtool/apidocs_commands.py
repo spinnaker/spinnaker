@@ -172,7 +172,7 @@ class BuildApiDocsCommand(RepositoryCommandProcessor):
     logging.info('Starting up prototype %s so we can extract docs from it.'
                  ' We will log this instance to %s',
                  repository.name, gate_logfile)
-    boot_run_cmd = './gradlew bootRun'
+    boot_run_cmd = './gradlew'  # default will run
     ensure_dir_exists(os.path.dirname(gate_logfile))
     gate_logstream = open(gate_logfile, 'w')
     process = start_subprocess(
