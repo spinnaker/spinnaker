@@ -20,12 +20,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import retrofit.http.GET;
 import retrofit.http.Path;
 
-import java.util.List;
-
 public interface CloudDriverTaskStatusService {
-  @GET("/task")
-  List<Task> listTasks();
-
   @GET("/task/{id}")
   Task lookupTask(@Path("id") String id);
 }

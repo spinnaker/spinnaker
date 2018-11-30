@@ -30,11 +30,6 @@ public class DelegatingCloudDriverTaskStatusService
   }
 
   @Override
-  public List<Task> listTasks() {
-    return getService().listTasks();
-  }
-
-  @Override
   public Task lookupTask(String id) {
     return getService().lookupTask(id);
   }
