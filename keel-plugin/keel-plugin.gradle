@@ -6,7 +6,6 @@ dependencies {
   api project(":keel-core")
   implementation project(":keel-k8s")
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
-  implementation("io.kubernetes:client-java:3.0.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:+")
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
