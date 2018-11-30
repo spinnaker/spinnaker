@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.file.Message
 import com.netflix.spinnaker.keel.plugin.AssetPlugin
+import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
 import com.netflix.spinnaker.keel.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
 import org.slf4j.LoggerFactory
@@ -42,7 +43,8 @@ class FilePlugin(
   }
 
   override fun upsert(request: Asset<*>): ConvergeResponse {
-    TODO("not implemented")
+    log.info("Upsert asset {}", request)
+    return ConvergeAccepted
   }
 
   override fun delete(request: Asset<*>): ConvergeResponse {
