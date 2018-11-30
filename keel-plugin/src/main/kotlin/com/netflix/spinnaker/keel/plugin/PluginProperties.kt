@@ -18,5 +18,4 @@ package com.netflix.spinnaker.keel.plugin
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("keel")
-class PluginProperties {
-}
+class PluginProperties

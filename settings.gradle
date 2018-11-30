@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-include "keel-api",
+include "keel-core",
   "keel-clouddriver",
-  "keel-common",
   "keel-ec2",
   "keel-orca",
   "keel-plugin",
