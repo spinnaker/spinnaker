@@ -513,7 +513,9 @@ export class DockerImageAndTagSelector extends React.Component<
     const Digest =
       lookupType === 'digest' ? (
         <div className="form-group">
-          <div className={`sm-label-right ${labelClass}`}>Digest</div>
+          <div className={`sm-label-right ${labelClass}`}>
+            Digest <HelpField id="pipeline.config.docker.trigger.digest" />
+          </div>
           <div className={fieldClass}>
             <input
               className="form-control input-sm"

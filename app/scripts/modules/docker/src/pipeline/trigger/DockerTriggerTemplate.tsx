@@ -10,6 +10,7 @@ import {
   Spinner,
   TetheredSelect,
   IPipelineCommand,
+  HelpField,
 } from '@spinnaker/core';
 
 import { DockerImageReader, IDockerLookupType } from '../../image';
@@ -212,7 +213,9 @@ export class DockerTriggerTemplate extends React.Component<
         )}
         {lookupType === 'digest' && (
           <div className="form-group">
-            <label className="col-md-4 sm-label-right">Digest</label>
+            <label className="col-md-4 sm-label-right">
+              Digest <HelpField id="pipeline.config.docker.trigger.digest" />
+            </label>
             <div className="col-md-6">
               <input
                 value={digest}
