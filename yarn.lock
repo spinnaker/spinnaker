@@ -9325,15 +9325,10 @@ lodash-decorators@4.5.0, lodash-decorators@^4.4.1:
   dependencies:
     tslib "^1.7.1"
 
-lodash-es@^4.17.4, lodash-es@^4.2.1:
-  version "4.17.4"
-  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.4.tgz#dcc1d7552e150a0640073ba9cb31d70f032950e7"
-  integrity sha1-3MHXVS4VCgZABzupyzHXDwMpUOc=
-
-lodash-es@^4.17.5:
-  version "4.17.5"
-  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.5.tgz#9fc6e737b1c4d151d8f9cae2247305d552ce748f"
-  integrity sha512-Ez3ONp3TK9gX1HYKp6IhetcVybD+2F+Yp6GS9dfH8ue6EOCEzQtQEh4K0FYWBP9qLv+lzeQAYXw+3ySfxyZqkw==
+lodash-es@^4.17.4, lodash-es@^4.17.5, lodash-es@^4.2.1:
+  version "4.17.11"
+  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.11.tgz#145ab4a7ac5c5e52a3531fb4f310255a152b4be0"
+  integrity sha512-DHb1ub+rMjjrxqlB3H56/6MXtm1lSksDp2rA2cNWjG8mlDUYFhUj3Di2Zn5IwSU87xLv8tNIQ7sSwE/YOX/D/Q==
 
 lodash._basecopy@^3.0.0:
   version "3.0.1"
