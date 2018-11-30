@@ -33,6 +33,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.slf4j.LoggerFactory
 import java.net.SocketException
+import javax.annotation.PostConstruct
 import kotlin.reflect.KClass
 
 internal class AssetPluginKubernetesAdapter(
@@ -42,6 +43,11 @@ internal class AssetPluginKubernetesAdapter(
 ) {
   private var job: Job? = null
   private var calls: MutableMap<String, Call> = mutableMapOf()
+
+  @PostConstruct
+  fun init() {
+    log.info("AssetPluginKubernetesAdapter for {}", plugin.name)
+  }
 
   fun start() {
     runBlocking {
