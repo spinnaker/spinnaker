@@ -127,7 +127,7 @@ public class WebhookConfiguration {
 
   private Optional<KeyStore> getCustomKeyStore() {
     WebhookProperties.TrustSettings trustSettings = webhookProperties.getTrust();
-    if (trustSettings == null || StringUtils.isEmpty(trustSettings.getTrustStore())) {
+    if (trustSettings == null || !trustSettings.isEnabled() || StringUtils.isEmpty(trustSettings.getTrustStore())) {
       return Optional.empty();
     }
 

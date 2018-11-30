@@ -43,6 +43,7 @@ public class WebhookProperties {
   @Data
   @NoArgsConstructor
   public static class TrustSettings {
+    private boolean enabled;
     private String trustStore;
     private String trustStorePassword;
   }
