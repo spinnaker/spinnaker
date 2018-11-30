@@ -274,4 +274,27 @@ module.exports = angular
         submitMethod: restartStage,
       });
     };
+  })
+  .filter('stageTypeMatch', () => {
+    return (stageTypes, search) => {
+      const q = search.toLowerCase();
+      return stageTypes
+        .filter(s => s.label.toLowerCase().includes(q) || s.description.toLowerCase().includes(q))
+        .sort((a, b) => {
+          const aLabel = a.label.toLowerCase();
+          const bLabel = b.label.toLowerCase();
+          const aDescription = a.description.toLowerCase();
+          const bDescription = b.description.toLowerCase();
+          if (aLabel.includes(q) && !bLabel.includes(q)) {
+            return -1;
+          }
+          if (!aLabel.includes(q) && bLabel.includes(q)) {
+            return 1;
+          }
+          if (aLabel.includes(q) && bLabel.includes(q)) {
+            return aLabel.indexOf(q) - bLabel.indexOf(q);
+          }
+          return aDescription.indexOf(q) - bDescription.indexOf(q);
+        });
+    };
   });

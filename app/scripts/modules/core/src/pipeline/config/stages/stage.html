@@ -16,16 +16,18 @@
           <ui-select-match>
             <strong>{{$select.selected.label}}</strong>
           </ui-select-match>
-          <ui-select-choices repeat="option.key as option in options.stageTypes | filter: $select.search">
+          <ui-select-choices repeat="option.key as option in options.stageTypes | stageTypeMatch: $select.search">
             <div class="stage-choice">
-              <strong>{{option.label}}</strong>
-              <span class="available-providers" ng-if="showProviders">
-                <cloud-provider-logo ng-repeat="provider in option.cloudProviders"
-                                     provider="provider"
-                                     height="'12px'" width="'12px'" show-tooltip="true"></cloud-provider-logo>
-              </span>
+              <div class="stage-choice-heading">
+                <strong ng-bind-html="option.label | highlight: $select.search"></strong>
+                <span class="available-providers" ng-if="showProviders">
+                  <cloud-provider-logo ng-repeat="provider in option.cloudProviders"
+                                       provider="provider"
+                                       height="'12px'" width="'12px'" show-tooltip="true"></cloud-provider-logo>
+                </span>
+              </div>
+              <div ng-bind-html="option.description | highlight: $select.search"></div>
             </div>
-            <div ng-bind-html="option.description"></div>
           </ui-select-choices>
         </ui-select>
       </stage-config-field>
