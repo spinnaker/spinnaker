@@ -16,8 +16,11 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.events.AssetEvent
+import com.netflix.spinnaker.keel.events.AssetEventType.CREATE
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,7 +29,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping(path = ["/assets"])
-class AssetController() {
+class AssetController(
+  private val publisher: ApplicationEventPublisher
+) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -36,6 +41,7 @@ class AssetController() {
   )
   fun create(@RequestBody resource: Asset<*>): Asset<*> {
     log.info("Creating: $resource")
+    publisher.publishEvent(AssetEvent(CREATE, resource))
     return resource
   }
 }
