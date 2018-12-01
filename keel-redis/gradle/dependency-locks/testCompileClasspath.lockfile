@@ -6,11 +6,12 @@ ch.qos.logback:logback-classic:1.1.11
 ch.qos.logback:logback-core:1.1.11
 com.amazonaws:aws-java-sdk-core:1.11.409
 com.ecwid.consul:consul-api:1.2.1
-com.fasterxml.jackson.core:jackson-annotations:2.9.0
+com.fasterxml.jackson.core:jackson-annotations:2.9.6
 com.fasterxml.jackson.core:jackson-core:2.9.6
 com.fasterxml.jackson.core:jackson-databind:2.9.6
-com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.11
-com.fasterxml.jackson.module:jackson-module-kotlin:2.8.11.1
+com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.6
+com.fasterxml.jackson.module:jackson-module-kotlin:2.9.6
+com.fasterxml.jackson:jackson-platform:2.9.6
 com.fasterxml:classmate:1.3.4
 com.google.code.gson:gson:2.8.5
 com.google.guava:guava:19.0

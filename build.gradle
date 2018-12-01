@@ -27,6 +27,17 @@ buildscript {
   }
 }
 
+class JacksonAlignmentRule implements ComponentMetadataRule {
+  void execute(ComponentMetadataContext ctx) {
+    ctx.details.with {
+      if (id.group.startsWith("com.fasterxml.jackson")) {
+        // declare that Jackson modules all belong to the Jackson virtual platform
+        belongsTo("com.fasterxml.jackson:jackson-platform:${id.version}")
+      }
+    }
+  }
+}
+
 allprojects {
   apply plugin: "spinnaker.base-project"
 
@@ -50,6 +61,7 @@ subprojects {
   
   dependencies {
     implementation platform("org.springframework.boot:spring-boot-dependencies:$bootVersion")
+    components.all(JacksonAlignmentRule)
   }
 
   configurations {

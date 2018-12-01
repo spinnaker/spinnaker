@@ -7,6 +7,7 @@ ch.qos.logback:logback-core:1.1.11
 com.fasterxml.jackson.core:jackson-annotations:2.9.2
 com.fasterxml.jackson.core:jackson-core:2.9.2
 com.fasterxml.jackson.core:jackson-databind:2.9.2
+com.fasterxml.jackson:jackson-platform:2.9.2
 com.fasterxml:classmate:1.3.4
 com.google.code.gson:gson:2.8.5
 com.google.guava:guava:20.0

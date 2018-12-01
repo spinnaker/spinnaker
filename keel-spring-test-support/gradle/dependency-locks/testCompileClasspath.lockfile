@@ -4,10 +4,11 @@
 ch.qos.logback:logback-classic:1.1.11
 ch.qos.logback:logback-core:1.1.11
 com.amazonaws:aws-java-sdk-core:1.11.409
-com.fasterxml.jackson.core:jackson-annotations:2.9.0
+com.fasterxml.jackson.core:jackson-annotations:2.9.6
 com.fasterxml.jackson.core:jackson-core:2.9.6
 com.fasterxml.jackson.core:jackson-databind:2.9.6
-com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.11
+com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.6
+com.fasterxml.jackson:jackson-platform:2.9.6
 com.jayway.jsonpath:json-path:2.2.0
 com.netflix.archaius:archaius-core:0.7.6
 com.netflix.eureka:eureka-client:1.9.2

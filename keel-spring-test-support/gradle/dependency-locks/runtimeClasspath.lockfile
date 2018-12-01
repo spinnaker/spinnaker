@@ -6,10 +6,11 @@ aopalliance:aopalliance:1.0
 ch.qos.logback:logback-classic:1.1.11
 ch.qos.logback:logback-core:1.1.11
 com.amazonaws:aws-java-sdk-core:1.11.409
-com.fasterxml.jackson.core:jackson-annotations:2.9.4
+com.fasterxml.jackson.core:jackson-annotations:2.9.6
 com.fasterxml.jackson.core:jackson-core:2.9.6
 com.fasterxml.jackson.core:jackson-databind:2.9.6
-com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.8.11
+com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.6
+com.fasterxml.jackson:jackson-platform:2.9.6
 com.github.andrewoma.dexx:dexx-collections:0.2
 com.github.vlsi.compactmap:compactmap:1.2.1
 com.google.code.findbugs:jsr305:3.0.1
