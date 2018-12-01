@@ -1,12 +1,16 @@
 import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
+  'cf.service.deploy.timeout':
+    '(Optional) <b>Override Deploy Timeout</b> is the maximum amount of time allowed for service deployment before Spinnaker reports a timeout error (default: 450 seconds). If a timeout error is reported by Spinnaker, the request may still be processed and a service may still be created.',
+  'cf.service.destroy.timeout':
+    '(Optional) <b>Override Destroy Timeout</b> is the maximum amount of time allowed for service destruction before Spinnaker reports a timeout error (default: 450 seconds). If a timeout error is reported by Spinnaker, the request may still be processed and the service may be deleted.',
   'cf.serverGroup.stack':
     '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
   'cf.serverGroup.detail':
     '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
   'cf.serverGroup.startApplication':
-    '<b>Start on creation</b> is a boolean value that determines if the server group is started upon creation. Default value is <code>true</code>',
+    '<b>Start on creation</b> is a boolean value that determines if the server group is started upon creation. Default value is <code>true</code>.',
   'cf.serverGroup.routes':
     '(Optional) <b>Route</b> is a URI in the form of <code>some.host.some.domain[:9999][/some/path]</code> (port and path are optional). The domain has to be a valid domain in the CloudFoundry Org (Region) that this server group runs in.',
   'cf.artifact.package': `<p>This option allows you to create a new server group from an existing Droplet. You can use this to relocate an existing Cloud Foundry application from one space to another or to launch a clone of an application with different root filesystem or resource settings.</p>`,

@@ -75,9 +75,14 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   };
 
+  private timeoutUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    this.props.stage.timeout = event.target.value;
+    this.props.stageFieldUpdated();
+  };
+
   public render() {
     const { stage } = this.props;
-    const { credentials, serviceName } = stage;
+    const { credentials, serviceName, timeout } = stage;
     const { accounts, regions } = this.state;
     return (
       <div className="form-horizontal">
@@ -107,6 +112,9 @@ export class CloudfoundryDestroyServiceStageConfig extends React.Component<
             onChange={this.serviceNameUpdated}
             value={serviceName}
           />
+        </StageConfigField>
+        <StageConfigField label="Override Destroy Timeout (Seconds)" helpKey="cf.service.destroy.timeout">
+          <input type="number" className="form-control" onChange={this.timeoutUpdated} value={timeout} />
         </StageConfigField>
       </div>
     );

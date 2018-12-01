@@ -1,4 +1,5 @@
 import * as React from 'react';
+
 import {
   AccountSelectField,
   AccountService,
@@ -185,9 +186,14 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   };
 
+  private timeoutUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    this.props.stage.timeout = event.target.value;
+    this.props.stageFieldUpdated();
+  };
+
   public render() {
     const { stage } = this.props;
-    const { credentials, parameters, service, serviceName, servicePlan, tags } = stage;
+    const { credentials, parameters, service, serviceName, servicePlan, tags, timeout } = stage;
     const { accounts, newTag, regions, servicePlans, services } = this.state;
     return (
       <div className="form-horizontal cloudfoundry-deploy-service-stage">
@@ -287,6 +293,9 @@ export class CloudfoundryDeployServiceStageConfig extends React.Component<
         </StageConfigField>
         <StageConfigField label="Parameters">
           <textarea className="form-control" onChange={this.parametersUpdated} value={parameters} />
+        </StageConfigField>
+        <StageConfigField label="Override Deploy Timeout (Seconds)" helpKey="cf.service.deploy.timeout">
+          <input type="number" className="form-control" onChange={this.timeoutUpdated} value={timeout} />
         </StageConfigField>
       </div>
     );
