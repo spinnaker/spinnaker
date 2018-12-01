@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ScaleCl
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
+import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -46,7 +47,12 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
 
     final CloudFoundryClient client = description.getClient();
 
-    client.getApplications().scaleApplication(description.getServerGroupId(), description.getInstanceCount(), description.getMemoryInMb(), description.getDiskInMb());
+    ServerGroup.Capacity capacity = description.getCapacity();
+    client.getApplications().scaleApplication(
+      description.getServerGroupId(),
+      capacity == null ? null : capacity.getDesired(),
+      description.getMemory(),
+      description.getDiskQuota());
 
     ProcessStats.State state = operationPoller.waitForOperation(
       () -> client.getApplications().getProcessState(description.getServerGroupId()),

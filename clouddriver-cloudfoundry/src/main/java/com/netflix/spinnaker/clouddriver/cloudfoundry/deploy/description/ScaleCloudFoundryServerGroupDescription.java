@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
+import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -25,11 +26,11 @@ import javax.annotation.Nullable;
 @EqualsAndHashCode(callSuper = true)
 public class ScaleCloudFoundryServerGroupDescription extends AbstractCloudFoundryServerGroupDescription {
   @Nullable
-  private Integer instanceCount;
+  ServerGroup.Capacity capacity;
 
   @Nullable
-  private Integer memoryInMb;
+  private Integer memory;
 
   @Nullable
-  private Integer diskInMb;
+  private Integer diskQuota;
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.ScaleCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
+import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,7 @@ class ScaleCloudFoundryServerGroupAtomicOperationTest extends AbstractCloudFound
   void before() {
     desc.setClient(client);
     desc.setServerGroupName("myapp");
-    desc.setInstanceCount(2);
+    desc.setCapacity(ServerGroup.Capacity.builder().desired(2).build());
   }
 
   @Test
