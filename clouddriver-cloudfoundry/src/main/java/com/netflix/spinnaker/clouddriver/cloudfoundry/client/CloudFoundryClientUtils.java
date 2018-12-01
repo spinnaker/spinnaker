@@ -45,7 +45,11 @@ final class CloudFoundryClientUtils {
       if (retrofitError.getResponse() != null && retrofitError.getResponse().getStatus() == 404) {
         return Optional.empty();
       } else {
-        throw new CloudFoundryApiException((ErrorDescription) retrofitError.getBodyAs(ErrorDescription.class));
+        ErrorDescription errorDescription = (ErrorDescription) retrofitError.getBodyAs(ErrorDescription.class);
+        if (errorDescription == null) {
+          throw new CloudFoundryApiException(retrofitError.getCause());
+        }
+        throw new CloudFoundryApiException(errorDescription);
       }
     }
   }
