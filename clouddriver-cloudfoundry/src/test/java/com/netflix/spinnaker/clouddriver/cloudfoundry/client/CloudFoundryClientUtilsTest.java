@@ -34,6 +34,22 @@ import static org.mockito.Mockito.when;
 class CloudFoundryClientUtilsTest {
 
   @Test
+  void collectPagesIteratesOverOnePage() {
+    ApplicationService applicationService = mock(ApplicationService.class);
+    Application applicationOne = new Application().setName("app-name-one");
+    List pageOneResources = Collections.singletonList(applicationOne);
+    Pagination<Application> pageOne = new Pagination<>();
+    pageOne.setPagination(new Pagination.Details().setTotalPages(1));
+    pageOne.setResources(pageOneResources);
+
+    when(applicationService.all(null, null, null)).thenReturn(pageOne);
+
+    List results = CloudFoundryClientUtils.collectPages("applications", page -> applicationService.all(page, null, null));
+
+    assertThat(results).containsExactly(applicationOne);
+  }
+
+  @Test
   void collectPagesIteratesOverMultiplePages() {
     ApplicationService applicationService = mock(ApplicationService.class);
     Application applicationOne = new Application().setName("app-name-one");
@@ -55,13 +71,27 @@ class CloudFoundryClientUtilsTest {
     assertThat(results).containsExactly(applicationOne, applicationTwo);
   }
 
+
+  @Test
+  void collectPageResourcesIteratesOverOnePage() {
+    DomainService domainService = mock(DomainService.class);
+    Domain domainOne = new Domain().setName("domain-name-one");
+    Page pageOne = Page.singleton(domainOne, "domain-one-guid").setTotalPages(1).setTotalResults(1);
+
+    when(domainService.allShared(null)).thenReturn(pageOne);
+
+    List results = CloudFoundryClientUtils.collectPageResources("shared domains",  domainService::allShared);
+
+    assertThat(results).containsExactly(pageOne.getResources().get(0));
+  }
+
   @Test
   void collectPageResourcesIteratesOverMultiplePages() {
     DomainService domainService = mock(DomainService.class);
     Domain domainOne = new Domain().setName("domain-name-one");
-    Page pageOne = Page.singleton(domainOne, "domain-one-guid");
+    Page pageOne = Page.singleton(domainOne, "domain-one-guid").setTotalPages(2).setTotalResults(2);
     Domain domainTwo = new Domain().setName("domain-name-two");
-    Page pageTwo = Page.singleton(domainTwo, "domain-two-guid");
+    Page pageTwo = Page.singleton(domainTwo, "domain-two-guid").setTotalPages(2).setTotalResults(2);
 
     when(domainService.allShared(null)).thenReturn(pageOne);
     when(domainService.allShared(2)).thenReturn(pageTwo);

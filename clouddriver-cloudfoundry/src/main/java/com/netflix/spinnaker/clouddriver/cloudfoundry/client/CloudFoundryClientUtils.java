@@ -55,7 +55,7 @@ final class CloudFoundryClientUtils {
       .orElseThrow(() -> new CloudFoundryApiException("Unable to retrieve " + resourceNamePluralized));
 
     List<R> allResources = new ArrayList<>(firstPage.getResources());
-    for (int page = 2; page <= Math.max(2, firstPage.getPagination().getTotalPages()); page++) {
+    for (int page = 2; page <= firstPage.getPagination().getTotalPages(); page++) {
       final int p = page;
       allResources.addAll(safelyCall(() -> fetchPage.apply(p))
         .orElseThrow(() -> new CloudFoundryApiException("Unable to retrieve " + resourceNamePluralized))
@@ -70,7 +70,7 @@ final class CloudFoundryClientUtils {
       .orElseThrow(() -> new CloudFoundryApiException("Unable to retrieve " + resourceNamePluralized));
 
     List<Resource<R>> allResources = new ArrayList<>(firstPage.getResources());
-    for (int page = 2; page <= Math.max(2, firstPage.getTotalPages()); page++) {
+    for (int page = 2; page <= firstPage.getTotalPages(); page++) {
       final int p = page;
       allResources.addAll(safelyCall(() -> fetchPage.apply(p))
         .orElseThrow(() -> new CloudFoundryApiException("Unable to retrieve " + resourceNamePluralized))
