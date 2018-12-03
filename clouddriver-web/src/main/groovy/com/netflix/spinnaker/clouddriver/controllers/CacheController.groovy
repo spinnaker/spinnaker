@@ -58,6 +58,8 @@ class CacheController {
   @RequestMapping(method = RequestMethod.GET, value = "/introspection")
   Collection <AgentIntrospection> getAgentIntrospections() {
     return CacheIntrospectionStore.getStore().listAgentIntrospections()
+        // sort by descending start time, so newest executions are first
+        .toSorted { a, b -> b.getLastExecutionStartMs() <=> a.getLastExecutionStartMs() }
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}/{type}")

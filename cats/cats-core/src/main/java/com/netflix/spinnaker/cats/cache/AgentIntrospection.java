@@ -31,6 +31,7 @@ public interface AgentIntrospection {
   int getTotalAdditions();
   int getTotalEvictions();
   Long getLastExecutionDurationMs();
+  Long getLastExecutionStartMs();
   Throwable getLastError();
   String getLastExecutionStartDate();
   void finishWithError(Throwable error, CacheResult result);
