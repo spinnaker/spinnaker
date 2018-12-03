@@ -120,11 +120,11 @@ class ServerGroupLoadBalancersImpl extends React.Component<
             </div>
           )}
           <div className="form-group">
-            <div className="col-md-3 sm-label-right">
+            <div className="col-md-4 sm-label-right">
               <b>Target Groups </b>
               <HelpField id="aws.loadBalancer.targetGroups" />
             </div>
-            <div className="col-md-8">
+            <div className="col-md-7">
               {targetGroupOptions.length === 0 && (
                 <div className="form-control-static">No target groups found in the selected account/region/VPC</div>
               )}
@@ -181,7 +181,7 @@ class ServerGroupLoadBalancersImpl extends React.Component<
               <b>Classic Load Balancers </b>
               <HelpField id="aws.loadBalancer.loadBalancers" />
             </div>
-            <div className="col-md-8">
+            <div className="col-md-7">
               {loadBalancerOptions.length === 0 && (
                 <div className="form-control-static">No load balancers found in the selected account/region/VPC</div>
               )}
