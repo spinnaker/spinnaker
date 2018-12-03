@@ -28,7 +28,7 @@ com.squareup.retrofit:converter-jackson:1.9.0
 com.squareup.retrofit:retrofit-mock:1.9.0
 com.squareup.retrofit:retrofit:1.9.0
 commons-logging:commons-logging:1.2
-io.strikt:strikt-core:0.17.0
+io.strikt:strikt-core:0.17.1
 javax.validation:validation-api:1.1.0.Final
 junit:junit:4.12
 org.apache.tomcat.embed:tomcat-embed-core:8.5.31

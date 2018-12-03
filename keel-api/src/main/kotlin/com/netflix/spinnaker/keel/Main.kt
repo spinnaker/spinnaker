@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.keel
 
 import com.netflix.spinnaker.keel.persistence.AssetRepository
-import com.netflix.spinnaker.keel.persistence.InMemoryAssetRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryAssetRepository
 import com.netflix.spinnaker.keel.plugin.CustomResourceDefinitionLocator
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.kork.PlatformComponents

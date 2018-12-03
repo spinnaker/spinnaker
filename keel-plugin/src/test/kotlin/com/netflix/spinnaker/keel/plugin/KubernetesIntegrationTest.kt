@@ -6,6 +6,8 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.nhaarman.mockito_kotlin.mock
 import com.oneeyedmen.minutest.junit.junitTests
 import com.squareup.okhttp.Response
 import io.kubernetes.client.ApiClient
@@ -51,6 +53,7 @@ internal object KubernetesIntegrationTest {
     Configuration.setDefaultApiClient(it)
   }
 
+  private val assetRepository = mock<AssetRepository>()
   private val extensionsApi = ApiextensionsV1beta1Api(client)
   private val customObjectsApi = CustomObjectsApi(client)
   val crdName = "security-groups.ec2.${SPINNAKER_API_V1.group}"
@@ -106,6 +109,7 @@ internal object KubernetesIntegrationTest {
   ) {
     val plugin = MockAssetPlugin()
     val adapter: AssetPluginKubernetesAdapter = AssetPluginKubernetesAdapter(
+      assetRepository,
       extensionsApi,
       customObjectsApi,
       plugin

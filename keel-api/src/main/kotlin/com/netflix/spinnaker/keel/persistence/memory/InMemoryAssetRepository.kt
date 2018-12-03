@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.persistence
+package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.AssetState
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
 import java.time.Clock
 import java.time.Instant

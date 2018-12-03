@@ -74,7 +74,7 @@ io.github.classgraph:classgraph:4.4.12
 io.kubernetes:client-java-api:3.0.0
 io.kubernetes:client-java-proto:3.0.0
 io.kubernetes:client-java:3.0.0
-io.strikt:strikt-core:0.17.0
+io.strikt:strikt-core:0.17.1
 io.sundr:builder-annotations:0.9.2
 io.sundr:resourcecify-annotations:0.9.2
 io.sundr:sundr-codegen:0.9.2

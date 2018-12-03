@@ -3,7 +3,7 @@
 # This file is expected to be part of source control.
 com.nhaarman:mockito-kotlin:1.5.0
 com.oneeyedmen:minutest:0.26.0
-io.strikt:strikt-core:0.17.0
+io.strikt:strikt-core:0.17.1
 junit:junit:4.12
 org.apiguardian:apiguardian-api:1.0.0
 org.hamcrest:hamcrest-core:1.3

@@ -3,7 +3,7 @@
 # This file is expected to be part of source control.
 com.nhaarman:mockito-kotlin:1.5.0
 com.oneeyedmen:minutest:0.26.0
-io.strikt:strikt-core:0.17.0
+io.strikt:strikt-core:0.17.1
 org.apiguardian:apiguardian-api:1.0.0
 org.jetbrains.kotlin:kotlin-reflect:1.3.10
 org.jetbrains.kotlin:kotlin-stdlib-common:1.3.10

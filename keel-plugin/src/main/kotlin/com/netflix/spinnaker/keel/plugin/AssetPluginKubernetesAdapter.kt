@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel.plugin
 
 import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.squareup.okhttp.Call
 import io.kubernetes.client.apis.ApiextensionsV1beta1Api
 import io.kubernetes.client.apis.CustomObjectsApi
@@ -39,6 +40,7 @@ import javax.annotation.PreDestroy
 import kotlin.reflect.KClass
 
 internal class AssetPluginKubernetesAdapter(
+  private val assetRepository: AssetRepository,
   private val extensionsApi: ApiextensionsV1beta1Api,
   private val customObjectsApi: CustomObjectsApi,
   private val plugin: AssetPlugin
@@ -60,6 +62,8 @@ internal class AssetPluginKubernetesAdapter(
         }
       }
     }
+
+    log.info("Launched {} watchers", job!!.children.toList().size)
   }
 
   @PreDestroy
@@ -103,9 +107,18 @@ internal class AssetPluginKubernetesAdapter(
               if (version > seen) {
                 seen = version
                 when (it.type) {
-                  "ADDED" -> plugin.create(it.`object`)
-                  "MODIFIED" -> plugin.update(it.`object`)
-                  "DELETED" -> plugin.delete(it.`object`)
+                  "ADDED" -> {
+                    assetRepository.store(it.`object`)
+                    plugin.create(it.`object`)
+                  }
+                  "MODIFIED" -> {
+                    assetRepository.store(it.`object`)
+                    plugin.update(it.`object`)
+                  }
+                  "DELETED" -> {
+                    plugin.delete(it.`object`)
+                    assetRepository.delete(it.`object`.metadata.name)
+                  }
                 }
               }
             }

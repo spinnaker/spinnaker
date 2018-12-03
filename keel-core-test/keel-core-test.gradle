@@ -1,7 +1,7 @@
 apply plugin: "java-library"
 
 dependencies {
-  implementation project(":keel-api")
+  implementation project(":keel-core")
   implementation "org.junit.jupiter:junit-jupiter-api:+"
   implementation "io.strikt:strikt-core:+"
   implementation "com.nhaarman:mockito-kotlin:+"

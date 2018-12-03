@@ -16,9 +16,12 @@
 package com.netflix.spinnaker.keel.k8s
 
 import com.netflix.spinnaker.keel.events.AssetEvent
-import com.netflix.spinnaker.keel.events.AssetEventType
+import com.netflix.spinnaker.keel.events.AssetEventType.CREATE
+import com.netflix.spinnaker.keel.events.AssetEventType.DELETE
+import com.netflix.spinnaker.keel.events.AssetEventType.UPDATE
 import io.kubernetes.client.ApiException
 import io.kubernetes.client.apis.CustomObjectsApi
+import io.kubernetes.client.models.V1DeleteOptions
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -33,13 +36,33 @@ class KubernetesAssetEventListener(
     log.info("Received event {}", event)
     try {
       when (event.type) {
-        AssetEventType.CREATE -> customObjectsApi
+        CREATE -> customObjectsApi
           .createClusterCustomObject(
             event.asset.apiVersion.group,
             event.asset.apiVersion.version,
             event.asset.kind.substringBefore(".") + "s",
             event.asset,
             "true"
+          )
+        UPDATE -> customObjectsApi
+          .patchClusterCustomObject(
+            event.asset.apiVersion.group,
+            event.asset.apiVersion.version,
+            event.asset.kind.substringBefore(".") + "s",
+            event.asset.metadata.name.value,
+            event.asset
+          )
+        DELETE -> customObjectsApi
+          .deleteClusterCustomObject(
+            event.asset.apiVersion.group,
+            event.asset.apiVersion.version,
+            event.asset.kind.substringBefore(".") + "s",
+            event.asset.metadata.name.value,
+            V1DeleteOptions(),
+            0,
+            null,
+            "Background"
+
           )
         else -> TODO()
       }

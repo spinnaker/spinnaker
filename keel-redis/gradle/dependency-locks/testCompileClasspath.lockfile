@@ -41,7 +41,7 @@ com.vaadin.external.google:android-json:0.0.20131108.vaadin1
 commons-codec:commons-codec:1.10
 commons-io:commons-io:2.4
 commons-logging:commons-logging:1.2
-io.strikt:strikt-core:0.17.0
+io.strikt:strikt-core:0.17.1
 javax.inject:javax.inject:1
 javax.validation:validation-api:1.1.0.Final
 javax.ws.rs:jsr311-api:1.1.1

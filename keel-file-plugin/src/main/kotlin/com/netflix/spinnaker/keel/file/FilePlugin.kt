@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.file.Message
 import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
+import com.netflix.spinnaker.keel.plugin.ConvergeFailed
 import com.netflix.spinnaker.keel.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
 import org.slf4j.LoggerFactory
@@ -58,13 +59,31 @@ class FilePlugin(
   }
 
   override fun upsert(request: Asset<*>): ConvergeResponse {
-    log.info("Upsert asset {}", request)
-    return ConvergeAccepted
+    val spec = request.spec
+    return if (spec is Message) {
+      log.info("Upsert asset {}", request)
+      request.file.writer().use {
+        it.append(spec.text)
+      }
+      ConvergeAccepted
+    } else {
+      ConvergeFailed("Invalid asset spec ${spec.javaClass.name}")
+    }
   }
 
   override fun delete(request: Asset<*>): ConvergeResponse {
-    TODO("not implemented")
+    val spec = request.spec
+    return if (spec is Message) {
+      log.info("Delete asset {}", request)
+      request.file.delete()
+      ConvergeAccepted
+    } else {
+      ConvergeFailed("Invalid asset spec ${spec.javaClass.name}")
+    }
   }
+
+  private val Asset<*>.file: File
+    get() = File(directory, metadata.name.value)
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
