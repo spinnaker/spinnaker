@@ -335,7 +335,6 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     DeploymentEnvironment deploymentEnvironment = details
         .getDeploymentConfiguration()
         .getDeploymentEnvironment();
-
     String accountName = details.getAccount().getName();
     String namespace = getNamespace(settings);
     String name = getServiceName();
@@ -361,6 +360,7 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
 
     description.setVolumeSources(volumeSources);
     description.setPodAnnotations(settings.getKubernetes().getPodAnnotations());
+    description.setNodeSelector(deploymentEnvironment.getNodeSelectors());
 
     List<String> loadBalancers = new ArrayList<>();
     loadBalancers.add(name);
