@@ -17,7 +17,9 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.redis.RedisAssetRepository
+import com.netflix.spinnaker.keel.redis.RedisResourceVersionTracker
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientConfiguration
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
@@ -32,4 +34,8 @@ class RedisConfiguration {
   @Bean
   fun assetRepository(redisClientSelector: RedisClientSelector, objectMapper: ObjectMapper, clock: Clock): AssetRepository =
     RedisAssetRepository(redisClientSelector.primary("default"), objectMapper, clock)
+
+  @Bean
+  fun resourceVersionTracker(redisClientSelector: RedisClientSelector): ResourceVersionTracker =
+    RedisResourceVersionTracker(redisClientSelector.primary("default"))
 }

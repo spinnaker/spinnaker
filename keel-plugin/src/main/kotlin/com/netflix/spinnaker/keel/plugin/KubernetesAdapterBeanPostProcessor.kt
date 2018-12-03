@@ -42,6 +42,7 @@ internal class KubernetesAdapterBeanPostProcessor()
             BeanDefinitionBuilder
               .genericBeanDefinition(AssetPluginKubernetesAdapter::class.java)
               .addConstructorArgReference("assetRepository")
+              .addConstructorArgReference("resourceVersionTracker")
               .addConstructorArgReference("extensionsApi")
               .addConstructorArgReference("customObjectsApi")
               .addConstructorArgReference(name)

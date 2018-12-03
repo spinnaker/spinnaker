@@ -40,7 +40,7 @@ class RedisAssetRepository(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun allAssets(callback: (Asset<*>) -> Unit) {
-    withRedis { redis ->
+    redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
       redis.smembers(INDEX_SET)
         .map(::AssetName)
         .forEach { name ->
@@ -52,12 +52,12 @@ class RedisAssetRepository(
   }
 
   override fun get(name: AssetName): Asset<*>? =
-    withRedis { redis ->
+    redisClient.withCommandsClient<Asset<*>?> { redis: JedisCommands ->
       readAsset(redis, name)
     }
 
   override fun store(asset: Asset<*>) {
-    withRedis { redis ->
+    redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
       redis.hmset(asset.id.key, asset.toHash())
       redis.sadd(INDEX_SET, asset.id.value)
       redis.zadd(asset.id.stateKey, timestamp(), AssetState.Unknown.name)
@@ -65,14 +65,14 @@ class RedisAssetRepository(
   }
 
   override fun delete(name: AssetName) {
-    withRedis { redis ->
+    redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
       redis.del(name.key)
       redis.srem(INDEX_SET, name.value)
     }
   }
 
   override fun lastKnownState(name: AssetName): Pair<AssetState, Instant>? =
-    withRedis { redis ->
+    redisClient.withCommandsClient<Pair<AssetState, Instant>?> { redis: JedisCommands ->
       redis.zrangeByScoreWithScores(name.stateKey, Double.MIN_VALUE, Double.MAX_VALUE, 0, 1)
         .asSequence()
         .map { AssetState.valueOf(it.element) to Instant.ofEpochMilli(it.score.toLong()) }
@@ -80,14 +80,14 @@ class RedisAssetRepository(
     }
 
   override fun updateState(name: AssetName, state: AssetState) {
-    withRedis { redis ->
+    redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
       redis.zadd(name.stateKey, timestamp(), state.name)
     }
   }
 
   @PostConstruct
   fun logKnownAssets() {
-    withRedis { redis ->
+    redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
       redis
         .smembers(INDEX_SET)
         .sorted()
@@ -121,13 +121,10 @@ class RedisAssetRepository(
 
   private fun onInvalidIndex(name: AssetName) {
     log.error("Invalid index entry {}", name)
-    withRedis { redis ->
+    redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
       redis.srem(INDEX_SET, name.value)
     }
   }
-
-  private fun <T> withRedis(operation: (JedisCommands) -> T): T =
-    redisClient.withCommandsClient(operation)
 
   private val AssetName.key: String
     get() = ASSET_HASH.format(value)
@@ -145,3 +142,4 @@ class RedisAssetRepository(
 
   private fun timestamp() = clock.millis().toDouble()
 }
+

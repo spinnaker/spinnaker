@@ -16,7 +16,9 @@
 package com.netflix.spinnaker.keel
 
 import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryAssetRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.CustomResourceDefinitionLocator
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.kork.PlatformComponents
@@ -60,11 +62,18 @@ class KeelApplication {
   fun assetRepository(clock: Clock): AssetRepository = InMemoryAssetRepository(clock)
 
   @Bean
+  @ConditionalOnMissingBean(ResourceVersionTracker::class)
+  fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
+
+  @Bean
   @ConditionalOnMissingBean(CustomResourceDefinitionLocator::class)
   fun noCustomResourceDefinitions(): List<CustomResourceDefinitionLocator> = emptyList()
 
   @Autowired
   lateinit var assetRepository: AssetRepository
+
+  @Autowired
+  lateinit var resourceVersionTracker: ResourceVersionTracker
 
   @Autowired(required = false)
   var plugins: List<KeelPlugin> = emptyList()
@@ -72,6 +81,7 @@ class KeelApplication {
   @PostConstruct
   fun initialStatus() {
     log.info("Using {} asset repository implementation", assetRepository.javaClass.simpleName)
+    log.info("Using {} resource version tracker implementation", resourceVersionTracker.javaClass.simpleName)
     log.info("Using plugins: {}", plugins.joinToString { it.name })
   }
 }

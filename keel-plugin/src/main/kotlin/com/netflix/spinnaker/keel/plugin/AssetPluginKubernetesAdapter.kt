@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.plugin
 import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.persistence.AssetRepository
+import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.squareup.okhttp.Call
 import io.kubernetes.client.apis.ApiextensionsV1beta1Api
 import io.kubernetes.client.apis.CustomObjectsApi
@@ -41,6 +42,7 @@ import kotlin.reflect.KClass
 
 internal class AssetPluginKubernetesAdapter(
   private val assetRepository: AssetRepository,
+  private val resourceVersionTracker: ResourceVersionTracker,
   private val extensionsApi: ApiextensionsV1beta1Api,
   private val customObjectsApi: CustomObjectsApi,
   private val plugin: AssetPlugin
@@ -81,7 +83,6 @@ internal class AssetPluginKubernetesAdapter(
     crd: V1beta1CustomResourceDefinition,
     type: KClass<T>
   ) {
-    var seen = 0L
     while (isActive) {
       val call = customObjectsApi.listClusterCustomObjectCall(
         crd.spec.group,
@@ -89,38 +90,34 @@ internal class AssetPluginKubernetesAdapter(
         crd.spec.names.plural,
         "true",
         null,
-        "0", // TODO: this should update based on `seen`
+        "${resourceVersionTracker.get()}",
         true,
         null,
         null
       )
       calls[crd.metadata.name] = call
       try {
-        log.info("Watching for changes to {} (spec: {})", crd.metadata.name, type.simpleName)
+        log.info("Watching for changes to {} (spec: {}) since {}", crd.metadata.name, type.simpleName, resourceVersionTracker.get())
         call
           .createResourceWatch(type)
           .use { watch ->
             watch.forEach {
               log.info("Event {} on {}", it.type, it.`object`)
-              log.info("Event {} on {} v{}, last seen {}", it.type, it.`object`.metadata.name, it.`object`.metadata.resourceVersion, seen)
-              val version = it.`object`.metadata.resourceVersion ?: 0L
-              if (version > seen) {
-                seen = version
-                when (it.type) {
-                  "ADDED" -> {
-                    assetRepository.store(it.`object`)
-                    plugin.create(it.`object`)
-                  }
-                  "MODIFIED" -> {
-                    assetRepository.store(it.`object`)
-                    plugin.update(it.`object`)
-                  }
-                  "DELETED" -> {
-                    plugin.delete(it.`object`)
-                    assetRepository.delete(it.`object`.metadata.name)
-                  }
+              when (it.type) {
+                "ADDED" -> {
+                  assetRepository.store(it.`object`)
+                  plugin.create(it.`object`)
+                }
+                "MODIFIED" -> {
+                  assetRepository.store(it.`object`)
+                  plugin.update(it.`object`)
+                }
+                "DELETED" -> {
+                  plugin.delete(it.`object`)
+                  assetRepository.delete(it.`object`.metadata.name)
                 }
               }
+              it.`object`.metadata.resourceVersion?.let(resourceVersionTracker::set)
             }
           }
       } catch (e: Exception) {
