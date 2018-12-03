@@ -18,12 +18,12 @@
     </div>
     <div class="col-md-4"><input type="number"
                                  class="form-control input-sm"
-                                 ng-model="currentSize.memInMb"
+                                 ng-model="currentSize.memory"
                                  readonly/>
     </div>
     <div class="col-md-4"><input type="number"
                                  class="form-control input-sm"
-                                 ng-model="currentSize.diskInMb"
+                                 ng-model="currentSize.diskQuota"
                                  readonly/>
     </div>
   </div>
@@ -37,13 +37,13 @@
     /></div>
     <div class="col-md-4"><input type="number"
                                  class="form-control input-sm"
-                                 ng-model="command.memInMb"
+                                 ng-model="command.memory"
                                  required
                                  min="32"
     /></div>
     <div class="col-md-4"><input type="number"
                                  class="form-control input-sm"
-                                 ng-model="command.diskInMb"
+                                 ng-model="command.diskQuota"
                                  required
                                  min="32"
     /></div>

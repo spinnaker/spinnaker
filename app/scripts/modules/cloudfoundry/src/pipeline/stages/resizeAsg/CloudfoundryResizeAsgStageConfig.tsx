@@ -3,6 +3,7 @@ import {
   AccountService,
   Application,
   IAccount,
+  ICapacity,
   IPipeline,
   IRegion,
   IStageConfigProps,
@@ -19,14 +20,14 @@ export interface ICloudfoundryResizeAsgStageConfigState {
   accounts: IAccount[];
   action?: string;
   application: Application;
-  capacity?: any;
+  capacity?: Partial<ICapacity>;
   cloudProvider?: string;
   cloudProviderType?: string;
   credentials: string;
-  diskInMb?: number;
+  diskQuota?: number;
   instanceCount?: number;
   interestingHealthProviderNames?: string[];
-  memoryInMb?: number;
+  memory?: number;
   pipeline: IPipeline;
   region?: string;
   regions: IRegion[];
@@ -50,15 +51,17 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
     ) {
       interestingHealthProviderNames = ['Cloud Foundry'];
     }
+    props.stage.capacity = props.stage.capacity || {};
+    props.stage.capacity.desired = props.stage.capacity.desired || 1;
     const initStage = {
       action: 'scale_exact',
-      capacity: props.stage.capacity || {},
+      capacity: props.stage.capacity,
       cloudProvider: 'cloudfoundry',
       cloudProviderType: props.stage.cloudProvider,
-      diskInMb: props.stage.diskInMb || 1024,
+      diskQuota: props.stage.diskQuota || 1024,
       instanceCount: props.stage.instanceCount || 1,
       interestingHealthProviderNames: interestingHealthProviderNames,
-      memoryInMb: props.stage.memoryInMb || 1024,
+      memory: props.stage.memory || 1024,
       target: props.stage.target,
     };
     Object.assign(props.stage, initStage);
@@ -97,21 +100,23 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
   private instanceCountUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const instanceCount = parseInt(event.target.value, 10);
     this.setState({ instanceCount: instanceCount });
-    this.props.stage.instanceCount = instanceCount;
+    this.props.stage.capacity.desired = instanceCount;
+    this.props.stage.capacity.min = instanceCount;
+    this.props.stage.capacity.max = instanceCount;
     this.props.stageFieldUpdated();
   };
 
-  private memoryInMbUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const memoryInMb = parseInt(event.target.value, 10);
-    this.setState({ memoryInMb: memoryInMb });
-    this.props.stage.memoryInMb = memoryInMb;
+  private memoryUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const memory = parseInt(event.target.value, 10);
+    this.setState({ memory: memory });
+    this.props.stage.memory = memory;
     this.props.stageFieldUpdated();
   };
 
-  private diskInMbUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const diskInMb = parseInt(event.target.value, 10);
-    this.setState({ diskInMb: diskInMb });
-    this.props.stage.diskInMb = diskInMb;
+  private diskQuotaUpdated = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const diskQuota = parseInt(event.target.value, 10);
+    this.setState({ diskQuota: diskQuota });
+    this.props.stage.diskQuota = diskQuota;
     this.props.stageFieldUpdated();
   };
 
@@ -124,7 +129,10 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
   public render() {
     const { accounts, application, pipeline, resizeLabel, resizeMessage } = this.state;
     const { stage } = this.props;
-    const { diskInMb, instanceCount, memoryInMb, target } = this.props.stage;
+    const { capacity, target } = this.props.stage;
+    const diskQuota = this.props.stage.diskQuota;
+    const instanceCount = capacity.desired;
+    const memory = this.props.stage.memory;
     const { AccountRegionClusterSelector, TargetSelect } = NgReact;
     return (
       <div className="cloudfoundry-resize-asg-stage form-horizontal">
@@ -162,18 +170,18 @@ export class CloudfoundryResizeAsgStageConfig extends React.Component<
             <div className="col-md-3">
               <input
                 type="number"
-                key="memoryInMb"
-                onChange={this.memoryInMbUpdated}
-                value={memoryInMb}
+                key="memory"
+                onChange={this.memoryUpdated}
+                value={memory}
                 className="form-control input-sm"
               />
             </div>
             <div className="col-md-3">
               <input
                 type="number"
-                key="diskInMb"
-                onChange={this.diskInMbUpdated}
-                value={diskInMb}
+                key="diskQuota"
+                onChange={this.diskQuotaUpdated}
+                value={diskQuota}
                 className="form-control input-sm"
               />
             </div>
