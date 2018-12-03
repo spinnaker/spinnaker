@@ -1,8 +1,9 @@
-license {
-  exclude "**/*.json"
-  exclude "**/*.md"
-  exclude "**/*.yml"
-  mapping {
+def licenseExtension = project.extensions.findByName("license")
+if (licenseExtension != null) {
+  licenseExtension.exclude "**/*.json"
+  licenseExtension.exclude "**/*.md"
+  licenseExtension.exclude "**/*.yml"
+  licenseExtension.mapping {
     java = "SLASHSTAR_STYLE"
     kt = "SLASHSTAR_STYLE"
   }

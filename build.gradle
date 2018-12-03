@@ -20,7 +20,7 @@ buildscript {
     maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:$spinnakerVersion"
+    classpath "com.netflix.spinnaker.gradle:spinnaker-dev-plugin:5.2.1"
     classpath "org.springframework.boot:spring-boot-gradle-plugin:$bootVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
     classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
@@ -28,7 +28,7 @@ buildscript {
 }
 
 allprojects {
-  apply plugin: "spinnaker.project"
+  apply plugin: "spinnaker.base-project"
 
   group = "com.netflix.spinnaker.keel"
 
