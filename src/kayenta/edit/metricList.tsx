@@ -84,7 +84,7 @@ function MetricList({
 
   return (
     <>
-      <NativeTable columns={columns} rows={metrics} rowKey={metric => metric.id} className="header-transparent" />
+      <NativeTable columns={columns} rows={metrics} rowKey={metric => metric.id} className="header-white" />
       {!metrics.length && selectedGroup ? (
         <p>
           This group is empty! The group will be not be present the next time the config is loaded unless it is saved

@@ -4,10 +4,15 @@ import * as classNames from 'classnames';
 export interface ITabsProps {
   children: any;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function Tabs({ children, className }: ITabsProps) {
-  return <ul className={classNames('tabs-basic', 'list-unstyled', className)}>{children}</ul>;
+export function Tabs({ children, className, style }: ITabsProps) {
+  return (
+    <ul className={classNames('tabs-basic', 'list-unstyled', className)} style={style}>
+      {children}
+    </ul>
+  );
 }
 
 export interface ITabProps {

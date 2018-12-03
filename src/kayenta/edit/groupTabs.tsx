@@ -55,7 +55,7 @@ function GroupTabs({
   };
   return (
     <section className="group-tabs">
-      <Tabs>
+      <Tabs style={{ marginBottom: '0' }}>
         <GroupTab group="" />
         {groupList.map(group => (
           <GroupTab key={group} group={group} editable={true} />
