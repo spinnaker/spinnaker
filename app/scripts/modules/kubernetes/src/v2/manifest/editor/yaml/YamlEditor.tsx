@@ -2,7 +2,8 @@ import * as React from 'react';
 import AceEditor, { Annotation } from 'react-ace';
 import { $log } from 'ngimport';
 import { loadAll, YAMLException } from 'js-yaml';
-import { head } from 'lodash';
+
+import { yamlStringToDocuments } from 'kubernetes/v2/manifest/editor/yaml/yamlEditorUtils';
 
 import 'brace/theme/textmate';
 import 'brace/mode/yaml';
@@ -25,14 +26,7 @@ interface IMark {
 
 export class YamlEditor extends React.Component<IYamlEditorProps> {
   private handleChange = (raw: string) => {
-    let yamlDocuments: any;
-    try {
-      yamlDocuments = loadAll(raw, null);
-      if (Array.isArray(head(yamlDocuments))) {
-        // Multi-doc entered as list of maps
-        yamlDocuments = head(yamlDocuments);
-      }
-    } catch (e) {}
+    const yamlDocuments = yamlStringToDocuments(raw);
     this.props.onChange
       ? this.props.onChange(raw, yamlDocuments)
       : $log.warn('No `onChange` handler provided for YAML editor.');

@@ -1,9 +1,9 @@
 import { IComponentOptions, IController, IScope, module } from 'angular';
-import { dump } from 'js-yaml';
-import { isEmpty } from 'lodash';
 
 import { IManifest } from '@spinnaker/core';
+
 import { IKubernetesManifestCommand } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
+import { yamlDocumentsToString } from 'kubernetes/v2/manifest/editor/yaml/yamlEditorUtils';
 
 import './manifestEntry.less';
 
@@ -20,11 +20,7 @@ class KubernetesManifestCtrl implements IController {
   // list of manifests. Otherwise, hide the fact
   // that the underlying model is a list.
   public $onInit = (): void => {
-    try {
-      this.rawManifest = !isEmpty(this.manifests) ? this.manifests.map(m => dump(m)).join('---\n') : null;
-    } catch (e) {
-      this.rawManifest = null;
-    }
+    this.rawManifest = yamlDocumentsToString(this.manifests);
   };
 
   public handleChange = (rawManifest: string, manifests: any): void => {
