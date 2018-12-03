@@ -77,6 +77,11 @@ module.exports = angular
       vm.state.emailErrorMsg = '';
     };
 
+    // Allow for setting the attributes through this as a callback in react components
+    vm.setAttribute = function(name, value) {
+      vm.applicationAttributes[name] = value;
+    };
+
     vm.submit = function() {
       submitting();
 
