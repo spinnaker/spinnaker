@@ -6,8 +6,6 @@ apply plugin: "application"
 dependencies {
   api project(":keel-core")
   api project(":keel-plugin")
-  // do not commit this line
-  implementation project(":keel-file-plugin")
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
 //  implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:+"
