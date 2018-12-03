@@ -19,32 +19,9 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
-import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
-import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
-import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
-import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
-import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
-import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
-import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
-import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.security.*;
+import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -52,13 +29,7 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.DELETE;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.PUT;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit.http.*;
 
 import java.util.List;
 import java.util.Map;
@@ -789,6 +760,28 @@ public interface DaemonService {
   DaemonTask<Halconfig, Void> publishLatestSpinnaker(
       @Query("latestSpinnaker") String latestSpinnaker,
       @Body String _ignore);
+
+  @GET("/v1/config/deployments/{deploymentName}/webhook/")
+  DaemonTask<Halconfig, Object> getWebhook(
+          @Path("deploymentName") String deploymentName,
+          @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/webhook/")
+  DaemonTask<Halconfig, Void> setWebhook(
+          @Path("deploymentName") String deploymentName,
+          @Query("validate") boolean validate,
+          @Body Webhook webhook);
+
+  @GET("/v1/config/deployments/{deploymentName}/webhook/trust/")
+  DaemonTask<Halconfig, Object> getWebhookTrust(
+          @Path("deploymentName") String deploymentName,
+          @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/webhook/trust/")
+  DaemonTask<Halconfig, Void> setWebhookTrust(
+          @Path("deploymentName") String deploymentName,
+          @Query("validate") boolean validate,
+          @Body WebhookTrust webhookTrust);
 
   @GET("/v1/spin/install/latest")
   DaemonTask<Halconfig, Object> installSpin();

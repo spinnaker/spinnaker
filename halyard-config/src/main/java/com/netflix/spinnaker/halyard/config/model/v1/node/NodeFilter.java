@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
 import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
+import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -284,6 +285,17 @@ public class NodeFilter implements Cloneable {
 
   public NodeFilter setCanary() {
     matchers.add(Node.thisNodeAcceptor(Canary.class));
+    return this;
+  }
+
+  public NodeFilter setWebhook() {
+    matchers.add(Node.thisNodeAcceptor(Webhook.class));
+    return this;
+  }
+
+  public NodeFilter setWebhookTrust() {
+    matchers.add(Node.thisNodeAcceptor(Webhook.class));
+    matchers.add(Node.thisNodeAcceptor(WebhookTrust.class));
     return this;
   }
 

@@ -407,6 +407,11 @@
  * [**hal config storage s3 edit**](#hal-config-storage-s3-edit)
  * [**hal config version**](#hal-config-version)
  * [**hal config version edit**](#hal-config-version-edit)
+ * [**hal config webhook**](#hal-config-webhook)
+ * [**hal config webhook trust**](#hal-config-webhook-trust)
+ * [**hal config webhook trust disable**](#hal-config-webhook-trust-disable)
+ * [**hal config webhook trust edit**](#hal-config-webhook-trust-edit)
+ * [**hal config webhook trust enable**](#hal-config-webhook-trust-enable)
  * [**hal deploy**](#hal-deploy)
  * [**hal deploy apply**](#hal-deploy-apply)
  * [**hal deploy clean**](#hal-deploy-clean)
@@ -673,6 +678,7 @@ hal config [parameters] [subcommands]
  * `security`: Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.
  * `storage`: Show Spinnaker's persistent storage configuration.
  * `version`: Configure & view the current deployment of Spinnaker's version.
+ * `webhook`: Show Spinnaker's webhook configuration.
 
 ---
 ## hal config artifact
@@ -7900,6 +7906,89 @@ hal config version edit [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--version`: (*Required*) Must be either a version number "X.Y.Z" for a specific release of Spinnaker, or "$BRANCH-latest-unvalidated" for the most recently built (unvalidated) Spinnaker on $BRANCH.
+
+
+---
+## hal config webhook
+
+Show Spinnaker's webhook configuration.
+
+#### Usage
+```
+hal config webhook [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `trust`: Show Spinnaker's webhook trust configuration.
+
+---
+## hal config webhook trust
+
+Show Spinnaker's webhook trust configuration.
+
+#### Usage
+```
+hal config webhook trust [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set Spinnaker's webhook trust to disabled.
+ * `edit`: Edit Spinnaker's webhook trust configuration.
+ * `enable`: Set Spinnaker's webhook trust to enabled.
+
+---
+## hal config webhook trust disable
+
+Set Spinnaker's webhook trust to disabled.
+
+#### Usage
+```
+hal config webhook trust disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config webhook trust edit
+
+Edit Spinnaker's webhook trust configuration.
+
+#### Usage
+```
+hal config webhook trust edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--trustStore`: The path to a key store in JKS format containing certification authorities that should be trusted by webhook stages.
+ * `--trustStorePassword`: (*Sensitive data* - user will be prompted on standard input) The password for the supplied trustStore.
+
+
+---
+## hal config webhook trust enable
+
+Set Spinnaker's webhook trust to enabled.
+
+#### Usage
+```
+hal config webhook trust enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
 ---

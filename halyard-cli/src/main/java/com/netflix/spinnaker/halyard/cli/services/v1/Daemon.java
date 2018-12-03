@@ -23,39 +23,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccoun
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
-import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
-import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
-import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
-import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
-import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Subscription;
-import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
-import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
-import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
-import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
-import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.security.*;
+import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.StringBodyRequest;
@@ -893,6 +863,27 @@ public class Daemon {
     }
 
     return objectMapper;
+  }
+
+  public static Supplier<Webhook> getWebhook(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawWebhook = ResponseUnwrapper.get(getService().getWebhook(deploymentName, validate));
+      return getObjectMapper().convertValue(rawWebhook, Webhook.class);
+    };
+  }
+
+  public static Supplier<WebhookTrust> getWebhookTrust(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawWebhookTrust = ResponseUnwrapper.get(getService().getWebhookTrust(deploymentName, validate));
+      return getObjectMapper().convertValue(rawWebhookTrust, WebhookTrust.class);
+    };
+  }
+
+  public static Supplier<Void> setWebhookTrust(String deploymentName, boolean validate, WebhookTrust webhookTrust) {
+    return () -> {
+      Object rawWebhookTrust = ResponseUnwrapper.get(getService().setWebhookTrust(deploymentName, validate, webhookTrust));
+      return null;
+    };
   }
 
   static private DaemonService service;
