@@ -58,4 +58,8 @@ public class RelationshipCacheFilter implements CacheFilter {
 
     return filteredIdentifiers;
   }
+
+  public List<String> getAllowableRelationshipPrefixes() {
+    return allowableRelationshipPrefixes;
+  }
 }
