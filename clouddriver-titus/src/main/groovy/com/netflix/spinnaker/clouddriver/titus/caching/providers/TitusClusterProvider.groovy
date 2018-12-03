@@ -295,9 +295,10 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster>, ServerGroup
       Task task = objectMapper.convertValue(instanceEntry.attributes.task, Task)
 
       Job job
-      if (instanceEntry.attributes.job != null) {
+      if (instanceEntry.attributes.job != null || (instanceEntry.attributes.jobId != null &&
+        jobData.containsKey(instanceEntry.attributes.jobId))) {
         if (instanceEntry.relationships[SERVER_GROUPS.ns]
-            && !instanceEntry.relationships[SERVER_GROUPS.ns].empty) {
+          && !instanceEntry.relationships[SERVER_GROUPS.ns].empty) {
           // job needs to be loaded because it was cached separately
           job = jobData.get(instanceEntry.attributes.jobId)
         } else {
