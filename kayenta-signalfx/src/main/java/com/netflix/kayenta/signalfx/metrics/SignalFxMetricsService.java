@@ -75,7 +75,25 @@ public class SignalFxMetricsService implements MetricsService {
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String accountName,
+  public String buildQuery(String metricsAccountName,
+                           CanaryConfig canaryConfig,
+                           CanaryMetricConfig canaryMetricConfig,
+                           CanaryScope canaryScope) {
+
+    SignalFxCanaryScope signalFxCanaryScope = (SignalFxCanaryScope)canaryScope;
+    SignalFxCanaryMetricSetQueryConfig queryConfig = (SignalFxCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+    String aggregationMethod = Optional.ofNullable(queryConfig.getAggregationMethod()).orElse("mean");
+    List<QueryPair> queryPairs = Optional.ofNullable(queryConfig.getQueryPairs()).orElse(new LinkedList<>());
+
+    return SimpleSignalFlowProgramBuilder
+        .create(queryConfig.getMetricName(), aggregationMethod)
+        .withQueryPairs(queryPairs)
+        .withScope(signalFxCanaryScope)
+        .build();
+  }
+
+  @Override
+  public List<MetricSet> queryMetrics(String metricsAccountName,
                                       CanaryConfig canaryConfig,
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) {
@@ -87,14 +105,16 @@ public class SignalFxMetricsService implements MetricsService {
     }
 
     SignalFxCanaryScope signalFxCanaryScope = (SignalFxCanaryScope)canaryScope;
+    SignalFxCanaryMetricSetQueryConfig queryConfig = (SignalFxCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+    List<QueryPair> queryPairs = Optional.ofNullable(queryConfig.getQueryPairs()).orElse(new LinkedList<>());
 
     SignalFxNamedAccountCredentials accountCredentials =
-        (SignalFxNamedAccountCredentials) accountCredentialsRepository.getOne(accountName)
-            .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+        (SignalFxNamedAccountCredentials) accountCredentialsRepository.getOne(metricsAccountName)
+            .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
 
     String accessToken = accountCredentials.getCredentials().getAccessToken();
     SignalFxSignalFlowRemoteService signalFlowService = accountCredentials.getSignalFlowService();
-    SignalFxCanaryMetricSetQueryConfig queryConfig = (SignalFxCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
+
 
     long startEpochMilli = signalFxCanaryScope.getStart().toEpochMilli();
     long endEpochMilli = signalFxCanaryScope.getEnd().toEpochMilli();
@@ -102,15 +122,7 @@ public class SignalFxMetricsService implements MetricsService {
     // Determine and validate the data resolution to use for the query
     long stepMilli = Duration.ofSeconds(canaryStepLengthInSeconds).toMillis();
 
-    String aggregationMethod = Optional.ofNullable(queryConfig.getAggregationMethod()).orElse("mean");
-    List<QueryPair> queryPairs = Optional.ofNullable(queryConfig.getQueryPairs()).orElse(new LinkedList<>());
-
-    // Fetch the user override or build the simple SignalFlow program.
-    String program = SimpleSignalFlowProgramBuilder
-        .create(queryConfig.getMetricName(), aggregationMethod)
-        .withQueryPairs(queryPairs)
-        .withScope(signalFxCanaryScope)
-        .build();
+    String program = buildQuery(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
 
     SignalFlowExecutionResult signalFlowExecutionResult;
     try {
@@ -120,7 +132,7 @@ public class SignalFxMetricsService implements MetricsService {
     } catch (RetrofitError e) {
       ErrorResponse errorResponse = (ErrorResponse) e.getBodyAs(ErrorResponse.class);
       throw new SignalFxRequestError(errorResponse, program, startEpochMilli,
-          endEpochMilli, stepMilli, accountName);
+          endEpochMilli, stepMilli, metricsAccountName);
     }
 
     // Return a Metric set of the reduced and aggregated data
