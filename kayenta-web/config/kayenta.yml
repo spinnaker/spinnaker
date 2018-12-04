@@ -92,6 +92,11 @@ kayenta:
   configbin:
     enabled: false
 
+  remoteJudge:
+    enabled: false
+#    endpoint:
+#      baseUrl: http://remotejudge.example.com/path/to/service
+
 management.security.enabled: false
 
 keiko:
