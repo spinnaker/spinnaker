@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.api.AssetKind
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.squareup.okhttp.Call
+import io.kubernetes.client.ApiException
 import io.kubernetes.client.apis.ApiextensionsV1beta1Api
 import io.kubernetes.client.apis.CustomObjectsApi
 import io.kubernetes.client.models.V1beta1CustomResourceDefinition
@@ -40,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.slf4j.LoggerFactory
+import java.net.HttpURLConnection.HTTP_NOT_FOUND
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import javax.annotation.PostConstruct
@@ -66,9 +68,17 @@ internal class AssetPluginKubernetesAdapter(
     job = GlobalScope.launch {
       for ((kind, type) in plugin.supportedKinds) {
         launch {
-          val crd = extensionsApi
-            .readCustomResourceDefinition(kind.crd, "true", null, null)
-          watchForResourceChanges(crd, type)
+          try {
+            val crd = extensionsApi
+              .readCustomResourceDefinition(name, "true", null, null)
+            watchForResourceChanges(crd, type)
+          } catch (e: ApiException) {
+            if (e.code == HTTP_NOT_FOUND) {
+              log.error("Cannot find CRD for kind {}. It needs to be registered.", name)
+            } else {
+              throw e
+            }
+          }
         }
       }
     }
