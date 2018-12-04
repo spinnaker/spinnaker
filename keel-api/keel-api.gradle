@@ -6,9 +6,13 @@ apply plugin: "application"
 dependencies {
   api project(":keel-core")
   api project(":keel-plugin")
+
+  implementation project(":keel-ec2-plugin")
+  implementation project(":keel-file-plugin")
+  implementation project(":keel-redis")
+
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:+"
   implementation "com.netflix.spinnaker.kork:kork-core:2.+"
-//  implementation "com.netflix.spinnaker.keiko:keiko-redis-spring:+"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -17,9 +21,6 @@ dependencies {
   testImplementation "io.strikt:strikt-core:+"
   testImplementation project(":keel-spring-test-support")
   testImplementation project(":keel-core-test")
-  testImplementation(project(":keel-ec2")) {
-    because("want access to real protos to test conversion between model & proto")
-  }
 }
 
 test {
@@ -27,4 +28,5 @@ test {
     includeEngines "junit-jupiter", "junit-vintage"
   }
 }
+
 mainClassName = "com.netflix.spinnaker.keel.MainKt"

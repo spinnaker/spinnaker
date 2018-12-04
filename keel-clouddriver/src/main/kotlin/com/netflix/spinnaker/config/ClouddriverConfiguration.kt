@@ -24,6 +24,7 @@ import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
 import com.squareup.okhttp.Interceptor
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -35,30 +36,36 @@ import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 
 @Configuration
+@ConditionalOnProperty("clouddriver.enabled")
 @Import(RetrofitConfiguration::class)
 open class ClouddriverConfiguration {
 
-  @Bean open fun accountProvidingNetworkInterceptor(applicationContext: ApplicationContext): Interceptor
-    = AccountProvidingNetworkInterceptor(applicationContext)
+  @Bean
+  open fun accountProvidingNetworkInterceptor(applicationContext: ApplicationContext): Interceptor =
+    AccountProvidingNetworkInterceptor(applicationContext)
 
-  @Bean open fun clouddriverEndpoint(@Value("\${clouddriver.baseUrl}") clouddriverBaseUrl: String)
-    = Endpoints.newFixedEndpoint(clouddriverBaseUrl)
+  @Bean
+  open fun clouddriverEndpoint(@Value("\${clouddriver.baseUrl}") clouddriverBaseUrl: String): Endpoint =
+    Endpoints.newFixedEndpoint(clouddriverBaseUrl)
 
-  @Bean open fun clouddriverService(clouddriverEndpoint: Endpoint,
-                                    objectMapper: ObjectMapper,
-                                    retrofitClient: Client,
-                                    spinnakerRequestInterceptor: SpinnakerRequestInterceptor,
-                                    retrofitLogLevel: RestAdapter.LogLevel)
-    = RestAdapter.Builder()
-        .setRequestInterceptor(spinnakerRequestInterceptor)
-        .setEndpoint(clouddriverEndpoint)
-        .setClient(retrofitClient)
-        .setLogLevel(retrofitLogLevel)
-        .setConverter(JacksonConverter(objectMapper))
-        .build()
-        .create(CloudDriverService::class.java)
+  @Bean
+  open fun clouddriverService(
+    clouddriverEndpoint: Endpoint,
+    objectMapper: ObjectMapper,
+    retrofitClient: Client,
+    spinnakerRequestInterceptor: SpinnakerRequestInterceptor,
+    retrofitLogLevel: RestAdapter.LogLevel): CloudDriverService =
+    RestAdapter.Builder()
+      .setRequestInterceptor(spinnakerRequestInterceptor)
+      .setEndpoint(clouddriverEndpoint)
+      .setClient(retrofitClient)
+      .setLogLevel(retrofitLogLevel)
+      .setConverter(JacksonConverter(objectMapper))
+      .build()
+      .create(CloudDriverService::class.java)
 
   @Bean
   @ConditionalOnMissingBean(CloudDriverCache::class)
-  open fun cloudDriverCache(cloudDriverService: CloudDriverService) = MemoryCloudDriverCache(cloudDriverService)
+  open fun cloudDriverCache(cloudDriverService: CloudDriverService) =
+    MemoryCloudDriverCache(cloudDriverService)
 }

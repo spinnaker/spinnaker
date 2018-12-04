@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.retrofit.KeelRetrofitConfiguration
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -31,24 +32,28 @@ import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 
 @Configuration
+@ConditionalOnProperty("orca.enabled")
 @Import(KeelRetrofitConfiguration::class)
 @ComponentScan("com.netflix.spinnaker.keel.orca")
 open class OrcaConfiguration {
 
-  @Bean open fun orcaEndpoint(@Value("\${orca.baseUrl}") orcaBaseUrl: String)
-    = Endpoints.newFixedEndpoint(orcaBaseUrl)
+  @Bean
+  open fun orcaEndpoint(@Value("\${orca.baseUrl}") orcaBaseUrl: String) =
+    Endpoints.newFixedEndpoint(orcaBaseUrl)
 
-  @Bean open fun orcaService(orcaEndpoint: Endpoint,
-                             objectMapper: ObjectMapper,
-                             retrofitClient: Client,
-                             spinnakerRequestInterceptor: RequestInterceptor,
-                             retrofitLogLevel: RestAdapter.LogLevel)
-    = RestAdapter.Builder()
-        .setRequestInterceptor(spinnakerRequestInterceptor)
-        .setEndpoint(orcaEndpoint)
-        .setClient(retrofitClient)
-        .setLogLevel(retrofitLogLevel)
-        .setConverter(JacksonConverter(objectMapper))
-        .build()
-        .create(OrcaService::class.java)
+  @Bean
+  open fun orcaService(
+    orcaEndpoint: Endpoint,
+    objectMapper: ObjectMapper,
+    retrofitClient: Client,
+    spinnakerRequestInterceptor: RequestInterceptor,
+    retrofitLogLevel: RestAdapter.LogLevel): OrcaService =
+    RestAdapter.Builder()
+      .setRequestInterceptor(spinnakerRequestInterceptor)
+      .setEndpoint(orcaEndpoint)
+      .setClient(retrofitClient)
+      .setLogLevel(retrofitLogLevel)
+      .setConverter(JacksonConverter(objectMapper))
+      .build()
+      .create(OrcaService::class.java)
 }

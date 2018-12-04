@@ -32,10 +32,8 @@ import com.netflix.spinnaker.keel.plugin.CurrentError
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.plugin.CurrentSuccess
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import kotlin.reflect.KClass
 
-@Component
 class EC2AssetPlugin(
   cloudDriverService: CloudDriverService,
   cloudDriverCache: CloudDriverCache,

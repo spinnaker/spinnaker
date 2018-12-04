@@ -24,16 +24,11 @@ import com.netflix.spinnaker.keel.plugin.ConvergeFailed
 import com.netflix.spinnaker.keel.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
 import java.io.File
 import javax.annotation.PostConstruct
 import kotlin.reflect.KClass
 
-@Component
-class FilePlugin(
-  @Value("\${keel.file.directory:#{systemEnvironment['HOME']}/keel}") val directory: File
-) : AssetPlugin {
+class FilePlugin(private val directory: File) : AssetPlugin {
 
   @PostConstruct
   fun ensureDirectoryExists() {

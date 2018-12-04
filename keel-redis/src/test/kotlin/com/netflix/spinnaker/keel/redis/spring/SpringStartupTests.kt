@@ -18,7 +18,10 @@ import strikt.assertions.isA
 @SpringBootTest(
   classes = [KeelApplication::class],
   webEnvironment = NONE,
-  properties = ["redis.connection=redis://localhost:\${redisServer.port:6379}"]
+  properties = [
+    "redis.enabled=true",
+    "redis.connection=redis://localhost:\${redisServer.port:6379}"
+  ]
 )
 internal class SpringStartupTests {
 
