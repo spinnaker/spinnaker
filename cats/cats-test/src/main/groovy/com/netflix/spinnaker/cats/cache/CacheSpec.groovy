@@ -85,14 +85,6 @@ abstract class CacheSpec extends Specification {
         identifiers = ['blaTEST', 'TESTbla', 'blaTESTbla', 'blaPest', 'blaFEST']
     }
 
-    def 'a cached value does not exist until it has attributes'() {
-        setup:
-        populateOne('foo', 'bar', createData('bar', [:]))
-
-        expect:
-        cache.get('foo', 'bar') == null
-    }
-
     def 'can getAll empty id collection'() {
         when:
         def results = cache.getAll('foo', [])
