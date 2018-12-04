@@ -75,6 +75,8 @@ public class ServiceAccountsController {
     }
 
     try {
+      fiatService.loginWithRoles(serviceAccount.name, serviceAccount.memberOf)
+      log.debug("Synced serviceAccount {} with roles {}", serviceAccount.name, serviceAccount.memberOf)
       // Empty body to keep OkHttp happy: https://github.com/square/retrofit/issues/854
       fiatService.sync(new ArrayList<String>())
       log.debug("Synced users with roles")
