@@ -17,6 +17,11 @@ package com.netflix.spinnaker.keel.plugin
 
 import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.k8s.WatchEventType
+import com.netflix.spinnaker.keel.k8s.WatchEventType.ADDED
+import com.netflix.spinnaker.keel.k8s.WatchEventType.DELETED
+import com.netflix.spinnaker.keel.k8s.WatchEventType.MODIFIED
+import com.netflix.spinnaker.keel.k8s.eventType
 import com.netflix.spinnaker.keel.api.AssetKind
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
@@ -105,7 +110,7 @@ internal class AssetPluginKubernetesAdapter(
           .createResourceWatch(type)
           .use { watch ->
             watch.forEach {
-              onResourceEvent(it.type, it.`object`)
+              onResourceEvent(it.eventType, it.`object`)
             }
           }
       } catch (e: Exception) {
@@ -119,18 +124,18 @@ internal class AssetPluginKubernetesAdapter(
     }
   }
 
-  internal fun <T : Any> onResourceEvent(type: String, asset: Asset<T>) {
+  internal fun <T : Any> onResourceEvent(type: WatchEventType, asset: Asset<T>) {
     log.info("Event {} on {}", type, asset)
     val result = when (type) {
-      "ADDED" -> {
+      ADDED -> {
         assetRepository.store(asset)
         plugin.create(asset)
       }
-      "MODIFIED" -> {
+      MODIFIED -> {
         assetRepository.store(asset)
         plugin.update(asset)
       }
-      "DELETED" -> {
+      DELETED -> {
         plugin.delete(asset).also {
           if (it is ConvergeAccepted) {
             assetRepository.delete(asset.metadata.name)
