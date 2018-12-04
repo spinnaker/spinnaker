@@ -25,19 +25,16 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
+import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -59,47 +56,35 @@ public class AccountController {
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Account>> accounts(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<Account>> accounts(@PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>(
-        () -> accountService.getAllAccounts(deploymentName, providerName));
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(
-          () -> accountService.validateAllAccounts(deploymentName, providerName));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get all " + providerName + " accounts");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<List<Account>>builder()
+        .getter(() -> accountService.getAllAccounts(deploymentName, providerName))
+        .validator(() -> accountService.validateAllAccounts(deploymentName, providerName))
+        .description("Get all " + providerName + " accounts")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Account> account(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Account> account(@PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Account> builder = new StaticRequestBuilder<>(
-        () -> accountService.getProviderAccount(deploymentName, providerName, accountName));
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(
-          () -> accountService.validateAccount(deploymentName, providerName, accountName));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get " + accountName + " account");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<Account>builder()
+        .getter(() -> accountService.getProviderAccount(deploymentName, providerName, accountName))
+        .validator(() -> accountService.validateAccount(deploymentName, providerName, accountName))
+        .description("Get " + accountName + " account")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/options", method = RequestMethod.POST)
   DaemonTask<Halconfig, List<String>> newAccountOptions(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody DaemonOptions rawAccountOptions) {
     String fieldName = rawAccountOptions.getField();
     Account account = objectMapper.convertValue(
@@ -122,7 +107,7 @@ public class AccountController {
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody DaemonOptions rawAccountOptions) {
     String fieldName = rawAccountOptions.getField();
     DaemonResponse.StaticOptionsRequestBuilder builder = new DaemonResponse.StaticOptionsRequestBuilder();
@@ -139,8 +124,8 @@ public class AccountController {
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder
@@ -166,8 +151,8 @@ public class AccountController {
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody Object rawAccount) {
     Account account = objectMapper.convertValue(
         rawAccount,
@@ -200,8 +185,8 @@ public class AccountController {
   DaemonTask<Halconfig, Void> addAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody Object rawAccount) {
     Account account = objectMapper.convertValue(
         rawAccount,

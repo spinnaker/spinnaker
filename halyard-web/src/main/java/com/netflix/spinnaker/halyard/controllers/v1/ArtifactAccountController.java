@@ -25,21 +25,18 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.ArtifactAccountService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import java.nio.file.Path;
+import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
+import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -59,38 +56,28 @@ public class ArtifactAccountController {
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<ArtifactAccount>> accounts(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<ArtifactAccount>> accounts(@PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<ArtifactAccount>> builder = new StaticRequestBuilder<>(
-            () -> accountService.getAllArtifactAccounts(deploymentName, providerName));
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(() -> accountService.validateAllArtifactAccounts(deploymentName, providerName));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get all " + providerName + " artifact accounts");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<List<ArtifactAccount>>builder()
+        .getter(() -> accountService.getAllArtifactAccounts(deploymentName, providerName))
+        .validator(() -> accountService.validateAllArtifactAccounts(deploymentName, providerName))
+        .description("Get all " + providerName + " artifact accounts")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, ArtifactAccount> account(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, ArtifactAccount> account(@PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<ArtifactAccount> builder = new StaticRequestBuilder<>(
-            () -> accountService.getArtifactProviderArtifactAccount(deploymentName, providerName, accountName));
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(() -> accountService.validateArtifactAccount(deploymentName, providerName, accountName));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get " + accountName + " artifact account");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<ArtifactAccount>builder()
+        .getter(() -> accountService.getArtifactProviderArtifactAccount(deploymentName, providerName, accountName))
+        .validator(() -> accountService.validateArtifactAccount(deploymentName, providerName, accountName))
+        .description("Get " + accountName + " artifact account")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.DELETE)
@@ -98,8 +85,8 @@ public class ArtifactAccountController {
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> accountService.deleteArtifactAccount(deploymentName, providerName, accountName));
@@ -124,8 +111,8 @@ public class ArtifactAccountController {
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody Object rawArtifactAccount) {
     ArtifactAccount account = objectMapper.convertValue(
         rawArtifactAccount,
@@ -156,8 +143,8 @@ public class ArtifactAccountController {
   DaemonTask<Halconfig, Void> addArtifactAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody Object rawArtifactAccount) {
     ArtifactAccount account = objectMapper.convertValue(
         rawArtifactAccount,

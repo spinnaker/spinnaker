@@ -25,19 +25,16 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
 import com.netflix.spinnaker.halyard.config.services.v1.PubsubService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
+import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -60,29 +57,23 @@ public class PubsubController {
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/{pubsubName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Pubsub> get(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Pubsub> get(@PathVariable String deploymentName,
       @PathVariable String pubsubName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Pubsub> builder = new StaticRequestBuilder<>(
-        () -> pubsubService.getPubsub(deploymentName, pubsubName));
-
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(() -> pubsubService.validatePubsub(deploymentName, pubsubName));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get the " + pubsubName + " pubsub");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<Pubsub>builder()
+        .getter(() -> pubsubService.getPubsub(deploymentName, pubsubName))
+        .validator(() -> pubsubService.validatePubsub(deploymentName, pubsubName))
+        .description("Get the " + pubsubName + " pubsub")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/{pubsubName:.+}", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setPubsub(
       @PathVariable String deploymentName,
       @PathVariable String pubsubName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody Object rawPubsub) {
     Pubsub pubsub = objectMapper.convertValue(
         rawPubsub,
@@ -113,8 +104,8 @@ public class PubsubController {
   DaemonTask<Halconfig, Void> setEnabled(
       @PathVariable String deploymentName,
       @PathVariable String pubsubName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody boolean enabled) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
@@ -135,17 +126,12 @@ public class PubsubController {
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, List<Pubsub>> pubsubs(@PathVariable String deploymentName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<Pubsub>> builder = new StaticRequestBuilder<>(
-        () -> pubsubService.getAllPubsubs(deploymentName));
-
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(() -> pubsubService.validateAllPubsubs(deploymentName));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get all pubsubs");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<List<Pubsub>>builder()
+        .getter(() -> pubsubService.getAllPubsubs(deploymentName))
+        .validator(() -> pubsubService.validateAllPubsubs(deploymentName))
+        .description("Get all pubsubs")
+        .build()
+        .execute(validationSettings);
   }
 }

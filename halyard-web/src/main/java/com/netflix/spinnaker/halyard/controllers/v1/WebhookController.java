@@ -28,6 +28,9 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
+import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,96 +40,82 @@ import java.nio.file.Path;
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/webhook")
 @RequiredArgsConstructor
 public class WebhookController {
-    private final WebhookService webhookService;
-    private final ObjectMapper objectMapper;
-    private final HalconfigDirectoryStructure halconfigDirectoryStructure;
-    private final HalconfigParser halconfigParser;
+  private final WebhookService webhookService;
+  private final ObjectMapper objectMapper;
+  private final HalconfigDirectoryStructure halconfigDirectoryStructure;
+  private final HalconfigParser halconfigParser;
 
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    DaemonTask<Halconfig, Webhook> getWebhook(
-            @PathVariable String deploymentName,
-            @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-            @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Problem.Severity severity
-    ) {
-        DaemonResponse.StaticRequestBuilder<Webhook> builder = new DaemonResponse.StaticRequestBuilder<>(
-                () -> webhookService.getWebhook(deploymentName));
+  @RequestMapping(value = "/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, Webhook> getWebhook(@PathVariable String deploymentName,
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<Webhook>builder()
+        .getter(() -> webhookService.getWebhook(deploymentName))
+        .validator(() -> webhookService.validateWebhook(deploymentName))
+        .description("Get webhook settings")
+        .build()
+        .execute(validationSettings);
+  }
 
-        builder.setSeverity(severity);
-        if (validate) {
-            builder.setValidateResponse(() -> webhookService.validateWebhook(deploymentName));
-        }
+  @RequestMapping(value = "/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setWebhook(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Problem.Severity severity,
+      @RequestBody Object rawWebhook) {
+    Webhook webhook = objectMapper.convertValue(rawWebhook, Webhook.class);
 
-        return DaemonTaskHandler.submitTask(builder::build, "Get webhook settings");
+    DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
+
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> webhook.stageLocalFiles(configPath));
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> webhookService.setWebhook(deploymentName, webhook));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> webhookService.validateWebhook(deploymentName));
     }
 
-    @RequestMapping(value = "/", method = RequestMethod.PUT)
-    DaemonTask<Halconfig, Void> setWebhook(
-            @PathVariable String deploymentName,
-            @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-            @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Problem.Severity severity,
-            @RequestBody Object rawWebhook) {
-        Webhook webhook = objectMapper.convertValue(rawWebhook, Webhook.class);
+    builder.setRevert(halconfigParser::undoChanges);
+    builder.setSave(halconfigParser::saveConfig);
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
-        DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
+    return DaemonTaskHandler.submitTask(builder::build, "Edit webhook settings");
+  }
 
-        Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-        builder.setStage(() -> webhook.stageLocalFiles(configPath));
-        builder.setSeverity(severity);
-        builder.setUpdate(() -> webhookService.setWebhook(deploymentName, webhook));
+  @RequestMapping(value = "/trust/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, WebhookTrust> getWebhookTrust(@PathVariable String deploymentName,
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<WebhookTrust>builder()
+        .getter(() -> webhookService.getWebhookTrust(deploymentName))
+        .validator(() -> webhookService.validateWebhookTrust(deploymentName))
+        .description("Get webhook trust settings")
+        .build()
+        .execute(validationSettings);
+  }
 
-        builder.setValidate(ProblemSet::new);
-        if (validate) {
-            builder.setValidate(() -> webhookService.validateWebhook(deploymentName));
-        }
+  @RequestMapping(value = "/trust/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setWebhookTrust(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Problem.Severity severity,
+      @RequestBody Object rawWebhookTrust) {
+    WebhookTrust webhookTrust = objectMapper.convertValue(rawWebhookTrust, WebhookTrust.class);
 
-        builder.setRevert(halconfigParser::undoChanges);
-        builder.setSave(halconfigParser::saveConfig);
-        builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
+    DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
 
-        return DaemonTaskHandler.submitTask(builder::build, "Edit webhook settings");
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> webhookTrust.stageLocalFiles(configPath));
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> webhookService.setWebhookTrust(deploymentName, webhookTrust));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> webhookService.validateWebhookTrust(deploymentName));
     }
 
-    @RequestMapping(value = "/trust/", method = RequestMethod.GET)
-    DaemonTask<Halconfig, WebhookTrust> getWebhookTrust(
-            @PathVariable String deploymentName,
-            @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-            @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Problem.Severity severity
-    ) {
-        DaemonResponse.StaticRequestBuilder<WebhookTrust> builder = new DaemonResponse.StaticRequestBuilder<>(
-                () -> webhookService.getWebhookTrust(deploymentName));
+    builder.setRevert(halconfigParser::undoChanges);
+    builder.setSave(halconfigParser::saveConfig);
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
 
-        builder.setSeverity(severity);
-        if (validate) {
-            builder.setValidateResponse(() -> webhookService.validateWebhook(deploymentName));
-        }
-
-        return DaemonTaskHandler.submitTask(builder::build, "Get webhook trust settings");
-    }
-
-    @RequestMapping(value = "/trust/", method = RequestMethod.PUT)
-    DaemonTask<Halconfig, Void> setWebhookTrust(
-            @PathVariable String deploymentName,
-            @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-            @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Problem.Severity severity,
-            @RequestBody Object rawWebhookTrust) {
-        WebhookTrust webhookTrust = objectMapper.convertValue(rawWebhookTrust, WebhookTrust.class);
-
-        DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
-
-        Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
-        builder.setStage(() -> webhookTrust.stageLocalFiles(configPath));
-        builder.setSeverity(severity);
-        builder.setUpdate(() -> webhookService.setWebhookTrust(deploymentName, webhookTrust));
-
-        builder.setValidate(ProblemSet::new);
-        if (validate) {
-            builder.setValidate(() -> webhookService.validateWebhookTrust(deploymentName));
-        }
-
-        builder.setRevert(halconfigParser::undoChanges);
-        builder.setSave(halconfigParser::saveConfig);
-        builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
-
-        return DaemonTaskHandler.submitTask(builder::build, "Edit webhook trust settings");
-    }
+    return DaemonTaskHandler.submitTask(builder::build, "Edit webhook trust settings");
+  }
 }

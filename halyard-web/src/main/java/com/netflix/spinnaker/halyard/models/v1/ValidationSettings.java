@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.controllers.v1;
+package com.netflix.spinnaker.halyard.models.v1;
 
-public class DefaultControllerValues {
-  public final static String validate = "false";
-  public final static String severity = "WARNING";
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import lombok.Data;
+
+@Data
+public class ValidationSettings {
+  private boolean validate = false;
+  private Problem.Severity severity = Problem.Severity.WARNING;
 }

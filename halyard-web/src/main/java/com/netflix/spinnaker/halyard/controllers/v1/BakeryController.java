@@ -25,20 +25,16 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.BakeryService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse;
-import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
+import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
+import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -63,25 +59,20 @@ public class BakeryController {
   @RequestMapping(value = "/defaults/", method = RequestMethod.GET)
   DaemonTask<Halconfig, BakeryDefaults> getBakeryDefaults(@PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<BakeryDefaults> builder = new DaemonResponse.StaticRequestBuilder<>(
-        () -> bakeryService.getBakeryDefaults(deploymentName, providerName));
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(
-          () -> bakeryService.validateBakeryDefaults(deploymentName, providerName));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get " + providerName + " bakery defaults");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<BakeryDefaults>builder()
+        .getter(() -> bakeryService.getBakeryDefaults(deploymentName, providerName))
+        .validator(() -> bakeryService.validateBakeryDefaults(deploymentName, providerName))
+        .description("Get " + providerName + " bakery defaults")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/defaults/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setBakeryDefaults(@PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody Object rawBakeryDefaults) {
     BakeryDefaults bakeryDefaults = objectMapper.convertValue(
         rawBakeryDefaults,
@@ -114,37 +105,26 @@ public class BakeryController {
   @RequestMapping(value = "/defaults/baseImage/", method = RequestMethod.GET)
   DaemonTask<Halconfig, List<BaseImage>> images(@PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<BaseImage>> builder = new StaticRequestBuilder<>(
-        () -> bakeryService.getAllBaseImages(deploymentName, providerName));
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(
-          () -> bakeryService.validateAllBaseImages(deploymentName, providerName));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get " + providerName + " base images");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<List<BaseImage>>builder()
+        .getter(() -> bakeryService.getAllBaseImages(deploymentName, providerName))
+        .validator(() -> bakeryService.validateAllBaseImages(deploymentName, providerName))
+        .description("Get " + providerName + " base images")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, BaseImage> baseImage(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, BaseImage> baseImage(@PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String baseImageId,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<BaseImage> builder = new StaticRequestBuilder<>(
-        () -> bakeryService.getProviderBaseImage(deploymentName, providerName, baseImageId));
-    builder.setSeverity(severity);
-
-    if (validate) {
-      builder.setValidateResponse(
-          () -> bakeryService.validateBaseImage(deploymentName, providerName, baseImageId));
-    }
-
-    return DaemonTaskHandler.submitTask(builder::build, "Get " + baseImageId + " base image");
+      @ModelAttribute ValidationSettings validationSettings) {
+    return GenericGetRequest.<BaseImage>builder()
+        .getter(() -> bakeryService.getProviderBaseImage(deploymentName, providerName, baseImageId))
+        .validator(() -> bakeryService.validateBaseImage(deploymentName, providerName, baseImageId))
+        .description("Get " + baseImageId + " base image")
+        .build()
+        .execute(validationSettings);
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.DELETE)
@@ -152,8 +132,8 @@ public class BakeryController {
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String baseImageId,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder
@@ -179,8 +159,8 @@ public class BakeryController {
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String baseImageId,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody Object rawBaseImage) {
     BaseImage baseImage = objectMapper.convertValue(
         rawBaseImage,
@@ -213,8 +193,8 @@ public class BakeryController {
   DaemonTask<Halconfig, Void> addBaseImage(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
       @RequestBody Object rawBaseImage) {
     BaseImage baseImage = objectMapper.convertValue(
         rawBaseImage,
