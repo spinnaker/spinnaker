@@ -9,6 +9,7 @@ import { SchedulerFactory } from 'core/scheduler';
 import { relativeTime, timestamp } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
+import { SETTINGS } from 'core/config/settings';
 
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
@@ -147,7 +148,9 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
             </li>
           ))}
         </ul>
-        <ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />
+        {SETTINGS.feature.artifacts && (
+          <ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />
+        )}
         {!standalone && (
           <a className="clickable" onClick={this.toggleDetails}>
             <span
