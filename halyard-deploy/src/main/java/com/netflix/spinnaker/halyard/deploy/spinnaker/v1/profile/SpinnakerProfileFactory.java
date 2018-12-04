@@ -26,6 +26,7 @@ public class SpinnakerProfileFactory extends StringBackedProfileFactory {
   @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     profile.appendContents(yamlToString(endpoints));
+    profile.appendContents("global.spinnaker.timezone: " + deploymentConfiguration.getTimezone());
   }
 
   @Override
