@@ -28,9 +28,9 @@ import com.netflix.spinnaker.keel.plugin.AssetPlugin
 import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
 import com.netflix.spinnaker.keel.plugin.ConvergeFailed
 import com.netflix.spinnaker.keel.plugin.ConvergeResponse
-import com.netflix.spinnaker.keel.plugin.CurrentError
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
-import com.netflix.spinnaker.keel.plugin.CurrentSuccess
+import com.netflix.spinnaker.keel.plugin.ResourceError
+import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
 
@@ -55,12 +55,12 @@ class EC2AssetPlugin(
         val current = securityGroupHandler.current(spec, request as Asset<SecurityGroup>)
         log.info("{} desired state: {}", request.id, spec)
         log.info("{} current state: {}", request.id, current?.spec)
-        CurrentSuccess(request, current)
+        ResourceState(request, current)
       }
       else -> {
         val message = "Unsupported asset type ${request.kind} with id ${request.id}"
         log.error("Current failed: {}", message)
-        CurrentError(message)
+        ResourceError(message)
       }
     }
   }

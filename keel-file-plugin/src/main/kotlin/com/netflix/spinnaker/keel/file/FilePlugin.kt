@@ -23,6 +23,9 @@ import com.netflix.spinnaker.keel.plugin.ConvergeAccepted
 import com.netflix.spinnaker.keel.plugin.ConvergeFailed
 import com.netflix.spinnaker.keel.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
+import com.netflix.spinnaker.keel.plugin.ResourceError
+import com.netflix.spinnaker.keel.plugin.ResourceMissing
+import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
 import java.io.File
 import javax.annotation.PostConstruct
@@ -50,7 +53,13 @@ class FilePlugin(private val directory: File) : AssetPlugin {
   )
 
   override fun current(request: Asset<*>): CurrentResponse {
-    TODO("not implemented")
+    val file = File(directory, request.metadata.name.value)
+    return when {
+      !file.exists() -> ResourceMissing
+      !file.canRead() -> ResourceError("Resource found but it cannot be read")
+      file.isDirectory -> ResourceError("Resource found but it is a directory not a regular file")
+      else -> ResourceState(Message(file.readText()))
+    }
   }
 
   override fun upsert(request: Asset<*>): ConvergeResponse {

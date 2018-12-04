@@ -40,7 +40,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRef
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.CurrentSuccess
+import com.netflix.spinnaker.keel.plugin.ResourceState
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.doAnswer
@@ -63,8 +63,6 @@ import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
-import strikt.assertions.isNull
 import java.util.*
 
 @TestInstance(PER_CLASS)
@@ -135,7 +133,7 @@ internal object EC2AssetPluginTests {
         val response = subject.current(request)
 
         expectThat(response)
-          .isA<CurrentSuccess>()
+          .isA<ResourceState>()
           .get { current }
           .isNull()
       }
@@ -174,7 +172,7 @@ internal object EC2AssetPluginTests {
         val response = subject.current(request)
 
         expectThat(response)
-          .isA<CurrentSuccess>()
+          .isA<ResourceState>()
           .and {
             get { current }
               .isNotNull()

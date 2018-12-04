@@ -36,9 +36,11 @@ interface AssetPlugin : KeelPlugin {
 
 sealed class CurrentResponse
 
-data class CurrentSuccess(val desired: Asset<*>, val current: Asset<*>?) : CurrentResponse()
+data class ResourceState<T : Any>(val spec: T) : CurrentResponse()
 
-data class CurrentError(val reason: String) : CurrentResponse()
+object ResourceMissing : CurrentResponse()
+
+data class ResourceError(val reason: String) : CurrentResponse()
 
 sealed class ConvergeResponse
 
