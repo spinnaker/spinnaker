@@ -102,34 +102,42 @@ internal class AssetPluginKubernetesAdapter(
           .createResourceWatch(type)
           .use { watch ->
             watch.forEach {
-              log.info("Event {} on {}", it.type, it.`object`)
-              when (it.type) {
-                "ADDED" -> {
-                  assetRepository.store(it.`object`)
-                  plugin.create(it.`object`)
-                }
-                "MODIFIED" -> {
-                  assetRepository.store(it.`object`)
-                  plugin.update(it.`object`)
-                }
-                "DELETED" -> {
-                  plugin.delete(it.`object`)
-                  assetRepository.delete(it.`object`.metadata.name)
-                }
-              }
-              it.`object`.metadata.resourceVersion?.let(resourceVersionTracker::set)
+              onResourceEvent(it.type, it.`object`)
             }
           }
       } catch (e: Exception) {
-        if (e.cause is SocketTimeoutException) {
-          log.debug("Socket timed out.")
-        } else if (e.cause is SocketException) {
-          log.debug("Call was cancelled?")
-        } else {
-          throw e
+        when {
+          e.cause is SocketTimeoutException -> log.debug("Socket timed out.")
+          e.cause is SocketException -> log.debug("Call was cancelled?")
+          else -> throw e
         }
       }
       yield()
+    }
+  }
+
+  internal fun <T : Any> onResourceEvent(type: String, asset: Asset<T>) {
+    log.info("Event {} on {}", type, asset)
+    val result = when (type) {
+      "ADDED" -> {
+        assetRepository.store(asset)
+        plugin.create(asset)
+      }
+      "MODIFIED" -> {
+        assetRepository.store(asset)
+        plugin.update(asset)
+      }
+      "DELETED" -> {
+        plugin.delete(asset).also {
+          if (it is ConvergeAccepted) {
+            assetRepository.delete(asset.metadata.name)
+          }
+        }
+      }
+      else -> throw IllegalStateException("Unhandled event type: $type")
+    }
+    if (result is ConvergeAccepted) {
+      asset.metadata.resourceVersion?.let(resourceVersionTracker::set)
     }
   }
 
