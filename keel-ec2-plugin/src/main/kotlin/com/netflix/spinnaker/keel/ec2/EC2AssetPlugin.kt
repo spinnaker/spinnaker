@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.plugin.ConvergeFailed
 import com.netflix.spinnaker.keel.plugin.ConvergeResponse
 import com.netflix.spinnaker.keel.plugin.CurrentResponse
 import com.netflix.spinnaker.keel.plugin.ResourceError
+import com.netflix.spinnaker.keel.plugin.ResourceMissing
 import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
@@ -54,8 +55,12 @@ class EC2AssetPlugin(
         @Suppress("UNCHECKED_CAST")
         val current = securityGroupHandler.current(spec, request as Asset<SecurityGroup>)
         log.info("{} desired state: {}", request.id, spec)
-        log.info("{} current state: {}", request.id, current?.spec)
-        ResourceState(request, current)
+        log.info("{} current state: {}", request.id, current)
+        if (current == null) {
+          ResourceMissing
+        } else {
+          ResourceState(current)
+        }
       }
       else -> {
         val message = "Unsupported asset type ${request.kind} with id ${request.id}"

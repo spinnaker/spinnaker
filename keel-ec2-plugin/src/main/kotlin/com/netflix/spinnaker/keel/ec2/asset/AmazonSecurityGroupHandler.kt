@@ -40,10 +40,8 @@ class AmazonSecurityGroupHandler(
   private val orcaService: OrcaService
 ) : AmazonAssetHandler<SecurityGroup> {
 
-  override fun current(spec: SecurityGroup, request: Asset<SecurityGroup>): Asset<SecurityGroup>? =
-    cloudDriverService.getSecurityGroup(spec)?.let { securityGroup ->
-      request.copy(spec = securityGroup)
-    }
+  override fun current(spec: SecurityGroup, request: Asset<SecurityGroup>): SecurityGroup? =
+    cloudDriverService.getSecurityGroup(spec)
 
   override fun converge(assetName: AssetName, spec: SecurityGroup) {
     val taskRef = orcaService

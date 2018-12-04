@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.ec2.asset
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetMetadata
@@ -40,6 +39,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRef
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
+import com.netflix.spinnaker.keel.plugin.ResourceMissing
 import com.netflix.spinnaker.keel.plugin.ResourceState
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
@@ -132,10 +132,7 @@ internal object EC2AssetPluginTests {
       test("it returns null") {
         val response = subject.current(request)
 
-        expectThat(response)
-          .isA<ResourceState>()
-          .get { current }
-          .isNull()
+        expectThat(response).isA<ResourceMissing>()
       }
     }
 
@@ -172,17 +169,9 @@ internal object EC2AssetPluginTests {
         val response = subject.current(request)
 
         expectThat(response)
-          .isA<ResourceState>()
-          .and {
-            get { current }
-              .isNotNull()
-              .get { objectMapper.convertValue<SecurityGroup>(spec) }
-              .isEqualTo(securityGroup)
-          }
-          .and {
-            get { objectMapper.convertValue<SecurityGroup>(desired.spec) }
-              .isEqualTo(securityGroup)
-          }
+          .isA<ResourceState<SecurityGroup>>()
+          .get { spec }
+          .isEqualTo(securityGroup)
       }
     }
   }

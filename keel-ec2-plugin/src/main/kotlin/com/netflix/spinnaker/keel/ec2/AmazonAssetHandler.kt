@@ -23,7 +23,7 @@ interface AmazonAssetHandler<S: Any> {
   /**
    * Retrieve the current state for the provided asset based on the [spec].
    */
-  fun current(spec: S, request: Asset<S>): Asset<S>?
+  fun current(spec: S, request: Asset<S>): S?
 
   /**
    * Converge on the provided asset.
