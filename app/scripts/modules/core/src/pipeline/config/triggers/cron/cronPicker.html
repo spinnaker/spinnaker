@@ -13,18 +13,7 @@
         <div class="col-md-12">
           Every
           <select class="form-control input-sm" ng-change="$ctrl.regenerateCron()" ng-model="$ctrl.state.minutes.minutes"
-            ng-required="$ctrl.activeTab === 'minutes'">
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
-            <option>6</option>
-            <option>10</option>
-            <option>12</option>
-            <option>15</option>
-            <option>20</option>
-            <option>30</option>
+            ng-required="$ctrl.activeTab === 'minutes'" ng-options="i for i in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]">
           </select>
           minute<span ng-if="$ctrl.state.minutes.minutes !== '1'">s</span>
         </div>

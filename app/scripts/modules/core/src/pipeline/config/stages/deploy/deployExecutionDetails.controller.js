@@ -9,6 +9,7 @@ import { EXECUTION_DETAILS_SECTION_SERVICE } from 'core/pipeline/details/executi
 import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
 import { ClusterState } from 'core/state';
+import { HelpContentsRegistry } from 'core/help';
 
 let angular = require('angular');
 
@@ -95,6 +96,8 @@ module.exports = angular
         commits: $scope.stage.context.commits,
         jarDiffs: $scope.stage.context.jarDiffs,
       };
+
+      $scope.customStuckDeployGuide = HelpContentsRegistry.getHelpField('execution.stuckDeploy.guide');
 
       if (_.has(context, 'source.region') && context['deploy.server.groups']) {
         const serverGroupName = context['deploy.server.groups'][context.source.region][0];

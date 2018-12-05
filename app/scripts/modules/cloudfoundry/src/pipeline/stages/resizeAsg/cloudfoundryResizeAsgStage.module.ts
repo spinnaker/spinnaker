@@ -17,19 +17,22 @@ module(CLOUD_FOUNDRY_RESIZE_ASG_STAGE, [])
   .config(function() {
     const instanceCountValidator: IInstanceFieldSizeValidationConfig = {
       type: 'cfInstanceSizeField',
-      fieldName: 'instanceCount',
+      fieldName: 'capacity.desired',
+      fieldLabel: 'Instances',
       min: 0,
       preventSave: true,
     };
     const memoryValidator: IInstanceFieldSizeValidationConfig = {
       type: 'cfInstanceSizeField',
-      fieldName: 'memoryInMb',
+      fieldName: 'memory',
+      fieldLabel: 'Mem Mb',
       min: 256,
       preventSave: true,
     };
     const diskValidator: IInstanceFieldSizeValidationConfig = {
       type: 'cfInstanceSizeField',
-      fieldName: 'diskInMb',
+      fieldName: 'diskQuota',
+      fieldLabel: 'Disk Mb',
       min: 256,
       preventSave: true,
     };

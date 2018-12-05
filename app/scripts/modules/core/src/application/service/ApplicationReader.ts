@@ -82,8 +82,8 @@ export class ApplicationReader {
     }
     allDataSources.filter(ds => ds.requiresDataSource).forEach(ds => {
       const parent = allDataSources.find(p => p.key === ds.requiresDataSource);
-      if (parent && parent.disabled) {
-        this.setDataSourceDisabled(ds, application, true);
+      if (parent) {
+        this.setDataSourceDisabled(ds, application, parent.disabled);
       }
     });
   }

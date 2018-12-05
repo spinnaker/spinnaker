@@ -53,6 +53,7 @@
           ( current status: <health-counts container="stage.context.lastCapacityCheck" class="no-float"></health-counts>)
         </span>
       </p>
+      <div ng-if="waitingForUpInstances && customStuckDeployGuide" ng-bind-html="customStuckDeployGuide"></div>
       <div ng-if="showScalingActivitiesLink">
         <p>
           If your instances are not launching, there might be a problem with your configuration.

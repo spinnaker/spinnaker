@@ -6,14 +6,22 @@ import { IController, IScope, module } from 'angular';
 
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
-import { Application, SERVER_GROUP_WRITER, ServerGroupWriter, TaskMonitor, IServerGroupJob } from '@spinnaker/core';
+import {
+  Application,
+  SERVER_GROUP_WRITER,
+  ServerGroupWriter,
+  TaskMonitor,
+  IServerGroupJob,
+  ICapacity,
+} from '@spinnaker/core';
 
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
 
 interface ICloudFoundryResizeServerGroupCommand extends IServerGroupJob {
+  capacity?: Partial<ICapacity>;
+  diskQuota?: number;
   instanceCount?: number;
-  memoryInMb?: number;
-  diskInMb?: number;
+  memory?: number;
   serverGroupName: string;
   reason?: string;
 }
@@ -39,8 +47,8 @@ class CloudfoundryResizeServerGroupCtrl implements IController {
     this.$scope.application = this.application;
     this.$scope.currentSize = {
       instanceCount: this.serverGroup.instances.length,
-      memInMb: this.serverGroup.memory,
-      diskInMb: this.serverGroup.diskQuota,
+      memory: this.serverGroup.memory,
+      diskQuota: this.serverGroup.diskQuota,
     };
     this.$scope.command = angular.copy(this.$scope.currentSize);
     this.taskMonitor = new TaskMonitor({
@@ -52,15 +60,14 @@ class CloudfoundryResizeServerGroupCtrl implements IController {
 
   public submit(): void {
     const command: ICloudFoundryResizeServerGroupCommand = {
-      instanceCount: this.$scope.command.instanceCount,
-      memoryInMb: this.$scope.command.memInMb,
-      diskInMb: this.$scope.command.diskInMb,
       serverGroupName: this.serverGroup.name,
       capacity: {
         min: this.$scope.command.instanceCount,
         max: this.$scope.command.instanceCount,
         desired: this.$scope.command.instanceCount,
       },
+      diskQuota: this.$scope.command.diskQuota,
+      memory: this.$scope.command.memory,
       reason: this.$scope.command.reason,
     };
 
