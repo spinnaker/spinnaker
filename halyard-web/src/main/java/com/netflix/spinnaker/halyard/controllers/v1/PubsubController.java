@@ -26,14 +26,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsub;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
 import com.netflix.spinnaker.halyard.config.services.v1.PubsubService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
@@ -41,20 +39,13 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/pubsubs")
 public class PubsubController {
-
-  @Autowired
-  HalconfigParser halconfigParser;
-
-  @Autowired
-  PubsubService pubsubService;
-
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  private final HalconfigParser halconfigParser;
+  private final PubsubService pubsubService;
+  private final HalconfigDirectoryStructure halconfigDirectoryStructure;
+  private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/{pubsubName:.+}", method = RequestMethod.GET)
   DaemonTask<Halconfig, Pubsub> get(@PathVariable String deploymentName,
@@ -69,11 +60,9 @@ public class PubsubController {
   }
 
   @RequestMapping(value = "/{pubsubName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setPubsub(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setPubsub(@PathVariable String deploymentName,
       @PathVariable String pubsubName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawPubsub) {
     Pubsub pubsub = objectMapper.convertValue(
         rawPubsub,
@@ -85,10 +74,10 @@ public class PubsubController {
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> pubsub.stageLocalFiles(configPath));
     builder.setUpdate(() -> pubsubService.setPubsub(deploymentName, pubsub));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> pubsubService.validatePubsub(deploymentName, pubsubName);
     }
 
@@ -101,19 +90,17 @@ public class PubsubController {
   }
 
   @RequestMapping(value = "/{pubsubName:.+}/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
       @PathVariable String pubsubName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> pubsubService.setEnabled(deploymentName, pubsubName, enabled));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> pubsubService.validatePubsub(deploymentName, pubsubName);
     }
 

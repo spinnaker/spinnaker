@@ -25,37 +25,26 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.CanaryAccountService;
 import com.netflix.spinnaker.halyard.config.services.v1.CanaryService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/canary")
 public class CanaryController {
-
-  @Autowired
-  HalconfigParser halconfigParser;
-
-  @Autowired
-  CanaryService canaryService;
-
-  @Autowired
-  CanaryAccountService canaryAccountService;
-
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  private final HalconfigParser halconfigParser;
+  private final CanaryService canaryService;
+  private final CanaryAccountService canaryAccountService;
+  private final HalconfigDirectoryStructure halconfigDirectoryStructure;
+  private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, Canary> getCanary(@PathVariable String deploymentName,
@@ -70,21 +59,18 @@ public class CanaryController {
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setCanary(@PathVariable String deploymentName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
-      @RequestBody Object rawCanary) {
-    Canary canary = objectMapper.convertValue(rawCanary, Canary.class);
-
+      @ModelAttribute ValidationSettings validationSettings,
+      @RequestBody Canary canary) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> canary.stageLocalFiles(configPath));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
     builder.setUpdate(() -> canaryService.setCanary(deploymentName, canary));
 
     builder.setValidate(ProblemSet::new);
 
-    if (validate) {
+    if (validationSettings.isValidate()) {
       builder.setValidate(() -> canaryService.validateCanary(deploymentName));
     }
 
@@ -97,17 +83,16 @@ public class CanaryController {
 
   @RequestMapping(value = "/enabled/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody boolean enabled) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> canaryService.setCanaryEnabled(deploymentName, enabled));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     builder.setValidate(ProblemSet::new);
 
-    if (validate) {
+    if (validationSettings.isValidate()) {
       builder.setValidate(() -> canaryService.validateCanary(deploymentName));
     }
 
@@ -131,12 +116,10 @@ public class CanaryController {
   }
 
   @RequestMapping(value = "/{serviceIntegrationName:.+}/accounts/account/{accountName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setCanaryAccount(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setCanaryAccount(@PathVariable String deploymentName,
       @PathVariable String serviceIntegrationName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawCanaryAccount) {
     AbstractCanaryAccount canaryAccount = objectMapper.convertValue(
         rawCanaryAccount,
@@ -148,11 +131,11 @@ public class CanaryController {
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> canaryAccount.stageLocalFiles(configPath));
     builder.setUpdate(() -> canaryAccountService.setAccount(deploymentName, serviceIntegrationName, accountName, canaryAccount));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
 
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> canaryService.validateCanary(deploymentName);
     }
 
@@ -165,11 +148,9 @@ public class CanaryController {
   }
 
   @RequestMapping(value = "/{serviceIntegrationName:.+}/accounts/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addCanaryAccount(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addCanaryAccount(@PathVariable String deploymentName,
       @PathVariable String serviceIntegrationName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawCanaryAccount) {
     AbstractCanaryAccount canaryAccount = objectMapper.convertValue(
         rawCanaryAccount,
@@ -180,12 +161,12 @@ public class CanaryController {
 
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> canaryAccount.stageLocalFiles(configPath));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
     builder.setUpdate(() -> canaryAccountService.addAccount(deploymentName, serviceIntegrationName, canaryAccount));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
 
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> canaryService.validateCanary(deploymentName);
     }
 
@@ -198,20 +179,18 @@ public class CanaryController {
   }
 
   @RequestMapping(value = "/{serviceIntegrationName:.+}/accounts/account/{accountName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteCanaryAccount(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteCanaryAccount(@PathVariable String deploymentName,
       @PathVariable String serviceIntegrationName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity) {
+      @ModelAttribute ValidationSettings validationSettings) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> canaryAccountService.deleteAccount(deploymentName, serviceIntegrationName, accountName));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
 
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> canaryService.validateCanary(deploymentName);
     }
 

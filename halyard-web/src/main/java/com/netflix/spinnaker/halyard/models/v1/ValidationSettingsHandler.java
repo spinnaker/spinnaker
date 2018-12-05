@@ -33,4 +33,9 @@ public class ValidationSettingsHandler {
     values.setSeverity(severity);
     return values;
   }
+
+  private static class DefaultValidationSettings {
+    final static String validate = "false";
+    final static String severity = "WARNING";
+  }
 }

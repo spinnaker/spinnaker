@@ -24,33 +24,23 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentEnvironmentService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/deploymentEnvironment")
 public class DeploymentEnvironmentController {
-
-  @Autowired
-  HalconfigParser halconfigParser;
-
-  @Autowired
-  DeploymentEnvironmentService deploymentEnvironmentService;
-
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  private final HalconfigParser halconfigParser;
+  private final DeploymentEnvironmentService deploymentEnvironmentService;
+  private final HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, DeploymentEnvironment> getDeploymentEnvironment(@PathVariable String deploymentName,
@@ -65,21 +55,17 @@ public class DeploymentEnvironmentController {
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setDeploymentEnvironment(@PathVariable String deploymentName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
-      @RequestBody Object rawDeploymentEnvironment) {
-    DeploymentEnvironment deploymentEnvironment = objectMapper
-        .convertValue(rawDeploymentEnvironment, DeploymentEnvironment.class);
-
+      @ModelAttribute ValidationSettings validationSettings,
+      @RequestBody DeploymentEnvironment deploymentEnvironment) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> deploymentEnvironment.stageLocalFiles(configPath));
     builder.setUpdate(() -> deploymentEnvironmentService
         .setDeploymentEnvironment(deploymentName, deploymentEnvironment));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
-    if (validate) {
+    if (validationSettings.isValidate()) {
       builder.setValidate(
           () -> deploymentEnvironmentService.validateDeploymentEnvironment(deploymentName));
     } else {

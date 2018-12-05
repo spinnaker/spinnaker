@@ -25,14 +25,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.ClusterService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,16 +40,12 @@ import java.util.function.Supplier;
  * Controller for adding clusters to a provider
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/providers/{providerName:.+}/clusters")
 public class ClusterController {
-  @Autowired
-  ClusterService clusterService;
-
-  @Autowired
-  HalconfigParser halconfigParser;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  private final ClusterService clusterService;
+  private final HalconfigParser halconfigParser;
+  private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, List<Cluster>> clusters(@PathVariable String deploymentName,
@@ -79,19 +73,17 @@ public class ClusterController {
   }
 
   @RequestMapping(value = "/cluster/{clusterName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteCluster(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteCluster(@PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String clusterName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Problem.Severity severity) {
+      @ModelAttribute ValidationSettings validationSettings) {
     DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
 
     builder.setUpdate(() -> clusterService.deleteCluster(deploymentName, providerName, clusterName));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> clusterService.validateAllClusters(deploymentName, providerName);
     }
 
@@ -103,12 +95,10 @@ public class ClusterController {
   }
 
   @RequestMapping(value = "/cluster/{clusterName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setCluster(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setCluster(@PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String clusterName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Problem.Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawCluster) {
     Cluster cluster = objectMapper.convertValue(
         rawCluster,
@@ -118,10 +108,10 @@ public class ClusterController {
     DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
 
     builder.setUpdate(() -> clusterService.setCluster(deploymentName, providerName, clusterName, cluster));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> clusterService.validateCluster(deploymentName, providerName, cluster.getName());
     }
 
@@ -133,11 +123,9 @@ public class ClusterController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addCluster(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addCluster(@PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Problem.Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawCluster) {
     Cluster cluster = objectMapper.convertValue(
         rawCluster,
@@ -145,12 +133,12 @@ public class ClusterController {
     );
 
     DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     builder.setUpdate(() -> clusterService.addCluster(deploymentName, providerName, cluster));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> clusterService.validateCluster(deploymentName, providerName, cluster.getName());
     }
 

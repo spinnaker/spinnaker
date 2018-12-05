@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,23 +35,21 @@ import org.springframework.web.bind.annotation.RestController;
  * Reports the entire contents of ~/.hal/config
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/config")
 public class ConfigController {
-  @Autowired
-  ConfigService configService;
-
-  @Autowired
-  HalconfigParser halconfigParser;
+  private final ConfigService configService;
+  private final HalconfigParser halconfigParser;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, Halconfig> config() {
-    StaticRequestBuilder<Halconfig> builder = new StaticRequestBuilder<>(() -> configService.getConfig());
+    StaticRequestBuilder<Halconfig> builder = new StaticRequestBuilder<>(configService::getConfig);
     return DaemonTaskHandler.submitTask(builder::build, "Get halconfig");
   }
 
   @RequestMapping(value = "/currentDeployment", method = RequestMethod.GET)
   DaemonTask<Halconfig, String> currentDeployment() {
-    StaticRequestBuilder<String> builder = new StaticRequestBuilder<>(() -> configService.getCurrentDeployment());
+    StaticRequestBuilder<String> builder = new StaticRequestBuilder<>(configService::getCurrentDeployment);
     return DaemonTaskHandler.submitTask(builder::build, "Get current deployment");
   }
 
@@ -59,8 +57,8 @@ public class ConfigController {
   DaemonTask<Halconfig, Void> setDeployment(@RequestBody StringBodyRequest name) {
     DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
     builder.setUpdate(() -> configService.setCurrentDeployment(name.getValue()));
-    builder.setRevert(() -> halconfigParser.undoChanges());
-    builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setRevert(halconfigParser::undoChanges);
+    builder.setSave(halconfigParser::saveConfig);
     builder.setValidate(ProblemSet::new);
     return DaemonTaskHandler.submitTask(builder::build, "Set current deployment");
   }

@@ -24,11 +24,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.config.services.v1.WebhookService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +39,6 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class WebhookController {
   private final WebhookService webhookService;
-  private final ObjectMapper objectMapper;
   private final HalconfigDirectoryStructure halconfigDirectoryStructure;
   private final HalconfigParser halconfigParser;
 
@@ -58,20 +55,17 @@ public class WebhookController {
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setWebhook(@PathVariable String deploymentName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Problem.Severity severity,
-      @RequestBody Object rawWebhook) {
-    Webhook webhook = objectMapper.convertValue(rawWebhook, Webhook.class);
-
+      @ModelAttribute ValidationSettings validationSettings,
+      @RequestBody Webhook webhook) {
     DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
 
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> webhook.stageLocalFiles(configPath));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
     builder.setUpdate(() -> webhookService.setWebhook(deploymentName, webhook));
 
     builder.setValidate(ProblemSet::new);
-    if (validate) {
+    if (validationSettings.isValidate()) {
       builder.setValidate(() -> webhookService.validateWebhook(deploymentName));
     }
 
@@ -95,20 +89,17 @@ public class WebhookController {
 
   @RequestMapping(value = "/trust/", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setWebhookTrust(@PathVariable String deploymentName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Problem.Severity severity,
-      @RequestBody Object rawWebhookTrust) {
-    WebhookTrust webhookTrust = objectMapper.convertValue(rawWebhookTrust, WebhookTrust.class);
-
+      @ModelAttribute ValidationSettings validationSettings,
+      @RequestBody WebhookTrust webhookTrust) {
     DaemonResponse.UpdateRequestBuilder builder = new DaemonResponse.UpdateRequestBuilder();
 
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> webhookTrust.stageLocalFiles(configPath));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
     builder.setUpdate(() -> webhookService.setWebhookTrust(deploymentName, webhookTrust));
 
     builder.setValidate(ProblemSet::new);
-    if (validate) {
+    if (validationSettings.isValidate()) {
       builder.setValidate(() -> webhookService.validateWebhookTrust(deploymentName));
     }
 

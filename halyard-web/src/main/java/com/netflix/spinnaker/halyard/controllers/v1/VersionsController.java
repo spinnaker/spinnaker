@@ -23,30 +23,26 @@ import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/versions")
 public class VersionsController {
-  @Autowired
-  VersionsService versionsService;
+  private final VersionsService versionsService;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, Versions> config() {
     DaemonResponse.StaticRequestBuilder<Versions> builder = new DaemonResponse.StaticRequestBuilder<>(
-            () -> versionsService.getVersions());
+        versionsService::getVersions);
     return DaemonTaskHandler.submitTask(builder::build, "Get released versions");
   }
 
   @RequestMapping(value = "/latest/", method = RequestMethod.GET)
   DaemonTask<Halconfig, String> latest() {
     DaemonResponse.StaticRequestBuilder<String> builder = new DaemonResponse.StaticRequestBuilder<>(
-            () -> versionsService.getLatestSpinnakerVersion());
+        versionsService::getLatestSpinnakerVersion);
     return DaemonTaskHandler.submitTask(builder::build, "Get latest released version");
   }
 
@@ -68,7 +64,7 @@ public class VersionsController {
   @RequestMapping(value = "/bom", method = RequestMethod.GET)
   DaemonTask<Halconfig, BillOfMaterials> bomV2(@RequestParam(value = "version") String version) {
     DaemonResponse.StaticRequestBuilder<BillOfMaterials> builder = new DaemonResponse.StaticRequestBuilder<>(
-            () -> versionsService.getBillOfMaterials(version));
+        () -> versionsService.getBillOfMaterials(version));
     return DaemonTaskHandler.submitTask(builder::build, "Get BOM for " + version);
   }
 }

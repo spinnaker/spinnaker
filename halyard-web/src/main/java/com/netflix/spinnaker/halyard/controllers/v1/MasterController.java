@@ -25,14 +25,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import com.netflix.spinnaker.halyard.config.services.v1.MasterService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.models.v1.DefaultValidationSettings;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
@@ -40,20 +38,13 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/ci/{ciName:.+}/masters")
 public class MasterController {
-
-  @Autowired
-  MasterService masterService;
-
-  @Autowired
-  HalconfigParser halconfigParser;
-
-  @Autowired
-  HalconfigDirectoryStructure halconfigDirectoryStructure;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  private final MasterService masterService;
+  private final HalconfigParser halconfigParser;
+  private final HalconfigDirectoryStructure halconfigDirectoryStructure;
+  private final ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, List<Master>> masters(@PathVariable String deploymentName,
@@ -81,19 +72,17 @@ public class MasterController {
   }
 
   @RequestMapping(value = "/{masterName:.+}", method = RequestMethod.DELETE)
-  DaemonTask<Halconfig, Void> deleteMaster(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> deleteMaster(@PathVariable String deploymentName,
       @PathVariable String ciName,
       @PathVariable String masterName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity) {
+      @ModelAttribute ValidationSettings validationSettings) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> masterService.deleteMaster(deploymentName, ciName, masterName));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> masterService.validateAllMasters(deploymentName, ciName);
     }
 
@@ -107,12 +96,10 @@ public class MasterController {
   }
 
   @RequestMapping(value = "/{masterName:.+}", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setMaster(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setMaster(@PathVariable String deploymentName,
       @PathVariable String ciName,
       @PathVariable String masterName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawMaster) {
     Master master = objectMapper.convertValue(
         rawMaster,
@@ -124,10 +111,10 @@ public class MasterController {
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> master.stageLocalFiles(configPath));
     builder.setUpdate(() -> masterService.setMaster(deploymentName, ciName, masterName, master));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> masterService.validateMaster(deploymentName, ciName, master.getName());
     }
 
@@ -140,11 +127,9 @@ public class MasterController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> addMaster(
-      @PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> addMaster(@PathVariable String deploymentName,
       @PathVariable String ciName,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultValidationSettings.severity) Severity severity,
+      @ModelAttribute ValidationSettings validationSettings,
       @RequestBody Object rawMaster) {
     Master master = objectMapper.convertValue(
         rawMaster,
@@ -155,11 +140,11 @@ public class MasterController {
 
     Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
     builder.setStage(() -> master.stageLocalFiles(configPath));
-    builder.setSeverity(severity);
+    builder.setSeverity(validationSettings.getSeverity());
     builder.setUpdate(() -> masterService.addMaster(deploymentName, ciName, master));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
-    if (validate) {
+    if (validationSettings.isValidate()) {
       doValidate = () -> masterService.validateMaster(deploymentName, ciName, master.getName());
     }
 

@@ -23,15 +23,15 @@ import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/admin")
 public class AdminController {
-  @Autowired
-  ArtifactService artifactService;
+  private final ArtifactService artifactService;
 
   @RequestMapping(value = "/publishLatest", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> publishLatest(
