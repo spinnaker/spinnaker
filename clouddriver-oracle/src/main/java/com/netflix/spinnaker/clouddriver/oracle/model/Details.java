@@ -18,9 +18,9 @@ import com.oracle.bmc.loadbalancer.model.SSLConfigurationDetails;
 /**
  * Converts model to modelDetails.
  */
-class Details {
+public class Details {
 
-  static BackendDetails of(Backend backend) {
+  public static BackendDetails of(Backend backend) {
     return BackendDetails.builder()
       .backup(backend.getBackup())
       .drain(backend.getDrain())
@@ -30,7 +30,7 @@ class Details {
       .weight(backend.getWeight()).build();
   }
   
-  static HealthCheckerDetails of(HealthChecker healthChecker) {
+  public static HealthCheckerDetails of(HealthChecker healthChecker) {
     return HealthCheckerDetails.builder()
       .intervalInMillis(healthChecker.getIntervalInMillis())
       .port(healthChecker.getPort())
@@ -42,7 +42,7 @@ class Details {
       .urlPath(healthChecker.getUrlPath()).build();
   }
   
-  static SSLConfigurationDetails of(SSLConfiguration sslConfig) {
+  public static SSLConfigurationDetails of(SSLConfiguration sslConfig) {
     return SSLConfigurationDetails.builder()
       .certificateName(sslConfig.getCertificateName())
       .verifyDepth(sslConfig.getVerifyDepth())

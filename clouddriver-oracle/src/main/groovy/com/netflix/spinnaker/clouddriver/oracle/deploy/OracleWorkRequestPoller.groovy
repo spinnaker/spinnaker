@@ -13,9 +13,11 @@ import com.oracle.bmc.loadbalancer.LoadBalancerClient
 import com.oracle.bmc.loadbalancer.model.WorkRequest
 import com.oracle.bmc.loadbalancer.requests.GetWorkRequestRequest
 
-class OracleWorkRequestPoller {
-
-  public static WorkRequest poll(String workRequestId, String phase, Task task, LoadBalancerClient loadBalancerClient) {
+public class OracleWorkRequestPoller {
+  
+  static OracleWorkRequestPoller poller = new OracleWorkRequestPoller();
+  
+  public WorkRequest wait(String workRequestId, String phase, Task task, LoadBalancerClient loadBalancerClient) {
     def wr = GetWorkRequestRequest.builder().workRequestId(workRequestId).build()
 
     task.updateStatus(phase, "Waiting for WorkRequest to finish: $workRequestId")
@@ -32,5 +34,9 @@ class OracleWorkRequestPoller {
       task.updateStatus(phase, "WorkRequest finished: ${finalWorkRequestResult.lifecycleState}")
     }
     return finalWorkRequestResult
+  }
+
+  public static WorkRequest poll(String workRequestId, String phase, Task task, LoadBalancerClient loadBalancerClient) {
+    return poller.wait(workRequestId, phase, task, loadBalancerClient);
   }
 }

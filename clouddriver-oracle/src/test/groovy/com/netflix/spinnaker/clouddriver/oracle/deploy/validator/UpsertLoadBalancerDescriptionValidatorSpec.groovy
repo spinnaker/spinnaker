@@ -12,9 +12,9 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.oracle.deploy.converter.CreateOracleLoadBalancerAtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.oracle.deploy.description.CreateLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.oracle.deploy.op.CreateOracleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.oracle.deploy.converter.UpsertOracleLoadBalancerAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.oracle.deploy.description.UpsertLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.oracle.deploy.op.UpsertOracleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.oracle.deploy.OracleWorkRequestPoller
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -26,19 +26,19 @@ import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateLoadBalancerDescriptionValidatorSpec extends Specification {
+class UpsertLoadBalancerDescriptionValidatorSpec extends Specification {
   
   @Shared ObjectMapper mapper = new ObjectMapper()
-  @Shared CreateOracleLoadBalancerAtomicOperationConverter converter
-  @Shared CreateLoadBalancerDescriptionValidator validator
-  @Shared String context = 'createLoadBalancerDescriptionValidator.'
+  @Shared UpsertOracleLoadBalancerAtomicOperationConverter converter
+  @Shared UpsertLoadBalancerDescriptionValidator validator
+  @Shared String context = 'upsertLoadBalancerDescriptionValidator.'
   
 
   def setupSpec() {
-    this.converter = new CreateOracleLoadBalancerAtomicOperationConverter(objectMapper: mapper)
+    this.converter = new UpsertOracleLoadBalancerAtomicOperationConverter(objectMapper: mapper)
     converter.accountCredentialsProvider = Mock(AccountCredentialsProvider)
     converter.accountCredentialsProvider.getCredentials(_) >> Mock(OracleNamedAccountCredentials)
-    validator = new CreateLoadBalancerDescriptionValidator()
+    validator = new UpsertLoadBalancerDescriptionValidator()
   }
 
   def "Create LoadBalancer with invalid Cert"() {
@@ -55,7 +55,7 @@ class CreateLoadBalancerDescriptionValidatorSpec extends Specification {
       context + 'certificate.privateKey.empty')
     2 * errors.rejectValue('certificate.certificateName', 
       context + 'certificate.certificateName.empty')
-    3 * errors.rejectValue('certificate.publicCertificate', 
+    1 * errors.rejectValue('certificate.publicCertificate', 
       context + 'certificate.publicCertificate.empty')
   }
 

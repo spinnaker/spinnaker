@@ -9,8 +9,8 @@
 package com.netflix.spinnaker.clouddriver.oracle.deploy.converter
 
 import com.netflix.spinnaker.clouddriver.oracle.OracleOperation
-import com.netflix.spinnaker.clouddriver.oracle.deploy.description.CreateLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.oracle.deploy.op.CreateOracleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.oracle.deploy.description.UpsertLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.oracle.deploy.op.UpsertOracleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -19,16 +19,16 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @OracleOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
-@Component("createOracleLoadBalancerDescription")
-class CreateOracleLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@Component("upsertOracleLoadBalancerDescription")
+class UpsertOracleLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new CreateOracleLoadBalancerAtomicOperation(convertDescription(input))
+    new UpsertOracleLoadBalancerAtomicOperation(convertDescription(input))
   }
 
   @Override
-  CreateLoadBalancerDescription convertDescription(Map input) {
-    OracleAtomicOperationConverterHelper.convertDescription(input, this, CreateLoadBalancerDescription)
+  UpsertLoadBalancerDescription convertDescription(Map input) {
+    OracleAtomicOperationConverterHelper.convertDescription(input, this, UpsertLoadBalancerDescription)
   }
 }

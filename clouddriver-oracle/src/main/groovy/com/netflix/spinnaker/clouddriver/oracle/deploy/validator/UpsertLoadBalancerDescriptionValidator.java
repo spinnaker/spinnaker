@@ -9,7 +9,7 @@
 package com.netflix.spinnaker.clouddriver.oracle.deploy.validator;
 
 import com.netflix.spinnaker.clouddriver.oracle.OracleOperation;
-import com.netflix.spinnaker.clouddriver.oracle.deploy.description.CreateLoadBalancerDescription;
+import com.netflix.spinnaker.clouddriver.oracle.deploy.description.UpsertLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.util.List;
@@ -20,17 +20,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 @OracleOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
-@Component("createLoadBalancerDescriptionValidator")
-class CreateLoadBalancerDescriptionValidator extends StandardOracleAttributeValidator<CreateLoadBalancerDescription> {
+@Component("upsertLoadBalancerDescriptionValidator")
+class UpsertLoadBalancerDescriptionValidator extends StandardOracleAttributeValidator<UpsertLoadBalancerDescription> {
   
   Set<String> validShapes = Stream.of("100Mbps", "400Mbps", "8000Mbps").collect(Collectors.toSet());
   
   @SuppressWarnings("rawtypes")
   @Override
-  public void validate(List priorDescriptions, CreateLoadBalancerDescription description, Errors errors) {
-    context = "createLoadBalancerDescriptionValidator";
+  public void validate(List priorDescriptions, UpsertLoadBalancerDescription description, Errors errors) {
+    context = "upsertLoadBalancerDescriptionValidator";
     validateNotEmptyString(errors, description.getApplication(), "application");
-    if (description.getLoadBalancerId() != null) {
+    if (description.getLoadBalancerId() == null) {
       validateNotEmptyString(errors, description.getShape(), "shape");
       if (!validShapes.contains(description.getShape())) {
         errors.rejectValue("${context}.shape", "${context}.shape.invalidLoadBalancerShape");
@@ -41,9 +41,12 @@ class CreateLoadBalancerDescriptionValidator extends StandardOracleAttributeVali
     }
     if (description.getCertificates() != null) {
       description.getCertificates().forEach( (name, certificate) -> {
-        validateNotEmptyString(errors, certificate.getPrivateKey(), "certificate.privateKey");
+        //existing cert sends only the certificateName
         validateNotEmptyString(errors, certificate.getCertificateName(), "certificate.certificateName");
-        validateNotEmptyString(errors, certificate.getPublicCertificate(), "certificate.publicCertificate");
+        if (certificate.getPublicCertificate() != null) {
+          validateNotEmptyString(errors, certificate.getPrivateKey(), "certificate.privateKey");
+          validateNotEmptyString(errors, certificate.getPublicCertificate(), "certificate.publicCertificate");
+        }
       });
     }
     if (description.getBackendSets() != null) {

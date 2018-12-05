@@ -1,0 +1,25 @@
+[
+    {
+        "upsertLoadBalancer": {
+            "application": "chenLBtest",
+            "stack": "lb",
+            "shape": "100Mbps",
+            "selectedProvider": "oracle",
+            "loadBalancerId": "updateLoadBalancerListeners",
+            "subnetIds": [
+                "ocid1.subnet.oc1.iad.aaaaaaaath476v3iumd45dyvvzxf6gelwphro2h6ss4mt7lzw3xjqq74hgca"
+            ],
+            "isPrivate": "true",
+            "listeners": {
+                "httpListener1": { "port": "8081", "protocol": "HTTP", "defaultBackendSetName" : "myBackendSet" },
+                "httpsListener": { "port": "8082", "protocol": "HTTPS", "defaultBackendSetName" : "myBackendSet" }
+            },
+
+            "cloudProvider": "oracle",
+            "region": "us-ashburn-1",
+            "user": "anonymous",
+            "account": "myacct",
+            "credentials": "myacct"
+        }
+    }
+]

@@ -55,6 +55,14 @@ class OracleLoadBalancerCachingAgent extends AbstractOracleCachingAgent {
         return null
       }
       Map<String, Object> attributes = objectMapper.convertValue(lb, ATTRIBUTES)
+      Map<String, Object> certificates = attributes.certificates;
+      if (certificates) {
+        certificates.each{ name, cert ->
+          if (cert) {
+            cert.remove('publicCertificate')
+          }
+        }
+      }
       new DefaultCacheData(
         Keys.getLoadBalancerKey(lb.displayName, lb.id, credentials.region, credentials.name),
         attributes,

@@ -98,6 +98,7 @@ class OracleLoadBalancerProvider implements LoadBalancerProvider<OracleLoadBalan
       account: parts.account,
       region: parts.region,
       ipAddresses: loadBalancer.ipAddresses,
+      certificates: loadBalancer.certificates,
       listeners: loadBalancer.listeners,
       backendSets: loadBalancer.backendSets,
       subnets: subnets,
@@ -159,6 +160,7 @@ class OracleLoadBalancerProvider implements LoadBalancerProvider<OracleLoadBalan
     String timeCreated
     Set<LoadBalancerServerGroup> serverGroups = []
     List ipAddresses = []
+    Map certificates 
     Map listeners
     Map backendSets
     Set<OracleSubnet> subnets

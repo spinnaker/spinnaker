@@ -9,23 +9,23 @@
 package com.netflix.spinnaker.clouddriver.oracle.deploy.converter
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.oracle.deploy.description.CreateLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.oracle.deploy.op.CreateOracleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.oracle.deploy.description.UpsertLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.oracle.deploy.op.UpsertOracleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.oracle.security.OracleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateOracleLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
+class UpsertOracleLoadBalancerAtomicOperationConverterUnitSpec extends Specification {
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
 
   @Shared
-  CreateOracleLoadBalancerAtomicOperationConverter converter
+  UpsertOracleLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
-    this.converter = new CreateOracleLoadBalancerAtomicOperationConverter(objectMapper: mapper)
+    this.converter = new UpsertOracleLoadBalancerAtomicOperationConverter(objectMapper: mapper)
     def accountCredentialsProvider = Mock(AccountCredentialsProvider)
     def mockCredentials = Mock(OracleNamedAccountCredentials)
     accountCredentialsProvider.getCredentials(_) >> mockCredentials
@@ -61,12 +61,12 @@ class CreateOracleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
     def description = converter.convertDescription(input)
 
     then:
-    description instanceof CreateLoadBalancerDescription
+    description instanceof UpsertLoadBalancerDescription
 
     when:
     def operation = converter.convertOperation(input)
 
     then:
-    operation instanceof CreateOracleLoadBalancerAtomicOperation
+    operation instanceof UpsertOracleLoadBalancerAtomicOperation
   }
 }
