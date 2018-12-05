@@ -24,6 +24,7 @@ import com.netflix.spinnaker.kork.PlatformComponents
 import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
+import com.netflix.spinnaker.orca.clouddriver.config.ClouddriverJobConfiguration
 import com.netflix.spinnaker.orca.config.KeelConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.PipelineTemplateConfiguration
@@ -66,6 +67,7 @@ import org.springframework.scheduling.annotation.EnableAsync
   Front50Configuration,
   FlexConfiguration,
   CloudDriverConfiguration,
+  ClouddriverJobConfiguration,
   IgorConfiguration,
   DiscoveryPollingConfiguration,
   TomcatConfiguration,

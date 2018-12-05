@@ -82,3 +82,27 @@ logging:
 #      description: This is also a webhook stage, but it has no properties set
 #      type: anotherCustomWebhook
 #      enabled: false
+
+# This configuration lets you configure runJob stages that will appear as native stages in the Deck UI.
+# Properties that are set here will not be displayed in the GUI
+# job:
+#  preconfigured:
+#    - label: Some runJob
+#      description: This is a runJob stage, but it appears as a native stage in Spinnaker
+#      type: customRunJob # Should be unique
+#      cloudProvider: titus
+#      cluster:
+#        imageId: alpine:latest
+#      credentials: test
+#      region: us-east-1
+#      enabled: true # default true
+#      waitForCompletion: true
+#      parameters:
+#      - name: source
+#        mapping: cluster.env.source
+#        defaultValue: mysource
+#        order: 0
+#      - name: destination
+#        mapping: cluster.env.destination
+#        defaultValue: final
+#        order: 1

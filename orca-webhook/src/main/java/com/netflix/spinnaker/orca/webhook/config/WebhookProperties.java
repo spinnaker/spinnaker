@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.webhook.config;
 
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.orca.config.PreconfiguredStageParameter;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +57,7 @@ public class WebhookProperties {
     public String label;
     public String description;
     public String type;
-    public List<WebhookParameter> parameters;
+    public List<PreconfiguredStageParameter> parameters;
 
     // Stage configuration fields (all optional):
     public String url;
@@ -114,21 +115,6 @@ public class WebhookProperties {
 
     private boolean anyRoleMatches(String role, Set<Role.View> roles) {
       return roles.stream().anyMatch(r -> r.getName().contains(role));
-    }
-  }
-
-  @Data
-  @NoArgsConstructor
-  public static class WebhookParameter {
-    private String name;
-    private String label;
-    private String defaultValue;
-    private String description;
-    private ParameterType type = ParameterType.string;
-    private int order;
-
-    public enum ParameterType {
-      string
     }
   }
 
