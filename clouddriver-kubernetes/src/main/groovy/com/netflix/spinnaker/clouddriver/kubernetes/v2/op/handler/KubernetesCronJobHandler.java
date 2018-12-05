@@ -86,10 +86,6 @@ public class KubernetesCronJobHandler extends KubernetesHandler implements
       return result;
     }
 
-    if (status.getActive() != null) {
-      return result.unstable(String.format("%s job(s) in progress", status.getActive().size()));
-    }
-
     return result;
   }
 
