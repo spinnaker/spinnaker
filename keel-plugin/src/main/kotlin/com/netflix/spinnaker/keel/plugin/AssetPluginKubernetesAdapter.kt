@@ -17,12 +17,12 @@ package com.netflix.spinnaker.keel.plugin
 
 import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetKind
 import com.netflix.spinnaker.keel.k8s.WatchEventType
 import com.netflix.spinnaker.keel.k8s.WatchEventType.ADDED
 import com.netflix.spinnaker.keel.k8s.WatchEventType.DELETED
 import com.netflix.spinnaker.keel.k8s.WatchEventType.MODIFIED
 import com.netflix.spinnaker.keel.k8s.eventType
-import com.netflix.spinnaker.keel.api.AssetKind
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.squareup.okhttp.Call
@@ -70,11 +70,11 @@ internal class AssetPluginKubernetesAdapter(
         launch {
           try {
             val crd = extensionsApi
-              .readCustomResourceDefinition(name, "true", null, null)
+              .readCustomResourceDefinition(kind.crd, "true", null, null)
             watchForResourceChanges(crd, type)
           } catch (e: ApiException) {
             if (e.code == HTTP_NOT_FOUND) {
-              log.error("Cannot find CRD for kind {}. It needs to be registered.", name)
+              log.error("Cannot find CRD {}. It needs to be registered.", kind.crd)
             } else {
               throw e
             }

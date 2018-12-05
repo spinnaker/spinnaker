@@ -4,6 +4,9 @@ import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetMetadata
 import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.k8s.WatchEventType.ADDED
+import com.netflix.spinnaker.keel.k8s.WatchEventType.DELETED
+import com.netflix.spinnaker.keel.k8s.WatchEventType.MODIFIED
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.nhaarman.mockito_kotlin.any
@@ -17,7 +20,6 @@ import com.nhaarman.mockito_kotlin.whenever
 import com.oneeyedmen.minutest.junit.junitTests
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThrows
-import java.lang.RuntimeException
 import java.util.*
 
 internal object AssetPluginKubernetesAdapterTest {
@@ -58,7 +60,7 @@ internal object AssetPluginKubernetesAdapterTest {
         before {
           whenever(plugin.create(any())) doReturn ConvergeAccepted
 
-          adapter.onResourceEvent("ADDED", asset)
+          adapter.onResourceEvent(ADDED, asset)
         }
 
         test("asset is stored in the repository") {
@@ -78,7 +80,7 @@ internal object AssetPluginKubernetesAdapterTest {
         before {
           whenever(plugin.create(any())) doReturn ConvergeFailed("o noes")
 
-          adapter.onResourceEvent("ADDED", asset)
+          adapter.onResourceEvent(ADDED, asset)
         }
 
         test("asset is stored in the repository") {
@@ -99,7 +101,7 @@ internal object AssetPluginKubernetesAdapterTest {
           whenever(plugin.create(any())) doThrow RuntimeException("o noes")
 
           expectThrows<RuntimeException> {
-            adapter.onResourceEvent("ADDED", asset)
+            adapter.onResourceEvent(ADDED, asset)
           }
         }
 
@@ -122,7 +124,7 @@ internal object AssetPluginKubernetesAdapterTest {
         before {
           whenever(plugin.update(any())) doReturn ConvergeAccepted
 
-          adapter.onResourceEvent("MODIFIED", asset)
+          adapter.onResourceEvent(MODIFIED, asset)
         }
 
         test("asset is stored in the repository") {
@@ -142,7 +144,7 @@ internal object AssetPluginKubernetesAdapterTest {
         before {
           whenever(plugin.update(any())) doReturn ConvergeFailed("o noes")
 
-          adapter.onResourceEvent("MODIFIED", asset)
+          adapter.onResourceEvent(MODIFIED, asset)
         }
 
         test("asset is stored in the repository") {
@@ -163,7 +165,7 @@ internal object AssetPluginKubernetesAdapterTest {
           whenever(plugin.update(any())) doThrow RuntimeException("o noes")
 
           expectThrows<RuntimeException> {
-            adapter.onResourceEvent("MODIFIED", asset)
+            adapter.onResourceEvent(MODIFIED, asset)
           }
         }
 
@@ -186,7 +188,7 @@ internal object AssetPluginKubernetesAdapterTest {
         before {
           whenever(plugin.delete(any())) doReturn ConvergeAccepted
 
-          adapter.onResourceEvent("DELETED", asset)
+          adapter.onResourceEvent(DELETED, asset)
         }
 
         test("asset is deleted from the repository") {
@@ -206,7 +208,7 @@ internal object AssetPluginKubernetesAdapterTest {
         before {
           whenever(plugin.delete(any())) doReturn ConvergeFailed("o noes")
 
-          adapter.onResourceEvent("DELETED", asset)
+          adapter.onResourceEvent(DELETED, asset)
         }
 
         test("asset is not deleted from the repository") {
@@ -227,7 +229,7 @@ internal object AssetPluginKubernetesAdapterTest {
           whenever(plugin.delete(any())) doThrow RuntimeException("o noes")
 
           expectThrows<RuntimeException> {
-            adapter.onResourceEvent("DELETED", asset)
+            adapter.onResourceEvent(DELETED, asset)
           }
         }
 
