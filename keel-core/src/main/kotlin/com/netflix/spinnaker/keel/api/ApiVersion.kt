@@ -34,6 +34,8 @@ data class ApiVersion(
     this(value.substringBefore("/"), value.substringAfter("/"))
 
   override fun toString() = "$group/$version"
+
+  fun subApi(prefix: String) = copy(group = "$prefix.$group")
 }
 
 val SPINNAKER_API_V1 = ApiVersion("spinnaker.netflix.com", "v1")

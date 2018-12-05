@@ -16,14 +16,15 @@
 package com.netflix.spinnaker.keel.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetMetadata
 import com.netflix.spinnaker.keel.api.AssetName
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.AssetState
+import com.netflix.spinnaker.keel.persistence.NoSuchAssetException
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisCommands
@@ -39,28 +40,28 @@ class RedisAssetRepository(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun allAssets(callback: (Asset<*>) -> Unit) {
+  override fun allAssets(callback: (Triple<AssetName, ApiVersion, String>) -> Unit) {
     redisClient.withCommandsClient<Unit> { redis: JedisCommands ->
       redis.smembers(INDEX_SET)
         .map(::AssetName)
         .forEach { name ->
-          readAsset(redis, name)
-            ?.also(callback)
-            ?: onInvalidIndex(name)
+          // TODO: this is inefficient as fuck, store apiVersion and kind in indices
+          readAsset(redis, name, Any::class.java)
+            .also { callback(Triple(name, it.apiVersion, it.kind)) }
         }
     }
   }
 
-  override fun get(name: AssetName): Asset<*>? =
-    redisClient.withCommandsClient<Asset<*>?> { redis: JedisCommands ->
-      readAsset(redis, name)
+  override fun <T : Any> get(name: AssetName, specType: Class<T>): Asset<T> =
+    redisClient.withCommandsClient<Asset<T>> { redis: JedisCommands ->
+      readAsset(redis, name, specType)
     }
 
   override fun store(asset: Asset<*>) {
     redisClient.withCommandsClient<Long?> { redis: JedisCommands ->
-      redis.hmset(asset.id.key, asset.toHash())
-      redis.sadd(INDEX_SET, asset.id.value)
-      redis.zadd(asset.id.stateKey, timestamp(), AssetState.Unknown.name)
+      redis.hmset(asset.metadata.name.key, asset.toHash())
+      redis.sadd(INDEX_SET, asset.metadata.name.value)
+      redis.zadd(asset.metadata.name.stateKey, timestamp(), AssetState.Unknown.name)
     }
   }
 
@@ -102,21 +103,18 @@ class RedisAssetRepository(
     private const val STATE_SORTED_SET = "$ASSET_HASH.state"
   }
 
-  private fun readAsset(redis: JedisCommands, name: AssetName): Asset<*>? =
+  private fun <T : Any> readAsset(redis: JedisCommands, name: AssetName, specType: Class<T>): Asset<T> =
     if (redis.sismember(INDEX_SET, name.value)) {
-      redis.hgetAll(name.key)?.let {
-        Asset<Map<String, Any?>>(
+      redis.hgetAll(name.key).let {
+        Asset<T>(
           apiVersion = ApiVersion(it.getValue("apiVersion")),
-          metadata = AssetMetadata(
-            name = name,
-            data = objectMapper.readValue(it.getValue("metadata"))
-          ),
+          metadata = AssetMetadata(objectMapper.readValue<Map<String, Any?>>(it.getValue("metadata"))),
           kind = it.getValue("kind"),
-          spec = objectMapper.readValue(it.getValue("spec"))
+          spec = objectMapper.readValue(it.getValue("spec"), specType)
         )
       }
     } else {
-      null
+      throw NoSuchAssetException(name)
     }
 
   private fun onInvalidIndex(name: AssetName) {
@@ -135,7 +133,7 @@ class RedisAssetRepository(
   private fun Asset<*>.toHash(): Map<String, String> = mapOf(
     "apiVersion" to apiVersion.toString(),
     "name" to metadata.name.value,
-    "metadata" to objectMapper.writeValueAsString(metadata.data),
+    "metadata" to objectMapper.writeValueAsString(objectMapper.convertValue<Map<String, Any?>>(metadata)),
     "kind" to kind,
     "spec" to objectMapper.writeValueAsString(spec)
   )

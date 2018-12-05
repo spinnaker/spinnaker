@@ -15,12 +15,6 @@
  */
 package com.netflix.spinnaker.keel.api
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.google.common.hash.HashCode
-import com.google.common.hash.Hashing
-import java.nio.charset.Charset
-
 /**
  * Internal representation of an asset.
  */
@@ -30,18 +24,3 @@ data class Asset<T : Any>(
   val metadata: AssetMetadata,
   val spec: T
 )
-
-private val mapper by lazy { YAMLMapper().registerKotlinModule() }
-
-val <T : Any> Asset<T>.fingerprint: HashCode
-  get() {
-    return Hashing
-      .murmur3_128()
-      .hashString(
-        mapper.writeValueAsString(spec),
-        Charset.forName("UTF-8")
-      )
-  }
-
-val <T : Any> Asset<T>.id: AssetName
-  get() = metadata.name

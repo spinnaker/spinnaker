@@ -83,17 +83,18 @@ internal object AssetMetadataTest {
       """.trimMargin()
     }
 
-    test("deserializes name") {
-      expectThat(mapper.readValue<AssetMetadata>(this))
-        .get { name }
-        .isEqualTo(AssetName("my-new-cron-object"))
+    test("deserializes properties") {
+      expectThat(mapper.readValue<AssetMetadata>(this)) {
+        get { name }.isEqualTo(AssetName("my-new-cron-object"))
+        get { uid }.isEqualTo(UUID.fromString("9423255b-4600-11e7-af6a-28d2447dc82b"))
+        get { resourceVersion }.isEqualTo(285L)
+      }
     }
 
     test("deserializes extra data") {
       expectThat(mapper.readValue<AssetMetadata>(this))
         .get { data }
         .hasEntry("namespace", "default")
-        .hasEntry("uid", "9423255b-4600-11e7-af6a-28d2447dc82b")
     }
   }
 
@@ -112,10 +113,12 @@ internal object AssetMetadataTest {
         |  "uid": "9423255b-4600-11e7-af6a-28d2447dc82b"
       }""".trimMargin()
     }
-    test("deserializes name using Gson") {
-      expectThat(gson.fromJson(this, AssetMetadata::class.java))
-        .get { name }
-        .isEqualTo(AssetName("my-new-cron-object"))
+    test("deserializes properties using Gson") {
+      expectThat(mapper.readValue<AssetMetadata>(this)) {
+        get { name }.isEqualTo(AssetName("my-new-cron-object"))
+        get { uid }.isEqualTo(UUID.fromString("9423255b-4600-11e7-af6a-28d2447dc82b"))
+        get { resourceVersion }.isEqualTo(285L)
+      }
     }
 
     test("deserializes extra data using Gson") {

@@ -15,14 +15,18 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
-import kotlin.reflect.KClass
+import com.netflix.spinnaker.keel.api.AssetKind
 
 interface AssetPlugin : KeelPlugin {
+
+  val apiVersion: ApiVersion
+
   /**
-   * Maps the kind (qualified CRD name) to the implementation type.
+   * Maps the kind to the implementation type.
    */
-  val supportedKinds: Map<String, KClass<out Any>>
+  val supportedKinds: Map<AssetKind, Class<out Any>>
 
   fun current(request: Asset<*>): CurrentResponse
   fun create(request: Asset<*>): ConvergeResponse = upsert(request)

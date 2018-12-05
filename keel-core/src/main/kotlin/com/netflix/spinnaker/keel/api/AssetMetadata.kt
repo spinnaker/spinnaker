@@ -43,7 +43,7 @@ data class AssetMetadata(
     AssetName(data.getValue("name").toString()),
     data["resourceVersion"]?.toString()?.toLong(),
     data["uid"]?.toString()?.let(UUID::fromString),
-    data - "name"
+    data - "name" - "resourceVersion" - "uid"
   )
 
   override fun toString(): String =
@@ -60,8 +60,8 @@ internal class AssetMetadataAdapter : TypeAdapter<AssetMetadata>() {
     writer.apply {
       beginObject()
       name("name").value(value.name.value)
-      if (value.resourceVersion != null) name("resourceVersion").value(value.resourceVersion)
-      if (value.uid != null) name("uid").value(value.uid.toString())
+      name("resourceVersion").value(value.resourceVersion)
+      name("uid").value(value.uid.toString())
       value.data.forEach { k, v ->
         name(k)
         when (v) {

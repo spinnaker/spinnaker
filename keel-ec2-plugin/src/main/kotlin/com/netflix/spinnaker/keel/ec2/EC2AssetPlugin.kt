@@ -15,11 +15,12 @@
  */
 package com.netflix.spinnaker.keel.ec2
 
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.ec2.asset.AmazonSecurityGroupHandler
@@ -33,7 +34,6 @@ import com.netflix.spinnaker.keel.plugin.ResourceError
 import com.netflix.spinnaker.keel.plugin.ResourceMissing
 import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
-import kotlin.reflect.KClass
 
 class EC2AssetPlugin(
   cloudDriverService: CloudDriverService,
@@ -41,12 +41,12 @@ class EC2AssetPlugin(
   orcaService: OrcaService
 ) : AssetPlugin {
 
-  override val supportedKinds: Map<String, KClass<out Any>> = listOf(
-    SecurityGroup::class,
-    SecurityGroupRule::class
-  ).associateBy {
-    "${it.simpleName}s.ec2.${SPINNAKER_API_V1.group}"
-  }
+  override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("ec2")
+
+  override val supportedKinds = mapOf(
+    AssetKind(apiVersion.group, "security-group", "security-groups") to SecurityGroup::class.java,
+    AssetKind(apiVersion.group, "security-group-rule", "security-group-rules") to SecurityGroupRule::class.java
+  )
 
   override fun current(request: Asset<*>): CurrentResponse {
     val spec = request.spec
@@ -54,8 +54,8 @@ class EC2AssetPlugin(
       is SecurityGroup -> {
         @Suppress("UNCHECKED_CAST")
         val current = securityGroupHandler.current(spec, request as Asset<SecurityGroup>)
-        log.info("{} desired state: {}", request.id, spec)
-        log.info("{} current state: {}", request.id, current)
+        log.info("{} desired state: {}", request.metadata.name, spec)
+        log.info("{} current state: {}", request.metadata.name, current)
         if (current == null) {
           ResourceMissing
         } else {
@@ -63,7 +63,7 @@ class EC2AssetPlugin(
         }
       }
       else -> {
-        val message = "Unsupported asset type ${request.kind} with id ${request.id}"
+        val message = "Unsupported asset type ${request.kind} with id ${request.metadata.name}"
         log.error("Current failed: {}", message)
         ResourceError(message)
       }
@@ -75,18 +75,18 @@ class EC2AssetPlugin(
     return try {
       when (spec) {
         is SecurityGroup -> {
-          securityGroupHandler.converge(request.id, spec)
+          securityGroupHandler.converge(request.metadata.name, spec)
           ConvergeAccepted
         }
         else -> {
-          val message = "Unsupported asset type ${request.kind} with id ${request.id}"
+          val message = "Unsupported asset type ${request.kind} with id ${request.metadata.name}"
           log.error("Converge failed: {}", message)
           ConvergeFailed(message)
         }
       }
     } catch (e: Exception) {
       ConvergeFailed(e.message
-        ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.id}")
+        ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.metadata.name}")
     }
   }
 
@@ -95,18 +95,18 @@ class EC2AssetPlugin(
     return try {
       when (spec) {
         is SecurityGroup -> {
-          securityGroupHandler.delete(request.id, spec)
+          securityGroupHandler.delete(request.metadata.name, spec)
           ConvergeAccepted
         }
         else -> {
-          val message = "Unsupported asset type ${request.kind} with id ${request.id}"
+          val message = "Unsupported asset type ${request.kind} with id ${request.metadata.name}"
           log.error("Converge failed: {}", message)
           ConvergeFailed(message)
         }
       }
     } catch (e: Exception) {
       ConvergeFailed(e.message
-        ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.id}")
+        ?: "Caught ${e.javaClass.name} converging ${request.kind} with id ${request.metadata.name}")
     }
   }
 

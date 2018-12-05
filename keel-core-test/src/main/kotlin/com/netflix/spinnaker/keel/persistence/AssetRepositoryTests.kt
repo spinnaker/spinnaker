@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetMetadata
 import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.AssetState.Diff
 import com.netflix.spinnaker.keel.persistence.AssetState.Ok
 import com.netflix.spinnaker.keel.persistence.AssetState.Unknown
@@ -32,12 +32,13 @@ import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.oneeyedmen.minutest.junit.junitTests
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
-import strikt.assertions.isNull
+import strikt.assertions.map
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -51,7 +52,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
   data class Fixture<T : AssetRepository>(
     val subject: T,
-    val callback: (Asset<*>) -> Unit
+    val callback: (Triple<AssetName, ApiVersion, String>) -> Unit
   )
 
   @TestFactory
@@ -80,7 +81,9 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       val asset = Asset(
         apiVersion = SPINNAKER_API_V1,
         metadata = AssetMetadata(
-          name = AssetName("SecurityGroup:ec2:test:us-west-2:fnord")
+          name = AssetName("SecurityGroup:ec2:test:us-west-2:fnord"),
+          resourceVersion = 1234L,
+          uid = randomUUID()
         ),
         kind = "ec2:SecurityGroup",
         spec = randomData()
@@ -93,11 +96,12 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       test("it is returned by allAssets") {
         subject.allAssets(callback)
 
-        verify(callback).invoke(asset)
+        verify(callback).invoke(Triple(asset.metadata.name, asset.apiVersion, asset.kind))
       }
 
       test("it can be retrieved by id") {
-        expectThat(subject.get(asset.id)).isEqualTo(asset)
+        val retrieved = subject.get<Map<String, Any>>(asset.metadata.name)
+        expectThat(retrieved).isEqualTo(asset)
       }
 
       test("its id can be retrieved by name") {
@@ -105,7 +109,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       }
 
       test("its state is unknown") {
-        expectThat(subject.lastKnownState(asset.id))
+        expectThat(subject.lastKnownState(asset.metadata.name))
           .isNotNull()
           .first
           .isEqualTo(Unknown)
@@ -114,7 +118,9 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
       context("storing another asset with a different id") {
         val anotherAsset = Asset(
           metadata = AssetMetadata(
-            name = AssetName("SecurityGroup:ec2:test:us-east-1:fnord")
+            name = AssetName("SecurityGroup:ec2:test:us-east-1:fnord"),
+            resourceVersion = 1234L,
+            uid = randomUUID()
           ),
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2:SecurityGroup",
@@ -128,11 +134,12 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
         test("it does not overwrite the first asset") {
           subject.allAssets(callback)
 
-          argumentCaptor<Asset<*>>().apply {
+          argumentCaptor<Triple<AssetName, ApiVersion, String>>().apply {
             verify(callback, times(2)).invoke(capture())
             expectThat(allValues)
               .hasSize(2)
-              .containsExactlyInAnyOrder(asset, anotherAsset)
+              .map { it.first }
+              .containsExactlyInAnyOrder(asset.metadata.name, anotherAsset.metadata.name)
           }
         }
       }
@@ -148,8 +155,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
         }
 
         test("it replaces the original asset") {
-          expectThat(subject.get(asset.id))
-            .isNotNull()
+          expectThat(subject.get<Map<String, Any>>(asset.metadata.name))
             .get(Asset<*>::spec)
             .isEqualTo(updatedAsset.spec)
         }
@@ -157,11 +163,11 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
       context("updating the state of the asset") {
         before {
-          subject.updateState(asset.id, Ok)
+          subject.updateState(asset.metadata.name, Ok)
         }
 
         test("it reports the new state") {
-          expectThat(subject.lastKnownState(asset.id))
+          expectThat(subject.lastKnownState(asset.metadata.name))
             .isNotNull()
             .first
             .isEqualTo(Ok)
@@ -169,11 +175,11 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
         context("updating the state again") {
           before {
-            subject.updateState(asset.id, Diff)
+            subject.updateState(asset.metadata.name, Diff)
           }
 
           test("it reports the newest state") {
-            expectThat(subject.lastKnownState(asset.id))
+            expectThat(subject.lastKnownState(asset.metadata.name))
               .isNotNull()
               .first
               .isEqualTo(Diff)
@@ -183,7 +189,7 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
 
       context("deleting the asset") {
         before {
-          subject.delete(asset.id)
+          subject.delete(asset.metadata.name)
         }
 
         test("the asset is no longer returned by all assets") {
@@ -193,7 +199,9 @@ abstract class AssetRepositoryTests<T : AssetRepository> {
         }
 
         test("the asset can no longer be retrieved by id") {
-          expectThat(subject.get(asset.id)).isNull()
+          expectThrows<NoSuchAssetException> {
+            subject.get<Map<String, Any>>(asset.metadata.name)
+          }
         }
       }
     }

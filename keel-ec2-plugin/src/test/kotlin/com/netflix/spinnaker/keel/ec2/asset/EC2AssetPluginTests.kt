@@ -123,7 +123,9 @@ internal object EC2AssetPluginTests {
       val request = Asset(
         apiVersion = SPINNAKER_API_V1,
         metadata = AssetMetadata(
-          name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel")
+          name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
+          uid = UUID.randomUUID(),
+          resourceVersion = 1234L
         ),
         kind = "ec2.SecurityGroup",
         spec = securityGroup
@@ -159,7 +161,9 @@ internal object EC2AssetPluginTests {
       val request = Asset(
         apiVersion = SPINNAKER_API_V1,
         metadata = AssetMetadata(
-          name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel")
+          name = AssetName("ec2.SecurityGroup:keel:test:us-west-2:keel"),
+          uid = UUID.randomUUID(),
+          resourceVersion = 1234L
         ),
         kind = "ec2.SecurityGroup",
         spec = securityGroup
@@ -183,7 +187,9 @@ internal object EC2AssetPluginTests {
       Asset(
         apiVersion = SPINNAKER_API_V1,
         metadata = AssetMetadata(
-          name = AssetName("ec2.SecurityGroup:${spec.application}:${spec.accountName}:${spec.region}:${spec.name}")
+          name = AssetName("ec2.SecurityGroup:${spec.application}:${spec.accountName}:${spec.region}:${spec.name}"),
+          uid = UUID.randomUUID(),
+          resourceVersion = 1234L
         ),
         kind = "ec2.SecurityGroup",
         spec = spec.copy(inboundRules = rules)

@@ -24,6 +24,7 @@ dependencies {
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin:+"
   implementation "com.google.code.gson:gson:+"
 
+  testImplementation project(":keel-core-test")
   testImplementation "io.strikt:strikt-core:+"
   testImplementation "com.oneeyedmen:minutest:+"
 }

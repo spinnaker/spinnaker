@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
 import com.netflix.spinnaker.keel.api.AssetName
 import java.time.Instant
@@ -23,14 +24,15 @@ interface AssetRepository {
   /**
    * Invokes [callback] once with each registered asset.
    */
-  fun allAssets(callback: (Asset<*>) -> Unit)
+  fun allAssets(callback: (Triple<AssetName, ApiVersion, String>) -> Unit)
 
   /**
-   * Retrieves a single asset by its unique [com.netflix.spinnaker.keel.api.AssetMetadata.name].
+   * Retrieves a single asset by its unique [com.netflix.spinnaker.keel.api.AssetMetadata.uid].
    *
-   * @return The asset represented by [name] or `null` if [name] is unknown.
+   * @return The asset represented by [uid] or `null` if [uid] is unknown.
+   * @throws NoSuchAssetException if [uid] does not map to an asset in the repository.
    */
-  fun get(name: AssetName): Asset<*>?
+  fun <T: Any> get(name: AssetName, specType: Class<T>): Asset<T>
 
   /**
    * Persists an asset.
@@ -57,3 +59,7 @@ interface AssetRepository {
    */
   fun delete(name: AssetName)
 }
+
+inline fun <reified T: Any> AssetRepository.get(name: AssetName): Asset<T> = get(name, T::class.java)
+
+class NoSuchAssetException(val name: AssetName) : RuntimeException("No asset named $name exists in the repository")

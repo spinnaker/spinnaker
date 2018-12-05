@@ -33,7 +33,9 @@ internal object SimpleVetoPluginSpec {
           apiVersion = SPINNAKER_API_V1,
           kind = "ec2.SecurityGroup",
           metadata = AssetMetadata(
-            name = AssetName("ec2.SecurityGroup:keel:prod:us-east-1:keel")
+            name = AssetName("ec2.SecurityGroup:keel:prod:us-east-1:keel"),
+            uid = UUID.randomUUID(),
+            resourceVersion = 1234L
           ),
           spec = randomData()
         )

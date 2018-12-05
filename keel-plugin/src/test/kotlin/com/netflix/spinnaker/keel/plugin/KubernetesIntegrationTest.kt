@@ -4,6 +4,7 @@ import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetKind
 import com.netflix.spinnaker.keel.api.AssetName
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.persistence.AssetRepository
@@ -39,7 +40,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.reflect.KClass
 
 /**
  * NOTE: requires local k8s to be running (either Docker for Mac or Minikube).
@@ -83,8 +83,11 @@ internal object KubernetesIntegrationTest {
     val lastUpdated = BlockingReference<Asset<*>>()
     val lastDeleted = BlockingReference<Asset<*>>()
 
-    override val supportedKinds: Map<String, KClass<out Any>> =
-      mapOf(crdName to SecurityGroup::class)
+    override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("ec2")
+
+    override val supportedKinds = mapOf(
+      AssetKind(apiVersion.group, "security-group", "security-groups") to SecurityGroup::class.java
+    )
 
     override fun current(request: Asset<*>): CurrentResponse {
       TODO("not implemented")
@@ -112,7 +115,7 @@ internal object KubernetesIntegrationTest {
     val plugin = MockAssetPlugin()
     val adapter: AssetPluginKubernetesAdapter = AssetPluginKubernetesAdapter(
       assetRepository,
-      resourceVersionTracker ,
+      resourceVersionTracker,
       extensionsApi,
       customObjectsApi,
       plugin
@@ -338,22 +341,6 @@ internal object KubernetesIntegrationTest {
 
         context("the object is deleted") {
           before {
-            val securityGroup = mapOf(
-              "apiVersion" to "ec2.${SPINNAKER_API_V1.group}/v1",
-              "kind" to crd.spec.names.kind,
-              "metadata" to mapOf(
-                "name" to "my-security-group"
-              ),
-              "spec" to SecurityGroup(
-                application = "fnord",
-                name = "fnord",
-                accountName = "test",
-                region = "us-west-2",
-                vpcName = "vpc0",
-                description = "a security group with an updated description"
-              )
-            )
-
             // ensure the create has completed
             plugin.lastCreated.get()
 

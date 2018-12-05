@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.keel.file
 
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.file.Message
 import com.netflix.spinnaker.keel.plugin.AssetPlugin
@@ -29,7 +31,6 @@ import com.netflix.spinnaker.keel.plugin.ResourceState
 import org.slf4j.LoggerFactory
 import java.io.File
 import javax.annotation.PostConstruct
-import kotlin.reflect.KClass
 
 class FilePlugin(private val directory: File) : AssetPlugin {
 
@@ -48,8 +49,10 @@ class FilePlugin(private val directory: File) : AssetPlugin {
     }
   }
 
-  override val supportedKinds: Map<String, KClass<out Any>> = mapOf(
-    "messages.file.${SPINNAKER_API_V1.group}" to Message::class
+  override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("file")
+
+  override val supportedKinds = mapOf(
+    AssetKind(apiVersion.group, "message", "messages") to Message::class.java
   )
 
   override fun current(request: Asset<*>): CurrentResponse {
@@ -71,6 +74,7 @@ class FilePlugin(private val directory: File) : AssetPlugin {
       }
       ConvergeAccepted
     } else {
+      log.error("Invalid asset spec ${spec.javaClass.name}")
       ConvergeFailed("Invalid asset spec ${spec.javaClass.name}")
     }
   }

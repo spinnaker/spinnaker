@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel.plugin
 
 import com.google.gson.reflect.TypeToken
 import com.netflix.spinnaker.keel.api.Asset
+import com.netflix.spinnaker.keel.api.AssetKind
 import com.netflix.spinnaker.keel.persistence.AssetRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.squareup.okhttp.Call
@@ -38,7 +39,6 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
-import kotlin.reflect.KClass
 
 internal class AssetPluginKubernetesAdapter(
   private val assetRepository: AssetRepository,
@@ -50,16 +50,19 @@ internal class AssetPluginKubernetesAdapter(
   private var job: Job? = null
   private var calls: MutableMap<String, Call> = mutableMapOf()
 
+  private val AssetKind.crd: String
+    get() = "$plural.$group"
+
   @PostConstruct
   fun start() {
     log.info("Starting Kubernetes agent for {}", plugin.name)
 
     if (job != null) throw IllegalStateException("Watcher for ${plugin.name} already running")
     job = GlobalScope.launch {
-      for ((name, type) in plugin.supportedKinds) {
+      for ((kind, type) in plugin.supportedKinds) {
         launch {
           val crd = extensionsApi
-            .readCustomResourceDefinition(name, "true", null, null)
+            .readCustomResourceDefinition(kind.crd, "true", null, null)
           watchForResourceChanges(crd, type)
         }
       }
@@ -81,7 +84,7 @@ internal class AssetPluginKubernetesAdapter(
 
   private suspend fun <T : Any> CoroutineScope.watchForResourceChanges(
     crd: V1beta1CustomResourceDefinition,
-    type: KClass<T>
+    type: Class<T>
   ) {
     while (isActive) {
       val call = customObjectsApi.listClusterCustomObjectCall(
@@ -137,7 +140,7 @@ internal class AssetPluginKubernetesAdapter(
       else -> throw IllegalStateException("Unhandled event type: $type")
     }
     if (result is ConvergeAccepted) {
-      asset.metadata.resourceVersion?.let(resourceVersionTracker::set)
+      asset.metadata.resourceVersion!!.let(resourceVersionTracker::set)
     }
   }
 
@@ -146,8 +149,8 @@ internal class AssetPluginKubernetesAdapter(
    * `T` is a runtime type and gets erased before the JSON parser can reference
    * it otherwise.
    */
-  private fun <T : Any> Call.createResourceWatch(type: KClass<T>): Watch<Asset<T>> =
-    TypeToken.getParameterized(Asset::class.java, type.java).type
+  private fun <T : Any> Call.createResourceWatch(type: Class<T>): Watch<Asset<T>> =
+    TypeToken.getParameterized(Asset::class.java, type).type
       .let { TypeToken.getParameterized(Watch.Response::class.java, it).type }
       .let { createWatch<Asset<T>>(Config.defaultClient(), this, it) }
 
