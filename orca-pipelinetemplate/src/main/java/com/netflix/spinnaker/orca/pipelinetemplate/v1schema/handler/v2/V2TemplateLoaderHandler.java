@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.v2.V2DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.v2.V2RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
+import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class V2TemplateLoaderHandler implements Handler {
 
   @Override
   public void handle(@NotNull HandlerChain chain, @NotNull PipelineTemplateContext context) {
-    TemplateConfiguration config = objectMapper.convertValue(context.getRequest().getConfig(), TemplateConfiguration.class);
+    V2TemplateConfiguration config = objectMapper.convertValue(context.getRequest().getConfig(), V2TemplateConfiguration.class);
 
     // Allow template inlining to perform plans without publishing the template
     if (context.getRequest().getPlan() && context.getRequest().getTemplate() != null) {
@@ -68,15 +69,15 @@ public class V2TemplateLoaderHandler implements Handler {
 
     // If a template source isn't provided by the configuration, we're assuming that the configuration is fully-formed.
     V2PipelineTemplate template = new V2PipelineTemplate();
-    if (config.getPipeline().getTemplate() == null) {
-      List<V2PipelineTemplate.Variable> variables = config.getPipeline().getVariables().entrySet().stream()
+    if (config.getTemplate() == null) {
+      List<V2PipelineTemplate.Variable> variables = config.getVariables().entrySet().stream()
         .map(v -> {
           return V2PipelineTemplate.Variable.builder().name(v.getKey()).defaultValue(v.getValue()).build();
         })
         .collect(Collectors.toList());
       template.setVariables(variables);
     } else {
-      template = templateLoader.load(config.getPipeline().getTemplate());
+      template = templateLoader.load(config.getTemplate());
     }
 
     RenderContext renderContext = V2RenderUtil.createDefaultRenderContext(template, config, trigger);
@@ -109,16 +110,16 @@ public class V2TemplateLoaderHandler implements Handler {
     }
   }
 
-  private void renderPipelineTemplateSource(TemplateConfiguration tc, Map<String, Object> trigger) {
-    if (trigger == null || tc.getPipeline().getTemplate() == null) {
+  private void renderPipelineTemplateSource(V2TemplateConfiguration tc, Map<String, Object> trigger) {
+    if (trigger == null || tc.getTemplate() == null) {
       return;
     }
-    V2DefaultRenderContext renderContext = new V2DefaultRenderContext(tc.getPipeline().getApplication(), null, trigger);
+    V2DefaultRenderContext renderContext = new V2DefaultRenderContext(tc.getApplication(), null, trigger);
 
     Map<String, Object> processedTemplate = contextParameterProcessor.process(
-      objectMapper.convertValue(tc.getPipeline().getTemplate(), MAP_TYPE_REFERENCE),
+      objectMapper.convertValue(tc.getTemplate(), MAP_TYPE_REFERENCE),
       renderContext.getVariables(), // Lift trigger and application out of 'variables' namespace.
       true);
-    tc.getPipeline().setTemplate(objectMapper.convertValue(processedTemplate, TemplateConfiguration.TemplateSource.class));
+    tc.setTemplate(objectMapper.convertValue(processedTemplate, TemplateConfiguration.TemplateSource.class));
   }
 }

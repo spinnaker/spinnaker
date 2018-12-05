@@ -71,7 +71,7 @@ class V1SchemaIntegrationSpec extends Specification {
       objectMapper,
       new SchemaVersionHandler(
         new V1SchemaHandlerGroup(templateLoader, renderer, objectMapper, registry),
-        new V2SchemaHandlerGroup(v2TemplateLoader, objectMapper, contextParameterProcessor, registry)),
+        new V2SchemaHandlerGroup(v2TemplateLoader, objectMapper, contextParameterProcessor)),
       new PipelineTemplateErrorHandler(),
       registry
     )

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.v2;
 
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1SchemaValidationHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
@@ -47,7 +46,7 @@ public class V2TemplateSchemaValidator<T extends V2TemplateSchemaValidator.Schem
       );
     }
 
-    V1SchemaValidationHelper.validateStageDefinitions(template.getStages(), errors, V2TemplateSchemaValidator::location);
+    // TODO(jacobkiefer): Validate the template stages in some manner.
   }
 
   private static String location(String location) {

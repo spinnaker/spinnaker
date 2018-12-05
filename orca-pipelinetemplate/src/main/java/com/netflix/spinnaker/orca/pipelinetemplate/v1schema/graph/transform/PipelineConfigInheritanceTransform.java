@@ -17,7 +17,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 
 import java.util.Collections;
@@ -26,7 +25,7 @@ import java.util.List;
 
 public class PipelineConfigInheritanceTransform implements PipelineTemplateVisitor {
 
-  TemplateConfiguration templateConfiguration;
+  private TemplateConfiguration templateConfiguration;
 
   public PipelineConfigInheritanceTransform(TemplateConfiguration templateConfiguration) {
     this.templateConfiguration = templateConfiguration;
@@ -35,7 +34,7 @@ public class PipelineConfigInheritanceTransform implements PipelineTemplateVisit
   @Override
   public void visitPipelineTemplate(PipelineTemplate pipelineTemplate) {
     List<String> inherit = templateConfiguration.getConfiguration().getInherit();
-    Configuration pc = pipelineTemplate.getConfiguration();
+    PipelineTemplate.Configuration pc = pipelineTemplate.getConfiguration();
 
     if (!inherit.contains("concurrentExecutions")) {
       pc.setConcurrentExecutions(new HashMap<>());

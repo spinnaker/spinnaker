@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipelinetemplate.handler.v2
+package com.netflix.spinnaker.orca.pipelinetemplate.v2schema;
 
-import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateSchemaContext
-import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate
-import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration
+import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 
-data class V2PipelineTemplateContext(
-  val configuration: V2TemplateConfiguration,
-  val template: V2PipelineTemplate
-) : PipelineTemplateSchemaContext
+public interface V2PipelineTemplateVisitor {
+
+  void visitPipelineTemplate(V2PipelineTemplate pipelineTemplate);
+}

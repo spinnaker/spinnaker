@@ -52,6 +52,8 @@ class PipelineTemplatePreprocessor
     log.debug("Starting handler chain")
 
     val chain = DefaultHandlerChain()
+    // TODO(jacobkiefer): Consider adding a v2 context class to simplify processing in the V2SchemaExecutionGenerator.
+    // This results in a TemplateContext class with overly-concrete attributes that complicate things.
     val context = GlobalPipelineTemplateContext(chain, request)
 
     chain.add(schemaVersionHandler)

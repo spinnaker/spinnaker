@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.v2;
 
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1SchemaValidationHelper;
+import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2StageDefinition;
+import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.SchemaValidator;
@@ -36,46 +36,39 @@ public class V2TemplateConfigurationSchemaValidator implements SchemaValidator<V
 
   @Override
   public void validate(VersionedSchema configuration, Errors errors, SchemaValidatorContext context) {
-    if (!(configuration instanceof TemplateConfiguration)) {
+    if (!(configuration instanceof V2TemplateConfiguration)) {
       throw new IllegalArgumentException("Expected TemplateConfiguration");
     }
-    TemplateConfiguration config = (TemplateConfiguration) configuration;
+    V2TemplateConfiguration config = (V2TemplateConfiguration) configuration;
 
     if (!SUPPORTED_VERSION.equals(config.getSchemaVersion())) {
       errors.add(new Error().withMessage("config schema version is unsupported: expected '" + SUPPORTED_VERSION + "', got '" + config.getSchemaVersion() + "'"));
     }
 
-    TemplateConfiguration.PipelineDefinition pipelineDefinition = config.getPipeline();
-    if (pipelineDefinition == null) {
+    if (config.getApplication() == null) {
       errors.add(new Error()
-        .withMessage("Missing pipeline configuration")
-        .withLocation(location("pipeline"))
+        .withMessage("Missing 'application' configuration")
+        .withLocation(location("application"))
       );
-    } else {
-      if (pipelineDefinition.getApplication() == null) {
-        errors.add(new Error()
-          .withMessage("Missing 'application' pipeline configuration")
-          .withLocation(location("pipeline.application"))
-        );
-      }
     }
 
-    V1SchemaValidationHelper.validateStageDefinitions(config.getStages(), errors, V2TemplateConfigurationSchemaValidator::location);
+    // TODO(jacobkiefer): V2 stage definition validators.
+//    V1SchemaValidationHelper.validateStageDefinitions(config.getStages(), errors, V2TemplateConfigurationSchemaValidator::location);
 
     config.getStages().forEach(s -> {
       if (shouldRequireDagRules(s, config, context.stageIds)) {
         errors.add(new Error()
           .withMessage("A configuration-defined stage should have either dependsOn or an inject rule defined")
-          .withLocation(location(String.format("stages.%s", s.getId())))
+          .withLocation(location(String.format("stages.%s", s.getRefId())))
           .withSeverity(Errors.Severity.WARN));
       }
     });
   }
 
-  private static boolean shouldRequireDagRules(StageDefinition s, TemplateConfiguration config, List<String> stageIds) {
-    return config.getPipeline().getTemplate() != null &&
-      !stageIds.contains(s.getId()) &&
-      (s.getDependsOn() == null || s.getDependsOn().isEmpty()) &&
+  private static boolean shouldRequireDagRules(V2StageDefinition s, V2TemplateConfiguration config, List<String> stageIds) {
+    return config.getTemplate() != null &&
+      !stageIds.contains(s.getRefId()) &&
+      (s.getRequisiteStageRefIds() == null || s.getRequisiteStageRefIds().isEmpty()) &&
       (s.getInject() == null || !s.getInject().hasAny());
   }
 

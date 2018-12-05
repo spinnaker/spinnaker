@@ -104,7 +104,10 @@ class OperationsController {
       return pipeline
     }
 
-    def augmentedContext = [trigger: pipeline.trigger]
+    def augmentedContext = [
+      trigger: pipeline.trigger,
+      templateVariables: pipeline.templateVariables ?: [:]
+    ]
     def processedPipeline = contextParameterProcessor.process(pipeline, augmentedContext, false)
     processedPipeline.trigger = objectMapper.convertValue(processedPipeline.trigger, Trigger)
 

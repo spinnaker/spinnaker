@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedContent;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
+import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.V2PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +28,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 public class V2PipelineTemplate implements VersionedSchema {
@@ -42,8 +45,11 @@ public class V2PipelineTemplate implements VersionedSchema {
    */
   private Boolean protect = false;
   private List<Variable> variables = new ArrayList<>();
-  private Configuration configuration;
-  private List<StageDefinition> stages;
+
+  /**
+   * pipeline is a possibly SpEL-templated pipeline definition.
+   */
+  private Map<String, Object> pipeline;
 
   @Data
   public static class Metadata {
@@ -66,8 +72,8 @@ public class V2PipelineTemplate implements VersionedSchema {
     private Object defaultValue;
     private String example;
     private boolean nullable;
-    private boolean merge = false;
-    private boolean remove = false;
+    private boolean merge;
+    private boolean remove;
 
     public String getType() {
       return Optional.ofNullable(type).orElse("object");
@@ -98,19 +104,31 @@ public class V2PipelineTemplate implements VersionedSchema {
     }
   }
 
-  public static class Configuration extends HashMap<String, Object> {}
-
   @Override
   @JsonIgnore
   public String getSchemaVersion() {
     return schema;
   }
 
-  public Configuration getConfiguration() {
-    return Optional.ofNullable(configuration).orElse(new Configuration());
+  public Map<String, Object> getPipeline() {
+    return Optional.ofNullable(pipeline).orElse(Collections.EMPTY_MAP);
   }
 
-  public List<StageDefinition> getStages() {
-    return Optional.ofNullable(stages).orElse(Collections.emptyList());
+  public List<V2StageDefinition> getStages() {
+    ObjectMapper oj = new ObjectMapper();
+    TypeReference v2StageDefTypeRef = new TypeReference<List<V2StageDefinition>>() {};
+    return oj.convertValue(pipeline.get("stages"), v2StageDefTypeRef);
+  }
+
+  public void setStages(List<V2StageDefinition> stages) {
+    pipeline.put("stages", stages);
+  }
+
+  public void accept(V2PipelineTemplateVisitor visitor) {
+    visitor.visitPipelineTemplate(this);
+  }
+
+  public List<Variable> getVariables() {
+    return Optional.ofNullable(variables).orElse(Collections.emptyList());
   }
 }

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipelinetemplate.handler.v2
+package com.netflix.spinnaker.orca.pipelinetemplate.generator;
 
-import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateSchemaContext
-import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate
-import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration
+import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest;
+import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
+import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
 
-data class V2PipelineTemplateContext(
-  val configuration: V2TemplateConfiguration,
-  val template: V2PipelineTemplate
-) : PipelineTemplateSchemaContext
+import java.util.Map;
+
+public interface V2ExecutionGenerator {
+
+  Map<String, Object> generate(V2PipelineTemplate template, V2TemplateConfiguration configuration, TemplatedPipelineRequest request);
+}
