@@ -126,7 +126,7 @@ class ApplicationsTest {
     assertThat(cloudFoundryServerGroup).isNotNull();
     assertThat(cloudFoundryServerGroup.getId()).isEqualTo("some-app-guid");
     assertThat(cloudFoundryServerGroup.getName()).isEqualTo("some-app-name");
-    assertThat(cloudFoundryServerGroup.getAppsManagerUri()).isEqualTo("some-apps-man-uri");
+    assertThat(cloudFoundryServerGroup.getAppsManagerUri()).isEqualTo("some-apps-man-uri/organizations/org-id/spaces/space-id/applications/some-app-guid");
     assertThat(cloudFoundryServerGroup.getServiceInstances().size()).isEqualTo(1);
     assertThat(cloudFoundryServerGroup.getServiceInstances().get(0).getTags()).containsExactly("tag1", "tag2");
   }

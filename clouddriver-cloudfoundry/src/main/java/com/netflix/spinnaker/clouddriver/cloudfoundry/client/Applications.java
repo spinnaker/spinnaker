@@ -216,9 +216,14 @@ public class Applications {
       }
     }
 
+    String serverGroupAppManagerUri = appsManagerUri;
+    if (StringUtils.isNotEmpty(appsManagerUri)){
+      serverGroupAppManagerUri = appsManagerUri + "/organizations/" + space.getOrganization().getId() + "/spaces/" + space.getId() + "/applications/" + application.getGuid();
+    }
+
     return CloudFoundryServerGroup.builder()
       .account(account)
-      .appsManagerUri(appsManagerUri)
+      .appsManagerUri(serverGroupAppManagerUri)
       .name(application.getName())
       .id(application.getGuid())
       .memory(process != null ? process.getMemoryInMb() : null)
