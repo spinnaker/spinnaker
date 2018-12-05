@@ -73,4 +73,12 @@ public class Location {
   public int hashCode() {
     return Objects.hash(type, value);
   }
+
+  @Override
+  public String toString() {
+    return "Location{" +
+      "type=" + type +
+      ", value='" + value + '\'' +
+      '}';
+  }
 }

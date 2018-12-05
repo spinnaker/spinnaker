@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+
 import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -39,12 +41,13 @@ class ShrinkClusterTaskSpec extends Specification {
   OortService oortService = Mock(OortService)
   KatoService katoService = Mock(KatoService)
   OortHelper oortHelper = Mock(OortHelper)
+  TrafficGuard trafficGuard = Mock(TrafficGuard)
 
   @Subject
   ShrinkClusterTask task
 
   def setup() {
-    task = new ShrinkClusterTask(oortHelper: oortHelper, katoService: katoService)
+    task = new ShrinkClusterTask(oortHelper: oortHelper, katoService: katoService, trafficGuard: trafficGuard)
   }
 
   @Unroll

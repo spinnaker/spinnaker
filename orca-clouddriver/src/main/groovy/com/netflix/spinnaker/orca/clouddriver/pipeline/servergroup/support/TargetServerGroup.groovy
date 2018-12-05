@@ -85,6 +85,10 @@ class TargetServerGroup {
     return serverGroup?.moniker ? objectMapper.convertValue(serverGroup?.moniker, Moniker) : null
   }
 
+  String getCloudProvider() {
+    serverGroup.cloudProvider ?: serverGroup.type
+  }
+
   /**
    * Used in UpsertGceAutoscalingPolicy, which is Java, which doesn't play nice with @Delegate
    * @return
