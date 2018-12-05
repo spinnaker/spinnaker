@@ -60,7 +60,7 @@ export class CloudFoundryInfoDetailsSection extends React.Component<ICloudFoundr
           <CollapsibleSection heading="Apps Manager" defaultExpanded={true}>
             <div>
               <a href={serverGroup.appsManagerUri} target="_blank">
-                {serverGroup.appsManagerUri}
+                Apps Manager
               </a>
             </div>
           </CollapsibleSection>
