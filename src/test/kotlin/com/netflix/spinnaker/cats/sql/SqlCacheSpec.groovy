@@ -39,7 +39,7 @@ class SqlCacheSpec extends WriteableCacheSpec {
     def clock = new Clock.FixedClock(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties()
     currentDatabase = initDatabase()
-    return new SqlCache("test", currentDatabase.context, mapper, clock, sqlRetryProperties, 10)
+    return new SqlCache("test", currentDatabase.context, mapper, clock, sqlRetryProperties, "test", 10)
   }
 
 }

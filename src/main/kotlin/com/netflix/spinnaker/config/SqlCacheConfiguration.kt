@@ -41,8 +41,9 @@ class SqlCacheConfiguration {
   fun cacheFactory(jooq: DSLContext,
                    clock: Clock,
                    sqlProperties: SqlProperties,
+                   @Value("\${sql.cache.tablePrefix:#{null}}") prefix: String?,
                    @Value("\${sql.cache.batchSize:1000}") batchSize: Int): NamedCacheFactory =
-    SqlNamedCacheFactory(jooq, ObjectMapper(), clock, sqlProperties.retries, batchSize)
+    SqlNamedCacheFactory(jooq, ObjectMapper(), clock, sqlProperties.retries, prefix, batchSize)
 
   @Bean
   fun coreProvider(): CoreProvider = CoreProvider(emptyList())

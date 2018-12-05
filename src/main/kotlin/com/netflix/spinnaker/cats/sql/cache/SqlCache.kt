@@ -23,6 +23,7 @@ class SqlCache(
   private val mapper: ObjectMapper,
   private val clock: Clock,
   private val sqlRetryProperties: SqlRetryProperties, // TODO use this
+  private val prefix: String?,
   private val batchSize: Int
 ) : WriteableCache {
 
@@ -36,7 +37,6 @@ class SqlCache(
     "elasticIps", "instanceTypes", "keyPairs", "securityGroups", "subnets", "taggedImage"
   )
 
-  //TODO: make this configurable
   private val sqlChunkSize = batchSize
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -554,7 +554,6 @@ class SqlCache(
     }
   }
 
-  // TODO also implement a table prefix config to add to table names in addition to version
   private fun createTables(type: String) {
     if (!createdTables.contains(type)) {
       try {
@@ -614,9 +613,11 @@ class SqlCache(
     }
   }
 
-  private fun resourceTableName(type: String): String = "cats_v${schema_version}_${sanitizeType(type)}"
+  private fun resourceTableName(type: String): String =
+    "cats_v${schema_version}_${if (prefix != null) "${prefix}_" else ""}${sanitizeType(type)}"
 
-  private fun relTableName(type: String): String = "cats_v${schema_version}_${sanitizeType(type)}_rel"
+  private fun relTableName(type: String): String =
+    "cats_v${schema_version}_${if (prefix != null) "${prefix}_" else ""}${sanitizeType(type)}_rel"
 
   private fun sanitizeType(type: String): String {
     return type.replace("""[:/\-]""".toRegex(), "_")
