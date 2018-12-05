@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 public class V2ConfigStageInjectionTransform implements V2PipelineTemplateVisitor {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private static final Logger slog = LoggerFactory.getLogger(V2ConfigStageInjectionTransform.class);
 
   private V2TemplateConfiguration templateConfiguration;
 
