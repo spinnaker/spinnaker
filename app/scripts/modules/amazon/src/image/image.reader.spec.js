@@ -2,14 +2,14 @@
 
 import { API } from '@spinnaker/core';
 
+import { AwsImageReader } from './image.reader';
+
 describe('Service: aws Image Reader', function() {
   var service, $http, scope;
 
-  beforeEach(window.module(require('./image.reader.js').name));
-
   beforeEach(
-    window.inject(function(awsImageReader, $httpBackend, $rootScope) {
-      service = awsImageReader;
+    window.inject(function($httpBackend, $rootScope) {
+      service = new AwsImageReader();
       $http = $httpBackend;
       scope = $rootScope.$new();
     }),

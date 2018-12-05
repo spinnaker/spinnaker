@@ -14,6 +14,7 @@ import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDe
 import { COMMON_MODULE } from './common/common.module';
 import './help/amazon.help';
 
+import { AwsImageReader } from './image';
 import { AmazonLoadBalancerClusterContainer } from './loadBalancer/AmazonLoadBalancerClusterContainer';
 import { AmazonLoadBalancersTag } from './loadBalancer/AmazonLoadBalancersTag';
 
@@ -74,7 +75,6 @@ module(AMAZON_MODULE, [
   SUBNET_RENDERER,
   SUBNET_SELECT_FIELD_COMPONENT,
   VPC_MODULE,
-  require('./image/image.reader').name,
   require('./cache/cacheConfigurer.service').name,
   require('./search/searchResultFormatter').name,
 ]).config(() => {
@@ -87,7 +87,7 @@ module(AMAZON_MODULE, [
       configurer: 'awsCacheConfigurer',
     },
     image: {
-      reader: 'awsImageReader',
+      reader: AwsImageReader,
     },
     serverGroup: {
       transformer: 'awsServerGroupTransformer',

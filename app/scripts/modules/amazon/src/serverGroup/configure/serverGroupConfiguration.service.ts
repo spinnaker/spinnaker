@@ -42,6 +42,7 @@ import {
   IServerGroupCommandViewState,
 } from '@spinnaker/core';
 
+import { AwsImageReader } from 'amazon/image';
 import {
   IKeyPair,
   IAmazonLoadBalancerSourceData,
@@ -103,6 +104,7 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
 }
 
 export class AwsServerGroupConfigurationService {
+  private awsImageReader = new AwsImageReader();
   private enabledMetrics = [
     'GroupMinSize',
     'GroupMaxSize',
@@ -123,7 +125,6 @@ export class AwsServerGroupConfigurationService {
   ];
 
   constructor(
-    private awsImageReader: any,
     private securityGroupReader: SecurityGroupReader,
     private awsInstanceTypeService: any,
     private cacheInitializer: CacheInitializerService,
@@ -149,7 +150,7 @@ export class AwsServerGroupConfigurationService {
     } else {
       imageLoader = cmd.viewState.imageId
         ? this.loadImagesFromAmi(cmd)
-        : this.loadImagesFromApplicationName(application, cmd.selectedProvider);
+        : this.loadImagesFromApplicationName(application);
     }
 
     // TODO: Instead of attaching these to the command itself, they could be static methods
@@ -265,11 +266,9 @@ export class AwsServerGroupConfigurationService {
     });
   }
 
-  public loadImagesFromApplicationName(application: Application, provider: string): IPromise<any> {
-    return this.awsImageReader.findImages({
-      provider,
-      q: application.name.replace(/_/g, '[_\\-]') + '*',
-    });
+  public loadImagesFromApplicationName(application: Application): IPromise<any> {
+    const query = application.name.replace(/_/g, '[_\\-]') + '*';
+    return this.awsImageReader.findImages({ q: query });
   }
 
   public loadImagesFromAmi(command: IAmazonServerGroupCommand): IPromise<any> {
@@ -292,7 +291,6 @@ export class AwsServerGroupConfigurationService {
         }
 
         return this.awsImageReader.findImages({
-          provider: command.selectedProvider,
           q: packageBase + (addDashToQuery ? '-*' : '*'),
         });
       },
@@ -708,7 +706,6 @@ export class AwsServerGroupConfigurationService {
 
 export const AWS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.amazon.serverGroup.configure.service';
 module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE, [
-  require('amazon/image/image.reader.js').name,
   SECURITY_GROUP_READER,
   require('amazon/instance/awsInstanceType.service.js').name,
   LOAD_BALANCER_READ_SERVICE,
