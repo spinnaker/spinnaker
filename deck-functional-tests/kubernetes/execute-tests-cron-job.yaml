@@ -1,0 +1,20 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: deck-functional-tests
+spec:
+  schedule: "@hourly"
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 10
+  failedJobsHistoryLimit: 10
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 600
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: deck-functional-tests
+            image: gcr.io/hebridean-sun/deck-functional-tests:ci
+            imagePullPolicy: Always

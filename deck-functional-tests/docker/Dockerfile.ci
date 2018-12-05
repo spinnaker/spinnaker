@@ -1,0 +1,5 @@
+FROM node:8-stretch
+WORKDIR /deck-functional-tests
+COPY *.sh /
+RUN /install.sh
+CMD ["/run-ci.sh"]

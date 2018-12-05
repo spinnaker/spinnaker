@@ -1,0 +1,13 @@
+node_modules
+mb.pid
+mb*.log
+selenium-logs
+screenshots
+static
+*.browser-logs.json
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build

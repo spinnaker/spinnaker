@@ -1,0 +1,31 @@
+{
+  "license": "SEE LICENSE IN ../LICENSE.txt",
+  "engines": {
+    "node": "8.12.0",
+    "npm": "6.4.1",
+    "yarn": "1.10.1"
+  },
+  "dependencies": {
+    "@types/jasmine": "^2.8.8",
+    "@types/lodash": "^4.14.116",
+    "@types/webdriverio": "^4.10.4",
+    "debug": "^4.0.1",
+    "express": "^4.16.3",
+    "lodash": "^4.17.11",
+    "mountebank": "^1.15.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "typescript": "^3.1.1",
+    "wdio-dot-reporter": "^0.0.10",
+    "wdio-jasmine-framework": "^0.3.6",
+    "wdio-selenium-standalone-service": "^0.0.10",
+    "webdriverio": "^4.13.2"
+  },
+  "scripts": {
+    "lint": "tslint --project ./tsconfig.json",
+    "test": "ts-node -P ./tsconfig.json ./node_modules/.bin/wdio ./wdio.conf.js"
+  }
+}

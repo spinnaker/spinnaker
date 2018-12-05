@@ -1,0 +1,1224 @@
+{
+  "protocol": "http",
+  "port": 8084,
+  "stubs": [
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/auth/user"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "262fe1fd-5245-40b3-bd5d-772f88a56fee",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 359,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "{\"accountNonExpired\":true,\"accountNonLocked\":true,\"allowedAccounts\":[\"kubernetes-v2-provider\",\"dockerhub\",\"gcr-docker-registry\",\"k8s-v2\",\"compute-engine\",\"gce\",\"gae\",\"deck-functional-tests\",\"appengine-heb-sun\"],\"authorities\":[],\"credentialsNonExpired\":true,\"email\":\"anonymous\",\"enabled\":true,\"firstName\":null,\"lastName\":null,\"roles\":[],\"username\":\"anonymous\"}",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/credentials"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "expand": "true"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "8e165169-848d-4cf8-900d-fb084c1eb48d",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/webhooks/preconfigured"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "b009a19f-7066-4e87-a43d-c30d4dd97274",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/credentials"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "expand": "true"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "9ef5f810-0a83-4d5f-adf7-ffb031c45d5e",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 83541,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "[{\"accountType\":\"kubernetes-v2-provider\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"kubernetes\",\"environment\":\"kubernetes-v2-provider\",\"name\":\"kubernetes-v2-provider\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v2\",\"requiredGroupMembership\":[],\"skin\":\"v2\",\"type\":\"kubernetes\",\"authorized\":true,\"cacheThreads\":1,\"spinnakerKindMap\":{\"configMap\":\"configs\",\"cronJob\":\"serverGroups\",\"daemonSet\":\"serverGroups\",\"deployment\":\"serverGroupManagers\",\"ingress\":\"loadBalancers\",\"job\":\"serverGroups\",\"networkPolicy\":\"securityGroups\",\"persistentVolume\":\"configs\",\"persistentVolumeClaim\":\"configs\",\"pod\":\"instances\",\"replicaSet\":\"serverGroups\",\"secret\":\"configs\",\"service\":\"loadBalancers\",\"statefulSet\":\"serverGroups\"},\"namespaces\":[\"default\"]},{\"accountType\":\"dockerhub\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"dockerRegistry\",\"environment\":\"dockerhub\",\"name\":\"dockerhub\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v1\",\"requiredGroupMembership\":[],\"skin\":\"v1\",\"type\":\"dockerRegistry\",\"registry\":\"index.docker.io\",\"address\":\"https://index.docker.io\",\"accountName\":\"dockerhub\",\"v2Endpoint\":\"https://index.docker.io/v2\",\"skip\":[],\"trackDigests\":false,\"insecureRegistry\":false,\"cacheIntervalSeconds\":30,\"clientTimeoutMillis\":60000,\"authorized\":true,\"sortTagsByDate\":false,\"cacheThreads\":1,\"paginateSize\":100,\"email\":\"fake.email@spinnaker.io\"},{\"accountType\":\"gcr-docker-registry\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"dockerRegistry\",\"environment\":\"gcr-docker-registry\",\"name\":\"gcr-docker-registry\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v1\",\"requiredGroupMembership\":[],\"skin\":\"v1\",\"type\":\"dockerRegistry\",\"registry\":\"gcr.io\",\"address\":\"https://gcr.io\",\"accountName\":\"gcr-docker-registry\",\"v2Endpoint\":\"https://gcr.io/v2\",\"skip\":[],\"trackDigests\":false,\"insecureRegistry\":false,\"cacheIntervalSeconds\":30,\"passwordFile\":\"/Users/sbws/.hal/default/staging/dependencies/389769902-local-gcr.key.json\",\"clientTimeoutMillis\":60000,\"authorized\":true,\"sortTagsByDate\":false,\"cacheThreads\":1,\"paginateSize\":100,\"email\":\"fake.email@spinnaker.io\"},{\"accountType\":\"k8s-v2\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"kubernetes\",\"environment\":\"k8s-v2\",\"name\":\"k8s-v2\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v2\",\"requiredGroupMembership\":[],\"skin\":\"v2\",\"type\":\"kubernetes\",\"authorized\":true,\"cacheThreads\":1,\"spinnakerKindMap\":{\"configMap\":\"configs\",\"cronJob\":\"serverGroups\",\"daemonSet\":\"serverGroups\",\"deployment\":\"serverGroupManagers\",\"foobar\":\"serverGroup\",\"ingress\":\"loadBalancers\",\"job\":\"serverGroups\",\"networkPolicy\":\"securityGroups\",\"persistentVolume\":\"configs\",\"persistentVolumeClaim\":\"configs\",\"pod\":\"instances\",\"replicaSet\":\"serverGroups\",\"secret\":\"configs\",\"service\":\"loadBalancers\",\"statefulSet\":\"serverGroups\"},\"namespaces\":[]},{\"accountType\":\"compute-engine\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"gce\",\"environment\":\"compute-engine\",\"name\":\"compute-engine\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v1\",\"requiredGroupMembership\":[],\"skin\":\"v1\",\"type\":\"gce\",\"compute\":{\"applicationName\":\"Spinnaker/2.85.0-SNAPSHOT\",\"baseUrl\":\"https://www.googleapis.com/compute/beta/projects/\",\"jsonFactory\":{},\"objectParser\":{\"jsonFactory\":{},\"wrapperKeys\":[]},\"requestFactory\":{\"initializer\":{},\"transport\":{}},\"rootUrl\":\"https://www.googleapis.com/\",\"servicePath\":\"compute/beta/projects/\",\"suppressPatternChecks\":false,\"suppressRequiredParameterChecks\":false},\"instanceTypeDisks\":[{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-1\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-2\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-4\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-8\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-16\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-32\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_STANDARD\"}],\"instanceType\":\"f1-micro\",\"supportsLocalSSD\":false},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_STANDARD\"}],\"instanceType\":\"g1-small\",\"supportsLocalSSD\":false},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-2\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-4\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-8\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-16\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-32\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-2\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-4\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-8\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-16\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-32\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"default\",\"supportsLocalSSD\":true}],\"regionToZonesMap\":{\"asia-east1\":[\"asia-east1-a\",\"asia-east1-b\",\"asia-east1-c\"],\"asia-northeast1\":[\"asia-northeast1-a\",\"asia-northeast1-b\",\"asia-northeast1-c\"],\"asia-south1\":[\"asia-south1-b\",\"asia-south1-a\",\"asia-south1-c\"],\"asia-southeast1\":[\"asia-southeast1-a\",\"asia-southeast1-b\",\"asia-southeast1-c\"],\"australia-southeast1\":[\"australia-southeast1-c\",\"australia-southeast1-a\",\"australia-southeast1-b\"],\"europe-north1\":[\"europe-north1-b\",\"europe-north1-c\",\"europe-north1-a\"],\"europe-west1\":[\"europe-west1-b\",\"europe-west1-c\",\"europe-west1-d\"],\"europe-west2\":[\"europe-west2-a\",\"europe-west2-b\",\"europe-west2-c\"],\"europe-west3\":[\"europe-west3-c\",\"europe-west3-a\",\"europe-west3-b\"],\"europe-west4\":[\"europe-west4-c\",\"europe-west4-b\",\"europe-west4-a\"],\"northamerica-northeast1\":[\"northamerica-northeast1-a\",\"northamerica-northeast1-b\",\"northamerica-northeast1-c\"],\"southamerica-east1\":[\"southamerica-east1-a\",\"southamerica-east1-b\",\"southamerica-east1-c\"],\"us-central1\":[\"us-central1-a\",\"us-central1-b\",\"us-central1-c\",\"us-central1-f\"],\"us-east1\":[\"us-east1-b\",\"us-east1-c\",\"us-east1-d\"],\"us-east4\":[\"us-east4-a\",\"us-east4-b\",\"us-east4-c\"],\"us-west1\":[\"us-west1-a\",\"us-west1-b\",\"us-west1-c\"],\"us-west2\":[\"us-west2-c\",\"us-west2-b\",\"us-west2-a\"]},\"regions\":[{\"name\":\"asia-east1\",\"zones\":[\"asia-east1-a\",\"asia-east1-b\",\"asia-east1-c\"]},{\"name\":\"asia-northeast1\",\"zones\":[\"asia-northeast1-a\",\"asia-northeast1-b\",\"asia-northeast1-c\"]},{\"name\":\"asia-south1\",\"zones\":[\"asia-south1-b\",\"asia-south1-a\",\"asia-south1-c\"]},{\"name\":\"asia-southeast1\",\"zones\":[\"asia-southeast1-a\",\"asia-southeast1-b\",\"asia-southeast1-c\"]},{\"name\":\"australia-southeast1\",\"zones\":[\"australia-southeast1-c\",\"australia-southeast1-a\",\"australia-southeast1-b\"]},{\"name\":\"europe-north1\",\"zones\":[\"europe-north1-b\",\"europe-north1-c\",\"europe-north1-a\"]},{\"name\":\"europe-west1\",\"zones\":[\"europe-west1-b\",\"europe-west1-c\",\"europe-west1-d\"]},{\"name\":\"europe-west2\",\"zones\":[\"europe-west2-a\",\"europe-west2-b\",\"europe-west2-c\"]},{\"name\":\"europe-west3\",\"zones\":[\"europe-west3-c\",\"europe-west3-a\",\"europe-west3-b\"]},{\"name\":\"europe-west4\",\"zones\":[\"europe-west4-c\",\"europe-west4-b\",\"europe-west4-a\"]},{\"name\":\"northamerica-northeast1\",\"zones\":[\"northamerica-northeast1-a\",\"northamerica-northeast1-b\",\"northamerica-northeast1-c\"]},{\"name\":\"southamerica-east1\",\"zones\":[\"southamerica-east1-a\",\"southamerica-east1-b\",\"southamerica-east1-c\"]},{\"name\":\"us-central1\",\"zones\":[\"us-central1-a\",\"us-central1-b\",\"us-central1-c\",\"us-central1-f\"]},{\"name\":\"us-east1\",\"zones\":[\"us-east1-b\",\"us-east1-c\",\"us-east1-d\"]},{\"name\":\"us-east4\",\"zones\":[\"us-east4-a\",\"us-east4-b\",\"us-east4-c\"]},{\"name\":\"us-west1\",\"zones\":[\"us-west1-a\",\"us-west1-b\",\"us-west1-c\"]},{\"name\":\"us-west2\",\"zones\":[\"us-west2-c\",\"us-west2-b\",\"us-west2-a\"]}],\"authorized\":true,\"project\":\"hebridean-sun\",\"computeVersion\":\"DEFAULT\",\"locationToCpuPlatformsMap\":{\"asia-east1\":[\"Intel Ivy Bridge\",\"Intel Broadwell\",\"Intel Skylake\"],\"asia-east1-a\":[\"Intel Ivy Bridge\",\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"asia-east1-b\":[\"Intel Ivy Bridge\",\"Intel Broadwell\",\"Intel Skylake\"],\"asia-east1-c\":[\"Intel Ivy Bridge\",\"Intel Broadwell\",\"Intel Skylake\"],\"asia-northeast1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-northeast1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-northeast1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-northeast1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-south1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-south1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-south1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-south1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-southeast1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-southeast1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-southeast1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-southeast1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"australia-southeast1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"australia-southeast1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"australia-southeast1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"australia-southeast1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-north1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-north1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-north1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-north1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west1\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west1-b\":[\"Intel Sandy Bridge\",\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west1-c\":[\"Intel Ivy Bridge\",\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west1-d\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west2\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west2-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west2-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west2-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west3\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west3-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west3-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west3-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west4\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west4-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west4-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west4-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"northamerica-northeast1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"northamerica-northeast1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"northamerica-northeast1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"northamerica-northeast1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"southamerica-east1\":[\"Intel Broadwell\"],\"southamerica-east1-a\":[\"Intel Broadwell\"],\"southamerica-east1-b\":[\"Intel Broadwell\"],\"southamerica-east1-c\":[\"Intel Broadwell\"],\"us-central1\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-central1-a\":[\"Intel Sandy Bridge\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-central1-b\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-central1-c\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-central1-f\":[\"Intel Ivy Bridge\",\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east1\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east1-b\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east1-c\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east1-d\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east4\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-east4-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-east4-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-east4-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west2\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west2-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west2-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west2-c\":[\"Intel Broadwell\",\"Intel Skylake\"]},\"applicationName\":\"Spinnaker/2.85.0-SNAPSHOT\",\"locationToInstanceTypesMap\":{\"asia-east1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-east1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-east1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-east1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-northeast1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-northeast1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-northeast1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-northeast1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"asia-south1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-south1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-south1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-south1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-southeast1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-southeast1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-southeast1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-southeast1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"australia-southeast1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"australia-southeast1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"australia-southeast1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"australia-southeast1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-north1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-north1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-north1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-north1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"europe-west1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west1-d\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"europe-west2\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west2-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west2-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west2-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west3\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west3-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west3-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west3-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west4\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west4-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west4-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west4-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"northamerica-northeast1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"northamerica-northeast1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"northamerica-northeast1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"northamerica-northeast1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"southamerica-east1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\"],\"vCpuMax\":64},\"southamerica-east1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\"],\"vCpuMax\":64},\"southamerica-east1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\"],\"vCpuMax\":64},\"southamerica-east1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\"],\"vCpuMax\":64},\"us-central1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-central1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-central1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"us-central1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"us-central1-f\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"us-east1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east1-d\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east4\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east4-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east4-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east4-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west2\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west2-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west2-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west2-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96}}},{\"accountType\":\"gce\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"gce\",\"environment\":\"gce\",\"name\":\"gce\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v1\",\"requiredGroupMembership\":[],\"skin\":\"v1\",\"type\":\"gce\",\"compute\":{\"applicationName\":\"Spinnaker/2.85.0-SNAPSHOT\",\"baseUrl\":\"https://www.googleapis.com/compute/beta/projects/\",\"jsonFactory\":{},\"objectParser\":{\"jsonFactory\":{},\"wrapperKeys\":[]},\"requestFactory\":{\"initializer\":{},\"transport\":{}},\"rootUrl\":\"https://www.googleapis.com/\",\"servicePath\":\"compute/beta/projects/\",\"suppressPatternChecks\":false,\"suppressRequiredParameterChecks\":false},\"instanceTypeDisks\":[{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-1\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-2\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-4\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-8\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-16\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-standard-32\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_STANDARD\"}],\"instanceType\":\"f1-micro\",\"supportsLocalSSD\":false},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_STANDARD\"}],\"instanceType\":\"g1-small\",\"supportsLocalSSD\":false},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-2\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-4\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-8\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-16\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highmem-32\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-2\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-4\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-8\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-16\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"n1-highcpu-32\",\"supportsLocalSSD\":true},{\"disks\":[{\"autoDelete\":true,\"persistent\":true,\"sizeGb\":10,\"type\":\"PD_SSD\"}],\"instanceType\":\"default\",\"supportsLocalSSD\":true}],\"regionToZonesMap\":{\"asia-east1\":[\"asia-east1-a\",\"asia-east1-b\",\"asia-east1-c\"],\"asia-northeast1\":[\"asia-northeast1-a\",\"asia-northeast1-b\",\"asia-northeast1-c\"],\"asia-south1\":[\"asia-south1-b\",\"asia-south1-a\",\"asia-south1-c\"],\"asia-southeast1\":[\"asia-southeast1-a\",\"asia-southeast1-b\",\"asia-southeast1-c\"],\"australia-southeast1\":[\"australia-southeast1-c\",\"australia-southeast1-a\",\"australia-southeast1-b\"],\"europe-north1\":[\"europe-north1-b\",\"europe-north1-c\",\"europe-north1-a\"],\"europe-west1\":[\"europe-west1-b\",\"europe-west1-c\",\"europe-west1-d\"],\"europe-west2\":[\"europe-west2-a\",\"europe-west2-b\",\"europe-west2-c\"],\"europe-west3\":[\"europe-west3-c\",\"europe-west3-a\",\"europe-west3-b\"],\"europe-west4\":[\"europe-west4-c\",\"europe-west4-b\",\"europe-west4-a\"],\"northamerica-northeast1\":[\"northamerica-northeast1-a\",\"northamerica-northeast1-b\",\"northamerica-northeast1-c\"],\"southamerica-east1\":[\"southamerica-east1-a\",\"southamerica-east1-b\",\"southamerica-east1-c\"],\"us-central1\":[\"us-central1-a\",\"us-central1-b\",\"us-central1-c\",\"us-central1-f\"],\"us-east1\":[\"us-east1-b\",\"us-east1-c\",\"us-east1-d\"],\"us-east4\":[\"us-east4-a\",\"us-east4-b\",\"us-east4-c\"],\"us-west1\":[\"us-west1-a\",\"us-west1-b\",\"us-west1-c\"],\"us-west2\":[\"us-west2-c\",\"us-west2-b\",\"us-west2-a\"]},\"regions\":[{\"name\":\"asia-east1\",\"zones\":[\"asia-east1-a\",\"asia-east1-b\",\"asia-east1-c\"]},{\"name\":\"asia-northeast1\",\"zones\":[\"asia-northeast1-a\",\"asia-northeast1-b\",\"asia-northeast1-c\"]},{\"name\":\"asia-south1\",\"zones\":[\"asia-south1-b\",\"asia-south1-a\",\"asia-south1-c\"]},{\"name\":\"asia-southeast1\",\"zones\":[\"asia-southeast1-a\",\"asia-southeast1-b\",\"asia-southeast1-c\"]},{\"name\":\"australia-southeast1\",\"zones\":[\"australia-southeast1-c\",\"australia-southeast1-a\",\"australia-southeast1-b\"]},{\"name\":\"europe-north1\",\"zones\":[\"europe-north1-b\",\"europe-north1-c\",\"europe-north1-a\"]},{\"name\":\"europe-west1\",\"zones\":[\"europe-west1-b\",\"europe-west1-c\",\"europe-west1-d\"]},{\"name\":\"europe-west2\",\"zones\":[\"europe-west2-a\",\"europe-west2-b\",\"europe-west2-c\"]},{\"name\":\"europe-west3\",\"zones\":[\"europe-west3-c\",\"europe-west3-a\",\"europe-west3-b\"]},{\"name\":\"europe-west4\",\"zones\":[\"europe-west4-c\",\"europe-west4-b\",\"europe-west4-a\"]},{\"name\":\"northamerica-northeast1\",\"zones\":[\"northamerica-northeast1-a\",\"northamerica-northeast1-b\",\"northamerica-northeast1-c\"]},{\"name\":\"southamerica-east1\",\"zones\":[\"southamerica-east1-a\",\"southamerica-east1-b\",\"southamerica-east1-c\"]},{\"name\":\"us-central1\",\"zones\":[\"us-central1-a\",\"us-central1-b\",\"us-central1-c\",\"us-central1-f\"]},{\"name\":\"us-east1\",\"zones\":[\"us-east1-b\",\"us-east1-c\",\"us-east1-d\"]},{\"name\":\"us-east4\",\"zones\":[\"us-east4-a\",\"us-east4-b\",\"us-east4-c\"]},{\"name\":\"us-west1\",\"zones\":[\"us-west1-a\",\"us-west1-b\",\"us-west1-c\"]},{\"name\":\"us-west2\",\"zones\":[\"us-west2-c\",\"us-west2-b\",\"us-west2-a\"]}],\"authorized\":true,\"project\":\"hebridean-sun\",\"computeVersion\":\"DEFAULT\",\"locationToCpuPlatformsMap\":{\"asia-east1\":[\"Intel Ivy Bridge\",\"Intel Broadwell\",\"Intel Skylake\"],\"asia-east1-a\":[\"Intel Ivy Bridge\",\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"asia-east1-b\":[\"Intel Ivy Bridge\",\"Intel Broadwell\",\"Intel Skylake\"],\"asia-east1-c\":[\"Intel Ivy Bridge\",\"Intel Broadwell\",\"Intel Skylake\"],\"asia-northeast1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-northeast1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-northeast1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-northeast1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-south1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-south1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-south1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-south1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-southeast1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-southeast1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-southeast1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"asia-southeast1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"australia-southeast1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"australia-southeast1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"australia-southeast1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"australia-southeast1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-north1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-north1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-north1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-north1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west1\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west1-b\":[\"Intel Sandy Bridge\",\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west1-c\":[\"Intel Ivy Bridge\",\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west1-d\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west2\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west2-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west2-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west2-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west3\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west3-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west3-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west3-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west4\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west4-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west4-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"europe-west4-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"northamerica-northeast1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"northamerica-northeast1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"northamerica-northeast1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"northamerica-northeast1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"southamerica-east1\":[\"Intel Broadwell\"],\"southamerica-east1-a\":[\"Intel Broadwell\"],\"southamerica-east1-b\":[\"Intel Broadwell\"],\"southamerica-east1-c\":[\"Intel Broadwell\"],\"us-central1\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-central1-a\":[\"Intel Sandy Bridge\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-central1-b\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-central1-c\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-central1-f\":[\"Intel Ivy Bridge\",\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east1\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east1-b\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east1-c\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east1-d\":[\"Intel Haswell\",\"Intel Broadwell\",\"Intel Skylake\"],\"us-east4\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-east4-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-east4-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-east4-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west1\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west1-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west1-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west1-c\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west2\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west2-a\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west2-b\":[\"Intel Broadwell\",\"Intel Skylake\"],\"us-west2-c\":[\"Intel Broadwell\",\"Intel Skylake\"]},\"applicationName\":\"Spinnaker/2.85.0-SNAPSHOT\",\"locationToInstanceTypesMap\":{\"asia-east1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-east1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-east1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-east1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-northeast1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-northeast1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-northeast1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-northeast1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"asia-south1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-south1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-south1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-south1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-southeast1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-southeast1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-southeast1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"asia-southeast1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"australia-southeast1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"australia-southeast1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"australia-southeast1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"australia-southeast1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-north1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-north1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-north1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-north1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"europe-west1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west1-d\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"europe-west2\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west2-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west2-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west2-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west3\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west3-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west3-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west3-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west4\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west4-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west4-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"europe-west4-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"northamerica-northeast1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"northamerica-northeast1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"northamerica-northeast1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"northamerica-northeast1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"southamerica-east1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\"],\"vCpuMax\":64},\"southamerica-east1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\"],\"vCpuMax\":64},\"southamerica-east1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\"],\"vCpuMax\":64},\"southamerica-east1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\"],\"vCpuMax\":64},\"us-central1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-central1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-central1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"us-central1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"us-central1-f\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\",\"n1-ultramem-160\",\"n1-ultramem-40\",\"n1-ultramem-80\"],\"vCpuMax\":160},\"us-east1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east1-d\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east4\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east4-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east4-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-east4-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west1\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west1-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west1-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-megamem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west1-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west2\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west2-a\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west2-b\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96},\"us-west2-c\":{\"instanceTypes\":[\"f1-micro\",\"g1-small\",\"n1-highcpu-16\",\"n1-highcpu-2\",\"n1-highcpu-32\",\"n1-highcpu-4\",\"n1-highcpu-64\",\"n1-highcpu-8\",\"n1-highcpu-96\",\"n1-highmem-16\",\"n1-highmem-2\",\"n1-highmem-32\",\"n1-highmem-4\",\"n1-highmem-64\",\"n1-highmem-8\",\"n1-highmem-96\",\"n1-standard-1\",\"n1-standard-16\",\"n1-standard-2\",\"n1-standard-32\",\"n1-standard-4\",\"n1-standard-64\",\"n1-standard-8\",\"n1-standard-96\"],\"vCpuMax\":96}}},{\"accountType\":\"gae\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"appengine\",\"environment\":\"gae\",\"name\":\"gae\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v1\",\"requiredGroupMembership\":[],\"skin\":\"v1\",\"type\":\"appengine\",\"regions\":[\"us-central\"],\"supportedGitCredentialTypes\":[\"NONE\"],\"authorized\":true,\"project\":\"hebridean-sun\",\"region\":\"us-central\",\"applicationName\":\"Spinnaker/2.85.0-SNAPSHOT\"},{\"accountType\":\"deck-functional-tests\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"kubernetes\",\"environment\":\"deck-functional-tests\",\"name\":\"deck-functional-tests\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v2\",\"requiredGroupMembership\":[],\"skin\":\"v2\",\"type\":\"kubernetes\",\"authorized\":true,\"cacheThreads\":1,\"spinnakerKindMap\":{\"configMap\":\"configs\",\"cronJob\":\"serverGroups\",\"daemonSet\":\"serverGroups\",\"deployment\":\"serverGroupManagers\",\"ingress\":\"loadBalancers\",\"job\":\"serverGroups\",\"networkPolicy\":\"securityGroups\",\"persistentVolume\":\"configs\",\"persistentVolumeClaim\":\"configs\",\"pod\":\"instances\",\"replicaSet\":\"serverGroups\",\"secret\":\"configs\",\"service\":\"loadBalancers\",\"statefulSet\":\"serverGroups\"},\"namespaces\":[]},{\"accountType\":\"appengine-heb-sun\",\"challengeDestructiveActions\":false,\"cloudProvider\":\"appengine\",\"environment\":\"appengine-heb-sun\",\"name\":\"appengine-heb-sun\",\"permissions\":{},\"primaryAccount\":false,\"providerVersion\":\"v1\",\"requiredGroupMembership\":[],\"skin\":\"v1\",\"type\":\"appengine\",\"regions\":[\"us-central\"],\"supportedGitCredentialTypes\":[\"NONE\"],\"authorized\":true,\"project\":\"hebridean-sun\",\"region\":\"us-central\",\"applicationName\":\"Spinnaker/2.85.0-SNAPSHOT\"}]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/loadBalancers"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "provider": "appengine"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "1a84d007-5d2c-4c0e-880d-7a887ef7264f",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/applications"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "a17a1f8e-c354-48c4-8e3c-3faeec40ba90",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/loadBalancers"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "provider": "gce"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "e178ebe2-3af6-4808-afc9-d0146efb484a",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/subnets/gce"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "a8ad78f3-f7e7-404b-b975-952664cdfe57",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/networks/gce"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "e35a33d1-c430-4776-a171-8c0f2c432e25",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/search"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "allowShortQuery": "true",
+              "pageSize": "500",
+              "q": "",
+              "type": "healthChecks"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "8a54c5db-dca5-4d05-80ea-494834736820",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/search"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "allowShortQuery": "true",
+              "pageSize": "500",
+              "q": "",
+              "type": "sslCertificates"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "cec04023-68ac-404d-bfa4-47c0bee05251",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/search"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "allowShortQuery": "true",
+              "q": "",
+              "type": "backendServices"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "21541f7c-1188-41bd-9f2b-cfe183a55350",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/securityGroups"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "7155a999-9aa4-417b-a739-ccb567bc109c",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/loadBalancers"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "provider": "kubernetes"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "e8803204-eea7-402c-b772-b65e172b9aa0",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/search"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "allowShortQuery": "true",
+              "pageSize": "500",
+              "q": "",
+              "type": "addresses"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "83595fb5-84e2-4a7f-8519-4879f4c80646",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "OPTIONS"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/v2/builds"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "81630dff-b513-460b-b6cc-d33699efde3e",
+              "Allow": "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH",
+              "Content-Length": 0,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/networks/gce"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "b8aae2e7-1187-4b9b-8dac-51315d213e15",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 4094,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "[{\"account\":\"compute-engine\",\"autoCreateSubnets\":true,\"cloudProvider\":\"gce\",\"id\":\"default\",\"name\":\"default\",\"region\":\"global\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/global/networks/default\",\"subnets\":[\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-central1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west2/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/northamerica-northeast1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east4/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-south1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west4/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west3/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/southamerica-east1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-north1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/australia-southeast1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-southeast1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-east1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west2/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-northeast1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west1/subnetworks/default\"]},{\"account\":\"gce\",\"autoCreateSubnets\":true,\"cloudProvider\":\"gce\",\"id\":\"default\",\"name\":\"default\",\"region\":\"global\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/global/networks/default\",\"subnets\":[\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-central1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west2/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/northamerica-northeast1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east4/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-south1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west4/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west3/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/southamerica-east1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-north1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/australia-southeast1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-southeast1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-east1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west2/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-northeast1/subnetworks/default\",\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west1/subnetworks/default\"]}]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/webhooks/preconfigured"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "55ad0629-005b-45c6-b831-b7a6331f4b6e",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 2,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "[]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/subnets/gce"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "25ddd434-7698-4f35-9e53-96d50363a337",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 10368,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "[{\"account\":\"compute-engine\",\"cidrBlock\":\"10.158.0.0/20\",\"gatewayAddress\":\"10.158.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"southamerica-east1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/southamerica-east1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.138.0.0/20\",\"gatewayAddress\":\"10.138.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-west1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.168.0.0/20\",\"gatewayAddress\":\"10.168.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-west2\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west2/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.168.0.0/20\",\"gatewayAddress\":\"10.168.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-west2\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west2/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.138.0.0/20\",\"gatewayAddress\":\"10.138.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-west1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-west1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.128.0.0/20\",\"gatewayAddress\":\"10.128.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-central1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-central1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.164.0.0/20\",\"gatewayAddress\":\"10.164.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-west4\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west4/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.148.0.0/20\",\"gatewayAddress\":\"10.148.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"asia-southeast1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-southeast1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.156.0.0/20\",\"gatewayAddress\":\"10.156.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-west3\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west3/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.154.0.0/20\",\"gatewayAddress\":\"10.154.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-west2\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west2/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.152.0.0/20\",\"gatewayAddress\":\"10.152.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"australia-southeast1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/australia-southeast1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.132.0.0/20\",\"gatewayAddress\":\"10.132.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-west1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.162.0.0/20\",\"gatewayAddress\":\"10.162.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"northamerica-northeast1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/northamerica-northeast1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.160.0.0/20\",\"gatewayAddress\":\"10.160.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"asia-south1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-south1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.140.0.0/20\",\"gatewayAddress\":\"10.140.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"asia-east1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-east1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.150.0.0/20\",\"gatewayAddress\":\"10.150.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-east4\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east4/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.142.0.0/20\",\"gatewayAddress\":\"10.142.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-east1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.160.0.0/20\",\"gatewayAddress\":\"10.160.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"asia-south1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-south1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.166.0.0/20\",\"gatewayAddress\":\"10.166.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-north1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-north1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.156.0.0/20\",\"gatewayAddress\":\"10.156.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-west3\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west3/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.164.0.0/20\",\"gatewayAddress\":\"10.164.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-west4\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west4/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.132.0.0/20\",\"gatewayAddress\":\"10.132.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-west1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.154.0.0/20\",\"gatewayAddress\":\"10.154.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-west2\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-west2/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.146.0.0/20\",\"gatewayAddress\":\"10.146.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"asia-northeast1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-northeast1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.140.0.0/20\",\"gatewayAddress\":\"10.140.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"asia-east1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-east1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.162.0.0/20\",\"gatewayAddress\":\"10.162.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"northamerica-northeast1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/northamerica-northeast1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.158.0.0/20\",\"gatewayAddress\":\"10.158.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"southamerica-east1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/southamerica-east1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.148.0.0/20\",\"gatewayAddress\":\"10.148.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"asia-southeast1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-southeast1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.128.0.0/20\",\"gatewayAddress\":\"10.128.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-central1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-central1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.152.0.0/20\",\"gatewayAddress\":\"10.152.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"australia-southeast1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/australia-southeast1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.142.0.0/20\",\"gatewayAddress\":\"10.142.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-east1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.166.0.0/20\",\"gatewayAddress\":\"10.166.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"europe-north1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/europe-north1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"gce\",\"cidrBlock\":\"10.146.0.0/20\",\"gatewayAddress\":\"10.146.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"asia-northeast1\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/asia-northeast1/subnetworks/default\",\"type\":\"gce\"},{\"account\":\"compute-engine\",\"cidrBlock\":\"10.150.0.0/20\",\"gatewayAddress\":\"10.150.0.1\",\"id\":\"default\",\"name\":\"default\",\"network\":\"default\",\"purpose\":\"n/a\",\"region\":\"us-east4\",\"selfLink\":\"https://www.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-east4/subnetworks/default\",\"type\":\"gce\"}]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/loadBalancers"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "provider": "appengine"
+            }
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "1afa8493-7692-4cc2-9583-c8376a26866f",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 2,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "[]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/applications"
+          },
+          "keyCaseSensitive": true
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {}
+          },
+          "keyCaseSensitive": true
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "d94c23c6-f545-4fd4-b9ef-5891db232e85",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 2826,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "[{\"accounts\":\"compute-engine,gce\",\"cloudProviders\":\"gce\",\"createTs\":\"1519160914577\",\"dataSources\":{\"disabled\":[],\"enabled\":[\"canaryConfigs\"]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"compute\",\"platformHealthOnly\":true,\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":false}},\"updateTs\":\"1528725673043\",\"user\":\"[anonymous]\"},{\"accounts\":\"\",\"cloudProviders\":\"kubernetes\",\"createTs\":\"1538510658871\",\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"decktests\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":false}},\"updateTs\":\"1538510659285\",\"user\":\"[anonymous]\"},{\"accounts\":\"\",\"cloudProviders\":\"\",\"createTs\":\"1538677167189\",\"dataSources\":{\"disabled\":[],\"enabled\":[]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"default\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1538677167684\",\"user\":\"[anonymous]\"},{\"accounts\":\"\",\"cloudProviders\":\"appengine\",\"createTs\":\"1534427928238\",\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"gae\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1534427928639\",\"user\":\"[anonymous]\"},{\"accounts\":\"appengine-heb-sun,gae\",\"cloudProviders\":\"kubernetes\",\"createTs\":\"1517519573155\",\"dataSources\":{\"disabled\":[\"canaryConfigs\"],\"enabled\":[]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"k8sdeploy\",\"platformHealthOnly\":true,\"platformHealthOnlyShowOverride\":false,\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1537888187968\",\"user\":\"[anonymous]\"},{\"accounts\":\"k8s-v1-deathstar\",\"cloudProviders\":\"kubernetes\",\"createTs\":\"1528200354465\",\"dataSources\":{\"disabled\":[],\"enabled\":[]},\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"k8sv1\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1530215134941\",\"user\":\"[anonymous]\"},{\"accounts\":\"\",\"cloudProviders\":\"kubernetes\",\"createTs\":\"1528463950711\",\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"k8sv2\",\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1528463951018\",\"user\":\"[anonymous]\"},{\"accounts\":\"\",\"cloudProviders\":\"kubernetes,appengine,gce\",\"createTs\":\"1537888240754\",\"email\":\"sbws@google.com\",\"instancePort\":80,\"lastModifiedBy\":\"anonymous\",\"name\":\"multiaccount\",\"platformHealthOnly\":true,\"providerSettings\":{\"gce\":{\"associatePublicIpAddress\":true}},\"updateTs\":\"1537888241078\",\"user\":\"[anonymous]\"},{\"accounts\":\"compute-engine,gce\",\"name\":\"gke\"},{\"accounts\":\"k8s-v1-deathstar\",\"name\":\"haas\"},{\"accounts\":\"k8s-v1-deathstar\",\"name\":\"hello\"},{\"accounts\":\"k8s-v1-deathstar\",\"name\":\"k8s\"},{\"accounts\":\"k8s-v1-deathstar\",\"name\":\"my\"},{\"accounts\":\"k8s-v1-deathstar\",\"name\":\"nginx\"}]",
+            "_mode": "text"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "method": "GET"
+          }
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "path": "/loadBalancers"
+          }
+        },
+        {
+          "caseSensitive": true,
+          "deepEquals": {
+            "query": {
+              "provider": "gce"
+            }
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Origin": "http://localhost:9000",
+              "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT, PATCH",
+              "Access-Control-Max-Age": "3600",
+              "Access-Control-Allow-Headers": "x-requested-with, content-type, authorization, X-RateLimit-App, X-Spinnaker-Priority",
+              "Access-Control-Expose-Headers": "X-AUTH-REDIRECT-URL",
+              "X-Content-Type-Options": "nosniff",
+              "X-XSS-Protection": "1; mode=block",
+              "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0",
+              "X-Frame-Options": "DENY",
+              "X-Application-Context": "gate:test,local:18084",
+              "X-SPINNAKER-REQUEST-ID": "3a701925-9ade-4fe8-b849-278abc620004",
+              "Content-Type": "application/json;charset=UTF-8",
+              "Content-Length": 1071,
+              "Date": "Thu, 04 Oct 2018 23:45:44 GMT",
+              "Connection": "close"
+            },
+            "body": "[{\"accounts\":[{\"name\":\"gce\",\"regions\":[{\"loadBalancers\":[{\"account\":\"gce\",\"backendServices\":null,\"loadBalancerType\":\"NETWORK\",\"name\":\"a8b833573bb4911e8938d42010a96011\",\"region\":\"us-east4\",\"type\":\"gce\",\"urlMapName\":null}],\"name\":\"us-east4\"}]},{\"name\":\"compute-engine\",\"regions\":[{\"loadBalancers\":[{\"account\":\"compute-engine\",\"backendServices\":null,\"loadBalancerType\":\"NETWORK\",\"name\":\"a8b833573bb4911e8938d42010a96011\",\"region\":\"us-east4\",\"type\":\"gce\",\"urlMapName\":null}],\"name\":\"us-east4\"}]}],\"name\":\"a8b833573bb4911e8938d42010a96011\"},{\"accounts\":[{\"name\":\"compute-engine\",\"regions\":[{\"loadBalancers\":[{\"account\":\"compute-engine\",\"backendServices\":null,\"loadBalancerType\":\"NETWORK\",\"name\":\"a8b893be3bb4911e8938d42010a96011\",\"region\":\"us-east4\",\"type\":\"gce\",\"urlMapName\":null}],\"name\":\"us-east4\"}]},{\"name\":\"gce\",\"regions\":[{\"loadBalancers\":[{\"account\":\"gce\",\"backendServices\":null,\"loadBalancerType\":\"NETWORK\",\"name\":\"a8b893be3bb4911e8938d42010a96011\",\"region\":\"us-east4\",\"type\":\"gce\",\"urlMapName\":null}],\"name\":\"us-east4\"}]}],\"name\":\"a8b893be3bb4911e8938d42010a96011\"}]",
+            "_mode": "text"
+          }
+        }
+      ]
+    }
+  ]
+}
